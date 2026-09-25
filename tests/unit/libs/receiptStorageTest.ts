@@ -108,25 +108,25 @@ describe('ReceiptStorage', () => {
 
             expect(name).toBe(RECEIPT);
             expect(mockMv.mock.calls).toEqual([
-                [STILL, `${FOLDER}/${RECEIPT}.staged`],
-                [`${FOLDER}/${RECEIPT}`, `${FOLDER}/${RECEIPT}.backup`],
-                [`${FOLDER}/${RECEIPT}.staged`, `${FOLDER}/${RECEIPT}`],
+                [STILL, `${FOLDER}/${RECEIPT}.receipt-swap-staged`],
+                [`${FOLDER}/${RECEIPT}`, `${FOLDER}/${RECEIPT}.receipt-swap-backup`],
+                [`${FOLDER}/${RECEIPT}.receipt-swap-staged`, `${FOLDER}/${RECEIPT}`],
             ]);
         });
 
         it('drops the file it moved aside once the swap went through, so a capture leaves one receipt behind', async () => {
-            mockExists.mockImplementation((path: string) => Promise.resolve(path === `${FOLDER}/${RECEIPT}` || path === `${FOLDER}/${RECEIPT}.backup`));
+            mockExists.mockImplementation((path: string) => Promise.resolve(path === `${FOLDER}/${RECEIPT}` || path === `${FOLDER}/${RECEIPT}.receipt-swap-backup`));
 
             await ReceiptStorage.overwrite(RECEIPT, STILL);
 
-            expect(mockUnlink).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.backup`);
+            expect(mockUnlink).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.receipt-swap-backup`);
         });
 
         it('puts the original receipt back when the swap fails, rather than leaving the receipt missing', async () => {
             const existing = new Set([`${FOLDER}/${RECEIPT}`]);
             mockExists.mockImplementation((path: string) => Promise.resolve(existing.has(path)));
             mockMv.mockImplementation((from: string, to: string) => {
-                if (from === `${FOLDER}/${RECEIPT}.staged` && to === `${FOLDER}/${RECEIPT}`) {
+                if (from === `${FOLDER}/${RECEIPT}.receipt-swap-staged` && to === `${FOLDER}/${RECEIPT}`) {
                     return Promise.reject(new Error('no space left on device'));
                 }
                 existing.delete(from);
@@ -136,8 +136,8 @@ describe('ReceiptStorage', () => {
 
             await expect(ReceiptStorage.overwrite(RECEIPT, STILL)).rejects.toThrow('no space left on device');
 
-            expect(mockMv).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.backup`, `${FOLDER}/${RECEIPT}`);
-            expect(mockUnlink).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.staged`);
+            expect(mockMv).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.receipt-swap-backup`, `${FOLDER}/${RECEIPT}`);
+            expect(mockUnlink).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.receipt-swap-staged`);
         });
 
         it('reports where the receipt was left when the swap fails and the restore fails too', async () => {
@@ -152,11 +152,11 @@ describe('ReceiptStorage', () => {
                 return Promise.resolve();
             });
 
-            await expect(ReceiptStorage.overwrite(RECEIPT, STILL)).rejects.toThrow(`it is left at ${FOLDER}/${RECEIPT}.backup`);
+            await expect(ReceiptStorage.overwrite(RECEIPT, STILL)).rejects.toThrow(`it is left at ${FOLDER}/${RECEIPT}.receipt-swap-backup`);
 
             // Freeing the staged copy gives a full disk room for the restore, so it happens even when the
             // restore then fails.
-            expect(mockUnlink).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.staged`);
+            expect(mockUnlink).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.receipt-swap-staged`);
         });
 
         it('still reports success when only the housekeeping delete fails, because the receipt is already swapped', async () => {
@@ -167,7 +167,7 @@ describe('ReceiptStorage', () => {
         });
 
         it('restores a receipt stranded under the backup name by a swap the app died in the middle of', async () => {
-            const existing = new Set([`${FOLDER}/${RECEIPT}.backup`]);
+            const existing = new Set([`${FOLDER}/${RECEIPT}.receipt-swap-backup`]);
             mockExists.mockImplementation((path: string) => Promise.resolve(existing.has(path)));
             mockMv.mockImplementation((from: string, to: string) => {
                 existing.delete(from);
@@ -178,7 +178,7 @@ describe('ReceiptStorage', () => {
             await expect(ReceiptStorage.overwrite(RECEIPT, STILL)).resolves.toBe(RECEIPT);
 
             // The stranded copy is the only one left, so it goes back before any cleanup can delete it.
-            expect(mockMv).toHaveBeenNthCalledWith(1, `${FOLDER}/${RECEIPT}.backup`, `${FOLDER}/${RECEIPT}`);
+            expect(mockMv).toHaveBeenNthCalledWith(1, `${FOLDER}/${RECEIPT}.receipt-swap-backup`, `${FOLDER}/${RECEIPT}`);
             expect(mockMv.mock.invocationCallOrder.at(0) ?? 0).toBeLessThan(mockUnlink.mock.invocationCallOrder.at(0) ?? Number.MAX_SAFE_INTEGER);
         });
 
@@ -213,8 +213,8 @@ describe('ReceiptStorage', () => {
 
             // Staging only put a file beside the receipt, so backing out means dropping that copy and
             // leaving the receipt's own name untouched.
-            expect(mockUnlink).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.staged`);
-            expect(mockMv).not.toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}`, `${FOLDER}/${RECEIPT}.backup`);
+            expect(mockUnlink).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.receipt-swap-staged`);
+            expect(mockMv).not.toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}`, `${FOLDER}/${RECEIPT}.receipt-swap-backup`);
             // The receipt itself is exactly where it was.
             expect(existing.has(`${FOLDER}/${RECEIPT}`)).toBe(true);
         });
@@ -223,7 +223,7 @@ describe('ReceiptStorage', () => {
             mockExists.mockImplementation(onlyTheReceiptExists);
 
             await expect(ReceiptStorage.overwrite(RECEIPT, STILL, () => false)).resolves.toBe(RECEIPT);
-            expect(mockMv).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.staged`, `${FOLDER}/${RECEIPT}`);
+            expect(mockMv).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.receipt-swap-staged`, `${FOLDER}/${RECEIPT}`);
         });
 
         it('refuses a second swap over a receipt already being swapped, rather than clearing its staged copy', async () => {
@@ -233,7 +233,7 @@ describe('ReceiptStorage', () => {
                 mockMv.mockImplementation((from: string, to: string) => {
                     existing.delete(from);
                     existing.add(to);
-                    if (to === `${FOLDER}/${RECEIPT}.staged`) {
+                    if (to === `${FOLDER}/${RECEIPT}.receipt-swap-staged`) {
                         resolve();
                         return new Promise<void>((settle) => {
                             finishFirstSwap = settle;
@@ -283,8 +283,8 @@ describe('ReceiptStorage', () => {
 
         it('never waits on the swap that asked for it, since `overwrite` registers itself before awaiting the sweep', async () => {
             const storage = loadFreshStorage();
-            const existing = new Set([`${FOLDER}/${RECEIPT}.backup`]);
-            mockReadDir.mockResolvedValue([{name: `${RECEIPT}.backup`}]);
+            const existing = new Set([FOLDER, `${FOLDER}/${RECEIPT}.receipt-swap-backup`]);
+            mockReadDir.mockResolvedValue([{name: `${RECEIPT}.receipt-swap-backup`}]);
             mockExists.mockImplementation((path: string) => Promise.resolve(existing.has(path)));
             mockMv.mockImplementation((from: string, to: string) => {
                 existing.delete(from);
@@ -303,6 +303,8 @@ describe('ReceiptStorage', () => {
 
             await expect(Promise.race([swap.then(() => 'settled'), stalled])).resolves.toBe('settled');
             await expect(swap).resolves.toBe(RECEIPT);
+            // The sweep actually listed the folder, so the restore above went through it and not overwrite's own path.
+            expect(mockReadDir).toHaveBeenCalledWith(FOLDER);
             if (stall) {
                 clearTimeout(stall);
             }
@@ -310,8 +312,8 @@ describe('ReceiptStorage', () => {
 
         it('puts back a stranded backup and deletes the copies nothing owns before it renames anything', async () => {
             const storage = loadFreshStorage();
-            const existing = new Set([`${FOLDER}/${RECEIPT}.backup`, `${FOLDER}/other.jpg`, `${FOLDER}/other.jpg.staged`]);
-            mockReadDir.mockResolvedValue([{name: `${RECEIPT}.backup`}, {name: 'other.jpg'}, {name: 'other.jpg.staged'}]);
+            const existing = new Set([FOLDER, `${FOLDER}/${RECEIPT}.receipt-swap-backup`, `${FOLDER}/other.jpg`, `${FOLDER}/other.jpg.receipt-swap-staged`]);
+            mockReadDir.mockResolvedValue([{name: `${RECEIPT}.receipt-swap-backup`}, {name: 'other.jpg'}, {name: 'other.jpg.receipt-swap-staged'}]);
             mockExists.mockImplementation((path: string) => Promise.resolve(existing.has(path)));
             mockMv.mockImplementation((from: string, to: string) => {
                 existing.delete(from);
@@ -323,9 +325,9 @@ describe('ReceiptStorage', () => {
             // has to find it there, which means the sweep must finish before `verify` runs.
             await expect(storage.overwrite(RECEIPT, '/var/mobile/tmp/still.jpg')).resolves.toBe(RECEIPT);
 
-            expect(mockMv).toHaveBeenNthCalledWith(1, `${FOLDER}/${RECEIPT}.backup`, `${FOLDER}/${RECEIPT}`);
+            expect(mockMv).toHaveBeenNthCalledWith(1, `${FOLDER}/${RECEIPT}.receipt-swap-backup`, `${FOLDER}/${RECEIPT}`);
             // A staged copy beside a receipt that is already in place has no owner.
-            expect(mockUnlink).toHaveBeenCalledWith(`${FOLDER}/other.jpg.staged`);
+            expect(mockUnlink).toHaveBeenCalledWith(`${FOLDER}/other.jpg.receipt-swap-staged`);
             expect(mockUnlink).not.toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}`);
 
             // A second write does not pay for the directory listing again.
@@ -352,10 +354,53 @@ describe('ReceiptStorage', () => {
             expect(hasListed).toBe(true);
         });
 
+        it('skips the sweep when the receipts folder does not exist yet', async () => {
+            // Given a fresh install that has never scanned or adopted a receipt, so the folder was never created
+            const storage = loadFreshStorage();
+            mockExists.mockResolvedValue(false);
+            const originalRequestIdleCallback = global.requestIdleCallback;
+            global.requestIdleCallback = ((callback: IdleRequestCallback) => {
+                callback({didTimeout: false, timeRemaining: () => 50});
+                return 0;
+            }) as typeof requestIdleCallback;
+
+            // When the startup sweep runs
+            try {
+                await storage.sweepLeftovers();
+            } finally {
+                global.requestIdleCallback = originalRequestIdleCallback;
+            }
+
+            // Then it never lists the missing folder, which would reject and log a warning on every launch
+            expect(mockReadDir).not.toHaveBeenCalled();
+        });
+
+        it('leaves an adopted attachment alone even when its own extension is .backup or .staged', async () => {
+            // Given attachments whose picked names kept a `.backup` or `.staged` extension through `adopt`
+            const storage = loadFreshStorage();
+            mockReadDir.mockResolvedValue([{name: 'db_123.backup'}, {name: 'notes_456.staged'}]);
+            const originalRequestIdleCallback = global.requestIdleCallback;
+            global.requestIdleCallback = ((callback: IdleRequestCallback) => {
+                callback({didTimeout: false, timeRemaining: () => 50});
+                return 0;
+            }) as typeof requestIdleCallback;
+
+            // When the startup sweep runs
+            try {
+                await storage.sweepLeftovers();
+            } finally {
+                global.requestIdleCallback = originalRequestIdleCallback;
+            }
+
+            // Then neither is renamed or deleted, so a queued upload still finds its file
+            expect(mockMv).not.toHaveBeenCalled();
+            expect(mockUnlink).not.toHaveBeenCalled();
+        });
+
         it('restores a stranded receipt during the deferred startup sweep, without needing an upload', async () => {
             const storage = loadFreshStorage();
-            const existing = new Set([`${FOLDER}/${RECEIPT}.backup`, `${FOLDER}/${RECEIPT}.staged`]);
-            mockReadDir.mockResolvedValue([{name: `${RECEIPT}.backup`}, {name: `${RECEIPT}.staged`}]);
+            const existing = new Set([FOLDER, `${FOLDER}/${RECEIPT}.receipt-swap-backup`, `${FOLDER}/${RECEIPT}.receipt-swap-staged`]);
+            mockReadDir.mockResolvedValue([{name: `${RECEIPT}.receipt-swap-backup`}, {name: `${RECEIPT}.receipt-swap-staged`}]);
             mockExists.mockImplementation((path: string) => Promise.resolve(existing.has(path)));
             mockMv.mockImplementation((from: string, to: string) => {
                 existing.delete(from);
@@ -379,11 +424,11 @@ describe('ReceiptStorage', () => {
                 global.requestIdleCallback = originalRequestIdleCallback;
             }
 
-            expect(mockMv).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.backup`, `${FOLDER}/${RECEIPT}`);
-            expect(mockUnlink).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.staged`);
+            expect(mockMv).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.receipt-swap-backup`, `${FOLDER}/${RECEIPT}`);
+            expect(mockUnlink).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.receipt-swap-staged`);
             expect(existing.has(`${FOLDER}/${RECEIPT}`)).toBe(true);
-            expect(existing.has(`${FOLDER}/${RECEIPT}.backup`)).toBe(false);
-            expect(existing.has(`${FOLDER}/${RECEIPT}.staged`)).toBe(false);
+            expect(existing.has(`${FOLDER}/${RECEIPT}.receipt-swap-backup`)).toBe(false);
+            expect(existing.has(`${FOLDER}/${RECEIPT}.receipt-swap-staged`)).toBe(false);
         });
     });
 
@@ -404,10 +449,10 @@ describe('ReceiptStorage', () => {
 
         it('puts back a receipt stranded under the backup name by an interrupted swap', async () => {
             mockCheckFileExists.mockResolvedValue(false);
-            mockExists.mockImplementation((path: string) => Promise.resolve(path === `${RECEIPT_PATH}.backup`));
+            mockExists.mockImplementation((path: string) => Promise.resolve(path === `${RECEIPT_PATH}.receipt-swap-backup`));
 
             await expect(ReceiptStorage.locate(RECEIPT_URI)).resolves.toBe(RECEIPT_URI);
-            expect(mockMv).toHaveBeenCalledWith(`${RECEIPT_PATH}.backup`, RECEIPT_PATH);
+            expect(mockMv).toHaveBeenCalledWith(`${RECEIPT_PATH}.receipt-swap-backup`, RECEIPT_PATH);
         });
 
         it('reads straight through while a swap is still staging, since that half can be called off', async () => {
@@ -415,7 +460,7 @@ describe('ReceiptStorage', () => {
             let finishStaging: () => void = () => {};
             const stagingStarted = new Promise<void>((resolve) => {
                 mockMv.mockImplementation((from: string, to: string) => {
-                    if (to === `${RECEIPT_PATH}.staged`) {
+                    if (to === `${RECEIPT_PATH}.receipt-swap-staged`) {
                         resolve();
                         return new Promise<void>((settle) => {
                             finishStaging = settle;
@@ -451,7 +496,7 @@ describe('ReceiptStorage', () => {
             let finishRename: () => void = () => {};
             const renameStarted = new Promise<void>((resolve) => {
                 mockMv.mockImplementation((from: string, to: string) => {
-                    if (to === `${RECEIPT_PATH}.backup`) {
+                    if (to === `${RECEIPT_PATH}.receipt-swap-backup`) {
                         resolve();
                         return new Promise<void>((settle) => {
                             finishRename = settle;
@@ -508,12 +553,12 @@ describe('ReceiptStorage', () => {
                 mockMv.mockImplementation((from: string, to: string) => {
                     existing.delete(from);
                     existing.add(to);
-                    if (to === `${RECEIPT_PATH}.backup`) {
+                    if (to === `${RECEIPT_PATH}.receipt-swap-backup`) {
                         // The receipt is now missing from its own path, which is the gap a reader can land in.
                         resolve();
                         return new Promise<void>((settle) => {
                             finishSwap = () => {
-                                existing.delete(`${RECEIPT_PATH}.staged`);
+                                existing.delete(`${RECEIPT_PATH}.receipt-swap-staged`);
                                 existing.add(RECEIPT_PATH);
                                 settle();
                             };
@@ -534,13 +579,13 @@ describe('ReceiptStorage', () => {
 
             // The swapped-in file is what the reader gets, and the backup was never moved back over it.
             await expect(located).resolves.toBe(RECEIPT_URI);
-            expect(mockMv).not.toHaveBeenCalledWith(`${RECEIPT_PATH}.backup`, RECEIPT_PATH);
+            expect(mockMv).not.toHaveBeenCalledWith(`${RECEIPT_PATH}.receipt-swap-backup`, RECEIPT_PATH);
         });
 
         it('treats a receipt that reappeared while the restore was failing as readable', async () => {
             mockCheckFileExists.mockResolvedValue(false);
             let hasMoved = false;
-            mockExists.mockImplementation((path: string) => Promise.resolve(path === `${RECEIPT_PATH}.backup` || (path === RECEIPT_PATH && hasMoved)));
+            mockExists.mockImplementation((path: string) => Promise.resolve(path === `${RECEIPT_PATH}.receipt-swap-backup` || (path === RECEIPT_PATH && hasMoved)));
             mockMv.mockImplementation(() => {
                 hasMoved = true;
                 return Promise.reject(new Error('file exists'));
@@ -579,7 +624,7 @@ describe('ReceiptStorage', () => {
             const receiptMissing = new Promise<void>((resolve) => {
                 mockMv.mockImplementation((from: string, to: string) => {
                     existing.delete(from);
-                    if (from === `${RECEIPT_PATH}.staged` && to === RECEIPT_PATH) {
+                    if (from === `${RECEIPT_PATH}.receipt-swap-staged` && to === RECEIPT_PATH) {
                         resolve();
                         return new Promise<void>((settle) => {
                             release = () => {
@@ -640,7 +685,7 @@ describe('ReceiptStorage', () => {
                         existing.delete(from);
                         existing.add(to);
                     };
-                    if (to === `${RECEIPT_PATH}.staged`) {
+                    if (to === `${RECEIPT_PATH}.receipt-swap-staged`) {
                         resolve();
                         return new Promise<void>((settle) => {
                             finishStaging = () => {
@@ -687,13 +732,13 @@ describe('ReceiptStorage', () => {
 
         it('puts back a receipt stranded under the backup name by an interrupted swap', async () => {
             // Given a swap the app died in, with the receipt left under its backup name
-            mockExists.mockImplementation((path: string) => Promise.resolve(path === `${RECEIPT_PATH}.backup`));
+            mockExists.mockImplementation((path: string) => Promise.resolve(path === `${RECEIPT_PATH}.receipt-swap-backup`));
 
             // When a reader rechecks the receipt
             await expect(ReceiptStorage.recheckAfterSwap(RECEIPT_URI)).resolves.toBe(true);
 
             // Then the backup is moved back, so the retried read finds the receipt
-            expect(mockMv).toHaveBeenCalledWith(`${RECEIPT_PATH}.backup`, RECEIPT_PATH);
+            expect(mockMv).toHaveBeenCalledWith(`${RECEIPT_PATH}.receipt-swap-backup`, RECEIPT_PATH);
         });
 
         it('reports a receipt that is gone and has no backup, so the reader can fail for real', async () => {

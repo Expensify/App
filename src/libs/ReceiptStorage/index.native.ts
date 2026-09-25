@@ -18,8 +18,10 @@ import {claimForRead} from './receiptUpgrades';
 
 const SWEEP_IDLE_TIMEOUT_MS = 10000;
 
-const STAGED_SUFFIX = '.staged';
-const BACKUP_SUFFIX = '.backup';
+// Specific enough that no adopted file carries them: `adopt` keeps the picked file's extension, so a plain
+// `.backup` attachment would otherwise look like a swap leftover to the sweep.
+const STAGED_SUFFIX = '.receipt-swap-staged';
+const BACKUP_SUFFIX = '.receipt-swap-backup';
 
 const swapsInFlight = new Map<string, Promise<unknown>>();
 
@@ -161,6 +163,11 @@ async function swapIntoPlace(dir: string, durableName: string, target: string, u
 }
 
 async function sweepInterruptedSwaps(dir: string) {
+    // Nothing was ever scanned or adopted, so there is nothing to sweep, and `readDir` would reject.
+    if (!(await RNFS.exists(dir))) {
+        return;
+    }
+
     const names = (await RNFS.readDir(dir)).map((entry) => entry.name);
 
     await Promise.all(

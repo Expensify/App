@@ -70,7 +70,7 @@ async function holdSwapWithReceiptMissing() {
     const receiptMissing = new Promise<void>((resolve) => {
         mockMoveFile.mockImplementation((from: string, to: string) => {
             mockExisting.delete(from);
-            if (from === `${RECEIPT_PATH}.staged` && to === RECEIPT_PATH) {
+            if (from === `${RECEIPT_PATH}.receipt-swap-staged` && to === RECEIPT_PATH) {
                 resolve();
                 return new Promise<void>((settle) => {
                     release = () => {
@@ -187,10 +187,10 @@ describe('reading a receipt while an upgrade swaps it', () => {
                     };
                 });
             };
-            if (to === `${RECEIPT_PATH}.staged`) {
+            if (to === `${RECEIPT_PATH}.receipt-swap-staged`) {
                 return hold('staging', stagingStarted);
             }
-            if (from === `${RECEIPT_PATH}.staged` && to === RECEIPT_PATH) {
+            if (from === `${RECEIPT_PATH}.receipt-swap-staged` && to === RECEIPT_PATH) {
                 return hold('secondRename', gapOpened);
             }
             move();
