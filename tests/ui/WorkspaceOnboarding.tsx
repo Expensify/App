@@ -411,6 +411,48 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should reopen the persisted Join Workspace task before its report loads after a merge', async () => {
+        const dismissModalWithReport = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {
+                choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                joinWorkspace: 'persisted-join-task',
+            });
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {
+                policyID: {
+                    policyID: 'policyID',
+                    policyName: 'Workspace',
+                    policyOwner: 'owner@example.com',
+                    employeeCount: 1,
+                    hasPendingAccess: false,
+                    automaticJoiningEnabled: true,
+                    policyType: CONST.POLICY.TYPE.CORPORATE,
+                },
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {
+            backTo: ROUTES.REPORT_WITH_ID.getRoute('123'),
+            isJoinWorkspaceTask: 'true',
+            shouldCreateJoinWorkspaceTaskOnExit: 'true',
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByTestId('onboardingWorkSpaceSkipButton'));
+
+        await waitFor(() => {
+            expect(dismissModalWithReport).toHaveBeenCalledWith({reportID: 'persisted-join-task'});
+        });
+        expect(mockCreateJoinWorkspaceOnboardingContent).not.toHaveBeenCalled();
+
+        dismissModalWithReport.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should create a Join workspace task when validation opens the workspace list before the onboarding update arrives', async () => {
         const dismissModalWithReport = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});
         await TestHelper.signInWithTestUser();
