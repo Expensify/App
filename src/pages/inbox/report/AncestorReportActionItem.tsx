@@ -22,7 +22,7 @@ import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getStableReportSelector} from '@src/selectors/Report';
-import type {Beta, IntroSelected, PersonalDetails, Report, ReportAction, ReportNameValuePairs} from '@src/types/onyx';
+import type {IntroSelected, PersonalDetails, Report, ReportAction, ReportNameValuePairs} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -43,9 +43,6 @@ type AncestorReportActionItemProps = {
     shouldDisplayNewMarker: boolean;
 
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
-
-    /** Beta features list */
-    allBetas: OnyxEntry<Beta[]>;
 
     conciergePersonalDetail: OnyxEntry<PersonalDetails>;
     conciergeReportID: string | undefined;
@@ -71,7 +68,6 @@ function AncestorReportActionItem({
     reportAction,
     shouldDisplayNewMarker,
     reportNameValuePairs,
-    allBetas,
     conciergePersonalDetail,
     conciergeReportID,
     currentUserAccountID,
@@ -130,7 +126,6 @@ function AncestorReportActionItem({
             currentUserAccountID,
             introSelected,
             isSelfTourViewed,
-            allBetas,
             reportOwnerPersonalDetail,
             currentUserPersonalDetail,
             conciergePersonalDetail,

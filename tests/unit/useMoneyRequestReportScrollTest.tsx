@@ -362,7 +362,6 @@ describe('useMoneyRequestReportScroll', () => {
         it('should pass the onboarding and session context the fetch needs', async () => {
             // Given a user who has not finished the guided setup flow
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.ALL]);
             await waitForBatchedUpdates();
             const {result} = await renderScroll({hasNewestReportAction: false, hasNewerActions: true});
 
@@ -378,7 +377,6 @@ describe('useMoneyRequestReportScroll', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     hasReportActions: true,
                     hasCompletedGuidedSetupFlow: false,
-                    betas: [CONST.BETAS.ALL],
                 }),
             );
         });
