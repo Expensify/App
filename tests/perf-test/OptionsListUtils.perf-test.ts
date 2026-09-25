@@ -138,6 +138,9 @@ describe('OptionsListUtils', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
+            initialKeyStates: {
+                [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: 'policy1',
+            },
         });
 
         Onyx.multiSet({
@@ -203,6 +206,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 },
                 undefined,
+                'policy1',
             );
         });
     });
@@ -235,6 +239,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 },
                 undefined,
+                'policy1',
             );
         });
     });
@@ -449,6 +454,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 },
                 undefined,
+                'policy1',
             );
         });
     });
