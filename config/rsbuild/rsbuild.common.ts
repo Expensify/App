@@ -5,6 +5,7 @@ import {GenerateSW} from '@aaroon/workbox-rspack-plugin';
 import {pluginSvgr} from '@rsbuild/plugin-svgr';
 import {RsdoctorRspackPlugin} from '@rsdoctor/rspack-plugin';
 import {rspack} from '@rspack/core';
+import canvaskitPackageJson from 'canvaskit-wasm/package.json' with {type: 'json'};
 import {execSync} from 'child_process';
 import dotenv from 'dotenv';
 import fs from 'fs';
@@ -52,8 +53,7 @@ const localBranchName = getCurrentBranchName();
  * or links against the wrong exports and resolves without its bindings (`PictureRecorder is not a constructor`).
  * See https://github.com/Expensify/App/issues/102042.
  */
-const canvaskitVersion = (JSON.parse(fs.readFileSync(require.resolve('canvaskit-wasm/package.json'), 'utf-8')) as {version: string}).version;
-const CANVASKIT_WASM_FILENAME = `canvaskit-${canvaskitVersion}.wasm`;
+const CANVASKIT_WASM_FILENAME = `canvaskit-${canvaskitPackageJson.version}.wasm`;
 
 /**
  * React Compiler + react-native-worklets loaders.

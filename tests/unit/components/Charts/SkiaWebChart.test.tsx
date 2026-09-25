@@ -81,10 +81,10 @@ describe('SkiaWebChart', () => {
         // Then the glue is told to fetch `canvaskit.wasm` from the build-time `__CANVASKIT_WASM_URL__` define rather
         // than the unversioned `/canvaskit.wasm`, so this bundle's glue can never be paired with another release's
         // binary (https://github.com/Expensify/App/issues/102042); any other file keeps its root-relative default.
-        const locateFile = mockWithSkiaWeb.mock.calls.at(0)?.[0].opts?.locateFile;
-        expect(locateFile?.('canvaskit.wasm')).toBe(__CANVASKIT_WASM_URL__);
-        expect(locateFile?.('canvaskit.wasm')).not.toBe('/canvaskit.wasm');
-        expect(locateFile?.('other.bin')).toBe('/other.bin');
+        const opts = mockWithSkiaWeb.mock.calls.at(0)?.[0].opts;
+        expect(opts?.locateFile?.('canvaskit.wasm')).toBe(__CANVASKIT_WASM_URL__);
+        expect(opts?.locateFile?.('canvaskit.wasm')).not.toBe('/canvaskit.wasm');
+        expect(opts?.locateFile?.('other.bin')).toBe('/other.bin');
     });
 
     it('should degrade to the failed-to-load empty state and report a warning when CanvasKit fails to load', () => {

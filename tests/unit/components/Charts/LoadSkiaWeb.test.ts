@@ -3,24 +3,23 @@
  * `LoadSkiaWeb` must refuse a CanvasKit that initialized without its bindings (glue and wasm from different releases,
  * https://github.com/Expensify/App/issues/102042) and must not cache a failed init for the rest of the session.
  */
-import CanvasKitInit from 'canvaskit-wasm/bin/full/canvaskit';
+import type {LoadSkiaWeb as LoadSkiaWebFn} from '@shopify/react-native-skia/lib/module/web/LoadSkiaWeb';
 
-jest.mock('canvaskit-wasm/bin/full/canvaskit', () => jest.fn());
-
-const mockCanvasKitInit = jest.mocked(CanvasKitInit);
-
-type LoadSkiaWebModule = typeof import('@shopify/react-native-skia/lib/module/web/LoadSkiaWeb');
+// Stands in for canvaskit-wasm's default export (`CanvasKitInit`). Typed loosely on purpose: the tests hand back
+// deliberately malformed modules that the real `CanvasKit` type would reject.
+const mockCanvasKitInit = jest.fn<Promise<unknown>, [unknown]>();
 
 // Each test needs a fresh module so the module-level `ckSharedPromise` starts out empty.
-async function importLoadSkiaWeb(): Promise<LoadSkiaWebModule['LoadSkiaWeb']> {
+async function importLoadSkiaWeb(): Promise<typeof LoadSkiaWebFn> {
     jest.resetModules();
     jest.doMock('canvaskit-wasm/bin/full/canvaskit', () => mockCanvasKitInit);
-    const module = (await import('@shopify/react-native-skia/lib/module/web/LoadSkiaWeb')) as LoadSkiaWebModule;
-    return module.LoadSkiaWeb;
+    const {LoadSkiaWeb} = await import('@shopify/react-native-skia/lib/module/web/LoadSkiaWeb');
+    return LoadSkiaWeb;
 }
 
-// A CanvasKit that finished initializing registers its classes (PictureRecorder, Paint, ...) as constructors.
-const usableCanvasKit = {PictureRecorder: class {}, Paint: class {}};
+// A CanvasKit that finished initializing registers its classes (PictureRecorder, Paint, ...) as constructors;
+// the patched loader only checks `typeof`, so plain functions are enough here.
+const usableCanvasKit = {PictureRecorder: () => {}, Paint: () => {}};
 
 // Old glue linked against a newer binary resolves an object carrying only the glue's own JS helpers.
 const canvasKitWithoutBindings = {Color: () => 0, Malloc: () => 0};
@@ -33,7 +32,7 @@ describe('LoadSkiaWeb', () => {
 
     it('should publish CanvasKit globally once it initializes with its bindings', async () => {
         // Given CanvasKit initializes normally
-        mockCanvasKitInit.mockResolvedValue(usableCanvasKit as never);
+        mockCanvasKitInit.mockResolvedValue(usableCanvasKit);
         const LoadSkiaWeb = await importLoadSkiaWeb();
 
         // When Skia is loaded
@@ -45,7 +44,7 @@ describe('LoadSkiaWeb', () => {
 
     it('should reject and keep the global unset when CanvasKit initializes without its bindings', async () => {
         // Given the glue linked against a mismatched binary, so init resolves but no classes were registered
-        mockCanvasKitInit.mockResolvedValue(canvasKitWithoutBindings as never);
+        mockCanvasKitInit.mockResolvedValue(canvasKitWithoutBindings);
         const LoadSkiaWeb = await importLoadSkiaWeb();
 
         // When Skia is loaded
@@ -59,7 +58,7 @@ describe('LoadSkiaWeb', () => {
 
     it('should retry initialization on the next load after a failed check instead of caching the failure', async () => {
         // Given the first init produced a CanvasKit without bindings
-        mockCanvasKitInit.mockResolvedValueOnce(canvasKitWithoutBindings as never).mockResolvedValueOnce(usableCanvasKit as never);
+        mockCanvasKitInit.mockResolvedValueOnce(canvasKitWithoutBindings).mockResolvedValueOnce(usableCanvasKit);
         const LoadSkiaWeb = await importLoadSkiaWeb();
         await expect(LoadSkiaWeb({})).rejects.toThrow();
 
@@ -74,7 +73,7 @@ describe('LoadSkiaWeb', () => {
     it('should retry initialization on the next load after the init itself rejected', async () => {
         // Given the first init rejected, as it does on a LinkError or a failed wasm download
         const linkError = new Error('Aborted(LinkError: WebAssembly.instantiate(): Import #238 "a" "wd": function import requires a callable)');
-        mockCanvasKitInit.mockRejectedValueOnce(linkError).mockResolvedValueOnce(usableCanvasKit as never);
+        mockCanvasKitInit.mockRejectedValueOnce(linkError).mockResolvedValueOnce(usableCanvasKit);
         const LoadSkiaWeb = await importLoadSkiaWeb();
         await expect(LoadSkiaWeb({})).rejects.toBe(linkError);
 
