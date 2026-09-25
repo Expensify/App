@@ -285,15 +285,15 @@ function findTabNode(nodes: JourneyNode[], tab: string): JourneyNode | undefined
     return first;
 }
 
-async function scrollBothWays(device: JourneyDevice, count: number, requireMovement: boolean, firstDirection: 'up' | 'down' = 'down', fast = false): Promise<void> {
+async function scrollBothWays(device: JourneyDevice, count: number, requireMovement: boolean, firstDirection: 'up' | 'down' = 'down'): Promise<void> {
     const initialNodes = device.snapshot();
-    const pixels = scrollDistance(initialNodes, fast);
+    const pixels = scrollDistance(initialNodes);
     let previous = contentSignature(initialNodes);
     let changed = 0;
     for (const direction of [firstDirection, firstDirection === 'up' ? 'down' : 'up']) {
         let stationary = 0;
         for (let scroll = 0; scroll < count; scroll += 1) {
-            device.command('scroll', direction, '--pixels', String(pixels), ...(fast ? ['--duration-ms', '120'] : []), '--settle');
+            device.command('scroll', direction, '--pixels', String(pixels), '--settle');
             const current = contentSignature(device.snapshot());
             if (current !== previous) {
                 changed += 1;
@@ -309,6 +309,23 @@ async function scrollBothWays(device: JourneyDevice, count: number, requireMovem
     }
     if (requireMovement && changed < 2) {
         throw new Error('The list did not expose enough changing content. Use a populated heavy-account fixture; do not collect this run.');
+    }
+}
+
+/** Fixed rapid swipes with one movement check per direction, keeping accessibility polling out of each fling. */
+function scrollFastBothWays(device: Pick<JourneyDevice, 'snapshot' | 'command'>, count: number): void {
+    const initialNodes = device.snapshot();
+    const pixels = String(scrollDistance(initialNodes, true));
+    let previous = contentSignature(initialNodes);
+    for (const direction of ['up', 'down']) {
+        for (let scroll = 0; scroll < count; scroll += 1) {
+            device.command('scroll', direction, '--pixels', pixels, '--duration-ms', '120', ...(scroll === count - 1 ? ['--settle'] : []));
+        }
+        const current = contentSignature(device.snapshot());
+        if (current === previous) {
+            throw new Error(`The populated report did not move during fast ${direction} scrolling. Discard this benchmark run.`);
+        }
+        previous = current;
     }
 }
 
@@ -370,6 +387,7 @@ export {
     prepareJourney,
     runJourneyWorkload,
     scrollBothWays,
+    scrollFastBothWays,
     scrollDistance,
     selectSpendSection,
     showTab,

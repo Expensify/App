@@ -3,7 +3,17 @@ import {describe, expect, it} from 'bun:test';
 import {journeyBenchmarkPaths, sha256Artifact} from '@scripts/pgo/journeyBenchmark';
 import {parseJourneyFixture} from '@scripts/pgo/journeyConfig';
 import {assertSignedIn, normalizeLabel, parseJourneySnapshot} from '@scripts/pgo/journeyDevice';
-import {allFilterTapPoint, contentSignature, findReportResult, findTabNode, inAppBackTapPoint, scrollDistance, spendSectionTapPoint, waitForTab} from '@scripts/pgo/journeyWorkload';
+import {
+    allFilterTapPoint,
+    contentSignature,
+    findReportResult,
+    findTabNode,
+    inAppBackTapPoint,
+    scrollDistance,
+    scrollFastBothWays,
+    spendSectionTapPoint,
+    waitForTab,
+} from '@scripts/pgo/journeyWorkload';
 import {BENCHMARK_SPANS_ENVIRONMENT, HEAVY_JOURNEY_SPAN_NAMES, JOURNEY_SPAN_NAMES, STARTUP_SPAN_NAME} from '@scripts/pgo/shared';
 
 import {mkdirSync, mkdtempSync, rmSync, writeFileSync} from 'node:fs';
@@ -167,6 +177,29 @@ describe('PGO journey safeguards', () => {
         }
         // Then missing viewport information must fail instead of falling back to a screen-edge gesture.
         expect(() => scrollDistance([])).toThrow('scroll bounds');
+    });
+
+    it('uses fixed rapid swipes and validates movement in both directions', () => {
+        // Given a report with distinct content at the recent and older scroll positions.
+        const snapshots = ['recent', 'older', 'recent'].map((label) =>
+            parseJourneySnapshot({appBundleId: 'test.app', nodes: [{type: 'ScrollView', rect: {width: 390, height: 844}}, {label}]}, 'test.app'),
+        );
+        const commands: string[][] = [];
+        let read = 0;
+        // When the heavy benchmark scrolls in both directions.
+        scrollFastBothWays(
+            {
+                snapshot: () => snapshots.at(read++) ?? [],
+                command: (...args) => commands.push(args),
+            },
+            4,
+        );
+        // Then it sends fixed-duration gestures and checks content after each direction.
+        expect(commands).toHaveLength(8);
+        expect(commands.every((args) => args.includes('120'))).toBe(true);
+        expect(commands.filter((args) => args.includes('--settle'))).toHaveLength(2);
+        expect(commands.at(0)?.at(1)).toBe('up');
+        expect(commands.at(-1)?.at(1)).toBe('down');
     });
 
     it('selects iOS status-bearing bottom tabs without confusing them with page headings', () => {

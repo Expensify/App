@@ -18,7 +18,7 @@ import {capture, fail} from '../lib/scriptUtils';
 import createAndroidJourneyBenchmarkReader from './journeyBenchmarkAndroid';
 import createIOSJourneyBenchmarkReader from './journeyBenchmarkIOS';
 import {createJourneyDevice} from './journeyDevice';
-import {openReport, scrollBothWays, selectSpendSection, showTab, verifyJourneyAccount, waitForTab} from './journeyWorkload';
+import {openReport, scrollFastBothWays, selectSpendSection, showTab, verifyJourneyAccount, waitForTab} from './journeyWorkload';
 import {HEAVY_JOURNEY_SPAN_NAMES, JOURNEY_SPAN_NAMES} from './shared';
 
 type JourneyBenchmarkReader = {
@@ -67,7 +67,7 @@ async function benchmarkJourneyBuild(
         adapter.name === 'android' ? createAndroidJourneyBenchmarkReader(deviceID, adapter.appID()) : createIOSJourneyBenchmarkReader(deviceID, adapter.appID());
     try {
         device.open(false);
-        await waitForTab(device, 'Account');
+        await showTab(device, 'Inbox');
         await verifyJourneyAccount(device, fixture);
         console.log(`Running one unmeasured ${kind} ${scenario.directory} warm-up.`);
         await scenario.measure(device, reader, fixture, timeoutSeconds);
@@ -133,16 +133,18 @@ async function measureHeavyJourney(
     timeoutSeconds: number,
 ): Promise<JourneyMeasurement> {
     device.open(true);
-    await waitForTab(device, 'Account');
     await showTab(device, 'Inbox');
+    await waitForTab(device, 'Account');
     await openReport(device, fixture.report, false, () => reader.begin(HEAVY_JOURNEY_SPAN_NAMES));
     const events = await reader.collect(HEAVY_JOURNEY_SPAN_NAMES, timeoutSeconds);
     if (device.platform === 'android') {
         // Android gfxinfo resets after each read. Exclude search and report opening from this frame window.
         readAndroidFrameHealth(device, false);
     }
-    await scrollBothWays(device, Math.min(fixture.scrolls, 6), true, 'up', true);
-    return {events, frameHealth: device.platform === 'android' ? readAndroidFrameHealth(device, true) : undefined};
+    scrollFastBothWays(device, Math.min(fixture.scrolls, 4));
+    const frameHealth = device.platform === 'android' ? readAndroidFrameHealth(device, true) : undefined;
+    await showTab(device, 'Inbox');
+    return {events, frameHealth};
 }
 
 function readAndroidFrameHealth(device: ReturnType<typeof createJourneyDevice>, requireFrames: boolean): FrameHealth | undefined {
@@ -222,7 +224,7 @@ async function benchmarkJourneyScenario(
                 spans: scenario.spanNames,
                 ...(scenario === HEAVY_JOURNEY
                     ? {
-                          scrollsPerDirection: Math.min(fixture.scrolls, 6),
+                          scrollsPerDirection: Math.min(fixture.scrolls, 4),
                           scrollDurationMs: 120,
                           scrollTimeMeasured: false,
                           androidScrollFrameHealthMeasured: true,

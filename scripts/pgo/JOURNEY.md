@@ -91,7 +91,7 @@ Build both the release and optimized artifacts with the current span allowlist f
 
 ## Heavy report benchmark
 
-Use a separate read-only benchmark for a populated report. Each sample starts a fresh signed-in process, finds the fixture's report through Search, measures the app-defined `/r/*` span from report navigation to the report list's first layout, then makes up to six fast swipes toward older messages and six back toward recent messages. It fails if the list does not expose changing content. The search, device commands, settling, and swipes are **not** included in the report-open latency sample. The span can end when a skeleton is laid out, so treat it as first report render, not complete message or network loading.
+Use a separate read-only benchmark for a populated report. Each sample starts a fresh signed-in process, finds the fixture's report through Search, measures the app-defined `/r/*` span from report navigation to the report list's first layout, then makes four fast swipes toward older messages and four back toward recent messages. It checks that content changes after each direction; there is no accessibility snapshot between individual flings. The search, device commands, settling, and swipes are **not** included in the report-open latency sample. The span can end when a skeleton is laid out, so treat it as first report render, not complete message or network loading.
 
 ```bash
 scripts/pgo/pgo.ts android benchmark-heavy-journey 20 30 --device DEVICE_SERIAL --app-id APP_ID --fixture .pgo/journey-fixture.json
