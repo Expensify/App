@@ -2952,6 +2952,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         error: {
             thatDidNotMatch: '这与您卡片的最后 4 位数字不匹配。请重试。',
         },
+        fillInAllDetails: '请填写下方所有详细信息',
     },
     getPhysicalCard: {
         header: '获取实体卡',
@@ -6875,6 +6876,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 createNew: '新建',
                 spendRulesEmptyStateTitle: '没有可供选择的规则',
                 spendRulesEmptyStateSubtitle: '尚未创建规则。您可以在上一屏创建一个。',
+                enterShippingAddress: '输入送货地址',
+                shippingAddressDescription: '请告诉我们新卡应该寄到哪里。',
+                promptCardholder: '提示持卡人',
+                promptCardholderDescription: '持卡人将被提示输入或确认其邮寄地址。',
+                enterAddress: '输入地址',
+                enterAddressDescription: '请输入该卡的收货地址（例如持卡人的家庭住址或办公室地址）。',
+                shippingAddress: '收货地址',
             },
             deactivateCardModal: {
                 deactivate: '停用',
