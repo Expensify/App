@@ -1592,13 +1592,23 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Returns auto grow height text input style
      */
-    getAutoGrowHeightInputStyle: (textInputHeight: number, maxHeight: number, verticalInset: number): ViewStyle => {
+    getAutoGrowHeightInputStyle: (textInputHeight: number, maxHeight: number, verticalInset: number, shouldSizeToContent = false): ViewStyle => {
         // textInputHeight comes from the hidden measurement, which also includes the input's own vertical padding,
         // so flip as soon as it no longer fits the fixed height below. Otherwise content can be clipped at some font scales.
         if (textInputHeight > maxHeight - verticalInset) {
             return {
                 ...styles.pr0,
                 ...styles.overflowAuto,
+            };
+        }
+
+        // On native the input has to stay free to size itself to its content, because Android only reports
+        // `onContentSizeChange` when the underlying EditText is laid out again, which never happens while its height is pinned.
+        if (shouldSizeToContent) {
+            return {
+                ...styles.pr0,
+                ...styles.overflowHidden,
+                maxHeight: maxHeight - verticalInset,
             };
         }
 

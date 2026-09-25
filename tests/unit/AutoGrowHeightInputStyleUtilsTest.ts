@@ -75,4 +75,27 @@ describe('getAutoGrowHeightInputStyle', () => {
         expect(style.height).toBeUndefined();
         expect(style.overflow).toBe(mockStyles.overflowAuto.overflow);
     });
+
+    it('caps a content sized input instead of pinning it', () => {
+        // Given a growing input that has to size itself to its content, because Android only reports
+        // onContentSizeChange while the underlying EditText is free to be laid out again
+        const verticalInset = getAutoGrowHeightInputVerticalInset(getContainerStyle(true), true);
+
+        // When the style is built for it
+        const style = getAutoGrowHeightInputStyle(maxHeight - verticalInset, maxHeight, verticalInset, true);
+
+        // Then the input is capped rather than pinned, so its height still tracks the number of lines
+        expect(style.height).toBeUndefined();
+        expect(style.maxHeight).toBe(maxHeight - verticalInset);
+    });
+
+    it('still scrolls a content sized input once it no longer fits', () => {
+        // Given a content sized input whose content has grown past the cap
+        // When the style is built for it
+        const style = getAutoGrowHeightInputStyle(maxHeight - 29 + 1, maxHeight, 29, true);
+
+        // Then it flips to scrolling exactly like the pinned input does
+        expect(style.maxHeight).toBeUndefined();
+        expect(style.overflow).toBe(mockStyles.overflowAuto.overflow);
+    });
 });

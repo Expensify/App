@@ -52,6 +52,9 @@ function TextInputMeasurement({
                             autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : undefined),
                             {width: contentWidth},
                         ]}
+                        // Android breaks lines in a Text with a different strategy than in a TextInput, so the measurement
+                        // has to opt into the same one the input uses to wrap the value at the same place.
+                        textBreakStrategy="simple"
                         accessible={false}
                         accessibilityElementsHidden
                         importantForAccessibility="no"
@@ -82,6 +85,9 @@ function TextInputMeasurement({
                             styles.hiddenElementOutsideOfWindow,
                             styles.visibilityHidden,
                         ]}
+                        // Android breaks lines in a Text with a different strategy than in a TextInput, so the measurement
+                        // has to opt into the same one the input uses to wrap the value at the same place.
+                        textBreakStrategy="simple"
                         accessible={false}
                         accessibilityElementsHidden
                         importantForAccessibility="no"
