@@ -6076,7 +6076,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(false);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), false, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), false, undefined, undefined);
         });
 
         it('should return true for single transaction when report is eligible for merge', () => {
@@ -6089,7 +6089,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(true);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), true, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), true, undefined, undefined);
         });
 
         it('should return true for two eligible transactions', () => {
@@ -6164,7 +6164,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(true);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), true, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), true, undefined, undefined);
         });
 
         it('should return false for non-admin user with ineligible reports', () => {
@@ -6177,7 +6177,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(false);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), false, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), false, undefined, undefined);
         });
 
         it('should return false when one of multiple reports is not eligible', () => {
@@ -6199,8 +6199,8 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             expect(result).toBe(false);
             expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledTimes(2);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(1, reports.at(0), true, undefined);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(2, reports.at(1), false, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(1, reports.at(0), true, undefined, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(2, reports.at(1), false, undefined, undefined);
         });
 
         describe('preventing merge for transactions belonging to different users', () => {
