@@ -286,7 +286,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             label: integrationName ? translate('homePage.gettingStartedSection.connectAccounting', {integrationName}) : translate('homePage.gettingStartedSection.connectAccountingDefault'),
             subText: translate('homePage.gettingStartedSection.connectAccountingSubText'),
             isComplete: !!getValidConnectedIntegration(policy) || Object.values(policy?.connections ?? {}).some((conn) => !!conn?.lastSync?.successfulDate),
-            route: ROUTES.WORKSPACE_ACCOUNTING.getRoute(activePolicyID),
+            route: ROUTES.WORKSPACE_CONNECTIONS.getRoute(activePolicyID),
         });
     } else if (policy.areCategoriesEnabled) {
         items.push({

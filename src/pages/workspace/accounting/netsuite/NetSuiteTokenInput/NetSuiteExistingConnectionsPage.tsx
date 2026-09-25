@@ -37,7 +37,7 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
             description: date ? translate('workspace.common.lastSyncDate', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite, date) : translate('workspace.accounting.netsuite'),
             onPress: () => {
                 copyExistingPolicyConnection(policy.id, policyID, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
-                Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
+                Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID));
             },
         };
     });
@@ -53,7 +53,7 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
             titleStyle={styles.ph5}
             shouldLoadForEmptyConnection
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))}
         >
             <View style={[styles.flex1]}>
                 <MenuItemList
