@@ -6,13 +6,14 @@ import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
+import useIsVendorColumnAvailable from '@hooks/useIsVendorColumnAvailable';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -21,14 +22,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import {queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {getColumnsToShow, getGroupColumnWidthFlags, getGroupTableScrollLayout} from '@libs/SearchUIUtils';
-import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
+import type {ComponentRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -42,6 +44,7 @@ import type {GroupHeaderItemType, SearchListActionProps, SearchListItem, Transac
 
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
+import DayListItemHeader from './DayListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import MerchantListItemHeader from './MerchantListItemHeader';
 import MonthListItemHeader from './MonthListItemHeader';
@@ -105,6 +108,7 @@ function GroupHeader({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
+    const isVendorColumnAvailable = useIsVendorColumnAvailable();
 
     const groupItem = item;
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
@@ -133,21 +137,20 @@ function GroupHeader({
     const snapshotData = transactionsSnapshot?.data;
     const snapshotSearchType = transactionsSnapshot?.search.type;
 
-    const subHeaderColumns = useMemo(() => {
-        if (isExpenseReportType) {
-            return columns ?? [];
-        }
-        if (!snapshotData) {
-            return [];
-        }
-        return getColumnsToShow({
+    let subHeaderColumns: SearchColumnType[] = [];
+    if (isExpenseReportType) {
+        subHeaderColumns = columns ?? [];
+    } else if (snapshotData) {
+        subHeaderColumns = getColumnsToShow({
             currentAccountID: currentUserDetails.accountID,
             data: snapshotData,
             visibleColumns,
             type: snapshotSearchType,
+            shouldShowViolationsColumn: queryHasViolationFilter(groupItem.transactionsQueryJSON),
             fallbackPolicyID: policyForMovingExpensesID,
+            isVendorColumnAvailable,
         });
-    }, [isExpenseReportType, columns, snapshotData, snapshotSearchType, currentUserDetails.accountID, visibleColumns, policyForMovingExpensesID]);
+    }
 
     const {
         isAmountColumnWide: isSubHeaderAmountColumnWide,
@@ -168,7 +171,7 @@ function GroupHeader({
     // The rows this header labels are a sibling list row, and they own the scroller. These labels only follow it.
     const subHeaderFollowerRef = useHorizontalScrollFollower(item.groupKeyForList, shouldSubHeaderScrollHorizontally);
 
-    const {isRendered: isSubHeaderRendered, animatedStyle: subHeaderAnimatedStyle, onLayout: onSubHeaderLayout} = useExpandCollapseAnimation(isExpanded, isExpanded);
+    const {isRendered: isSubHeaderRendered, animatedStyle: subHeaderAnimatedStyle, onLayout: onSubHeaderLayout} = useExpandCollapseAnimation(isExpanded, isExpanded, item.groupKeyForList);
 
     // A group with a query of its own is not empty, it just has not been fetched yet.
     const isEmpty = groupItem.transactions.length === 0 && !groupItem.transactionsQueryJSON;
@@ -186,22 +189,15 @@ function GroupHeader({
         keyForList: item.groupKeyForList,
     });
 
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
+    const animatedHighlightStyle = useRowHighlightAnimation({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: isItemSelected ? theme.activeComponentBG : theme.highlightBG,
+        isSelected: isItemSelected,
         shouldApplyOtherStyles: false,
     });
 
     const handleSelectionButtonPress = () => {
         onCheckboxPress(withOriginalKey(item), isExpenseReportType ? undefined : groupItem.transactions);
     };
-
-    const pendingAction =
-        item.pendingAction ??
-        (groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => isTransactionPendingDelete(transaction))
-            ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-            : undefined);
 
     const handleSelectRow = (rowItem: SearchListItem, event?: ModifiedMouseEvent) => {
         onSelectRow(withOriginalKey(rowItem), transactionPreviewData, event);
@@ -290,6 +286,13 @@ function GroupHeader({
                         {...commonProps}
                     />
                 );
+            case CONST.SEARCH.GROUP_BY.DAY:
+                return (
+                    <DayListItemHeader
+                        day={groupItem}
+                        {...commonProps}
+                    />
+                );
             case CONST.SEARCH.GROUP_BY.MONTH:
                 return (
                     <MonthListItemHeader
@@ -347,7 +350,7 @@ function GroupHeader({
     );
 
     const isLastItemCollapsed = isLastItem && !isExpanded && !isSubHeaderRendered;
-    const pressableRef = useRef<View>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
@@ -377,7 +380,7 @@ function GroupHeader({
     };
 
     return (
-        <OfflineWithFeedback pendingAction={pendingAction}>
+        <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
                 ref={pressableRef}
                 onPress={handlePress}

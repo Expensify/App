@@ -41,7 +41,7 @@ type VisibilityFlags = {
     shouldShowTax: boolean;
 
     /** Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount autofocus on picker close. */
-    isParticipantPickerVisible: boolean;
+    isParticipantPickerVisible?: boolean;
 };
 
 /** Shared error state surfaced into multiple fields */
@@ -72,8 +72,8 @@ type CompactControls = {
 
 /** Receipt-related inputs threaded into the receipt section */
 type ReceiptOptions = {
-    receiptFilename: string;
-    receiptPath: string | number;
+    receiptFilename?: string;
+    receiptPath?: string | number;
     isLoadingReceipt?: boolean;
     isReceiptEditable?: boolean;
     shouldDisplayReceipt: boolean;

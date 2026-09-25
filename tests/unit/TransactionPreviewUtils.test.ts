@@ -124,7 +124,13 @@ describe('TransactionPreviewUtils', () => {
                             source: 'source.com',
                             filename: 'file_name.png',
                             action: 'replaceReceipt',
-                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com', transactionPolicy: undefined, transactionPolicyTagList: undefined},
+                            retryParams: {
+                                transactionID: basicProps.transaction.transactionID,
+                                source: 'source.com',
+                                transactionPolicy: undefined,
+                                transactionPolicyTagList: undefined,
+                                isVendorMatchingBetaEnabled: false,
+                            },
                         },
                     },
                 },
@@ -174,6 +180,31 @@ describe('TransactionPreviewUtils', () => {
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.RBRMessage.translationPath).toEqual('iou.missingAmount');
+        });
+
+        it('does not return the missing amount message for a zero amount expense created in the self DM', () => {
+            // Given a $0 expense created in the self DM, which is stored as unreported so no iou report resolves for it
+            const functionArgs: Parameters<typeof getTransactionPreviewTextAndTranslationPaths>[0] = {
+                ...basicProps,
+                iouReport: undefined,
+                transaction: {
+                    ...basicProps.transaction,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 0,
+                    modifiedAmount: undefined,
+                    merchant: 'Valid Merchant',
+                    created: '2024-01-01',
+                },
+                violations: [],
+                originalTransaction: undefined,
+                shouldShowRBR: true,
+            };
+
+            // When we build the preview text for it
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+
+            // Then no missing amount error is shown, because $0 is a valid amount for an unreported expense
+            expect(result.RBRMessage.translationPath).not.toEqual('iou.missingAmount');
         });
 
         it('should display cash or card as the preview type', () => {
@@ -450,7 +481,13 @@ describe('TransactionPreviewUtils', () => {
                             source: 'source.com',
                             filename: 'file_name.png',
                             action: 'replaceReceipt',
-                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com', transactionPolicy: undefined, transactionPolicyTagList: undefined},
+                            retryParams: {
+                                transactionID: basicProps.transaction.transactionID,
+                                source: 'source.com',
+                                transactionPolicy: undefined,
+                                transactionPolicyTagList: undefined,
+                                isVendorMatchingBetaEnabled: false,
+                            },
                         },
                     },
                 },
@@ -547,6 +584,30 @@ describe('TransactionPreviewUtils', () => {
         it('should ensure RBR is not shown when no violation and no hold', () => {
             const functionArgs = {...basicProps, isTransactionOnHold: false};
             const result = createTransactionPreviewConditionals(functionArgs);
+            expect(result.shouldShowRBR).toBeFalsy();
+        });
+
+        it('should ensure RBR is not shown for a zero amount expense created in the self DM', () => {
+            // Given a $0 expense created in the self DM, which is stored as unreported so no iou report resolves for it
+            const functionArgs = {
+                ...basicProps,
+                iouReport: undefined,
+                transaction: {
+                    ...basicProps.transaction,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 0,
+                    modifiedAmount: undefined,
+                    merchant: 'Valid Merchant',
+                    created: '2024-01-01',
+                },
+                violations: [],
+                isTransactionOnHold: false,
+            };
+
+            // When we compute the preview conditionals
+            const result = createTransactionPreviewConditionals(functionArgs);
+
+            // Then no red brick road is shown, so the fix clears the dot and not just the message
             expect(result.shouldShowRBR).toBeFalsy();
         });
 
@@ -926,6 +987,17 @@ describe('TransactionPreviewUtils', () => {
             expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, rbrReport, undefined, rbrPolicy)).toBe(true);
         });
 
+        it('should return false for a duplicated transaction violation on an IOU report', () => {
+            const violations = [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}];
+            expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, rbrReport, undefined, rbrPolicy)).toBe(false);
+        });
+
+        it('should return true for a duplicated transaction violation on an expense report', () => {
+            const expenseReport = {...basicProps.iouReport, type: CONST.REPORT.TYPE.EXPENSE};
+            const violations = [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}];
+            expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, expenseReport, undefined, rbrPolicy)).toBe(true);
+        });
+
         it('should return true for a transaction with warning-type violations', () => {
             const violations = [{name: CONST.VIOLATIONS.CUSTOM_RULES, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}];
             expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, rbrReport, undefined, rbrPolicy)).toBe(true);
@@ -951,7 +1023,7 @@ describe('TransactionPreviewUtils', () => {
                         source: 'source.com',
                         filename: 'file_name.png',
                         action: 'replaceReceipt',
-                        retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com', transactionPolicy: undefined},
+                        retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com', transactionPolicy: undefined, isVendorMatchingBetaEnabled: false},
                     },
                 },
             };

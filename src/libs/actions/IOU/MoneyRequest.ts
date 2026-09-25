@@ -43,7 +43,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {
-    Beta,
     GpsDraftDetails,
     IntroSelected,
     LastSelectedDistanceRates,
@@ -95,7 +94,6 @@ type CreateTransactionParams = {
     reimbursable?: boolean;
     allTransactionDrafts: OnyxCollection<Transaction>;
     isSelfTourViewed: boolean;
-    betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     optimisticTransactionIDs: string[];
@@ -108,6 +106,7 @@ type CreateTransactionParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     conciergeChat: OnyxEntry<Report>;
     rules: OnyxCollection<Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 type SetMoneyRequestCommuterExclusionFieldsParams = {
@@ -146,7 +145,6 @@ function createTransaction({
     reimbursable = true,
     allTransactionDrafts,
     isSelfTourViewed,
-    betas,
     personalDetails,
     recentWaypoints,
     optimisticTransactionIDs,
@@ -159,6 +157,7 @@ function createTransaction({
     getCurrencyDecimals,
     conciergeChat,
     rules,
+    isVendorMatchingBetaEnabled,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
@@ -214,7 +213,6 @@ function createTransaction({
                 conciergeChat,
                 quickAction,
                 recentWaypoints,
-                betas,
                 isSelfTourViewed,
                 optimisticChatReportID,
                 optimisticTransactionID,
@@ -229,8 +227,8 @@ function createTransaction({
             const existingTransactionDraft = existingTransactionID ? allTransactionDrafts?.[existingTransactionID] : undefined;
 
             requestMoney({
+                isVendorMatchingBetaEnabled,
                 report,
-                betas,
                 participantParams: {
                     payeeEmail: currentUserEmail,
                     payeeAccountID: currentUserAccountID,

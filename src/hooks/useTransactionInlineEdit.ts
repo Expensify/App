@@ -39,6 +39,7 @@ import {useLiveDuplicateTransactionsAndViolations} from './useDuplicateTransacti
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import {useAllPersonalDetails} from './usePersonalDetails';
 import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import usePolicyForTransaction from './usePolicyForTransaction';
@@ -147,13 +148,13 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
 
     const originalTransactionID = transaction?.comment?.originalTransactionID;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(originalTransactionID)}`);
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetailsList] = useAllPersonalDetails();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
 
     // Scoped transaction/violation collections (the edited transaction plus any duplicates) are read here and
     // passed into the pure edit actions, which need them to resolve duplicate-transaction violations. This mirrors
@@ -197,6 +198,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
 
     const getEditParams = (): TransactionInlineEditParams => {
         return {
+            isVendorMatchingBetaEnabled,
             hash,
             transactionID,
             transaction,
@@ -222,7 +224,6 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             getCurrencySymbol,
             transactions: duplicateTransactions,
             transactionViolations: duplicateTransactionViolations,
-            betas,
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
             introSelected,
             currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,

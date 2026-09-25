@@ -3,6 +3,8 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -18,14 +20,14 @@ import {
 
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getStableReportSelector} from '@src/selectors/Report';
-import type {Beta, IntroSelected, PersonalDetails, Report, ReportAction, ReportNameValuePairs} from '@src/types/onyx';
+import type {IntroSelected, PersonalDetails, Report, ReportAction, ReportNameValuePairs} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {personalDetailsSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 
 import ReportActionItem from './ReportActionItem';
@@ -41,9 +43,6 @@ type AncestorReportActionItemProps = {
     shouldDisplayNewMarker: boolean;
 
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
-
-    /** Beta features list */
-    allBetas: OnyxEntry<Beta[]>;
 
     conciergePersonalDetail: OnyxEntry<PersonalDetails>;
     conciergeReportID: string | undefined;
@@ -69,7 +68,6 @@ function AncestorReportActionItem({
     reportAction,
     shouldDisplayNewMarker,
     reportNameValuePairs,
-    allBetas,
     conciergePersonalDetail,
     conciergeReportID,
     currentUserAccountID,
@@ -84,16 +82,16 @@ function AncestorReportActionItem({
 }: AncestorReportActionItemProps) {
     const styles = useThemeStyles();
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
-    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsSelector(report?.ownerAccountID),
-    });
+    const [reportOwnerPersonalDetail] = usePersonalDetail(report?.ownerAccountID);
     const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
     const hasGuidesEmails = hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), guideAccountIDs);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {selector: getStableReportSelector});
 
+    const {isBetaEnabled} = usePermissions();
+
     const shouldDisplayThreadDivider = !isTripPreview(reportAction);
     const isAncestorReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]);
-    const canOpenAncestorReport = canCurrentUserOpenReport(report, allBetas, hasGuidesEmails, isAncestorReportArchived);
+    const canOpenAncestorReport = canCurrentUserOpenReport(report, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), hasGuidesEmails, isAncestorReportArchived);
 
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
@@ -126,7 +124,6 @@ function AncestorReportActionItem({
             currentUserAccountID,
             introSelected,
             isSelfTourViewed,
-            allBetas,
             reportOwnerPersonalDetail,
             currentUserPersonalDetail,
             conciergePersonalDetail,

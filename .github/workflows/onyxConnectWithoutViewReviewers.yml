@@ -27,7 +27,7 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v7
         with:
           script: |
-            const REVIEWERS = ['tgolen', 'mountiny', 'luacmartins'];
+            const REVIEWERS = ['tgolen', 'mountiny', 'luacmartins', 'chuckdries'];
             const pr = context.payload.pull_request;
             const {owner, repo} = context.repo;
 
