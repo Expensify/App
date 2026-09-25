@@ -679,6 +679,7 @@ const translations = {
             title: 'Switch accounts?',
             prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `You're signed in as ${currentEmail}. This link will sign you in as ${newEmail} instead.`,
             confirm: 'Switch accounts',
+            staySignedIn: 'Stay signed-in',
         },
     },
     multifactorAuthentication: {

@@ -101,7 +101,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                 title: translate('deeplinkWrapper.switchAccount.title'),
                 prompt: translate('deeplinkWrapper.switchAccount.prompt', {newEmail: linkEmail ?? '', currentEmail: sessionEmail ?? ''}),
                 confirmText: translate('deeplinkWrapper.switchAccount.confirm'),
-                cancelText: translate('common.cancel'),
+                cancelText: translate('deeplinkWrapper.switchAccount.staySignedIn'),
             }).then((result) => {
                 if (result.action !== ModalActions.CONFIRM) {
                     setHasCancelledSwitch(true);
