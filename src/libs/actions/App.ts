@@ -611,6 +611,8 @@ type CreateWorkspaceWithPolicyDraftParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     shouldCreateControlPolicy?: boolean;
+    /** Force distance rates on for the new workspace, e.g. when the admin picks a government rate country during creation */
+    shouldEnableDistanceRates?: boolean;
     type?: PolicyType;
     hasActiveAdminPolicies: boolean;
     hasOwnedPaidPolicy: boolean;
@@ -640,6 +642,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         currentUserAccountIDParam,
         currentUserEmailParam,
         shouldCreateControlPolicy,
+        shouldEnableDistanceRates,
         type,
         isSelfTourViewed,
         hasActiveAdminPolicies,
@@ -681,6 +684,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             currentUserEmailParam,
             allReportsParam: allReports,
             shouldCreateControlPolicy,
+            shouldEnableDistanceRates,
             type,
             isSelfTourViewed,
             hasActiveAdminPolicies,
@@ -776,6 +780,8 @@ type SavePolicyDraftByNewWorkspaceParams = {
     currentUserEmailParam: string;
     allReportsParam: OnyxCollection<OnyxTypes.Report>;
     shouldCreateControlPolicy?: boolean;
+    /** Force distance rates on for the new workspace, e.g. when the admin picks a government rate country during creation */
+    shouldEnableDistanceRates?: boolean;
     type?: PolicyType;
     hasActiveAdminPolicies: boolean;
     hasOwnedPaidPolicy: boolean;
@@ -801,6 +807,7 @@ function savePolicyDraftByNewWorkspace({
     currentUserEmailParam,
     allReportsParam,
     shouldCreateControlPolicy,
+    shouldEnableDistanceRates,
     type,
     isSelfTourViewed,
     hasActiveAdminPolicies,
@@ -824,6 +831,7 @@ function savePolicyDraftByNewWorkspace({
         currentUserEmailParam,
         allReportsParam,
         shouldCreateControlPolicy,
+        shouldEnableDistanceRates,
         type,
         isSelfTourViewed,
         hasActiveAdminPolicies,
