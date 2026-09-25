@@ -15,7 +15,7 @@ type ReactNativeComponents = {
     Text: React.ComponentType<{children?: React.ReactNode}>;
 };
 
-jest.mock('@components/ButtonComposed', () => {
+jest.mock('@components/Button', () => {
     const ReactMock = jest.requireActual<typeof React>('react');
     const {Pressable, Text} = jest.requireActual<ReactNativeComponents>('react-native');
     const Button = ({children, onPress}: {children: React.ReactNode; onPress: () => void}) =>
