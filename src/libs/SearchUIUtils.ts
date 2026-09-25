@@ -2430,9 +2430,6 @@ type CreateAndOpenSearchTransactionThreadParams = {
     currentUserLogin: string;
     currentUserAccountID: number;
 
-    /** Beta features list */
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
 
     /** The personal details of the participants */
@@ -2461,7 +2458,6 @@ function createAndOpenSearchTransactionThread({
     backTo,
     currentUserLogin,
     currentUserAccountID,
-    betas,
     personalDetails,
     isSelfTourViewed,
     hasCompletedGuidedSetupFlow,
@@ -2471,9 +2467,15 @@ function createAndOpenSearchTransactionThread({
     getCurrencyDecimals,
     conciergeChat,
 }: CreateAndOpenSearchTransactionThreadParams): string | undefined {
-    const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const isUnreportedTransaction = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isDeleted = isDeletedTransaction(item);
-    const iouReportAction = getIOUActionForReportID(isFromSelfDM ? findSelfDMReportID() : item.reportID, item.transactionID);
+    const iouReportAction = getIOUActionForReportID(isUnreportedTransaction ? findSelfDMReportID() : item.reportID, item.transactionID);
+    const expenseOwnerAccountID = (iouReportAction ?? item.reportAction)?.actorAccountID;
+    if (isUnreportedTransaction && expenseOwnerAccountID !== currentUserAccountID) {
+        return;
+    }
+
+    const isFromSelfDM = isUnreportedTransaction;
     const moneyRequestReportActionID = item.reportAction?.reportActionID ?? undefined;
     const previewData = transactionPreviewData
         ? {...transactionPreviewData, hasTransactionThreadReport: true}
@@ -2502,7 +2504,6 @@ function createAndOpenSearchTransactionThread({
             conciergeChat,
             currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,
-            betas,
             iouReport: getReportOrDraftReport(item.reportID) ?? item.report,
             iouReportAction: reportActionToPass,
             transaction,
