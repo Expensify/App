@@ -47,7 +47,7 @@ type ExportAccountOption = {
     /** Text shown for this account */
     label: string;
 
-    /** Option key, which QBO and QBD key by label because they stored display names before they stored ids */
+    /** Option key. Always the id, because an integration can expose two accounts with the same display name */
     keyForList: string;
 };
 
@@ -135,12 +135,9 @@ type CardExportAccountSelection = {
     programAccountID?: string;
 };
 
-/**
- * Puts an integration's accounts into the shared shape. QBO and QBD keyed their options by display name before ids
- * were stored, so those two pass `shouldKeyByLabel`.
- */
-function normalizeAccounts(accounts: Array<{id: string; name: string}> | undefined, shouldKeyByLabel = false): ExportAccountOption[] {
-    return (accounts ?? []).map(({id, name}) => ({id, label: name, keyForList: shouldKeyByLabel ? name : id}));
+/** Puts an integration's accounts into the shared shape. */
+function normalizeAccounts(accounts: Array<{id: string; name: string}> | undefined): ExportAccountOption[] {
+    return (accounts ?? []).map(({id, name}) => ({id, label: name, keyForList: id}));
 }
 
 /**
@@ -257,7 +254,7 @@ function getPolicyCardExportSettings(
                         accountSelection: {
                             type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.SINGLE_ACCOUNT,
                             nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_ONLINE_EXPORT_ACCOUNT,
-                            accounts: normalizeAccounts(creditCards, true),
+                            accounts: normalizeAccounts(creditCards),
                             defaultLabel,
                             workspaceDefaultAccountID,
                         },
@@ -271,7 +268,7 @@ function getPolicyCardExportSettings(
                         accountSelection: {
                             type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.SINGLE_ACCOUNT,
                             nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_ONLINE_EXPORT_ACCOUNT_DEBIT,
-                            accounts: normalizeAccounts(quickbooksOnlineBankAccounts, true),
+                            accounts: normalizeAccounts(quickbooksOnlineBankAccounts),
                             defaultLabel,
                             workspaceDefaultAccountID,
                         },
@@ -420,7 +417,7 @@ function getPolicyCardExportSettings(
                         accountSelection: {
                             type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.SINGLE_ACCOUNT,
                             nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_DESKTOP_EXPORT_ACCOUNT_CREDIT,
-                            accounts: normalizeAccounts(creditCardAccounts, true),
+                            accounts: normalizeAccounts(creditCardAccounts),
                             defaultLabel: getDefaultExportLabel(qbdConfig),
                             // Classic saved an account id in this NVP while NewDot used to save the display name, so a
                             // missed id match is retried against the labels.
