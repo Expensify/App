@@ -55,7 +55,8 @@ function SearchMergeReports() {
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
 
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isReportMergeBetaEnabled = isBetaEnabled(CONST.BETAS.REPORT_MERGE);
     const session = useSession();
@@ -169,6 +170,7 @@ function SearchMergeReports() {
         const policyID = destinationReport.policyID;
 
         mergeReports({
+            isVendorMatchingBetaEnabled,
             destinationReportID,
             sourceReportIDs,
             isASAPSubmitBetaEnabled,
