@@ -132,6 +132,18 @@ describe('insightsQueries', () => {
             expect(chartQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}:${CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE}`);
         });
 
+        it('caps every bar and pie chart, and so its inline table, to the top search limit', () => {
+            // Given the charts that list their groups in an inline table below them
+            const chartsWithTable = SPEND_SPEC.supportingCharts.filter((chart) => chart.view === CONST.SEARCH.VIEW.BAR || chart.view === CONST.SEARCH.VIEW.PIE);
+            expect(chartsWithTable.length).toBeGreaterThan(0);
+
+            // When the page filters are applied to each of them
+            const limits = chartsWithTable.map((chart) => buildSearchQueryJSON(applyInsightsFilters(chart, FILTERS))?.limit);
+
+            // Then every query asks the backend for at most the top search limit, which is all the chart and its table show
+            expect(limits).toEqual(chartsWithTable.map(() => CONST.SEARCH.TOP_SEARCH_LIMIT));
+        });
+
         it('groups a chart that declares no group-by the way the page filters do', () => {
             // Given the headline chart, which declares no group-by of its own
             const {headlineChart} = SPEND_SPEC;

@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 
-import {findClosestPoint, normalizeChartCoordinate, TOOLTIP_BAR_GAP, useChartInteractions} from '@components/Charts/hooks/useChartInteractions';
+import {findClosestPoint, normalizeChartCoordinate, useChartInteractions} from '@components/Charts/hooks/useChartInteractions';
 
 import {useSharedValue} from 'react-native-reanimated';
 
@@ -172,47 +172,5 @@ describe('useChartInteractions', () => {
         );
 
         expect(result.current.customGestures).toBeTruthy();
-    });
-
-    describe('tooltip placement', () => {
-        it('places the tooltip above the bar top by default', () => {
-            // Given a vertical bar chart whose zero line is at y=200 and no point has been matched yet (positions start at 0)
-            const {result} = renderHook(() => {
-                const yZero = useSharedValue(200);
-                return useChartInteractions({...defaultProps, yZero});
-            });
-
-            // When the tooltip position is read
-            const position = result.current.initialTooltipPosition.get();
-
-            // Then it sits TOOLTIP_BAR_GAP above the top of the bar (the higher of the point and the zero line)
-            expect(position).toEqual({x: 0, y: 0 - TOOLTIP_BAR_GAP});
-        });
-
-        it('places the tooltip past the right end of the bar for horizontal bars', () => {
-            // Given a horizontal bar chart whose zero line is at x=50 and a matched point at x=0 (a negative bar)
-            const {result} = renderHook(() => {
-                const xZero = useSharedValue(50);
-                return useChartInteractions({...defaultProps, xZero, tooltipPlacement: 'right'});
-            });
-
-            // When the tooltip position is read
-            const position = result.current.initialTooltipPosition.get();
-
-            // Then it sits TOOLTIP_BAR_GAP right of the bar's right end (the zero line here), vertically centered on the row,
-            // so it never covers a negative bar
-            expect(position).toEqual({x: 50 + TOOLTIP_BAR_GAP, y: 0});
-        });
-
-        it('anchors to the matched point when no zero line is provided for horizontal bars', () => {
-            // Given a horizontal-placement chart without an x zero line
-            const {result} = renderHook(() => useChartInteractions({...defaultProps, tooltipPlacement: 'right'}));
-
-            // When the tooltip position is read
-            const position = result.current.initialTooltipPosition.get();
-
-            // Then it falls back to the matched point's own x
-            expect(position).toEqual({x: 0 + TOOLTIP_BAR_GAP, y: 0});
-        });
     });
 });

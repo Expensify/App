@@ -4,6 +4,7 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -296,12 +297,16 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                             />
 
                             {shouldShowRemoveLimitRow && (
-                                <MenuItem
-                                    title={translate('workflowsApprovalLimitPage.removeLimit')}
-                                    icon={icons.Trashcan}
-                                    onPress={handleSkip}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                />
+                                <MenuItemSectionRoot onPress={handleSkip}>
+                                    <MenuItem.Row>
+                                        <MenuItem.Leading>
+                                            <MenuItem.Icon src={icons.Trashcan} />
+                                        </MenuItem.Leading>
+                                        <MenuItem.Content>
+                                            <MenuItem.Title>{translate('workflowsApprovalLimitPage.removeLimit')}</MenuItem.Title>
+                                        </MenuItem.Content>
+                                    </MenuItem.Row>
+                                </MenuItemSectionRoot>
                             )}
                         </View>
                     </ScrollView>
