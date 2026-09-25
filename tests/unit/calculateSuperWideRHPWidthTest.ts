@@ -38,8 +38,9 @@ describe('calculateSuperWideRHPWidth', () => {
         // When the super wide RHP width is calculated
         const superWideRHPWidth = calculateSuperWideRHPWidth(windowWidth);
 
-        // Then the wide RHP floor of 900 wins over the raw 900 - 360 = 540, so the sheet is never narrower than the layout it shows.
-        expect(superWideRHPWidth).toBe(900);
+        // Then the wide RHP floor wins over the raw 900 - 360 = 540, so the sheet is never narrower than the layout it shows.
+        // The floor is the window less the floating card's 12px inset margin, which is what keeps the card's left edge on-screen.
+        expect(superWideRHPWidth).toBe(888);
     });
 
     it('pins the exact window width where the wide RHP floor takes over', () => {
