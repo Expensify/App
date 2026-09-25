@@ -235,7 +235,7 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
     return (
         <SafeTriangle submenuRef={filterContentRef}>
             <View style={[styles.flexRow, StyleUtils.getHeight(Math.min(windowHeight, CONST.ADVANCED_FILTERS_POPOVER_HEIGHT))]}>
-                <View style={[styles.typeFiltersPopupContainer, {width: CONST.ADVANCED_FILTERS_POPOVER_WIDTH - CONST.ADVANCED_FILTERS_CONTENT_WIDTH}]}>
+                <View style={[styles.typeFiltersPopupContainer, StyleUtils.getWidthStyle(CONST.ADVANCED_FILTERS_POPOVER_WIDTH - CONST.ADVANCED_FILTERS_CONTENT_WIDTH)]}>
                     {canUseNLFilters && (
                         <>
                             <PressableWithFeedback
