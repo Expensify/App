@@ -3969,6 +3969,26 @@ ${amount} für ${merchant} – ${date}`,
         removeItemTitle: ({name}: {name: string}) => `${name} entfernen?`,
         removeItemPrompt: ({name}: {name: string}) => `Möchtest du ${name} wirklich entfernen?`,
     },
+    wiseKYC: {
+        title: 'Wise benötigt weitere Informationen',
+        description: 'Erledige jeden Punkt unten, damit Wise die Prüfung deines Unternehmens abschließen kann.',
+        continueInWise: 'In Wise fortfahren',
+        state: {
+            NOT_PROVIDED: 'Nicht angegeben',
+            IN_REVIEW: 'In Prüfung',
+            VERIFIED: 'Verifiziert',
+        },
+        requirement: {
+            ACCOUNT_PURPOSE: 'Zweck des Kontos',
+            ID_DOCUMENT: 'Ausweisdokument',
+            BUSINESS_ULTIMATE_BENEFICIAL_OWNER_ID: 'Ausweisdokument des Inhabers',
+            LIVENESS_CHECK: 'Identitätsprüfung',
+        },
+        complete: {
+            title: 'Verifizierung abgeschlossen',
+            supportingText: 'Du kannst zu Expensify zurückkehren.',
+        },
+    },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Der SWIFT/BIC muss 8 oder 11 Zeichen lang sein, mit 6 Buchstaben gefolgt von 2 oder 5 Buchstaben oder Ziffern.',
         countrySelectionStepHeader: 'Wo befindet sich dein Bankkonto?',

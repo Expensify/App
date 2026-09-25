@@ -3917,6 +3917,26 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         removeItemTitle: ({name}: {name: string}) => `${name}を削除しますか？`,
         removeItemPrompt: ({name}: {name: string}) => `本当に${name}を削除しますか？`,
     },
+    wiseKYC: {
+        title: 'Wiseが追加情報を必要としています',
+        description: 'Wiseが事業の審査を完了できるよう、以下の各項目を完了してください。',
+        continueInWise: 'Wiseで続ける',
+        state: {
+            NOT_PROVIDED: '未提出',
+            IN_REVIEW: '審査中',
+            VERIFIED: '確認済み',
+        },
+        requirement: {
+            ACCOUNT_PURPOSE: '口座の目的',
+            ID_DOCUMENT: '本人確認書類',
+            BUSINESS_ULTIMATE_BENEFICIAL_OWNER_ID: '所有者の本人確認書類',
+            LIVENESS_CHECK: '本人確認',
+        },
+        complete: {
+            title: '確認が完了しました',
+            supportingText: 'Expensifyに戻ることができます。',
+        },
+    },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC は 8 文字または 11 文字で、最初の 6 文字はアルファベット、続く 2 文字または 5 文字はアルファベットまたは数字である必要があります。',
         countrySelectionStepHeader: '銀行口座はどこにありますか？',

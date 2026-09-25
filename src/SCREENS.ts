@@ -27,6 +27,7 @@ const SCREENS = {
     VALIDATE_LOGIN: 'ValidateLogin',
     CONNECTION_COMPLETE: 'ConnectionComplete',
     BANK_CONNECTION_COMPLETE: 'BankConnectionComplete',
+    WISE_KYC_COMPLETE: 'WiseKYCComplete',
     UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
     TRAVEL: {
@@ -199,6 +200,9 @@ const SCREENS = {
             DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS: 'Dynamic_Settings_Wallet_Enable_Global_Reimbursements_Business',
             DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS: 'Dynamic_Settings_Wallet_Enable_Global_Reimbursements_Agreements',
             DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN: 'Dynamic_Settings_Wallet_Enable_Global_Reimbursements_Sign',
+            WISE_KYC_REQUIREMENTS: 'Settings_Wallet_Wise_KYC_Requirements',
+            WISE_KYC_REQUIREMENT_FORM: 'Settings_Wallet_Wise_KYC_Requirement_Form',
+            WISE_KYC_EMBEDDED: 'Settings_Wallet_Wise_KYC_Embedded',
             SHARE_BANK_ACCOUNT: 'Settings_Wallet_Share_Bank_Account',
             TRAVEL_CVV: 'Settings_Wallet_Travel_CVV',
             TRAVEL_CVV_VERIFY_ACCOUNT: 'Settings_Wallet_Travel_CVV_VerifyAccount',

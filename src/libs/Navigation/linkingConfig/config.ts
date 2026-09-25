@@ -23,6 +23,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.TRANSITION_BETWEEN_APPS]: ROUTES.TRANSITION_BETWEEN_APPS,
         [SCREENS.CONNECTION_COMPLETE]: ROUTES.CONNECTION_COMPLETE,
         [SCREENS.BANK_CONNECTION_COMPLETE]: ROUTES.BANK_CONNECTION_COMPLETE,
+        [SCREENS.WISE_KYC_COMPLETE]: ROUTES.WISE_KYC_COMPLETE,
         [SCREENS.CONCIERGE]: ROUTES.CONCIERGE,
         [SCREENS.TRACK_EXPENSE]: ROUTES.TRACK_EXPENSE,
         [SCREENS.SUBMIT_EXPENSE]: ROUTES.SUBMIT_EXPENSE,
@@ -246,6 +247,18 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS]: DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.path,
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS]: DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS.path,
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN]: DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_SIGN.path,
+                        [SCREENS.SETTINGS.WALLET.WISE_KYC_REQUIREMENTS]: {
+                            path: ROUTES.SETTINGS_WALLET_WISE_KYC_REQUIREMENTS.route,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.WALLET.WISE_KYC_REQUIREMENT_FORM]: {
+                            path: ROUTES.SETTINGS_WALLET_WISE_KYC_REQUIREMENT_FORM.route,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.WALLET.WISE_KYC_EMBEDDED]: {
+                            path: ROUTES.SETTINGS_WALLET_WISE_KYC_EMBEDDED.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT]: {
                             path: ROUTES.SETTINGS_WALLET_SHARE_BANK_ACCOUNT.route,
                             exact: true,

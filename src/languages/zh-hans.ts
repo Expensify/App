@@ -3824,6 +3824,26 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         removeItemTitle: ({name}: {name: string}) => `移除${name}？`,
         removeItemPrompt: ({name}: {name: string}) => `确定要移除${name}吗？`,
     },
+    wiseKYC: {
+        title: 'Wise 需要更多信息',
+        description: '请完成以下各项，以便 Wise 完成对您企业的审核。',
+        continueInWise: '在 Wise 中继续',
+        state: {
+            NOT_PROVIDED: '未提供',
+            IN_REVIEW: '审核中',
+            VERIFIED: '已验证',
+        },
+        requirement: {
+            ACCOUNT_PURPOSE: '账户用途',
+            ID_DOCUMENT: '身份证件',
+            BUSINESS_ULTIMATE_BENEFICIAL_OWNER_ID: '所有者身份证件',
+            LIVENESS_CHECK: '身份核验',
+        },
+        complete: {
+            title: '验证完成',
+            supportingText: '您可以返回 Expensify。',
+        },
+    },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC 必须为 8 或 11 个字符长度，由 6 个字母后接 2 或 5 个字母或数字组成。',
         countrySelectionStepHeader: '您的银行账户位于哪个国家/地区？',

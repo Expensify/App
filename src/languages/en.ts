@@ -4086,6 +4086,26 @@ const translations = {
         removeItemTitle: ({name}: {name: string}) => `Remove ${name}?`,
         removeItemPrompt: ({name}: {name: string}) => `Are you sure you want to remove ${name}?`,
     },
+    wiseKYC: {
+        title: 'Wise needs more information',
+        description: 'Complete each item below so Wise can finish reviewing your business.',
+        continueInWise: 'Continue in Wise',
+        state: {
+            NOT_PROVIDED: 'Not provided',
+            IN_REVIEW: 'In review',
+            VERIFIED: 'Verified',
+        },
+        requirement: {
+            ACCOUNT_PURPOSE: 'Purpose of the account',
+            ID_DOCUMENT: 'Identity document',
+            BUSINESS_ULTIMATE_BENEFICIAL_OWNER_ID: "Owner's identity document",
+            LIVENESS_CHECK: 'Identity check',
+        },
+        complete: {
+            title: 'Verification complete',
+            supportingText: 'You can return to Expensify.',
+        },
+    },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC must be 8 or 11 characters long, with 6 letters followed by 2 or 5 letters or numbers.',
         countrySelectionStepHeader: "Where's your bank account located?",

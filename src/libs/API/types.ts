@@ -657,6 +657,7 @@ const WRITE_COMMANDS = {
     UPDATE_INVOICE_COMPANY_NAME: 'UpdateInvoiceCompanyName',
     UPDATE_INVOICE_COMPANY_WEBSITE: 'UpdateInvoiceCompanyWebsite',
     GET_CORPAY_BANK_ACCOUNT_FIELDS: 'GetCorpayBankAccountFields',
+    SUBMIT_WISE_KYC_REQUIREMENT: 'SubmitWiseKYCRequirement',
     BANK_ACCOUNT_CREATE_CORPAY: 'BankAccount_CreateCorpay',
     SHARE_BANK_ACCOUNT: 'ShareBankAccount',
     SHARE_BANK_ACCOUNT_AND_UPDATE_POLICY_REIMBURSER: 'ShareBankAccountAndUpdatePolicyReimburser',
@@ -1158,6 +1159,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_ZENEFITS_FINAL_APPROVER]: Parameters.UpdateZenefitsFinalApproverParams;
     [WRITE_COMMANDS.REQUEST_TAX_EXEMPTION]: null;
     [WRITE_COMMANDS.GET_CORPAY_BANK_ACCOUNT_FIELDS]: Parameters.GetCorpayBankAccountFieldsParams;
+    [WRITE_COMMANDS.SUBMIT_WISE_KYC_REQUIREMENT]: Parameters.SubmitWiseKYCRequirementParams;
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER]: Parameters.SaveCorpayOnboardingBeneficialOwnerParams;
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_DIRECTOR_INFORMATION]: Parameters.SaveCorpayOnboardingDirectorInformationParams;
     [WRITE_COMMANDS.ASK_FOR_CORPAY_SIGNER_INFORMATION]: Parameters.AskForCorpaySignerInformationParams;
@@ -1479,6 +1481,8 @@ type WriteCommandParameters = {
 const READ_COMMANDS = {
     GET_DEFAULT_P2P_MILEAGE_RATE: 'GetDefaultP2PMileageRate',
     GET_CORPAY_BANK_ACCOUNT_FIELDS: 'GetCorpayBankAccountFields',
+    GET_WISE_KYC_REQUIREMENTS: 'GetWiseKYCRequirements',
+    GET_WISE_KYC_REVIEW_EMBEDDED_LINK: 'GetWiseKYCReviewEmbeddedLink',
     CONNECT_POLICY_TO_QUICKBOOKS_ONLINE: 'ConnectPolicyToQuickbooksOnline',
     CONNECT_POLICY_TO_XERO: 'ConnectPolicyToXero',
     CONNECT_POLICY_TO_NETSUITE_OAUTH: 'ConnectPolicyToNetSuiteOAuth',
@@ -1627,6 +1631,8 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_OLDER_ACTIONS]: Parameters.GetOlderActionsParams;
     [READ_COMMANDS.GET_NEWER_ACTIONS]: Parameters.GetNewerActionsParams;
     [READ_COMMANDS.GET_CORPAY_BANK_ACCOUNT_FIELDS]: Parameters.GetCorpayBankAccountFieldsParams;
+    [READ_COMMANDS.GET_WISE_KYC_REQUIREMENTS]: Parameters.GetWiseKYCRequirementsParams;
+    [READ_COMMANDS.GET_WISE_KYC_REVIEW_EMBEDDED_LINK]: Parameters.GetWiseKYCReviewEmbeddedLinkParams;
     [READ_COMMANDS.EXPAND_URL_PREVIEW]: Parameters.ExpandURLPreviewParams;
     [READ_COMMANDS.GET_REPORT_PRIVATE_NOTE]: Parameters.GetReportPrivateNoteParams;
     [READ_COMMANDS.OPEN_ROOM_MEMBERS_PAGE]: Parameters.OpenRoomMembersPageParams;

@@ -476,6 +476,11 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsAgreementsPage').default,
     [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_SIGN]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsSignPage').default,
+    [SCREENS.SETTINGS.WALLET.WISE_KYC_REQUIREMENTS]: () =>
+        require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/requirements/RequirementsPage').default,
+    [SCREENS.SETTINGS.WALLET.WISE_KYC_REQUIREMENT_FORM]: () =>
+        require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/requirements/RequirementFormPage').default,
+    [SCREENS.SETTINGS.WALLET.WISE_KYC_EMBEDDED]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/requirements/EmbeddedWisePage').default,
     [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsBusinessPage').default,
     [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS]: () =>

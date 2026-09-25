@@ -3950,6 +3950,26 @@ ${amount} voor ${merchant} - ${date}`,
         removeItemTitle: ({name}: {name: string}) => `${name} verwijderen?`,
         removeItemPrompt: ({name}: {name: string}) => `Weet je zeker dat je ${name} wilt verwijderen?`,
     },
+    wiseKYC: {
+        title: 'Wise heeft meer informatie nodig',
+        description: 'Vul elk onderdeel hieronder in zodat Wise de beoordeling van je bedrijf kan afronden.',
+        continueInWise: 'Doorgaan in Wise',
+        state: {
+            NOT_PROVIDED: 'Niet aangeleverd',
+            IN_REVIEW: 'In beoordeling',
+            VERIFIED: 'Geverifieerd',
+        },
+        requirement: {
+            ACCOUNT_PURPOSE: 'Doel van de rekening',
+            ID_DOCUMENT: 'Identiteitsbewijs',
+            BUSINESS_ULTIMATE_BENEFICIAL_OWNER_ID: 'Identiteitsbewijs van de eigenaar',
+            LIVENESS_CHECK: 'Identiteitscontrole',
+        },
+        complete: {
+            title: 'Verificatie voltooid',
+            supportingText: 'Je kunt terugkeren naar Expensify.',
+        },
+    },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC moet 8 of 11 tekens lang zijn, met 6 letters gevolgd door 2 of 5 letters of cijfers.',
         countrySelectionStepHeader: 'Waar is je bankrekening gevestigd?',
