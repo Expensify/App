@@ -1,8 +1,8 @@
 ---
 title: Manage Annual Subscription Settings
 description: Learn how the Workspace owner can adjust Annual subscription size, auto-renew, and auto-increase for an Expensify Annual subscription.
-keywords: [New Expensify, annual subscription, subscription settings, subscription size, auto-renew, auto-increase annual seats, increase seats, billing owner, workspace owner, contract, 12-month commitment]
-internalScope: Audience is Workspace owners on an Annual subscription. Covers changing subscription size, auto-renew, and auto-increase under Account > Subscription. Does not cover pricing, billing calculations, plans, or Pay-per-use subscriptions.
+keywords: [New Expensify, annual subscription, subscription settings, subscription size, auto-renew, auto-increase annual seats, increase seats, billing owner, workspace owner, contract, 12-month commitment, subscription ending soon, subscription expiring, auto-renew reminder, keep your current pricing, green dot on Subscription]
+internalScope: Audience is Workspace owners on an Annual subscription. Covers changing subscription size, auto-renew, and auto-increase under Account > Subscription, and the reminder shown when an Annual subscription is ending with Auto-renew off. Does not cover pricing, billing calculations, plans, or Pay-per-use subscriptions.
 retrievalIntent: How to change subscription size, auto-renew, and auto-increase seats.
 contentType: task
 platform: new
@@ -70,6 +70,26 @@ Your Annual subscription stays active until the renewal date shown on the page. 
 
 ---
 
+## How Expensify reminds you before your Annual subscription ends
+
+If you have an Annual subscription, **Auto-renew** is off, and your subscription end date is one month or less away, Expensify reminds you in three places so you can turn **Auto-renew** back on before the rate changes:
+
+ - **Home:** A **Time sensitive** item titled **Turn on auto-renew to keep your current pricing** appears, with **Subscription ends** and your end date below it. Select **Manage** to open your subscription settings.
+ - **Account:** A green dot appears next to **Subscription** in the navigation tabs (on the left on web, at the bottom on mobile).
+ - **Account > Subscription:** A banner at the top of the page reads **Your subscription ends** with your end date, followed by **Turn on auto-renew to keep your current pricing.** Select **Manage** to open your subscription settings.
+
+These reminders are only shown to the Workspace owner, because only the Workspace owner can change **Auto-renew**.
+
+There is nothing to dismiss. All three reminders disappear as soon as you turn **Auto-renew** back on.
+
+<!-- SCREENSHOT:
+Suggestion: The Account > Subscription page showing the "Your subscription ends [date]" banner with the Manage button, captured on an Annual subscription with Auto-renew off and an end date under one month away.
+Location: Immediately after the "How Expensify reminds you before your Annual subscription ends" section.
+Purpose: Owners who see this banner often read it as a billing error or an account suspension. Showing the real banner confirms the subscription is still active and that Manage is the way to keep the current rate.
+-->
+
+---
+
 # FAQ
 
 ## Can I reduce my subscription size during my Annual term?
@@ -87,6 +107,18 @@ If your number of active members exceeds your **Subscription size**, Expensify a
 ## What happens if I disable Auto-renew?
 
 Your Annual subscription remains active until its renewal date. After that, your workspace moves to a Pay-per-use subscription unless you renew before the term ends.
+
+## Why do I see a green dot next to Subscription?
+
+Your Annual subscription is ending within one month and **Auto-renew** is off. Go to **Account > Subscription** to read the full reminder and turn **Auto-renew** back on. The green dot clears once you do.
+
+## Why does Home say "Turn on auto-renew to keep your current pricing"?
+
+Your Annual subscription ends on the date shown and won't renew, so your workspace will move to Pay-per-use billing on that date. Select **Manage** and turn **Auto-renew** back on to stay on your Annual rate.
+
+## Will I still be reminded after my Annual subscription ends?
+
+No. The reminder only appears before your subscription end date. Once the date passes, your workspace is on Pay-per-use billing and the reminder no longer applies.
 
 ## Can I change my Annual subscription settings if I'm a Workspace Admin?
 
