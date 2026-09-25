@@ -3,6 +3,7 @@ import Button from '@components/Button';
 import FeedSelector from '@components/FeedSelector';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
+import TextLink from '@components/TextLink';
 
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -16,11 +17,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLinkedPolicyName} from '@libs/CardFeedUtils';
-import {getCompanyFeeds, getCustomOrFormattedFeedName, getPlaidCountry, getPlaidInstitutionId, isCustomFeed} from '@libs/CardUtils';
+import {navigateToFeedTransactions} from '@libs/CardNavigationUtils';
+import {getCardFeedWithoutDomainID, getCompanyFeeds, getCustomOrFormattedFeedName, isCustomFeed, isDirectFeed} from '@libs/CardUtils';
 
 import Navigation from '@navigation/Navigation';
 
-import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {startCardFeedRefresh} from '@userActions/CompanyCards';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,16 +41,30 @@ type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     policyID: string;
     feedName: CompanyCardFeedWithDomainID;
 
+    /** The fund ID the feed belongs to, i.e. its domain account ID or the workspace account ID */
+    domainOrWorkspaceAccountID: number;
+
     /** Whether the feed is loading */
     isLoading: boolean;
 
     /** Whether the current member can edit company cards */
     canWriteCompanyCards: boolean;
 
+    /** Whether the feed is browsable, i.e. it is not loading, pending, missing or in an error state */
+    shouldShowViewTransactions: boolean;
+
     CardFeedIcon: React.ReactNode;
 };
 
-function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading, canWriteCompanyCards, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
+function WorkspaceCompanyCardsTableHeaderButtons({
+    policyID,
+    feedName,
+    domainOrWorkspaceAccountID,
+    isLoading,
+    canWriteCompanyCards,
+    shouldShowViewTransactions,
+    CardFeedIcon,
+}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
     const styles = useThemeStyles();
 
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -73,31 +89,22 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
     const hasOtherFeedWithRBR = Object.keys(companyFeeds ?? {}).some((feed) => feed !== feedName && shouldShowRbrForFeedNameWithDomainID[feed]);
     const shouldShowFeedSelectorRBR = hasOtherFeedWithRBR || !!feedErrors?.hasWorkspaceErrors;
     const shouldShowBrokenConnectionError = getShouldShowBrokenConnectionError(feedName, feedErrors);
+    // Only direct feeds can be reconnected in-app, so other feeds get the message without the bank login link.
+    const brokenConnectionMessage = isDirectFeed(feedName) ? translate('workspace.companyCards.brokenConnectionError') : `<rbr>${translate('personalCard.brokenConnection')}</rbr>`;
 
     const openBankConnection = () => {
         if (!feedName) {
             return;
         }
 
-        const institutionId = getPlaidInstitutionId(feedName);
-        const initialStep = institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
-
-        // For Plaid feeds, seed selectedCountry so PlaidConnectionStep can start the login flow
-        if (institutionId) {
-            const country = getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
-            setAddNewCompanyCardStepAndData({
-                data: {
-                    selectedCountry: country,
-                },
-            });
-        }
-
-        setAssignCardStepAndData({currentStep: initialStep});
-
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.getRoute(policyID ?? String(CONST.DEFAULT_NUMBER_ID), feedName));
-        });
+        // The refresh flow keeps the bank login open until the reconnect completes: expiration change for OAuth,
+        // import finishing for Plaid. The broken-connection page would treat a feed that only has feed-level errors
+        // as already reconnected and close at once.
+        startCardFeedRefresh(policyID, feedName, policy?.outputCurrency, currencyList, countryByIp);
     };
+
+    // The page keys a feed as `<feed>#<domainID>`, while the Search feed filter keys it as `<fundID>_<feed>`.
+    const viewTransactions = () => navigateToFeedTransactions(`${domainOrWorkspaceAccountID}_${getCardFeedWithoutDomainID(feedName)}`);
 
     const isCsvFeed = feedName?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     const firstPart = translate(isCommercialFeed ? 'workspace.companyCards.commercialFeed' : 'workspace.companyCards.directFeed');
@@ -110,15 +117,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
 
     return (
         <View>
-            <View
-                style={[
-                    styles.w100,
-                    styles.ph5,
-                    styles.gap5,
-                    styles.pb2,
-                    !shouldShowNarrowLayout && [styles.flexColumn, styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween],
-                ]}
-            >
+            <View style={[styles.w100, styles.ph5, styles.gap5, styles.pb2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, !shouldShowNarrowLayout && styles.pv2]}>
                 {isLoading ? (
                     <AccountSwitcherSkeletonView
                         avatarSize={CONST.AVATAR_SIZE.DEFAULT}
@@ -127,6 +126,9 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                     />
                 ) : (
                     <FeedSelector
+                        // The selector's inner text column is `flex1`, which Yoga measures as zero-width when the selector
+                        // itself is content-sized in a row, so the feed name disappears on native without an explicit basis.
+                        wrapperStyle={styles.flex1}
                         onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID ?? String(CONST.DEFAULT_NUMBER_ID)))}
                         CardFeedIcon={CardFeedIcon}
                         feedName={formattedFeedName}
@@ -139,7 +141,6 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                     <Button
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID ?? String(CONST.DEFAULT_NUMBER_ID)))}
                         accessibilityLabel={translate('common.settings')}
-                        style={shouldShowNarrowLayout ? styles.w100 : undefined}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.SETTINGS_BUTTON}
                     >
                         <Button.Icon src={icons.Gear} />
@@ -147,6 +148,18 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                     </Button>
                 )}
             </View>
+
+            {shouldShowViewTransactions && (
+                <View style={[styles.flexRow, styles.ph5, styles.pb2]}>
+                    {/* Label size matches the balance and feed labels this link sits between. */}
+                    <TextLink
+                        onPress={viewTransactions}
+                        style={styles.label}
+                    >
+                        {translate('workspace.common.viewTransactions')}
+                    </TextLink>
+                </View>
+            )}
 
             {!isLoading && canWriteCompanyCards && shouldShowBrokenConnectionError && (
                 <View style={[styles.flexRow, styles.ph5, styles.alignItemsCenter]}>
@@ -157,7 +170,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                     />
                     <View style={[styles.offlineFeedbackText, styles.pr5, styles.flexRow, styles.w100]}>
                         <RenderHTML
-                            html={translate('workspace.companyCards.brokenConnectionError')}
+                            html={brokenConnectionMessage}
                             onLinkPress={openBankConnection}
                         />
                     </View>

@@ -1,10 +1,10 @@
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import {useSearchQueryActions, useSearchQueryContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 
 import {deleteSavedSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import {searchKeyToSavedSearchID} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,7 +20,6 @@ import useOnyx from './useOnyx';
 export default function useDeleteSavedSearch() {
     const {translate} = useLocalize();
     const {currentSearchKey} = useSearchQueryContext();
-    const {setCurrentSearchKey} = useSearchQueryActions();
     const {showConfirmModal} = useConfirmModal();
     const [lastExpensesSearchQuery] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {selector: lastExpensesSearchQuerySelector});
 
@@ -40,12 +39,11 @@ export default function useDeleteSavedSearch() {
 
                 if (savedSearchID === searchKeyToSavedSearchID(currentSearchKey)) {
                     const query = lastExpensesSearchQuery ?? buildCannedSearchQuery();
-                    setCurrentSearchKey(CONST.SEARCH.SEARCH_KEYS.EXPENSES, query);
-                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
                 }
             });
         },
-        [showConfirmModal, translate, currentSearchKey, lastExpensesSearchQuery, setCurrentSearchKey],
+        [showConfirmModal, translate, currentSearchKey, lastExpensesSearchQuery],
     );
 
     return {showDeleteModal: handleDeleteSavedSearch};
