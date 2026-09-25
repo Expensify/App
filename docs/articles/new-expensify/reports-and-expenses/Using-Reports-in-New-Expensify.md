@@ -47,6 +47,8 @@ Filter reports by type, status, category, or date to find specific information.
    - **Paid by:** The member who paid the report. On the **Expense Report** type, this sits directly below **Paid status**. On the **Expense** type, it sits directly below **Paid**.
 6. Click **View Results** to see the filtered results.
 
+Each view keeps its own filters, so the filters you apply are still there when you switch views and come back. Click **Reset** in the filters bar to return a view to its default filters. [Learn how filters are saved for each Spend view](/articles/new-expensify/reports-and-expenses/Getting-Started-with-the-Spend-Page).
+
 <!-- SCREENSHOT:
 Suggestion: The Spend tab on web with the Expense Report type selected and the Filters panel open, scrolled so that Paid status and Paid by are both visible, and with the Filters, Display, Save, and Create controls visible in the toolbar above the table.
 Location: Immediately after the filter steps in "How to filter in Spend"
@@ -144,6 +146,8 @@ To view saved searches:
 - **Mobile:** Tap the **Type** dropdown at the top and select **Saved**.
 
 Saved searches are listed in alphabetical order by name.
+
+A saved search also keeps any filters you add while viewing it. Click **Reset** in the filters bar to return it to the filters it was saved with.
 
 To rename a saved search, click **Save** while viewing it and enter a new name. You can also rename, share, or delete a saved search by selecting the three dots **(⋮)** next to it. Selecting **Share** copies the search URL to your clipboard.
 
