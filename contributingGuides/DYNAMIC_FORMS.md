@@ -15,6 +15,7 @@ Every field is a `DynamicFormField` (`src/types/onyx/DynamicFormField.ts`). The 
 | `label` / `labelKey` | Server wording, or our translation. `labelKey` wins. App-owned schemas must use `labelKey` only. |
 | `description` / `descriptionKey` | Supporting text: a hint under a text field, a line above anything else. |
 | `group` / `groupLabelKey` | Page. Fields with the same group render on one page, in first-appearance order. The group string is the title unless `groupLabelKey` names our translation; App-owned schemas must set it. |
+| `section` / `sectionLabelKey` | Sub-heading within a page. Consecutive fields with the same section render under one bold title, as the private personal details form does; the step indicator and resume never look at sections. App-owned schemas must set `sectionLabelKey`. |
 | `required`, `regex`, `minLength`, `maxLength` | Validation, applied by `getDynamicFieldErrors`. Every failing rule is reported. |
 | `rule` | A named check from `ValidationUtils` a regex cannot express: `legalName` (text), `dateOfBirth` (date, past and 18 or older) or `zipCode` (address, against the chosen country). The same checks and copy as the ACH sub-step forms. |
 | `values`, `dependsOn` | Options for choice fields; `dependsOn` filters them by another answer. |
@@ -84,7 +85,7 @@ Design thinks about a form in two layers, and the props follow that model:
 | Single page, several pages, or several pages with a stepper? | `layout`: `auto` shows the step indicator at three or more pages, `stepper` always, `pages` never |
 | Confirmation screen? | `hasConfirmation`: by default only a form with more than five pages gets one, otherwise the last page submits |
 | Task-list form? | Not yet; tracked as the overview layout |
-| One input, one group, or several groups on a page? | One `group` is one page. A lone field renders as the page (see the registry table). Several headed groups on one page are not supported yet |
+| One input, one section, or several sections on a page? | One `group` is one page. A lone field renders as the page (see the registry table). Several headed sections on one page are fields sharing a `section` |
 | Header and titles | `groupLabelKey` per page, `headerTitle` for the header |
 | Saving and validation | Drafts on every keystroke, `onPageSubmit` for the server, resume at the first incomplete page, validation from the schema per page |
 
