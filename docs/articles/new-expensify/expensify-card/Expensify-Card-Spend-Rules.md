@@ -92,7 +92,7 @@ When **Allow** is selected, you configure **Allowed merchants** and **Allowed me
    - **Permitted currencies** to allow only approved currencies
    - **Max amount** to allow only charges under a certain amount
    - **Restrict merchants** to restrict or allow specific merchants or merchant types
-6. Select **Save rule**.
+7. Select **Save rule**.
 
 Spend rules take effect immediately and are applied to future transactions on the selected cards.
 
@@ -138,8 +138,8 @@ The Spend rule is applied when the card is issued and is enforced from the card'
 
 Use search to quickly locate a card or Spend rule. 
 
-1. Go to **Workspaces > [Workspace Name] > Rules**.
-2. Use the search field to filter the list by card or rule.
+1. Go to **Workspaces > [Workspace Name] > Rules** and open the **Card restrictions** tab.
+2. Use the **Find rule** field to filter the list by card or rule.
 
 ---
 
