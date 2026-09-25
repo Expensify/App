@@ -2,13 +2,18 @@ import {endSpan, getSpan, getSpanByPrefix, startSpan} from '@libs/telemetry/acti
 
 import CONST from '@src/CONST';
 
-import type {StartSpanOptions} from '@sentry/core';
+import type {Span, StartSpanOptions} from '@sentry/core';
 
-const mockStartInactiveSpan = jest.fn((options: StartSpanOptions) => ({
-    options,
-    setAttribute: jest.fn(),
-    setStatus: jest.fn(),
-    end: jest.fn(),
+type MockInactiveSpan = {
+    setAttribute: jest.Mock<void, Parameters<Span['setAttribute']>>;
+    setStatus: jest.Mock<void, Parameters<Span['setStatus']>>;
+    end: jest.Mock<void, Parameters<Span['end']>>;
+};
+
+const mockStartInactiveSpan = jest.fn<MockInactiveSpan, [StartSpanOptions]>(() => ({
+    setAttribute: jest.fn<void, Parameters<Span['setAttribute']>>(),
+    setStatus: jest.fn<void, Parameters<Span['setStatus']>>(),
+    end: jest.fn<void, Parameters<Span['end']>>(),
 }));
 
 jest.mock('@libs/telemetry/logBenchmarkSpanEnd', () => ({
@@ -76,14 +81,14 @@ describe('activeSpans', () => {
             endSpan('ParentSpan');
         });
 
-        it('lets a caller opt back into the span on the scope', () => {
-            // Given a caller that asks to inherit, as the Onyx derived recomputes do because they are short and want whatever transaction is open
-            const options = {name: 'InheritingSpan', inheritScope: true};
+        it('keeps a caller that opts back into the span on the scope', () => {
+            // Given a caller that passes forceTransaction: false, as the Onyx derived recomputes do because they are short and want whatever transaction is open
+            const options = {name: 'InheritingSpan', forceTransaction: false};
 
             // When the span is started
             startSpan('InheritingSpan', options);
 
-            // Then it is left as a child, and `inheritScope` is dropped because the SDK has no such option
+            // Then the caller's choice wins over the no-parent default, so the span is left as a child
             expect(mockStartInactiveSpan).toHaveBeenCalledWith({name: 'InheritingSpan', forceTransaction: false});
 
             endSpan('InheritingSpan');

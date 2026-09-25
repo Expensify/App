@@ -14,8 +14,6 @@ type ActiveSpanEntry = {
     startTimeForLog: number;
 };
 
-type TrackedSpanOptions = StartSpanOptions & {inheritScope?: boolean};
-
 const activeSpans = new Map<string, ActiveSpanEntry>();
 
 /** Converts an optional Sentry epoch start time into the `performance.now()` clock used for monotonic duration logging. */
@@ -30,7 +28,7 @@ function getPerformanceStartTimeForLog(startTime: StartSpanOptions['startTime'])
     return performanceTimestamp - (Date.now() - epochStartTime);
 }
 
-function startSpan(spanId: string, {inheritScope, ...options}: TrackedSpanOptions) {
+function startSpan(spanId: string, options: StartSpanOptions) {
     if ((AppState.currentState ?? CONST.APP_STATE.ACTIVE) !== CONST.APP_STATE.ACTIVE && !isBenchmarkSpanEnabled(options.name)) {
         return;
     }
@@ -43,7 +41,7 @@ function startSpan(spanId: string, {inheritScope, ...options}: TrackedSpanOption
     });
     // Sentry adopts the scope's active span when no parent is given, and a tap's idle span teardown force-ends live
     // children. `forceTransaction` keeps the span out of that child list while preserving the trace link.
-    const span = Sentry.startInactiveSpan({...options, forceTransaction: options.forceTransaction ?? (!options.parentSpan && !inheritScope)});
+    const span = Sentry.startInactiveSpan({...options, forceTransaction: options.forceTransaction ?? !options.parentSpan});
 
     const startTimeForLog = getPerformanceStartTimeForLog(options.startTime);
 
