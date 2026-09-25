@@ -12,6 +12,7 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -96,6 +97,7 @@ import lodashClone from 'lodash/clone';
 import Onyx from 'react-native-onyx';
 
 import {getAllTransactions} from './IOU';
+import {getSearchOnyxUpdate} from './IOU/SearchUpdate';
 
 type SaveWaypointProps = {
     transactionID: string;
@@ -932,6 +934,7 @@ function getChangeTransactionsReportOnyxData({
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
             | typeof ONYXKEYS.SELF_DM_REPORT_ID
         >
     > = [];
@@ -942,6 +945,7 @@ function getChangeTransactionsReportOnyxData({
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     > = [];
     const successData: Array<
@@ -951,6 +955,7 @@ function getChangeTransactionsReportOnyxData({
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     > = [];
 
@@ -1725,6 +1730,51 @@ function getChangeTransactionsReportOnyxData({
             transactionIDToReportActionAndThreadData[transaction.transactionID] = baseTransactionData;
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        const searchTransaction = {
+            ...transactionForViolations,
+            reportID,
+            comment: isUnreported ? {...transactionForViolations.comment, hold: null} : transactionForViolations.comment,
+            originalAmount: shouldCopyOriginalAmount ? transaction.originalAmount : undefined,
+            originalCurrency: shouldCopyOriginalCurrency ? transaction.originalCurrency : undefined,
+            reimbursable: transactionReimbursable,
+            ...(shouldClearAmount && {convertedAmount: null, convertedTaxAmount: null}),
+        } as Transaction;
+
+        const searchIOUAction = {
+            ...newIOUAction,
+            reportID: targetReportID ?? newIOUAction.reportID,
+            actorAccountID: newIOUAction.actorAccountID ?? accountID,
+        };
+        let previousActionReportID;
+        if (oldIOUAction) {
+            previousActionReportID = isUnreportedExpense ? selfDMReportID : oldReportID;
+        }
+        const searchUpdate = getSearchOnyxUpdate({
+            transaction: searchTransaction,
+            participant: {
+                accountID,
+                login: email,
+            },
+            iouReport: isUnreported ? undefined : newReport,
+            iouAction: searchIOUAction,
+            policy: isUnreported ? undefined : policy,
+            transactionThreadReportID,
+            previousMoneyRequestAction:
+                oldIOUAction && previousActionReportID && !skippedReportIDsSet.has(previousActionReportID)
+                    ? {
+                          reportID: previousActionReportID,
+                          reportActionID: oldIOUAction.reportActionID,
+                      }
+                    : undefined,
+        });
+        if (searchUpdate?.optimisticData) {
+            optimisticData.push(...searchUpdate.optimisticData);
+        }
+        if (searchUpdate?.successData) {
+            successData.push(...searchUpdate.successData);
+        }
+
         // Build unhold report action only when moving to unreported (self DM) report
         if (isUnreported && isOnHold(transaction)) {
             const unHoldAction = buildOptimisticUnHoldReportAction(delegateAccountID);
@@ -2056,6 +2106,39 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
     });
 }
 
+/**
+ * Reports expenses without naming a destination: the backend puts each one in its owner's latest draft report, or a new
+ * report when they have none. Needed when a selection spans submitters, since any report the App picked would belong to
+ * just one of them. Carries no optimistic data because every update the normal move builds hangs off a destination only
+ * the backend knows.
+ */
+function autoReportTransactions(transactionIDs: string[]) {
+    if (transactionIDs.length === 0) {
+        return;
+    }
+
+    // There is no optimistic move to roll back, but a failure still has to reach the admin: the screen has closed and
+    // the selection is gone by then, so the error is surfaced on the expenses themselves via their red brick road.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = transactionIDs.map((transactionID) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        value: {errors: null},
+    }));
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = transactionIDs.map((transactionID) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        value: {errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage')},
+    }));
+
+    const parameters: ChangeTransactionsReportParams = {
+        transactionList: transactionIDs.join(','),
+        reportID: CONST.REPORT.AUTOMATIC_REPORT_ID,
+        transactionIDToReportActionAndThreadData: '{}',
+    };
+
+    API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, parameters, {successData, failureData});
+}
+
 function getDefaultP2PMileageRate() {
     API.read(READ_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, null);
 }
@@ -2077,6 +2160,7 @@ function getDuplicateTransactionDetails(transactionID?: string) {
 }
 
 export {
+    autoReportTransactions,
     saveWaypoint,
     removeWaypoint,
     getRoute,
