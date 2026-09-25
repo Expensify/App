@@ -6,60 +6,13 @@
 ###
 
 filePath=$1
-parserAnchor='function peg$parse(input, options) {'
 
 if [ ! -f "$filePath" ]; then
     echo "$filePath does not exist."
     exit 1
 fi
-
-anchorCount=$(grep -Fxc "$parserAnchor" "$filePath" || true)
-if [ "$anchorCount" -ne 1 ]; then
-    echo "Expected exactly one parser function anchor in $filePath, found $anchorCount."
-    exit 1
-fi
-
-parserContract=$(cat <<'EOF'
-/**
- * Describes autocompleteParser.peggy and baseRules.peggy after parser-workletization.sh.
- * Keep this contract aligned with the shipped autocompleteParser.js when regenerating it.
- *
- * @typedef {import('@components/Search/types').SearchAutocompleteParserResult} SearchAutocompleteParserResult
- * @typedef {{type: 'literal', text: string, ignoreCase: boolean} | {type: 'class', parts: Array<string | [string, string]>, inverted: boolean, ignoreCase: boolean} | {type: 'any'} | {type: 'end'} | {type: 'other', description: string}} ParserExpectation
- * @typedef {{offset: number, line: number, column: number}} ParserPosition
- * @typedef {{source: unknown, start: ParserPosition, end: ParserPosition}} ParserLocation
- * @typedef {{startRule?: 'query' | '', grammarSource?: unknown, peg$currPos?: number, peg$silentFails?: number, peg$maxFailExpected?: ParserExpectation[], peg$library?: boolean}} ParserOptions
- * @typedef {{peg$result: SearchAutocompleteParserResult, peg$currPos: number, peg$FAILED: Record<string, never>, peg$maxFailExpected: ParserExpectation[], peg$maxFailPos: number}} ParserLibraryResult
- */
-
-/**
- * @overload
- * @param {string} input
- * @param {ParserOptions & {peg$library?: false}} [options]
- * @returns {SearchAutocompleteParserResult}
- */
-/**
- * @overload
- * @param {string} input
- * @param {ParserOptions & {peg$library: true}} options
- * @returns {ParserLibraryResult}
- */
-/**
- * @overload
- * @param {string} input
- * @param {ParserOptions} [options]
- * @returns {SearchAutocompleteParserResult | ParserLibraryResult}
- */
-/**
- * @param {string} input
- * @param {ParserOptions} [options]
- * @returns {SearchAutocompleteParserResult | ParserLibraryResult}
- */
-EOF
-)
-
 # shellcheck disable=SC2016
-if awk 'BEGIN { print "\47worklet\47\n\nclass peg\$SyntaxError{}" } 1' "$filePath" | sed 's/function peg\$SyntaxError/function temporary/g' | sed 's/peg$subclass(peg$SyntaxError, Error);//g' | awk -v contract="$parserContract" -v anchor="$parserAnchor" '$0 == anchor { print contract } 1' > tmp.txt; then
+if awk 'BEGIN { print "\47worklet\47\n\nclass peg\$SyntaxError{}" } 1' "$filePath" | sed 's/function peg\$SyntaxError/function temporary/g' | sed 's/peg$subclass(peg$SyntaxError, Error);//g' > tmp.txt; then
     mv tmp.txt "$filePath"
     echo "Successfully updated $filePath"
 else

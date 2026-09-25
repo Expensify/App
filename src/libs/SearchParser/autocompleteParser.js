@@ -174,41 +174,6 @@ peg$SyntaxError.buildMessage = function(expected, found) {
   return "Expected " + describeExpected(expected) + " but " + describeFound(found) + " found.";
 };
 
-/**
- * Describes autocompleteParser.peggy and baseRules.peggy after parser-workletization.sh.
- * Keep this contract aligned with the shipped autocompleteParser.js when regenerating it.
- *
- * @typedef {import('@components/Search/types').SearchAutocompleteParserResult} SearchAutocompleteParserResult
- * @typedef {{type: 'literal', text: string, ignoreCase: boolean} | {type: 'class', parts: Array<string | [string, string]>, inverted: boolean, ignoreCase: boolean} | {type: 'any'} | {type: 'end'} | {type: 'other', description: string}} ParserExpectation
- * @typedef {{offset: number, line: number, column: number}} ParserPosition
- * @typedef {{source: unknown, start: ParserPosition, end: ParserPosition}} ParserLocation
- * @typedef {{startRule?: 'query' | '', grammarSource?: unknown, peg$currPos?: number, peg$silentFails?: number, peg$maxFailExpected?: ParserExpectation[], peg$library?: boolean}} ParserOptions
- * @typedef {{peg$result: SearchAutocompleteParserResult, peg$currPos: number, peg$FAILED: Record<string, never>, peg$maxFailExpected: ParserExpectation[], peg$maxFailPos: number}} ParserLibraryResult
- */
-
-/**
- * @overload
- * @param {string} input
- * @param {ParserOptions & {peg$library?: false}} [options]
- * @returns {SearchAutocompleteParserResult}
- */
-/**
- * @overload
- * @param {string} input
- * @param {ParserOptions & {peg$library: true}} options
- * @returns {ParserLibraryResult}
- */
-/**
- * @overload
- * @param {string} input
- * @param {ParserOptions} [options]
- * @returns {SearchAutocompleteParserResult | ParserLibraryResult}
- */
-/**
- * @param {string} input
- * @param {ParserOptions} [options]
- * @returns {SearchAutocompleteParserResult | ParserLibraryResult}
- */
 function peg$parse(input, options) {
   options = options !== undefined ? options : {};
 
