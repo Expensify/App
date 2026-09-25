@@ -1756,21 +1756,41 @@ function isOlderReportAction(a: ReportAction, b: ReportAction): boolean {
  * @param persistedReportActionIDs - IDs of the report actions stored in Onyx
  */
 function getLatestConciergeFeedbackActionID(sortedVisibleReportActions: ReportAction[], persistedReportActionIDs: string[]): string | undefined {
-    const latestConciergeComment = sortedVisibleReportActions.find(
-        (action) =>
-            isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) &&
-            action.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE &&
-            !isDeletedAction(action) &&
-            !isWhisperAction(action) &&
-            // A failed comment does not exist on the server, so a reaction on it cannot be saved
-            isEmptyObject(action.errors),
-    );
+    const latestConciergeComment = sortedVisibleReportActions.find(isConciergeFeedbackCandidate);
 
     if (!latestConciergeComment || !persistedReportActionIDs.includes(latestConciergeComment.reportActionID)) {
         return undefined;
     }
 
     return latestConciergeComment.reportActionID;
+}
+
+/** Whether the comment can carry the inline feedback prompt, which needs a Concierge comment the server knows about */
+function isConciergeFeedbackCandidate(action: ReportAction): boolean {
+    return (
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) &&
+        action.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE &&
+        !isDeletedAction(action) &&
+        !isWhisperAction(action) &&
+        // A failed comment does not exist on the server, so a reaction on it cannot be saved
+        isEmptyObject(action.errors)
+    );
+}
+
+/**
+ * Returns the ID of the newest Concierge comment in a report that can show the feedback prompt.
+ * Reading the report's own actions is what lets a thread decide about the message it hangs off, which lives in the parent report.
+ */
+function getLatestConciergeFeedbackActionIDFromReportActions(reportActions: OnyxEntry<ReportActions>): string | undefined {
+    let latestConciergeComment: ReportAction | undefined;
+
+    for (const action of Object.values(reportActions ?? {})) {
+        if (isConciergeFeedbackCandidate(action) && (!latestConciergeComment || action.created > latestConciergeComment.created)) {
+            latestConciergeComment = action;
+        }
+    }
+
+    return latestConciergeComment?.reportActionID;
 }
 
 /**
@@ -5198,6 +5218,7 @@ export {
     getDismissedViolationMessageText,
     getFirstVisibleReportActionID,
     getLatestConciergeFeedbackActionID,
+    getLatestConciergeFeedbackActionIDFromReportActions,
     getIOUActionForReportID,
     getIOUActionForTransactionID,
     getIOUReportIDFromReportActionPreview,

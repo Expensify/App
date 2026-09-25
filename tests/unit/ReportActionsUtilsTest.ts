@@ -7356,6 +7356,23 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionID(sorted, persisted(sorted))).toBe('200');
         });
 
+        it('picks the newest Concierge comment out of a report actions collection', () => {
+            const older = conciergeComment('100', '2026-09-01 00:00:00.000');
+            const newer = conciergeComment('200', '2026-09-02 00:00:00.000');
+            const userComment = conciergeComment('300', '2026-09-03 00:00:00.000', {actorAccountID: 12345});
+            const collection = {[older.reportActionID]: older, [newer.reportActionID]: newer, [userComment.reportActionID]: userComment};
+
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(collection)).toBe('200');
+        });
+
+        it('returns undefined when the collection holds no Concierge comment to rate', () => {
+            const whisper = conciergeComment('400', '2026-09-05 00:00:00.000', {originalMessage: {html: 'w', whisperedTo: [1]}} as Partial<ReportAction>);
+            const failed = conciergeComment('500', '2026-09-06 00:00:00.000', {errors: {someError: 'error'}});
+
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions({[whisper.reportActionID]: whisper, [failed.reportActionID]: failed})).toBeUndefined();
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(undefined)).toBeUndefined();
+        });
+
         it('returns undefined for an empty report', () => {
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([], persisted([]))).toBeUndefined();
         });
