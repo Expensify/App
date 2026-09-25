@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalDetailByLogin, {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,7 +26,7 @@ import {search} from '@libs/actions/Search';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import {getSearchValueForPhoneOrEmail, getUserToInviteOption, sortAlphabetically} from '@libs/OptionsListUtils';
-import {getKnownAccountIDByLogin, getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
 import {getAccountIDForSubmitManagerEmail, getMemberAccountIDsForWorkspace, getSubmitToEmail} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isExpenseReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -109,6 +110,7 @@ function ReportSubmitToContent({
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
 
     const prepopulatedEmail = getSubmitToEmail(policy, report, submitterLogin, rules);
+    const prepopulatedAccountID = usePersonalDetailByLogin(prepopulatedEmail?.trim(), (details) => details?.accountID);
 
     const [userSelectedManagerEmail, setUserSelectedManagerEmail] = useState<string | undefined>();
     const [extraSubmitToRecipients, setExtraSubmitToRecipients] = useState<WorkspaceMemberItem[]>([]);
@@ -118,13 +120,15 @@ function ReportSubmitToContent({
     // submitter is no longer pre-picked and the "nothing selected" guard in `handleSubmit` becomes reachable.
     const managerEmail = userSelectedManagerEmail ?? '';
 
+    const employeePersonalDetails = usePersonalDetailsByLogins([...Object.keys(policy?.employeeList ?? {}), managerEmail]);
+
     const workspaceMembers = useMemo((): WorkspaceMemberItem[] => {
         const employeeList = policy?.employeeList;
         if (!employeeList) {
             return [];
         }
         const prepopulatedEmailLower = prepopulatedEmail?.trim().toLowerCase();
-        const emailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, undefined, true, false);
+        const emailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, employeePersonalDetails, true, false);
         return Object.values(employeeList).flatMap((employee): WorkspaceMemberItem[] => {
             const email = employee.email?.trim();
             if (!email || employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -151,7 +155,7 @@ function ReportSubmitToContent({
                 },
             ];
         });
-    }, [policy?.employeeList, personalDetails, managerEmail, currentUserDetails.accountID, prepopulatedEmail]);
+    }, [policy?.employeeList, employeePersonalDetails, personalDetails, managerEmail, currentUserDetails.accountID, prepopulatedEmail]);
 
     const prepopulatedSubmitToRecipient = useMemo((): WorkspaceMemberItem | null => {
         const email = prepopulatedEmail?.trim();
@@ -167,18 +171,17 @@ function ReportSubmitToContent({
             return null;
         }
 
-        const accountID = getKnownAccountIDByLogin(email);
-        const details = getPersonalDetailsByID(accountID, personalDetails);
+        const details = getPersonalDetailsByID(prepopulatedAccountID, personalDetails);
 
         return {
-            accountID,
+            accountID: prepopulatedAccountID,
             text: details?.displayName ?? details?.login ?? email,
             alternateText: email,
             keyForList: `prepopulated:${email}`,
             email,
             isSelected: managerEmail.trim().toLowerCase() === emailLower,
         };
-    }, [prepopulatedEmail, workspaceMembers, extraSubmitToRecipients, managerEmail, personalDetails]);
+    }, [prepopulatedEmail, prepopulatedAccountID, workspaceMembers, extraSubmitToRecipients, managerEmail, personalDetails]);
 
     const combinedSubmitToMembers = useMemo(() => {
         const workspaceEmailSet = new Set(workspaceMembers.map((m) => m.email.toLowerCase()));
@@ -293,7 +296,7 @@ function ReportSubmitToContent({
 
         setHasError(false);
 
-        const resolvedManagerAccountID = selectedSubmitToMember?.accountID ?? getAccountIDForSubmitManagerEmail(trimmed, policy?.employeeList);
+        const resolvedManagerAccountID = selectedSubmitToMember?.accountID ?? getAccountIDForSubmitManagerEmail(trimmed, policy?.employeeList, employeePersonalDetails);
 
         if (onSubmitWithManagerEmail) {
             onSubmitWithManagerEmail(trimmed, resolvedManagerAccountID);
@@ -352,6 +355,7 @@ function ReportSubmitToContent({
     }, [
         hasSelectedSubmitToMember,
         selectedSubmitToMember?.accountID,
+        employeePersonalDetails,
         managerEmail,
         report,
         policy,
