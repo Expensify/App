@@ -426,20 +426,22 @@ describe('useSearchBulkActions - CSV export flow', () => {
         });
     });
 
-    it('keeps the original expense-report export guard when no loaded transaction is selected', async () => {
+    it('keeps expense-report export available when unloaded matching reports remain selected', async () => {
         mockAreAllMatchingItemsSelected = true;
         mockSelectedTransactions = {};
         mockExcludedTransactions = {tx1: makeSelectedTransaction()};
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
 
-        expect(result.current.headerButtonsOptions).toEqual([]);
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)).toBe(true);
+        });
     });
 
-    it('does not send exclusions for an expense-report export', async () => {
+    it('excludes a deselected report from an all-matching expense-report export query', async () => {
         mockAreAllMatchingItemsSelected = true;
-        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
-        mockExcludedTransactions = {tx2: makeSelectedTransaction()};
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({reportID: 'report1'})};
+        mockExcludedTransactions = {tx2: makeSelectedTransaction({reportID: 'report2'})};
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
 
@@ -456,6 +458,15 @@ describe('useSearchBulkActions - CSV export flow', () => {
         const exportPayload = mockQueueExportSearchItemsToCSV.mock.calls.at(-1)?.at(0);
         expect(exportPayload).toBeDefined();
         expect(exportPayload).not.toHaveProperty('excludedTransactionIDList');
+        expect(exportPayload?.jsonQuery).toContain('-reportID:report2');
+        const exportQueryJSON: unknown = JSON.parse(exportPayload?.jsonQuery ?? '{}');
+        if (!hasSearchFlatFilters(exportQueryJSON)) {
+            throw new Error('Expected the exported query to contain flat filters');
+        }
+        expect(exportQueryJSON.flatFilters).toContainEqual({
+            key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+            filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: 'report2'}],
+        });
     });
 
     it('handleBasicExport with manual selection does not track any export', async () => {

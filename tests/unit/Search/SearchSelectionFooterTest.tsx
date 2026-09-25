@@ -1,7 +1,7 @@
 import {act, render} from '@testing-library/react-native';
 
 import SearchSelectionFooter from '@components/Search/SearchSelectionFooter';
-import type {SearchFooterCount, SearchFooterTotal, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
+import type {SearchFooterCount, SearchFooterTotal, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
 
 import {getFooterConvertedAmounts, search} from '@libs/actions/Search';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -55,6 +55,7 @@ function setSearchQuery(query: string, currentSearchHash = 1) {
 }
 const mockSelectedTransactions: {current: SelectedTransactions} = {current: {}};
 const mockExcludedTransactions: {current: SelectedTransactions} = {current: {}};
+const mockSelectedReports: {current: SelectedReports[]} = {current: []};
 const mockAreAllMatchingItemsSelected = {current: false};
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: () => mockSearchQueryContext.current,
@@ -63,7 +64,7 @@ jest.mock('@components/Search/SearchContext', () => ({
         selectedTransactions: mockSelectedTransactions.current,
         excludedTransactions: mockExcludedTransactions.current,
         areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected.current,
-        selectedReports: [],
+        selectedReports: mockSelectedReports.current,
     }),
 }));
 
@@ -107,6 +108,7 @@ function buildSearchResults(
     total = -100,
     type: SearchResults['search']['type'] = CONST.SEARCH.DATA_TYPES.EXPENSE,
     reportCount: number | undefined = undefined,
+    hasMoreResults = false,
 ): SearchResults {
     return {
         search: {
@@ -120,7 +122,7 @@ function buildSearchResults(
             type,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-            hasMoreResults: false,
+            hasMoreResults,
             hasResults: true,
         },
         data: {},
@@ -139,7 +141,7 @@ function buildFlaggedTransaction(amount: number, flags: {reimbursable?: boolean;
     };
 }
 
-function buildSelectedTransaction(currency: string, groupCurrency?: string, groupAmount?: number): SelectedTransactionInfo {
+function buildSelectedTransaction(currency: string, groupCurrency?: string, groupAmount?: number, reportID?: string): SelectedTransactionInfo {
     return {
         isSelected: true,
         canReject: false,
@@ -151,12 +153,27 @@ function buildSelectedTransaction(currency: string, groupCurrency?: string, grou
         canUnhold: false,
         action: CONST.SEARCH.ACTION_TYPES.VIEW,
         policyID: undefined,
+        reportID,
         amount: 100,
         displayAmount: 100,
         currency,
         groupCurrency,
         groupAmount,
         isFromOneTransactionReport: false,
+    };
+}
+
+function buildSelectedReport(reportID: string, total: number): SelectedReports {
+    return {
+        reportID,
+        policyID: undefined,
+        action: CONST.SEARCH.ACTION_TYPES.VIEW,
+        canPay: false,
+        canApprove: false,
+        canSubmit: false,
+        canChangeApprover: false,
+        total,
+        chatReportID: undefined,
     };
 }
 
@@ -169,6 +186,7 @@ describe('SearchSelectionFooter', () => {
         setSearchQuery('type:expense');
         mockSelectedTransactions.current = {transaction1: buildSelectedTransaction(SELECTED_EXPENSE_CURRENCY)};
         mockExcludedTransactions.current = {};
+        mockSelectedReports.current = [];
         mockAreAllMatchingItemsSelected.current = false;
         mockCapturedFooterProps.current = undefined;
         // Clear here rather than in afterEach: Onyx.clear() there re-renders the previous test's still-mounted
@@ -201,13 +219,18 @@ describe('SearchSelectionFooter', () => {
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 171, total: 35900, currency: CONST.CURRENCY.USD}));
     });
 
-    it('keeps the expense-report server count and total unchanged', async () => {
-        setSearchQuery('type:expense-report');
-        mockSelectedTransactions.current = {};
-        mockExcludedTransactions.current = {
-            transaction1: buildSelectedTransaction(CONST.CURRENCY.USD),
-            transaction2: buildSelectedTransaction(CONST.CURRENCY.USD),
+    it("subtracts an excluded report's expenses and total from the all-matching footer", async () => {
+        mockSearchQueryContext.current = {
+            currentSearchHash: 1,
+            currentSearchKey: undefined,
+            currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
         };
+        mockSelectedTransactions.current = {transaction3: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report2')};
+        mockExcludedTransactions.current = {
+            transaction1: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report1'),
+            transaction2: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report1'),
+        };
+        mockSelectedReports.current = [buildSelectedReport('report2', -100)];
         mockAreAllMatchingItemsSelected.current = true;
 
         render(
@@ -218,7 +241,78 @@ describe('SearchSelectionFooter', () => {
         );
         await waitForBatchedUpdates();
 
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 8, total: 35800, currency: CONST.CURRENCY.USD}));
+    });
+
+    it('shows the authoritative expense count and total before every report page is loaded', async () => {
+        mockSearchQueryContext.current = {
+            currentSearchHash: 1,
+            currentSearchKey: undefined,
+            currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+        };
+        mockSelectedTransactions.current = {transaction1: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report1')};
+        mockSelectedReports.current = [buildSelectedReport('report1', -100)];
+        mockAreAllMatchingItemsSelected.current = true;
+
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, true)} />);
+        await waitForBatchedUpdates();
+
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 10, total: 36000, currency: CONST.CURRENCY.USD}));
+    });
+
+    it('counts the expenses inside manually selected reports', async () => {
+        mockSearchQueryContext.current = {
+            currentSearchHash: 1,
+            currentSearchKey: undefined,
+            currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+        };
+        mockSelectedTransactions.current = {
+            transaction1: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report1'),
+            transaction2: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report1'),
+        };
+        mockSelectedReports.current = [buildSelectedReport('report1', -200)];
+
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)} />);
+        await waitForBatchedUpdates();
+
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 2, total: 200, currency: CONST.CURRENCY.USD}));
+    });
+
+    it('does not request the same report conversion twice before the optimistic source stamp is observed', async () => {
+        mockSearchQueryContext.current = {
+            currentSearchHash: 1,
+            currentSearchKey: undefined,
+            currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+        };
+        mockSelectedTransactions.current = {transaction2: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report2')};
+        mockExcludedTransactions.current = {
+            transaction1: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report1'),
+        };
+        mockSelectedReports.current = [buildSelectedReport('report2', -100)];
+        mockAreAllMatchingItemsSelected.current = true;
+        const searchResults = buildSearchResults(CONST.CURRENCY.USD, 2, 200, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
+        const {rerender} = render(<SearchSelectionFooter searchResults={searchResults} />);
+        await waitForBatchedUpdates();
+
+        await act(async () => {
+            mockCapturedFooterProps.current?.onCurrencyChange?.(CONST.CURRENCY.EUR);
+            await waitForBatchedUpdates();
+        });
+
+        // Reconciliation can provide an equivalent selectedReports array before Onyx publishes the optimistic source
+        // stamp. That render must not issue the same report conversion again.
+        mockSelectedReports.current = [...mockSelectedReports.current];
+        rerender(<SearchSelectionFooter searchResults={searchResults} />);
+        await waitForBatchedUpdates();
+
+        const reportConversionCalls = jest.mocked(getFooterConvertedAmounts).mock.calls.filter(([params]) => params.reportIDList === 'report1');
+        expect(reportConversionCalls).toHaveLength(1);
+        expect(reportConversionCalls.at(0)?.at(0)).toEqual(
+            expect.objectContaining({
+                targetCurrency: CONST.CURRENCY.EUR,
+                sources: {reports: {report1: {[CONST.CURRENCY.EUR]: -100}}},
+            }),
+        );
     });
 
     it('nets a selected credit against a selected expense instead of summing their magnitudes', async () => {
