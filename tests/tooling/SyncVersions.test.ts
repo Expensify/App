@@ -427,10 +427,10 @@ describeMacOS('syncVersions.sh sync (full version)', () => {
 });
 
 describe('testSyncVersions.yml', () => {
-    // The macOS job is path-gated to this file by name, and the three full version sync cases skip on
+    // The macOS job is path-gated to this file by name, and the full version sync cases skip on
     // Ubuntu, so renaming this file would stop the job triggering and reopen that coverage hole with
-    // nothing failing. Asserted from inside the file that gets renamed, in the suite the Ubuntu Bun
-    // tests job runs on every tests/tooling change.
+    // nothing failing. Asserted from the file that gets renamed, in the suite the Ubuntu Bun tests
+    // job runs on every tests/tooling change.
     it('names this test file in both its path filter and its run step', () => {
         const repoRoot = path.resolve(__dirname, '../..');
         const workflow = fs.readFileSync(path.join(repoRoot, '.github/workflows/testSyncVersions.yml'), {encoding: 'utf-8'});

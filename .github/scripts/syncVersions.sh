@@ -22,7 +22,8 @@
 #   - NEED_FULL_VERSION_SYNC (sync): 'true' to rewrite versions, anything else to only bump the
 #     submodule pointer. Threaded from `check` so exactly one decision exists across both steps.
 #   - EXPECTED_SUBMODULE_SHA (sync): Mobile-Expensify SHA `check` updated to. The submodule-only
-#     path asserts against it so a checkout that moved in between is caught.
+#     path asserts against it so a checkout that moved in between is caught, and verification uses
+#     it to tell "this sync went wrong" apart from "Mobile-Expensify moved on again".
 #
 # Outputs (via GITHUB_OUTPUT):
 #   - check: IN_SYNC, NEED_FULL_VERSION_SYNC, ACTUAL_SHA
@@ -33,8 +34,6 @@
 #   - `sync` commits and pushes to App main.
 #   - `sync` never re-runs `git submodule update --remote`, because Mobile-Expensify main can
 #     advance while Node is being set up between the two steps.
-#   - Never stage with `git add -A`: setupNode leaves an untracked normalized-package-lock.json
-#     in the working tree.
 #
 # Requirements: macOS (BSD sed, PlistBuddy), bash 3.2, git, jq, and npm for the full sync path.
 # The version math mirrors generateAndroidVersionCode in scripts/bumpVersion.ts.
@@ -46,7 +45,7 @@ TARGET_VERSION="${TARGET_VERSION:-}"
 NEED_FULL_VERSION_SYNC="${NEED_FULL_VERSION_SYNC:-}"
 EXPECTED_SUBMODULE_SHA="${EXPECTED_SUBMODULE_SHA:-}"
 
-# Writes a step output. Centralized so consecutive outputs don't need individual redirects.
+# Centralized so consecutive outputs don't each need their own redirect.
 function set_output {
     echo "$1=$2" >> "$GITHUB_OUTPUT"
 }
@@ -108,8 +107,8 @@ function resolve_target_version {
         return
     fi
 
-    # Only the App side is rewritten, so a target that isn't the Mobile-Expensify version can never pass
-    # verification. Reject it here, before the sync commits and pushes that version to App main.
+    # Only the App side is rewritten, so any other target fails verification -- after the commits
+    # have already been pushed to main. Reject it before anything is written.
     if [[ "$TARGET_VERSION" != "$me_version" ]]; then
         echo "::error::TARGET_VERSION ($TARGET_VERSION) must match the Mobile-Expensify version ($me_version)" >&2
         exit 1
@@ -165,25 +164,28 @@ function sync_full_version {
     target="$(resolve_target_version)"
     echo "::notice::Syncing E/App to version $target"
 
-    # Update version using npm (this updates package.json and package-lock.json)
+    # npm's default is to commit and tag; this path makes its own commit below, the same way
+    # scripts/bumpVersion.ts does.
     npm --no-git-tag-version version "$target"
 
     compute_version_components "$target"
     update_android_version "$target"
     update_ios_versions
 
-    # Commit version changes
+    # Listed out rather than `git add -A`: setupNode leaves an untracked normalized-package-lock.json
+    # in the working tree.
     git add package.json package-lock.json android/app/build.gradle ios/*/Info.plist
     git commit -m "Update version to $target (sync recovery)"
 
-    # Update submodule reference. It can already be current when a previous sync only got half way,
-    # in which case there is nothing to commit.
+    # Stages the submodule's checked-out HEAD, the commit `check` moved it to with --remote. That can
+    # already be what main records, when a previous sync got this far and then died, hence the guard.
     git add Mobile-Expensify
     if ! git diff --staged --quiet; then
         git commit -m "Update Mobile-Expensify submodule version to $target (sync recovery)"
     fi
 
-    # Push changes
+    # main is busy enough that another merge can land between `check` and here, which makes this
+    # push non fast-forward.
     if ! git push origin main; then
         echo "::warning::Push failed, attempting rebase..."
         git fetch origin main
@@ -206,6 +208,8 @@ function sync_submodule_only {
     git add Mobile-Expensify
     git commit -m "Bump Mobile-Expensify submodule to latest main ($current_sha)"
 
+    # Whatever landed on main in the meantime may itself have moved the pointer, so re-resolve it
+    # rather than replaying a gitlink that is now stale.
     if ! git push origin main; then
         echo "::warning::Push failed, attempting rebase..."
         git fetch origin main
@@ -240,9 +244,9 @@ function verify_sync {
     recorded=$(git rev-parse HEAD:Mobile-Expensify)
     remote_sha=$(git -C Mobile-Expensify rev-parse origin/main)
     if [[ "$recorded" != "$remote_sha" ]]; then
-        # Mobile-Expensify main can advance while this runs, which is likely since a deployer triggers this
-        # mid-deploy. Recording what `check` pinned us to is still a successful sync, so say what happened
-        # and let the next run pick the newer commit up, rather than reporting a failure.
+        # Mobile-Expensify main can advance mid-run, which is likely because a deployer triggers this
+        # during a deploy. Recording what `check` pinned is still a successful sync, so report it and
+        # let the next run collect the newer commit.
         if [[ "$recorded" == "$EXPECTED_SUBMODULE_SHA" ]]; then
             echo "::warning::Mobile-Expensify main advanced to $remote_sha while syncing. App main records $recorded, which is what this run set out to record. Re-run to pick up the newer commit."
         else
