@@ -691,7 +691,7 @@ const DYNAMIC_ROUTES = {
     },
     SAGE_INTACCT_PREREQUISITES: {
         path: 'sage-intacct/prerequisites',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS],
+        entryScreens: [SCREENS.WORKSPACE.CONNECTIONS, SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS],
     },
     POLICY_ACCOUNTING_CERTINIA_EXPORT: {
         path: 'certinia/export',
@@ -1270,14 +1270,14 @@ const DYNAMIC_ROUTES = {
         // suffix inherits their `:policyID` (same as WORKSPACE_INVITE above).
         path: 'hr-sync-results',
         // The results screen opens automatically when an HR sync finishes, and a sync can complete
-        // while the user is on either the HR page or the members list, so both are entry screens.
-        entryScreens: [SCREENS.WORKSPACE.HR, SCREENS.WORKSPACE.MEMBERS],
+        // while the user is on the HR settings, the Connections page, or the members list.
+        entryScreens: [SCREENS.WORKSPACE.HR, SCREENS.WORKSPACE.CONNECTIONS, SCREENS.WORKSPACE.MEMBERS],
     },
     WORKSPACE_RECRUITING_SYNC_RESULTS: {
         // The results screen opens automatically when a recruiting sync finishes, and a sync can complete
-        // while the user is on either the recruiting page or the members list, so both are entry screens.
+        // while the user is on the recruiting settings, the Connections page, or the members list.
         path: 'recruiting-sync-results',
-        entryScreens: [SCREENS.WORKSPACE.RECRUITING, SCREENS.WORKSPACE.MEMBERS],
+        entryScreens: [SCREENS.WORKSPACE.RECRUITING, SCREENS.WORKSPACE.CONNECTIONS, SCREENS.WORKSPACE.MEMBERS],
     },
     WORKSPACE_OWNER_CHANGE_CHECK: {
         path: 'change-owner/:policyID/:accountID/:error',
@@ -3388,6 +3388,15 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING: {
         route: 'workspaces/:policyID/accounting',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING route');
+            }
+            return `workspaces/${policyID}/accounting` as const;
+        },
+    },
+    WORKSPACE_CONNECTIONS: {
+        route: 'workspaces/:policyID/connections',
         getRoute: (
             policyID: string | undefined,
             newConnectionName?: ConnectionName,
@@ -3396,7 +3405,7 @@ const ROUTES = {
             isIntuitEnterpriseSuite?: boolean,
         ) => {
             if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING route');
+                Log.warn('Invalid policyID is used to build the WORKSPACE_CONNECTIONS route');
             }
 
             let queryParams = '';
@@ -3412,7 +3421,7 @@ const ROUTES = {
                     queryParams += `&isIntuitEnterpriseSuite=${isIntuitEnterpriseSuite}`;
                 }
             }
-            return `workspaces/${policyID}/accounting${queryParams}` as const;
+            return `workspaces/${policyID}/connections${queryParams}` as const;
         },
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED: {
@@ -3944,15 +3953,6 @@ const ROUTES = {
     POLICY_COPY_SETTINGS_CONFIRM: {
         route: 'policy/:policyID/copy-settings/confirm',
         getRoute: (policyID: string) => `policy/${policyID}/copy-settings/confirm` as const,
-    },
-    WORKSPACE_MCP: {
-        route: 'workspaces/:policyID/mcp',
-        getRoute: (policyID: string | undefined) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the WORKSPACE_MCP route');
-            }
-            return `workspaces/${policyID}/mcp` as const;
-        },
     },
     WORKSPACE_RECEIPT_PARTNERS: {
         route: 'workspaces/:policyID/receipt-partners',
