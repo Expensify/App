@@ -11,6 +11,7 @@ import {getExportTemplates, handlePreventSearchAPI} from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, getReportAction, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isMergeActionForSelectedTransactions, isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -484,7 +485,8 @@ function useSelectedTransactionsActions({
             return canMoveExpense;
         });
 
-        const canMergeTransaction = selectedTransactionsList.length < 3 && report && policy && isMergeActionForSelectedTransactions(selectedTransactionsList, [report], [policy], rules);
+        const canMergeTransaction =
+            selectedTransactionsList.length < 3 && report && policy && isMergeActionForSelectedTransactions(selectedTransactionsList, [report], [policy], rules, personalDetails);
         if (canMergeTransaction) {
             const transactionID = selectedTransactionsList.at(0)?.transactionID;
             if (transactionID) {
@@ -533,7 +535,17 @@ function useSelectedTransactionsActions({
             selectedTransactionsList.length === 1 &&
             report &&
             !(isExpenseSplit && hasMultipleSplits) &&
-            isSplitAction(report, [firstTransaction], originalTransaction, login ?? '', currentUserAccountID, rules, policy, parentReport);
+            isSplitAction(
+                report,
+                [firstTransaction],
+                originalTransaction,
+                login ?? '',
+                currentUserAccountID,
+                rules,
+                getLoginByAccountID(report?.ownerAccountID, personalDetails),
+                policy,
+                parentReport,
+            );
 
         if (canSplitTransaction) {
             options.push({

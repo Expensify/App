@@ -3,6 +3,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     BankAccountList,
     OutstandingReportsByPolicyIDDerivedValue,
+    PersonalDetailsList,
     Policy,
     Report,
     ReportAction,
@@ -17,6 +18,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
+import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     canMemberWrite,
@@ -123,6 +125,7 @@ function isSplitAction(
     currentUserLogin: string,
     currentUserAccountID: number,
     rules: OnyxCollection<Rule>,
+    reportOwnerLogin: string | undefined,
     policy?: OnyxEntry<Policy>,
     parentReport?: OnyxEntry<Report>,
 ): boolean {
@@ -189,7 +192,7 @@ function isSplitAction(
     }
 
     // Hide split option for the submitter if the report is forwarded
-    return (isSubmitter && isAwaitingFirstLevelApproval(report, rules)) || isAdmin || isManager;
+    return (isSubmitter && isAwaitingFirstLevelApproval(report, rules, reportOwnerLogin)) || isAdmin || isManager;
 }
 
 function isSubmitAction({
@@ -729,11 +732,12 @@ function isDeleteAction(
     reportTransactions: Transaction[],
     currentUserAccountID: number,
     rules: OnyxCollection<Rule>,
+    reportOwnerLogin: string | undefined,
     reportActions?: ReportAction[],
     policy?: Policy,
     isReportLevelDelete = false,
 ): boolean {
-    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions ?? [], currentUserAccountID, rules, policy, isReportLevelDelete);
+    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions ?? [], currentUserAccountID, rules, reportOwnerLogin, policy, isReportLevelDelete);
 }
 
 function shouldShowEditSplitInDeleteAction(
@@ -743,6 +747,7 @@ function shouldShowEditSplitInDeleteAction(
     originalTransaction: OnyxEntry<Transaction>,
     currentUserAccountID: number,
     rules: OnyxCollection<Rule>,
+    reportOwnerLogin: string | undefined,
 ): boolean {
     if (reportTransactions.length !== 1) {
         return false;
@@ -756,7 +761,7 @@ function shouldShowEditSplitInDeleteAction(
     const isSelfDMSplit = isSelfDMReportUtils(report);
     return (
         shouldRedirectDeleteToSplitExpenseEdit(reportTransaction, originalTransaction, isSelfDMSplit) &&
-        isDeleteAction(report, reportTransactions, currentUserAccountID, rules, reportActions)
+        isDeleteAction(report, reportTransactions, currentUserAccountID, rules, reportOwnerLogin, reportActions)
     );
 }
 
@@ -813,7 +818,7 @@ function isReopenAction(report: Report, policy?: Policy): boolean {
 /**
  * Checks whether the supplied report supports merging transactions from it.
  */
-function isMergeAction(parentReport: Report, reportTransactions: Transaction[], rules: OnyxCollection<Rule>, policy?: Policy): boolean {
+function isMergeAction(parentReport: Report, reportTransactions: Transaction[], rules: OnyxCollection<Rule>, parentReportOwnerLogin: string | undefined, policy?: Policy): boolean {
     // Do not show merge action if there are more than 2 transactions
     if (reportTransactions.length > 2) {
         return false;
@@ -840,10 +845,18 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    return isMoneyRequestReportEligibleForMerge(parentReport.reportID, isAdmin, rules);
+    return isMoneyRequestReportEligibleForMerge(parentReport.reportID, isAdmin, rules, parentReportOwnerLogin);
 }
 
-function isMergeActionForSelectedTransactions(transactions: Transaction[], reports: Report[], policies: Policy[], rules: OnyxCollection<Rule>, currentUserAccountID?: number) {
+function isMergeActionForSelectedTransactions(
+    transactions: Transaction[],
+    reports: Report[],
+    policies: Policy[],
+    rules: OnyxCollection<Rule>,
+    // The full list is needed because the loop below resolves a different report owner on each pass.
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    currentUserAccountID?: number,
+) {
     if ([transactions, reports, policies].some((collection) => collection?.length > 2)) {
         return false;
     }
@@ -889,7 +902,7 @@ function isMergeActionForSelectedTransactions(transactions: Transaction[], repor
         if (hasOnlyNonReimbursableTransactions(report.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
             return false;
         }
-        return isMoneyRequestReportEligibleForMerge(report, policy?.role === CONST.POLICY.ROLE.ADMIN, rules);
+        return isMoneyRequestReportEligibleForMerge(report, policy?.role === CONST.POLICY.ROLE.ADMIN, rules, getLoginByAccountID(report.ownerAccountID, personalDetails));
     });
 
     return allReportsEligible && (transactions.length === 1 || areTransactionsEligibleForMerge(transactions.at(0), transactions.at(1)));
@@ -1135,13 +1148,13 @@ function getSecondaryReportActions({
     }
 
     if (
-        isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, rules, policy, parentReport) &&
-        !shouldShowEditSplitInDeleteAction(report, reportTransactions, reportActions, originalTransaction, currentUserAccountID, rules)
+        isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, rules, submitterLogin, policy, parentReport) &&
+        !shouldShowEditSplitInDeleteAction(report, reportTransactions, reportActions, originalTransaction, currentUserAccountID, rules, submitterLogin)
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
 
-    if (reportTransactions?.length === 1 && isMergeAction(report, reportTransactions, rules, policy)) {
+    if (reportTransactions?.length === 1 && isMergeAction(report, reportTransactions, rules, submitterLogin, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MERGE);
     }
 
@@ -1199,7 +1212,7 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(report, reportTransactions, currentUserAccountID, rules, reportActions ?? [], policy, true)) {
+    if (isDeleteAction(report, reportTransactions, currentUserAccountID, rules, submitterLogin, reportActions ?? [], policy, true)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
 
@@ -1233,6 +1246,7 @@ function getSecondaryTransactionThreadActions({
     currentUserLogin,
     currentUserAccountID,
     parentReport,
+    parentReportOwnerLogin,
     reportTransaction,
     reportAction,
     originalTransaction,
@@ -1248,6 +1262,12 @@ function getSecondaryTransactionThreadActions({
     currentUserLogin: string;
     currentUserAccountID: number;
     parentReport: Report;
+    /**
+     * Login of the parent report owner. Optional so the existing test callers keep compiling, because
+     * isAwaitingFirstLevelApproval still falls back to the personal details store when it is omitted.
+     * See https://github.com/Expensify/App/issues/66413.
+     */
+    parentReportOwnerLogin?: string;
     reportTransaction: Transaction;
     reportAction: ReportAction | undefined;
     originalTransaction: OnyxEntry<Transaction>;
@@ -1276,13 +1296,13 @@ function getSecondaryTransactionThreadActions({
     }
 
     if (
-        isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, rules, policy, grandParentReport) &&
-        !shouldShowEditSplitInDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [], originalTransaction, currentUserAccountID, rules)
+        isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, rules, parentReportOwnerLogin, policy, grandParentReport) &&
+        !shouldShowEditSplitInDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [], originalTransaction, currentUserAccountID, rules, parentReportOwnerLogin)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
     }
 
-    if (isMergeAction(parentReport, [reportTransaction], rules, policy)) {
+    if (isMergeAction(parentReport, [reportTransaction], rules, parentReportOwnerLogin, policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE);
     }
 
@@ -1328,7 +1348,7 @@ function getSecondaryTransactionThreadActions({
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(parentReport, [reportTransaction], currentUserAccountID, rules, reportAction ? [reportAction] : [], policy)) {
+    if (isDeleteAction(parentReport, [reportTransaction], currentUserAccountID, rules, parentReportOwnerLogin, reportAction ? [reportAction] : [], policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE);
     }
 

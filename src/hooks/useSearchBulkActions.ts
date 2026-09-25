@@ -2776,7 +2776,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             isBetaEnabled(CONST.BETAS.REPORT_MERGE) &&
             selectedMergeReports.length === selectedReports.length &&
             queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
-            canMergeReports(selectedMergeReports, currentUserPersonalDetails.accountID, rules)
+            canMergeReports(selectedMergeReports, currentUserPersonalDetails.accountID, rules, getLoginByAccountID(selectedMergeReports.at(0)?.ownerAccountID, personalDetails))
         ) {
             options.push({
                 icon: expensifyIcons.ArrowCollapse,
@@ -2938,7 +2938,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (selectedTransactionsKeys.length < 3 && searchResults?.search.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && searchResults?.data) {
             const {transactions: searchedTransactions, reports, policies: transactionPolicies} = getTransactionsAndReportsFromSearch(searchResults, selectedTransactionsKeys);
 
-            if (isMergeActionForSelectedTransactions(searchedTransactions, reports, transactionPolicies, rules, accountID)) {
+            if (isMergeActionForSelectedTransactions(searchedTransactions, reports, transactionPolicies, rules, personalDetails, accountID)) {
                 const transactionID = searchedTransactions.at(0)?.transactionID;
                 if (transactionID) {
                     options.push({
@@ -2969,7 +2969,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const firstTransactionKey = selectedTransactionsKeys.at(0);
         const firstTransactionMeta = firstTransactionKey ? selectedTransactions[firstTransactionKey] : undefined;
-        const canShowDeleteAction = shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, accountID, rules, selectedReports, queryJSON?.type);
+        const canShowDeleteAction = shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, accountID, rules, personalDetails, selectedReports, queryJSON?.type);
 
         const isSplittable = !!firstTransactionMeta?.canSplit;
         const isAlreadySplit = !!firstTransactionMeta?.hasBeenSplit;

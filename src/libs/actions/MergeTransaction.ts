@@ -18,6 +18,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import Navigation from '@libs/Navigation/Navigation';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy, isPolicyAdmin, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getReportAction, getTrackExpenseActionableWhisper} from '@libs/ReportActionsUtils';
 import {
@@ -198,7 +199,14 @@ function getTransactionsForMergingFromAPI(transactionID: string) {
  * Fetches eligible transactions for merging locally
  * This is FE version of READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING API call
  */
-function getTransactionsForMergingLocally(transactionID: string, targetTransaction: Transaction, transactions: OnyxCollection<Transaction>, rules: OnyxCollection<Rule>, isAdmin = false) {
+function getTransactionsForMergingLocally(
+    transactionID: string,
+    targetTransaction: Transaction,
+    transactions: OnyxCollection<Transaction>,
+    rules: OnyxCollection<Rule>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    isAdmin = false,
+) {
     const transactionsArray = Object.values(transactions ?? {});
 
     const eligibleTransactions = transactionsArray.filter((transaction): transaction is Transaction => {
@@ -210,7 +218,14 @@ function getTransactionsForMergingLocally(transactionID: string, targetTransacti
         return (
             areTransactionsEligibleForMerge(targetTransaction, transaction) &&
             !isTransactionPendingDelete(transaction) &&
-            (isUnreportedExpense || (!!transaction.reportID && isMoneyRequestReportEligibleForMerge(transaction.reportID, isAdmin, rules)))
+            (isUnreportedExpense ||
+                (!!transaction.reportID &&
+                    isMoneyRequestReportEligibleForMerge(
+                        transaction.reportID,
+                        isAdmin,
+                        rules,
+                        getLoginByAccountID(getReportOrDraftReport(transaction.reportID)?.ownerAccountID, personalDetails),
+                    )))
         );
     });
 
@@ -227,6 +242,7 @@ function getTransactionsForMerging({
     report,
     currentUserLogin,
     rules,
+    personalDetails,
 }: {
     isOffline: boolean;
     targetTransaction: Transaction;
@@ -236,6 +252,8 @@ function getTransactionsForMerging({
     currentUserLogin: string | undefined;
     cardList?: CardList;
     rules: OnyxCollection<Rule>;
+    /** The full list is needed because eligibility is checked against a different report owner per candidate transaction. */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 }) {
     const transactionID = targetTransaction.transactionID;
     if (!transactionID) {
@@ -268,7 +286,7 @@ function getTransactionsForMerging({
     }
 
     if (isOffline) {
-        getTransactionsForMergingLocally(transactionID, targetTransaction, transactions, rules, isAdmin);
+        getTransactionsForMergingLocally(transactionID, targetTransaction, transactions, rules, personalDetails, isAdmin);
     } else {
         getTransactionsForMergingFromAPI(transactionID);
     }

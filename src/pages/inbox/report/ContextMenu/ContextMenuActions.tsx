@@ -316,6 +316,8 @@ type ShouldShow = (args: {
     isHarvestReport?: boolean;
     currentUserAccountID: number;
     rules: OnyxCollection<Rule>;
+    /** The full list is needed because the report being deleted is resolved inside shouldShow, after reportID is narrowed to the action's own report. */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 }) => boolean;
 
 type ContextMenuActionPayload = {
@@ -1689,6 +1691,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             childReportActions,
             currentUserAccountID,
             rules,
+            personalDetails,
         }) => {
             // A single-expense report preview also exposes its embedded money request action.
             // Preserve the expense-delete flow for its author. Otherwise, use the preview action so an admin
@@ -1717,7 +1720,16 @@ const ContextMenuActions: ContextMenuAction[] = [
             return (
                 !!reportIDParam &&
                 type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
-                canDeleteReportAction(actionToDelete, reportID, iouTransaction, transactions, childReportActions, currentUserAccountID, rules) &&
+                canDeleteReportAction(
+                    actionToDelete,
+                    reportID,
+                    iouTransaction,
+                    transactions,
+                    childReportActions,
+                    currentUserAccountID,
+                    rules,
+                    getLoginByAccountID(getReportOrDraftReport(reportID)?.ownerAccountID, personalDetails),
+                ) &&
                 !isArchivedRoom &&
                 !isChronosReport &&
                 !isMessageDeleted(reportAction)

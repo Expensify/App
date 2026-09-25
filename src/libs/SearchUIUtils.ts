@@ -7091,6 +7091,8 @@ function shouldShowDeleteOption(
     currentSearchResults: SearchResults['data'] | undefined,
     currentUserAccountID: number,
     rules: OnyxCollection<OnyxTypes.Rule>,
+    // The full list is needed because each pass below resolves a different report owner.
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     selectedReports: SelectedReports[] = [],
     searchDataType?: SearchDataTypes,
 ) {
@@ -7116,7 +7118,16 @@ function shouldShowDeleteOption(
                   }
               }
               const reportPolicy = currentSearchResults?.[`${ONYXKEYS.COLLECTION.POLICY}${fullReport.policyID}`];
-              return canDeleteMoneyRequestReport(fullReport, reportTransactions, reportActionsArray, currentUserAccountID, rules, reportPolicy, true);
+              return canDeleteMoneyRequestReport(
+                  fullReport,
+                  reportTransactions,
+                  reportActionsArray,
+                  currentUserAccountID,
+                  rules,
+                  getLoginByAccountID(fullReport.ownerAccountID, personalDetails),
+                  reportPolicy,
+                  true,
+              );
           })
         : selectedTransactionsKeys.every((id) => {
               const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id]?.transaction;
@@ -7131,7 +7142,15 @@ function shouldShowDeleteOption(
                   selectedTransactions[id].reportAction;
 
               const parentReportPolicy = currentSearchResults?.[`${ONYXKEYS.COLLECTION.POLICY}${parentReport?.policyID}`];
-              return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : [], currentUserAccountID, rules, parentReportPolicy);
+              return canDeleteMoneyRequestReport(
+                  parentReport,
+                  [transaction],
+                  parentReportAction ? [parentReportAction] : [],
+                  currentUserAccountID,
+                  rules,
+                  getLoginByAccountID(parentReport?.ownerAccountID, personalDetails),
+                  parentReportPolicy,
+              );
           });
 }
 
