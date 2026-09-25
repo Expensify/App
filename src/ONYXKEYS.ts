@@ -51,6 +51,7 @@ const ONYXKEYS = {
 
     /** Ordered reportIDs from the latest SearchForReports response, used to display server search results in the tier order Auth returned. */
     RAM_ONLY_SEARCH_RESULT_REPORT_IDS: 'searchResultReportIDs',
+
     /** Pagination state for tag filter search (hasMore, nextCursor). RAM-only so it resets on app restart. */
     RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION: 'searchTagFiltersPagination',
 

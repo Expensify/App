@@ -306,12 +306,15 @@ function SearchAutocompleteList({
         rules,
     ]);
 
+    // Deduped once and read everywhere the order is needed, so a repeated reportID ranks at its first position.
+    const orderedSearchResultReportIDs = useMemo<string[]>(() => (searchResultReportIDs?.length ? [...new Set(searchResultReportIDs)] : []), [searchResultReportIDs]);
+
     const serverReportsOptions = useMemo(() => {
-        if (!hasActiveSearchResults || listOptions === null || !searchResultReportIDs?.length) {
+        if (!hasActiveSearchResults || listOptions === null || orderedSearchResultReportIDs.length === 0) {
             return CONST.EMPTY_ARRAY;
         }
 
-        const orderedReportIDs = [...new Set(searchResultReportIDs)].slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
+        const orderedReportIDs = orderedSearchResultReportIDs.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
         const reportIDs = new Set(orderedReportIDs);
         const options = getSearchOptions({
             dateFnsLocale,
@@ -321,7 +324,8 @@ function SearchAutocompleteList({
             isDefaultRoomsBetaEnabled,
             isUsedInChatFinder: true,
             includeReadOnly: true,
-            // Auth has already matched these report IDs; only apply the normal display/visibility gates here.
+            // Auth's ID list is the filter here. Re-running the client matcher would drop the reports Auth matched on
+            // criteria the client doesn't check (e.g. you own it) — the rows this pass exists to surface.
             searchQuery: '',
             maxResults: orderedReportIDs.length,
             includeUserToInvite: false,
@@ -347,7 +351,7 @@ function SearchAutocompleteList({
     }, [
         hasActiveSearchResults,
         listOptions,
-        searchResultReportIDs,
+        orderedSearchResultReportIDs,
         dateFnsLocale,
         convertToDisplayString,
         draftComments,
@@ -477,15 +481,17 @@ function SearchAutocompleteList({
         expensifyIcons.History,
     ]);
 
-    const recentReportsOptions = useMemo(() => {
+    // The client's own matches, before Auth's order is merged in. Kept separate so the frozen rank below can snapshot
+    // the client's order: snapshotting the merged list would bake the previous query's server order into "Recent chats".
+    const localReportsOptions = useMemo<OptionData[]>(() => {
         if (!hasActiveSearchResults) {
-            return searchOptions.recentReports.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
+            return [];
         }
 
         // searchOptions/autocompleteQueryValue are debounced. For a query -> query change this still returns the
         // previous query's matches during the debounce window (rows stay visible, preserving focus/Enter/arrow keys).
-        // For the empty -> query transition hasActiveSearchResults is false until the debounced query lands, so this
-        // returns recent chats instead of unfiltered rows, avoiding the stale-then-filtered reflow.
+        // For the empty -> query transition hasActiveSearchResults is false until the debounced query lands, so
+        // recentReportsOptions falls back to recent chats instead of unfiltered rows, avoiding the reflow.
         const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, autocompleteQueryValue, {
             sortByReportTypeInSearch: true,
             preferChatRoomsOverThreads: true,
@@ -496,11 +502,21 @@ function SearchAutocompleteList({
             reportOptions.push(searchOptions.userToInvite);
         }
 
-        if (searchResultReportIDs && searchResultReportIDs.length > 0) {
+        return reportOptions;
+    }, [autocompleteQueryValue, hasActiveSearchResults, searchOptions]);
+
+    const recentReportsOptions = useMemo(() => {
+        if (!hasActiveSearchResults) {
+            return searchOptions.recentReports.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
+        }
+
+        const reportOptions: OptionData[] = [...localReportsOptions];
+
+        if (orderedSearchResultReportIDs.length > 0) {
             const matchedReportIDs = new Set(reportOptions.map((option) => option.reportID).filter(Boolean));
             reportOptions.push(...serverReportsOptions.filter((option) => !matchedReportIDs.has(option.reportID)));
 
-            const rankByReportID = new Map(searchResultReportIDs.map((reportID, index) => [reportID, index]));
+            const rankByReportID = new Map(orderedSearchResultReportIDs.map((reportID, index) => [reportID, index]));
             const rankOf = (option: OptionData) => {
                 if (option.isSelfDM) {
                     return -1;
@@ -516,16 +532,17 @@ function SearchAutocompleteList({
             return reportOptions;
         }
         return reportOptions.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
-    }, [autocompleteQueryValue, hasActiveSearchResults, searchOptions, searchResultReportIDs, serverReportsOptions]);
+    }, [hasActiveSearchResults, localReportsOptions, orderedSearchResultReportIDs, searchOptions, serverReportsOptions]);
 
-    // Locked rank map (stable key -> originalIndex) capturing the order of locally-known
-    // results at the moment the query changes. Recomputed only when the query changes, so server
-    // reports merged into Onyx later do not shift the rows already visible in the top section.
+    // Locked rank map (stable key -> originalIndex) capturing the order of the client's own matches at the moment the
+    // query settled, so reports merged into Onyx later do not shift the rows already visible in the top section.
     const [frozenLocalRank, setFrozenLocalRank] = useState<ReadonlyMap<string, number>>(EMPTY_RANK_MAP);
+    // Whether the snapshot above came from a non-empty list. Testing frozenLocalRank.size would re-snapshot every
+    // render when no option yields a stable rank key.
+    const [hasFrozenLocalRank, setHasFrozenLocalRank] = useState(false);
     const [prevAutocompleteQuery, setPrevAutocompleteQuery] = useState(autocompleteQueryValue);
-    const [prevSearchResultReportIDs, setPrevSearchResultReportIDs] = useState(searchResultReportIDs);
 
-    const buildRankMap = (options: OptionData[]): Map<string, number> => {
+    const buildRankMap = (options: readonly OptionData[]): Map<string, number> => {
         const rank = new Map<string, number>();
         for (const [index, option] of options.entries()) {
             const key = getStableRankKey(option);
@@ -538,21 +555,13 @@ function SearchAutocompleteList({
 
     if (prevAutocompleteQuery !== autocompleteQueryValue) {
         setPrevAutocompleteQuery(autocompleteQueryValue);
-        if (!hasActiveSearchResults) {
-            setFrozenLocalRank(EMPTY_RANK_MAP);
-        } else {
-            setFrozenLocalRank(buildRankMap(recentReportsOptions));
-        }
-    }
-
-    if (prevSearchResultReportIDs !== searchResultReportIDs) {
-        setPrevSearchResultReportIDs(searchResultReportIDs);
-        if (hasActiveSearchResults && !searchResultReportIDs?.length) {
-            setFrozenLocalRank(buildRankMap(recentReportsOptions));
-        }
-    } else if (hasActiveSearchResults && !searchResultReportIDs?.length && frozenLocalRank.size === 0 && recentReportsOptions.length > 0) {
-        // Options hydrated after the rank was snapshotted as empty — recompute.
-        setFrozenLocalRank(buildRankMap(recentReportsOptions));
+        setFrozenLocalRank(hasActiveSearchResults ? buildRankMap(localReportsOptions) : EMPTY_RANK_MAP);
+        setHasFrozenLocalRank(hasActiveSearchResults && localReportsOptions.length > 0);
+    } else if (hasActiveSearchResults && !hasFrozenLocalRank && localReportsOptions.length > 0) {
+        // Options can hydrate after the query settled (cold start), leaving the snapshot empty. Safe to rebuild
+        // whether or not Auth has answered, since this list never holds Auth's order.
+        setFrozenLocalRank(buildRankMap(localReportsOptions));
+        setHasFrozenLocalRank(true);
     }
 
     // Callers that pass a distinct inputQueryValue (e.g. SearchRouter) already debounce autocompleteQueryValue
@@ -658,12 +667,11 @@ function SearchAutocompleteList({
             // slots with Auth-ranked server results. Auth orders the server section; it does not evict local rows.
             const localRows: AutocompleteListItem[] = [];
             const serverRows: AutocompleteListItem[] = [];
-            const serverResultReportIDs = new Set(searchResultReportIDs ?? []);
             for (const item of nextStyledRecentReports) {
                 const stableKey = getStableRankKey(item);
                 if (item.isSelfDM || (stableKey && frozenLocalRank.has(stableKey))) {
                     localRows.push(item);
-                } else if (searchResultReportIDs == null || !item.reportID || serverResultReportIDs.has(item.reportID)) {
+                } else {
                     serverRows.push(item);
                 }
             }
@@ -736,7 +744,6 @@ function SearchAutocompleteList({
         recentSearchesData,
         searchOptions,
         searchQueryItems,
-        searchResultReportIDs,
         styles,
         translate,
         isLoadingOptions,

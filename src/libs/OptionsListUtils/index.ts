@@ -2885,6 +2885,11 @@ function filterReports(reports: SearchOptionData[], searchTerms: string[]): Sear
     return filteredReports;
 }
 
+/**
+ * Whether a report matches every search term. Keep the cheap substring check a superset of filterReports(): that
+ * canonical matcher handles apostrophes, hyphens, zero-width characters, diacritics, and emails searched without
+ * their dots, and only runs when the cheap check misses. Narrowing the cheap check silently drops matches.
+ */
 function doesReportMatchSearchTerms(report: SearchOption<Report>, searchTerms: string[]): boolean {
     const normalizeSearchText = (value: string) => deburr(StringUtils.normalizeForMatch(value).toLocaleLowerCase());
     const normalizedSearchTerms = searchTerms.map(normalizeSearchText);

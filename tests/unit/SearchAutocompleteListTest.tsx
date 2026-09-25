@@ -821,6 +821,66 @@ describe('SearchAutocompleteList', () => {
             ]);
         });
 
+        it('still renders a locally matched chat that Auth leaves out of its order', async () => {
+            // Given a single locally available match when the query settles, so only that row is captured as local
+            const [aliceReport, bobReport] = fakeRecentReports;
+            getSearchOptionsSpy.mockReturnValue({
+                options: {
+                    recentReports: [aliceReport],
+                    personalDetails: [],
+                    currentUserOption: null,
+                    userToInvite: null,
+                },
+            });
+
+            await waitForBatchedUpdates();
+            await Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+            });
+
+            render(<SearchRouterWrapper />);
+            await flushAllUpdates();
+
+            const textInput = screen.getByTestId('search-autocomplete-text-input');
+            fireEvent.changeText(textInput, 'report');
+            await flushAllUpdates();
+
+            // When a second local match hydrates and Auth's order covers only the first one
+            getSearchOptionsSpy.mockReturnValue({
+                options: {
+                    recentReports: [aliceReport, bobReport],
+                    personalDetails: [],
+                    currentUserOption: null,
+                    userToInvite: null,
+                },
+            });
+            // Hand back a new options reference so the memo over getSearchOptions recomputes. Swapping the mock's
+            // return value alone leaves the cached client matches in place, so the hydrated report never arrives.
+            mockUseFilteredOptions.mockReturnValue({
+                options: {...mockedOptions},
+                isLoading: false,
+                loadMore: jest.fn(),
+                hasMore: false,
+                isLoadingMore: false,
+            });
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, [aliceReport.reportID]);
+                await Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
+            });
+            await flushAllUpdates();
+
+            // Then the omitted chat is still shown. Auth's list orders the results, it does not decide which of the
+            // user's own chats are visible, so a local match absent from that list must not be filtered out.
+            const names = screen
+                .queryAllByText(/Report$/)
+                .map((el) => (typeof el.props.children === 'string' ? el.props.children : ''))
+                .filter((name) => fakeRecentReports.map(({text}) => text).includes(name));
+
+            expect(names).toEqual([aliceReport.text, bobReport.text]);
+        });
+
         it('keeps the local candidate pool capped once the server returns an order', async () => {
             // Given locally available reports
             await waitForBatchedUpdates();
