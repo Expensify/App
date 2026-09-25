@@ -1,11 +1,11 @@
-import RadioButtons from '@components/RadioButtons';
-
 import useLocalize from '@hooks/useLocalize';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 import React from 'react';
+
+import RadioButtons from './RadioButtons';
 
 type GovernmentRateCountryRadioButtonsProps = {
     /** Callback with the chosen country code */

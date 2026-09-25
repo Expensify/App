@@ -257,9 +257,8 @@ function getAutoUpdateGovernmentRateCountry(policy: Policy | null | undefined): 
     }
 
     if (isSharedGovernmentRateCurrency(policy.outputCurrency)) {
-        const supportedEURCountries: readonly string[] = CONST.CUSTOM_UNITS.GOVERNMENT_RATE_SUPPORTED_EUR_COUNTRIES;
         const selectedCountry = policy.autoUpdateGovernmentRateCountry;
-        return selectedCountry && supportedEURCountries.includes(selectedCountry) ? (selectedCountry as GovernmentRateCountry) : undefined;
+        return CONST.CUSTOM_UNITS.GOVERNMENT_RATE_SUPPORTED_EUR_COUNTRIES.find((country) => country === selectedCountry);
     }
 
     return getGovernmentRateCountryForCurrency(policy.outputCurrency);

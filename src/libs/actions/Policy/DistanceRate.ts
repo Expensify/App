@@ -772,6 +772,9 @@ function setWorkspaceDistanceAutoUpdate(
     const expectedUnit = countryCode ? getExpectedUnitForCountry(countryCode) : getExpectedUnitForCurrency(outputCurrency);
     const shouldCorrectUnit = shouldAutoUpdateGovernmentDistanceRates && !!expectedUnit && !!currentUnit && currentUnit !== expectedUnit;
 
+    // A country change starts from an enabled policy, so its failure restores the flag to on as well
+    const failureAutoUpdateValue = shouldAutoUpdateGovernmentDistanceRates && !previousCountryCode ? null : true;
+
     const optimisticCustomUnit: NullishDeep<CustomUnit> = {
         ...(Object.keys(optimisticRates).length > 0 ? {rates: optimisticRates} : {}),
         ...(shouldCorrectUnit ? {attributes: {unit: expectedUnit}, pendingFields: {attributes: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}} : {}),
@@ -821,8 +824,7 @@ function setWorkspaceDistanceAutoUpdate(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: policyKey,
                 value: {
-                    // A country change starts from an enabled policy, so its failure restores the flag to on as well
-                    shouldAutoUpdateGovernmentDistanceRates: shouldAutoUpdateGovernmentDistanceRates ? (previousCountryCode ? true : null) : true,
+                    shouldAutoUpdateGovernmentDistanceRates: failureAutoUpdateValue,
                     ...(countryCode ? {autoUpdateGovernmentRateCountry: previousCountryCode ?? null} : {}),
                     pendingFields: {
                         shouldAutoUpdateGovernmentDistanceRates: null,

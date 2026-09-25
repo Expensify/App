@@ -36,7 +36,7 @@ type PolicyDistanceRateGovernmentRateCountryPageProps = PlatformStackScreenProps
 function PolicyDistanceRateGovernmentRateCountryPage({route}: PolicyDistanceRateGovernmentRateCountryPageProps) {
     const policyID = route.params.policyID;
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
@@ -55,8 +55,8 @@ function PolicyDistanceRateGovernmentRateCountryPage({route}: PolicyDistanceRate
                     isSelected: currentCountry === countryCode,
                     searchValue: StringUtils.sanitizeString(`${countryCode}${countryName}`),
                 };
-            }).sort((a, b) => a.text.localeCompare(b.text)),
-        [translate, currentCountry],
+            }).sort((a, b) => localeCompare(a.text, b.text)),
+        [translate, localeCompare, currentCountry],
     );
 
     const searchResults = searchOptions(debouncedSearchValue, countries);
