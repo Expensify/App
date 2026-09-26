@@ -12,10 +12,10 @@ import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
-import useKeyboardState from '@hooks/useKeyboardState';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -24,6 +24,7 @@ import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
@@ -101,6 +102,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -125,10 +127,10 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
 
     const [draftPolicyID, setDraftPolicyID] = useState<string>();
     const currentSelection = draftPolicyID ?? report.policyID;
+    // Freeze the workspace selected when the page opened so it stays pinned to the top for the whole open/focus cycle, even as the live selection changes.
+    const initialSelection = useInitialSelection(currentSelection, {resetOnFocus: true});
 
-    const isInLandscapeMode = useIsInLandscapeMode();
-    const {isKeyboardActive} = useKeyboardState();
-    const shouldFooterBeInsideList = isInLandscapeMode && isKeyboardActive;
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
 
     // The snapshot keeps the report row after a workspace change, and only the server can tell whether it still matches the query.
     const refreshSearch = () => {
@@ -201,6 +203,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 isTrackIntentUser,
                 reportTransactions,
                 rules,
+                delegateAccountID,
             });
             refreshSearch();
             return;
@@ -223,6 +226,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             isTrackIntentUser,
             reportTransactions,
             rules,
+            delegateAccountID,
         });
         refreshSearch();
     };
@@ -232,7 +236,9 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         currentUserLogin: session?.email,
         shouldShowPendingDeletePolicy: false,
         selectedPolicyIDs: currentSelection ? [currentSelection] : undefined,
-        policyIDsToSortToTop: report.policyID ? [report.policyID] : undefined,
+        // Pass the frozen selection (and an empty array, never undefined) so the list keeps the originally-selected
+        // workspace pinned and never falls back to sorting the live selection to the top, which would make the tapped one jump.
+        policyIDsToSortToTop: initialSelection ? [initialSelection] : [],
         searchTerm: debouncedSearchTerm,
         localeCompare,
         additionalFilter: (newPolicy) => {
@@ -290,7 +296,9 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                             onSelectRow={(option) => setDraftPolicyID(option.policyID)}
                             textInputOptions={textInputOptions}
                             confirmButtonOptions={confirmButtonOptions}
-                            initiallyFocusedItemKey={report.policyID}
+                            initiallyFocusedItemKey={initialSelection}
+                            shouldScrollToFocusedIndexOnMount={false}
+                            shouldUpdateFocusedIndex
                             shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
                             disableMaintainingScrollPosition
                             addBottomSafeAreaPadding
