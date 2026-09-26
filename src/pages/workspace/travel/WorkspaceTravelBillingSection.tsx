@@ -1,6 +1,9 @@
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -52,6 +55,7 @@ import {getSearchParamFromPath} from '@libs/Url';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {updateGeneralSettings as updatePolicyGeneralSettings} from '@userActions/Policy/Policy';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -427,14 +431,12 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                     )}
                 </View>
             </View>
-            <MenuItemWithTopDescription
-                description={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelLimitLabel')}
-                title={formattedLimit}
-                wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                titleStyle={styles.textNormalThemeText}
-                descriptionTextStyle={styles.textLabelSupportingNormal}
-                interactive={false}
-            />
+            <MenuItemSectionRoot>
+                <MenuItemField.Row
+                    name={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelLimitLabel')}
+                    value={formattedLimit}
+                />
+            </MenuItemSectionRoot>
             <OfflineWithFeedback
                 errors={settlementAccountErrors}
                 pendingAction={settlementAccountPendingAction}
@@ -442,17 +444,22 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 errorRowStyles={styles.mh2half}
                 errorRowTextStyles={styles.mr3}
             >
-                <MenuItemWithTopDescription
-                    description={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementAccountLabel')}
-                    title={settlementAccountNumber}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID))}
-                    interactive={canWriteMoreFeatures}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    titleStyle={settlementAccountNumber ? styles.textNormalThemeText : styles.colorMuted}
-                    descriptionTextStyle={styles.textLabelSupportingNormal}
-                    shouldShowRightIcon={canWriteMoreFeatures}
-                    brickRoadIndicator={hasSettlementAccountError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                <MenuItemSectionRoot
+                    onPress={canWriteMoreFeatures ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID))) : undefined}
+                >
+                    <MenuItem.Row>
+                        <MenuItem.Content>
+                            <MenuItem.FieldName>{translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementAccountLabel')}</MenuItem.FieldName>
+                            {!!settlementAccountNumber && <MenuItem.FieldValue>{settlementAccountNumber}</MenuItem.FieldValue>}
+                        </MenuItem.Content>
+                        {(hasSettlementAccountError || canWriteMoreFeatures) && (
+                            <MenuItem.Trailing>
+                                {hasSettlementAccountError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                {canWriteMoreFeatures && <MenuItem.Chevron />}
+                            </MenuItem.Trailing>
+                        )}
+                    </MenuItem.Row>
+                </MenuItemSectionRoot>
             </OfflineWithFeedback>
             <OfflineWithFeedback
                 errors={settlementFrequencyErrors}
@@ -461,17 +468,21 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 errorRowStyles={styles.mh2half}
                 errorRowTextStyles={styles.mr3}
             >
-                <MenuItemWithTopDescription
-                    description={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementFrequencyLabel')}
-                    title={localizedFrequency}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.getRoute(policyID))}
-                    interactive={canWriteMoreFeatures}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    titleStyle={styles.textNormalThemeText}
-                    descriptionTextStyle={styles.textLabelSupportingNormal}
-                    shouldShowRightIcon={canWriteMoreFeatures}
-                    brickRoadIndicator={hasSettlementFrequencyError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                <MenuItemSectionRoot
+                    onPress={canWriteMoreFeatures ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.getRoute(policyID))) : undefined}
+                >
+                    <MenuItemField.Row
+                        name={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementFrequencyLabel')}
+                        value={localizedFrequency}
+                    >
+                        {(hasSettlementFrequencyError || canWriteMoreFeatures) && (
+                            <>
+                                {hasSettlementFrequencyError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                {canWriteMoreFeatures && <MenuItem.Chevron />}
+                            </>
+                        )}
+                    </MenuItemField.Row>
+                </MenuItemSectionRoot>
             </OfflineWithFeedback>
             <OfflineWithFeedback
                 errors={monthlyLimitErrors}
@@ -480,17 +491,21 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 errorRowStyles={styles.mh2half}
                 errorRowTextStyles={styles.mr3}
             >
-                <MenuItemWithTopDescription
-                    description={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.monthlySpendLimitLabel')}
-                    title={formattedMonthlyLimit}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT.getRoute(policyID))}
-                    interactive={canWriteMoreFeatures}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    titleStyle={styles.textNormalThemeText}
-                    descriptionTextStyle={styles.textLabelSupportingNormal}
-                    shouldShowRightIcon={canWriteMoreFeatures}
-                    brickRoadIndicator={hasMonthlyLimitError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                <MenuItemSectionRoot
+                    onPress={canWriteMoreFeatures ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT.getRoute(policyID))) : undefined}
+                >
+                    <MenuItemField.Row
+                        name={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.monthlySpendLimitLabel')}
+                        value={formattedMonthlyLimit}
+                    >
+                        {(hasMonthlyLimitError || canWriteMoreFeatures) && (
+                            <>
+                                {hasMonthlyLimitError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                {canWriteMoreFeatures && <MenuItem.Chevron />}
+                            </>
+                        )}
+                    </MenuItemField.Row>
+                </MenuItemSectionRoot>
             </OfflineWithFeedback>
         </>
     );

@@ -63,6 +63,8 @@ import {
     isTimeRequest,
 } from '@libs/TransactionUtils';
 
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -293,6 +295,9 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
         return '';
     };
 
+    const isRateInteractive = !isSelfDMSplit || isRateBroken || hasAvailableEnabledRates || !hasAnyPaidWorkspace || shouldSelectPolicy;
+    const rateErrorText = getErrorForField('customUnitRateID');
+
     const distanceRequestFields = isDistance ? (
         <>
             <MenuItemField
@@ -333,51 +338,70 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                     );
                 }}
             />
-            <MenuItemWithTopDescription
-                description={translate('common.rate')}
-                title={rateToDisplay}
-                interactive={!isSelfDMSplit || isRateBroken || hasAvailableEnabledRates || !hasAnyPaidWorkspace || shouldSelectPolicy}
-                shouldShowRightIcon={!isSelfDMSplit || isRateBroken || hasAvailableEnabledRates || !hasAnyPaidWorkspace || shouldSelectPolicy}
-                titleStyle={styles.flex1}
-                brickRoadIndicator={getErrorForField('customUnitRateID') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                errorText={getErrorForField('customUnitRateID')}
-                style={[styles.moneyRequestMenuItem]}
-                onPress={() => {
-                    const rateRoute = createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.SPLIT_EXPENSE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID),
-                    );
+            <MenuItem.Root
+                onPress={
+                    isRateInteractive
+                        ? callFunctionIfActionIsAllowed(() => {
+                              const rateRoute = createDynamicRoute(
+                                  DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
+                                      CONST.IOU.ACTION.EDIT,
+                                      CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                      CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                      reportID,
+                                  ),
+                              );
 
-                    // SelfDM split whose source workspace is gone and user has no other paid workspace:
-                    // mirror the selfDM track-expense Rate flow (MoneyRequestView) and route through the
-                    // IOU-level upgrade screen so the user can create a workspace, then a distance rate.
-                    // Use OPTIMISTIC_TRANSACTION_ID so the post-upgrade hop back into the rate step picks
-                    // up the same SPLIT_TRANSACTION_DRAFT this screen reads from (see line 57 above).
-                    if (isSelfDMSplit && !effectivePolicy && !hasAnyPaidWorkspace && reportID) {
-                        Navigation.navigate(
-                            createDynamicRoute(
-                                DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                    action: CONST.IOU.ACTION.EDIT,
-                                    iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                    transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                    reportID,
-                                    upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
-                                }),
-                            ),
-                        );
-                        return;
-                    }
+                              // SelfDM split whose source workspace is gone and user has no other paid workspace:
+                              // mirror the selfDM track-expense Rate flow (MoneyRequestView) and route through the
+                              // IOU-level upgrade screen so the user can create a workspace, then a distance rate.
+                              // Use OPTIMISTIC_TRANSACTION_ID so the post-upgrade hop back into the rate step picks
+                              // up the same SPLIT_TRANSACTION_DRAFT this screen reads from (see line 57 above).
+                              if (isSelfDMSplit && !effectivePolicy && !hasAnyPaidWorkspace && reportID) {
+                                  Navigation.navigate(
+                                      createDynamicRoute(
+                                          DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                              action: CONST.IOU.ACTION.EDIT,
+                                              iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                              transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                              reportID,
+                                              upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
+                                          }),
+                                      ),
+                                  );
+                                  return;
+                              }
 
-                    // SelfDM split with paid workspaces but none is default/active paid (e.g. personal
-                    // is the active policy): open the workspace selector first — same UX as the parent
-                    // self-DM expense's Rate field in MoneyRequestView and the Category branch below.
-                    if (!effectivePolicy && shouldSelectPolicy) {
-                        Navigation.navigate(ROUTES.SET_DEFAULT_WORKSPACE.getRoute(rateRoute));
-                        return;
-                    }
+                              // SelfDM split with paid workspaces but none is default/active paid (e.g. personal
+                              // is the active policy): open the workspace selector first — same UX as the parent
+                              // self-DM expense's Rate field in MoneyRequestView and the Category branch below.
+                              if (!effectivePolicy && shouldSelectPolicy) {
+                                  Navigation.navigate(ROUTES.SET_DEFAULT_WORKSPACE.getRoute(rateRoute));
+                                  return;
+                              }
 
-                    Navigation.navigate(rateRoute);
-                }}
-            />
+                              Navigation.navigate(rateRoute);
+                          })
+                        : undefined
+                }
+            >
+                <MenuItemField.Row
+                    name={translate('common.rate')}
+                    value={rateToDisplay}
+                >
+                    {(!!rateErrorText || isRateInteractive) && (
+                        <>
+                            {!!rateErrorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                            {isRateInteractive && <MenuItem.Chevron />}
+                        </>
+                    )}
+                </MenuItemField.Row>
+                {!!rateErrorText && (
+                    <MenuItem.HelpText
+                        isError
+                        message={rateErrorText}
+                    />
+                )}
+            </MenuItem.Root>
         </>
     ) : null;
 

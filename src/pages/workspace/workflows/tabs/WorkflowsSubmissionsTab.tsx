@@ -1,4 +1,6 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -12,10 +14,13 @@ import {getCorrectedAutoReportingFrequency} from '@libs/PolicyUtils';
 
 import {getAutoReportingFrequencyDisplayNames} from '@pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage';
 
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React, {useCallback} from 'react';
+import {View} from 'react-native';
 
 import WorkflowsSectionCard from './WorkflowsSectionCard';
 
@@ -50,19 +55,22 @@ function WorkflowsSubmissionsTab({policyID}: WorkflowsSubmissionsTabProps) {
             switchAccessibilityLabel={translate('workflowsPage.submissionFrequencyDescription')}
             onToggle={onToggle}
             subMenuItems={
-                <MenuItemWithTopDescription
-                    title={getAutoReportingFrequencyDisplayNames(translate)[getCorrectedAutoReportingFrequency(policy) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]}
-                    titleStyle={styles.textNormalThemeText}
-                    descriptionTextStyle={styles.textLabelSupportingNormal}
-                    onPress={onPressAutoReportingFrequency}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTO_REPORTING_FREQUENCY}
-                    // Instant submit is the equivalent of delayed submissions being turned off, so we show the feature as disabled if the frequency is instant
-                    description={translate('common.frequency')}
-                    shouldShowRightIcon={canWriteWorkflows}
-                    interactive={canWriteWorkflows}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                    brickRoadIndicator={hasDelayedSubmissionError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                <View style={[styles.mt3, styles.mbn3]}>
+                    <MenuItemSectionRoot
+                        onPress={canWriteWorkflows ? callFunctionIfActionIsAllowed(onPressAutoReportingFrequency) : undefined}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTO_REPORTING_FREQUENCY}
+                    >
+                        <MenuItemField.Row
+                            name={translate('common.frequency')}
+                            value={getAutoReportingFrequencyDisplayNames(translate)[getCorrectedAutoReportingFrequency(policy) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]}
+                        >
+                            <>
+                                {hasDelayedSubmissionError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                {canWriteWorkflows && <MenuItem.Chevron />}
+                            </>
+                        </MenuItemField.Row>
+                    </MenuItemSectionRoot>
+                </View>
             }
             isActive={(policy?.autoReporting && !hasDelayedSubmissionError) ?? false}
             pendingAction={policy?.pendingFields?.autoReporting ?? policy?.pendingFields?.autoReportingFrequency}

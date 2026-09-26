@@ -1,5 +1,6 @@
 import DatePicker from '@components/DatePicker';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -12,8 +13,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearMoneyRequestCreated, setMoneyRequestCreated, updateDistanceRateOnExpenseDateChange} from '@libs/actions/IOU/MoneyRequest';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatReportUtil} from '@libs/ReportUtils';
 import {hasAnyManuallyEnteredScanField, isPartiallyEnteredScanExpense} from '@libs/TransactionUtils';
 
@@ -22,7 +21,6 @@ import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MoneyRequestDateForm';
 
 import {format} from 'date-fns';
@@ -42,10 +40,9 @@ type DateFieldProps = {
     action: IOUAction;
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
     reportID: string;
-    reportActionID: string | undefined;
 };
 
-function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
+function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, transactionID, action, iouType, reportID}: DateFieldProps) {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {isEditingSplitBill, canEnterScanFieldsManually} = useConfirmationFields();
     const styles = useThemeStyles();
@@ -152,25 +149,23 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
     }
 
     return (
-        <MenuItemWithTopDescription
-            shouldShowRightIcon={!isReadOnly}
-            title={iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
-            description={translate('common.date')}
-            style={[styles.moneyRequestMenuItem]}
-            titleStyle={styles.flex1}
-            onPress={() => {
-                if (!transactionID) {
-                    return;
-                }
-
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, reportActionID)));
-            }}
-            disabled={didConfirm}
-            interactive={!isReadOnly}
-            brickRoadIndicator={shouldDisplayFieldError && createdMissing ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-            errorText={dateErrorText}
+        <MenuItem.Root
+            isDisabled={didConfirm}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DATE_FIELD}
-        />
+        >
+            <MenuItemField.Row
+                name={translate('common.date')}
+                value={iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
+            >
+                {shouldDisplayFieldError && createdMissing && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+            </MenuItemField.Row>
+            {!!dateErrorText && (
+                <MenuItem.HelpText
+                    isError
+                    message={dateErrorText}
+                />
+            )}
+        </MenuItem.Root>
     );
 }
 

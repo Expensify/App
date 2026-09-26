@@ -400,11 +400,9 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                             value={card?.nameValuePairs?.cardTitle}
                         />
                     </OfflineWithFeedback>
-                    <MenuItemWithTopDescription
-                        description={translate(isVirtual ? 'cardPage.virtualCardNumber' : 'cardPage.physicalCardNumber')}
-                        title={maskCard(card?.lastFourPAN)}
-                        interactive={false}
-                        titleStyle={styles.walletCardNumber}
+                    <MenuItemField
+                        name={translate(isVirtual ? 'cardPage.virtualCardNumber' : 'cardPage.physicalCardNumber')}
+                        value={maskCard(card?.lastFourPAN)}
                     />
                     {spendRulesSummary.length > 0 && (
                         <MenuItemWithTopDescription
