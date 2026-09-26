@@ -14,7 +14,7 @@ import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/V
 
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import {add as dateAdd} from 'date-fns';
@@ -58,6 +58,7 @@ const UBER_CONNECT_URL = 'https://business-integrations.uber.com/connect';
 const CHATGPT_CONNECT_URL = 'https://chatgpt.com/plugins/plugin_asdk_app_6a56a498be548191bdf3743878810456?q=expensify';
 const MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Use-the-Expensify-MCP-Server-With-AI-Assistants';
 const CLAUDE_CONNECT_URL = 'https://claude.ai/directory/connectors/expensify';
+const CLAUDE_MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Connect-Claude-to-Expensify-Using-MCP';
 const CURSOR_MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Connect-Cursor-to-Expensify-Using-MCP';
 const XERO_PARTNER_LINK = 'https://referrals.xero.com/uzfjy4uegog2-v0pj1v';
 const UBER_TERMS_LINK = 'https://www.uber.com/us/en/business/sign-up/terms/expense-partners/';
@@ -101,17 +102,36 @@ const chatTypes = {
     SYSTEM: 'system',
 } as const;
 
+// Options on the onboarding accounting step, in display order. BaseOnboardingAccounting needs an icon and label for each key.
 const ONBOARDING_ACCOUNTING_MAPPING = {
     quickbooksOnline: 'QuickBooks Online',
+    intuitEnterpriseSuite: 'Intuit Enterprise Suite',
+    quickbooksDesktop: 'QuickBooks Desktop',
     xero: 'Xero',
     netsuite: 'NetSuite',
     intacct: 'Sage Intacct',
-    quickbooksDesktop: 'QuickBooks Desktop',
+    financialforce: 'Certinia',
+    rillet: 'Rillet',
     sap: 'SAP',
     oracle: 'Oracle',
     microsoftDynamics: 'Microsoft Dynamics',
     other: 'accounting software',
 };
+
+type OnboardingAccountingOption = keyof typeof ONBOARDING_ACCOUNTING_MAPPING;
+
+/** Accounting connections not offered on the onboarding accounting step. Remove one from this union to offer it. */
+type UnofferedOnboardingAccountingConnection =
+    | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY
+    | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE
+    // Covered by the Microsoft Dynamics option, and still behind the BUSINESS_CENTRAL beta.
+    | typeof CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL;
+
+type UnhandledAccountingConnection = Exclude<TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>, OnboardingAccountingOption | UnofferedOnboardingAccountingConnection>;
+
+// Fails typecheck if an accounting connection is neither offered on the onboarding step nor listed above.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type AssertEveryAccountingConnectionIsHandled<T extends never = UnhandledAccountingConnection> = T;
 
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
@@ -264,7 +284,6 @@ const CONST = {
     // error under, and the ValidateCodeForm reads it back from, so the action and the page stay in sync.
     MISSING_PERSONAL_DETAILS_VALIDATE_CODE_FIELD: 'personalDetails',
     DEFAULT_DB_NAME: 'OnyxDB',
-    DEFAULT_TABLE_NAME: 'keyvaluepairs',
     DEFAULT_ONYX_DUMP_FILE_NAME: 'onyx-state.txt',
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
     DEFAULT_IMAGE_FILE_NAME: 'image',
@@ -686,6 +705,7 @@ const CONST = {
     CHATGPT_CONNECT_URL,
     MCP_HELP_URL,
     CLAUDE_CONNECT_URL,
+    CLAUDE_MCP_HELP_URL,
     CURSOR_MCP_HELP_URL,
     XERO_PARTNER_LINK,
     UBER_TERMS_LINK,
@@ -737,6 +757,7 @@ const CONST = {
     MARKETING_WINDOW_UPDATE_KEYS: {
         PRODUCT_UPDATE_JULY_2026: 'productUpdateJuly2026',
         PRODUCT_UPDATE_AUGUST_2026: 'productUpdateAugust2026',
+        PRODUCT_UPDATE_SEPTEMBER_2026: 'productUpdateSeptember2026',
     },
     BANK_ACCOUNT: {
         BENEFICIAL_OWNER_INFO_STEP: {
@@ -746,7 +767,7 @@ const CONST = {
                 FIRST_NAME: 'firstName',
                 LAST_NAME: 'lastName',
                 DOB: 'dob',
-                SSN: 'ssn',
+                SSN_LAST_4: 'ssnLast4',
                 STREET: 'street',
                 CITY: 'city',
                 STATE: 'state',
@@ -821,7 +842,7 @@ const CONST = {
                 UBOS_LIST: 'ubos-list',
                 LEGAL_NAME: 'legal-name',
                 DATE_OF_BIRTH: 'date-of-birth',
-                SSN: 'ssn',
+                SSN_LAST_4: 'ssn',
                 ADDRESS: 'address',
                 CONFIRMATION: 'confirmation',
             },
@@ -2274,10 +2295,6 @@ const CONST = {
         GET_INITIAL_URL_TIMEOUT: 10000,
         MIN_SMOOTH_SCROLL_EVENT_THROTTLE: 16,
     },
-    DEFERRED_LAYOUT_WRITE_KEYS: {
-        SEARCH: 'search',
-        DISMISS_MODAL: 'dismiss_modal',
-    },
     TELEMETRY: {
         CONTEXT_FULLSTORY: 'Fullstory',
         CONTEXT_MEMORY: 'Memory',
@@ -2480,6 +2497,12 @@ const CONST = {
         ATTRIBUTE_PHOTO_WIDTH: 'photo_width',
         ATTRIBUTE_PHOTO_HEIGHT: 'photo_height',
         ATTRIBUTE_SOURCE: 'source',
+        ATTRIBUTE_PHASE_DETECTION_FORMAT_COUNT: 'phase_detection_format_count',
+        ATTRIBUTE_SELECTED_FORMAT_AF_SYSTEM: 'selected_format_af_system',
+        ATTRIBUTE_HAS_INTERCHANGEABLE_PHASE_FORMAT: 'has_interchangeable_phase_format',
+        ATTRIBUTE_MIN_FOCUS_DISTANCE: 'min_focus_distance',
+        ATTRIBUTE_PHYSICAL_DEVICE_COUNT: 'physical_device_count',
+        ATTRIBUTE_NEUTRAL_ZOOM: 'neutral_zoom',
         ATTRIBUTE_ODOMETER_IMAGE_TYPE: 'odometer_image_type',
         ATTRIBUTE_DURATION_SINCE_NATIVE_APP_STARTUP_MS: 'duration_since_native_app_startup_ms',
         CAPTURE_METHOD: {
@@ -3384,6 +3407,11 @@ const CONST = {
             RECRUITER: 'recruiter',
             RECRUITING_COORDINATOR: 'coordinator',
         },
+        ATS_FILTER_TYPE: {
+            TAGS: 'tags',
+            STAGES: 'stages',
+            OFFICES: 'offices',
+        },
         CATEGORY: {
             HRIS: 'hris',
             ATS: 'ats',
@@ -3467,6 +3495,7 @@ const CONST = {
         PROVINCIAL_TAX_POSTING_ACCOUNT: 'provincialTaxPostingAccount',
         ALLOW_FOREIGN_CURRENCY: 'allowForeignCurrency',
         EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
+        SPLIT_EXPORTS_BY_POSTING_PERIOD: 'splitExportsByPostingPeriod',
         IMPORT_FIELDS: ['departments', 'classes', 'locations'],
         AUTO_SYNC: 'autoSync',
         ACCOUNTING_METHOD: 'accountingMethod',
@@ -4821,7 +4850,8 @@ const CONST = {
             get EXPORTED_TO_INTEGRATION_DISPLAY_NAMES(): string[] {
                 return this.ACCOUNTING_CONNECTION_NAMES.map((name) => this.NAME_USER_FRIENDLY[name as keyof typeof this.NAME_USER_FRIENDLY]);
             },
-            CORPORATE: ['quickbooksDesktop', 'netsuite', 'intacct', 'oracle', 'sap', 'microsoftDynamics', 'other'],
+            // Onboarding accounting choices that create a Control workspace, since their integrations need Control to connect.
+            CORPORATE: ['quickbooksDesktop', 'intuitEnterpriseSuite', 'netsuite', 'intacct', 'financialforce', 'rillet', 'oracle', 'sap', 'microsoftDynamics', 'other'],
             AUTH_HELP_LINKS: {
                 intacct:
                     "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
@@ -5007,6 +5037,9 @@ const CONST = {
             CAD: 'CA',
             GBP: 'GB',
             AUD: 'AU',
+            NOK: 'NO',
+            SEK: 'SE',
+            ZAR: 'ZA',
         },
         // Unit each country publishes its rates in
         GOVERNMENT_RATE_COUNTRY_TO_UNIT: {
@@ -5014,6 +5047,9 @@ const CONST = {
             GB: 'mi',
             CA: 'km',
             AU: 'km',
+            NO: 'km',
+            SE: 'km',
+            ZA: 'km',
         },
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
         UNSET_DISTANCE_RATE_ID: '-1',
@@ -7287,6 +7323,8 @@ const CONST = {
         TAG_FILTER_PAGE_SIZE: 200,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
+        // Null byte can't appear in a query, so it's safe to join query parts with it
+        QUERY_PARAMS_SEPARATOR: '\x00',
         /** How far the cursor may wander from where it last counted as moving over the advanced filter list and still count as resting */
         HOVER_INTENT_REST_RADIUS_PX: 8,
         DATA_TYPES: {
@@ -9485,9 +9523,6 @@ const CONST = {
             SECURITY: 'Account-Security',
             SUBSCRIPTION: 'Account-Subscription',
         },
-        DISCOVER_SECTION: {
-            TEST_DRIVE: 'DiscoverSection-TestDrive',
-        },
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',
             GETTING_STARTED_ROW: 'HomePage-GettingStartedRow',
@@ -10229,6 +10264,7 @@ export type {
     CancellationType,
     OnboardingInvite,
     OnboardingAccounting,
+    OnboardingAccountingOption,
     OnboardingIntent,
     IOUActionParams,
     EnablePaymentsPageType,

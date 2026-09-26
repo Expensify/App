@@ -88,6 +88,7 @@ const darkTheme = {
     imageCropBackgroundColor: colors.productDark700,
     fallbackIconColor: colors.green700,
     reactionActiveBackground: colors.green600,
+    selectedOptionBG: colors.green700,
     reactionActiveText: colors.green100,
     badgeDefaultBG: colors.productDark400,
     badgeSuccessBG: colors.green700,

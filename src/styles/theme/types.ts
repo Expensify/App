@@ -95,6 +95,8 @@ type ThemeColors = {
     imageCropBackgroundColor: Color;
     fallbackIconColor: Color;
     reactionActiveBackground: Color;
+    /** Background of a selected option among mutually exclusive choices */
+    selectedOptionBG: Color;
     reactionActiveText: Color;
     badgeDefaultBG: Color;
     badgeSuccessBG: Color;

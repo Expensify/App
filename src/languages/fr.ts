@@ -1003,7 +1003,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Réparer la connexion de la carte personnelle ${cardName}` : 'Corriger la connexion de la carte personnelle'),
                 subtitle: 'Portefeuille',
             },
-            validateAccount: {title: 'Validez votre compte', subtitle: 'Compte', cta: 'Valider'},
             addHomeAddress: {title: 'Ajoutez votre adresse personnelle pour le suivi des distances', subtitle: 'Compte', cta: 'Ajouter'},
             fixFailedBilling: {title: 'Nous n’avons pas pu débiter votre carte enregistrée', subtitle: 'Abonnement'},
             unlockBankAccount: {
@@ -1024,12 +1023,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `L’abonnement prend fin le ${date}`,
                 cta: 'Gérer',
             },
-        },
-        discoverSection: {
-            title: 'Découvrir',
-            menuItemTitleNonAdmin: 'Découvrez comment créer des dépenses et soumettre des notes de frais.',
-            menuItemTitleAdmin: 'Découvrez comment inviter des membres, modifier les workflows d’approbation et rapprocher les cartes de société.',
-            menuItemDescription: 'Découvrez ce qu’Expensify peut faire en 2 min',
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1518,6 +1511,7 @@ const translations: TranslationDeepObject<typeof en> = {
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `a payé ${amount} avec le compte bancaire ${last4Digits}` : `payé avec le compte bancaire ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `payé ${amount ? `${amount} ` : ''} avec le compte bancaire ${last4Digits} via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles d’espace de travail</a>`,
+        paymentWithExpectedDate: ({paymentMessage, expectedDateMessage}: {paymentMessage: string; expectedDateMessage: string}) => `${paymentMessage}. ${expectedDateMessage}`,
         invoicePersonalBank: (lastFour: string) => `Compte personnel • ${lastFour}`,
         invoiceBusinessBank: (lastFour: string) => `Compte professionnel • ${lastFour}`,
         nextStep: 'Étapes suivantes',
@@ -1643,7 +1637,7 @@ const translations: TranslationDeepObject<typeof en> = {
             receiptFailureMessage:
                 '<rbr>Une erreur s’est produite lors du téléchargement de votre reçu. Veuillez <a href="download">enregistrer le reçu</a> et <a href="retry">réessayer</a> plus tard.</rbr>',
             receiptFailureMessageShort: 'Une erreur s’est produite lors du téléchargement de votre reçu.',
-            receiptUploadFailedMessage: 'Échec du téléchargement du reçu. Enregistrez le reçu ou supprimez la dépense et perdez-la.',
+            receiptUploadFailedMessage: 'Le téléversement a échoué. Réessayez ou enregistrez pour plus tard.',
             saveReceipt: 'Enregistrer le reçu',
             genericDeleteFailureMessage: 'Erreur inattendue lors de la suppression de cette dépense. Veuillez réessayer plus tard.',
             genericEditFailureMessage: 'Erreur inattendue lors de la modification de cette dépense. Veuillez réessayer plus tard.',
@@ -1676,6 +1670,7 @@ const translations: TranslationDeepObject<typeof en> = {
             reportsNotMarkedAsDoneDescription: "Ces notes de frais n'ont pas pu être marquées comme terminées. Vérifiez qu'aucune dépense n'est en attente ou en suspens, puis réessayez.",
             stitchOdometerImagesFailed: 'Échec de la combinaison des images de l’odomètre. Veuillez réessayer plus tard.',
             failedToSaveOdometerDraft: 'Impossible d’enregistrer votre brouillon de compteur kilométrique. Veuillez réessayer.',
+            receiptUploadFailedSaveOnlyMessage: 'Téléversement échoué. Enregistrez votre reçu pour le conserver.',
         },
         dismissReceiptError: 'Ignorer l’erreur',
         dismissReceiptErrorConfirmation: 'Attention ! Ignorer cette erreur supprimera complètement votre reçu téléversé. Êtes-vous sûr ?',
@@ -1845,6 +1840,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Choisissez une option pour modifier l’approbateur de cette note de frais. (Mettez à jour vos <a href="${workflowSettingLink}">paramètres d’espace de travail</a> pour changer cela définitivement pour toutes les notes de frais.)`,
             changedApproverMessage: (managerID: number) => `a changé l'approbateur en <mention-user accountID="${managerID}"/>`,
+            changedFinalApproverMessage: (managerID: number) => `a changé l'approbateur final en <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `a réaffecté l'approbateur à <mention-user accountID="${managerID}"/> via une mise à jour du flux de travail`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
@@ -2779,6 +2775,7 @@ const translations: TranslationDeepObject<typeof en> = {
             fixConnectionIn: (companyCardsRoute: string) => `Veuillez corriger cette connexion dans <a href="${companyCardsRoute}">cartes d’entreprise</a>`,
             askAdminToFixConnection: 'Veuillez demander à un administrateur de corriger cette connexion',
             reconnectBank: 'Votre connexion bancaire doit être réauthentifiée',
+            pending: 'En attente',
         },
         bankAccountStatus: {
             active: 'Actif',
@@ -2989,10 +2986,10 @@ ${amount} pour ${merchant} - ${date}`,
             approverSubtitle: 'Tous les approbateurs appartiennent à un workflow existant.',
             bulkApproverSubtitle: 'Aucun approbateur ne correspond aux critères pour les rapports sélectionnés.',
         },
-        configureViaHR: ({provider}: {provider: string}) => `Configurer via ${provider}.`,
-        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+        configureViaProvider: ({provider}: {provider: string}) => `Configurer via ${provider}.`,
+        integrationApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Les validations sont gérées par votre intégration ${provider}. Pour mettre à jour votre workflow de validation, accédez aux paramètres de connexion ${provider}.`,
-        goToHRSettings: ({provider}: {provider: string}) => `Aller aux paramètres ${provider}`,
+        goToProviderSettings: ({provider}: {provider: string}) => `Aller aux paramètres ${provider}`,
         approverFromProvider: ({provider}: {provider: string}) => `de la part de ${provider}`,
         finalApprover: 'Approbateur final',
         manager: 'Manager',
@@ -3424,8 +3421,7 @@ ${amount} pour ${merchant} - ${date}`,
         },
         accounting: {
             title: 'Utilisez-vous un logiciel de comptabilité ?',
-            none: 'Aucun',
-            otherAccountingSoftware: 'Votre logiciel de comptabilité',
+            otherAccountingSoftware: 'Nom du logiciel',
         },
         interestedFeatures: {
             title: 'Quelles fonctionnalités vous intéressent ?',
@@ -4308,7 +4304,7 @@ ${amount} pour ${merchant} - ${date}`,
         legalFirstName: 'Prénom légal',
         legalLastName: 'Nom de famille légal',
         enterTheDateOfBirthOfTheOwner: 'Quelle est la date de naissance du responsable ?',
-        enterTheSSN: 'Quel est le numéro de sécurité sociale du propriétaire ?',
+        enterTheSSN: 'Quels sont les 4 derniers chiffres du numéro de sécurité sociale du propriétaire ?',
         dontWorry: 'Ne vous inquiétez pas, nous ne faisons aucun contrôle de crédit personnel !',
         enterTheOwnersAddress: 'Quelle est l’adresse du responsable ?',
         letsDoubleCheck: 'Vérifions une dernière fois que tout est correct.',
@@ -5509,6 +5505,11 @@ ${amount} pour ${merchant} - ${date}`,
             journalEntriesProvTaxPostingAccount: 'Compte de comptabilisation de la taxe provinciale des écritures de journal',
             foreignCurrencyAmount: 'Exporter le montant en devise étrangère',
             exportToNextOpenPeriod: 'Exporter vers la prochaine période ouverte',
+            exportToNextOpenPeriodLockedSubtitle:
+                "Pour désactiver l'exportation vers la prochaine période ouverte, désactivez d'abord la division des exportations non remboursables par période.",
+            splitExportsByPostingPeriod: 'Diviser les exportations par période comptable',
+            splitExportsByPostingPeriodSubtitle:
+                "Activez l'exportation vers la prochaine période ouverte pour activer la division des exportations non remboursables par période dans NetSuite",
             nonReimbursableJournalPostingAccount: 'Compte de saisie des écritures non remboursables',
             reimbursableJournalPostingAccount: 'Compte de comptabilisation des écritures remboursables',
             journalPostingPreference: {
@@ -7661,7 +7662,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             autoGeneratedRateTooltip: 'Ce taux est généré automatiquement.',
             autoUpdateGovernmentRate: 'Mettre automatiquement à jour les taux gouvernementaux',
             autoUpdateGovernmentRateDescription: (countryPhrase: string) => `Créer automatiquement de nouveaux taux lorsque ${countryPhrase} publie de nouvelles directives.`,
-            governmentRateCountries: {US: 'les États-Unis', CA: 'Canada', GB: 'Grande-Bretagne', AU: 'Australie'},
+            governmentRateCountries: {US: 'les États-Unis', CA: 'Canada', GB: 'Grande-Bretagne', AU: 'Australie', NO: 'Norvège', SE: 'Suède', ZA: 'Afrique du Sud'},
         },
         editor: {
             descriptionInputLabel: 'Description',
@@ -8771,6 +8772,29 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             importSettings: 'Paramètres d’importation',
             defaultApprover: 'Approbateur par défaut',
             approverFields: {recruiter: 'Recruteur', recruitingCoordinator: 'Coordinateur recrutement'},
+            filters: {
+                description: (providerName: string) =>
+                    `Sélectionnez quels membres sont importés depuis ${providerName}. Vous pouvez choisir selon les étapes de poste, les tags et les bureaux.`,
+                stages: {
+                    title: 'Étape de recrutement',
+                    description: 'Choisissez l’étape du poste des candidat·es que vous souhaitez synchroniser avec cet espace de travail',
+                    toggleTitle: 'Étapes du poste',
+                    allSelected: 'Toutes les étapes du poste',
+                },
+                tags: {
+                    title: 'Tag',
+                    description: 'Choisissez les tags de candidats que vous souhaitez synchroniser avec cet espace de travail',
+                    toggleTitle: 'Tags',
+                    allSelected: 'Tous les tags',
+                },
+                offices: {
+                    title: 'Bureau',
+                    description: 'Choisissez les bureaux des candidats que vous souhaitez synchroniser avec cet espace de travail',
+                    toggleTitle: 'Bureaux',
+                    allSelected: 'Tous les bureaux',
+                },
+                enableJobStagesOrTags: 'Activez les étapes de mission ou les Tags pour continuer',
+            },
             subtitle: 'Connectez les outils de recrutement et synchronisez les validations de candidats.',
             syncResults: {
                 importedCount: () => ({
@@ -9943,6 +9967,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             title: 'Fusionner des notes de frais',
             description: 'Sélectionnez la note de frais à conserver. Toutes les dépenses y seront déplacées et les autres notes de frais seront supprimées.',
         },
+        percentOfSpend: ({percent}: {percent: string}) => `${percent} des dépenses`,
     },
     genericErrorPage: {
         title: 'Oups, quelque chose s’est mal passé !',
@@ -11218,18 +11243,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
     },
     productMarketingWindow: {
-        roleTypes: {
-            admin: {
-                heading: 'Mappage de fournisseur amélioré',
-                body: 'Créez des fournisseurs et des règles personnalisées pour faciliter la mise en correspondance avec les principaux logiciels de comptabilité.',
-                cta: 'Essayer',
-            },
-            member: {
-                heading: 'Agents préconfigurés pour vous',
-                body: 'Utilisez des agents prédéfinis ou personnalisés pour coder, répartir et soumettre automatiquement les dépenses en votre nom.',
-                cta: 'Essayer',
-            },
-        },
+        heading: 'Connectez Expensify à Claude',
+        body: 'Recherchez, analysez et résumez vos données de dépenses directement dans Claude.',
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Commencez <strong>ici&nbsp;!</strong></tooltip>',

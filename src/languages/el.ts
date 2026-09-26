@@ -1035,11 +1035,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Κάρτα Expensify',
                 cta: 'Ανασκόπηση',
             },
-            validateAccount: {
-                title: 'Επικυρώστε τον λογαριασμό σας',
-                subtitle: 'Λογαριασμός',
-                cta: 'Επικυρώστε',
-            },
             addHomeAddress: {title: 'Προσθέστε τη διεύθυνση κατοικίας σας για παρακολούθηση αποστάσεων', subtitle: 'Λογαριασμός', cta: 'Προσθήκη'},
             fixFailedBilling: {
                 title: 'Δεν μπορέσαμε να χρεώσουμε την αποθηκευμένη κάρτα σας',
@@ -1088,12 +1083,6 @@ const translations: TranslationDeepObject<typeof en> = {
             repaidLast30Days: 'Εξοφλήθηκε τις τελευταίες 30 ημέρες',
         },
         seeMore: ({count}: {count: number}) => `Δείτε ακόμα ${count}`,
-        discoverSection: {
-            title: 'Ανακαλύψτε',
-            menuItemTitleNonAdmin: 'Μάθετε πώς να δημιουργείτε δαπάνες και να υποβάλλετε αναφορές.',
-            menuItemTitleAdmin: 'Μάθετε πώς να προσκαλείτε μέλη, να επεξεργάζεστε ροές έγκρισης και να πραγματοποιείτε συμφωνία εταιρικών καρτών.',
-            menuItemDescription: 'Δείτε τι μπορεί να κάνει το Expensify σε 2 λεπτά',
-        },
         forYouSection: {
             reviewExpenses: ({count}: {count: number}) => ({
                 one: 'Ελέγξτε 1 δαπάνη',
@@ -1565,6 +1554,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amount ? `πληρώθηκε ${amount} με τραπεζικό λογαριασμό ${last4Digits}` : `πληρώθηκε με τραπεζικό λογαριασμό ${last4Digits}`,
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `πληρώθηκε ${amount ? `${amount} ` : ''}με τραπεζικό λογαριασμό ${last4Digits} μέσω των <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">κανόνων χώρου εργασίας</a>`,
+        paymentWithExpectedDate: ({paymentMessage, expectedDateMessage}: {paymentMessage: string; expectedDateMessage: string}) => `${paymentMessage}. ${expectedDateMessage}`,
         invoicePersonalBank: (lastFour: string) => `Προσωπικός λογαριασμός • ${lastFour}`,
         invoiceBusinessBank: (lastFour: string) => `Επαγγελματικός λογαριασμός • ${lastFour}`,
         nextStep: 'Επόμενα βήματα',
@@ -1708,7 +1698,7 @@ const translations: TranslationDeepObject<typeof en> = {
             receiptFailureMessage:
                 '<rbr>Προέκυψε σφάλμα κατά τη μεταφόρτωση της απόδειξής σας. Παρακαλούμε <a href="download">αποθηκεύστε την απόδειξη</a> και <a href="retry">δοκιμάστε ξανά</a> αργότερα.</rbr>',
             receiptFailureMessageShort: 'Παρουσιάστηκε σφάλμα κατά τη μεταφόρτωση της απόδειξής σας.',
-            receiptUploadFailedMessage: 'Η αποστολή της απόδειξης απέτυχε. Αποθηκεύστε την απόδειξη ή διαγράψτε την δαπάνη και χάστε την.',
+            receiptUploadFailedMessage: 'Η μεταφόρτωση απέτυχε. Δοκιμάστε ξανά ή αποθηκεύστε για αργότερα.',
             saveReceipt: 'Αποθήκευση απόδειξης',
             genericDeleteFailureMessage: 'Παρουσιάστηκε απρόσμενο σφάλμα κατά τη διαγραφή αυτής της δαπάνης. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
             genericEditFailureMessage: 'Παρουσιάστηκε απροσδόκητο σφάλμα κατά την επεξεργασία αυτής της δαπάνης. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
@@ -1726,6 +1716,7 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'Η ημερομηνία λήξης δεν μπορεί να είναι ίδια με την ημερομηνία έναρξης',
             manySplitsProvided: `Ο μέγιστος επιτρεπόμενος αριθμός διαχωρισμών είναι ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Το εύρος ημερομηνιών δεν μπορεί να υπερβαίνει τις ${CONST.IOU.SPLITS_LIMIT} ημέρες.`,
+            receiptUploadFailedSaveOnlyMessage: 'Η αποστολή απέτυχε. Αποθηκεύστε την απόδειξή σας για να τη διατηρήσετε.',
         },
         dismissReceiptError: 'Απόρριψη σφάλματος',
         dismissReceiptErrorConfirmation: 'Προσοχή! Αν απορρίψετε αυτό το σφάλμα, η ανεβασμένη απόδειξή σας θα διαγραφεί πλήρως. Είστε βέβαιοι;',
@@ -1892,6 +1883,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Επιλέξτε μια επιλογή για να αλλάξετε τον εγκριτή για αυτήν την αναφορά. (Ενημερώστε τις <a href="${workflowSettingLink}">ρυθμίσεις χώρου εργασίας</a> σας για να το αλλάξετε μόνιμα για όλες τις αναφορές.)`,
             changedApproverMessage: (managerID: number) => `άλλαξε τον εγκρίνοντα σε <mention-user accountID="${managerID}"/>`,
+            changedFinalApproverMessage: (managerID: number) => `άλλαξε τον τελικό εγκρίνοντα σε <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `ανέθεσε εκ νέου τον εγκρίνοντα στον/στην <mention-user accountID="${managerID}"/> μέσω ενημέρωσης ροής εργασίας`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
@@ -2831,6 +2823,7 @@ const translations: TranslationDeepObject<typeof en> = {
             fixConnectionIn: (companyCardsRoute: string) => `Παρακαλούμε διορθώστε αυτήν τη σύνδεση στις <a href="${companyCardsRoute}">εταιρικές κάρτες</a>`,
             askAdminToFixConnection: 'Παρακαλούμε ζητήστε από έναν διαχειριστή να διορθώσει αυτήν τη σύνδεση',
             reconnectBank: 'Η σύνδεσή σας με την τράπεζα χρειάζεται επαναπιστοποίηση',
+            pending: 'Σε εκκρεμότητα',
         },
         bankAccountStatus: {
             active: 'Ενεργό',
@@ -2997,10 +2990,10 @@ ${amount} για ${merchant} - ${date}`,
         addApprovalTip: 'Αυτή η προεπιλεγμένη ροή εργασιών ισχύει για όλα τα μέλη, εκτός εάν υπάρχει πιο συγκεκριμένη ροή εργασιών.',
         approver: 'Έγκριση',
         addApprovalsDescription: 'Να απαιτείται πρόσθετη έγκριση πριν από την έγκριση μιας πληρωμής.',
-        configureViaHR: ({provider}: {provider: string}) => `Ρυθμίστε μέσω ${provider}.`,
-        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+        configureViaProvider: ({provider}: {provider: string}) => `Ρυθμίστε μέσω ${provider}.`,
+        integrationApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Οι εγκρίσεις διαχειρίζονται από την ενοποίηση με το ${provider}. Για να ενημερώσετε τη ροή εργασίας εγκρίσεών σας, μεταβείτε στις ρυθμίσεις σύνδεσης του ${provider}.`,
-        goToHRSettings: ({provider}: {provider: string}) => `Μεταβείτε στις ρυθμίσεις του ${provider}`,
+        goToProviderSettings: ({provider}: {provider: string}) => `Μεταβείτε στις ρυθμίσεις του ${provider}`,
         approverFromProvider: ({provider}: {provider: string}) => `από ${provider}`,
         finalApprover: 'Τελικός εγκρίνων',
         manager: 'Διαχειριστής',
@@ -3468,8 +3461,7 @@ ${amount} για ${merchant} - ${date}`,
         },
         accounting: {
             title: 'Χρησιμοποιείτε κάποιο λογιστικό λογισμικό;',
-            none: 'Κανένα',
-            otherAccountingSoftware: 'Το λογιστικό σας λογισμικό',
+            otherAccountingSoftware: 'Όνομα λογισμικού',
         },
         interestedFeatures: {
             title: 'Σε ποιες δυνατότητες ενδιαφέρεστε;',
@@ -4357,7 +4349,7 @@ ${amount} για ${merchant} - ${date}`,
         legalFirstName: 'Επίσημο μικρό όνομα',
         legalLastName: 'Επώνυμο (όπως αναγράφεται στα επίσημα έγγραφα)',
         enterTheDateOfBirthOfTheOwner: 'Ποια είναι η ημερομηνία γέννησης του κατόχου;',
-        enterTheSSN: 'Ποιος είναι ο αριθμός κοινωνικής ασφάλισης του ιδιοκτήτη;',
+        enterTheSSN: 'Ποια είναι τα τελευταία 4 ψηφία του Αριθμού Κοινωνικής Ασφάλισης του ιδιοκτήτη;',
         dontWorry: 'Μην ανησυχείτε, δεν κάνουμε κανέναν προσωπικό έλεγχο πιστοληπτικής ικανότητας!',
         enterTheOwnersAddress: 'Ποια είναι η διεύθυνση του ιδιοκτήτη;',
         letsDoubleCheck: 'Ας ελέγξουμε διπλά ότι όλα φαίνονται σωστά.',
@@ -5591,6 +5583,11 @@ ${amount} για ${merchant} - ${date}`,
             journalEntriesProvTaxPostingAccount: 'Λογαριασμός καταχώρισης επαρχιακού φόρου για λογιστικές εγγραφές',
             foreignCurrencyAmount: 'Εξαγωγή ποσού σε ξένο νόμισμα',
             exportToNextOpenPeriod: 'Εξαγωγή στην επόμενη ανοικτή περίοδο',
+            exportToNextOpenPeriodLockedSubtitle:
+                'Για να απενεργοποιήσετε την εξαγωγή στην επόμενη ανοικτή περίοδο, απενεργοποιήστε πρώτα τη διαίρεση των μη αποζημιώσιμων εξαγωγών ανά περίοδο.',
+            splitExportsByPostingPeriod: 'Διαίρεση εξαγωγών ανά περίοδο καταχώρισης',
+            splitExportsByPostingPeriodSubtitle:
+                'Ενεργοποιήστε την εξαγωγή στην επόμενη ανοικτή περίοδο για να ενεργοποιήσετε τη διαίρεση των μη αποζημιώσιμων εξαγωγών ανά περίοδο στο NetSuite',
             nonReimbursableJournalPostingAccount: 'Λογαριασμός καταχώρισης μη αποζημιώσιμων εγγραφών',
             reimbursableJournalPostingAccount: 'Λογαριασμός καταχώρισης ημερολογίου επιστρέψιμων εξόδων',
             journalPostingPreference: {
@@ -7729,6 +7726,28 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             importSettings: 'Ρυθμίσεις εισαγωγής',
             defaultApprover: 'Προεπιλεγμένος εγκρίνων',
             approverFields: {recruiter: 'Στρατολογητής', recruitingCoordinator: 'Συντονιστής προσλήψεων'},
+            filters: {
+                description: (providerName: string) => `Επιλέξτε ποια μέλη θα εισαχθούν από το ${providerName}. Μπορείτε να επιλέξετε από στάδια εργασίας, ετικέτες και γραφεία.`,
+                stages: {
+                    title: 'Στάδιο εργασίας',
+                    description: 'Επιλέξτε το στάδιο πρόσληψης των υποψηφίων που θέλετε να συγχρονίζονται με αυτόν τον χώρο εργασίας',
+                    toggleTitle: 'Στάδια εργασίας',
+                    allSelected: 'Όλα τα στάδια εργασίας',
+                },
+                tags: {
+                    title: 'Ετικέτα',
+                    description: 'Επιλέξτε τις ετικέτες υποψηφίων που θέλετε να συγχρονίσετε με αυτόν τον χώρο εργασίας',
+                    toggleTitle: 'Ετικέτες',
+                    allSelected: 'Όλες οι ετικέτες',
+                },
+                offices: {
+                    title: 'Γραφείο',
+                    description: 'Επιλέξτε τα γραφεία των υποψηφίων που θέλετε να συγχρονίσετε με αυτόν τον χώρο εργασίας',
+                    toggleTitle: 'Γραφεία',
+                    allSelected: 'Όλα τα γραφεία',
+                },
+                enableJobStagesOrTags: 'Ενεργοποιήστε τα στάδια εργασίας ή τις ετικέτες για να συνεχίσετε',
+            },
             subtitle: 'Συνδέστε τα εργαλεία προσλήψεων και διατηρήστε τις εγκρίσεις υποψηφίων συγχρονισμένες.',
             syncResults: {
                 importedCount: () => ({
@@ -7915,7 +7934,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             autoGeneratedRateTooltip: 'Αυτός ο συντελεστής δημιουργείται αυτόματα.',
             autoUpdateGovernmentRate: 'Αυτόματη ενημέρωση κρατικών συντελεστών',
             autoUpdateGovernmentRateDescription: (countryPhrase: string) => `Δημιουργείτε αυτόματα νέες τιμές όταν η ${countryPhrase} δημοσιεύει νέες οδηγίες.`,
-            governmentRateCountries: {US: 'οι Ηνωμένες Πολιτείες', CA: 'Καναδάς', GB: 'Μεγάλη Βρετανία', AU: 'Αυστραλία'},
+            governmentRateCountries: {US: 'οι Ηνωμένες Πολιτείες', CA: 'Καναδάς', GB: 'Μεγάλη Βρετανία', AU: 'Αυστραλία', NO: 'Νορβηγία', SE: 'Σουηδία', ZA: 'Νότια Αφρική'},
         },
         editor: {
             descriptionInputLabel: 'Περιγραφή',
@@ -10122,6 +10141,7 @@ ${reportName}`,
             title: 'Λήψη κατάστασης',
             oneFeedAtATime: 'Παρακαλούμε επιλέγετε διακανονισμούς από μία ροή Κάρτας Expensify κάθε φορά.',
         },
+        percentOfSpend: ({percent}: {percent: string}) => `${percent} των δαπανών`,
     },
     genericErrorPage: {
         title: 'Ωχ, κάτι πήγε στραβά!',
@@ -11755,18 +11775,8 @@ ${reportName}`,
         },
     },
     productMarketingWindow: {
-        roleTypes: {
-            admin: {
-                heading: 'Βελτιωμένη αντιστοίχιση προμηθευτών',
-                body: 'Δημιουργήστε προμηθευτές και προσαρμοσμένους κανόνες για εύκολη αντιστοίχιση με τα κύρια λογιστικά πακέτα.',
-                cta: 'Δοκιμάστε το',
-            },
-            member: {
-                heading: 'Προκατασκευασμένοι πράκτορες για εσάς',
-                body: 'Χρησιμοποιήστε προκατασκευασμένους ή προσαρμοσμένους agents για να κωδικοποιείτε, να χωρίζετε και να υποβάλλετε αυτόματα τις δαπάνες εκ μέρους σας.',
-                cta: 'Δοκιμάστε το',
-            },
-        },
+        heading: 'Συνδέστε το Expensify με το Claude',
+        body: 'Αναζητήστε, αναλύστε και συνοψίστε δεδομένα δαπανών απευθείας στο Claude.',
     },
     trialPaymentReminder: {
         title: 'Μείνετε μπροστά από την προθεσμία',
