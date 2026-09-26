@@ -28,7 +28,7 @@ import type {InsightsFilters} from './insightsFilters';
 import type {InsightsDashboardState} from './resolveDashboardState';
 
 import InsightsChartWidget from './charts/InsightsChartWidget';
-import INSIGHTS_DASHBOARD_SPECS from './dashboardSpecs';
+import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from './dashboardSpecs';
 import buildInsightsJsonQuery from './insightsQueries';
 import {getDashboardState, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
 import InsightsEmptyState from './states/InsightsEmptyState';
@@ -96,8 +96,7 @@ function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry}: 
     }
 
     const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
-    const policiesInScope = Object.values(policies ?? {}).filter((policy) => !!policy && (filters.policyIDs.length === 0 || filters.policyIDs.includes(policy.id)));
-    const visibleCharts = supportingCharts.filter(({isPolicyEligible}) => !isPolicyEligible || policiesInScope.some((policy) => !!policy && isPolicyEligible(policy, login)));
+    const visibleCharts = getVisibleCharts(supportingCharts, policies, filters.policyIDs, login);
 
     // Wide layout stacks the cards in two independent columns, so a short card doesn't leave a gap under it
     const columns = shouldUseNarrowLayout ? [visibleCharts] : [visibleCharts.filter((chart, index) => index % 2 === 0), visibleCharts.filter((chart, index) => index % 2 === 1)];
