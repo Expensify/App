@@ -5,6 +5,7 @@ import * as Browser from '@libs/Browser';
 import emojiTrieForLocale, {buildEmojisTrie} from '@libs/EmojiTrie';
 import * as EmojiUtils from '@libs/EmojiUtils';
 
+import CONST from '@src/CONST';
 import type FrequentlyUsedEmoji from '@src/types/onyx/FrequentlyUsedEmoji';
 import type {ReportActionReaction} from '@src/types/onyx/ReportActionReactions';
 
@@ -176,6 +177,18 @@ describe('EmojiTest', () => {
             expect(EmojiUtils.replaceEmojis(text).text).toBe('`:smile:`');
         });
 
+        it('should revert emoji unicode inside a code block at the maximum markup length', () => {
+            // Given a long message with an emoji inside inline code, because code boundaries must still work at the App markup limit.
+            const code = '`😄`';
+            const prefix = 'a'.repeat(CONST.MAX_MARKUP_LENGTH - code.length);
+
+            // When the message is passed through emoji replacement.
+            const result = EmojiUtils.replaceEmojis(`${prefix}${code}`).text;
+
+            // Then the emoji should become a shortcode without leaving the code range.
+            expect(result).toBe(`${prefix}\`:smile:\``);
+        });
+
         it('should revert multiple emojis inside code block', () => {
             const text = '`😄👋`';
             expect(EmojiUtils.replaceEmojis(text).text).toBe('`:smile::wave:`');
@@ -189,6 +202,18 @@ describe('EmojiTest', () => {
         it('should handle mixed scenario with emoji inside and outside code blocks', () => {
             const text = ':wave: hello `😄` world';
             expect(EmojiUtils.replaceEmojis(text).text).toBe('👋 hello `:smile:` world');
+        });
+
+        it('should replace a shortcode outside code but preserve one inside code at the maximum markup length', () => {
+            // Given a long message with one shortcode outside code and another inside, because both cases must keep their existing behavior at the limit.
+            const markdown = '\n:smile: and `:wave:`';
+            const prefix = 'a'.repeat(CONST.MAX_MARKUP_LENGTH - markdown.length);
+
+            // When emoji replacement processes the message.
+            const result = EmojiUtils.replaceEmojis(`${prefix}${markdown}`).text;
+
+            // Then only the shortcode outside code should become an emoji.
+            expect(result).toBe(`${prefix}\n😄 and \`:wave:\``);
         });
 
         it('should handle same shortcode both inside and outside code block', () => {
@@ -282,6 +307,19 @@ describe('EmojiTest', () => {
             const text = '`:joy:`';
             // Position 1 is the colon after the backtick
             expect(EmojiUtils.isPositionInsideCodeBlock(text, 1)).toBe(true);
+        });
+
+        it('should return true for a position inside inline code at the maximum markup length', () => {
+            // Given a long message with the cursor inside inline code, because suggestion logic must recognize protected code after a long prefix.
+            const code = '`:smi`';
+            const prefix = 'a'.repeat(CONST.MAX_MARKUP_LENGTH - code.length);
+            const text = `${prefix}${code}`;
+
+            // When code-range detection checks the cursor position.
+            const isInsideCode = EmojiUtils.isPositionInsideCodeBlock(text, prefix.length + 1);
+
+            // Then it should report that the cursor is inside code.
+            expect(isInsideCode).toBe(true);
         });
 
         it('should return false for position outside code block', () => {
