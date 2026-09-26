@@ -66,15 +66,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
-import {
-    findSelfDMReportID,
-    generateReportID,
-    getChatByParticipants,
-    getReportOrDraftReport,
-    isExpenseReport,
-    isMoneyRequestReport,
-    isPolicyExpenseChat as isPolicyExpenseChatUtils,
-} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, getChatByParticipants, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import {cancelTracking, getPendingSubmitFollowUpAction, isTracking} from '@libs/telemetry/submitFollowUpAction';
 import {
     getRequestType,
