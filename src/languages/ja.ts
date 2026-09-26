@@ -54,6 +54,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: '共有を解除',
         yes: 'はい',
         no: 'いいえ',
+        exampleValue: ({example}: {example: string}) => `例：${example}`,
         approve: '承認',
         deny: '拒否',
         dontChange: '変更しない',
@@ -3897,6 +3898,19 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         },
         unlockAlreadyRequestedTitle: 'リクエストは既に送信されています',
         unlockAlreadyRequestedDescription: 'この銀行口座のロック解除リクエストは既に送信されています。追加で必要なことがある場合は、Concierge からご連絡します。',
+    },
+    dynamicForm: {
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `${minLength}文字以上で入力してください`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `形式が正しくありません。例：${example}` : '形式が正しくありません'),
+            invalidOption: '利用可能な選択肢から選んでください',
+            tooFewItems: ({min}: {min: number}) => `${min}件以上追加してください`,
+            tooManyItems: ({max}: {max: number}) => `${max}件以内で追加してください`,
+            outOfRange: ({min, max}: {min: number; max: number}) => `${min}から${max}の間の値を入力してください`,
+        },
+        addItem: ({item}: {item: string}) => `${item}を追加`,
+        removeItemTitle: ({name}: {name: string}) => `${name}を削除しますか？`,
+        removeItemPrompt: ({name}: {name: string}) => `本当に${name}を削除しますか？`,
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC は 8 文字または 11 文字で、最初の 6 文字はアルファベット、続く 2 文字または 5 文字はアルファベットまたは数字である必要があります。',

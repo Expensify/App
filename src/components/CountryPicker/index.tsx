@@ -22,9 +22,12 @@ type CountryPickerProps = {
 
     /** Form Error description */
     errorText?: string;
+
+    /** Row description; the generic Country label when omitted */
+    label?: string;
 };
 
-function CountryPicker({value, errorText, onInputChange = () => {}}: CountryPickerProps) {
+function CountryPicker({value, errorText, onInputChange = () => {}, label}: CountryPickerProps) {
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
@@ -41,7 +44,7 @@ function CountryPicker({value, errorText, onInputChange = () => {}}: CountryPick
         <>
             <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => setIsPickerVisible(true))}>
                 <MenuItemField.Row
-                    name={translate('common.country')}
+                    name={label ?? translate('common.country')}
                     value={value ? translate(`allCountries.${value}` as TranslationPaths) : undefined}
                 >
                     {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}

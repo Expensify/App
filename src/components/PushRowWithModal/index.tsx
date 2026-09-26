@@ -9,14 +9,9 @@ import React, {useRef, useState} from 'react';
 
 import PushRowModal from './PushRowModal';
 
-type PushRowWithModalProps = {
+type PushRowWithModalCommonProps = {
     /** The list of options that we want to display where key is option code and value is option name */
     optionsList: Record<string, string>;
-
-    value?: string;
-
-    /** Function called whenever list item is selected */
-    onInputChange?: (value: string, key?: string) => void;
 
     /** Additional styles to apply to container */
     wrapperStyles?: StyleProp<ViewStyle>;
@@ -39,21 +34,41 @@ type PushRowWithModalProps = {
     onBlur?: () => void;
 };
 
-function PushRowWithModal({
-    value,
-    optionsList,
-    wrapperStyles,
-    description,
-    modalHeaderTitle,
-    searchInputTitle,
-    shouldAllowChange = true,
-    errorText,
-    onInputChange = () => {},
-    stateInputIDToReset,
-    onBlur = () => {},
-}: PushRowWithModalProps) {
+type PushRowWithModalSingleProps = {
+    canSelectMultiple?: false;
+
+    value?: string;
+
+    /** Function called whenever list item is selected */
+    onInputChange?: (value: string, key?: string) => void;
+};
+
+type PushRowWithModalMultipleProps = {
+    /** Rows toggle checkboxes and the modal commits the selection with a Save button */
+    canSelectMultiple: true;
+
+    value?: string[];
+
+    /** Function called with the whole selection when the modal is saved */
+    onInputChange?: (value: string[]) => void;
+};
+
+type PushRowWithModalProps = PushRowWithModalCommonProps & (PushRowWithModalSingleProps | PushRowWithModalMultipleProps);
+
+function PushRowWithModal(props: PushRowWithModalProps) {
+    const {optionsList, wrapperStyles, description, modalHeaderTitle, searchInputTitle, shouldAllowChange = true, errorText, stateInputIDToReset, onBlur = () => {}} = props;
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [pendingSelection, setPendingSelection] = useState<string[]>([]);
     const shouldBlurOnCloseRef = useRef(true);
+
+    let committedSelection: string[] = [];
+    if (props.canSelectMultiple) {
+        committedSelection = props.value ?? [];
+    } else if (props.value) {
+        committedSelection = [props.value];
+    }
+    const title = committedSelection.map((key) => optionsList[key]).join(', ');
+
     const handleModalClose = () => {
         if (shouldBlurOnCloseRef.current) {
             onBlur?.();
@@ -64,22 +79,34 @@ function PushRowWithModal({
     };
 
     const handleModalOpen = () => {
+        setPendingSelection(committedSelection);
         setIsModalVisible(true);
     };
 
     const handleOptionChange = (optionValue: string) => {
-        onInputChange(optionValue);
+        if (props.canSelectMultiple) {
+            setPendingSelection((previous) => (previous.includes(optionValue) ? previous.filter((key) => key !== optionValue) : [...previous, optionValue]));
+            return;
+        }
+        props.onInputChange?.(optionValue);
         shouldBlurOnCloseRef.current = false;
         if (stateInputIDToReset) {
-            onInputChange('', stateInputIDToReset);
+            props.onInputChange?.('', stateInputIDToReset);
         }
+    };
+
+    const handleConfirm = () => {
+        if (props.canSelectMultiple) {
+            props.onInputChange?.(pendingSelection);
+        }
+        handleModalClose();
     };
 
     return (
         <>
             <MenuItemWithTopDescription
                 description={description}
-                title={value ? optionsList[value] : ''}
+                title={title}
                 shouldShowRightIcon={shouldAllowChange}
                 onPress={handleModalOpen}
                 wrapperStyle={wrapperStyles}
@@ -89,8 +116,10 @@ function PushRowWithModal({
             />
             <PushRowModal
                 isVisible={isModalVisible}
-                selectedOption={value ?? ''}
+                canSelectMultiple={!!props.canSelectMultiple}
+                selectedOptions={props.canSelectMultiple ? pendingSelection : committedSelection}
                 onOptionChange={handleOptionChange}
+                onConfirm={handleConfirm}
                 onClose={handleModalClose}
                 optionsList={optionsList}
                 headerTitle={modalHeaderTitle}

@@ -53,6 +53,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: 'Αναίρεση κοινής χρήσης',
         yes: 'Ναι',
         no: 'Όχι',
+        exampleValue: ({example}: {example: string}) => `Παράδειγμα: ${example}`,
         approve: 'Έγκριση',
         deny: 'Άρνηση',
         dontChange: 'Να μην αλλάξει',
@@ -4000,6 +4001,19 @@ ${amount} για ${merchant} - ${date}`,
         unlockAlreadyRequestedTitle: 'Το αίτημα έχει ήδη υποβληθεί',
         unlockAlreadyRequestedDescription:
             'Το αίτημά σας για ξεκλείδωμα αυτού του τραπεζικού λογαριασμού έχει ήδη αποσταλεί. Το Concierge θα επικοινωνήσει μαζί σας αν χρειαστεί οτιδήποτε άλλο.',
+    },
+    dynamicForm: {
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Πρέπει να έχει τουλάχιστον ${minLength} χαρακτήρες`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Μη έγκυρη μορφή. Παράδειγμα: ${example}` : 'Μη έγκυρη μορφή'),
+            invalidOption: 'Επιλέξτε μία από τις διαθέσιμες επιλογές',
+            tooFewItems: ({min}: {min: number}) => `Προσθέστε τουλάχιστον ${min}`,
+            tooManyItems: ({max}: {max: number}) => `Προσθέστε το πολύ ${max}`,
+            outOfRange: ({min, max}: {min: number; max: number}) => `Εισαγάγετε μια τιμή μεταξύ ${min} και ${max}`,
+        },
+        addItem: ({item}: {item: string}) => `Προσθήκη ${item}`,
+        removeItemTitle: ({name}: {name: string}) => `Αφαίρεση ${name};`,
+        removeItemPrompt: ({name}: {name: string}) => `Θέλετε σίγουρα να αφαιρέσετε ${name};`,
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Το SWIFT/BIC πρέπει να έχει μήκος 8 ή 11 χαρακτήρες, με 6 γράμματα ακολουθούμενα από 2 ή 5 γράμματα ή αριθμούς.',

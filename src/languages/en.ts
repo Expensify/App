@@ -63,6 +63,7 @@ const translations = {
         unshare: 'Unshare',
         yes: 'Yes',
         no: 'No',
+        exampleValue: ({example}: {example: string}) => `Example: ${example}`,
         approve: 'Approve',
         deny: 'Deny',
         dontChange: 'Don’t change',
@@ -4062,6 +4063,19 @@ const translations = {
                 "This bank account can't be deleted because it is used for Expensify Card payments. If you would still like to delete this account, please reach out to Concierge.",
             sameDepositAndWithdrawalAccount: 'The deposit and withdrawal accounts are the same.',
         },
+    },
+    dynamicForm: {
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Must be at least ${minLength} characters`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Invalid format. Example: ${example}` : 'Invalid format'),
+            invalidOption: 'Choose one of the available options',
+            tooFewItems: ({min}: {min: number}) => `Add at least ${min}`,
+            tooManyItems: ({max}: {max: number}) => `Add at most ${max}`,
+            outOfRange: ({min, max}: {min: number; max: number}) => `Enter a value between ${min} and ${max}`,
+        },
+        addItem: ({item}: {item: string}) => `Add ${item}`,
+        removeItemTitle: ({name}: {name: string}) => `Remove ${name}?`,
+        removeItemPrompt: ({name}: {name: string}) => `Are you sure you want to remove ${name}?`,
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC must be 8 or 11 characters long, with 6 letters followed by 2 or 5 letters or numbers.',

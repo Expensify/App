@@ -5,8 +5,16 @@ import type AmountTextInput from '@components/AmountTextInput';
 import type CheckboxWithLabel from '@components/CheckboxWithLabel';
 import type CountryPicker from '@components/CountryPicker';
 import type CountrySelector from '@components/CountrySelector';
+import type CurrencyPicker from '@components/CurrencyPicker';
 import type CurrencySelector from '@components/CurrencySelector';
 import type DatePicker from '@components/DatePicker';
+import type AmountWithCurrencyAdapter from '@components/DynamicForm/adapters/AmountWithCurrencyAdapter';
+import type CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
+import type FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
+import type InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
+import type ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
+import type TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
+import type YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import type EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import type NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type PercentageForm from '@components/PercentageForm';
@@ -41,6 +49,7 @@ import type {Country} from '@src/CONST';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import type {BaseForm} from '@src/types/form/Form';
+import type {DynamicFormListItem} from '@src/types/onyx/DynamicFormField';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
@@ -85,9 +94,17 @@ type ValidInputs =
     | typeof ConstantSelector
     | typeof UploadFile
     | typeof PushRowWithModal
-    | typeof TimeModalPicker;
+    | typeof CurrencyPicker
+    | typeof TimeModalPicker
+    | typeof FileUploadAdapter
+    | typeof InlineSelectionListAdapter
+    | typeof TabsAdapter
+    | typeof YesNoAdapter
+    | typeof AmountWithCurrencyAdapter
+    | typeof CurrencyInlineListAdapter
+    | typeof ListFieldAdapter;
 
-type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields' | 'disabledListValues' | 'entityChart';
+type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields' | 'disabledListValues' | 'entityChart' | 'stringList' | 'files' | 'listItems';
 type ValueTypeMap = {
     string: string;
     boolean: boolean;
@@ -96,6 +113,9 @@ type ValueTypeMap = {
     reportFields: string[];
     disabledListValues: boolean[];
     entityChart: FileObject[];
+    stringList: string[];
+    files: FileObject[];
+    listItems: DynamicFormListItem[];
 };
 type FormValue = ValueOf<ValueTypeMap>;
 

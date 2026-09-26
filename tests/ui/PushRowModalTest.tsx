@@ -55,7 +55,7 @@ describe('PushRowModal', () => {
         render(
             <PushRowModal
                 isVisible
-                selectedOption={selectedOptionKey}
+                selectedOptions={[selectedOptionKey]}
                 onOptionChange={jest.fn()}
                 onClose={jest.fn()}
                 optionsList={optionsList}
@@ -74,11 +74,44 @@ describe('PushRowModal', () => {
         expect(selectionListProps?.initiallyFocusedItemKey).toBe(selectedOptionKey);
     });
 
+    it('keeps the modal open while toggling rows and commits the selection from Save when canSelectMultiple', () => {
+        const onOptionChange = jest.fn();
+        const onConfirm = jest.fn();
+        const onClose = jest.fn();
+        render(
+            <PushRowModal
+                isVisible
+                canSelectMultiple
+                selectedOptions={['option-1']}
+                onOptionChange={onOptionChange}
+                onConfirm={onConfirm}
+                onClose={onClose}
+                optionsList={optionsList}
+                headerTitle="Options"
+            />,
+        );
+
+        const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
+        const secondRow = selectionListProps?.data.at(1);
+        expect(selectionListProps?.canSelectMultiple).toBe(true);
+        expect(secondRow).toBeDefined();
+        if (!secondRow) {
+            return;
+        }
+        act(() => selectionListProps?.onSelectRow(secondRow));
+
+        expect(onOptionChange).toHaveBeenCalledWith(secondRow.keyForList);
+        expect(onClose).not.toHaveBeenCalled();
+
+        act(() => selectionListProps?.confirmButtonOptions?.onConfirm?.());
+        expect(onConfirm).toHaveBeenCalledTimes(1);
+    });
+
     it('keeps natural filtered ordering while search is active', () => {
         render(
             <PushRowModal
                 isVisible
-                selectedOption={selectedOptionKey}
+                selectedOptions={[selectedOptionKey]}
                 onOptionChange={jest.fn()}
                 onClose={jest.fn()}
                 optionsList={optionsList}
