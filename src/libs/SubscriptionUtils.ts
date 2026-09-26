@@ -416,9 +416,15 @@ function getFreeTrialText(
     introSelected: OnyxEntry<IntroSelected>,
     firstDayFreeTrial: string | undefined,
     lastDayFreeTrial: string | undefined,
+    privateSubscription: OnyxEntry<PrivateSubscription>,
 ): string | undefined {
     const ownedPaidPolicies = getOwnedPaidPolicies(policies, currentUserAccountID);
     if (isEmptyObject(ownedPaidPolicies)) {
+        return undefined;
+    }
+
+    // The expiring-soon warning takes precedence over the trial banners on the Subscription page, so the badge must not show trial copy alongside it.
+    if (shouldShowSubscriptionExpiringSoonUI(privateSubscription)) {
         return undefined;
     }
 
