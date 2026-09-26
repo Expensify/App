@@ -58,7 +58,7 @@ jest.mock('@pages/inbox/report/AnimatedEmptyStateBackground', () => {
 // the menu-item testID stay strict-equal — they don't pick up the title text.
 jest.mock('@components/MenuItemWithTopDescription', () => {
     const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
-    return ({description, title, interactive}: {description?: string; title?: string; interactive?: boolean}) => (
+    return ({description, title, hintText, interactive}: {description?: string; title?: string; hintText?: string; interactive?: boolean}) => (
         <>
             <RN.View testID={`menu-item-${description}`}>
                 <RN.Text>{interactive ? 'editable' : 'readonly'}</RN.Text>
@@ -66,6 +66,11 @@ jest.mock('@components/MenuItemWithTopDescription', () => {
             {title !== undefined && (
                 <RN.View testID={`menu-item-title-${description}`}>
                     <RN.Text>{title}</RN.Text>
+                </RN.View>
+            )}
+            {!!hintText && (
+                <RN.View testID={`menu-item-hint-${description}`}>
+                    <RN.Text>{hintText}</RN.Text>
                 </RN.View>
             )}
         </>
@@ -274,6 +279,67 @@ describe('MoneyRequestView edit fields', () => {
         });
         expect(screen.queryByTestId('menu-item-common.category')).not.toBeOnTheScreen();
         expect(screen.queryByTestId('menu-item-Location')).not.toBeOnTheScreen();
+    });
+
+    it('shows the nights and nightly rate under the Category for a multi-night hotel stay', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        // Given a hotel expense whose SmartScanned reservation spans three nights
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {
+                Hotel: {name: 'Hotel', enabled: true},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                category: 'Hotel',
+                receipt: {hotelReservationStartDate: '2026-09-01', hotelReservationEndDate: '2026-09-04'},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the expense is viewed
+        renderMoneyRequestView(threadReport, {areCategoriesEnabled: true});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Category row explains the nightly rate the category limit is checked against
+        await waitFor(() => {
+            expect(screen.getByTestId('menu-item-hint-common.category')).toHaveTextContent('iou.reservationNightsAndRate');
+        });
+    });
+
+    it('does not show the nights and nightly rate under the Category for a single-night hotel stay', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        // Given a hotel expense whose SmartScanned reservation spans one night
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {
+                Hotel: {name: 'Hotel', enabled: true},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                category: 'Hotel',
+                receipt: {hotelReservationStartDate: '2026-09-01', hotelReservationEndDate: '2026-09-02'},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the expense is viewed
+        renderMoneyRequestView(threadReport, {areCategoriesEnabled: true});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Category row has no hint, because the nightly rate equals the total
+        await waitFor(() => {
+            expect(screen.getByTestId('menu-item-common.category')).toBeOnTheScreen();
+        });
+        expect(screen.queryByTestId('menu-item-hint-common.category')).not.toBeOnTheScreen();
     });
 
     it('should show tax fields when tax tracking is disabled but transaction has tax data', async () => {

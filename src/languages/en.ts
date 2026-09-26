@@ -1849,6 +1849,10 @@ const translations = {
         bookingArchivedDescription: 'This booking is archived because the trip date has passed. Add an expense for the final amount if needed.',
         attendees: 'Attendees',
         totalPerAttendee: 'Per attendee',
+        reservationNightsAndRate: ({count, formattedRate}: {count: number; formattedRate: string}) => ({
+            one: `1 night ${CONST.DOT_SEPARATOR} ${formattedRate} per night`,
+            other: `${count} nights ${CONST.DOT_SEPARATOR} ${formattedRate} per night`,
+        }),
         whoIsYourAccountant: 'Who is your accountant?',
         paymentComplete: 'Payment complete',
         time: 'Time',

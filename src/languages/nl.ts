@@ -1750,6 +1750,10 @@ const translations: TranslationDeepObject<typeof en> = {
         bookingArchivedDescription: 'Deze boeking is gearchiveerd omdat de reisdatum is verstreken. Voeg indien nodig een uitgave toe voor het eindbedrag.',
         attendees: 'Deelnemers',
         totalPerAttendee: 'Per deelnemer',
+        reservationNightsAndRate: ({count, formattedRate}: {count: number; formattedRate: string}) => ({
+            one: `1 nacht ${CONST.DOT_SEPARATOR} ${formattedRate} per nacht`,
+            other: `${count} nachten ${CONST.DOT_SEPARATOR} ${formattedRate} per nacht`,
+        }),
         whoIsYourAccountant: 'Wie is jouw accountant?',
         paymentComplete: 'Betaling voltooid',
         time: 'Tijd',

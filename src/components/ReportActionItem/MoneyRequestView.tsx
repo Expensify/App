@@ -110,6 +110,7 @@ import {
     getOriginalAmountForDisplay,
     getOriginalTransactionWithSplitInfo,
     getReimbursable,
+    getReservationNights,
     getTagForDisplay,
     getTaxName,
     hasMissingSmartscanFields,
@@ -359,6 +360,12 @@ function MoneyRequestView({
     const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount, actualCurrency) : '';
     const formattedPerAttendeeAmount =
         shouldDisplayTransactionAmount && actualAmount !== undefined ? convertToDisplayString(actualAmount / (transactionAttendees?.length ?? 1), actualCurrency) : '';
+    // Category limits on a multi-night stay are checked against the nightly rate, so show the nights and that rate under the category
+    const reservationNights = getReservationNights(updatedTransaction ?? transaction);
+    const categoryHintText =
+        shouldDisplayTransactionAmount && actualAmount !== undefined && reservationNights > 1
+            ? translate('iou.reservationNightsAndRate', {count: reservationNights, formattedRate: convertToDisplayString(actualAmount / reservationNights, actualCurrency)})
+            : undefined;
 
     const transactionOriginalAmount = transaction && getOriginalAmountForDisplay(transaction, isExpenseReport(moneyRequestReport));
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
@@ -1361,6 +1368,7 @@ function MoneyRequestView({
                         <MenuItemWithTopDescription
                             description={translate('common.category')}
                             title={shouldShowCategoryAnalyzing ? translate('common.analyzing') : decodedCategoryName}
+                            hintText={categoryHintText}
                             numberOfLinesTitle={2}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
