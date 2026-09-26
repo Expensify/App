@@ -21,6 +21,12 @@ jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: () => ({convertToDisplayString: mockConvertToDisplayString}),
 }));
 
+const mockFormatPhoneNumber = jest.fn((phoneNumber: string) => phoneNumber);
+jest.mock('@hooks/useLocalize', () => ({
+    __esModule: true,
+    default: () => ({formatPhoneNumber: mockFormatPhoneNumber}),
+}));
+
 const translate = jest.fn().mockReturnValue('translated');
 
 describe('useMoneyRequestParticipantsPolicyTags', () => {
@@ -74,7 +80,7 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
             translate,
             convertToDisplayString: mockConvertToDisplayString,
             dateFnsLocale: undefined,
-            formatPhoneNumber: expect.any(Function),
+            formatPhoneNumber: mockFormatPhoneNumber,
         });
     });
 
