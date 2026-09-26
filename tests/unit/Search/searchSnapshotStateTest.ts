@@ -197,24 +197,40 @@ describe('search snapshot terminal state', () => {
         expect(snapshot?.search?.responseJsonCode).toBe(CONST.JSON_CODE.INVALID_SEARCH_QUERY);
     });
 
-    it('persists a non-401 server failure code over the NO_RESPONSE placeholder written by failureData', async () => {
+    it('does not write a response code in failureData', async () => {
+        // Given a request whose failureData has been applied
         const queryJSON = getQueryJSON();
-        // failureData lands first and writes NO_RESPONSE. The real code must overwrite it, otherwise the error view
-        // would show the "stale results" copy for a request the server actually rejected.
+        await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+        const {optimisticData, failureData} = getCapturedSearchOnyxData();
+        await Onyx.update(optimisticData ?? []);
+        await Onyx.update(failureData ?? []);
+        await waitForBatchedUpdates();
+
+        // Then the errors carry no code yet. failureData cannot know the code, and a guessed NO_RESPONSE rendered the
+        // "Refresh needed" copy for a frame before the real code replaced it (#101615)
+        const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
+        expect(snapshot?.errors).toBeDefined();
+        expect(snapshot?.search?.responseJsonCode).toBeUndefined();
+    });
+
+    it('records NO_RESPONSE when the failed response carries no numeric jsonCode', async () => {
+        // Given a response the API layer treats as a failure (not 200) but that has no numeric code to classify it with
+        const queryJSON = getQueryJSON();
         jest.mocked(makeRequestWithSideEffects).mockImplementationOnce(async (_command, _parameters, onyxData) => {
             await Onyx.update(onyxData?.optimisticData ?? []);
             await Onyx.update(onyxData?.failureData ?? []);
             await Onyx.update(onyxData?.finallyData ?? []);
-            return {jsonCode: CONST.JSON_CODE.EXP_ERROR};
+            return {};
         });
 
+        // When the request resolves
         await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
         await waitForBatchedUpdates();
 
+        // Then the errors still get a code, otherwise the error view would hold its skeleton waiting for one that never comes
         const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
         expect(snapshot?.errors).toBeDefined();
-        expect(snapshot?.search?.responseJsonCode).toBe(CONST.JSON_CODE.EXP_ERROR);
-        expect(snapshot?.search?.responseJsonCode).not.toBe(CONST.JSON_CODE.NO_RESPONSE);
+        expect(snapshot?.search?.responseJsonCode).toBe(CONST.JSON_CODE.NO_RESPONSE);
     });
 
     it('does not persist a jsonCode for a successful response', async () => {

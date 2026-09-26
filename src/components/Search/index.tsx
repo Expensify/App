@@ -411,8 +411,8 @@ function Search({
     // so we never fall through to the empty-state check with stale zero-length data.
     const isDeferringHeavyWork = !isOffline && shouldDeferHeavySearchWork;
     const isSearchLoadingWithNoResults = isSearchPending(searchResults) && Array.isArray(searchResults?.data) && searchResults.data.length === 0;
-    // Every write of `errors` stores the response code next to them, so a reload keeps the classification
-    // that component state would have lost. `null` means no response has been recorded for this query yet.
+    // The response code is persisted next to the errors it explains, so a reload keeps the classification
+    // that component state would have lost. `null` means the code for these errors has not been stored yet.
     const responseStatusCode = searchResults?.search?.responseJsonCode ?? null;
     const hasUnresolvedErrors = hasErrors && responseStatusCode === null;
     const isWaitingForInitialData = !shouldUseLiveData && !isOffline && (!isDataLoaded || isSearchLoadingWithNoResults || hasUnresolvedErrors || isCardFeedsLoading);
@@ -1170,6 +1170,8 @@ function Search({
         return <View onLayout={onDeferredLayout} />;
     }
 
+    const listContainerStyle = shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3;
+
     // This is a performance optimization for the submit-expense->search path only.
     // The SearchPage skeleton (useSearchLoadingState) doesn't cover this case because
     // Search must mount for its onLayout to flush the deferred CreateMoneyRequest API write, which would block the JS thread causing a slowdown on post expense creation navigation
@@ -1178,7 +1180,7 @@ function Search({
             <SearchRowSkeleton
                 shouldAnimate
                 onLayout={onSkeletonLayout}
-                containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3}
+                containerStyle={listContainerStyle}
             />
         );
     }
@@ -1187,6 +1189,15 @@ function Search({
         Log.alert('[Search] Undefined search type');
         cancelNavigationSpans();
         return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
+    }
+
+    if (hasUnresolvedErrors) {
+        return (
+            <SearchRowSkeleton
+                shouldAnimate
+                containerStyle={listContainerStyle}
+            />
+        );
     }
 
     if (hasErrors) {
@@ -1204,7 +1215,7 @@ function Search({
                 isLoading: !!searchResults?.search?.isLoading,
             });
         };
-        // failureData stores NO_RESPONSE when the request never got a server answer, so only the results' freshness is in
+        // search() stores NO_RESPONSE when the request never got a server answer, so only the results' freshness is in
         // doubt and the refresh copy fits. Any code the server did return marks a real failure and keeps the error copy,
         // and an invalid query gets no button because re-sending it cannot succeed.
         let failureKind: ValueOf<typeof CONST.SEARCH.FAILURE_KIND> = CONST.SEARCH.FAILURE_KIND.FAILED;
@@ -1236,7 +1247,7 @@ function Search({
             },
         } as const;
         return (
-            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3, styles.flex1]}>
+            <View style={[listContainerStyle, styles.flex1]}>
                 <FullPageErrorView
                     shouldShow
                     containerStyle={styles.searchBlockingErrorViewContainer}
@@ -1260,7 +1271,7 @@ function Search({
     ) {
         cancelNavigationSpans();
         return (
-            <View style={[styles.flex1, isInLandscapeMode ? undefined : [shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3]]}>
+            <View style={[styles.flex1, isInLandscapeMode ? undefined : [listContainerStyle]]}>
                 <EmptySearchView
                     similarSearchHash={similarSearchHash}
                     type={type}
@@ -1307,7 +1318,7 @@ function Search({
                     onLayout={onLayoutChart}
                     scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 >
-                    <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3, styles.mh4, styles.mb4, styles.flex1]}>
+                    <View style={[listContainerStyle, styles.mh4, styles.mb4, styles.flex1]}>
                         <SearchChartWrapper
                             title={chartTitle}
                             groupBy={validGroupBy}

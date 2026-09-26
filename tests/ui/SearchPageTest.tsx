@@ -362,7 +362,7 @@ describe('SearchPageNarrow', () => {
 
     // Reproduces the reload case: the errored snapshot survives but the in-memory response code does not,
     // so the persisted code is the only thing left that can tell the two failure kinds apart.
-    const setFailedSnapshot = (responseJsonCode: number) =>
+    const setFailedSnapshot = (responseJsonCode: number | undefined) =>
         act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${failedQueryJSON?.hash}`, {
                 errors: {error: 'Something went wrong'},
@@ -424,6 +424,33 @@ describe('SearchPageNarrow', () => {
         expect(screen.queryByText('Refresh needed')).toBeNull();
     });
 
+    it('holds the loading frame instead of an error copy until the failure has a response code', async () => {
+        // Given the page already requested the query
+        renderPage();
+
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // When failureData lands with the errors but search() has not stored the response code yet
+        await setFailedSnapshot(undefined);
+
+        // Then neither error copy renders, because the copy depends on a classification that is one write away and
+        // rendering a guess flashed "Refresh needed" over the real error page (#101615)
+        expect(screen.queryByText('Refresh needed')).toBeNull();
+        expect(screen.queryByText('Oops... Something went wrong')).toBeNull();
+
+        // When the response code lands
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${failedQueryJSON?.hash}`, {search: {responseJsonCode: CONST.JSON_CODE.EXP_ERROR}});
+        });
+
+        // Then the view goes straight to the copy for that code
+        expect(screen.getByText('Oops... Something went wrong')).toBeTruthy();
+        expect(screen.getByText('Try again')).toBeTruthy();
+        expect(screen.queryByText('Refresh needed')).toBeNull();
+    });
+
     it('shows the refresh copy when the request failed without a server response code', async () => {
         renderPage();
 
@@ -431,7 +458,7 @@ describe('SearchPageNarrow', () => {
             jest.runAllTimers();
         });
 
-        // When the request failed before the server could answer, which failureData records as NO_RESPONSE
+        // When the request failed before the server could answer, which search() records as NO_RESPONSE
         await setFailedSnapshot(CONST.JSON_CODE.NO_RESPONSE);
 
         // Then the results are only out of date, so the refresh copy shows
