@@ -13,6 +13,7 @@ import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBa
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {PrivatePersonalDetails, ReportAction} from '@src/types/onyx';
 
@@ -33,9 +34,16 @@ function HomeAddressRequiredContent({action}: HomeAddressRequiredContentProps) {
     // stamps the action as resolved.
     const isResolved = !!getOriginalMessage(action)?.resolution || !!hasHomeAddress;
 
+    // The backend links to the private personal details page without a field to focus, so point the link at
+    // Address line 1
+    const messageHtml = (getReportActionHtml(action) || getReportActionText(action)).replaceAll(
+        ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route,
+        ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1),
+    );
+
     return (
         <ReportActionItemBasicMessage>
-            <RenderHTML html={`<comment><muted-text>${getReportActionHtml(action) || getReportActionText(action)}</muted-text></comment>`} />
+            <RenderHTML html={`<comment><muted-text>${messageHtml}</muted-text></comment>`} />
             {!isResolved && (
                 <ActionableItemButtons layout="horizontal">
                     <Button
