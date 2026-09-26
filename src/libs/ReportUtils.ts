@@ -5713,6 +5713,8 @@ function canHoldUnholdReportAction(
 const changeMoneyRequestHoldStatus = (
     reportAction: OnyxEntry<ReportAction>,
     iouTransaction: OnyxEntry<Transaction>,
+    iouTransactionReport: OnyxEntry<Report>,
+    reportActionChildReport: OnyxEntry<Report>,
     isOffline: boolean,
     currentUserLogin: string,
     currentUserAccountID: number,
@@ -5745,7 +5747,8 @@ const changeMoneyRequestHoldStatus = (
         if (reportAction.childReportID) {
             unholdRequest(
                 transactionID,
-                reportAction.childReportID,
+                iouTransactionReport,
+                reportActionChildReport,
                 policy,
                 isOffline,
                 currentUserLogin,
