@@ -86,7 +86,7 @@ Check each of the following:
 
 ## Do invoice fields carry over when I duplicate a workspace or copy workspace settings?
 
-Yes. Selecting **Invoices** carries the workspace's invoice fields over as well. **Invoices** is offered as a setting to copy whenever the **Invoice fields** toggle is on, even if you haven't created any invoice fields yet. Because invoice fields require Control, you're prompted to upgrade any destination workspace that isn't on the Control plan. Learn how to [duplicate a workspace](/articles/new-expensify/workspaces/Duplicate-Workspace) or [copy workspace settings](/articles/new-expensify/workspaces/Copy-Workspace-Settings).
+Yes. Selecting **Invoices** carries the workspace's invoice fields over as well. **Invoices** is offered as a setting to copy whenever the **Invoice fields** toggle is on, even if you haven't created any invoice fields yet. Learn how to [duplicate a workspace](/articles/new-expensify/workspaces/Duplicate-Workspace) or [copy workspace settings](/articles/new-expensify/workspaces/Copy-Workspace-Settings).
 
 ## Does deleting a report field also delete my invoice fields?
 
@@ -98,11 +98,11 @@ Invoice field and report field names must be unique across the whole workspace, 
 
 If you see:
 
-A report field with this name already exists
+> A report field with this name already exists
 
 a report field on the **Reports** page already uses that name. If you see:
 
-An invoice field with this name already exists
+> An invoice field with this name already exists
 
 another invoice field already uses that name. Enter a different name, or rename the field that's already using it.
 
