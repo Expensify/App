@@ -285,7 +285,7 @@ describe('Deep linking', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the prompt shows both the current and the new account emails, not a blank one
-            const prompt = await screen.findByText(`You're signed in to ${TEST_USER_LOGIN_2}. This sign-in link is for ${TEST_USER_LOGIN_1}.`);
+            const prompt = await screen.findByText(`You're signed in as ${TEST_USER_LOGIN_2}. This action will sign you in as ${TEST_USER_LOGIN_1} instead.`);
             expect(prompt).toBeOnTheScreen();
 
             unmount2();
@@ -351,7 +351,7 @@ describe('Deep linking', () => {
             await waitForNetworkPromises();
 
             // Then a modal tells them the link is not valid for their current session
-            const prompt = await screen.findByText("The link you opened isn't valid for your current session.");
+            const prompt = await screen.findByText("The link you clicked isn't valid for your current session.");
             expect(prompt).toBeOnTheScreen();
 
             unmount();
