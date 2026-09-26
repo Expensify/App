@@ -7760,6 +7760,11 @@ const translations = {
                 groups: {
                     title: 'Groups',
                     description: 'Choose the groups of employees you would like to sync with this workspace',
+                    staleSelectionError: (providerName: string) => `Some of the groups you selected no longer exist in ${providerName}, so their employees have stopped syncing.`,
+                    updateSelectionLink: 'Update your groups.',
+                    noGroupsFound: 'No groups found',
+                    noGroupsFoundDescription:
+                        'There are no groups to select right now. Save with no groups selected to sync all employees, or sync the connection again once new groups exist.',
                 },
             },
         },

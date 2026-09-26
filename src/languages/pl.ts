@@ -8677,7 +8677,16 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Połączono. ${setupLink ? `<a href="${setupLink}">Zakończ konfigurację</a>` : 'Zakończ konfigurację'}, aby zaimportować pracowników.</muted-text-label>`,
             mergeHR: {
-                groups: {title: 'Grupy', description: 'Wybierz grupy pracowników, które chcesz zsynchronizować z tą przestrzenią roboczą'},
+                groups: {
+                    title: 'Grupy',
+                    description: 'Wybierz grupy pracowników, które chcesz zsynchronizować z tą przestrzenią roboczą',
+                    staleSelectionError: (providerName: string) =>
+                        `Niektóre z grup, które wybrałeś, już nie istnieją w ${providerName}, więc synchronizacja ich pracowników została zatrzymana.`,
+                    updateSelectionLink: 'Zaktualizuj swoje grupy.',
+                    noGroupsFound: 'Nie znaleziono grup',
+                    noGroupsFoundDescription:
+                        'Obecnie nie ma żadnych grup do wybrania. Zapisz bez zaznaczonych grup, aby zsynchronizować wszystkich pracowników, albo zsynchronizuj połączenie ponownie, gdy pojawią się nowe grupy.',
+                },
             },
         },
         recruiting: {
