@@ -49,6 +49,8 @@ Report fields are available on the **Control** plan only. If your workspace is c
 
 The new field appears in the list on the **Reports** page and on every report in the workspace.
 
+Field names must be unique across the whole workspace. If you name a report field the same as an existing invoice field, you'll see the error *An invoice field with this name already exists*.
+
 ---
 
 ## How to edit or delete a report field
