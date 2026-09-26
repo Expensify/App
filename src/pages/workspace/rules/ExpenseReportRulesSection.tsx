@@ -37,6 +37,12 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const autoPayApprovedReportsUnavailable =
         !policy?.areWorkflowsEnabled || getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || !policy?.achAccount?.bankAccountID;
+    const autoPayApprovedReportsRequiresUpgrade = !isControlPolicy(policy);
+    const autoPayApprovedReportsUpgradeRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(
+        policyID,
+        CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.alias,
+        ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID),
+    );
 
     const renderFallbackSubtitle = ({featureName, variant = 'unlock'}: {featureName: string; variant?: 'unlock' | 'enable'}) => {
         const moreFeaturesLink = `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`;
@@ -44,6 +50,16 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
             return translate('workspace.rules.expenseReportRules.unlockFeatureEnableWorkflowsSubtitle', featureName);
         }
         return translate('workspace.rules.expenseReportRules.enableFeatureSubtitle', featureName, moreFeaturesLink);
+    };
+
+    const getAutoPayApprovedReportsSubtitle = () => {
+        if (autoPayApprovedReportsRequiresUpgrade) {
+            return translate('workspace.rules.expenseReportRules.autoPayApprovedReportsControlPlanSubtitle', `${environmentURL}/${autoPayApprovedReportsUpgradeRoute}`);
+        }
+        if (autoPayApprovedReportsUnavailable) {
+            return renderFallbackSubtitle({featureName: translate('common.payments').toLowerCase()});
+        }
+        return translate('workspace.rules.expenseReportRules.autoPayApprovedReportsSubtitle');
     };
 
     const optionItems = [
@@ -126,24 +142,21 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
         },
         {
             title: translate('workspace.rules.expenseReportRules.autoPayApprovedReportsTitle'),
-            subtitle: autoPayApprovedReportsUnavailable
-                ? renderFallbackSubtitle({featureName: translate('common.payments').toLowerCase()})
-                : translate('workspace.rules.expenseReportRules.autoPayApprovedReportsSubtitle'),
-            shouldParseSubtitle: autoPayApprovedReportsUnavailable,
+            subtitle: getAutoPayApprovedReportsSubtitle(),
+            shouldParseSubtitle: autoPayApprovedReportsRequiresUpgrade || autoPayApprovedReportsUnavailable,
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoPayApprovedReportsTitle'),
             onToggle: (isEnabled: boolean) => {
-                if (isEnabled && !isControlPolicy(policy)) {
-                    Navigation.navigate(
-                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)),
-                    );
+                if (isEnabled && autoPayApprovedReportsRequiresUpgrade) {
+                    Navigation.navigate(autoPayApprovedReportsUpgradeRoute);
                     return;
                 }
 
                 enablePolicyAutoReimbursementLimit(policyID, isEnabled, policy?.shouldShowAutoReimbursementLimitOption, policy?.autoReimbursement?.limit);
             },
-            disabled: autoPayApprovedReportsUnavailable || !canWritePayments,
+            // Leave the switch pressable on non-Control workspaces so it can route to the upgrade page.
+            disabled: (!autoPayApprovedReportsRequiresUpgrade && autoPayApprovedReportsUnavailable) || !canWritePayments,
             disabledAction: withPaymentsReadOnlyFallback(),
-            showLockIcon: autoPayApprovedReportsUnavailable || !canWritePayments,
+            showLockIcon: autoPayApprovedReportsRequiresUpgrade || autoPayApprovedReportsUnavailable || !canWritePayments,
             isActive: policy?.shouldShowAutoReimbursementLimitOption && !autoPayApprovedReportsUnavailable,
             pendingAction: policy?.pendingFields?.shouldShowAutoReimbursementLimitOption ?? policy?.pendingAction,
             subMenuItems: [

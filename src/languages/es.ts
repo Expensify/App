@@ -8215,6 +8215,8 @@ ${reportName}`,
                 autoPayApprovedReportsSubtitle: 'Configura qué informes de gastos pueden pagarse de forma automática.',
                 autoPayApprovedReportsLimitError: (currency) => `Por favor, introduce un importe menor a ${currency ?? ''}20,000`,
                 autoPayApprovedReportsLockedSubtitle: 'Ve a más funciones y habilita flujos de trabajo, luego agrega pagos para desbloquear esta función.',
+                autoPayApprovedReportsControlPlanSubtitle: (upgradeLink) =>
+                    `El pago automático solo está disponible en el plan Controlar. [Mejora el plan](${upgradeLink}) para desbloquear esta función.`,
                 autoPayReportsUnderTitle: 'Pagar automáticamente informes por debajo de',
                 autoPayReportsUnderDescription: 'Los informes de gastos totalmente conformes por debajo de este importe se pagarán automáticamente.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName) => `Añade ${featureName} para desbloquear esta función.`,
