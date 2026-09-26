@@ -777,6 +777,12 @@ function isPolicyApprover(policy: OnyxEntry<Policy>, employeeLogin: string) {
     );
 }
 
+/** Check if the passed employee holds an active Expensify Card on the policy, as reported by the backend in the policy's employeeList */
+function hasActiveExpensifyCard(policy: OnyxEntry<Policy>, employeeLogin: string) {
+    const primaryLogin = policy?.primaryLoginsInvited?.[employeeLogin];
+    return !!policy?.employeeList?.[employeeLogin]?.hasActiveExpensifyCard || (!!primaryLogin && !!policy?.employeeList?.[primaryLogin]?.hasActiveExpensifyCard);
+}
+
 /** Set of every approver login in the policy. Prefer over calling isPolicyApprover in a loop (scans employeeList once, not per candidate). */
 function getPolicyApproverLogins(policy: OnyxEntry<Policy>): Set<string> {
     const approverLogins = new Set<string>();
@@ -3973,6 +3979,7 @@ export {
     sortPoliciesByName,
     resolveCurrentTaxCode,
     isPolicyApprover,
+    hasActiveExpensifyCard,
     getPolicyApproverLogins,
     tryNavigateToSubmitWorkspaceUpgrade,
     tryNavigateToControlPolicyUpgrade,

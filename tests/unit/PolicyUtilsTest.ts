@@ -43,6 +43,7 @@ import {
     getVendorEmptyState,
     getVendorRuleDisplayValue,
     getPolicyApproverLogins,
+    hasActiveExpensifyCard,
     getPolicyBrickRoadIndicatorStatus,
     getPolicyByCustomUnitID,
     getPolicyIDFromDomainName,
@@ -6101,6 +6102,56 @@ describe('getPolicyApproverLogins', () => {
             },
         };
         expect([...getPolicyApproverLogins(policy)]).toEqual(['director@test.com']);
+    });
+});
+
+describe('hasActiveExpensifyCard', () => {
+    it('returns false when policy is undefined', () => {
+        expect(hasActiveExpensifyCard(undefined, 'cardholder@test.com')).toBe(false);
+    });
+
+    it('returns true when the backend flags the member as holding an active Expensify Card', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            employeeList: {
+                'cardholder@test.com': {email: 'cardholder@test.com', hasActiveExpensifyCard: true},
+            },
+        };
+        expect(hasActiveExpensifyCard(policy, 'cardholder@test.com')).toBe(true);
+    });
+
+    it('returns false when the flag is false or missing', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            employeeList: {
+                'former-cardholder@test.com': {email: 'former-cardholder@test.com', hasActiveExpensifyCard: false},
+                'employee@test.com': {email: 'employee@test.com'},
+            },
+        };
+        expect(hasActiveExpensifyCard(policy, 'former-cardholder@test.com')).toBe(false);
+        expect(hasActiveExpensifyCard(policy, 'employee@test.com')).toBe(false);
+    });
+
+    it('returns false when the member is not in the employeeList', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            employeeList: {
+                'cardholder@test.com': {email: 'cardholder@test.com', hasActiveExpensifyCard: true},
+            },
+        };
+        expect(hasActiveExpensifyCard(policy, 'someone-else@test.com')).toBe(false);
+    });
+
+    it('returns true when the secondary login is checked and the backend flags its paired primary login', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            primaryLoginsInvited: {'secondary@test.com': 'primary@test.com'},
+            employeeList: {
+                'secondary@test.com': {email: 'secondary@test.com'},
+                'primary@test.com': {email: 'primary@test.com', hasActiveExpensifyCard: true},
+            },
+        };
+        expect(hasActiveExpensifyCard(policy, 'secondary@test.com')).toBe(true);
     });
 });
 

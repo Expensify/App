@@ -30,6 +30,9 @@ type PolicyEmployee = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Email of the user this user forwards all reports to when the report total is over the 'approvalLimit' */
     overLimitForwardsTo?: string;
 
+    /** Whether the member holds an active Expensify Card on this workspace, which blocks removing them from it */
+    hasActiveExpensifyCard?: boolean;
+
     /**
      * Errors from api calls on the specific user
      * {<timestamp>: 'error message', <timestamp2>: 'error message 2'}
