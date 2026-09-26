@@ -5,6 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 
+import {clearDraftValues} from '@libs/actions/FormActions';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
 import {getLatestError} from '@libs/ErrorUtils';
@@ -59,6 +60,8 @@ function CloseAccountValidateCodePage() {
             showRuleBotGuardModal('closeAccount', ruleBotEnforcedPolicy.id);
         }
     }, [draftValuesMetadata, reasonForLeaving, ruleBotEnforcedPolicy, showRuleBotGuardModal]);
+
+    useEffect(() => () => clearDraftValues(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM), []);
 
     const handleSendValidateCode = () => {
         if (!reasonForLeaving) {
