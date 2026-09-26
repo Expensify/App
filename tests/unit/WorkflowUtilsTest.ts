@@ -2,6 +2,7 @@
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import {isApprovalWorkflowRule} from '@src/libs/RuleUtils';
 import {
     applyApprovalWorkflowRulesDiff,
     buildApprovalWorkflowRules,
@@ -29,12 +30,13 @@ import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
-import type {ApprovalWorkflowFilter, ApprovalWorkflowFilterComparison, ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
+import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {BankAccountList} from '@src/types/onyx/BankAccount';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
+import type {RuleFilter, RuleFilterComparison} from '@src/types/onyx/RuleFilters';
 
 import type {ValueOf} from 'type-fest';
 
@@ -1683,13 +1685,13 @@ describe('WorkflowUtils', () => {
     });
 
     describe('rule-based approval workflows', () => {
-        const submitTriggers = {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT};
-        const approveTriggers = {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE};
-        const forwardActions = (approver: string) => ({'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver}});
-        const approveActions = {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}};
+        const submitTriggers = {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT};
+        const approveTriggers = {'1': CONST.RULES.TRIGGERS.REPORT_APPROVE};
+        const forwardActions = (approver: string) => ({'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver}});
+        const approveActions = {'1': {name: CONST.RULES.ACTIONS.APPROVE_REPORT}};
         const buildFromFilter = (emails: string[]) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: emails});
         const buildToFilter = (email: string) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: email});
-        const and = (left: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison, right: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): ApprovalWorkflowFilter => ({
+        const and = (left: RuleFilter | RuleFilterComparison, right: RuleFilter | RuleFilterComparison): RuleFilter => ({
             operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
             left,
             right,
@@ -2144,12 +2146,12 @@ describe('WorkflowUtils', () => {
     });
 
     describe('filterRulesForPolicy', () => {
-        const ruleForPolicy = (scopeID: string, extra: Partial<Rule> = {}): Rule => ({
+        const ruleForPolicy = (scopeID: string, extra: Partial<Omit<Rule, 'actions' | 'filters' | 'triggers'>> = {}): Rule => ({
             scope: CONST.RULES.SCOPE.POLICY,
             scopeID,
-            triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+            triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
             filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: 'a@example.com'},
-            actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: 'b@example.com'}},
+            actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: 'b@example.com'}},
             ...extra,
         });
 
@@ -2170,6 +2172,42 @@ describe('WorkflowUtils', () => {
         it('returns an empty collection when there is no policy or no rules', () => {
             expect(filterRulesForPolicy({rules_1: ruleForPolicy('policy1')}, undefined)).toEqual({});
             expect(filterRulesForPolicy(undefined, 'policy1')).toEqual({});
+        });
+    });
+
+    describe('isApprovalWorkflowRule', () => {
+        // `Rule` types triggers as one kind or the other, so a rule mixing them can only arrive from the
+        // server. Building the collection untyped and asserting once is the only way to model that payload.
+        const ruleWithTriggers = (...triggers: string[]) => {
+            const rule = {
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: 'policy1',
+                triggers: Object.fromEntries(triggers.map((trigger, index) => [String(index + 1), trigger])),
+                filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: 'a@example.com'},
+                actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: 'b@example.com'}},
+            };
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            return rule as unknown as Rule;
+        };
+
+        it('is true for a rule that only fires on report events', () => {
+            expect(isApprovalWorkflowRule(ruleWithTriggers(CONST.RULES.TRIGGERS.REPORT_SUBMIT))).toBe(true);
+            expect(isApprovalWorkflowRule(ruleWithTriggers(CONST.RULES.TRIGGERS.REPORT_SUBMIT, CONST.RULES.TRIGGERS.REPORT_APPROVE))).toBe(true);
+        });
+
+        it('is false for an expense default rule', () => {
+            expect(isApprovalWorkflowRule(ruleWithTriggers(CONST.RULES.TRIGGERS.CREATE_TRANSACTION))).toBe(false);
+        });
+
+        it('is false for a rule that also fires on transaction creation, so disabling approvals cannot delete it', () => {
+            const mixed = ruleWithTriggers(CONST.RULES.TRIGGERS.REPORT_SUBMIT, CONST.RULES.TRIGGERS.CREATE_TRANSACTION);
+
+            expect(isApprovalWorkflowRule(mixed)).toBe(false);
+        });
+
+        it('is false for a rule with no triggers at all', () => {
+            expect(isApprovalWorkflowRule(ruleWithTriggers())).toBe(false);
         });
     });
 
