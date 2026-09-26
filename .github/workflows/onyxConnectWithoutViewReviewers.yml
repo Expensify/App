@@ -1,8 +1,8 @@
-name: Onyx.connectWithoutView reviewers
+name: Onyx direct-read reviewers
 
 # Requests a review from the Onyx performance reviewers whenever a PR adds a new
-# `Onyx.connectWithoutView` call. CODEOWNERS can't express this because it triggers on file
-# paths, not on the content of a diff.
+# `Onyx.connectWithoutView` or `readOnceOnyxValue` call. CODEOWNERS can't express this because
+# it triggers on file paths, not on the content of a diff.
 
 on:
   pull_request_target:
@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   requestReviewers:
-    name: Request reviewers for new Onyx.connectWithoutView calls
+    name: Request reviewers for new Onyx direct reads
     if: ${{ github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     steps:
@@ -31,11 +31,10 @@ jobs:
             const pr = context.payload.pull_request;
             const {owner, repo} = context.repo;
 
-            // Trigger only on a net-new production call. Test files and Jest mocks are excluded, and we
-            // compare added vs. removed call lines per file (a call matches `Onyx.connectWithoutView(`),
-            // so editing a call in place nets to zero, removed comments/strings don't count, and a
-            // removal in one file can't mask a new call in another.
-            const CALL = /Onyx\.connectWithoutView\s*\(/;
+            // Trigger only on a net-new production direct read. Test files and Jest mocks are excluded, and we
+            // compare added vs. removed call lines per file, so editing a call in place nets to zero, removed
+            // comments/strings don't count, and a removal in one file can't mask a new call in another.
+            const DIRECT_READ = /(?:Onyx\.connectWithoutView|readOnceOnyxValue)\s*\(/;
             const TEST_DIRECTORY = /(^|\/)(?:tests|__mocks__)\//;
             const files = await github.paginate(github.rest.pulls.listFiles, {owner, repo, pull_number: pr.number});
             const addsNewCall = files.some((file) => {
@@ -45,9 +44,9 @@ jobs:
               let added = 0;
               let removed = 0;
               for (const line of file.patch.split('\n')) {
-                if (line.startsWith('+') && !line.startsWith('+++') && CALL.test(line)) {
+                if (line.startsWith('+') && !line.startsWith('+++') && DIRECT_READ.test(line)) {
                   added++;
-                } else if (line.startsWith('-') && !line.startsWith('---') && CALL.test(line)) {
+                } else if (line.startsWith('-') && !line.startsWith('---') && DIRECT_READ.test(line)) {
                   removed++;
                 }
               }
@@ -77,5 +76,5 @@ jobs:
               owner,
               repo,
               issue_number: pr.number,
-              body: `This PR adds a new \`Onyx.connectWithoutView\` call, so I've requested a review from the Onyx performance reviewers (${mentions}) — a review from any one of them is enough. Please add a link in your PR description to the Slack discussion where the \`@frontend-performance\` team approved using \`connectWithoutView\` here.`,
+              body: `This PR adds a new Onyx direct-read call, so I've requested a review from the Onyx performance reviewers (${mentions}) — a review from any one of them is enough.`,
             });
