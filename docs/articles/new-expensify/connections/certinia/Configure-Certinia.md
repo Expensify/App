@@ -1,7 +1,7 @@
 ---
 title: Configure Certinia
 description: Configure import, export, and advanced sync settings for Expensify's Certinia (FinancialForce) integration in New Expensify.
-keywords: [New Expensify, Certinia settings, FinancialForce, import configuration, export preferences, auto-sync, dimensions, FFA, PSA, SRP]
+keywords: [New Expensify, Certinia settings, FinancialForce, import configuration, export preferences, auto-sync, dimensions, FFA, PSA, SRP, currency conversion fee account]
 internalScope: Audience is Workspace Admins. Covers configuring Certinia import, export, and advanced sync settings, does not cover connecting Certinia or troubleshooting.
 order: 2
 ---
@@ -107,6 +107,20 @@ Keep reimbursement status in sync between Expensify and Certinia for reports tha
 
 Decide whether tax amounts are billed to clients when exporting billable expenses.
 
+## How to set the Certinia currency conversion fee account (FFA)
+
+When your company covers the currency conversion cost on a reimbursement paid abroad, Expensify adds that cost to the reimbursable Payable Invoice as a line coded to the General Ledger Account you choose here.
+
+1. Go to **Workspaces > [Workspace Name] > Accounting** from the navigation tabs (on the left on web, on the bottom on mobile).
+2. Click **Advanced** under the Certinia connection.
+3. Click **Currency conversion fee account**.
+4. Select a General Ledger Account, or select **None** to leave the setting unset.
+5. Click **Save**.
+
+Leaving the setting on **None** keeps the currency conversion cost off the Payable Invoice.
+
+To choose who pays the cost, go to **Workspaces > [Workspace Name] > Workflows > Payments > Currency conversion fees** and select **Company pays** or **Employee pays**. The account you select is only used when you select **Company pays**.
+
 ## How foreign currency (multi-currency) export works in Certinia (PSA/SRP)
 
 When employees submit expenses in multiple currencies, Certinia may display up to three currencies per report:
@@ -141,3 +155,17 @@ No. Enabling Auto-sync does not affect previously approved or reimbursed reports
 ## How do I export tax?
 
 Manage Expensify tax rates under **Workspaces > [Workspace Name] > Tax**. The tax amount calculated on each expense is exported to Certinia.
+
+## How do currency conversion costs export to Certinia?
+
+Certinia has no outbound payment export, so the cost is not a separate record. Expensify adds it to the reimbursable Payable Invoice as an extra line coded to the account you select in **Currency conversion fee account** on the **Advanced** tab. The invoice then totals the amount that actually left your bank account, so your normal settlement reconciles it.
+
+## Why don't I see the Currency conversion fee account setting for Certinia?
+
+The setting is hidden unless all of the following are true:
+
+- Your workspace uses the **FFA** module. PSA and SRP have no general ledger and no Payable Invoice, so the setting does not apply.
+- Your workspace reimburses through Expensify, set under **Workspaces > [Workspace Name] > Workflows > Payments**.
+- A business bank account is connected to the workspace.
+
+If the setting is visible but the account list is empty, sync the connection after General Ledger Accounts are added in Certinia.
