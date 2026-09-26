@@ -3,7 +3,8 @@
  */
 import type ReportAction from '@src/types/onyx/ReportAction';
 
-type SubscriberCallback = (isFromCurrentUser: boolean, reportAction: ReportAction | undefined) => void;
+type ActionEventSource = 'local' | 'realtime';
+type SubscriberCallback = (isFromCurrentUser: boolean, reportAction: ReportAction | undefined, source: ActionEventSource) => void;
 
 type ActionSubscriber = {
     reportID: string;
@@ -26,7 +27,7 @@ function subscribeToNewActionEvent(reportID: string, callback: SubscriberCallbac
 }
 
 /** Notify the ReportActionsList that a new comment has arrived */
-function notifyNewAction(reportID: string | string[] | undefined, reportAction: ReportAction | undefined, isFromCurrentUser: boolean) {
+function notifyNewAction(reportID: string | string[] | undefined, reportAction: ReportAction | undefined, isFromCurrentUser: boolean, source: ActionEventSource = 'local') {
     if (!reportID) {
         return;
     }
@@ -34,9 +35,10 @@ function notifyNewAction(reportID: string | string[] | undefined, reportAction: 
     for (const id of ids) {
         const actionSubscriber = newActionSubscribers.find((subscriber) => subscriber.reportID === id);
         if (actionSubscriber) {
-            actionSubscriber.callback(isFromCurrentUser, reportAction);
+            actionSubscriber.callback(isFromCurrentUser, reportAction, source);
         }
     }
 }
 
 export {subscribeToNewActionEvent, notifyNewAction};
+export type {ActionEventSource};

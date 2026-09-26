@@ -60,17 +60,19 @@ function useEditMessage({
 
         clearAllReportActionDrafts();
 
-        // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
+        // Wait for the editor to close and the restored action row to lay out before scrolling.
+        // Scrolling against the editor's old height can leave the final action below the viewport.
         if (!shouldScrollToLastMessage) {
             return;
         }
 
-        if (scrollToLastMessage) {
-            scrollToLastMessage();
-            return;
-        }
-
-        reportScrollManager.scrollToIndex(0);
+        requestAnimationFrame(() => {
+            if (scrollToLastMessage) {
+                scrollToLastMessage();
+                return;
+            }
+            reportScrollManager.scrollToBottom();
+        });
     }
 
     /**

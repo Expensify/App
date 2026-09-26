@@ -1,22 +1,22 @@
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
-import InvertedFlashList from '@components/FlashList/InvertedFlashList';
+import allowLegendListItemOverflow from '@components/LegendList/allowLegendListItemOverflow';
 import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBanner';
 import {ReportActionsAnimatedSkeletonCover} from '@components/ReportActionsSkeletonCover';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
 import useConciergeSessionStartTime from '@hooks/useConciergeSessionStartTime';
+import useEmitComposerScrollEvents from '@hooks/useEmitComposerScrollEvents';
 import useEnvironment from '@hooks/useEnvironment';
+import useInitial from '@hooks/useInitial';
 import useLinkedMessageOfflineLoading from '@hooks/useLinkedMessageOfflineLoading';
 import useLocalize from '@hooks/useLocalize';
 import useMarkAsRead from '@hooks/useMarkAsRead';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportActionsScroll from '@hooks/useReportActionsScroll';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRetireMerchantRuleSuggestionOnLeave from '@hooks/useRetireMerchantRuleSuggestionOnLeave';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -51,6 +51,7 @@ import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
 import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListContext';
+import type {ActionListRef} from '@pages/inbox/ActionListTypes';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 
 import CONST from '@src/CONST';
@@ -59,13 +60,15 @@ import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRef, LegendListRenderItemProps, OnViewableItemsChangedInfo} from '@legendapp/list/react-native';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {LegendList} from '@legendapp/list/react-native';
 import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 import FloatingMessageCounter from './FloatingMessageCounter';
 import {ReportActionPositionContextProvider} from './ReportActionIndexContext';
@@ -87,13 +90,62 @@ type ReportActionsListContentProps = {
 
 type ReportActionsListProps = ReportActionsListContentProps;
 
+const PAGINATION_THRESHOLD = 0.75;
+const MAINTAIN_SCROLL_AT_END_THRESHOLD = 0.01;
+const REPORT_ACTIONS_DRAW_DISTANCE = 1500;
+
+const REPORT_ACTION_COMMENT_SIZE = {
+    SHORT: 'short',
+    MEDIUM: 'medium',
+    LONG: 'long',
+    EXTRA_LONG: 'extra-long',
+} as const;
+
+// Character-count boundaries used to bucket comments so LegendList can recycle similarly sized items.
+const REPORT_ACTION_COMMENT_SHORT_MAX_LENGTH = 80;
+const REPORT_ACTION_COMMENT_MEDIUM_MAX_LENGTH = 320;
+const REPORT_ACTION_COMMENT_LONG_MAX_LENGTH = 1200;
+
+function getReportActionCommentSize(messageLength: number): string {
+    if (messageLength <= REPORT_ACTION_COMMENT_SHORT_MAX_LENGTH) {
+        return REPORT_ACTION_COMMENT_SIZE.SHORT;
+    }
+    if (messageLength <= REPORT_ACTION_COMMENT_MEDIUM_MAX_LENGTH) {
+        return REPORT_ACTION_COMMENT_SIZE.MEDIUM;
+    }
+    if (messageLength <= REPORT_ACTION_COMMENT_LONG_MAX_LENGTH) {
+        return REPORT_ACTION_COMMENT_SIZE.LONG;
+    }
+    return REPORT_ACTION_COMMENT_SIZE.EXTRA_LONG;
+}
+
+function getItemType(item: OnyxTypes.ReportAction): string {
+    if (item.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) {
+        return item.actionName;
+    }
+
+    const message = getReportActionMessage(item);
+    const commentSize = getReportActionCommentSize(message?.text.length ?? 0);
+
+    if (item.isAttachmentOnly) {
+        return `${item.actionName}-attachment`;
+    }
+    if (item.isAttachmentWithText) {
+        return `${item.actionName}-attachment-${commentSize}`;
+    }
+    if (item.linkMetadata?.length) {
+        return `${item.actionName}-link-preview-${commentSize}`;
+    }
+    return `${item.actionName}-${commentSize}`;
+}
+
 /**
- * Create a unique key for each action in the FlatList.
+ * Create a unique key for each action in the list.
  * We use the reportActionID that is a string representation of a random 64-bit int, which should be
  * random enough to avoid collisions
  */
 function keyExtractor(item: OnyxTypes.ReportAction): string {
-    // A report has exactly one CREATED action. Using a stable key lets FlashList recycle the same cell
+    // A report has exactly one CREATED action. Using a stable key lets the list recycle the same cell
     // when the optimistic CREATED is swapped for the server one, avoiding a remount-induced scroll jump.
     if (item.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         return CONST.REPORT.ACTIONS.TYPE.CREATED;
@@ -109,14 +161,17 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
 function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportActionsListContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {windowHeight} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isProduction} = useEnvironment();
 
     const {
         report,
         hasOnceLoadedReportActions,
+        isInitialReportLoadPending,
+        isLoadingOlderReportActions,
+        hasLoadingOlderReportActionsError,
+        hasOlderActions,
         hasNewerActions,
+        oldestReportActionID,
         sortedAllReportActions,
         oldestUnreadReportAction,
         transactionThreadReport,
@@ -139,18 +194,22 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const sessionStartTime = useConciergeSessionStartTime();
 
     const didLayout = useRef(false);
-
-    useEffect(() => {
-        didLayout.current = false;
-    }, [reportID]);
+    const lastRequestedOldestActionIDRef = useRef<string | undefined>(undefined);
+    const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: true});
 
     useLinkedMessageOfflineLoading({reportID: report?.reportID ?? reportID, reportActionIDFromRoute});
 
     // Owned here rather than by the callout, which unmounts as the layout and composer change size.
     useRetireMerchantRuleSuggestionOnLeave(reportID);
 
-    // Remount the list when the deep-linked message or unread anchor changes (scroll positioning), or when the report changes.
-    const listID = [reportID, reportActionIDFromRoute, hasOnceLoadedReportActions ? undefined : oldestUnreadReportAction?.reportActionID].join(':');
+    // OpenReport can first provide a tiny cached page and then replace it with the hydrated page. Remounting
+    // gives the complete dataset a fresh initial layout so initialScrollAtEnd targets its actual end.
+    const listID = [
+        reportID,
+        reportActionIDFromRoute,
+        hasOnceLoadedReportActions ? 'hydrated' : 'initial',
+        hasOnceLoadedReportActions ? undefined : oldestUnreadReportAction?.reportActionID,
+    ].join(':');
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
     const isReportArchived = !!isArchivedReport(reportNameValuePairs);
@@ -181,14 +240,46 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const {getScrollOffset} = useActionListContext();
     const listRef = useActionListRef();
+    const legendListRef = useRef<LegendListRef>(null);
+
+    useImperativeHandle(
+        listRef,
+        (): ActionListRef => ({
+            getNativeScrollRef: () => legendListRef.current?.getNativeScrollRef(),
+            scrollToEnd: (options) => {
+                legendListRef.current?.scrollToEnd(options);
+            },
+            scrollToIndex: (options) => {
+                legendListRef.current?.scrollToIndex(options);
+            },
+            scrollToOffset: (options) => {
+                legendListRef.current?.scrollToOffset(options);
+            },
+        }),
+        [],
+    );
 
     const {draftReportAction, isDraftPendingCompletion} = useConciergeDraft();
     const {clearDraft, revealDraftFromReportAction} = useConciergeDraftActions();
 
     const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
-    const onShowPreviousMessages = handleShowPreviousMessages;
 
     const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => getScrollOffset() >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
+    const shouldRestoreTailAfterHistoryRevealRef = useRef(false);
+    const oldestLoadedActionID = allReportActionIDs.at(-1);
+    const oldestLoadedActionIDAtHistoryRevealRef = useRef<string | undefined>(undefined);
+    const distanceFromBottomRef = useRef(getScrollOffset());
+    const shouldFollowEndOnResizeRef = useRef(false);
+    const onShowPreviousMessages = () => {
+        // Revealing older actions can make a short session scrollable before the requested history page arrives.
+        // Follow the tail only when the reader was actually there; the action-visible threshold is much wider.
+        shouldRestoreTailAfterHistoryRevealRef.current = distanceFromBottomRef.current <= 1 && !hasNewerActions;
+        oldestLoadedActionIDAtHistoryRevealRef.current = shouldRestoreTailAfterHistoryRevealRef.current && hasOlderActions ? oldestLoadedActionID : undefined;
+        if (shouldRestoreTailAfterHistoryRevealRef.current) {
+            shouldFollowEndOnResizeRef.current = true;
+        }
+        handleShowPreviousMessages();
+    };
 
     const {unreadMarkerReportActionID} = useUnreadMarker({
         reportID,
@@ -244,10 +335,38 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         return visibleReportActionsWithDraft;
     })();
 
+    // OpenReport starts with a tiny cached page before replacing it with the hydrated page. Keep that
+    // already-visible page mounted until hydration finishes instead of exposing intermediate estimated
+    // layouts. The hydrated list then mounts from scratch using the full dataset.
+    const initialReportActionsSnapshot = useInitial(renderedVisibleReportActions.length > 0 ? renderedVisibleReportActions : undefined);
+    const shouldKeepInitialSnapshot = isInitialReportLoadPending && !isOffline && !showFullHistory;
+    const reportActionsToRender = shouldKeepInitialSnapshot ? (initialReportActionsSnapshot ?? renderedVisibleReportActions) : renderedVisibleReportActions;
+
+    // Report actions are stored newest-first. LegendList intentionally has no inverted mode, so
+    // give it chronological data and use its normal start/end and scrolling semantics.
+    const listData = reportActionsToRender.toReversed();
+
+    useEffect(() => {
+        if (!showFullHistory) {
+            shouldRestoreTailAfterHistoryRevealRef.current = false;
+            return;
+        }
+        if (!shouldRestoreTailAfterHistoryRevealRef.current) {
+            return;
+        }
+        const animationFrame = requestAnimationFrame(() => {
+            legendListRef.current?.scrollToEnd({animated: false});
+            const hasReceivedHistoryPage = oldestLoadedActionID !== oldestLoadedActionIDAtHistoryRevealRef.current || !hasOlderActions;
+            if (!oldestLoadedActionIDAtHistoryRevealRef.current || (!isLoadingOlderReportActions && (hasReceivedHistoryPage || hasLoadingOlderReportActionsError))) {
+                shouldRestoreTailAfterHistoryRevealRef.current = false;
+            }
+        });
+        return () => cancelAnimationFrame(animationFrame);
+    }, [showFullHistory, listData.length, oldestLoadedActionID, hasOlderActions, isLoadingOlderReportActions, hasLoadingOlderReportActionsError]);
+
     const draftMessageHTML = draftReportAction ? getReportActionMessage(draftReportAction)?.html : undefined;
     const draftReportActionID = draftReportAction?.reportActionID;
     const isSyntheticDraftVisible = !!draftReportAction && renderedVisibleReportActions !== sortedVisibleReportActions;
-    const draftAutoScrollKey = isSyntheticDraftVisible ? `${draftReportAction.reportActionID}:${draftMessageHTML ?? ''}` : '';
 
     useEffect(() => {
         if (!draftReportAction || isSyntheticDraftVisible) {
@@ -265,9 +384,10 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         revealDraftFromReportAction(persistedDraftReportAction);
     }, [draftReportAction, persistedDraftReportAction, revealDraftFromReportAction]);
 
-    // Find the index of the action badge target in the rendered actions list (which is what the FlatList uses as data)
+    // Find the index of the action badge target in the chronological data rendered by LegendList.
     const actionBadgeTargetID = reportAttributes?.actionTargetReportActionID;
-    const actionBadgeTargetIndex = actionBadgeTargetID ? renderedVisibleReportActions.findIndex((action) => action.reportActionID === actionBadgeTargetID) : -1;
+    const actionBadgeTargetIndex = actionBadgeTargetID ? listData.findIndex((action) => action.reportActionID === actionBadgeTargetID) : -1;
+    const unreadMarkerListIndex = unreadMarkerReportActionID ? listData.findIndex((action) => action.reportActionID === unreadMarkerReportActionID) : -1;
 
     const unreadMarkerReportActionIndex = unreadMarkerReportActionID ? renderedVisibleReportActions.findIndex((action) => action.reportActionID === unreadMarkerReportActionID) : -1;
 
@@ -278,12 +398,9 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         isActionBadgeAboveViewport,
         scrollToBottomAndMarkReportAsRead,
         scrollToActionBadgeTarget,
-        flushPendingScrollToBottom,
         shouldBeAlignedToTop,
-        shouldFocusToTopOnMount,
         initialScrollIndex,
         initialScrollIndexParams,
-        maintainVisibleContentPosition,
         onLoad,
     } = useReportActionsScroll({
         reportID,
@@ -292,31 +409,125 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         transactionThreadReport,
         parentReportAction,
         sortedVisibleReportActions,
-        renderedVisibleReportActions,
+        renderedVisibleReportActions: listData,
         keyExtractor,
-        hasScrolledOverThreshold,
         markNewestActionAsRead,
         completeSkippedMarkAsRead,
         unreadMarkerReportActionID,
-        unreadMarkerReportActionIndex,
+        unreadMarkerReportActionIndex: unreadMarkerListIndex,
         hasNewerActions,
-        draftAutoScrollKey,
         actionBadgeTargetIndex,
         sortedAllReportActionsForPagination: sortedAllReportActions ?? [],
         treatAsNoPaginationAnchor,
         setTreatAsNoPaginationAnchor,
     });
 
-    const trackScrollPositionAndThreshold = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        trackVerticalScrolling(event);
-        setHasScrolledOverThreshold(event.nativeEvent.contentOffset.y >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
-    };
+    const [loadedInitialViewportListID, setLoadedInitialViewportListID] = useState<string>();
+    // Cover every initial LegendList layout, including cached chats, until the rows are positioned.
+    const shouldShowInitialViewportSkeleton = !isOffline && (isInitialReportLoadPending || loadedInitialViewportListID !== listID);
+    const readyEndListIDRef = useRef<string | undefined>(undefined);
+    const lastScrollMetricsRef = useRef<{offset: number; contentHeight: number; viewportHeight: number} | undefined>(undefined);
+    const endCorrectionFrameRef = useRef<number | undefined>(undefined);
 
-    const loadOlderChatsOnEndReached = () => {
-        if (showHiddenHistory) {
+    const scheduleEndCorrection = () => {
+        if (
+            readyEndListIDRef.current !== listID ||
+            !shouldFollowEndOnResizeRef.current ||
+            hasNewerActions ||
+            initialScrollIndex !== undefined ||
+            endCorrectionFrameRef.current !== undefined
+        ) {
             return;
         }
+        endCorrectionFrameRef.current = requestAnimationFrame(() => {
+            endCorrectionFrameRef.current = undefined;
+            if (readyEndListIDRef.current === listID && shouldFollowEndOnResizeRef.current) {
+                legendListRef.current?.scrollToEnd({animated: false});
+            }
+        });
+    };
+
+    useEffect(
+        () => () => {
+            if (endCorrectionFrameRef.current === undefined) {
+                return;
+            }
+            cancelAnimationFrame(endCorrectionFrameRef.current);
+            endCorrectionFrameRef.current = undefined;
+        },
+        [listID],
+    );
+
+    const updateVisibleItemOverflow = (info: OnViewableItemsChangedInfo<OnyxTypes.ReportAction>) => {
+        onViewableItemsChanged(info);
+        for (const item of info.changed) {
+            if (!item.isViewable) {
+                continue;
+            }
+            allowLegendListItemOverflow(legendListRef.current, item.index);
+        }
+    };
+
+    const handleListLoad = () => {
+        onLoad();
+        setLoadedInitialViewportListID(listID);
+    };
+
+    const handleListReady = () => {
+        readyEndListIDRef.current = listID;
+        shouldFollowEndOnResizeRef.current = initialScrollIndex === undefined && !hasNewerActions;
+        lastScrollMetricsRef.current = undefined;
+        // The final row can grow after LegendList's initial end estimate (for example, Concierge feedback).
+        scheduleEndCorrection();
+    };
+
+    const loadOlderChatsOnStartReached = () => {
+        if (showHiddenHistory || isOffline || !hasOlderActions || !oldestReportActionID || lastRequestedOldestActionIDRef.current === oldestReportActionID) {
+            return;
+        }
+
+        lastRequestedOldestActionIDRef.current = oldestReportActionID;
         loadOlderChats(false);
+    };
+
+    const trackScrollPositionAndThreshold = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
+        const distanceFromBottom = Math.max(0, contentSize.height - layoutMeasurement.height - contentOffset.y);
+        distanceFromBottomRef.current = distanceFromBottom;
+        const isNearStart = contentOffset.y <= layoutMeasurement.height * PAGINATION_THRESHOLD;
+        const previousMetrics = lastScrollMetricsRef.current;
+        if (readyEndListIDRef.current === listID && !hasNewerActions) {
+            if (shouldRestoreTailAfterHistoryRevealRef.current || distanceFromBottom <= layoutMeasurement.height * MAINTAIN_SCROLL_AT_END_THRESHOLD) {
+                shouldFollowEndOnResizeRef.current = true;
+            } else if (
+                (previousMetrics && contentOffset.y < previousMetrics.offset - 1) ||
+                (previousMetrics &&
+                    previousMetrics.contentHeight === contentSize.height &&
+                    previousMetrics.viewportHeight === layoutMeasurement.height &&
+                    endCorrectionFrameRef.current === undefined)
+            ) {
+                shouldFollowEndOnResizeRef.current = false;
+            }
+        }
+        lastScrollMetricsRef.current = {offset: contentOffset.y, contentHeight: contentSize.height, viewportHeight: layoutMeasurement.height};
+
+        if (isNearStart) {
+            loadOlderChatsOnStartReached();
+        } else {
+            lastRequestedOldestActionIDRef.current = undefined;
+        }
+
+        const bottomRelativeEvent = {
+            ...event,
+            nativeEvent: {
+                ...event.nativeEvent,
+                contentOffset: {...contentOffset, y: distanceFromBottom},
+            },
+        };
+
+        trackVerticalScrolling(bottomRelativeEvent);
+        setHasScrolledOverThreshold(distanceFromBottom >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
+        emitComposerScrollEvents();
     };
 
     const loadNewerChatsAfterTransitions = () => {
@@ -345,7 +556,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         reportID,
         actionTargetReportActionID: reportAttributes?.actionTargetReportActionID,
         actionBadgeTargetIndex,
-        renderedVisibleReportActions,
+        renderedVisibleReportActions: listData,
         scrollToActionBadgeTarget,
     });
 
@@ -373,13 +584,15 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
     })();
 
-    const renderItem = ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
+    const renderItem = ({item: reportAction, index}: LegendListRenderItemProps<OnyxTypes.ReportAction>) => {
         const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
+        const reportActionIndex = reportActionsToRender.length - index - 1;
 
         return (
             <ReportActionPositionContextProvider
                 index={index}
-                isNewest={index === 0}
+                isNewest={index === listData.length - 1}
+                isRecycling
             >
                 <ReportActionsListItemRenderer
                     reportAction={reportAction}
@@ -390,12 +603,12 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     chatReport={chatReportStable}
                     linkedReportActionID={linkedReportActionID}
                     displayAsGroup={
-                        !isConsecutiveChronosAutomaticTimerAction(renderedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
-                        isConsecutiveActionMadeByPreviousActor(renderedVisibleReportActions, index, isOffline)
+                        !isConsecutiveChronosAutomaticTimerAction(reportActionsToRender, reportActionIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
+                        isConsecutiveActionMadeByPreviousActor(reportActionsToRender, reportActionIndex, isOffline)
                     }
                     shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                     shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
-                    shouldDisplayReplyDivider={renderedVisibleReportActions.length > 1}
+                    shouldDisplayReplyDivider={reportActionsToRender.length > 1}
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     isLatestConciergeFeedbackAction={!!latestConciergeFeedbackActionID && latestConciergeFeedbackActionID === reportAction.reportActionID}
                     shouldUseThreadDividerLine={shouldUseThreadDividerLine}
@@ -415,10 +628,9 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         );
     };
 
-    // Native mobile does not render updates flatlist the changes even though component did update called.
-    // To notify there something changes we can use extraData prop to flatlist
+    // Ensure row presentation updates when these values change without changing the action data.
     const extraData = [
-        shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined,
+        unreadMarkerReportActionID,
         isArchivedNonExpenseReport(report, isReportArchived),
         draftReportActionID,
         draftMessageHTML,
@@ -426,7 +638,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         latestConciergeFeedbackActionID,
     ];
 
-    const listHeaderComponent = (
+    const latestActionsFooter = (
         <ReportActionsListHeader
             reportID={reportID}
             isDraftPendingCompletion={isDraftPendingCompletion}
@@ -435,7 +647,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
-    const listFooterComponent = shouldShowOfflineSkeleton ? <ReportActionsSkeletonView shouldAnimate={false} /> : undefined;
+    const offlineHistoryHeader = shouldShowOfflineSkeleton ? <ReportActionsSkeletonView shouldAnimate={false} /> : undefined;
 
     const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
@@ -449,6 +661,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
      */
     const recordTimeToMeasureItemLayout = (event: LayoutChangeEvent) => {
         onLayout?.(event);
+        scheduleEndCorrection();
         if (didLayout.current) {
             return;
         }
@@ -488,46 +701,56 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                 report={report}
                 isReportArchived={isReportArchived}
             >
-                <InvertedFlashList
+                <LegendList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
-                    ref={listRef}
+                    ref={legendListRef}
                     testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
-                    data={renderedVisibleReportActions}
+                    data={listData}
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}
-                    drawDistance={1500}
+                    drawDistance={REPORT_ACTIONS_DRAW_DISTANCE}
+                    recycleItems
+                    experimental_hideItemsUntilMeasured
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={styles.chatContentScrollView}
-                    onEndReached={loadOlderChatsOnEndReached}
-                    onEndReachedThreshold={0.75}
-                    onStartReached={loadNewerChatsAfterTransitions}
-                    onStartReachedThreshold={0.75}
-                    ListHeaderComponent={listHeaderComponent}
-                    ListHeaderComponentStyle={shouldBeAlignedToTop ? styles.flex1 : undefined}
-                    ListFooterComponent={listFooterComponent}
+                    contentContainerStyle={[styles.chatContentScrollView, styles.pb0]}
+                    onEndReached={loadNewerChatsAfterTransitions}
+                    onEndReachedThreshold={PAGINATION_THRESHOLD}
+                    ListHeaderComponent={offlineHistoryHeader}
+                    ListFooterComponent={latestActionsFooter}
+                    ListFooterComponentStyle={shouldBeAlignedToTop ? styles.flex1 : undefined}
                     keyboardShouldPersistTaps="handled"
-                    onLayout={(event) => {
-                        recordTimeToMeasureItemLayout(event);
-                        flushPendingScrollToBottom();
-                    }}
+                    onLayout={recordTimeToMeasureItemLayout}
                     onScroll={trackScrollPositionAndThreshold}
-                    onViewableItemsChanged={onViewableItemsChanged}
+                    onStartReached={loadOlderChatsOnStartReached}
+                    onStartReachedThreshold={PAGINATION_THRESHOLD}
+                    onViewableItemsChanged={updateVisibleItemOverflow}
                     extraData={extraData}
                     key={listID}
-                    overrideProps={{
-                        isInvertedVirtualizedList: true,
-                        contentOffset: shouldFocusToTopOnMount ? {x: 0, y: windowHeight} : undefined,
-                    }}
-                    getItemType={(item) => item.actionName}
-                    initialScrollIndex={initialScrollIndex}
-                    initialScrollIndexParams={initialScrollIndexParams}
-                    maintainVisibleContentPosition={maintainVisibleContentPosition}
-                    onLoad={onLoad}
+                    getItemType={getItemType}
+                    initialScrollAtEnd={initialScrollIndex === undefined}
+                    initialScrollIndex={initialScrollIndex === undefined ? undefined : {index: initialScrollIndex, ...initialScrollIndexParams}}
+                    alignItemsAtEnd={!shouldBeAlignedToTop}
+                    // Only follow the real latest page. Older/linked windows must retain their visible anchor.
+                    maintainScrollAtEnd={!hasNewerActions && {animated: false}}
+                    // Leave the end-follow region as soon as the user starts reading older messages.
+                    maintainScrollAtEndThreshold={MAINTAIN_SCROLL_AT_END_THRESHOLD}
+                    maintainVisibleContentPosition
+                    onLoad={handleListLoad}
+                    onReady={handleListReady}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
+                        scheduleEndCorrection();
                     }}
                 />
+                {shouldShowInitialViewportSkeleton && (
+                    <View
+                        pointerEvents="none"
+                        style={[styles.pAbsolute, styles.t0, styles.r0, styles.b0, styles.l0, styles.zIndex10]}
+                    >
+                        <ReportActionsAnimatedSkeletonCover />
+                    </View>
+                )}
             </ReportActionsListPaddingView>
         </>
     );
@@ -539,8 +762,12 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
  */
 function ReportActionsList({reportID, conciergeChat, onLayout}: ReportActionsListProps) {
     return (
-        <ReportActionsSkeletonGuard reportID={reportID}>
+        <ReportActionsSkeletonGuard
+            key={reportID}
+            reportID={reportID}
+        >
             <ReportActionsListContent
+                key={reportID}
                 reportID={reportID}
                 conciergeChat={conciergeChat}
                 onLayout={onLayout}
