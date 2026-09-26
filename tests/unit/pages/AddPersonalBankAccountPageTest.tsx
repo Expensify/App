@@ -167,21 +167,46 @@ describe('AddPersonalBankAccountPage', () => {
         expect(closeRHPFlowSpy).not.toHaveBeenCalled();
     });
 
-    it('fetches the exit report again and keeps the existing navigation once the bank account is added', async () => {
+    it('closes the RHP when the flow was started from the Search tab', async () => {
+        await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR));
+
+        fireEvent.press(screen.getByTestId('confirmation-primary-button'));
+
+        expect(closeRHPFlowSpy).toHaveBeenCalledTimes(1);
+        expect(goBackSpy).not.toHaveBeenCalled();
+    });
+
+    it('fetches the exit report again once the bank account is added, before the flow is closed', async () => {
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID: '123'});
+        });
+        await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
+        expect(openReport).not.toHaveBeenCalled();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {shouldShowSuccess: true});
+        });
+
+        expect(openReport).toHaveBeenCalledTimes(1);
+        expect(openReport).toHaveBeenCalledWith(expect.objectContaining({reportID: '123', shouldMarkAsRead: false}));
+        expect(closeRHPFlowSpy).not.toHaveBeenCalled();
+    });
+
+    it('fetches the exit report only once and keeps the existing navigation when the flow is closed', async () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID: '123', shouldShowSuccess: true});
         });
         await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
 
         fireEvent.press(screen.getByTestId('confirmation-primary-button'));
+        await waitForBatchedUpdatesWithAct();
 
         expect(openReport).toHaveBeenCalledTimes(1);
-        expect(openReport).toHaveBeenCalledWith(expect.objectContaining({reportID: '123', shouldMarkAsRead: false}));
         expect(closeRHPFlowSpy).toHaveBeenCalledTimes(1);
         expect(dismissModalWithReportSpy).not.toHaveBeenCalled();
     });
 
-    it('does not refetch the exit report when the bank account was not added', async () => {
+    it('does not fetch the exit report when the bank account was not added', async () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID: '123'});
         });

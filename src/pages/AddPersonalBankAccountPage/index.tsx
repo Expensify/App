@@ -64,6 +64,7 @@ function AddPersonalBankAccountPage() {
     const isManual = personalBankAccount?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL || urlSubPage === SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS;
     const error = getLatestErrorMessage(fullPersonalBankAccount ?? DEFAULT_OBJECT);
     const confirmedOwnershipDetails = useRef(false);
+    const hasRefreshedExitReport = useRef(false);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
@@ -95,12 +96,6 @@ function AddPersonalBankAccountPage() {
 
     const exitFlow = (shouldContinue = false) => {
         const onSuccessFallbackRoute = fullPersonalBankAccount?.onSuccessFallbackRoute ?? '';
-
-        // Refresh the report the flow was opened from, since adding the account changes its server-owned fields.
-        // It may not be on screen, so don't navigate to it or mark it as read.
-        if (exitReportID && shouldShowSuccess) {
-            openReport({reportID: exitReportID, hasReportActions: hasExitReportActions, shouldMarkAsRead: false});
-        }
 
         if (shouldContinue && onSuccessFallbackRoute) {
             continueSetup(kycWallRef, onSuccessFallbackRoute);
@@ -208,6 +203,16 @@ function AddPersonalBankAccountPage() {
         }
         moveTo(successIndex, false);
     }, [shouldShowSuccess, currentPageName, moveTo, successIndex]);
+
+    // Refresh the report the flow was opened from once the account is added, since that changes its server-owned fields.
+    // Doing it here instead of on exit covers every way of closing the flow. The report may not be on screen, so don't mark it as read.
+    useEffect(() => {
+        if (!shouldShowSuccess || !exitReportID || currentPageName !== SUB_PAGE_NAMES.SUCCESS || hasRefreshedExitReport.current) {
+            return;
+        }
+        hasRefreshedExitReport.current = true;
+        openReport({reportID: exitReportID, hasReportActions: hasExitReportActions, shouldMarkAsRead: false});
+    }, [shouldShowSuccess, exitReportID, currentPageName, openReport, hasExitReportActions]);
 
     useEffect(() => {
         if (!error) {
