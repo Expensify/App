@@ -82,9 +82,14 @@ describe('FormatSelectionUtils', () => {
     });
 
     it('remove formatting from a long Markdown range', () => {
+        // Given a bold Markdown range at the App markup limit, because selection formatting must still find ranges in long messages.
         const text = `*${'a'.repeat(CONST.MAX_MARKUP_LENGTH - 2)}*`;
 
-        expect(toggleSelectionFormat(text, 1, text.length - 1, 'formatBold')).toEqual({updatedText: 'a'.repeat(CONST.MAX_MARKUP_LENGTH - 2), cursorOffset: -1});
+        // When bold formatting is toggled for the selected content.
+        const result = toggleSelectionFormat(text, 1, text.length - 1, 'formatBold');
+
+        // Then the Markdown markers should be removed and the selection cursor offset should be adjusted.
+        expect(result).toEqual({updatedText: 'a'.repeat(CONST.MAX_MARKUP_LENGTH - 2), cursorOffset: -1});
     });
 
     it('do nothing for unsupported command', () => {

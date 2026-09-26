@@ -230,10 +230,13 @@ describe('getParsedMessageWithShortMentions', () => {
 
 describe('parseExpensiMarkWithShortMentions', () => {
     test('parses Markdown up to the App markup limit', () => {
+        // Given a bold Markdown range at the App markup limit, because live formatting must still work through the configured limit.
         const text = `*${'a'.repeat(CONST.MAX_MARKUP_LENGTH - 2)}*`;
 
+        // When the message is parsed with short-mention support.
         const result = parseExpensiMarkWithShortMentions(text, [], []);
 
+        // Then the parser should return the bold range instead of stopping at the library's lower default limit.
         expect(result).toContainEqual({type: 'bold', start: 1, length: CONST.MAX_MARKUP_LENGTH - 2});
     });
 });
