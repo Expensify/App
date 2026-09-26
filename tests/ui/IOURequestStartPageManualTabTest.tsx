@@ -9,6 +9,7 @@ import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import type {Transaction} from '@src/types/onyx';
 
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
@@ -23,7 +24,22 @@ const LOADER_TEST_ID = 'manualTabPendingReset';
 const AMOUNT_TEST_ID = 'EmbeddedAmount';
 const CURRENT_USER_EMAIL = 'invoice.sender@example.com';
 
+let mockGetHasUnsavedChanges: (() => boolean) | undefined;
+let mockOnSignDirtyChange: ((isSignDirty: boolean) => void) | undefined;
+let mockSuppressEmbeddedDiscardPrompt: (() => void) | undefined;
+let mockOnTabSelected: ((tab: string) => void) | undefined;
+let mockOnInputFocus: ((restoreFocus: () => void) => void) | undefined;
+let mockOnInputBlur: (() => void) | undefined;
+let mockOnCancel: (() => void) | undefined;
+let mockOnVisibilityChange: ((isVisible: boolean) => void) | undefined;
+
 jest.mock('@userActions/Tab');
+jest.mock('@hooks/useDiscardChangesConfirmation', () => (options: {getHasUnsavedChanges: () => boolean; onCancel?: () => void; onVisibilityChange?: (isVisible: boolean) => void}) => {
+    mockGetHasUnsavedChanges = options.getHasUnsavedChanges;
+    mockOnCancel = options.onCancel;
+    mockOnVisibilityChange = options.onVisibilityChange;
+    return {suppressDiscardPrompt: jest.fn()};
+});
 jest.mock('@rnmapbox/maps', () => ({
     default: jest.fn(),
     MarkerView: jest.fn(),
@@ -46,7 +62,10 @@ jest.mock('@libs/Navigation/OnyxTabNavigator', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     return {
         __esModule: true,
-        default: ({children}: {children: React.ReactNode}) => ReactModule.createElement(ReactModule.Fragment, null, children),
+        default: ({children, onTabSelected}: {children: React.ReactNode; onTabSelected: (tab: string) => void}) => {
+            mockOnTabSelected = onTabSelected;
+            return ReactModule.createElement(ReactModule.Fragment, null, children);
+        },
         TopTab: {
             Screen: ({children}: {children: () => React.ReactNode}) => ReactModule.createElement(ReactModule.Fragment, null, typeof children === 'function' ? children() : children),
         },
@@ -59,7 +78,23 @@ jest.mock('@pages/iou/request/step/IOURequestStepScan', () => () => null);
 jest.mock('@pages/iou/request/step/IOURequestStepConfirmation', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {View} = jest.requireActual<{View: React.ComponentType<{testID: string}>}>('react-native');
-    const ConfirmationStub = () => ReactModule.createElement(View, {testID: 'EmbeddedConfirmation'});
+    const ConfirmationStub = ({
+        onSignDirtyChange,
+        suppressDiscardPrompt,
+        onInputFocus,
+        onInputBlur,
+    }: {
+        onSignDirtyChange?: (isSignDirty: boolean) => void;
+        suppressDiscardPrompt?: () => void;
+        onInputFocus?: (restoreFocus: () => void) => void;
+        onInputBlur?: () => void;
+    }) => {
+        mockOnSignDirtyChange = onSignDirtyChange;
+        mockSuppressEmbeddedDiscardPrompt = suppressDiscardPrompt;
+        mockOnInputFocus = onInputFocus;
+        mockOnInputBlur = onInputBlur;
+        return ReactModule.createElement(View, {testID: 'EmbeddedConfirmation'});
+    };
     return {
         __esModule: true,
         // The standalone RHP route, which brings its own ScreenWrapper.
@@ -87,6 +122,14 @@ describe('IOURequestStartPage manual tab content', () => {
     });
 
     afterEach(async () => {
+        mockGetHasUnsavedChanges = undefined;
+        mockOnSignDirtyChange = undefined;
+        mockSuppressEmbeddedDiscardPrompt = undefined;
+        mockOnTabSelected = undefined;
+        mockOnInputFocus = undefined;
+        mockOnInputBlur = undefined;
+        mockOnCancel = undefined;
+        mockOnVisibilityChange = undefined;
         await act(async () => {
             await Onyx.clear();
         });
@@ -98,21 +141,39 @@ describe('IOURequestStartPage manual tab content', () => {
 
         /** The flow the page is started for - this is what decides whether tabs are rendered. */
         iouType?: IOUType;
+
+        /** Initial transaction draft properties (e.g. isAmountSet, amount) */
+        transactionDraft?: Partial<Transaction>;
+
+        /** Whether to seed the draft before mounting the page. */
+        shouldSeedTransaction?: boolean;
+
+        /** Whether to wait for the initial Onyx subscription update after rendering. */
+        shouldWaitForInitialOnyxUpdate?: boolean;
     };
 
     /**
-     * Seeds the manual tab selection and a draft transaction of the given request type, then renders the page.
+     * Seeds the manual tab selection and optionally a draft transaction of the given request type, then renders the page.
      */
-    async function renderStartPage({iouRequestType, iouType = CONST.IOU.TYPE.SUBMIT}: RenderStartPageOptions) {
+    async function renderStartPage({
+        iouRequestType,
+        iouType = CONST.IOU.TYPE.SUBMIT,
+        transactionDraft,
+        shouldSeedTransaction = true,
+        shouldWaitForInitialOnyxUpdate = true,
+    }: RenderStartPageOptions) {
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, CONST.TAB_REQUEST.MANUAL);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
-                transactionID: TRANSACTION_ID,
-                iouRequestType,
-                // Matching the route's reportID keeps useResetIOUType's focus effect from rebuilding the draft,
-                // so the draft stays in the "not reset yet" state this test is about.
-                reportID: REPORT_ID,
-            });
+            if (shouldSeedTransaction) {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+                    transactionID: TRANSACTION_ID,
+                    iouRequestType,
+                    // Matching the route's reportID keeps useResetIOUType's focus effect from rebuilding the draft,
+                    // so the draft stays in the "not reset yet" state this test is about.
+                    reportID: REPORT_ID,
+                    ...transactionDraft,
+                });
+            }
         });
 
         render(
@@ -137,7 +198,9 @@ describe('IOURequestStartPage manual tab content', () => {
             </OnyxListItemProvider>,
         );
 
-        await waitForBatchedUpdatesWithAct();
+        if (shouldWaitForInitialOnyxUpdate) {
+            await waitForBatchedUpdatesWithAct();
+        }
     }
 
     it('shows a loader instead of the embedded confirmation while a per diem draft is still pending its reset to manual', async () => {
@@ -165,6 +228,113 @@ describe('IOURequestStartPage manual tab content', () => {
         // Then the confirmation is mounted and the pending-reset loader is gone
         expect(screen.getByTestId(CONFIRMATION_TEST_ID)).toBeOnTheScreen();
         expect(screen.queryByTestId(LOADER_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    it('tracks embedded amount and sign changes for the discard guard', async () => {
+        await renderStartPage({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL});
+
+        expect(mockGetHasUnsavedChanges?.()).toBe(false);
+
+        act(() => {
+            mockOnSignDirtyChange?.(true);
+        });
+        expect(mockGetHasUnsavedChanges?.()).toBe(true);
+
+        act(() => {
+            mockOnSignDirtyChange?.(false);
+        });
+        expect(mockGetHasUnsavedChanges?.()).toBe(false);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {isAmountSet: true});
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(mockGetHasUnsavedChanges?.()).toBe(true);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {isAmountSet: false});
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(mockGetHasUnsavedChanges?.()).toBe(false);
+    });
+
+    it('clears the embedded discard guard on tab switch and keeps it suppressed during submission', async () => {
+        await renderStartPage({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL});
+
+        act(() => {
+            mockOnSignDirtyChange?.(true);
+        });
+        expect(mockGetHasUnsavedChanges?.()).toBe(true);
+
+        act(() => {
+            mockOnTabSelected?.(CONST.TAB_REQUEST.SCAN);
+        });
+        expect(mockGetHasUnsavedChanges?.()).toBe(false);
+
+        act(() => {
+            mockOnSignDirtyChange?.(true);
+            mockSuppressEmbeddedDiscardPrompt?.();
+        });
+        expect(mockGetHasUnsavedChanges?.()).toBe(false);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {isAmountSet: true});
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(mockGetHasUnsavedChanges?.()).toBe(false);
+    });
+
+    it('retains the discard guard on manual tab when mounting with a pre-existing draft amount (e.g. after page reload)', async () => {
+        await renderStartPage({
+            iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+            transactionDraft: {isAmountSet: true, amount: 1200},
+        });
+
+        expect(mockGetHasUnsavedChanges?.()).toBe(true);
+    });
+
+    it('keeps the discard guard clean on pay flow mount when pre-populated with an initial amount, but triggers when amount changes', async () => {
+        await renderStartPage({
+            iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+            iouType: CONST.IOU.TYPE.PAY,
+            transactionDraft: {isAmountSet: true, amount: 5000},
+        });
+
+        expect(mockGetHasUnsavedChanges?.()).toBe(false);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {amount: 4000});
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(mockGetHasUnsavedChanges?.()).toBe(true);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {amount: 5000});
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(mockGetHasUnsavedChanges?.()).toBe(false);
+    });
+
+    it('keeps the discard guard clean when the pay draft loads after the page mounts', async () => {
+        await renderStartPage({
+            iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+            iouType: CONST.IOU.TYPE.PAY,
+            shouldSeedTransaction: false,
+            shouldWaitForInitialOnyxUpdate: false,
+        });
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+                transactionID: TRANSACTION_ID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                reportID: REPORT_ID,
+                isAmountSet: true,
+                amount: 5000,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockGetHasUnsavedChanges?.()).toBe(false);
     });
 
     it('lands the tab-less pay flow directly on the embedded confirmation instead of the amount page', async () => {
@@ -203,5 +373,88 @@ describe('IOURequestStartPage manual tab content', () => {
         // Then it still lands on the amount page first
         expect(screen.getByTestId(AMOUNT_TEST_ID)).toBeOnTheScreen();
         expect(screen.queryByTestId(CONFIRMATION_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    it('restores focus on discard cancellation only if an input was focused before modal opened', async () => {
+        jest.useFakeTimers();
+        await renderStartPage({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL});
+
+        const restoreFocusAmount = jest.fn();
+        const restoreFocusDescription = jest.fn();
+
+        // 1. Focus Amount
+        act(() => {
+            mockOnInputFocus?.(restoreFocusAmount);
+        });
+
+        // 2. Move to Description (Amount blurs, Description focuses)
+        act(() => {
+            mockOnInputBlur?.();
+            mockOnInputFocus?.(restoreFocusDescription);
+        });
+
+        // 3. Move to a non-focusable item (Description blurs without new input focus)
+        act(() => {
+            mockOnInputBlur?.();
+        });
+
+        // Advance timers past blur debounce (100ms)
+        act(() => {
+            jest.advanceTimersByTime(150);
+        });
+
+        // Discard modal opens and user cancels
+        act(() => {
+            mockOnVisibilityChange?.(true);
+            mockOnVisibilityChange?.(false);
+            mockOnCancel?.();
+            jest.advanceTimersByTime(CONST.ANIMATED_TRANSITION);
+        });
+
+        // Neither input should regain focus
+        expect(restoreFocusAmount).not.toHaveBeenCalled();
+        expect(restoreFocusDescription).not.toHaveBeenCalled();
+
+        // 4. Focus Description again, then trigger discard modal immediately (e.g. back button tap)
+        act(() => {
+            mockOnInputFocus?.(restoreFocusDescription);
+            mockOnInputBlur?.();
+            mockOnVisibilityChange?.(true);
+        });
+
+        act(() => {
+            jest.advanceTimersByTime(150);
+            mockOnVisibilityChange?.(false);
+            mockOnCancel?.();
+            jest.advanceTimersByTime(CONST.ANIMATED_TRANSITION);
+        });
+
+        // Focus should be restored to Description
+        expect(restoreFocusDescription).toHaveBeenCalledTimes(1);
+
+        // 5. Immediately opening another discard modal cancels the first modal's pending focus restoration.
+        act(() => {
+            mockOnVisibilityChange?.(true);
+            mockOnVisibilityChange?.(false);
+            mockOnCancel?.();
+            mockOnVisibilityChange?.(true);
+            jest.advanceTimersByTime(CONST.ANIMATED_TRANSITION);
+        });
+
+        expect(restoreFocusDescription).toHaveBeenCalledTimes(1);
+
+        // 6. Switching tabs resets last focused input
+        act(() => {
+            mockOnInputFocus?.(restoreFocusDescription);
+            mockOnTabSelected?.(CONST.TAB_REQUEST.SCAN);
+            mockOnVisibilityChange?.(true);
+            mockOnVisibilityChange?.(false);
+            mockOnCancel?.();
+            jest.advanceTimersByTime(CONST.ANIMATED_TRANSITION);
+        });
+
+        expect(restoreFocusDescription).toHaveBeenCalledTimes(1);
+
+        jest.useRealTimers();
     });
 });

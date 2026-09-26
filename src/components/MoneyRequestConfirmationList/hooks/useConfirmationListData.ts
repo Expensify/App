@@ -68,6 +68,9 @@ function useConfirmationListDataWithPolicy({
     onConfirm,
     onSendMoney,
     onOpenParticipantPicker,
+    onSignDirtyChange,
+    onInputFocus,
+    onInputBlur,
     onSwitchToTransaction,
     showRemoveExpenseConfirmModal,
     isPerDiemRequest = false,
@@ -301,6 +304,9 @@ function useConfirmationListDataWithPolicy({
             isPolicyExpenseChat,
             scrollFocusedInputIntoView,
             onSubmitForm: confirm,
+            onSignDirtyChange,
+            onInputFocus,
+            onInputBlur,
         },
 
         // Footer prop bundles, shared by every variant's footer

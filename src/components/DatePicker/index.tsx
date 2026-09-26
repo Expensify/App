@@ -39,6 +39,9 @@ function DatePicker({
     maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
     onInputChange,
     onTouched = () => {},
+    onInputFocus,
+    onInputBlur,
+    onBlur,
     placeholder,
     value,
     shouldSaveDraft = false,
@@ -247,6 +250,13 @@ function DatePicker({
                     disabled={disabled}
                     hideFocusedState={shouldDismissKeyboardBeforeShow}
                     onPress={shouldDismissKeyboardBeforeShow ? handlePress : () => showDatePickerModal()}
+                    onFocus={() => {
+                        onInputFocus?.(() => textInputRef.current?.focus());
+                    }}
+                    onBlur={(event) => {
+                        onInputBlur?.();
+                        onBlur?.(event);
+                    }}
                     onSubmitEditing={() => showDatePickerModal()}
                     onKeyPress={handleInputKeyPress}
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
