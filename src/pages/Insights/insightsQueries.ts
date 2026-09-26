@@ -39,6 +39,9 @@ type InsightsQuery = {
 
     /** Hash of the dashboard-wide query, which the response is stored under so every set of filters keeps its own dashboard entry. */
     hash: number;
+
+    /** Hashes of the snapshots the graphs are stored under. */
+    snapshotHashes: number[];
 };
 
 /** Builds one request for the whole dashboard: the shared filters query plus the snapshot hash each graph's data is stored under. */
@@ -50,10 +53,8 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
     }
 
     const {searchKey, headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[dashboard];
-    const insightsHashes: InsightsDashboard['graphs'] = Object.fromEntries([
-        ...buildSnapshotHashEntries(headlineChart, filters),
-        ...supportingCharts.flatMap((chart) => buildSnapshotHashEntries(chart, filters)),
-    ]);
+    const graphEntries = [...buildSnapshotHashEntries(headlineChart, filters), ...supportingCharts.flatMap((chart) => buildSnapshotHashEntries(chart, filters))];
+    const insightsHashes: InsightsDashboard['graphs'] = Object.fromEntries(graphEntries);
 
     return {
         jsonQuery: JSON.stringify({
@@ -65,6 +66,7 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
             insightsHashes,
         }),
         hash: queryJSON.hash,
+        snapshotHashes: graphEntries.map(([, {snapshotHash}]) => snapshotHash),
     };
 }
 
