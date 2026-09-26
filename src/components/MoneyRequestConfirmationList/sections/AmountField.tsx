@@ -95,12 +95,15 @@ function AmountField({
     // blank) can't show a phantom required error under a field that is deliberately empty.
     const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && isConfirmationAmountMissing(transactionSlice, canEnterScanFieldsManually);
     const shouldShowAmountInvalidError = formError === 'common.error.invalidAmount';
+    const shouldShowAmountMissingError = shouldDisplayFieldError && amountIsMissing;
 
     let amountFieldErrorText = '';
     if (shouldShowAmountInvalidError) {
         amountFieldErrorText = translate('common.error.invalidAmount');
     } else if (shouldShowAmountRequiredError) {
         amountFieldErrorText = translate('common.error.fieldRequired');
+    } else if (shouldShowAmountMissingError) {
+        amountFieldErrorText = translate('common.error.enterAmount');
     }
 
     const effectiveCurrency = isDistanceRequest ? distanceRateCurrency : (iouCurrencyCode ?? CONST.CURRENCY.USD);
@@ -110,7 +113,11 @@ function AmountField({
     // real value. This avoids showing "$0.00" as a pre-filled default. The Scan flow behaves the same way: its amount
     // belongs to the receipt, so the field is empty until the user chooses to enter one instead of waiting for
     // SmartScan. Per diem, distance and time flows populate the amount programmatically and never set isAmountSet.
-    const shouldShowEmptyAmount = !transactionSlice?.isAmountSet && (transactionSlice?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || canEnterScanFieldsManually);
+    // A failed-scan placeholder amount is blanked here too, matching every other amount display, so this inline
+    // input doesn't retain the original "$0.00 with no error" bug.
+    const shouldShowEmptyAmount =
+        (!transactionSlice?.isAmountSet && (transactionSlice?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || canEnterScanFieldsManually)) ||
+        !!transactionSlice?.isFailedScanAmountPlaceholder;
     const transactionAmount = shouldShowEmptyAmount ? '' : convertToFrontendAmountAsString(amount, decimals);
     // The hint says SmartScan will fill this in. It goes once the user takes the field over, by focusing it or by
     // entering any of the three fields.
@@ -277,7 +284,7 @@ function AmountField({
         if (isInlineAmountInvalid && shouldDisplayFieldError) {
             setFormError('common.error.invalidAmount');
         } else if (!isInlineAmountInvalid) {
-            clearFormErrors(['common.error.invalidAmount']);
+            clearFormErrors(isEditingSplitBill && parsedAmount !== 0 ? ['common.error.invalidAmount', 'iou.error.invalidAmount'] : ['common.error.invalidAmount']);
         }
 
         buildAndSaveSplitShares(parsedAmount, effectiveCurrency);

@@ -107,6 +107,7 @@ import lodashDeepClone from 'lodash/cloneDeep';
 import lodashSet from 'lodash/set';
 import Onyx from 'react-native-onyx';
 
+import {hasValidModifiedAmount, isAmountMissing, isFailedScanAmountPlaceholder} from './amountUtils';
 import getDistanceInMeters from './getDistanceInMeters';
 import getSelectedRouteKey from './getSelectedRouteKey';
 
@@ -689,20 +690,6 @@ function isPartialMerchant(merchant: string): boolean {
     return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 }
 
-function isAmountMissing(transaction: OnyxEntry<Transaction>, isFromExpenseReport = true) {
-    if (isFromExpenseReport) {
-        return transaction?.amount === undefined && (transaction?.modifiedAmount === undefined || transaction?.modifiedAmount === '');
-    }
-    return (transaction?.amount === 0 || transaction?.amount === undefined) && (!transaction?.modifiedAmount || transaction?.modifiedAmount === 0 || transaction?.modifiedAmount === '');
-}
-
-function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boolean {
-    if (!transaction) {
-        return false;
-    }
-    return transaction?.modifiedAmount !== undefined && transaction?.modifiedAmount !== null && transaction?.modifiedAmount !== '';
-}
-
 /**
  * Builds the optimistic transaction used when an IOU report is converted to an expense report.
  *
@@ -728,10 +715,11 @@ function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
 
 function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, transactionReport: OnyxEntry<Report>): boolean {
     const isFromExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE;
-    // A zero amount is a deliberate, valid choice for an unreported expense, so it isn't a missing field there. It is never
-    // a missing field on an expense report either, where only the merchant is checked.
-    const isZeroAmountAllowed = isFromExpenseReport || isExpenseUnreported(transaction);
-    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || (!isZeroAmountAllowed && getAmount(transaction) === 0);
+    const isUnreportedExpense = isExpenseUnreported(transaction);
+    const isZeroAmountAllowed = isFromExpenseReport || isUnreportedExpense;
+    const isMissingAmount = isFailedScanAmountPlaceholder(transaction) || (!isZeroAmountAllowed && isAmountMissing(transaction, false));
+
+    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || isMissingAmount;
 }
 
 function getClearedPendingFields(transactionChanges: TransactionChanges) {
@@ -846,6 +834,15 @@ function getUpdatedTransaction({
 
     // Only changing the first level fields so no need for deep clone now
     const updatedTransaction = lodashDeepClone(transaction);
+    const shouldPreserveConfirmedScanZeroAmount =
+        isScanRequest(transaction) &&
+        transaction.receipt?.state === CONST.IOU.RECEIPT_STATE.OPEN &&
+        transaction.amount === 0 &&
+        !Object.hasOwn(transactionChanges, 'amount') &&
+        !isFailedScanAmountPlaceholder(transaction);
+    if (shouldPreserveConfirmedScanZeroAmount) {
+        updatedTransaction.isAmountSet = true;
+    }
     let shouldStopSmartscan = false;
 
     // The comment property does not have its modifiedComment counterpart
@@ -4000,6 +3997,7 @@ export {
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
+    isFailedScanAmountPlaceholder,
     isScanFailedTransactionMovedOnPayment,
     shouldSplitScanFailedTransactions,
     isDeletedTransaction,

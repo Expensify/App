@@ -121,6 +121,7 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isDistanceTypeRequest,
     isExpenseUnreported as isExpenseUnreportedTransactionUtils,
+    isFailedScanAmountPlaceholder,
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
@@ -347,6 +348,8 @@ function MoneyRequestView({
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
     const isMapDistanceRequest = isMapDistanceRequestTransactionUtils(transaction) || isDistanceTypeRequest(transaction);
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
+    const isSettled = isSettledReportUtils(moneyRequestReport);
+    const hasFailedScanAmountPlaceholder = isFailedScanAmountPlaceholder(updatedTransaction ?? transaction, isSettled);
     const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
 
     const rawActualAttendees = isFromMergeTransaction && updatedTransaction ? updatedTransaction.comment?.attendees : transactionAttendees;
@@ -389,7 +392,6 @@ function MoneyRequestView({
     const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction) : transactionDate;
     const fallbackTaxRateTitle = transaction?.taxValue;
 
-    const isSettled = isSettledReportUtils(moneyRequestReport);
     const isCancelled = moneyRequestReport?.isCancelledIOU;
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -655,6 +657,8 @@ function MoneyRequestView({
     if (isTransactionScanning) {
         merchantTitle = translate('iou.receiptStatusTitle');
         amountTitle = translate('iou.receiptStatusTitle');
+    } else if (hasFailedScanAmountPlaceholder) {
+        amountTitle = '';
     }
 
     const updatedTransactionDescription = getDescription(updatedTransaction) || undefined;
@@ -819,6 +823,10 @@ function MoneyRequestView({
             date: {
                 isError: transactionDate === '',
                 translationPath: canEditDate ? 'common.error.enterDate' : 'common.error.missingDate',
+            },
+            amount: {
+                isError: !isSettled && !isCancelled && hasFailedScanAmountPlaceholder,
+                translationPath: canEditAmount ? 'common.error.enterAmount' : 'common.error.missingAmount',
             },
         };
 
