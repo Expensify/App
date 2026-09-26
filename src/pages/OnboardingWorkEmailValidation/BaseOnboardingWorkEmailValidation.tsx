@@ -26,7 +26,9 @@ import {getEmailDomain} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
+import {getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {MergeIntoAccountAndLogin} from '@userActions/Session';
+import {completeTask, completeTaskAfterSuccessfulSideEffect} from '@userActions/Task';
 import {resendValidateCode} from '@userActions/User';
 
 import CONST from '@src/CONST';
@@ -57,8 +59,21 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
     const isConciergeTaskFlow = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE && hasCompletedGuidedSetupFlowSelector(onboardingValues) && isJoinWorkspaceTaskRoute;
     const isCurrentPrimaryValidated = isCurrentUserValidated(loginList, session?.email) || (!!account?.validated && !loginList?.[session?.email ?? '']);
     const returnToOriginReport = useReturnToOriginReport();
-    const {taskReport: validateEmailTaskReport} = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL);
+    const {
+        taskReport: addWorkEmailTaskReport,
+        taskParentReport: addWorkEmailTaskParentReport,
+        hasOutstandingChildTask: addWorkEmailTaskHasOutstandingChildTask,
+        parentReportAction: addWorkEmailTaskParentReportAction,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL);
+    const {
+        taskReport: validateEmailTaskReport,
+        taskParentReport: validateEmailTaskParentReport,
+        hasOutstandingChildTask: validateEmailTaskHasOutstandingChildTask,
+        parentReportAction: validateEmailTaskParentReportAction,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL);
     const createdValidateEmailTaskReportID = useRef<string | undefined>(undefined);
+    const isSubmittingAccountMerge = useRef(false);
+    const shouldContinueAfterAccountMerge = useRef(false);
     const delegateAccountID = useDelegateAccountID();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -69,7 +84,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
     const isFocused = useIsFocused();
 
     useEffect(() => {
-        if (!isConciergeTaskFlow || !isCurrentPrimaryValidated) {
+        if (!isConciergeTaskFlow || !isCurrentPrimaryValidated || isSubmittingAccountMerge.current) {
             return;
         }
 
@@ -83,6 +98,9 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
         setOnboardingErrorMessage(null);
         if (onboardingValues?.shouldRedirectToClassicAfterMerge) {
             openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+            return;
+        }
+        if (isConciergeTaskFlow && isSubmittingAccountMerge.current) {
             return;
         }
         // Once we verify that shouldValidate is false, we need to force replace the screen
@@ -129,10 +147,54 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
 
     const validateAccountAndMerge = (validateCode: string) => {
         setOnboardingErrorMessage(null);
-        MergeIntoAccountAndLogin(workEmail, validateCode, session?.accountID, onboardingEmail?.completedTaskReportActionID);
+        isSubmittingAccountMerge.current = true;
+        shouldContinueAfterAccountMerge.current = true;
+        MergeIntoAccountAndLogin(workEmail, validateCode, session?.accountID, onboardingEmail?.completedTaskReportActionID).then(
+            async ({didMerge, shouldRedirectToClassicAfterMerge, conciergeReportID: mergedConciergeReportID}) => {
+                isSubmittingAccountMerge.current = false;
+                const shouldContinue = shouldContinueAfterAccountMerge.current;
+                shouldContinueAfterAccountMerge.current = false;
+                if (!didMerge || !isConciergeTaskFlow || !shouldContinue) {
+                    return;
+                }
+
+                await completeTaskAfterSuccessfulSideEffect(
+                    addWorkEmailTaskReport,
+                    addWorkEmailTaskParentReport?.hasOutstandingChildTask ?? false,
+                    addWorkEmailTaskHasOutstandingChildTask,
+                    addWorkEmailTaskParentReportAction,
+                    onboardingEmail?.completedTaskReportActionID,
+                    mergedConciergeReportID,
+                );
+
+                // MergeIntoAccountAndLogin completes the original Add Work Email task. This request completes the
+                // separate Validate Email task that reopened the merge-code screen.
+                completeTask(
+                    validateEmailTaskReport,
+                    validateEmailTaskParentReport?.hasOutstandingChildTask ?? false,
+                    validateEmailTaskHasOutstandingChildTask,
+                    validateEmailTaskParentReportAction,
+                    undefined,
+                    undefined,
+                    true,
+                    true,
+                    CONST.ACCOUNT_ID.CONCIERGE,
+                );
+                if (shouldRedirectToClassicAfterMerge) {
+                    return;
+                }
+                getAccessiblePolicies();
+                Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(undefined, true, true), {forceReplace: true});
+            },
+            () => {
+                isSubmittingAccountMerge.current = false;
+                shouldContinueAfterAccountMerge.current = false;
+            },
+        );
     };
 
     const handleConciergeTaskExit = useCallback(() => {
+        shouldContinueAfterAccountMerge.current = false;
         setOnboardingErrorMessage(null);
         if (!isConciergeTaskFlow) {
             return;
@@ -146,7 +208,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
         const validateEmailTaskReportID =
             validateEmailTaskReport?.reportID ??
             createdValidateEmailTaskReportID.current ??
-            createJoinWorkspaceOnboardingContent('validateEmail', getEmailDomain(taskWorkEmail), taskWorkEmail, conciergeChat, delegateAccountID);
+            createJoinWorkspaceOnboardingContent('validateEmail', getEmailDomain(taskWorkEmail), taskWorkEmail, conciergeChat, delegateAccountID, true);
         createdValidateEmailTaskReportID.current = validateEmailTaskReportID;
         if (validateEmailTaskReportID) {
             Navigation.dismissModal({

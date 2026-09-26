@@ -517,6 +517,8 @@ function buildTaskData(
     parentReportAction: OnyxEntry<ReportAction> | undefined,
     delegateEmail: string | undefined,
     actorAccountID?: number,
+    completedTaskReportActionID?: string,
+    parentReportIDOverride?: string,
 ): {
     optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
     failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
@@ -527,6 +529,9 @@ function buildTaskData(
     // `actorAccountID` lets the caller attribute the optimistic completion to whoever the backend will (e.g. Concierge
     // when a task is completed as a side effect). It falls back to the current user inside buildOptimisticTaskReportAction.
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, delegateEmail, message, actorAccountID);
+    if (completedTaskReportActionID) {
+        completedTaskReportAction.reportActionID = completedTaskReportActionID;
+    }
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -577,7 +582,7 @@ function buildTaskData(
         },
     ];
 
-    const parentReportID = taskReport?.parentReportID;
+    const parentReportID = parentReportIDOverride ?? taskReport?.parentReportID;
     const parentReportActionID = parentReportAction?.reportActionID ?? taskReport?.parentReportActionID;
 
     if (parentReportID && parentReportActionID) {
@@ -627,6 +632,34 @@ function buildTaskData(
     };
 
     return {optimisticData, failureData, successData, parameters};
+}
+
+/** Apply a task completion after another command has completed the task on the backend. */
+function completeTaskAfterSuccessfulSideEffect(
+    taskReport: OnyxEntry<OnyxTypes.Report>,
+    hasOutstandingChildTaskInParentReport: boolean,
+    hasOutstandingChildTask: boolean,
+    parentReportAction: OnyxEntry<ReportAction> | undefined,
+    completedTaskReportActionID: string | undefined,
+    parentReportIDOverride?: string,
+) {
+    if (!taskReport?.reportID || !completedTaskReportActionID) {
+        return Promise.resolve();
+    }
+
+    const {optimisticData, successData} = buildTaskData(
+        taskReport,
+        taskReport.reportID,
+        hasOutstandingChildTaskInParentReport,
+        hasOutstandingChildTask,
+        parentReportAction,
+        undefined,
+        CONST.ACCOUNT_ID.CONCIERGE,
+        completedTaskReportActionID,
+        parentReportIDOverride,
+    );
+
+    return Onyx.update([...optimisticData, ...successData]);
 }
 
 /**
@@ -1581,6 +1614,7 @@ export {
     reopenTask,
     buildTaskData,
     completeTask,
+    completeTaskAfterSuccessfulSideEffect,
     getReviewWorkspaceSettingsTaskCompletionData,
     clearOutTaskInfoAndNavigate,
     startOutCreateTaskQuickAction,
