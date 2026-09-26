@@ -8432,8 +8432,6 @@ function buildOptimisticModifiedExpenseReportAction(
     allowNegative = false,
 ): OptimisticModifiedExpenseReportAction {
     const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction, allowNegative);
-    // Falls back to module-level delegateEmail (from Onyx.connect) for callers not yet migrated; will be removed in https://github.com/Expensify/App/issues/66425
-    const effectiveDelegateAccountID = delegateAccountIDParam ?? (delegateEmail ? getPersonalDetailByEmail(delegateEmail)?.accountID : undefined);
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
@@ -8462,7 +8460,7 @@ function buildOptimisticModifiedExpenseReportAction(
         reportActionID: rand64(),
         reportID: transactionThread?.reportID,
         shouldShow: true,
-        delegateAccountID: effectiveDelegateAccountID,
+        delegateAccountID: delegateAccountIDParam,
     };
 }
 

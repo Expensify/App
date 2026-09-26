@@ -47,6 +47,7 @@ import {
     buildOptimisticHoldReportActionComment,
     buildOptimisticInvoiceReport,
     buildOptimisticIOUReportAction,
+    buildOptimisticModifiedExpenseReportAction,
     buildOptimisticMoneyRequestEntities,
     buildOptimisticRejectReportAction,
     buildOptimisticRejectReportActionComment,
@@ -26023,6 +26024,38 @@ describe('hold/unhold/reject optimistic builders set delegateAccountID', () => {
     it('buildOptimisticReportLevelRejectCommentAction sets the passed delegateAccountID', () => {
         expect(buildOptimisticReportLevelRejectCommentAction('reject reason', currentUserAccountID, 'Test User', undefined, DELEGATE_ACCOUNT_ID).delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         expect(buildOptimisticReportLevelRejectCommentAction('reject reason', currentUserAccountID, 'Test User', undefined, undefined).delegateAccountID).toBeUndefined();
+    });
+});
+
+describe('buildOptimisticModifiedExpenseReportAction sets delegateAccountID', () => {
+    const DELEGATE_ACCOUNT_ID = 424242;
+    const DELEGATE_LOGIN = 'copilot@example.com';
+
+    afterAll(async () => {
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: undefined}});
+        await waitForBatchedUpdates();
+    });
+
+    it('sets the passed delegateAccountID', () => {
+        // Given a copilot accountID supplied by the caller
+        // When the modified expense action is built
+        const reportAction = buildOptimisticModifiedExpenseReportAction(undefined, undefined, {}, false, undefined, DELEGATE_ACCOUNT_ID);
+
+        // Then the action is attributed to that copilot
+        expect(reportAction.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+    });
+
+    it('does not fall back to the signed-in delegate when no delegateAccountID is passed', async () => {
+        // Given a signed-in copilot stored in Onyx
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[DELEGATE_ACCOUNT_ID]: {accountID: DELEGATE_ACCOUNT_ID, login: DELEGATE_LOGIN}});
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: DELEGATE_LOGIN}});
+        await waitForBatchedUpdates();
+
+        // When the caller passes no delegate
+        const reportAction = buildOptimisticModifiedExpenseReportAction(undefined, undefined, {}, false, undefined, undefined);
+
+        // Then the builder leaves the action unattributed instead of reading the signed-in copilot
+        expect(reportAction.delegateAccountID).toBeUndefined();
     });
 });
 
