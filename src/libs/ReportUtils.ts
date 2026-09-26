@@ -5040,7 +5040,16 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
     return fields.filter(Boolean) as PolicyReportField[];
 }
 
-function isTransactionFromExpenseReport(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): boolean {
+function isTransactionFromExpenseReport(
+    report: OnyxInputOrEntry<Report>,
+    policy: OnyxInputOrEntry<Policy>,
+    transaction: OnyxInputOrEntry<Transaction> | TransactionWithOptionalSearchFields,
+): boolean {
+    // A deleted transaction is moved to the trash report, so neither its report nor its policy can be resolved anymore.
+    // It keeps the sign convention it was stored with, which is the expense report one.
+    if (!!transaction && isDeletedTransaction(transaction)) {
+        return true;
+    }
     return isEmptyObject(report) ? isGroupPolicyPolicyUtils(policy) : isExpenseReport(report);
 }
 
@@ -5051,7 +5060,7 @@ function isTransactionFromExpenseReport(report: OnyxInputOrEntry<Report>, policy
  */
 function getTransactionDisplayAmount(transaction: OnyxInputOrEntry<Transaction>, report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): number {
     const isFromTrackedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    return getTransactionAmount(transaction, isTransactionFromExpenseReport(report, policy), isFromTrackedExpense, !!transaction && isDeletedTransaction(transaction));
+    return getTransactionAmount(transaction, isTransactionFromExpenseReport(report, policy, transaction), isFromTrackedExpense, !!transaction && isDeletedTransaction(transaction));
 }
 
 /**
@@ -5073,7 +5082,7 @@ function getTransactionDetails(
     }
 
     const report = getReportOrDraftReport(transaction?.reportID, undefined, 'report' in transaction ? transaction.report : undefined);
-    const isFromExpenseReport = isTransactionFromExpenseReport(report, policy);
+    const isFromExpenseReport = isTransactionFromExpenseReport(report, policy, transaction);
 
     return {
         created: getFormattedCreated(transaction, createdDateFormat, dateFnsLocale),

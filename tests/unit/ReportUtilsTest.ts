@@ -23734,6 +23734,27 @@ describe('ReportUtils', () => {
 
             expect(details?.taxValue).toBe('10%');
         });
+
+        it('should keep the negative sign of a deleted workspace expense when no policy is passed', () => {
+            // Given a deleted workspace expense, which is stored with the opposite sign and whose report can no longer be resolved
+            const transaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 500,
+                    currency: 'USD',
+                    reportID: CONST.REPORT.TRASH_REPORT_ID,
+                    comment: '',
+                    created: '2024-01-01',
+                    taxAmount: 50,
+                },
+            });
+
+            // When getting its details without a policy
+            const details = getTransactionDetails(transaction);
+
+            // Then the expense report sign convention is applied to the amount and the tax amount
+            expect(details?.amount).toBe(-500);
+            expect(details?.taxAmount).toBe(-50);
+        });
     });
 
     describe('getChatListItemReportName', () => {
