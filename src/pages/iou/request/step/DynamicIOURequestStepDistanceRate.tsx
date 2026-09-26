@@ -136,6 +136,10 @@ function DynamicIOURequestStepDistanceRate({
     // This keeps the problematic rate shown as selected so the user understands what they need to change.
     const [pendingRateID, setPendingRateID] = useState<string | undefined>();
 
+    // When editing an existing expense, tapping a row only stages the rate: it is validated and persisted when the
+    // user presses Save, so the list no longer closes on input (WCAG 3.2.2 On Input).
+    const [draftRateID, setDraftRateID] = useState<string | undefined>();
+
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
     const transactionUnit = transaction?.comment?.customUnit?.distanceUnit;
@@ -155,7 +159,8 @@ function DynamicIOURequestStepDistanceRate({
             currentTransaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID && !hasUnitMismatchForMovingTrackExpense
                 ? DistanceRequestUtils.getDistanceUnit(currentTransaction, rate)
                 : rate.unit;
-        const effectiveRateID = pendingRateID ?? currentRateID;
+        // The staged rate wins so the checkmark follows the row the user just tapped, even when an earlier Save failed validation.
+        const effectiveRateID = draftRateID ?? pendingRateID ?? currentRateID;
         const isSelected = effectiveRateID
             ? effectiveRateID === rate.customUnitRateID && !hasUnitMismatchForMovingTrackExpense
             : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
@@ -275,6 +280,22 @@ function DynamicIOURequestStepDistanceRate({
         saveAndNavigateBack();
     }
 
+    // Only the edit flow persists on select. The create and split flows write to draft state that the confirmation
+    // step already gates behind its own explicit save, so they keep selecting in place.
+    const confirmButtonOptions = isEditing
+        ? {
+              showButton: true,
+              text: translate('common.save'),
+              onConfirm: () => {
+                  if (!draftRateID) {
+                      return;
+                  }
+                  selectDistanceRate(draftRateID);
+              },
+              isDisabled: !draftRateID,
+          }
+        : undefined;
+
     return (
         <StepScreenWrapper
             headerTitle={translate('common.rate')}
@@ -294,7 +315,16 @@ function DynamicIOURequestStepDistanceRate({
             <SelectionList
                 data={orderedOptions}
                 ListItem={SingleSelectListItem}
-                onSelectRow={({value}) => selectDistanceRate(value ?? '')}
+                onSelectRow={({value}) => {
+                    if (!isEditing) {
+                        selectDistanceRate(value ?? '');
+                        return;
+                    }
+                    // Clear a previous over-limit error so it doesn't linger against a rate the user has moved away from.
+                    setFormError('');
+                    setDraftRateID(value);
+                }}
+                confirmButtonOptions={confirmButtonOptions}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedItemKey={pinnedRateID}
                 shouldScrollToFocusedIndexOnMount={false}
