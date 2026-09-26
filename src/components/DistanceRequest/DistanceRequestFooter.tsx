@@ -44,7 +44,7 @@ type DistanceRequestFooterProps = {
     /** The state of the transaction (draft, current, etc.) used to persist route selection to the correct Onyx key */
     transactionState: TransactionState;
 
-    /** Function to call when the user wants to pick a previous route. The Reuse route button is hidden when omitted. */
+    /** Function to call when the user wants to pick a previous route. The "Reuse route" button is hidden when omitted. */
     navigateToReuseRoutePage?: () => void;
 };
 
@@ -103,7 +103,6 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
         });
     }
 
-    // Reuse route only needs a non-empty route list, unlike Add stop which needs 2 filled waypoints
     const shouldShowReuseRoute = !!navigateToReuseRoutePage && !!reusableDistanceRoutes?.length;
 
     return (

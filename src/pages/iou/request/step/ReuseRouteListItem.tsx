@@ -26,8 +26,8 @@ type ReuseRouteListItemData = ListItem & {
 type ReuseRouteListItemProps = SelectableListItemProps<ReuseRouteListItemData>;
 
 /**
- * Card for the Reuse prior route list. Shows the map receipt of the source expense with a Last used
- * badge, plus Start and End rows that mirror the waypoint icons of the distance map tab.
+ * Card for the "reuse prior route" list. Shows the map receipt of the source expense
+ * with a "Last used" badge, plus Start and End rows.
  */
 function ReuseRouteListItem({item, isFocused, isFocusVisible, showTooltip, isDisabled, onSelectRow, onDismissError, onFocus, shouldSyncFocus}: ReuseRouteListItemProps) {
     const styles = useThemeStyles();

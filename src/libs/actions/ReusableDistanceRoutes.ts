@@ -39,8 +39,7 @@ function fetchReusableDistanceRoutes() {
 }
 
 /**
- * Seeds the draft transaction from a reused route. updateWaypoints replaces the waypoint set and clears
- * stale routes and quantity, then the stored distance and the skip-fetch marker are written on top.
+ * Seeds the draft transaction from a reused route.
  */
 function selectReusableRoute(transactionID: string, route: ReusableDistanceRoute) {
     return updateWaypoints(transactionID, route.waypoints, CONST.TRANSACTION.STATE.DRAFT).then(() =>

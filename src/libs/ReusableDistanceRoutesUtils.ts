@@ -43,8 +43,7 @@ function formatLastUsed(inserted: string): string {
 }
 
 /**
- * Builds the large thumbnail URL for the source expense receipt. Map receipts are stored as PDF, and
- * resized copies of a PDF live under a .jpg key, same convention as ReceiptUtils.getThumbnailAndImageURIs.
+ * Builds the large thumbnail URL for the source expense receipt.
  */
 function getRouteThumbnailSource(receiptSource: string | undefined): string | undefined {
     if (!receiptSource) {

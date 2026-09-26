@@ -1,6 +1,5 @@
 /**
- * Skeleton cards for the Reuse prior route list. Each item matches the route card shape (map block
- * on top, two icon + label/value rows below) so the loading state lands at the same height as a real card.
+ * Skeleton cards for the "reuse prior route" list.
  */
 import SkeletonRect from '@components/SkeletonRect';
 
@@ -14,10 +13,8 @@ import {View} from 'react-native';
 
 import ItemListSkeletonView from './ItemListSkeletonView';
 
-// reuseRouteCard uses mh5 (20px) on both sides.
 const cardHorizontalMargin = 40;
 const cardPadding = 4;
-// Map area from the Figma spec: 354x192 inside the card padding.
 const thumbnailAspectRatio = 1.84;
 const rowHeight = 64;
 const rowPaddingHorizontal = 20;
