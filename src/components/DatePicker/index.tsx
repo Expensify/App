@@ -108,9 +108,14 @@ function DatePicker({
         if (value === undefined) {
             return;
         }
+        // A date part way through being typed reports itself as empty, so the value prop trails a render behind the
+        // field. Putting it back while the user is still entering a date would undo the digit they just entered.
+        if (segmentInput.isEditing) {
+            return;
+        }
 
         setSelectedDate(value);
-    }, [formID, inputID, selectedDate, shouldSaveDraft, value]);
+    }, [formID, inputID, selectedDate, shouldSaveDraft, value, segmentInput.isEditing]);
 
     const calculatePopoverPosition = useCallback(
         (onMeasured?: () => void) => {
