@@ -211,7 +211,10 @@ function DynamicInviteReceiptPartnerPolicyPage({route}: DynamicInviteReceiptPart
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED}
         >
-            <ScreenWrapper testID="DynamicInviteReceiptPartnerPolicyPage">
+            <ScreenWrapper
+                testID="DynamicInviteReceiptPartnerPolicyPage"
+                enableEdgeToEdgeBottomSafeAreaPadding
+            >
                 <HeaderWithBackButton
                     title={translate('workspace.receiptPartners.uber.sendInvites')}
                     onBackButtonPress={() => Navigation.goBack(backPath)}
