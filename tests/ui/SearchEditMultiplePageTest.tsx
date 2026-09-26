@@ -4,7 +4,6 @@ import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import type {MenuItemProps} from '@components/MenuItem';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import ThemeProvider from '@components/ThemeProvider';
@@ -32,21 +31,6 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import {createExpenseReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
-
-// The page renders every bulk-editable field through this component, so mocking it exposes each
-// field's `disabled` state directly instead of asserting on MenuItem internals.
-jest.mock('@components/MenuItemWithTopDescription', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const {View, Text} = require('react-native');
-    return (props: MenuItemProps) => (
-        <View
-            testID={`menu-item-${props.description}`}
-            accessibilityState={{disabled: !!props.disabled}}
-        >
-            <Text>{props.description}</Text>
-        </View>
-    );
-});
 
 const CURRENT_USER_ACCOUNT_ID = 5;
 const CURRENT_USER_EMAIL = 'bjorn@vikings.net';
@@ -177,7 +161,7 @@ describe('SearchEditMultiplePage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByTestId('menu-item-Reimbursable').props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
+        expect(screen.getByLabelText(/^Reimbursable/).props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
     });
 
     it('disables Reimbursable when the selection contains a marked-as-done expense', async () => {
@@ -186,6 +170,6 @@ describe('SearchEditMultiplePage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByTestId('menu-item-Reimbursable').props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
+        expect(screen.getByLabelText(/^Reimbursable/).props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
     });
 });

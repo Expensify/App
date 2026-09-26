@@ -10,7 +10,7 @@ import MenuItemChevron from '@components/MenuItem/leaves/trailing/icons/MenuItem
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
-import type {PropsWithChildren} from 'react';
+import type {PropsWithChildren, ReactNode} from 'react';
 
 import React from 'react';
 
@@ -27,6 +27,33 @@ type MenuItemFieldRowProps = PropsWithChildren<{
 
 type MenuItemFieldProps = Omit<MenuItemRootProps, 'accessibilityLabel'> & Omit<MenuItemFieldRowProps, 'children'>;
 
+type MenuItemFieldContentProps = {
+    /** Name of the field */
+    name: string;
+
+    /** The value leaf, e.g. `MenuItem.FieldValue` or `MenuItem.FieldValueHTML`. Leave it out for a field not filled in yet */
+    children?: ReactNode;
+};
+
+/**
+ * The content cell of a field: its name over its value, or the name alone standing in for a missing value.
+ * Reach for it when the value needs a leaf other than `MenuItem.FieldValue`.
+ */
+function MenuItemFieldContent({name, children}: MenuItemFieldContentProps) {
+    return (
+        <MenuItemContent>
+            {children ? (
+                <>
+                    <MenuItemFieldName>{name}</MenuItemFieldName>
+                    {children}
+                </>
+            ) : (
+                <MenuItemFieldNamePlaceholder>{name}</MenuItemFieldNamePlaceholder>
+            )}
+        </MenuItemContent>
+    );
+}
+
 /**
  * The line a field preset draws, without a `MenuItem.Root` of its own. Reach for it over the
  * `MenuItemField` preset when the row needs siblings inside the same `Root` (an error or a hint
@@ -35,16 +62,7 @@ type MenuItemFieldProps = Omit<MenuItemRootProps, 'accessibilityLabel'> & Omit<M
 function MenuItemFieldRow({name, value, numberOfLinesValue, children}: MenuItemFieldRowProps) {
     return (
         <MenuItemRow>
-            <MenuItemContent>
-                {value ? (
-                    <>
-                        <MenuItemFieldName>{name}</MenuItemFieldName>
-                        <MenuItemFieldValue numberOfLines={numberOfLinesValue}>{value}</MenuItemFieldValue>
-                    </>
-                ) : (
-                    <MenuItemFieldNamePlaceholder>{name}</MenuItemFieldNamePlaceholder>
-                )}
-            </MenuItemContent>
+            <MenuItemFieldContent name={name}>{!!value && <MenuItemFieldValue numberOfLines={numberOfLinesValue}>{value}</MenuItemFieldValue>}</MenuItemFieldContent>
             {!!children && <MenuItemTrailing>{children}</MenuItemTrailing>}
         </MenuItemRow>
     );
@@ -78,6 +96,6 @@ function MenuItemFieldPreset({name, value, numberOfLinesValue, children, onPress
     );
 }
 
-const MenuItemField = Object.assign(MenuItemFieldPreset, {Row: MenuItemFieldRow});
+const MenuItemField = Object.assign(MenuItemFieldPreset, {Row: MenuItemFieldRow, Content: MenuItemFieldContent});
 
 export default MenuItemField;
