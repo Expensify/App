@@ -27,6 +27,10 @@ on:
         description: Force a full native build, bypassing Rock remote cache
         type: string
         default: 'false'
+      beta-track:
+        description: Builds the Play beta-track flavour (versionCode prefix '6', defaults to staging)
+        type: boolean
+        default: false
 
     outputs:
       VERSION_CODE:
@@ -167,6 +171,7 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           IS_HYBRID_APP: true
           FORCE_NATIVE_BUILD: ${{ inputs.force-native-build == 'true' && github.run_id || '' }}
+          IS_BETA_TRACK_BUILD: ${{ inputs.beta-track && 'true' || '' }}
         with:
           variant: ${{ inputs.variant }}
           aab: ${{ inputs.variant == 'Release' }}
