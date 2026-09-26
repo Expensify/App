@@ -606,6 +606,7 @@ export type {default as UpdateSamlRequiredParams} from './UpdateSamlRequiredPara
 export type {default as AddMemberToDomainParams} from './AddMemberToDomainParams';
 export type {default as GetInsightsParams} from './GetInsightsParams';
 export type {default as OpenSearchPageParams} from './OpenSearchPageParams';
+export type {default as ParseExpenseFiltersParams} from './ParseExpenseFiltersParams';
 export type {default as OpenSearchTagFiltersPageParams} from './OpenSearchTagFiltersPageParams';
 export type {default as OpenSearchTagFiltersPageResponse} from './OpenSearchTagFiltersPageResponse';
 export type {default as OpenBulkChangeApproverPageParams} from './OpenBulkChangeApproverPageParams';

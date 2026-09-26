@@ -9939,6 +9939,12 @@ const translations = {
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Last statement',
                 },
             },
+            describeSearch: {
+                title: 'Describe your search',
+                description: "Describe what expenses you want to see in plain English, and we'll apply the right filters automatically.",
+                inputLabel: 'Describe your search',
+                buttonText: 'Apply',
+            },
             status: 'Status',
             keyword: 'Keyword',
             keywords: 'Keywords',

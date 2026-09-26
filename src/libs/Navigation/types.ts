@@ -3582,6 +3582,7 @@ type SearchAdvancedFiltersParamList = {
         filterKey: string;
         applyDirectly?: string;
     };
+    [SCREENS.SEARCH.NL_FILTER_RHP]: Record<string, never>;
 };
 
 type SearchSavedSearchParamList = {

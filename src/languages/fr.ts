@@ -9780,6 +9780,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Dernier relevé',
                 },
             },
+            describeSearch: {
+                title: 'Describe your search',
+                description: "Describe what expenses you want to see in plain English, and we'll apply the right filters automatically.",
+                inputLabel: 'Describe your search',
+                buttonText: 'Apply',
+            },
             status: 'Statut',
             keyword: 'Mot-clé',
             keywords: 'Mots-clés',
