@@ -346,6 +346,7 @@ function IOURequestStepConfirmationContent({
             translate,
             convertToDisplayString,
             currentUserPersonalDetails.accountID,
+            formatPhoneNumber,
             rules,
         ],
     );

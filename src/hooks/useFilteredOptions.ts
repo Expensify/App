@@ -156,6 +156,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
             pendingDeleteMemberAccountIDsByReportID,
             dateFnsLocale,
             convertToDisplayString,
+            formatPhoneNumber,
         ],
     );
 

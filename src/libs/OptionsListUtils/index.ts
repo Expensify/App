@@ -2223,8 +2223,7 @@ function getValidOptions(
         isOffline,
         ...config
     }: GetOptionsConfig,
-    translate: LocalizedTranslate,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    localize: {translate: LocalizedTranslate; formatPhoneNumber: LocaleContextProps['formatPhoneNumber']},
     rules: OnyxCollection<Rule>,
 ): OptionsResult {
     // Gather shared configs:
@@ -2233,6 +2232,7 @@ function getValidOptions(
         [CONST.EMAIL.NOTIFICATIONS]: true,
         ...excludeLogins,
     };
+    const {translate, formatPhoneNumber} = localize;
 
     // Soft exclusions: hidden from suggestions but can be manually entered (e.g., Guide/AM)
     const loginsToExcludeFromSuggestions: Record<string, boolean> = {
@@ -2680,8 +2680,7 @@ function getSearchOptions({
             excludeFromSuggestionsOnly,
             isTrackIntentUser,
         },
-        translate,
-        formatPhoneNumber,
+        {translate, formatPhoneNumber},
         rules,
     );
 

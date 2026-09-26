@@ -247,6 +247,7 @@ function ReportSubmitToContent({
         convertToDisplayString,
         rules,
         currentUserDetails.accountID,
+        formatPhoneNumber,
     ]);
 
     const submitToSelectionData = useMemo(() => {

@@ -324,6 +324,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             dateFnsLocale,
             currentUserAccountID,
             convertToDisplayString,
+            formatPhoneNumber,
             rules,
         ],
     );
