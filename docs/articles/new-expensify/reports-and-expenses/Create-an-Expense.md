@@ -1,8 +1,8 @@
 ---
 title: Create an Expense
 description: Learn how to create and submit expenses in Expensify using SmartScan, manual entry, distance tracking, or time expenses.
-keywords: [New Expensify, create expense, submit expense, SmartScan, manual expense, distance expense, time expense, create time expense, log time, track hours, expense report, submit to workspace, submit to individual, split expense, scan receipts, bulk upload, GPS, GPS tracking, GPS mileage, Proofpoint, email forwarding, receipt forwarding, email receipt, forward receipt, forward email receipt, email receipts@expensify.com, scan receipt, receipt email]
-internalScope: Audience is submitters, approvers, and Workspace Admins. Covers how to create and submit expenses to a workspace or individual using SmartScan, manual entry, distance tracking, or Time expenses. Does not cover credit card import or Time Tracking
+keywords: [New Expensify, create expense, submit expense, SmartScan, manual expense, distance expense, time expense, create time expense, log time, track hours, expense report, submit to workspace, submit to individual, split expense, scan receipts, bulk upload, GPS, GPS tracking, GPS mileage, Proofpoint, email forwarding, receipt forwarding, email receipt, forward receipt, forward email receipt, email receipts@expensify.com, scan receipt, receipt email, enter merchant date amount on scan, Show more, Automatic, type receipt details manually, skip SmartScan]
+internalScope: Audience is submitters, approvers, and Workspace Admins. Covers how to create and submit expenses to a workspace or individual using SmartScan, manual entry, distance tracking, or Time expenses, including entering the merchant, date, and amount yourself on the Scan confirmation screen. Does not cover credit card import or Time Tracking
 ---
 
 You can create expenses in Expensify by scanning a receipt, entering details manually, tracking distance, or logging time. Once created, expenses can be submitted to either a workspace (for business reimbursement) or an individual (for personal repayment).
@@ -46,6 +46,36 @@ You can create an expense by scanning a receipt, entering details manually, or t
 - Text a receipt photo to 47777 (US numbers only). Make sure you [add your phone number as a contact method to Expensify](https://new.expensify.com/settings/profile/contact-methods).
 
 **Note:** Having trouble forwarding receipts? See [Why can't I forward receipts to receipts@expensify.com?](#why-cant-i-forward-receipts-to-receiptsexpensifycom) in the FAQ below.
+
+---
+
+## How to enter the merchant, date, and amount yourself when scanning a receipt
+
+You don't have to wait for SmartScan to read a receipt. On the confirmation screen of the **Scan** flow, you can type the merchant, date, and amount yourself, and Expensify will keep what you entered instead of replacing it with the scanned values.
+
+1. On the **Scan** tab, take a photo of the receipt or upload a receipt file.
+2. On the confirmation screen, click or tap **Show more**.
+3. Fill in the **Merchant**, **Date**, and **Amount** fields.
+4. Add details like description, category, tags, and tax.
+5. Click or tap **Create expense**.
+
+While a field is empty it shows an **Automatic** label, which means SmartScan will fill it in after the expense is created. The label disappears as soon as you start entering your own details.
+
+<!-- SCREENSHOT:
+Suggestion: The Scan confirmation screen after clicking Show more, with the empty Merchant, Date, and Amount fields each showing the Automatic label on the right.
+Location: Immediately after the numbered steps in this section.
+Purpose: Members can't tell that Merchant, Date, and Amount exist in the Scan flow because they are hidden behind Show more, and the Automatic label is the only signal that a blank field will still be filled in by SmartScan.
+-->
+
+## What happens when you enter scan details yourself
+
+- **The three fields are all or nothing.** Once you fill in any one of **Merchant**, **Date**, or **Amount**, the other two are required. If you leave one blank, an error appears on that field and the expense isn't created until you complete it.
+- **Clearing a field hands it back to SmartScan.** Empty a field you already filled in and the **Automatic** label returns, so SmartScan reads that value off the receipt instead.
+- **Your values are final.** The created expense shows what you typed. It doesn't display a scanning state for those fields, and SmartScan doesn't overwrite them.
+- **Leaving all three blank keeps the standard behavior.** SmartScan reads the merchant, date, and amount off the receipt after the expense is created.
+- **Scanning several receipts at once applies the same rule to each one.** If one receipt is partly filled in, Expensify brings that receipt on screen so you can complete its fields before all the expenses are created.
+
+Entering the details yourself isn't available when you split an expense from a receipt, when you use a test receipt, or when you move an expense you were already tracking.
 
 ---
 
@@ -203,6 +233,10 @@ There's no limit to the number of receipts you can attach to an email sent to re
 ## Can I attach multiple receipts to one expense?
 
 Yes. Each expense has only one primary receipt, but you can attach additional receipt images directly on the expense for situations where multiple receipts are needed. [Learn how to attach additional receipts to an expense](/articles/new-expensify/reports-and-expenses/Attach-and-edit-receipts-on-expenses#how-to-add-additional-receipts-to-an-expense). 
+
+## Why do the Merchant, Date, and Amount fields turn red when I scan a receipt?
+
+Those three fields are all or nothing. If you fill in one of them and leave the others blank, the blank ones are flagged as required. Either complete all three or clear the one you entered so SmartScan reads all three off the receipt.
 
 ## Can I edit an expense after submission?
 
