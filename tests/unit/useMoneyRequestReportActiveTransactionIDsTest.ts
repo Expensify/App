@@ -247,6 +247,22 @@ describe('useMoneyRequestReportActiveTransactionIDs', () => {
         expect(mockClearActiveTransactionIDsForSource).not.toHaveBeenCalled();
     });
 
+    it('should re-seed a carousel it owns when the same rows are re-ordered', () => {
+        // Given the focused route is SEARCH_REPORT and this report owns a seed holding exactly these rows, in the
+        // order they were rendered before the user sorted a column
+        mockFindFocusedRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, key: 'test-key'});
+        mockGetActiveTransactionIDs.mockReturnValue({ids: ['trans1', 'trans2', 'trans3'], descriptors: null, source: CAROUSEL_SOURCE_FOR_REPORT, snapshotHash: null});
+
+        const sortedTransactionIDs = ['trans3', 'trans1', 'trans2'];
+
+        // When the rows come back in a different order
+        renderHook(() => useMoneyRequestReportActiveTransactionIDs(sortedTransactionIDs, REPORT_ID));
+
+        // Then the new order is written through: the arrows walk the rows the user is looking at, so a seed this
+        // list owns has to follow the rendered order rather than stay frozen at the order it was first seeded in
+        expect(mockSetActiveTransactionIDs).toHaveBeenCalledWith(sortedTransactionIDs, {source: CAROUSEL_SOURCE_FOR_REPORT});
+    });
+
     it('should NOT take over a carousel it does not own with fewer than two rows', () => {
         // Given the focused route is SEARCH_REPORT, a broader carousel is active, and this report has one row left
         mockFindFocusedRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, key: 'test-key'});

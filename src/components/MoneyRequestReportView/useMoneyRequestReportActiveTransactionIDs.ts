@@ -33,7 +33,10 @@ function useMoneyRequestReportActiveTransactionIDs(visualOrderTransactionIDs: st
 
         // A report preview press seeds these arrows in the carousel's order, which can differ from this list's order.
         // Keep that seed while it still covers exactly these rows, and re-seed only when the rows themselves change.
-        if (activeIDs && activeIDs.length === visualOrderTransactionIDs.length) {
+        // A carousel this list already owns is exempt: sorting a column moves the rows the arrows walk without
+        // changing which rows they are, and freezing the seed at the order it was first written in would leave
+        // "next" jumping to a row that is no longer below the current one on screen.
+        if (activeSource !== carouselSource && activeIDs && activeIDs.length === visualOrderTransactionIDs.length) {
             const activeIDSet = new Set(activeIDs);
             if (visualOrderTransactionIDs.every((transactionID) => activeIDSet.has(transactionID))) {
                 return;

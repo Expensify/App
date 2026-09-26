@@ -52,11 +52,14 @@ jest.mock('@hooks/useThemeStyles', () => {
     return jest.fn(() => styleProxy);
 });
 
-// Only `useRoute` is stubbed: the rest of the module is used by the navigation imports ReportUtils pulls in.
+// Only `useRoute` and `useIsFocused` are stubbed: the rest of the module is used by the navigation imports
+// ReportUtils pulls in. The header reads `useIsFocused` to decide whether it owns the shared mobile selection mode,
+// and these tests render it on its own rather than inside a navigator, so there is no navigation object to read.
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),
     __esModule: true,
     useRoute: jest.fn(),
+    useIsFocused: () => true,
 }));
 
 // The providers only supply context to the (mocked) leaves, so pass children straight through.
