@@ -26,6 +26,9 @@ type DateSegmentsConfig = {
     isSegmentElement: UseDateSegmentInputResult['isSegmentElement'];
     isAllSelected: UseDateSegmentInputResult['isAllSelected'];
     onFieldBlur: UseDateSegmentInputResult['onFieldBlur'];
+
+    /** Whether digits are on screen. A date part way through being entered has no value yet, but is still clearable */
+    hasTypedDigits: UseDateSegmentInputResult['hasTypedDigits'];
 };
 
 type CustomBaseTextInputProps = ForwardedFSClassProps &

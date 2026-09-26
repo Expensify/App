@@ -311,6 +311,7 @@ function DatePicker({
                                   isSegmentElement: segmentInput.isSegmentElement,
                                   isAllSelected: segmentInput.isAllSelected,
                                   onFieldBlur: segmentInput.onFieldBlur,
+                                  hasTypedDigits: segmentInput.hasTypedDigits,
                               }
                             : undefined
                     }
