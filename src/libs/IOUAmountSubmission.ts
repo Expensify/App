@@ -263,6 +263,7 @@ function buildReportParticipants(args: SubmitAmountArgs) {
         translate,
         dateFnsLocale,
         convertToDisplayString,
+        formatPhoneNumber,
         rules,
     } = args;
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
@@ -287,6 +288,7 @@ function buildReportParticipants(args: SubmitAmountArgs) {
                       translate,
                       dateFnsLocale,
                       convertToDisplayString,
+                      formatPhoneNumber,
                   },
                   rules,
               });

@@ -93,7 +93,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     // Option building is locale-dependent, so a consumer that stays mounted through a language switch recomputes.
-    const {preferredLocale, dateFnsLocale} = useLocalize();
+    const {preferredLocale, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
     // Sorted report actions from the RAM_ONLY_SORTED_REPORT_ACTIONS derived value; a new reference on
@@ -127,6 +127,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
                           deferContactsUntilSearch,
                           locale: preferredLocale,
                           pendingDeleteMemberAccountIDsByReportID,
+                          formatPhoneNumber,
                       },
                       rules,
                       undefined,

@@ -234,7 +234,7 @@ function IOURequestStepConfirmationContent({
 
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const {showConfirmModal} = useConfirmModal();
     // isConfirming, selectedParticipantList, and startLocationPermissionFlow state
@@ -328,7 +328,7 @@ function IOURequestStepConfirmationContent({
                           reportAttributesDerived,
                           reportDraft: participantReportDraft,
                           currentUserAccountID: currentUserPersonalDetails.accountID,
-                          localize: {translate, dateFnsLocale, convertToDisplayString},
+                          localize: {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
                           rules,
                       });
             }) ?? [],

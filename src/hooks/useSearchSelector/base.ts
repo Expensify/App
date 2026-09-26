@@ -187,7 +187,7 @@ function useSearchSelectorBase({
     shouldKeepSelectedInAvailableOptions = false,
     shouldSeparateNonExistingSelectedOptions = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
@@ -307,6 +307,7 @@ function useSearchSelectorBase({
                     isTrackIntentUser,
                     translate,
                     rules,
+                    formatPhoneNumber,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 return getValidOptions(
@@ -343,6 +344,7 @@ function useSearchSelectorBase({
                         ...appliedGetValidOptionsConfig,
                     },
                     translate,
+                    formatPhoneNumber,
                     rules,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
@@ -382,6 +384,7 @@ function useSearchSelectorBase({
                         ...appliedGetValidOptionsConfig,
                     },
                     translate,
+                    formatPhoneNumber,
                     rules,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
@@ -419,6 +422,7 @@ function useSearchSelectorBase({
                         ...appliedGetValidOptionsConfig,
                     },
                     translate,
+                    formatPhoneNumber,
                     rules,
                 );
             default:

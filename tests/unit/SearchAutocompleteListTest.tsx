@@ -39,6 +39,7 @@ import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {createRandomReport} from '../utils/collections/reports';
 import * as TestHelper from '../utils/TestHelper';
+import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -187,6 +188,7 @@ const mockedOptions = createFilteredOptionList(
         convertToDisplayString: TestHelper.convertToDisplayString,
         conciergeReportID: undefined,
         isSearching: true,
+        formatPhoneNumber,
     },
     undefined,
 );
@@ -473,6 +475,7 @@ describe('SearchAutocompleteList', () => {
                     convertToDisplayString: TestHelper.convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             ),
@@ -564,6 +567,7 @@ describe('SearchAutocompleteList', () => {
                     convertToDisplayString: TestHelper.convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             ),
