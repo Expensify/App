@@ -15,7 +15,7 @@ A **Workspace member** is anyone added to a workspace with one of the following 
 - **People admin** – Can manage workspace membership and configure approval workflows. People admins can add and remove Members and Auditors only, and cannot add or remove admins or other scoped admin roles. They have read-only access to the workspace overview and edit access to Members and the Approvals section of Workflows. All other workspace editor pages are hidden. (Control workspaces only)
 - **Payments admin** – Can manage workspace payment settings in the **Payments** section of **Workflows**, including business bank accounts, the authorized expense payer, and payment methods. Payment permissions are otherwise unchanged, so paying a report still depends on the relevant bank account being shared with the payer. Has read-only access to the workspace overview and Members, and all other workspace editor pages are hidden. (Control workspaces only)
 - **Auditor** – Can view and comment on reports and has read-only access to all workspace editor pages (such as Categories, Tags, Rules, Workflows, and Accounting). Auditors cannot change any workspace settings or take workflow actions such as approving, paying, or taking control. (Control workspaces only)
-- **Editor** – Can edit workspace settings, but cannot see all expenses associated with the workspace. They cannot add admins to the workspace or change other users’ roles. (Submit workspaces only)
+- **Editor** – Can edit workspace settings, but cannot see all expenses associated with the workspace. They cannot add admins to the workspace or change other members' roles. (Submit workspaces only)
 
 ---
 
@@ -32,7 +32,7 @@ To invite someone to your workspace:
 
 **Tip:** You can also invite members under **Settings > Profile** by clicking **Share** to send the workspace’s URL or QR code.
 
-**Note:** Workspace admins and People admins can invite members. People admins can only invite users as **Members** or **Auditors** — they cannot assign admin roles.
+**Note:** Workspace admins and People admins can invite members. People admins can only invite members as **Members** or **Auditors** — they cannot assign admin roles.
 
 ---
 
