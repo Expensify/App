@@ -205,6 +205,7 @@ function SearchAutocompleteList({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const allCards = personalAndWorkspaceCards ?? CONST.EMPTY_OBJECT;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [searchResultReportIDs] = useOnyx(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const effectiveInputQueryValue = inputQueryValue ?? autocompleteQueryValue;
     const hasEffectiveInputQuery = effectiveInputQueryValue.trim() !== '';
@@ -302,6 +303,70 @@ function SearchAutocompleteList({
         translate,
         dateFnsLocale,
         convertToDisplayString,
+        rules,
+    ]);
+
+    // Deduped once and read everywhere the order is needed, so a repeated reportID ranks at its first position.
+    const orderedSearchResultReportIDs = useMemo<string[]>(() => (searchResultReportIDs?.length ? [...new Set(searchResultReportIDs)] : []), [searchResultReportIDs]);
+
+    const serverReportsOptions = useMemo(() => {
+        if (!hasActiveSearchResults || listOptions === null || orderedSearchResultReportIDs.length === 0) {
+            return CONST.EMPTY_ARRAY;
+        }
+
+        const orderedReportIDs = orderedSearchResultReportIDs.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
+        const reportIDs = new Set(orderedReportIDs);
+        const options = getSearchOptions({
+            dateFnsLocale,
+            convertToDisplayString,
+            options: {reports: listOptions.reports.filter((option) => reportIDs.has(option.reportID)), personalDetails: []},
+            draftComments,
+            isDefaultRoomsBetaEnabled,
+            isUsedInChatFinder: true,
+            includeReadOnly: true,
+            // Auth's ID list is the filter here. Re-running the client matcher would drop the reports Auth matched on
+            // criteria the client doesn't check (e.g. you own it) — the rows this pass exists to surface.
+            searchQuery: '',
+            maxResults: orderedReportIDs.length,
+            includeUserToInvite: false,
+            includeRecentReports: true,
+            includeCurrentUser: false,
+            countryCode,
+            shouldShowGBR: false,
+            shouldUnreadBeBold: true,
+            loginList,
+            visibleReportActionsData,
+            currentUserAccountID,
+            currentUserEmail,
+            policyCollection: policies,
+            personalDetails,
+            sortedActions,
+            conciergeReportID,
+            isTrackIntentUser,
+            translate,
+            rules,
+        }).options;
+        const optionsByReportID = new Map(options.recentReports.map((option) => [option.reportID, option]));
+        return orderedReportIDs.map((reportID) => optionsByReportID.get(reportID)).filter((option): option is OptionData => !!option && !option.isSelfDM);
+    }, [
+        hasActiveSearchResults,
+        listOptions,
+        orderedSearchResultReportIDs,
+        dateFnsLocale,
+        convertToDisplayString,
+        draftComments,
+        isDefaultRoomsBetaEnabled,
+        countryCode,
+        loginList,
+        visibleReportActionsData,
+        currentUserAccountID,
+        currentUserEmail,
+        policies,
+        personalDetails,
+        sortedActions,
+        conciergeReportID,
+        isTrackIntentUser,
+        translate,
         rules,
     ]);
 
@@ -416,15 +481,17 @@ function SearchAutocompleteList({
         expensifyIcons.History,
     ]);
 
-    const recentReportsOptions = useMemo(() => {
+    // The client's own matches, before Auth's order is merged in. Kept separate so the frozen rank below can snapshot
+    // the client's order: snapshotting the merged list would bake the previous query's server order into "Recent chats".
+    const localReportsOptions = useMemo<OptionData[]>(() => {
         if (!hasActiveSearchResults) {
-            return searchOptions.recentReports;
+            return [];
         }
 
         // searchOptions/autocompleteQueryValue are debounced. For a query -> query change this still returns the
         // previous query's matches during the debounce window (rows stay visible, preserving focus/Enter/arrow keys).
-        // For the empty -> query transition hasActiveSearchResults is false until the debounced query lands, so this
-        // returns recent chats instead of unfiltered rows, avoiding the stale-then-filtered reflow.
+        // For the empty -> query transition hasActiveSearchResults is false until the debounced query lands, so
+        // recentReportsOptions falls back to recent chats instead of unfiltered rows, avoiding the reflow.
         const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, autocompleteQueryValue, {
             sortByReportTypeInSearch: true,
             preferChatRoomsOverThreads: true,
@@ -435,16 +502,47 @@ function SearchAutocompleteList({
             reportOptions.push(searchOptions.userToInvite);
         }
 
-        return reportOptions.slice(0, 20);
+        return reportOptions;
     }, [autocompleteQueryValue, hasActiveSearchResults, searchOptions]);
 
-    // Locked rank map (stable key -> originalIndex) capturing the order of locally-known
-    // results at the moment the query changes. Recomputed only when the query changes, so server
-    // reports merged into Onyx later do not shift the rows already visible in the top section.
+    const recentReportsOptions = useMemo(() => {
+        if (!hasActiveSearchResults) {
+            return searchOptions.recentReports.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
+        }
+
+        const reportOptions: OptionData[] = [...localReportsOptions];
+
+        if (orderedSearchResultReportIDs.length > 0) {
+            const matchedReportIDs = new Set(reportOptions.map((option) => option.reportID).filter(Boolean));
+            reportOptions.push(...serverReportsOptions.filter((option) => !matchedReportIDs.has(option.reportID)));
+
+            const rankByReportID = new Map(orderedSearchResultReportIDs.map((reportID, index) => [reportID, index]));
+            const rankOf = (option: OptionData) => {
+                if (option.isSelfDM) {
+                    return -1;
+                }
+                return option.reportID === undefined ? Number.MAX_SAFE_INTEGER : (rankByReportID.get(option.reportID) ?? Number.MAX_SAFE_INTEGER);
+            };
+            reportOptions.sort((a, b) => rankOf(a) - rankOf(b));
+        }
+
+        // Preserve locally matched rows first. Auth orders only the remaining slots, so a server response cannot
+        // remove chats, contacts, or invite options that were already visible locally. The combined list remains capped at 20.
+        if (orderedSearchResultReportIDs.length > 0) {
+            return reportOptions;
+        }
+        return reportOptions.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
+    }, [hasActiveSearchResults, localReportsOptions, orderedSearchResultReportIDs, searchOptions, serverReportsOptions]);
+
+    // Locked rank map (stable key -> originalIndex) capturing the order of the client's own matches at the moment the
+    // query settled, so reports merged into Onyx later do not shift the rows already visible in the top section.
     const [frozenLocalRank, setFrozenLocalRank] = useState<ReadonlyMap<string, number>>(EMPTY_RANK_MAP);
+    // Whether the snapshot above came from a non-empty list. Testing frozenLocalRank.size would re-snapshot every
+    // render when no option yields a stable rank key.
+    const [hasFrozenLocalRank, setHasFrozenLocalRank] = useState(false);
     const [prevAutocompleteQuery, setPrevAutocompleteQuery] = useState(autocompleteQueryValue);
 
-    const buildRankMap = (options: OptionData[]): Map<string, number> => {
+    const buildRankMap = (options: readonly OptionData[]): Map<string, number> => {
         const rank = new Map<string, number>();
         for (const [index, option] of options.entries()) {
             const key = getStableRankKey(option);
@@ -457,14 +555,13 @@ function SearchAutocompleteList({
 
     if (prevAutocompleteQuery !== autocompleteQueryValue) {
         setPrevAutocompleteQuery(autocompleteQueryValue);
-        if (autocompleteQueryValue.trim() === '') {
-            setFrozenLocalRank(EMPTY_RANK_MAP);
-        } else {
-            setFrozenLocalRank(buildRankMap(recentReportsOptions));
-        }
-    } else if (autocompleteQueryValue.trim() !== '' && frozenLocalRank.size === 0 && recentReportsOptions.length > 0) {
-        // Options hydrated after the rank was snapshotted as empty — recompute.
-        setFrozenLocalRank(buildRankMap(recentReportsOptions));
+        setFrozenLocalRank(hasActiveSearchResults ? buildRankMap(localReportsOptions) : EMPTY_RANK_MAP);
+        setHasFrozenLocalRank(hasActiveSearchResults && localReportsOptions.length > 0);
+    } else if (hasActiveSearchResults && !hasFrozenLocalRank && localReportsOptions.length > 0) {
+        // Options can hydrate after the query settled (cold start), leaving the snapshot empty. Safe to rebuild
+        // whether or not Auth has answered, since this list never holds Auth's order.
+        setFrozenLocalRank(buildRankMap(localReportsOptions));
+        setHasFrozenLocalRank(true);
     }
 
     // Callers that pass a distinct inputQueryValue (e.g. SearchRouter) already debounce autocompleteQueryValue
@@ -486,7 +583,12 @@ function SearchAutocompleteList({
     );
 
     useEffect(() => {
-        if (!handleSearch || !autocompleteQueryWithoutFilters) {
+        if (!handleSearch) {
+            return;
+        }
+
+        if (!autocompleteQueryWithoutFilters) {
+            handleSearch('');
             return;
         }
 
@@ -561,12 +663,13 @@ function SearchAutocompleteList({
                 });
             }
         } else {
-            // Active search: split rows into local (frozen order) and server sections.
+            // Active search uses one shared 20-row budget: preserve locally matched rows first, then fill remaining
+            // slots with Auth-ranked server results. Auth orders the server section; it does not evict local rows.
             const localRows: AutocompleteListItem[] = [];
             const serverRows: AutocompleteListItem[] = [];
             for (const item of nextStyledRecentReports) {
                 const stableKey = getStableRankKey(item);
-                if (stableKey && frozenLocalRank.has(stableKey)) {
+                if (item.isSelfDM || (stableKey && frozenLocalRank.has(stableKey))) {
                     localRows.push(item);
                 } else {
                     serverRows.push(item);
@@ -574,7 +677,12 @@ function SearchAutocompleteList({
             }
             // Sort the local section by the rank captured at query-change time so it cannot
             // reorder when the API returns.
-            localRows.sort((a, b) => (frozenLocalRank.get(getStableRankKey(a) ?? '') ?? 0) - (frozenLocalRank.get(getStableRankKey(b) ?? '') ?? 0));
+            localRows.sort((a, b) => {
+                if (a.isSelfDM !== b.isSelfDM) {
+                    return a.isSelfDM ? -1 : 1;
+                }
+                return (frozenLocalRank.get(getStableRankKey(a) ?? '') ?? 0) - (frozenLocalRank.get(getStableRankKey(b) ?? '') ?? 0);
+            });
 
             if (localRows.length > 0 || !isLoadingOptions) {
                 pushSection({title: translate('search.recentChats'), data: localRows, sectionIndex: sectionIndex++});
@@ -589,10 +697,11 @@ function SearchAutocompleteList({
                 });
             }
 
-            if (serverRows.length > 0) {
+            const remainingServerRows = serverRows.slice(0, Math.max(CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - localRows.length, 0));
+            if (remainingServerRows.length > 0) {
                 pushSection({
                     title: translate('search.serverResults'),
-                    data: serverRows,
+                    data: remainingServerRows,
                     sectionIndex: sectionIndex++,
                 });
             }

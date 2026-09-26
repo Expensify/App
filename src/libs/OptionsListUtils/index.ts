@@ -2236,26 +2236,6 @@ function getValidOptions(
         const isWorkspaceChat = (report: SearchOption<Report>) => shouldSeparateWorkspaceChat && report.isPolicyExpenseChat && !report.private_isArchived;
         const isSelfDMChat = (report: SearchOption<Report>) => shouldSeparateSelfDMChat && report.isSelfDM && !report.private_isArchived;
 
-        const isSearchTermsFound = (report: SearchOption<Report>) => {
-            let searchText = `${report.text ?? ''}${report.login ?? ''}`;
-            if (report.isThread) {
-                searchText += report.alternateText ?? '';
-            } else if (report.isChatRoom) {
-                searchText += report.subtitle ?? '';
-            } else if (report.isPolicyExpenseChat) {
-                searchText += `${report.subtitle ?? ''}${report.item.policyName ?? ''}`;
-            } else if (report.item.chatType === CONST.REPORT.CHAT_TYPE.GROUP) {
-                const participantsSearchText = report.participantsList?.map((participant) => [participant.displayName, participant.login].filter(Boolean).join(' ')).join(' ') ?? '';
-                searchText += participantsSearchText;
-            }
-            searchText = deburr(searchText.toLocaleLowerCase());
-
-            // Keep the pre-filter a superset of filterReports(). The canonical matcher handles apostrophes,
-            // hyphens, zero-width characters, diacritics, and email searches without dots that this cheap
-            // substring check may miss. Run it only when the cheap check does not find a match.
-            return searchTerms.every((term) => searchText.includes(term)) || filterReports([report], searchTerms).length > 0;
-        };
-
         const filteringFunction = (report: SearchOption<Report>) => {
             if (excludeHidden) {
                 if (report.isThread && report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
@@ -2279,7 +2259,7 @@ function getValidOptions(
             }
 
             const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-            if (!isSearchTermsFound(report)) {
+            if (!doesReportMatchSearchTerms(report, searchTerms)) {
                 return false;
             }
 
@@ -2905,6 +2885,30 @@ function filterReports(reports: SearchOptionData[], searchTerms: string[]): Sear
     return filteredReports;
 }
 
+/**
+ * Whether a report matches every search term. Keep the cheap substring check a superset of filterReports(): that
+ * canonical matcher handles apostrophes, hyphens, zero-width characters, diacritics, and emails searched without
+ * their dots, and only runs when the cheap check misses. Narrowing the cheap check silently drops matches.
+ */
+function doesReportMatchSearchTerms(report: SearchOption<Report>, searchTerms: string[]): boolean {
+    const normalizeSearchText = (value: string) => deburr(StringUtils.normalizeForMatch(value).toLocaleLowerCase());
+    const normalizedSearchTerms = searchTerms.map(normalizeSearchText);
+    let searchText = `${report.text ?? ''}${report.login ?? ''}`;
+    if (report.isThread) {
+        searchText += report.alternateText ?? '';
+    } else if (report.isChatRoom) {
+        searchText += report.subtitle ?? '';
+    } else if (report.isPolicyExpenseChat) {
+        searchText += `${report.subtitle ?? ''}${report.item.policyName ?? ''}`;
+    } else if (report.item.chatType === CONST.REPORT.CHAT_TYPE.GROUP) {
+        const participantsSearchText = report.participantsList?.map((participant) => [participant.displayName, participant.login].filter(Boolean).join(' ')).join(' ') ?? '';
+        searchText += participantsSearchText;
+    }
+    searchText = normalizeSearchText(searchText);
+
+    return normalizedSearchTerms.every((term) => searchText.includes(term)) || filterReports([report], normalizedSearchTerms).length > 0;
+}
+
 function filterWorkspaceChats(reports: SearchOptionData[], searchTerms: string[]): SearchOptionData[] {
     const filteredReports = searchTerms.reduceRight(
         (items, term) =>
@@ -3175,6 +3179,7 @@ export {
     createFilteredOptionList,
     hydrateContactOption,
     createOption,
+    doesReportMatchSearchTerms,
     filterAndOrderOptions,
     filterReports,
     filterSelfDMChat,

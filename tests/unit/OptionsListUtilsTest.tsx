@@ -18,6 +18,7 @@ import {
     createFilteredOptionList,
     createOption,
     createOptionFromReport,
+    doesReportMatchSearchTerms,
     filterAndOrderOptions,
     filterReports,
     filterSelfDMChat,
@@ -6406,6 +6407,63 @@ describe('OptionsListUtils', () => {
             const filteredReports = filterReports([report], [getSearchValueForPhoneOrEmail('+1 (234) 567-8901', COUNTRY_CODE)]);
 
             expect(filteredReports).toEqual([report]);
+        });
+    });
+
+    describe('doesReportMatchSearchTerms()', () => {
+        const report: SearchOption<Report> = {
+            reportID: 'email',
+            keyForList: 'email',
+            text: '123123',
+            login: 'person@gmail.com',
+            item: createRandomReport(1, undefined),
+        };
+
+        it('matches an email query against an email address', () => {
+            // Given a report with a matching email address
+            // When the query is an email search
+            const doesMatch = doesReportMatchSearchTerms(report, ['person@']);
+
+            // Then the report matches
+            expect(doesMatch).toBe(true);
+        });
+
+        it('matches an uppercase accented query against a group participant', () => {
+            // Given a group report with an accented participant name
+            // cspell:ignore José JOSÉ
+            const groupReport: SearchOption<Report> = {
+                ...report,
+                item: {...createRandomReport(1, undefined), chatType: CONST.REPORT.CHAT_TYPE.GROUP},
+                participantsList: [{accountID: 2, displayName: 'José', login: 'jose@example.com'}],
+            };
+
+            // When the query uses the same accented name in uppercase
+            const doesMatch = doesReportMatchSearchTerms(groupReport, ['JOSÉ']);
+
+            // Then the group report matches
+            expect(doesMatch).toBe(true);
+        });
+
+        // cspell:ignore 김민수 山田太郎 Ирина Смирнова Νίκος Παπαδόπουλος Nguyễn Minh
+        it.each([
+            {writingSystem: 'Korean', displayName: '김민수'},
+            {writingSystem: 'Japanese', displayName: '山田太郎'},
+            {writingSystem: 'Cyrillic', displayName: 'Ирина Смирнова'},
+            {writingSystem: 'Greek', displayName: 'Νίκος Παπαδόπουλος'},
+            {writingSystem: 'Vietnamese', displayName: 'Nguyễn Thị Minh'},
+        ])('matches a group participant using $writingSystem text', ({displayName}) => {
+            // Given a group report with a participant name in that writing system
+            const groupReport: SearchOption<Report> = {
+                ...report,
+                item: {...createRandomReport(1, undefined), chatType: CONST.REPORT.CHAT_TYPE.GROUP},
+                participantsList: [{accountID: 2, displayName, login: 'participant@example.com'}],
+            };
+
+            // When the query uses that participant name
+            const doesMatch = doesReportMatchSearchTerms(groupReport, [displayName]);
+
+            // Then the group report matches
+            expect(doesMatch).toBe(true);
         });
     });
 
