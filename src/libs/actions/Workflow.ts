@@ -238,6 +238,15 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
     const mergedEmployeeList = Object.fromEntries(Object.keys({...previousEmployeeList, ...updatedEmployees}).map((key) => [key, {...previousEmployeeList[key], ...updatedEmployees[key]}]));
 
     const defaultApprover = getDefaultApprover(policy);
+
+    // The removed workflow's members are sent with an empty `submitsTo`, which the backend resolves to the default
+    // approver. Storing that empty value optimistically would instead read as "no approver at all" until the response
+    // lands, blanking these members everywhere their approver is shown (and indefinitely while offline), so the
+    // optimistic copy states the resolved value. The request itself still carries the empty string.
+    const optimisticEmployees = Object.fromEntries(
+        Object.entries(updatedEmployees).map(([email, employee]) => [email, employee?.submitsTo === '' ? {...employee, submitsTo: defaultApprover} : employee]),
+    );
+
     // If there is more than one workflow, we need to keep the advanced approval mode (first workflow is the default)
     const hasMoreThanOneWorkflow = Object.values(mergedEmployeeList).some((employee) => !!employee.submitsTo && employee.submitsTo !== defaultApprover);
     // The default workflow can still have a forwardsTo chain (multi-level approvers), which also requires advanced mode
@@ -255,7 +264,7 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
-                employeeList: updatedEmployees,
+                employeeList: optimisticEmployees,
                 approvalMode: shouldKeepAdvancedMode ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC,
             },
         },

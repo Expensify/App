@@ -1716,6 +1716,14 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
 }
 
 /**
+ * Whether the policy has approvals turned on. False while the policy hasn't loaded yet (no `approvalMode`),
+ * unlike `!isSubmitAndClose(policy)`, which reads an unresolved policy as approvals-enabled.
+ */
+function areApprovalsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
+    return !!policy?.approvalMode && !isSubmitAndClose(policy);
+}
+
+/**
  * Resolves a workspace's reimbursement choice to one of the three values in `CONST.POLICY.REIMBURSEMENT_CHOICES`.
  * Comparing the raw field instead makes a workspace reporting a deprecated value look like it has reimbursement
  * disabled, which hides Pay on its approved reports.
@@ -3848,6 +3856,7 @@ export {
     getReimbursementChoice,
     isSubmitterAndApprover,
     isSubmitAndClose,
+    areApprovalsEnabled,
     isTaxTrackingEnabled,
     shouldShowPolicy,
     getActiveAdminWorkspaces,

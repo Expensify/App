@@ -151,11 +151,18 @@ function useSorting<T, ColumnKey extends string = string>({
     };
 
     const toggleColumnSorting: SortingMethods<ColumnKey>['toggleColumnSorting'] = (columnKey) => {
-        // Flipped from the sorting the headers actually show rather than the stored one, which the fallback above can
+        // Read from the sorting the headers actually show rather than the stored one, which the fallback above can
         // diverge from. Otherwise the first press after a column disappears asks for the order already on screen.
+        const columnKeyToUse = columnKey ?? activeSorting.columnKey;
+        const isSameColumn = columnKeyToUse === activeSorting.columnKey;
+
+        // Switching to a column that wasn't already active starts its cycle over, so the first press always
+        // reads as ascending rather than inheriting whatever order the previous column was left on.
+        const orderToUse = isSameColumn && activeSorting.order === CONST.SEARCH.SORT_ORDER.ASC ? CONST.SEARCH.SORT_ORDER.DESC : CONST.SEARCH.SORT_ORDER.ASC;
+
         updateSorting({
-            columnKey: columnKey ?? activeSorting.columnKey,
-            order: activeSorting.order === CONST.SEARCH.SORT_ORDER.ASC ? CONST.SEARCH.SORT_ORDER.DESC : CONST.SEARCH.SORT_ORDER.ASC,
+            columnKey: columnKeyToUse,
+            order: orderToUse,
         });
     };
 
