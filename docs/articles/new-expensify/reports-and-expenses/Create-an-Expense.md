@@ -52,11 +52,13 @@ You can create an expense by scanning a receipt, entering details manually, or t
 ## How to manually create a cash expense
 
 1. Click the **➕ Create** button.
-2. Select **Create Expense** then **Manual**.
-3. Enter the amount and currency, then click **Next**.
-4. Choose a workspace or an individual.
-5. Add details like description, category, tags, tax, and set whether the expense is reimbursable or billable.
+2. Select **Create expense**, then select **Manual**.
+3. Confirm or change the workspace or individual the expense is going to.
+4. Enter the amount and select the currency.
+5. Add details like merchant, date, description, category, tags, tax, and set whether the expense is reimbursable or billable.
 6. Click **Create expense**.
+
+**Note:** Amount and date are required. If you leave either one blank, Expensify shows **This field is required** on that field and the expense is not created.
 
 ---
 
@@ -166,7 +168,7 @@ To split an expense with multiple individuals, start a group chat including each
 6. Click **Next**.
 7. (Optional) Add a reason for the request in the Description field.
 8. (Optional) If entering the amount manually, include the merchant and date of purchase.
-9. Click **Split**.
+9. Click **Split expense**.
 
 Each person will receive a notification via email or text with the request details. You can chat about the expense in Expensify Chat, and payments can be received via your Expensify Wallet or through other methods.
 
