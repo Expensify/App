@@ -50,7 +50,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     const innerRadius = radius * VictoryTheme.pie.innerRadiusRatio;
     const pieGeometry = {radius, innerRadius, centerX: chartWidth / 2, centerY: canvasHeight / 2};
 
-    // The chart draws nothing until it has a size, so handing it one lets it draw on the render it mounts in.
+    // The chart renders no content until it has a size, so handing it one lets it render that content in the same pass it mounts in.
     const chartSize = chartWidth > 0 ? {width: chartWidth, height: canvasHeight} : undefined;
 
     // Slices are sorted by absolute value (largest first) for color assignment,

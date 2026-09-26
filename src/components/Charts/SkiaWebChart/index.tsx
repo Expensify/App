@@ -14,9 +14,10 @@ import type {ComponentType, ReactNode} from 'react';
 
 import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
 import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 import isSkiaWebSupported from './isSkiaWebSupported';
+import useHasSkiaDrawn from './useHasSkiaDrawn';
 import useIsSkiaSurfaceUnavailable from './useIsSkiaSurfaceUnavailable';
 
 type SkiaWebChartProps<TProps> = {
@@ -26,7 +27,7 @@ type SkiaWebChartProps<TProps> = {
     /** Props forwarded to the lazily-loaded chart component. */
     componentProps: TProps;
 
-    /** Shown while the chart engine downloads. */
+    /** Shown while the chart engine downloads and until the chart first draws. */
     loadingFallback?: ReactNode;
 };
 
@@ -65,6 +66,8 @@ function SkiaWebChart<TProps extends object>({getComponent, componentProps, load
 
     // The probe can pass while the renderer still ends up without a drawing surface.
     const isSurfaceUnavailable = useIsSkiaSurfaceUnavailable(containerRef);
+    const hasDrawn = useHasSkiaDrawn(containerRef);
+    const isAwaitingFirstDraw = !!loadingFallback && !hasDrawn;
 
     if (!isSupported || isSurfaceUnavailable) {
         return <ChartUnavailable />;
@@ -81,12 +84,16 @@ function SkiaWebChart<TProps extends object>({getComponent, componentProps, load
             ref={viewRef(containerRef)}
             style={styles.mw100}
         >
-            <WithSkiaWeb
-                opts={{locateFile: (file: string) => `/${file}`}}
-                getComponent={getComponent}
-                componentProps={componentProps}
-                fallback={fallback}
-            />
+            {/* The canvas stays blank until Skia draws into it, while the parts of a chart drawn as views show at once. */}
+            <View style={isAwaitingFirstDraw && styles.opacity0}>
+                <WithSkiaWeb
+                    opts={{locateFile: (file: string) => `/${file}`}}
+                    getComponent={getComponent}
+                    componentProps={componentProps}
+                    fallback={fallback}
+                />
+            </View>
+            {isAwaitingFirstDraw && <View style={[StyleSheet.absoluteFill, styles.pointerEventsNone]}>{loadingFallback}</View>}
         </View>
     );
 }

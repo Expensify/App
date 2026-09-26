@@ -97,3 +97,28 @@
 - Upstream PR/issue: https://github.com/Shopify/react-native-skia/pull/3855 — the same fix, merged upstream on 2026-05-26. Drop this patch once the Skia dependency is bumped to >= 2.6.9.
 - E/App issue: https://github.com/Expensify/App/issues/98331, https://github.com/Expensify/App/issues/95905
 - PR introducing patch: https://github.com/Expensify/App/pull/98437
+
+### [@shopify+react-native-skia+2.4.18+004+emit-first-draw-event.patch](@shopify+react-native-skia+2.4.18+004+emit-first-draw-event.patch)
+
+- Reason:
+
+    ```
+    Lets a chart's loading placeholder stay on screen until the chart is actually visible on web, so a
+    chart goes straight from its skeleton to the drawn chart, with no blank frame in between and no frame
+    showing both.
+
+    On web, SkiaPictureView creates its renderer only once its canvas reports a layout, and draws the
+    first picture after that. React Native Web delivers that layout from a ResizeObserver through a
+    setTimeout, so the canvas is still blank for at least one painted frame after the chart component
+    mounts, for as long as the browser takes. Skia exposes no public signal for when that first draw has
+    happened: CanvasProps omits onLayout, onSize changes before the renderer exists, and victory-native
+    forwards neither to the canvas it renders.
+
+    Fix: after a renderer first draws a picture onto its canvas, it dispatches a bubbling
+    "skia-first-draw" CustomEvent on that canvas. SkiaWebChart keeps the chart hidden under its
+    placeholder until the event reaches its container, then shows the chart and removes the placeholder.
+    ```
+
+- Upstream PR/issue: 🛑 TODO. No upstream issue or PR exists yet; Skia has no public API reporting when a web canvas is first drawn, so one has to be proposed.
+- E/App issue: 🛑 TODO
+- PR introducing patch: https://github.com/Expensify/App/pull/100610
