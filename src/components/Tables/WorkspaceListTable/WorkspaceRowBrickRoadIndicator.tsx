@@ -56,8 +56,8 @@ function WorkspaceRowBrickRoadIndicator({policyID}: WorkspaceRowBrickRoadIndicat
     const [isHRCompleteSetupNeeded] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: isMergeHRCompleteSetupNeededSelector});
     const [isQBORefreshTokenExpiringSoon] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: isQBORefreshTokenExpiringSoonSelector});
 
-    // All of the error sources resolve to ERROR or undefined; the HR setup check and the QBO token expiry
-    // warning are the only INFO sources and every error takes precedence over them.
+    // All of the error sources resolve to ERROR or undefined. The HR setup check and the QBO token expiry
+    // warning are the only INFO sources, and every error takes precedence over them.
     const hasError = !!hasReimbursementAccountErrors || !!hasCardFeedErrors || !!hasPolicyErrors;
 
     if (!hasError && !isHRCompleteSetupNeeded && !isQBORefreshTokenExpiringSoon) {
