@@ -331,6 +331,49 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should handle an empty accessible-policies request started before navigation', async () => {
+        // Given the merge screen started a workspace lookup before navigating to the workspace list.
+        const dismissModalWithReport = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});
+        const requestID = 'merge-accessible-policies-request';
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.set(ONYXKEYS.LOGINS, {
+                [`1_${VALIDATED_EMAIL}`]: {
+                    partnerID: CONST.PARTNER_ID.EXPENSIFY,
+                    partnerUserID: VALIDATED_EMAIL,
+                    validatedDate: '2026-09-12 00:00:00',
+                },
+            });
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {});
+            await Onyx.set(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: true, requestID});
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, '123');
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: '', isJoinWorkspaceTask: 'true'});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockGetAccessiblePolicies).not.toHaveBeenCalled();
+
+        // When the adopted lookup finishes with no accessible policies.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: false, requestID});
+        });
+
+        // Then the empty-workspace content is created and the modal closes without a duplicate lookup.
+        await waitFor(() => {
+            expect(mockCreateJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('empty', expect.any(String), expect.any(String), undefined, undefined);
+            expect(dismissModalWithReport).toHaveBeenCalledWith({reportID: '123'});
+        });
+        expect(mockGetAccessiblePolicies).not.toHaveBeenCalled();
+
+        dismissModalWithReport.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should create a Join workspace task when a validation task opens a nonempty list', async () => {
         await TestHelper.signInWithTestUser();
 
