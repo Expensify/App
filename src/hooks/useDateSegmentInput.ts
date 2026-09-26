@@ -93,6 +93,9 @@ type UseDateSegmentInputResult = {
     /** Whether a date is being entered right now, so the segments rather than the committed value are what the field shows */
     isEditing: boolean;
 
+    /** Whether the field was left holding digits that do not add up to a date, which reads as no date at all */
+    hasInvalidEntry: boolean;
+
     getSegmentProps: (name: DateSegmentName) => DateSegmentProps;
 
     /** Called once focus has left the field altogether rather than moved between segments */
@@ -320,6 +323,7 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
             hasTypedDigits: false,
             isAllSelected: false,
             isEditing: false,
+            hasInvalidEntry: false,
             getSegmentProps: () => ({value: '', onKeyPress: () => {}, onChangeText: () => {}, onFocus: () => {}, onPressOut: () => {}}),
             onFieldBlur: () => {},
             onClear: () => {},
@@ -343,6 +347,7 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
         hasTypedDigits: shouldShowSegments && hasAnySegment(segments),
         isAllSelected,
         isEditing,
+        hasInvalidEntry,
         getSegmentProps: (name: DateSegmentName) => ({
             value: getSegmentDisplay(displayedSegments, name),
             onKeyPress: (event: TextInputKeyPressEvent) => handleKeyPress(name, event),
