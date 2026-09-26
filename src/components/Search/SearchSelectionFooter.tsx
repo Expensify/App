@@ -6,6 +6,7 @@ import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotal
 import {close} from '@libs/actions/Modal';
 import {getFooterConvertedAmounts} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {markQueryAsRefinement} from '@libs/SearchQueryRefinement';
 import {buildSearchQueryJSON, getFooterSelectionFromQuery, getQueryWithFooterSelection} from '@libs/SearchQueryUtils';
 import {doesTransactionMatchFooterTotal, isGroupEntry} from '@libs/SearchUIUtils';
 
