@@ -130,7 +130,7 @@ function areAllSelectedReportsConverted(selectedReportIDs: string[], isReportFre
 // footer — not SearchPage and the <Search> list it contains.
 function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected, selectedReports} = useSearchSelectionContext();
-    const {currentSearchResults, shouldUseLiveData} = useSearchResultsContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, true, areAllMatchingItemsSelected);
     const {isOffline} = useNetwork();
