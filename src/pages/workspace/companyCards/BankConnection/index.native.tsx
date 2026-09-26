@@ -5,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useCardFeeds from '@hooks/useCardFeeds';
+import useCompanyCardConnectionError from '@hooks/useCompanyCardConnectionError';
 import useDuplicateFeedDetection from '@hooks/useDuplicateFeedDetection';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
@@ -22,7 +23,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
 
-import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+import {clearAddNewCompanyCardErrors, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {getCompanyCardBankConnection} from '@userActions/getCompanyCardBankConnection';
 
 import CONST from '@src/CONST';
@@ -72,7 +73,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
-    const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
+    const {errorMessage, hasError: isNewFeedHasError, hasAddNewCardError, hasNewFeedError} = useCompanyCardConnectionError({policyID, newFeed, isAddingNewCard: !feed});
     // importPlaidAccounts only writes these errors while repairing an existing feed, so the add-card flow ignores them
     const hasImportError = !!feed && !isEmptyObject(assignCard?.errors);
     const illustrations = useMemoizedLazyIllustrations(['BrokenCompanyCardBankConnection']);
@@ -101,11 +102,12 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
             return;
         }
 
+        clearAddNewCompanyCardErrors();
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
     };
 
     useEffect(() => {
-        if ((!url && !isPlaid) || isNewFeedHasError) {
+        if ((!url && !isPlaid) || hasNewFeedError || (hasAddNewCardError && !isNewFeedConnected)) {
             return;
         }
 
@@ -168,7 +170,8 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
         onImportPlaidAccounts,
         isFeedConnectionBroken,
         updateBrokenConnection,
-        isNewFeedHasError,
+        hasAddNewCardError,
+        hasNewFeedError,
         hasImportError,
         checkForDuplicateFeed,
     ]);
@@ -230,6 +233,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                     <WorkspaceCompanyCardsErrorConfirmation
                         policyID={policyID}
                         newFeed={newFeed}
+                        errorMessage={errorMessage}
                     />
                 )}
             </FullPageOfflineBlockingView>
