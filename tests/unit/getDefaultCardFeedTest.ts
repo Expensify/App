@@ -80,8 +80,13 @@ describe('getActiveExpensifyCardFeedID', () => {
         policyAccountID: 900,
     };
 
-    // The resolver only reads `fundID` off each entry.
-    const primaryFeed = (fundID: number): ExpensifyCardFeedEntry => ({settingsKey: `expensifyCardSettings_${fundID}`, fundID, settings: {} as ExpensifyCardSettings});
+    // The resolver only reads `fundID` off each entry; `programKey` is set to satisfy the type.
+    const primaryFeed = (fundID: number): ExpensifyCardFeedEntry => ({
+        settingsKey: `expensifyCardSettings_${fundID}`,
+        fundID,
+        settings: {} as ExpensifyCardSettings,
+        programKey: CONST.COUNTRY.US,
+    });
 
     // Display feeds carry a string `fundID` and the `id` the resolver returns.
     const expensifyFeed = (fundID: string): CardFeedForDisplay => ({id: `${fundID}_Expensify Card`, feed: 'Expensify Card' as CardFeedForDisplay['feed'], fundID, name: 'Expensify Card'});

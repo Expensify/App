@@ -1,7 +1,7 @@
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useInitial from '@hooks/useInitial';
 import useLocalize from '@hooks/useLocalize';
@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard} from '@libs/actions/Card';
 import {requestValidateCodeAction} from '@libs/actions/User';
+import {getFeedCountryForCardProgram} from '@libs/CardUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -40,7 +41,7 @@ function IssueNewCardConfirmValidateCodePage({route}: IssueNewCardConfirmValidat
     const validateError = getLatestErrorMessageField(issueNewCard);
     const data = issueNewCard?.data;
     const isSuccessful = issueNewCard?.isSuccessful;
-    const defaultFundID = useDefaultFundID(policyID);
+    const {fundID: defaultFundID, programKey: selectedProgramKey} = useDefaultCardFeed(policyID);
     const firstAssigneeEmail = useInitial(issueNewCard?.data?.assigneeEmail);
     const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === issueNewCard?.data?.assigneeEmail;
     const personalDetails = usePersonalDetails();
@@ -64,10 +65,10 @@ function IssueNewCardConfirmValidateCodePage({route}: IssueNewCardConfirmValidat
 
     const handleSubmit = useCallback(
         (validateCode: string) => {
-            // The request carries no feedCountry, so the backend resolves it from the domain's provisioned card programs
-            issueExpensifyCard(defaultFundID, policyID, validateCode, assigneeTimeZone, data);
+            const feedCountry = getFeedCountryForCardProgram(selectedProgramKey);
+            issueExpensifyCard(defaultFundID, policyID, feedCountry, validateCode, assigneeTimeZone, data);
         },
-        [data, defaultFundID, policyID, assigneeTimeZone],
+        [selectedProgramKey, data, defaultFundID, policyID, assigneeTimeZone],
     );
 
     const handleClose = useCallback(() => {

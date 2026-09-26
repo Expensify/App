@@ -28,7 +28,7 @@ jest.mock('@components/OnyxListItemProvider', () => ({
     usePersonalDetails: jest.fn(() => ({})),
 }));
 
-jest.mock('@hooks/useDefaultFundID', () => jest.fn(() => DEFAULT_FUND_ID));
+jest.mock('@hooks/useDefaultCardFeed', () => jest.fn(() => ({fundID: 123, programKey: 'GB'})));
 jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => ''));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 jest.mock('@hooks/useOnyx', () => {
@@ -66,8 +66,8 @@ describe('IssueNewCardConfirmValidateCodePage', () => {
         jest.clearAllMocks();
     });
 
-    it('lets the backend resolve the feed country when issuing a physical card without any beta', () => {
-        // Given a physical card draft on an account that holds no betas
+    it('issues a physical card into the selected program', () => {
+        // Given a physical card draft with the GB program selected
         const data: Partial<IssueNewCardData> = {
             assigneeEmail: 'assignee@example.com',
             cardType: CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL,
@@ -86,7 +86,7 @@ describe('IssueNewCardConfirmValidateCodePage', () => {
             handleSubmitForm(VALIDATE_CODE);
         });
 
-        // Then the request carries no feed country so the backend picks the domain's provisioned program
-        expect(issueExpensifyCard).toHaveBeenCalledWith(DEFAULT_FUND_ID, POLICY_ID, VALIDATE_CODE, undefined, data);
+        // Then the selected program is passed through as the feed country
+        expect(issueExpensifyCard).toHaveBeenCalledWith(DEFAULT_FUND_ID, POLICY_ID, CONST.COUNTRY.GB, VALIDATE_CODE, undefined, data);
     });
 });

@@ -299,9 +299,6 @@ type AddNewCompanyCardFeed = {
     isEditing: boolean;
 };
 
-/** Card fund ID */
-type FundID = number;
-
 /** Combined card feed type */
 type CombinedCardFeed = CustomCardFeedData &
     Partial<DirectCardFeedData> & {
@@ -337,7 +334,6 @@ export type {
     WorkspaceCardFeedsStatus,
     CompanyFeeds,
     CustomCardFeedData,
-    FundID,
     StatementPeriodEnd,
     StatementPeriodEndDay,
     DomainSettings,
