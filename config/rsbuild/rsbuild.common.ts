@@ -21,6 +21,8 @@ import SENTRY_APPLICATION_KEY from '../../src/libs/telemetry/sentryApplicationKe
 import getAppVersion from '../../src/libs/VersionUtils.ts'; // eslint-disable-line @dword-design/import-alias/prefer-alias
 import oxcReactCompilerConfig from '../babel/oxcReactCompilerConfig.js';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+import BrotliCompressionPlugin from './BrotliCompressionPlugin.ts';
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import CustomVersionFilePlugin from './CustomVersionFilePlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import ModuleInitTimingPlugin from './ModuleInitTimingPlugin.ts';
@@ -327,6 +329,7 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
  */
 const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevServer = false}: Environment): Promise<RsbuildConfig> => {
     const isDevelopment = file === '.env' || file === '.env.development';
+    const shouldCompressWithBrotli = !isDevelopment && file !== '.env.adhoc';
     const shared = getSharedConfiguration({file, platform, isDevServer});
     const sharedRspackTool = shared.tools?.rspack;
     const sentryWebpackPlugin = isDevelopment ? undefined : (await import('@sentry/webpack-plugin')).sentryWebpackPlugin;
@@ -419,6 +422,9 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
             },
         },
         performance: {
+            // Rsbuild's default exclusion, plus the `.br` twins BrotliCompressionPlugin emits below: listing them would
+            // double the report with a meaningless "gzipped size" of already-Brotli-compressed bytes.
+            printFileSize: {exclude: (asset) => /\.(?:map|LICENSE\.txt|d\.(?:ts|mts|cts)|br)$/.test(asset.name)},
             // We have to load the whole lottie player to get the player to work in offline mode
             // heic-to library is used sparsely so we load it as a separate chunk to reduce initial bundle size
             // ExpensifyIcons/illustrations chunks are loaded eagerly for offline support
@@ -502,6 +508,10 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                                   // all critical for offline boot, so we precache the lot. Everything in the
                                   // App build is content-hashed, so growth here only costs first-install bytes.
                                   maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
+                                  // Workbox's defaults, plus the `.br` twins BrotliCompressionPlugin emits: the service
+                                  // worker requests the original URLs and the CDN transparently serves the Brotli copy,
+                                  // so adding the twins to the precache as well would download every chunk twice.
+                                  exclude: [/\.map$/, /^manifest.*\.js$/, /\.br$/],
                                   // Single-page app: any unmatched navigation should serve the cached app shell.
                                   navigateFallback: '/index.html',
                                   // Don't fall back for asset-like or .well-known requests.
@@ -591,6 +601,9 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                         : []),
                     // This allows us to interactively inspect JS bundle contents, loader/plugin timings, and duplicate packages
                     ...(process.env.ANALYZE_BUNDLE === 'true' ? [new RsdoctorRspackPlugin()] : []),
+                    // Writes a Brotli 11 twin (`foo.js` -> `foo.js.br`) beside every deployable text/bytecode asset, so the CDN
+                    // can serve it instead of compressing with gzip on the fly: 25-30% fewer bytes over the wire.
+                    ...(shouldCompressWithBrotli ? [new BrotliCompressionPlugin({test: /\.(?:js|css|html|svg|wasm|ttf)$/})] : []),
                 );
 
                 return afterShared;
