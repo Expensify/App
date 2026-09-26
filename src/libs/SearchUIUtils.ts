@@ -4663,7 +4663,7 @@ function isTransactionSearchType(type: string | undefined): boolean {
  * own Reimbursable column renders. Billable works the other way round. Every consumer of a footer breakdown goes
  * through this, so a snapshot total, a live to-do total and a selection subtotal classify a row identically.
  */
-function doesTransactionMatchFooterTotal(transaction: OnyxEntry<Transaction>, totalType: SearchFooterTotal | undefined): boolean {
+function doesTransactionMatchFooterTotal(transaction: OnyxEntry<OnyxTypes.Transaction>, totalType: SearchFooterTotal | undefined): boolean {
     switch (totalType) {
         case CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE:
             return !!transaction && getReimbursable(transaction);
