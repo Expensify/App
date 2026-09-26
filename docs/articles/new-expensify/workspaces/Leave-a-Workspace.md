@@ -29,9 +29,9 @@ Any workspace member, workspace admin, or auditor can leave a workspace they don
 ---
 
 ## What happens after you leave a workspace
- - You lose access to the workspace and can no longer perform the actions your workspace role allowed.
- - Expenses you already submitted on the workspace remain visible to its admins and auditors.
- - A workspace admin can invite you back at any time.
+- You lose access to the workspace and can no longer perform the actions your workspace role allowed.
+- Expenses you already submitted on the workspace remain visible to its admins and auditors.
+- A workspace admin can invite you back at any time.
 
 ---
 
@@ -39,12 +39,12 @@ Any workspace member, workspace admin, or auditor can leave a workspace they don
 
 What happens to your responsibilities depends on your role:
 
- - **Technical Contact** – The workspace owner replaces you as the Technical Contact.
- - **Preferred exporter** – The workspace owner replaces you as the preferred exporter.
- - **Approver** – The workspace owner replaces you in the approval workflow. Reports waiting for your approval are also reassigned to the workspace owner.
- - **Workspace admin** – You are not replaced automatically. You can no longer manage the workspace's settings.
- -** Auditor** – You are not replaced automatically. You can no longer view the workspace's reports and settings.
- - **Member** – You are not replaced automatically. You can no longer submit expenses to the workspace.
+- **Technical Contact** – The workspace owner replaces you as the Technical Contact.
+- **Preferred exporter** – The workspace owner replaces you as the preferred exporter.
+- **Approver** – The workspace owner replaces you in the approval workflow. Reports waiting for your approval are also reassigned to the workspace owner.
+- **Workspace admin** – You are not replaced automatically. You can no longer manage the workspace's settings.
+ - **Auditor** – You are not replaced automatically. You can no longer view the workspace's reports and settings.
+- **Member** – You are not replaced automatically. You can no longer submit expenses to the workspace.
 
 ---
 
