@@ -2,14 +2,13 @@ import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import useSearchTagFilters from '@hooks/useSearchTagFilters';
 
-import {clearSearchTagFiltersState, openSearchTagFiltersPage, setSearchTagFiltersPagination} from '@libs/actions/Search';
+import {openSearchTagFiltersPage, setSearchTagFiltersPagination} from '@libs/actions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const mockOpenSearchTagFiltersPage = jest.mocked(openSearchTagFiltersPage);
 const mockSetSearchTagFiltersPagination = jest.mocked(setSearchTagFiltersPagination);
-const mockClearSearchTagFiltersState = jest.mocked(clearSearchTagFiltersState);
 
 const onyxData: Record<string, unknown> = {};
 
@@ -29,7 +28,6 @@ jest.mock('@hooks/useNetwork', () => ({
 jest.mock('@libs/actions/Search', () => ({
     openSearchTagFiltersPage: jest.fn(() => Promise.resolve({hasMore: false, nextCursor: ''})),
     setSearchTagFiltersPagination: jest.fn(),
-    clearSearchTagFiltersState: jest.fn(),
 }));
 
 jest.mock('@libs/Log', () => ({
@@ -70,10 +68,6 @@ describe('useSearchTagFilters', () => {
         mockSetSearchTagFiltersPagination.mockClear().mockImplementation((hasMore, nextCursor, searchQuery) => {
             onyxData[ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION] = {hasMore, nextCursor, searchQuery};
         });
-        mockClearSearchTagFiltersState.mockClear().mockImplementation(() => {
-            delete onyxData[ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS];
-            delete onyxData[ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION];
-        });
     });
 
     it('fetches with an empty query on mount when pagination still holds a previous search term', async () => {
@@ -91,14 +85,23 @@ describe('useSearchTagFilters', () => {
         expect(mockOpenSearchTagFiltersPage).not.toHaveBeenCalledWith(expect.objectContaining({searchQuery: 'marketing'}), expect.anything());
     });
 
-    it('clears persisted pagination and cached tags when the filter unmounts', () => {
-        setPartialTagFilterState('marketing');
+    it('preserves cached tags when the filter unmounts so they remain available offline', () => {
+        setPartialTagFilterState('');
 
         const {unmount} = renderHook(() => useSearchTagFilters(POLICY_ID));
 
         unmount();
 
-        expect(mockClearSearchTagFiltersState).toHaveBeenCalledTimes(1);
+        expect(onyxData[ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS]).toEqual([{tagName: '-match', tagListName: 'TagList'}]);
+        expect(onyxData[ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION]).toEqual(expect.objectContaining({hasMore: true, nextCursor: 'cursor-1', searchQuery: ''}));
+
+        mockIsOffline = true;
+        mockOpenSearchTagFiltersPage.mockClear();
+
+        const {result} = renderHook(() => useSearchTagFilters(POLICY_ID));
+
+        expect(mockOpenSearchTagFiltersPage).not.toHaveBeenCalled();
+        expect(result.current.searchResults).toEqual([{tagName: '-match', tagListName: 'TagList'}]);
     });
 
     it('re-fetches on remount after leaving the filter so pagination can continue', async () => {
@@ -138,7 +141,7 @@ describe('useSearchTagFilters', () => {
             expect(mockOpenSearchTagFiltersPage).toHaveBeenCalledWith(
                 expect.objectContaining({searchQuery: '', policyIDs: POLICY_ID, cursor: 'cursor-2', limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE}),
                 false,
-                [],
+                [{tagName: '-match', tagListName: 'TagList'}],
             );
         });
     });

@@ -1131,12 +1131,6 @@ function setSearchTagFiltersPagination(hasMore: boolean, nextCursor: string, sea
     });
 }
 
-/** Resets tag filter pagination and cached results when the filter closes. */
-function clearSearchTagFiltersState() {
-    setSearchTagFiltersPagination(false, '', '');
-    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS, []);
-}
-
 function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE>> = [
         {
@@ -2603,7 +2597,6 @@ export {
     openSearchCategoryFiltersPage,
     openSearchTagFiltersPage,
     setSearchTagFiltersPagination,
-    clearSearchTagFiltersState,
     getPolicyFromSearchSnapshot,
     getReportFromSearchSnapshot,
     getReportActionsFromSearchSnapshot,
