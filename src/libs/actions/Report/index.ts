@@ -6159,7 +6159,9 @@ async function completeOnboarding({
         personalTrackGoal,
     };
 
-    if (shouldWaitForRHPVariantInitialization) {
+    // Side-effect requests are not queued or retried, so when offline we fall through to API.write
+    // to keep the optimistic data and replay the request once the user is back online
+    if (shouldWaitForRHPVariantInitialization && !isOfflineNetwork()) {
         // Wait for the workspace to be created before completing the guided setup
         await waitForWrites(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP);
 

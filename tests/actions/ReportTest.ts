@@ -3360,6 +3360,52 @@ describe('actions/Report', () => {
             expect(formEntries.userReportedIntegrationName).toBeUndefined();
         });
 
+        it('should queue CompleteGuidedSetup and keep the optimistic onboarding state when offline, even if waiting for the RHP variant', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+
+            // Given the user is offline, where a side-effect request would fail right away and never be retried
+            setHasRadio(false);
+            await waitForBatchedUpdates();
+
+            // TRACK_WORKSPACE posts the onboarding messages to the Concierge chat
+            const conciergeChat: OnyxTypes.Report = {
+                reportID: '9988776656',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [TEST_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            const engagementChoice = CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
+            const {onboardingMessages} = getOnboardingMessages();
+
+            // When the web Track flow completes onboarding and asks to wait for the RHP variant
+            Report.completeOnboarding({
+                conciergeChat,
+                engagementChoice,
+                onboardingMessage: onboardingMessages[engagementChoice],
+                adminsChatReportID: '7957055873634071',
+                onboardingPolicyID: 'A70D00C752416811',
+                shouldWaitForRHPVariantInitialization: true,
+                introSelected: {choice: engagementChoice},
+                isSelfTourViewed: false,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                delegateAccountID: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the request goes through API.write so it is queued and replayed once online, instead of the side-effect request
+            expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, expect.anything(), expect.anything());
+
+            // And the optimistic data is not rolled back, so the onboarding modal does not reappear
+            const onboarding = await getOnyxValue(ONYXKEYS.NVP_ONBOARDING);
+            expect(onboarding?.hasCompletedGuidedSetupFlow).toBe(true);
+
+            setHasRadio(true);
+            await waitForBatchedUpdates();
+        });
+
         it('should post onboarding tasks to the existing Concierge chat', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
             await waitForBatchedUpdates();
