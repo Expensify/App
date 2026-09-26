@@ -1510,6 +1510,9 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boole
                 [ONYXKEYS.NVP_ONBOARDING]: {
                     hasCompletedGuidedSetupFlow: false,
                 },
+                // openApp() is intentionally deferred until the user dismisses the success screen,
+                // so this flow must remain outside the global loading state in the meantime.
+                [ONYXKEYS.IS_LOADING_APP]: false,
             });
             return;
         }
