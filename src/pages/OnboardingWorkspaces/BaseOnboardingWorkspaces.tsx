@@ -72,9 +72,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
     const [onboardingPersonalDetails] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {
-        selector: expensifyLoginsSelector,
-    });
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const {
@@ -84,13 +82,13 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         hasOutstandingChildTask: joinWorkspaceTaskHasOutstandingChildTask,
         parentReportAction: joinWorkspaceTaskParentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
-    const isValidated = isCurrentUserValidated(loginList, session?.email);
+    const {accountID: currentUserAccountID, email: currentUserEmail} = useCurrentUserPersonalDetails();
+    const isValidated = isCurrentUserValidated(loginList, currentUserEmail);
     const defaultPolicy = useDefaultExpensePolicy();
 
     const {isBetaEnabled} = usePermissions();
@@ -162,6 +160,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             conciergeChat,
             companyDomain: session?.email ? getEmailDomain(session.email) : '',
             workEmail: session?.email ?? '',
+            currentUserAccountID,
             delegateAccountID,
         });
         setOnboardingAdminsChatReportID();
@@ -192,7 +191,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 isJoinWorkspaceTaskParentReportArchived,
                 joinWorkspaceTaskHasOutstandingChildTask,
                 joinWorkspaceTaskParentReportAction,
-                currentUserPersonalDetails.accountID,
+                currentUserAccountID,
             );
         } else {
             askToJoinPolicy(policy.policyID);
@@ -363,6 +362,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 conciergeChat,
                 companyDomain: session?.email ? getEmailDomain(session.email) : '',
                 workEmail: session?.email ?? '',
+                currentUserAccountID,
                 delegateAccountID,
             });
             setOnboardingAdminsChatReportID();
