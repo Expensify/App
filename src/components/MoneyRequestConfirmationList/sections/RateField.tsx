@@ -95,6 +95,21 @@ function RateField({
         shouldMountMileageRateTooltip,
     );
 
+    // Both presentations raise the same tooltip: the bordered row is wrapped in `EducationalTooltip` directly, while
+    // the push row hands the same values to `MenuItem` under its own prop names. They read them off one object so a
+    // design tweak to the anchoring or the offsets lands on both forms instead of only on whichever one is found.
+    const mileageRateTooltip = {
+        shouldRender: shouldMountMileageRateTooltip,
+        shouldDisplayTooltip: shouldShowProductTrainingTooltip,
+        anchorAlignment: {horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM},
+        renderTooltipContent: renderProductTrainingTooltip,
+        wrapperStyle: styles.productTrainingTooltipWrapper,
+        shiftHorizontal: variables.mileageRateTooltipShiftHorizontal,
+        shiftVertical: variables.mileageRateTooltipShiftVertical,
+        onTooltipPress: hideProductTrainingTooltip,
+        shouldHideOnScroll: true,
+    } as const;
+
     // Pass false for isCustomUnitOutOfPolicy because this is the expense creation/edit
     // confirmation screen where a rate violation is not applicable yet.
     const rateTitle = DistanceRequestUtils.getRateForExpenseDisplay(distanceRateName, false, unit, rate, distanceRateCurrency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
@@ -133,15 +148,15 @@ function RateField({
         // put around it here with the same alignment and offsets.
         return (
             <EducationalTooltip
-                shouldRender={shouldMountMileageRateTooltip}
-                shouldDisplayTooltip={shouldShowProductTrainingTooltip}
-                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
-                renderTooltipContent={renderProductTrainingTooltip}
-                wrapperStyle={styles.productTrainingTooltipWrapper}
-                shiftHorizontal={variables.mileageRateTooltipShiftHorizontal}
-                shiftVertical={variables.mileageRateTooltipShiftVertical}
-                onTooltipPress={hideProductTrainingTooltip}
-                shouldHideOnScroll
+                shouldRender={mileageRateTooltip.shouldRender}
+                shouldDisplayTooltip={mileageRateTooltip.shouldDisplayTooltip}
+                anchorAlignment={mileageRateTooltip.anchorAlignment}
+                renderTooltipContent={mileageRateTooltip.renderTooltipContent}
+                wrapperStyle={mileageRateTooltip.wrapperStyle}
+                shiftHorizontal={mileageRateTooltip.shiftHorizontal}
+                shiftVertical={mileageRateTooltip.shiftVertical}
+                onTooltipPress={mileageRateTooltip.onTooltipPress}
+                shouldHideOnScroll={mileageRateTooltip.shouldHideOnScroll}
             >
                 <ExpenseFieldRow
                     name={translate('common.rate')}
@@ -169,15 +184,15 @@ function RateField({
             disabled={didConfirm}
             interactive={isRateInteractive}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RATE_FIELD}
-            shouldRenderTooltip={shouldMountMileageRateTooltip}
-            shouldDisplayEducationalTooltip={shouldShowProductTrainingTooltip}
-            renderTooltipContent={renderProductTrainingTooltip}
-            tooltipWrapperStyle={styles.productTrainingTooltipWrapper}
-            tooltipAnchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
-            tooltipShiftHorizontal={variables.mileageRateTooltipShiftHorizontal}
-            tooltipShiftVertical={variables.mileageRateTooltipShiftVertical}
-            onEducationTooltipPress={hideProductTrainingTooltip}
-            shouldHideOnScroll
+            shouldRenderTooltip={mileageRateTooltip.shouldRender}
+            shouldDisplayEducationalTooltip={mileageRateTooltip.shouldDisplayTooltip}
+            renderTooltipContent={mileageRateTooltip.renderTooltipContent}
+            tooltipWrapperStyle={mileageRateTooltip.wrapperStyle}
+            tooltipAnchorAlignment={mileageRateTooltip.anchorAlignment}
+            tooltipShiftHorizontal={mileageRateTooltip.shiftHorizontal}
+            tooltipShiftVertical={mileageRateTooltip.shiftVertical}
+            onEducationTooltipPress={mileageRateTooltip.onTooltipPress}
+            shouldHideOnScroll={mileageRateTooltip.shouldHideOnScroll}
         />
     );
 }

@@ -34,6 +34,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import AutomaticFieldHint from './AutomaticFieldHint';
+import ExpenseFieldRow from './ExpenseFieldRow';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {amountSliceSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
@@ -70,7 +71,7 @@ function AmountField({
     const {isEditingSplitBill, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
     // Filled by the forms that offer a receipt from beside the amount field rather than from a full-width empty
     // state, with their compact add-receipt button.
-    const {amountTrailingAction} = useExpenseFormLayout();
+    const {amountTrailingAction, shouldUseDropdownRows} = useExpenseFormLayout();
     // The Scan confirmation keeps the amount unfocused: its fields sit behind "Show more", which the user also opens
     // to reach the rest of the expense, so focusing the amount would push them towards entering it manually.
     const shouldAutoFocusOnMount = !canUseTouchScreen() && !canEnterScanFieldsManually;
@@ -304,6 +305,14 @@ function AmountField({
         }
     };
 
+    const openAmountPage = () => {
+        if (!canOpenAmountPage || !transactionID) {
+            return;
+        }
+
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(action, iouType, transactionID, reportID, reportActionID, CONST.IOU.PAGE_INDEX.CONFIRM, Navigation.getActiveRoute()));
+    };
+
     return (
         <>
             <IOURequestStepCurrencyModal
@@ -341,7 +350,9 @@ function AmountField({
                             }}
                             leadingRightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
                             // Borderless on every confirmation form, not only the one that borders its rows, so
-                            // the flip and currency buttons read the same way in Manual, Scan and the rest.
+                            // the flip and currency buttons read the same way in Manual, Scan and the rest. The prop
+                            // stays because `ChronosScheduleOOOPage` reaches the same buttons through `AmountForm`
+                            // for its duration-unit picker, where the bordered button is the intended look.
                             shouldUseBorderlessButtons
                             disabled={isAmountFieldDisabled}
                         />
@@ -352,40 +363,40 @@ function AmountField({
                 // The distance and time forms compute their amount rather than take it, so the field is a read-only
                 // row on them. The trailing slot travels with it, or those forms would have nowhere to offer the
                 // compact add-receipt button from.
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, shouldUseDropdownRows ? undefined : styles.mt2]}>
                     <View style={styles.flex1}>
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={canOpenAmountPage}
-                            title={formattedAmount}
-                            description={translate('iou.amount')}
-                            interactive={canOpenAmountPage}
-                            onPress={() => {
-                                if (!canOpenAmountPage || !transactionID) {
-                                    return;
-                                }
-
-                                Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(
-                                        action,
-                                        iouType,
-                                        transactionID,
-                                        reportID,
-                                        reportActionID,
-                                        CONST.IOU.PAGE_INDEX.CONFIRM,
-                                        Navigation.getActiveRoute(),
-                                    ),
-                                );
-                            }}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.moneyRequestConfirmationAmount}
-                            disabled={didConfirm}
-                            brickRoadIndicator={shouldDisplayFieldError && amountIsMissing ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            errorText={shouldDisplayFieldError && amountIsMissing ? translate('common.error.enterAmount') : ''}
-                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.AMOUNT_FIELD}
-                        />
+                        {shouldUseDropdownRows ? (
+                            // On the bordered form the editable amount is a text input, so a locked one reads as a
+                            // disabled input too rather than as a push row, or a form whose amount is computed
+                            // answers "this field can't be changed" differently from the fields under it.
+                            <ExpenseFieldRow
+                                name={translate('iou.amount')}
+                                value={formattedAmount}
+                                onPress={openAmountPage}
+                                isDisabled={didConfirm}
+                                isInteractive={canOpenAmountPage}
+                                errorText={shouldDisplayFieldError && amountIsMissing ? translate('common.error.enterAmount') : ''}
+                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.AMOUNT_FIELD}
+                            />
+                        ) : (
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon={canOpenAmountPage}
+                                title={formattedAmount}
+                                description={translate('iou.amount')}
+                                interactive={canOpenAmountPage}
+                                onPress={openAmountPage}
+                                style={[styles.moneyRequestMenuItem]}
+                                titleStyle={styles.moneyRequestConfirmationAmount}
+                                disabled={didConfirm}
+                                brickRoadIndicator={shouldDisplayFieldError && amountIsMissing ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                errorText={shouldDisplayFieldError && amountIsMissing ? translate('common.error.enterAmount') : ''}
+                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.AMOUNT_FIELD}
+                            />
+                        )}
                     </View>
                     {/* The push row carries its own 20px of horizontal padding, so the button is inset to the 16px
-                        the bordered fields below it sit at. */}
+                        the bordered fields below it sit at. The bordered row is already at 16px and takes its own
+                        vertical margin with it, which is why only the push row needs the top margin above. */}
                     {!!amountTrailingAction && <View style={styles.mr4}>{amountTrailingAction}</View>}
                 </View>
             )}

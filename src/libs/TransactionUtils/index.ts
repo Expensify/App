@@ -3604,6 +3604,12 @@ function getEligibleTransactionsToAdd({
 function willFieldBeAutomaticallyFilled(transaction: OnyxEntry<Transaction>, fieldType: 'amount' | 'merchant' | 'date' | 'category'): boolean {
     // Categorization runs on a manually created expense just as it does on a scanned one, so the category makes the
     // same "Automatic" promise in either flow. Everything else here is read off the receipt, so it stays scan-only.
+    //
+    // The promise is unconditional because nothing on the client says otherwise: the workspace setting that would
+    // let an admin turn auto-categorization off (`autoCategorizeNewExpenses`, App #98030) was reverted before it
+    // shipped, so categorization runs on every workspace today. When that setting comes back this is where it gates,
+    // and a workspace that requires categories but does not auto-categorize gets `Required` on the row again rather
+    // than a promise nothing keeps.
     if (fieldType === 'category' && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
         return true;
     }

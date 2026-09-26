@@ -84,7 +84,8 @@ type ExpenseFieldRowProps = {
  *
  * A field nobody can change stays a field: it keeps the border and reads as a disabled input, losing only the
  * caret and the press handler. That rule lives here rather than in each caller so every locked field on the form
- * looks the same.
+ * looks the same. The fields backed by a text input rather than by a selector — amount, description and date —
+ * reach this row only once they are locked, which is what keeps that promise true for the whole form.
  */
 function ExpenseFieldRow({
     name,
