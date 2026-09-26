@@ -28,4 +28,3 @@ function MenuItemFieldValue({isMuted = false, ...props}: MenuItemFieldValueProps
 }
 
 export default MenuItemFieldValue;
-export type {MenuItemFieldValueProps};
