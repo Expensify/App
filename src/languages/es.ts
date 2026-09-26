@@ -6999,6 +6999,16 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             peopleAdmins: 'Administradores de personas',
             paymentsAdmins: 'Administradores de pagos',
             members: 'Miembros',
+            workArrangement: 'Modalidad de trabajo',
+            officeBased: 'En oficina',
+            noRegularWorkspace: 'Remoto o móvil',
+            workArrangementPage: {
+                title: 'Modalidad de trabajo',
+                optionOfficeBasedHelp: 'La persona se desplaza habitualmente a una oficina. Los desplazamientos ordinarios quedan excluidos del reembolso.',
+                optionNoRegularWorkspaceHelp:
+                    'La persona miembro trabaja desde casa o viaja entre ubicaciones sin una oficina fija, por lo que no se aplican las normas sobre desplazamientos.',
+                futureOnlyNote: 'Los cambios se aplican solo a los cálculos de kilometraje futuros. Los gastos de kilometraje existentes no se recalculan.',
+            },
         },
         accounting: {
             settings: 'configuración',
@@ -9401,6 +9411,10 @@ ${reportName}`,
                 : `cambió el flujo de aprobación para ${member} para dejar de reenviar informes por encima de ${previousLimit}`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `cambió el flujo de aprobación para ${member} para reenviar los informes superiores a ${limit} (previamente ${previousLimit})`,
+        updatedMemberWorkArrangement: (displayName: string, newArrangement: string, oldArrangement: string) =>
+            `cambió el acuerdo de trabajo de ${displayName} a ${newArrangement} (previamente ${oldArrangement})`,
+        updatedDefaultWorkArrangement: (newArrangement: string, oldArrangement: string) =>
+            `cambió la modalidad de trabajo predeterminada a ${newArrangement} (previamente ${oldArrangement})`,
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',

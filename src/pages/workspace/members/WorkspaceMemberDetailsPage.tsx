@@ -22,6 +22,7 @@ import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
@@ -116,6 +117,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const {convertToDisplayString} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info', 'Transfer']);
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
+    const isWorkArrangementBetaEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS);
     const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
@@ -412,6 +415,22 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, accountID));
                                 }}
                             />
+                            {policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && isWorkArrangementBetaEnabled && (
+                                <MenuItemWithTopDescription
+                                    disabled={!canWriteMembers}
+                                    title={translate(
+                                        (member?.hasOfficeWorkArrangement ?? policy?.commuterExclusions?.isOfficeWorkArrangement ?? false)
+                                            ? 'workspace.people.officeBased'
+                                            : 'workspace.people.noRegularWorkspace',
+                                    )}
+                                    interactive={canWriteMembers}
+                                    description={translate('workspace.people.workArrangement')}
+                                    shouldShowRightIcon={canWriteMembers}
+                                    shouldGreyOutWhenDisabled={false}
+                                    shouldUseDefaultCursorWhenDisabled
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_WORK_ARRANGEMENT.getRoute(policyID, accountID))}
+                                />
+                            )}
                             {isControlPolicy(policy) && (
                                 <>
                                     <OfflineWithFeedback pendingAction={member?.pendingFields?.employeeUserID}>

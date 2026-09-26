@@ -1112,6 +1112,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: {
                             path: ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.route,
                         },
+                        [SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT]: {
+                            path: ROUTES.WORKSPACE_MEMBER_WORK_ARRANGEMENT.route,
+                        },
                         [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_SUCCESS]: DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.path,
                         [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_ERROR]: DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.path,
                         [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK]: DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.path,

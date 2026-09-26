@@ -7097,6 +7097,15 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             peopleAdmins: 'Administratorzy osób',
             paymentsAdmins: 'Administratorzy płatności',
             members: 'Członkowie',
+            workArrangement: 'Ustalenia dotyczące pracy',
+            officeBased: 'Praca w biurze',
+            noRegularWorkspace: 'Zdalnie lub mobilnie',
+            workArrangementPage: {
+                title: 'Ustalenia dotyczące pracy',
+                optionOfficeBasedHelp: 'Członek dojeżdża do biura. Zwykłe dojazdy nie podlegają zwrotowi kosztów.',
+                optionNoRegularWorkspaceHelp: 'Członek pracuje z domu lub podróżuje między lokalizacjami bez stałego biura, więc zasady dotyczące dojazdów do pracy nie mają zastosowania.',
+                futureOnlyNote: 'Zmiany mają zastosowanie tylko do przyszłych obliczeń kilometrówki. Istniejące wydatki za przejazdy nie są przeliczane ponownie.',
+            },
         },
         card: {
             getStartedIssuing: 'Zacznij od wydania swojej pierwszej wirtualnej lub fizycznej karty.',
@@ -9507,6 +9516,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 : `zmienił(a) proces akceptacji dla ${member}, żeby przestać przekazywać raporty powyżej ${previousLimit}`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `zmienił obieg akceptacji dla ${member}, aby przekazywać raporty powyżej ${limit} (wcześniej ${previousLimit})`,
+        updatedMemberWorkArrangement: (displayName: string, newArrangement: string, oldArrangement: string) =>
+            `zmienił(a) tryb pracy użytkownika ${displayName} na ${newArrangement} (wcześniej ${oldArrangement})`,
+        updatedDefaultWorkArrangement: (newArrangement: string, oldArrangement: string) => `zmienił domyślny tryb pracy na ${newArrangement} (wcześniej ${oldArrangement})`,
     },
     roomMembersPage: {
         memberNotFound: 'Nie znaleziono członka.',

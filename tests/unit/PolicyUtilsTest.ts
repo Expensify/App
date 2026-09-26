@@ -88,6 +88,7 @@ import {
     isInvoiceFieldsEnabled,
     isMatchingVendorListLoaded,
     isMaxExpenseAmountSet,
+    isMemberInHomeAndOfficeWorkspace,
     isMergeHRCompleteSetupNeededSelector,
     isPerDiemEligiblePolicy,
     isPerDiemEnabled,
@@ -6118,6 +6119,28 @@ describe('getConnectedIntegration', () => {
     it('ignores non-accounting connections (e.g. HR integrations)', () => {
         const policy = createMock<Policy>({connections: {gusto: {data: {}}}});
         expect(getConnectedIntegration(policy)).toBeUndefined();
+    });
+});
+
+describe('isMemberInHomeAndOfficeWorkspace', () => {
+    it('only allows members of home and office workspaces', () => {
+        // Given a workspace whose employee list contains one member
+        const memberLogin = 'member@example.com';
+        const policy = createMock<Policy>({
+            commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE},
+            employeeList: {[memberLogin]: {email: memberLogin}},
+        });
+        const otherWorkspace = {...policy, commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE}};
+
+        // When workspace mode and membership are checked
+        const isEligibleMember = isMemberInHomeAndOfficeWorkspace(policy, memberLogin);
+        const isEligibleForOtherWorkspaceMode = isMemberInHomeAndOfficeWorkspace(otherWorkspace, memberLogin);
+        const isEligibleForUnknownMember = isMemberInHomeAndOfficeWorkspace(policy, 'unknown@example.com');
+
+        // Then only the known member in a home and office workspace is eligible
+        expect(isEligibleMember).toBe(true);
+        expect(isEligibleForOtherWorkspaceMode).toBe(false);
+        expect(isEligibleForUnknownMember).toBe(false);
     });
 });
 

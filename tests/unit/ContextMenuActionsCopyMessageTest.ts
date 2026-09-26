@@ -179,4 +179,25 @@ describe('ContextMenuActions copy message', () => {
 
         expect(mockSetString).toHaveBeenCalledWith('workspaceActions.updateAreAttendeesRequired');
     });
+
+    it('copies the localized message for a member work arrangement update action', () => {
+        mockCanSetHtml.mockReturnValue(false);
+
+        if (!copyMessageAction?.onPress) {
+            throw new Error('Copy message context menu action was not found');
+        }
+
+        copyMessageAction.onPress(
+            false,
+            createReportActionPayload(
+                createMock<CopyMessagePayload['reportAction']>({
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT,
+                    message: [{text: 'updated work arrangement', html: 'updated work arrangement'}],
+                    originalMessage: {name: 'Member One', newValue: true, oldValue: false},
+                }),
+            ),
+        );
+
+        expect(mockSetString).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement');
+    });
 });

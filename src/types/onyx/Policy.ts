@@ -3053,6 +3053,9 @@ type CommuterExclusions = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Distance unit stored alongside fixedDistance ('mi' or 'km'). Mirrors the policy distance custom unit at the time it was set. */
     fixedDistanceUnit?: string;
+
+    /** Default work arrangement for members without a per-member hasOfficeWorkArrangement. */
+    isOfficeWorkArrangement?: boolean;
 }>;
 
 /** Prohibited expense types */

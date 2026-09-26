@@ -7071,6 +7071,15 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             peopleAdmins: 'People-beheerders',
             paymentsAdmins: 'Betalingsbeheerders',
             members: 'Leden',
+            workArrangement: 'Werkregeling',
+            officeBased: 'Op kantoor',
+            noRegularWorkspace: 'Op afstand of mobiel',
+            workArrangementPage: {
+                title: 'Werkregeling',
+                optionOfficeBasedHelp: 'Lid pendelt naar een kantoor. Gewone woon-werkverplaatsingen komen niet in aanmerking voor vergoeding.',
+                optionNoRegularWorkspaceHelp: 'Lid werkt thuis of reist tussen locaties zonder vaste kantoorlocatie, waardoor woon-werkregels niet van toepassing zijn.',
+                futureOnlyNote: 'Wijzigingen zijn alleen van toepassing op toekomstige kilometerberekeningen. Bestaande kilometerdeclaraties worden niet opnieuw berekend.',
+            },
         },
         card: {
             getStartedIssuing: 'Begin met het uitgeven van je eerste virtuele of fysieke kaart.',
@@ -9494,6 +9503,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 : `heeft de goedkeuringsworkflow voor ${member} gewijzigd zodat rapporten boven ${previousLimit} niet meer worden doorgestuurd`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `heeft de goedkeuringsworkflow voor ${member} gewijzigd om rapporten boven ${limit} door te sturen (voorheen ${previousLimit})`,
+        updatedMemberWorkArrangement: (displayName: string, newArrangement: string, oldArrangement: string) =>
+            `heeft de werkregeling van ${displayName} gewijzigd naar ${newArrangement} (voorheen ${oldArrangement})`,
+        updatedDefaultWorkArrangement: (newArrangement: string, oldArrangement: string) => `heeft de standaardwerkregeling gewijzigd naar ${newArrangement} (voorheen ${oldArrangement})`,
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',
