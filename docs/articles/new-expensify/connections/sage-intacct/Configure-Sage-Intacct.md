@@ -1,7 +1,7 @@
 ---
 title: Configure Sage Intacct
 description: Configure import, export, and advanced sync settings for Expensify's Sage Intacct integration.
-keywords: [New Expensify, Sage Intacct settings, import configuration, export preferences, auto-sync, custom dimensions]
+keywords: [New Expensify, Sage Intacct settings, import configuration, export preferences, auto-sync, custom dimensions, currency conversion fee account]
 order: 3
 ---
 
@@ -176,6 +176,19 @@ Choose how to sync reimbursement status:
 
 **Note**: Make sure the selected account matches your Bill Payments default in Sage Intacct.
 
+## How to set the Sage Intacct currency conversion fee account
+
+When your company covers the currency conversion cost on a payment made abroad, Expensify posts that cost to Sage Intacct as a journal entry. Choose the expense account it posts to:
+
+1. Go to **Workspaces > [Workspace Name] > Accounting**
+2. Click **Advanced** under Sage Intacct
+3. Select **Sage Intacct currency conversion fee account**
+4. Select an expense account from the list, or type in the search box to filter it
+
+The row sits under **Sage Intacct payment account** and appears only when **Sync reimbursed reports** is enabled and your workspace reimburses through Expensify.
+
+To choose who pays the cost, go to **Workspaces > [Workspace Name] > Workflows > Payments > Currency conversion fees** and select **Company pays** or **Employee pays**. The account you select here is only used when you select **Company pays**.
+
 ## How to sync Consolidated Travel Billing settlements in Sage Intacct
 
 **Sync Consolidated Travel Billing settlements** appears only when [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) is enabled. Turn on this toggle to continuously reconcile settlements through Sage Intacct. When enabled, select a **Reconciliation account** to match your settlement account. Auto-sync must be enabled to use this setting.
@@ -187,4 +200,17 @@ Choose how to sync reimbursement status:
 ## Will enabling auto-sync affect previously approved reports?
 
 No. Auto-sync only affects newly approved reports. Older approved or reimbursed reports must be exported manually if they weren’t synced before enabling auto-sync.
+
+## Why don’t I see the Sage Intacct currency conversion fee account setting?
+
+The setting is hidden unless both of the following are true:
+
+- **Sync reimbursed reports** is enabled on the **Advanced** tab, since the cost posts alongside a bill payment
+- Your workspace reimburses through Expensify, set in **Workspaces > [Workspace Name] > Workflows > Payments**
+
+## Which accounts can I select as the Sage Intacct currency conversion fee account?
+
+The list holds the expense accounts imported from Sage Intacct, so the cost lands on your profit and loss statement rather than the balance sheet. It is a separate list from the **Cash and Cash Equivalents** accounts offered for **Sage Intacct payment account**.
+
+If the list is empty, sync the connection to import your expense accounts. Go to **Workspaces > [Workspace Name] > Accounting**, select the three dots **(⋮)** next to Sage Intacct, and choose **Sync now**.
 
