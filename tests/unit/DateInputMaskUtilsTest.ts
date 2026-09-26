@@ -73,15 +73,33 @@ describe('DateInputMaskUtils', () => {
     });
 
     describe('getViewDateFromSegments', () => {
-        /** September, standing in for the month the calendar happens to be showing */
-        const FALLBACK_MONTH_INDEX = 8;
+        /** September 2026, standing in for the month and year the calendar happens to be showing */
+        const FALLBACK_DATE = new Date(2026, 8, 1);
         const MIN_DATE = new Date(1876, 8, 17);
         const MAX_DATE = new Date(2126, 8, 17);
-        const viewDateFor = (dateSegments: DateSegments) => getViewDateFromSegments(dateSegments, FALLBACK_MONTH_INDEX, MIN_DATE, MAX_DATE);
+        const viewDateFor = (dateSegments: DateSegments) => getViewDateFromSegments(dateSegments, FALLBACK_DATE, MIN_DATE, MAX_DATE);
 
-        it('leaves the calendar alone while the year is unfinished', () => {
+        it('leaves the calendar alone while the year is unfinished and no month has been typed', () => {
             expect(viewDateFor(segments('202', '', ''))).toBeUndefined();
             expect(viewDateFor(EMPTY)).toBeUndefined();
+        });
+
+        it('moves the month typed before a year, keeping the year on screen', () => {
+            // Given a month typed into a field whose year is still empty
+            // When the calendar is asked where to go
+            // Then it follows the month rather than waiting for a year it may not be given next
+            expect(viewDateFor(segments('', '03', ''))).toEqual(new Date(2026, 2, 1));
+            expect(viewDateFor(segments('19', '03', ''))).toEqual(new Date(2026, 2, 1));
+        });
+
+        it('pulls the year on screen into range for a month typed before a year', () => {
+            // Given a field that only accepts dates up to September 2008, such as a date of birth, while the calendar
+            // starts from today and is therefore showing a year that can never be picked
+            const maxDate = new Date(2008, 8, 27);
+
+            // When a month is typed before any year
+            // Then the month lands in the newest year that can be picked, rather than being refused as out of range
+            expect(getViewDateFromSegments(segments('', '03', ''), FALLBACK_DATE, MIN_DATE, maxDate)).toEqual(new Date(2008, 2, 1));
         });
 
         it('moves the year while keeping the month on screen', () => {

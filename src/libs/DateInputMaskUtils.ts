@@ -219,16 +219,22 @@ function typeDigitIntoSegments(
  *
  * A month outside the allowed range is refused rather than clamped. Every year is out of range while it is being
  * typed, since 1985 passes through 1, 19 and 198, and clamping those would drag the calendar to the limit and back on
- * every keystroke.
+ * every keystroke. An unfinished year is therefore ignored, and a month typed before one lands in the year on screen.
  */
-function getViewDateFromSegments(segments: DateSegments, fallbackMonthIndex: number, minDate: Date, maxDate: Date): Date | undefined {
-    if (segments.year.length !== YEAR_LENGTH) {
+function getViewDateFromSegments(segments: DateSegments, fallbackDate: Date, minDate: Date, maxDate: Date): Date | undefined {
+    const monthNumber = Number(segments.month);
+    const hasMonth = segments.month.length === SEGMENT_LENGTH && monthNumber >= FIRST_MONTH && monthNumber <= SEGMENT_LIMITS.month.max;
+    const hasYear = segments.year.length === YEAR_LENGTH;
+
+    // Neither segment reads as somewhere to go yet, so the calendar keeps whatever it is showing
+    if (!hasYear && !hasMonth) {
         return undefined;
     }
 
-    const monthNumber = Number(segments.month);
-    const hasMonth = segments.month.length === SEGMENT_LENGTH && monthNumber >= FIRST_MONTH && monthNumber <= SEGMENT_LIMITS.month.max;
-    const viewDate = new Date(Number(segments.year), hasMonth ? monthNumber - 1 : fallbackMonthIndex, 1);
+    // The year on screen can sit outside the allowed range, since it starts at today even where only much older dates
+    // may be picked. Pulling it into range is what lets a month typed before a year land on a real month.
+    const fallbackYear = Math.min(Math.max(fallbackDate.getFullYear(), minDate.getFullYear()), maxDate.getFullYear());
+    const viewDate = new Date(hasYear ? Number(segments.year) : fallbackYear, hasMonth ? monthNumber - 1 : fallbackDate.getMonth(), 1);
 
     // A month holding no selectable day at all is not worth moving to
     return endOfMonth(viewDate) < minDate || viewDate > maxDate ? undefined : viewDate;

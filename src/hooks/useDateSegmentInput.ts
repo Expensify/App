@@ -179,7 +179,7 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
     /** The one place segments are written, so the calendar cannot fall out of step with them */
     const applySegments = (newSegments: DateSegments) => {
         setSegments(newSegments);
-        assertViewDate(getViewDateFromSegments(newSegments, (viewDate ?? new Date()).getMonth(), minDate, maxDate));
+        assertViewDate(getViewDateFromSegments(newSegments, viewDate ?? new Date(), minDate, maxDate));
         commitSegments(newSegments);
     };
 
@@ -283,7 +283,7 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
         const seededSegments = hasInvalidEntry ? segments : getSegmentsFromISODate(value);
         setHasInvalidEntry(false);
         setSegments(seededSegments);
-        assertViewDate(getViewDateFromSegments(seededSegments, new Date().getMonth(), minDate, maxDate));
+        assertViewDate(getViewDateFromSegments(seededSegments, new Date(), minDate, maxDate));
         setIsEditing(true);
     };
 
