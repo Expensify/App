@@ -13,7 +13,7 @@ import {setDisableDismissOnEscape} from './actions/Modal';
 import SidePanelActions from './actions/SidePanel';
 import {setOnboardingRHPVariant} from './actions/Welcome';
 import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostSplitNavigator';
-import {dismissOnboardingModalBeforeExit} from './Navigation/helpers/OnboardingNavigationUtils';
+import {dismissOnboardingModalBeforeExit, resetOnboardingStackToRoot} from './Navigation/helpers/OnboardingNavigationUtils';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
@@ -137,6 +137,7 @@ function navigateAfterOnboardingWithMicrotaskQueue(
             shouldPreventOpenAdminRoom,
             options,
         );
+        resetOnboardingStackToRoot();
     });
 }
 
@@ -161,6 +162,7 @@ function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: s
     dismissOnboardingModalBeforeExit();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
         navigateToSubmitWorkspaceAfterOnboarding(policyID, shouldUseNarrowLayout);
+        resetOnboardingStackToRoot();
     });
 }
 

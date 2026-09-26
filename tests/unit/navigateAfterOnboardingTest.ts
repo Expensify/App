@@ -1,4 +1,5 @@
-import {navigateAfterOnboarding} from '@libs/navigateAfterOnboarding';
+import {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
+import {resetOnboardingStackToRoot} from '@libs/Navigation/helpers/OnboardingNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type * as ReportUtils from '@libs/ReportUtils';
 
@@ -74,6 +75,11 @@ jest.mock('@libs/Navigation/helpers/shouldOpenOnAdminRoom', () => ({
     default: () => mockShouldOpenOnAdminRoom(),
 }));
 
+jest.mock('@libs/Navigation/helpers/OnboardingNavigationUtils', () => ({
+    dismissOnboardingModalBeforeExit: jest.fn(),
+    resetOnboardingStackToRoot: jest.fn(),
+}));
+
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => ({
     __esModule: true,
     default: () => mockIsReportTopmostSplitNavigator(),
@@ -107,6 +113,17 @@ describe('navigateAfterOnboarding', () => {
         // Without an admins chat report, we fall back to HOME to trigger guard evaluation instead of opening a report.
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
         expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
+    });
+
+    it('should clear onboarding history after navigating away from the final screen', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((navigationAction) => navigationAction());
+
+        navigateAfterOnboardingWithMicrotaskQueue(false, true, '', {});
+
+        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
+        expect(resetOnboardingStackToRoot).toHaveBeenCalledTimes(1);
+        expect(navigate.mock.invocationCallOrder.at(0) ?? 0).toBeLessThan(jest.mocked(resetOnboardingStackToRoot).mock.invocationCallOrder.at(0) ?? 0);
     });
 
     it('should preserve the topmost report if onboardingAdminsChatReportID is not provided on larger screens', () => {
