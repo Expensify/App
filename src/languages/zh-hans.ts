@@ -9387,7 +9387,11 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: '导出',
             },
             filterType: {label: '筛选类型', has: {positive: '有', negative: '没有'}, is: {positive: '是', negative: '不是'}},
-            merchant: {matchType: '匹配类型', contains: '包含', exactMatch: '等于'},
+            merchant: {
+                matchType: '匹配类型',
+                contains: (merchant?: string) => (merchant ? `包含 "${merchant}"` : '包含'),
+                equalTo: (merchant?: string) => (merchant ? `等于 "${merchant}"` : '等于'),
+            },
             created: '已创建',
             createdDate: '创建日期',
             transactionStatus: {

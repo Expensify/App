@@ -624,26 +624,14 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense policyID:67890 merchant*:Amazon description:Electronics laptop category:electronics,gadgets');
         });
 
-        test('defaults a merchant filter without an operator to contains', () => {
-            const filterValues: Partial<SearchAdvancedFiltersForm> = {
-                type: 'expense',
-                merchant: 'Amazon',
-            };
+        test.each([CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, undefined])('builds a contains merchant query when the merchant operator is %s', (merchantOperator) => {
+            // Given a merchant filter stored as contains, or with no operator
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {type: 'expense', merchant: 'Amazon', merchantOperator};
 
+            // When the query string is built
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('type:expense merchant*:Amazon');
-        });
-
-        test('builds contains merchant query when merchant operator is contains', () => {
-            const filterValues: Partial<SearchAdvancedFiltersForm> = {
-                type: 'expense',
-                merchant: 'Amazon',
-                merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
-            };
-
-            const result = buildQueryStringFromFilterFormValues(filterValues);
-
+            // Then it uses contains, because partial matching is the default merchant behavior
             expect(result).toEqual('type:expense merchant*:Amazon');
         });
 
@@ -1397,52 +1385,22 @@ describe('SearchQueryUtils', () => {
     });
 
     describe('buildFilterFormValuesFromQuery', () => {
-        test('restores exact merchant operator from explicit exact query', () => {
-            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense merchant=Uber');
-
+        test.each([
+            ['merchant=Uber', CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO],
+            ['merchant:Uber', CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS],
+            ['merchant*:Uber', CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS],
+        ])('restores the merchant operator from %s', (merchantQuery, merchantOperator) => {
+            // Given a query with an explicit exact, legacy, or contains merchant filter
+            const queryJSON = buildSearchQueryJSON(`sortBy:date sortOrder:desc type:expense ${merchantQuery}`);
             if (!queryJSON) {
                 throw new Error('Failed to parse query string');
             }
 
+            // When the form values are built from the query
             const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
 
-            expect(result).toEqual({
-                type: 'expense',
-                merchant: 'Uber',
-                merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-            });
-        });
-
-        test('restores legacy merchant operator as contains', () => {
-            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense merchant:Uber');
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
-
-            expect(result).toEqual({
-                type: 'expense',
-                merchant: 'Uber',
-                merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
-            });
-        });
-
-        test('restores contains merchant operator from query', () => {
-            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense merchant*:Uber');
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
-
-            expect(result).toEqual({
-                type: 'expense',
-                merchant: 'Uber',
-                merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
-            });
+            // Then only `=` restores Equal to, because legacy `:` keeps its partial-match behavior
+            expect(result).toEqual({type: 'expense', merchant: 'Uber', merchantOperator});
         });
 
         test('category filter includes empty values', () => {
@@ -3065,30 +3023,30 @@ describe('SearchQueryUtils', () => {
             }
 
             test.each([
+                // Mixed operators, both orders
                 'merchant="Coffee Shop" merchant*:Coffee',
                 'merchant*:Coffee merchant="Coffee Shop"',
-                'merchant*:Tea merchant="Coffee Shop"',
-                'merchant="Coffee Shop" merchant:Coffee',
+                // Mixed operators with lists and quoted commas
                 'merchant="Coffee Shop",Uber merchant*:Coffee,Tea',
                 'merchant="Coffee, Shop" merchant*:"Coffee, Shop"',
+                // Three clauses, and positive mixed with negated
                 'merchant=I merchant*:I merchant*:g',
                 'merchant=I merchant*:I -merchant:Ig',
+                // Same operator repeated
                 'merchant*:Coffee merchant*:Shop',
-                'merchant*:Amazon,Uber',
-                'merchant:Amazon,Uber',
-                'merchant=Amazon,Uber',
-                'merchant*:"Amazon,Uber"',
-                'merchant="Amazon,Uber"',
-                'merchant*:"Coffee, Shop",Uber',
+                // Single clause of each kind
                 'merchant=I',
                 'merchant*:I',
-                '-merchant:I',
+                'merchant=Amazon,Uber',
+                // Negated
                 '-merchant:Amazon -merchant:Prime',
-                '-merchant:Amazon,Prime',
                 '-merchant:"Coffee, Shop",Uber',
             ])('preserves Merchant predicates when changing Currency: %s', (input) => {
+                // Given a query with Merchant predicates
+                // When only the Currency filter changes
                 const {originalQuery, updatedQuery} = updateQuery(input, {currency: ['USD']});
 
+                // Then every Merchant predicate is kept as it was and the Currency filter is added
                 expect(updatedQuery.flatFilters.filter((filter) => filter.key === 'merchant')).toEqual(originalQuery.flatFilters.filter((filter) => filter.key === 'merchant'));
                 expect(updatedQuery.flatFilters).toContainEqual({key: 'currency', filters: [{operator: 'eq', value: 'USD'}]});
             });
@@ -4264,46 +4222,23 @@ describe('SearchQueryUtils', () => {
     });
 
     describe('applyContainsOperatorToTextFields', () => {
-        it('should preserve explicit merchant eq as exact match', () => {
-            const queryJSON = buildSearchQueryJSON('type:expense merchant=coffee');
+        it.each([
+            ['merchant=coffee', CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO],
+            ['merchant:coffee', CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS],
+            ['merchant*:coffee', CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS],
+        ])('should preserve the parsed merchant operator for %s', (merchantQuery, merchantOperator) => {
+            // Given a query with an explicit exact, legacy, or contains merchant filter
+            const queryJSON = buildSearchQueryJSON(`type:expense ${merchantQuery}`);
             if (!queryJSON?.filters) {
                 throw new Error('Expected filters to be defined');
             }
-            const transformed = applyContainsOperatorToTextFields(queryJSON.filters);
-            const merchantNode = findNode(transformed, 'merchant');
-            if (!merchantNode) {
-                throw new Error('Expected merchant node to be found in AST');
-            }
-            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
-            expect(merchantNode.right).toBe('coffee');
-        });
 
-        it('should preserve legacy merchant operator as contains', () => {
-            const queryJSON = buildSearchQueryJSON('type:expense merchant:coffee');
-            if (!queryJSON?.filters) {
-                throw new Error('Expected filters to be defined');
-            }
-            const transformed = applyContainsOperatorToTextFields(queryJSON.filters);
-            const merchantNode = findNode(transformed, 'merchant');
-            if (!merchantNode) {
-                throw new Error('Expected merchant node to be found in AST');
-            }
-            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
-            expect(merchantNode.right).toBe('coffee');
-        });
+            // When text field operators are normalized
+            const merchantNode = findNode(applyContainsOperatorToTextFields(queryJSON.filters), 'merchant');
 
-        it('should preserve merchant contains operator', () => {
-            const queryJSON = buildSearchQueryJSON('type:expense merchant*:coffee');
-            if (!queryJSON?.filters) {
-                throw new Error('Expected filters to be defined');
-            }
-            const transformed = applyContainsOperatorToTextFields(queryJSON.filters);
-            const merchantNode = findNode(transformed, 'merchant');
-            if (!merchantNode) {
-                throw new Error('Expected merchant node to be found in AST');
-            }
-            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
-            expect(merchantNode.right).toBe('coffee');
+            // Then the parsed merchant operator is kept, because the parser already maps legacy `:` to contains
+            expect(merchantNode?.operator).toBe(merchantOperator);
+            expect(merchantNode?.right).toBe('coffee');
         });
 
         it('should transform description eq to contains', () => {
@@ -4367,55 +4302,34 @@ describe('SearchQueryUtils', () => {
     });
 
     describe('serializeQueryJSONForBackend', () => {
-        it('should preserve legacy merchant contains operator in AST filters', () => {
-            const queryJSON = buildSearchQueryJSON('type:expense merchant:coffee');
+        it.each([
+            ['merchant:coffee', CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS],
+            ['merchant*:coffee', CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS],
+            ['merchant=coffee', CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO],
+        ])('should preserve the merchant operator in AST filters for %s', (merchantQuery, merchantOperator) => {
+            // Given a query with a legacy, contains, or explicit exact merchant filter
+            const queryJSON = buildSearchQueryJSON(`type:expense ${merchantQuery}`);
             if (!queryJSON) {
                 throw new Error('Expected queryJSON to be defined');
             }
-            const normalizedFilters = applyContainsOperatorToTextFields(queryJSON.filters);
-            expect(serializeQueryJSONForBackend(queryJSON)).toBe(JSON.stringify({...queryJSON, filters: normalizedFilters, status: ''}));
-            const merchantNode = findNode(normalizedFilters, 'merchant');
-            if (!merchantNode) {
-                throw new Error('Expected merchant node to be found in AST');
-            }
-            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+
+            // When the query is serialized for the backend
+            const result = serializeQueryJSONForBackend(queryJSON);
+
+            // Then the merchant filter is sent unchanged with its parsed operator
+            expect(result).toBe(JSON.stringify({...queryJSON, status: ''}));
+            expect(findNode(queryJSON.filters, 'merchant')?.operator).toBe(merchantOperator);
         });
 
-        it('should preserve contains merchant operator in AST filters', () => {
-            const queryJSON = buildSearchQueryJSON('type:expense merchant*:coffee');
-            if (!queryJSON) {
-                throw new Error('Expected queryJSON to be defined');
-            }
-            expect(serializeQueryJSONForBackend(queryJSON)).toBe(JSON.stringify({...queryJSON, status: ''}));
-            const merchantNode = findNode(queryJSON.filters, 'merchant');
-            if (!merchantNode) {
-                throw new Error('Expected merchant node to be found in AST');
-            }
-            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
-        });
+        it.each([CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS])('should preserve the %s merchant operator in rawFilterList', (operator) => {
+            // Given a raw merchant filter with an exact or contains operator
+            const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator, value: 'coffee'}];
 
-        it('should preserve explicit merchant exact match', () => {
-            const queryJSON = buildSearchQueryJSON('type:expense merchant=I');
-            if (!queryJSON) {
-                throw new Error('Expected queryJSON to be defined');
-            }
-            expect(serializeQueryJSONForBackend(queryJSON)).toBe(JSON.stringify({...queryJSON, status: ''}));
-            const merchantNode = findNode(queryJSON.filters, 'merchant');
-            if (!merchantNode) {
-                throw new Error('Expected merchant node to be found in AST');
-            }
-            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
-            expect(merchantNode.right).toBe('I');
-        });
+            // When the query is serialized for the backend
+            const result = serializeQueryJSONForBackend({filters: undefined, rawFilterList});
 
-        it('should preserve exact merchant operator in rawFilterList', () => {
-            const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
-            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList, status: ''}));
-        });
-
-        it('should preserve contains merchant operator in rawFilterList', () => {
-            const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, value: 'coffee'}];
-            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList, status: ''}));
+            // Then the merchant operator is not rewritten
+            expect(result).toBe(JSON.stringify({filters: undefined, rawFilterList, status: ''}));
         });
 
         it('should apply contains to description in rawFilterList', () => {

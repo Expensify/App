@@ -9953,8 +9953,8 @@ const translations = {
             },
             merchant: {
                 matchType: 'Match type',
-                contains: 'Contains',
-                exactMatch: 'Equal to',
+                contains: (merchant?: string) => (merchant ? `Contains "${merchant}"` : 'Contains'),
+                equalTo: (merchant?: string) => (merchant ? `Equal to "${merchant}"` : 'Equal to'),
             },
             card: {
                 expensify: 'Expensify',

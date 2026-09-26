@@ -103,17 +103,15 @@ function SearchAdvancedFiltersContent({baseFilterKey, values, ready, components,
     }
 
     if (baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
+        const {isNegated, value} = getFilterNegatableValue(baseFilterKey, values);
         const MerchantFilter = components.Merchant;
-        const isNegated = !!values?.[FILTER_KEYS.MERCHANT_NOT];
-        const value = values?.[isNegated ? FILTER_KEYS.MERCHANT_NOT : FILTER_KEYS.MERCHANT];
-        const merchantOperator = values?.[FILTER_KEYS.MERCHANT_OPERATOR] ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
         return (
             <MerchantFilter
-                key={`${baseFilterKey}-${merchantOperator}`}
+                key={baseFilterKey}
                 baseFilterKey={baseFilterKey}
                 value={value}
                 isNegated={isNegated}
-                merchantOperator={merchantOperator}
+                merchantOperator={values?.[FILTER_KEYS.MERCHANT_OPERATOR]}
                 buttonText={buttonText}
                 onChange={onChange}
             />

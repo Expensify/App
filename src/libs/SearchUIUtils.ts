@@ -5914,8 +5914,8 @@ function getDisplayValue(
             return;
         }
 
-        const matchTypeKey = form[FILTER_KEYS.MERCHANT_OPERATOR] === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO ? 'search.filters.merchant.exactMatch' : 'search.filters.merchant.contains';
-        return `${translate(matchTypeKey)} "${merchant}"`;
+        const matchTypeKey = form[FILTER_KEYS.MERCHANT_OPERATOR] === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO ? 'search.filters.merchant.equalTo' : 'search.filters.merchant.contains';
+        return translate(matchTypeKey, merchant);
     }
 
     if (key === FILTER_KEYS.TRANSACTION_STATUS) {
@@ -5968,6 +5968,11 @@ function hasFilterContentValuesChanged(
 
     if (!deepEqual(getFilterNegatableValue(baseFilterKey, previousValues), getFilterNegatableValue(baseFilterKey, values))) {
         return true;
+    }
+
+    // The Merchant content also reads its match type.
+    if (baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
+        return previousValues?.[FILTER_KEYS.MERCHANT_OPERATOR] !== values?.[FILTER_KEYS.MERCHANT_OPERATOR];
     }
 
     if (isTextFilterKey(baseFilterKey)) {

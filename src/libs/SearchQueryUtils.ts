@@ -1200,18 +1200,6 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
     const {type, groupBy, view, columns, limit, [FILTER_KEYS.MERCHANT_OPERATOR]: merchantOperator, ...otherFilters} = supportedFilterValues;
-    const merchantFilters = options?.flatFilters?.filter((filter) => filter.key === FILTER_KEYS.MERCHANT) ?? [];
-    const positiveMerchantFilters = merchantFilters.filter((filter) => !filter.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO));
-    const negativeMerchantFilters = merchantFilters.filter((filter) => filter.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO));
-    const wasMerchantNegated = negativeMerchantFilters.length > 0;
-    const isMerchantNegated = !!supportedFilterValues.merchantNot;
-    const hasMerchantNegationChanged = wasMerchantNegated !== isMerchantNegated;
-    const lastVisibleMerchantFilter = (wasMerchantNegated ? negativeMerchantFilters : positiveMerchantFilters).at(-1);
-    const selectedMerchantOperator = getMerchantOperator(merchantOperator);
-    const currentMerchantOperator = positiveMerchantFilters.at(-1)?.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO)
-        ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO
-        : DEFAULT_MERCHANT_OPERATOR;
-    const hasMerchantOperatorChanged = !isMerchantNegated && selectedMerchantOperator !== currentMerchantOperator;
     const filtersString: string[] = [];
 
     if (options?.sortBy) {
@@ -1277,10 +1265,22 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 if (keyInCorrectForm) {
                     let operator: ValueOf<typeof operatorToCharMap> | typeof EXPLICIT_EQUAL_TO_OPERATOR = operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO];
                     if (filterKey === FILTER_KEYS.MERCHANT) {
+                        const merchantFilters = options?.flatFilters?.filter((filter) => filter.key === FILTER_KEYS.MERCHANT) ?? [];
+                        const positiveMerchantFilters = merchantFilters.filter((filter) => !filter.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO));
+                        const negativeMerchantFilters = merchantFilters.filter((filter) => filter.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO));
+                        const wasMerchantNegated = negativeMerchantFilters.length > 0;
+                        const isMerchantNegated = !!supportedFilterValues.merchantNot;
+                        const hasMerchantNegationChanged = wasMerchantNegated !== isMerchantNegated;
+                        const lastVisibleMerchantFilter = (wasMerchantNegated ? negativeMerchantFilters : positiveMerchantFilters).at(-1);
+                        const selectedMerchantOperator = getMerchantOperator(merchantOperator);
                         const originalMerchantFilters = isNegated ? negativeMerchantFilters : positiveMerchantFilters;
                         const lastMerchantFilter = hasMerchantNegationChanged ? lastVisibleMerchantFilter : originalMerchantFilters.at(-1);
                         const isMerchantValueUnchanged = filterValue === lastMerchantFilter?.filters.map((item) => item.value.toString()).join(',');
                         if (lastMerchantFilter && isMerchantValueUnchanged) {
+                            const currentMerchantOperator = positiveMerchantFilters.at(-1)?.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO)
+                                ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO
+                                : DEFAULT_MERCHANT_OPERATOR;
+                            const hasMerchantOperatorChanged = !isMerchantNegated && selectedMerchantOperator !== currentMerchantOperator;
                             const hasMerchantConditionChanged = hasMerchantNegationChanged || hasMerchantOperatorChanged;
                             const filtersToUpdate = hasMerchantConditionChanged ? merchantFilters : originalMerchantFilters;
                             const updatedOperator = isNegated ? CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO : selectedMerchantOperator;

@@ -9688,7 +9688,11 @@ ${reportName}`,
             },
             reportField: (name, value) => `${name} es ${value}`,
             filterType: {label: 'Tipo de filtro', has: {positive: 'tiene', negative: 'no tiene'}, is: {positive: 'es', negative: 'no es'}},
-            merchant: {matchType: 'Tipo de coincidencia', contains: 'Contiene', exactMatch: 'Igual a'},
+            merchant: {
+                matchType: 'Tipo de coincidencia',
+                contains: (merchant) => (merchant ? `Contiene "${merchant}"` : 'Contiene'),
+                equalTo: (merchant) => (merchant ? `Igual a "${merchant}"` : 'Igual a'),
+            },
             created: 'Creado',
             createdDate: 'Fecha de creación',
             transactionStatus: {
