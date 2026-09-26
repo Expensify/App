@@ -8,6 +8,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useVerticalScrollbarWidth from '@hooks/useVerticalScrollbarWidth';
 
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import getPlatform from '@libs/getPlatform';
@@ -374,6 +375,11 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         setTableWidth(event.nativeEvent.layout.width);
     };
 
+    // The table is measured around the list rather than inside it, so a classic scrollbar's width is counted as room
+    // the rows have when they don't. Taking it off here sizes the columns against the width they are really given.
+    const {scrollbarWidth, measureScrollbarRef} = useVerticalScrollbarWidth();
+    const contentWidth = Math.max(tableWidth - scrollbarWidth, 0);
+
     // Narrow and medium layouts render as cards with no columns to size, and native can't measure text, so both keep the
     // static tracks and never measure the table.
     const isDynamicSizingEnabled = shouldUseDynamicColumns && !shouldUseNarrowTableLayout && canMeasureText();
@@ -383,7 +389,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const {gridTemplateColumns: dynamicGridTemplateColumns, scrollWidth: dynamicScrollWidth} = useDynamicColumnWidths<DataType, ColumnKey>({
         columns,
         data,
-        tableWidth,
+        tableWidth: contentWidth,
         isEnabled: isDynamicSizingEnabled,
         // In the wide layout the checkbox column is rendered whenever selection is enabled.
         hasSelectionColumn: !!selectionEnabled,
@@ -495,6 +501,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         emptyStateElement,
         noResultsStateElement,
         listRef,
+        scrollbarWidth,
+        measureScrollbarRef,
         listContainerRef,
         trackScrollOffset,
         scrollInputIntoView,
