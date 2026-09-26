@@ -50,7 +50,6 @@ import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Ref} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import lodashPick from 'lodash/pick';
@@ -447,13 +446,20 @@ function ParticipantSearchResults({
     const hasPolicyExpenseChatParticipant = selectedOptions.some((participant) => participant.isPolicyExpenseChat);
     const shouldShowSplitBillErrorMessage = selectedOptions.length > 1 && hasPolicyExpenseChatParticipant;
 
-    const handleConfirmSelection = (keyEvent?: GestureResponderEvent | KeyboardEvent, option?: Participant) => {
-        const shouldAddSingleParticipant = option && !selectedOptions.length;
-        if (shouldShowSplitBillErrorMessage || (!selectedOptions.length && !option)) {
+    const handleConfirmSelection = () => {
+        if (shouldShowSplitBillErrorMessage || !selectedOptions.length) {
             return;
         }
 
-        if (shouldAddSingleParticipant) {
+        onFinish(CONST.IOU.TYPE.SPLIT);
+    };
+
+    const handleConfirmFocusedOption = (option: Participant) => {
+        if (shouldShowSplitBillErrorMessage) {
+            return;
+        }
+
+        if (!selectedOptions.length) {
             addSingleParticipant(option);
             return;
         }
@@ -560,6 +566,7 @@ function ParticipantSearchResults({
         <SelectionListWithSections
             confirmButtonOptions={{
                 onConfirm: handleConfirmSelection,
+                onConfirmFocusedOption: handleConfirmFocusedOption,
                 isFooterConfirmEnabled: selectedOptions.length > 0 || isCategorizeOrShareAction,
                 // Pass the footer Next button's disabled state so Enter falls back to the list when split-bill disables Next;
                 // otherwise Enter can't toggle off the conflicting row.

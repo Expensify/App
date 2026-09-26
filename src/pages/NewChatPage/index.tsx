@@ -430,7 +430,8 @@ function NewChatPage({ref}: NewChatPageProps) {
                 shouldUpdateFocusedIndex
                 shouldSingleExecuteRowSelect
                 confirmButtonOptions={{
-                    onConfirm: (e, option) => (latestSelectedOptionsRef.current.length > 0 ? createGroup() : selectOption(option)),
+                    onConfirm: () => (latestSelectedOptionsRef.current.length > 0 ? createGroup() : selectOption()),
+                    onConfirmFocusedOption: (option) => (latestSelectedOptionsRef.current.length > 0 ? createGroup() : selectOption(option)),
                     isFooterConfirmEnabled: selectedOptions.length > 0,
                 }}
                 footerContent={footerContent}
