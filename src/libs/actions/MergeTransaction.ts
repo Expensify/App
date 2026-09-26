@@ -223,6 +223,7 @@ function getTransactionsForMerging({
     isOffline,
     targetTransaction,
     transactions,
+    reportTransactions,
     policy,
     report,
     currentUserLogin,
@@ -231,6 +232,7 @@ function getTransactionsForMerging({
     isOffline: boolean;
     targetTransaction: Transaction;
     transactions: OnyxCollection<Transaction>;
+    reportTransactions: Transaction[];
     policy: OnyxEntry<Policy>;
     report: OnyxEntry<Report>;
     currentUserLogin: string | undefined;
@@ -252,7 +254,6 @@ function getTransactionsForMerging({
     const isManager = isReportManager(report);
 
     if (isPaidGroupPolicy(policy) && (isAdmin || isManager) && !isCurrentUserSubmitter(report)) {
-        const reportTransactions = getReportTransactions(report?.reportID);
         const eligibleTransactions = reportTransactions.filter((transaction): transaction is Transaction => {
             if (!transaction || transaction.transactionID === transactionID) {
                 return false;

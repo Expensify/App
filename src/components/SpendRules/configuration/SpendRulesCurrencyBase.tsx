@@ -8,6 +8,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
 import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
+import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSearchResults from '@hooks/useSearchResults';
@@ -17,6 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCurrencyOptions} from '@libs/SearchUIUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import CONST from '@src/CONST';
@@ -49,13 +51,11 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
     const currencyOptions = getCurrencyOptions(currencyList, getCurrencySymbol);
     const validCurrencyOptions = currencyOptions.filter((option) => option.value !== settlementCurrency);
 
-    const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>(() => {
-        if (currencies.length > 0) {
-            return currencies.filter((currency) => currency !== settlementCurrency);
-        }
+    const savedSelectedCurrencies = currencies.length > 0 ? currencies.filter((currency) => currency !== settlementCurrency) : validCurrencyOptions.map((option) => option.value);
 
-        return validCurrencyOptions.map((option) => option.value);
-    });
+    const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>(savedSelectedCurrencies);
+    // Freeze the saved selection (not the live, unsaved edits) so returning focus to the page doesn't treat
+    const initialSelectedCurrencies = useInitialSelection(savedSelectedCurrencies, {resetOnFocus: true});
 
     const currencyItems: CurrencyListItem[] = [];
     const selectedCurrenciesSet = new Set(selectedCurrencies);
@@ -93,7 +93,9 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
         return items.sort((a, b) => localeCompare(a.text ?? '', b.text ?? ''));
     };
 
-    const [inputValue, setInputValue, filteredCurrencyItems] = useSearchResults(currencyItems, filterCurrency, sortCurrencies);
+    // Pin the frozen initial selection to the top of the full sorted list before searching, so pre-selected currencies stay pinned while searching (identity sort keeps the pinned order intact).
+    const orderedCurrencyItems = moveInitialSelectionToTop(sortCurrencies([...currencyItems]), initialSelectedCurrencies);
+    const [inputValue, setInputValue, filteredCurrencyItems] = useSearchResults(orderedCurrencyItems, filterCurrency);
 
     const toggleCurrency = (item: CurrencyListItem) => {
         setSelectedCurrencies((prev) => {
@@ -183,7 +185,9 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
 
             <SelectionList
                 canSelectMultiple
+                shouldScrollToFocusedIndexOnMount={false}
                 shouldUpdateFocusedIndex
+                disableMaintainingScrollPosition
                 customListHeaderContent={ListHeaderContent}
                 ListItem={MultiSelectListItem}
                 data={filteredCurrencyItems}

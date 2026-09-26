@@ -13,6 +13,9 @@ type ChartDataPoint = {
     /** Total amount (pre-formatted, e.g., dollars not cents) */
     total: number;
 
+    /** The point's signed share of total spend, in percentage points */
+    percentOfTotal?: number;
+
     /** Query string for navigation when data point is clicked (optional) */
     onClickQuery?: string;
 };
@@ -49,7 +52,7 @@ type PieSlice = {
     /** Hex color assigned based on sorted rank */
     color: string;
 
-    /** Percentage of the total pie this slice represents */
+    /** Percentage of the drawn donut this slice represents */
     percentage: number;
 
     /** Starting angle in degrees (0 = 3 o'clock) */
@@ -72,7 +75,4 @@ type LabelRotation = ValueOf<typeof LABEL_ROTATIONS>;
 
 type ParagraphWithWidth = {para: SkParagraph | null; width: number};
 
-/** Where a chart tooltip sits relative to the data point it describes. */
-type ChartTooltipPlacement = 'above' | 'right';
-
-export type {CartesianChartProps, ChartDataPoint, ChartProps, ChartTooltipPlacement, LabelRotation, ParagraphWithWidth, PieSlice, UnitPosition, UnitWithFallback};
+export type {ChartDataPoint, ChartProps, CartesianChartProps, LabelRotation, ParagraphWithWidth, PieSlice, UnitPosition, UnitWithFallback};
