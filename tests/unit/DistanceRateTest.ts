@@ -1,15 +1,18 @@
-import {deletePolicyDistanceRates, enablePolicyDistanceRates, setWorkspaceDistanceAutoUpdate} from '@libs/actions/Policy/DistanceRate';
+import type PolicyData from '@hooks/usePolicyData/types';
+
+import {deletePolicyDistanceRates, enablePolicyDistanceRates, setPolicyDistanceRatesEnabled, setWorkspaceDistanceAutoUpdate} from '@libs/actions/Policy/DistanceRate';
 import {pause, resetQueue} from '@libs/Network/SequentialQueue';
 import {isGovernmentRateUnmodified} from '@libs/PolicyDistanceRatesUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {GovernmentMileageRate, Policy, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {GovernmentMileageRate, Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {CustomUnit, Rate, Unit} from '@src/types/onyx/Policy';
 
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -97,6 +100,173 @@ describe('DistanceRate', () => {
                     {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY, showInReview: true, type: CONST.VIOLATION_TYPES.VIOLATION},
                 ],
             });
+        });
+    });
+
+    describe('setPolicyDistanceRatesEnabled', () => {
+        it('should write customUnitOutOfPolicy into TRANSACTION_VIOLATIONS when disabling an in-use rate', async () => {
+            const customUnitID = '5A55C2B68DDCB';
+            const customUnitRateID = '7255CA72C7E7B';
+            const policy: Policy = {
+                ...createRandomPolicy(3),
+                areDistanceRatesEnabled: true,
+                customUnits: {
+                    [customUnitID]: {
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                        customUnitID,
+                        defaultCategory: 'Car',
+                        enabled: true,
+                        name: 'Distance',
+                        rates: {
+                            [customUnitRateID]: {
+                                currency: 'USD',
+                                customUnitRateID,
+                                enabled: true,
+                                name: 'Default Rate',
+                                rate: 70,
+                                subRates: [],
+                            },
+                        },
+                    },
+                },
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.IOU,
+            };
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: report.reportID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    customUnit: {
+                        customUnitID,
+                        customUnitRateID,
+                    },
+                },
+            };
+            const policyData: PolicyData = {
+                policy,
+                categories: {},
+                tags: {},
+                reports: [report],
+                transactionsAndViolations: {
+                    [report.reportID]: {
+                        transactions: {
+                            [transaction.transactionID]: transaction,
+                        },
+                        violations: {},
+                    },
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            if (policy.customUnits) {
+                setPolicyDistanceRatesEnabled(policy.id, policy.customUnits[customUnitID], [{...policy.customUnits[customUnitID].rates[customUnitRateID], enabled: false}], policyData);
+            }
+            await waitForBatchedUpdates();
+
+            const transactionViolations = await new Promise<Record<string, TransactionViolations | undefined>>((resolve) => {
+                Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+                    callback: resolve,
+                });
+            });
+
+            expect(transactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]).toEqual(
+                expect.arrayContaining([expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION})]),
+            );
+        });
+
+        it('should clear customUnitOutOfPolicy when re-enabling a previously disabled in-use rate', async () => {
+            const customUnitID = '5A55C2B68DDCB';
+            const customUnitRateID = '7255CA72C7E7B';
+            const policy: Policy = {
+                ...createRandomPolicy(4),
+                areDistanceRatesEnabled: true,
+                customUnits: {
+                    [customUnitID]: {
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                        customUnitID,
+                        defaultCategory: 'Car',
+                        enabled: true,
+                        name: 'Distance',
+                        rates: {
+                            [customUnitRateID]: {
+                                currency: 'USD',
+                                customUnitRateID,
+                                enabled: false,
+                                name: 'Default Rate',
+                                rate: 70,
+                                subRates: [],
+                            },
+                        },
+                    },
+                },
+            };
+            const report: Report = {
+                ...createRandomReport(2),
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.IOU,
+            };
+            const transaction: Transaction = {
+                ...createRandomTransaction(2),
+                reportID: report.reportID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    customUnit: {
+                        customUnitID,
+                        customUnitRateID,
+                    },
+                },
+            };
+            const policyData: PolicyData = {
+                policy,
+                categories: {},
+                tags: {},
+                reports: [report],
+                transactionsAndViolations: {
+                    [report.reportID]: {
+                        transactions: {
+                            [transaction.transactionID]: transaction,
+                        },
+                        violations: {
+                            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [
+                                {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY, showInReview: true, type: CONST.VIOLATION_TYPES.VIOLATION},
+                            ],
+                        },
+                    },
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`, [
+                {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY, showInReview: true, type: CONST.VIOLATION_TYPES.VIOLATION},
+            ]);
+
+            if (policy.customUnits) {
+                setPolicyDistanceRatesEnabled(policy.id, policy.customUnits[customUnitID], [{...policy.customUnits[customUnitID].rates[customUnitRateID], enabled: true}], policyData);
+            }
+            await waitForBatchedUpdates();
+
+            const transactionViolations = await new Promise<Record<string, TransactionViolations | undefined>>((resolve) => {
+                Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+                    callback: resolve,
+                });
+            });
+
+            expect(transactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? []).not.toEqual(
+                expect.arrayContaining([expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY})]),
+            );
         });
     });
 

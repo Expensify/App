@@ -1,3 +1,5 @@
+import type PolicyData from '@hooks/usePolicyData/types';
+
 import * as API from '@libs/API';
 import type {
     CreatePolicyDistanceRateParams,
@@ -19,10 +21,11 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {buildOnyxDataForPolicyDistanceRateUpdates, getExpectedUnitForCurrency} from '@libs/PolicyDistanceRatesUtils';
 import {goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
+import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {GovernmentMileageRate, TransactionViolation} from '@src/types/onyx';
+import type {GovernmentMileageRate, Policy, TransactionViolation} from '@src/types/onyx';
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 import type {CommuterExclusions, CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -343,7 +346,7 @@ function updatePolicyDistanceRate(policyID: string, customUnit: CustomUnit, rate
     API.write(WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE, params, {optimisticData, successData, failureData});
 }
 
-function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {
+function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[], policyData: PolicyData) {
     const currentRates = customUnit.rates;
     const optimisticRates: Record<string, NullishDeep<Rate>> = {};
     const successRates: Record<string, NullishDeep<Rate>> = {};
@@ -363,47 +366,68 @@ function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit,
         }
     }
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [customUnit.customUnitID]: {
-                        rates: optimisticRates,
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnit.customUnitID]: {
+                            rates: optimisticRates,
+                        },
                     },
                 },
             },
-        },
-    ];
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnit.customUnitID]: {
+                            rates: successRates,
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnit.customUnitID]: {
+                            rates: failureRates,
+                        },
+                    },
+                },
+            },
+        ],
+    };
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [customUnit.customUnitID]: {
-                        rates: successRates,
-                    },
-                },
-            },
-        },
-    ];
+    const existingCustomUnit = policyData.policy?.customUnits?.[customUnit.customUnitID];
+    const mergedRates = {...existingCustomUnit?.rates};
+    for (const rate of customUnitRates) {
+        mergedRates[rate.customUnitRateID] = {
+            ...(mergedRates[rate.customUnitRateID] ?? {}),
+            ...rate,
+        };
+    }
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [customUnit.customUnitID]: {
-                        rates: failureRates,
-                    },
-                },
+    const policyOptimisticUpdate: Partial<Policy> = {
+        customUnits: {
+            ...policyData.policy?.customUnits,
+            [customUnit.customUnitID]: {
+                ...customUnit,
+                rates: mergedRates,
             },
         },
-    ];
+    };
+
+    pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticUpdate);
 
     const params: SetPolicyDistanceRatesEnabledParams = {
         policyID,
@@ -411,7 +435,7 @@ function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit,
         customUnitRateArray: JSON.stringify(prepareCustomUnitRatesArray(customUnitRates)),
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_ENABLED, params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_ENABLED, params, onyxData);
 }
 
 function deletePolicyDistanceRates(
