@@ -509,6 +509,10 @@ describe('actions/PolicyRules', () => {
             const fields = updatedActions.map((action) => action.field);
             expect(fields).toEqual([CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY]);
             expect(updatedRule?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // Drain the paused requests, otherwise they sit in the sequential queue and every later write in this file stalls behind them.
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
         });
 
         it('does nothing when the form has no merchant to match', async () => {
