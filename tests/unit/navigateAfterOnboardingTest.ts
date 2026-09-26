@@ -1,4 +1,5 @@
 import {navigateAfterOnboarding} from '@libs/navigateAfterOnboarding';
+import {setPendingShareIntent} from '@libs/Navigation/helpers/pendingShareIntent';
 import Navigation from '@libs/Navigation/Navigation';
 import type * as ReportUtils from '@libs/ReportUtils';
 
@@ -186,6 +187,27 @@ describe('navigateAfterOnboarding', () => {
     it('should navigate to the admin room when the inboxAdminsBespoke variant is assigned', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, false, {variantOverride: CONST.ONBOARDING_RHP_VARIANT.INBOX_ADMINS_BESPOKE});
+        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
+    });
+
+    it('should resume a share that was parked during onboarding, only once', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+
+        // Given a user who shared a file while signed out, so the share was parked until onboarding finished
+        setPendingShareIntent();
+
+        // When onboarding finishes
+        navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+
+        // Then the share flow opens instead of the usual post-onboarding destination
+        expect(navigate).toHaveBeenCalledWith(ROUTES.SHARE_ROOT, undefined);
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
+
+        // When it runs again, because the parked share must not reopen a second time
+        navigate.mockClear();
+        navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+
+        // Then the usual destination is used
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
     });
 });

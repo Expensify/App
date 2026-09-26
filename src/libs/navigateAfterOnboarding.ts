@@ -14,6 +14,7 @@ import SidePanelActions from './actions/SidePanel';
 import {setOnboardingRHPVariant} from './actions/Welcome';
 import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostSplitNavigator';
 import {dismissOnboardingModalBeforeExit} from './Navigation/helpers/OnboardingNavigationUtils';
+import {consumePendingShareIntent} from './Navigation/helpers/pendingShareIntent';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport} from './ReportUtils';
@@ -86,11 +87,18 @@ function navigateAfterOnboarding(
 ) {
     setDisableDismissOnEscape(false);
 
+    const navigationOptions = options?.afterTransition ? {afterTransition: options.afterTransition} : undefined;
+
+    // A share started before sign-in was parked while the user onboarded, so resume it now.
+    if (consumePendingShareIntent()) {
+        Navigation.navigate(ROUTES.SHARE_ROOT, navigationOptions);
+        return;
+    }
+
     // On mobile (small screen), Track workspace admins with the trackExpensesWithConcierge variant
     // should navigate directly to the Concierge DM (which contains onboarding tasks).
     // This check is outside shouldOpenRHPVariant because that function returns false on native
     // (Side Panel doesn't exist on native), but we still need to navigate to Concierge on mobile.
-    const navigationOptions = options?.afterTransition ? {afterTransition: options.afterTransition} : undefined;
     const variantOverride = options?.variantOverride;
     const variant = variantOverride ?? onboardingRHPVariant;
     if (isSmallScreenWidth && variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
@@ -151,6 +159,11 @@ function navigateAfterOnboardingWithMicrotaskQueue(
  */
 function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNarrowLayout = false) {
     setDisableDismissOnEscape(false);
+
+    if (consumePendingShareIntent()) {
+        Navigation.navigate(ROUTES.SHARE_ROOT);
+        return;
+    }
 
     if (!policyID) {
         Navigation.navigate(ROUTES.HOME);
