@@ -35,7 +35,7 @@ Prepare a spreadsheet where each row is one rule. Include a column for the merch
 
 You must map at least one **Merchant is** or **Merchant contains** column plus at least one field to update, or the import can't complete.
 
-![Insert alt text for accessibility here]({{site.url}}/assets/images/Rules_import-merchant-rules-mapping.png){:width="100%"}
+![Merchant rules import page showing mapping]({{site.url}}/assets/images/Rules_import-merchant-rules-mapping.png){:width="100%"}
 
 ---
 
