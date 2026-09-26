@@ -61,6 +61,11 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
                     errors[fieldID] = translate('common.error.fieldRequired');
                 }
 
+                // Optional fields left blank don't need to match the validation rules
+                if (!field.isRequired && !SafeString(values[fieldID]).trim()) {
+                    continue;
+                }
+
                 for (const rule of field.validationRules) {
                     if (!rule.regEx) {
                         continue;

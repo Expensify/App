@@ -19,7 +19,8 @@ function getInitialSubStepForBusinessInfoStep(data: SubStepValues<keyof Reimburs
         const value = data?.[fieldID];
 
         if (value === '' || value === null || value === undefined) {
-            return true;
+            // Optional fields left blank are complete and don't need to match the validation rules
+            return field.isRequired;
         }
 
         if (field.validationRules && field.validationRules.length > 0) {
