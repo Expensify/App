@@ -214,7 +214,7 @@ describe('SearchSelectionFooter', () => {
     });
 
     it("subtracts an excluded report's expenses and total from the all-matching footer", async () => {
-        setSearchQuery('type:expense-report');
+        setSearchQuery('type:expense-report footerCount:expenses');
         mockSelectedTransactions.current = {transaction3: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report2')};
         mockExcludedTransactions.current = {
             transaction1: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report1'),
@@ -230,7 +230,7 @@ describe('SearchSelectionFooter', () => {
     });
 
     it('shows the authoritative expense count and total before every report page is loaded', async () => {
-        setSearchQuery('type:expense-report');
+        setSearchQuery('type:expense-report footerCount:expenses');
         mockSelectedTransactions.current = {transaction1: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report1')};
         mockSelectedReports.current = [buildSelectedReport('report1', -100)];
         mockAreAllMatchingItemsSelected.current = true;
@@ -715,16 +715,16 @@ describe('SearchSelectionFooter', () => {
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.EXPENSES, count: 2}));
         });
 
-        it('offers the total selector but not the count on a grouped search with nothing selected', async () => {
+        it('offers both selectors on a grouped search with nothing selected, counting expenses', async () => {
             setSearchQuery('type:expense groupBy:category');
             mockSelectedTransactions.current = {};
 
-            // A grouped search counts expenses only, so the server sends no report count to switch to.
             render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000)} />);
             await waitForBatchedUpdates();
 
-            expect(mockCapturedFooterProps.current?.countType).toBeUndefined();
-            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.TOTAL, count: 1204, total: 36000}));
+            expect(mockCapturedFooterProps.current).toEqual(
+                expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.EXPENSES, totalType: CONST.SEARCH.FOOTER_TOTAL.TOTAL, count: 1204, total: 36000}),
+            );
         });
 
         it('offers both selectors on a grouped search once individual expenses are selected', async () => {
@@ -857,13 +857,13 @@ describe('SearchSelectionFooter', () => {
             expect(mockSetParams.mock.calls.at(0)?.at(0)?.q).toContain('footerCount:reports');
         });
 
-        it('offers no count selector when the search returned no report count', async () => {
+        it('keeps the count on expenses when the search returned no report count', async () => {
             mockSelectedTransactions.current = {};
 
             render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE)} />);
             await waitForBatchedUpdates();
 
-            expect(mockCapturedFooterProps.current?.countType).toBeUndefined();
+            expect(mockCapturedFooterProps.current?.countType).toBe(CONST.SEARCH.FOOTER_COUNT.EXPENSES);
             expect(mockCapturedFooterProps.current?.count).toBe(1204);
         });
     });
