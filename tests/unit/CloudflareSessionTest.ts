@@ -1,14 +1,11 @@
 /**
- * Single-flight refresh with rotated-token persistence, the terminal/transient failure split, and both
- * halves of the redirect flow. Modules are re-required per test because the module-level caches are
- * exactly what's under test.
+ * Modules are re-required per test because the module-level caches are exactly what's under test.
  */
 import type * as ConfigModule from '@libs/CloudflareAccess/Config';
 import type * as PKCEModule from '@libs/CloudflareAccess/generatePKCE';
 import type WebCryptoProvider from '@libs/CloudflareAccess/getWebCrypto/types';
 import type * as OAuthClientModule from '@libs/CloudflareAccess/OAuthClient';
 import type * as PendingAuthFlowStorageModule from '@libs/CloudflareAccess/PendingAuthFlowStorage';
-import type * as SessionCleanupModule from '@libs/SessionCleanup';
 
 import type * as SessionActionsModule from '@userActions/CloudflareSession';
 
@@ -27,11 +24,7 @@ const AUTHORIZE_URL = 'https://team.cloudflareaccess.com/cdn-cgi/access/oauth/au
 // OAuthClient imports CONFIG, whose native dependency is unavailable in the Jest environment.
 jest.mock('@src/CONFIG', () => ({__esModule: true, default: {QA_AUTH: {CLIENT_ID: 'client-123'}}}));
 
-// CloudflareSession imports Log, whose native dependency is unavailable in the Jest environment. The session
-// behavior under test is platform-independent, so keep that native dependency out of this test.
-jest.mock('@libs/Log', () => ({__esModule: true, default: {warn: jest.fn()}}));
-
-// The module gates its subscription and cleanup on a complete config. Everything under test is behind it
+// The module gates its subscription on a complete config. Everything under test is behind it
 jest.mock('@libs/CloudflareAccess/Config', () => ({
     __esModule: true,
     ...jest.requireActual<typeof ConfigModule>('@libs/CloudflareAccess/Config'),
@@ -45,6 +38,14 @@ jest.mock('@libs/CloudflareAccess/OAuthClient', () => ({
     buildAuthorizeURL: jest.fn(() => Promise.resolve(AUTHORIZE_URL)),
     exchangeCode: jest.fn(),
     refreshTokens: jest.fn(),
+}));
+
+// CloudflareSession imports Log, whose native dependency is unavailable in the Jest environment. The session
+// behavior under test is platform-independent, so keep that native dependency out of this test.
+// Log also ships its lines to the server, so a real warn enqueues an API request that flushes into a later test
+jest.mock('@libs/Log', () => ({
+    __esModule: true,
+    default: {alert: jest.fn(), warn: jest.fn(), info: jest.fn(), hmmm: jest.fn()},
 }));
 
 jest.mock('@libs/CloudflareAccess/generatePKCE', () => ({
@@ -64,13 +65,15 @@ let SessionActions: typeof SessionActionsModule;
 let oAuthClient: typeof OAuthClientModule;
 let pkce: typeof PKCEModule;
 let pendingAuthFlowStorage: typeof PendingAuthFlowStorageModule;
-let sessionCleanup: typeof SessionCleanupModule;
 let assignSpy: jest.Mock;
 let realLocation: Location;
 
 beforeEach(() => {
     jest.resetModules();
-    // The redirect flow record lives in jsdom's real sessionStorage. Drop leftovers from earlier tests
+    // Nothing here makes an HTTP request, but resetModules gives every test its own copy of the network
+    // queues, and one of those flushes during an await in this suite, reaching jsdom's missing `Request`.
+    global.fetch = jest.fn(() => Promise.reject(new Error('fetch is not available in CloudflareSessionTest')));
+    // The redirect flow record lives in jsdom's real sessionStorage
     window.sessionStorage.clear();
     // jsdom throws "Not implemented: navigation" on a real location.assign
     realLocation = window.location;
@@ -87,8 +90,6 @@ beforeEach(() => {
     pkce = require<typeof PKCEModule>('@libs/CloudflareAccess/generatePKCE');
     pendingAuthFlowStorage = require<typeof PendingAuthFlowStorageModule>('@libs/CloudflareAccess/PendingAuthFlowStorage');
     SessionActions = require<typeof SessionActionsModule>('@userActions/CloudflareSession');
-    // Required after the actions module, which registers its cleanup callback on import
-    sessionCleanup = require<typeof SessionCleanupModule>('@libs/SessionCleanup');
 });
 
 afterEach(() => {
@@ -110,8 +111,8 @@ describe('refreshCloudflareSession', () => {
         jest.mocked(oAuthClient.refreshTokens).mockReturnValue(refreshDeferred.promise);
 
         // When a second caller asks for a refresh while the first is still in flight
-        const first = SessionActions.refreshCloudflareSession();
-        const second = SessionActions.refreshCloudflareSession();
+        const first = SessionActions.refreshCloudflareSession(SESSION_A.accessToken);
+        const second = SessionActions.refreshCloudflareSession(SESSION_A.accessToken);
         // Then it must join the same promise: refresh tokens are single-use (Cloudflare rotates them),
         // so two parallel refreshes would spend the same token and one of them would be rejected
         expect(second).toBe(first);
@@ -131,7 +132,7 @@ describe('refreshCloudflareSession', () => {
         const persistDeferred = Promise.withResolvers<void>();
         const setSpy = jest.spyOn(Onyx, 'set').mockReturnValue(persistDeferred.promise);
 
-        const inFlight = SessionActions.refreshCloudflareSession();
+        const inFlight = SessionActions.refreshCloudflareSession(SESSION_A.accessToken);
         // The rotation resolved and the cache updated, but Onyx.set is still pending
         await waitForBatchedUpdates();
 
@@ -173,7 +174,7 @@ describe('refreshCloudflareSession', () => {
 
         // When the refresh runs, Then it resolves reauth-required rather than rejecting: only a fresh
         // authorize round trip can recover, so callers must be told to re-auth, not tempted to retry
-        await expect(SessionActions.refreshCloudflareSession()).resolves.toBe('reauth-required');
+        await expect(SessionActions.refreshCloudflareSession(SESSION_A.accessToken)).resolves.toBe('reauth-required');
         // Then the session is deliberately not cleared: the store is shared across tabs and recovery is by
         // replacement. A deletion here could destroy a working rotation another tab persisted moments earlier
         expect(SessionActions.getCloudflareSession()).toEqual(SESSION_A);
@@ -187,8 +188,22 @@ describe('refreshCloudflareSession', () => {
 
         // When the refresh runs, Then the error propagates so callers can retry, and the session stays
         // alive: a network blip says nothing about the token, so it must not force a re-auth
-        await expect(SessionActions.refreshCloudflareSession()).rejects.toBe(transientError);
+        await expect(SessionActions.refreshCloudflareSession(SESSION_A.accessToken)).rejects.toBe(transientError);
         expect(SessionActions.getCloudflareSession()).toEqual(SESSION_A);
+    });
+
+    it('reports the rotation as refreshed when it succeeded but Onyx.set rejected', async () => {
+        // Given a rotation that succeeds while the persist rejects
+        await seedSession(SESSION_A);
+        jest.mocked(oAuthClient.refreshTokens).mockResolvedValue(SESSION_B);
+        const setSpy = jest.spyOn(Onyx, 'set').mockRejectedValue(new Error('Storage is full'));
+
+        // When the refresh runs, Then it still reports success: the old token is already spent, so the
+        // rotated pair in the cache is the only usable credential
+        await expect(SessionActions.refreshCloudflareSession(SESSION_A.accessToken)).resolves.toBe('refreshed');
+        expect(SessionActions.getCloudflareSession()).toEqual(SESSION_B);
+
+        setSpy.mockRestore();
     });
 
     it('resolves reauth-required without a network call when there is no session', async () => {
@@ -196,7 +211,7 @@ describe('refreshCloudflareSession', () => {
         await seedSession(null);
         // When a refresh is requested, Then it resolves reauth-required without touching the network,
         // because the authorize round trip is the only path that can produce a session from nothing
-        await expect(SessionActions.refreshCloudflareSession()).resolves.toBe('reauth-required');
+        await expect(SessionActions.refreshCloudflareSession(SESSION_A.accessToken)).resolves.toBe('reauth-required');
         expect(oAuthClient.refreshTokens).not.toHaveBeenCalled();
     });
 
@@ -206,7 +221,7 @@ describe('refreshCloudflareSession', () => {
         const refreshDeferred = Promise.withResolvers<CloudflareSession>();
         jest.mocked(oAuthClient.refreshTokens).mockReturnValue(refreshDeferred.promise);
 
-        const refresh = SessionActions.refreshCloudflareSession();
+        const refresh = SessionActions.refreshCloudflareSession(SESSION_A.accessToken);
         // When the other tab wins the rotation race (its new pair reaches this tab through Onyx) and the
         // server then rejects the token this tab submitted as already spent
         await seedSession(SESSION_B);
@@ -240,22 +255,40 @@ describe('refreshCloudflareSession', () => {
         expect(oAuthClient.refreshTokens).not.toHaveBeenCalled();
     });
 
-    it('does not persist a rotation that resolves after sign-out', async () => {
-        // Given a stored session and a refresh that will still be in flight when sign-out runs. In-flight
-        // async work cannot be cancelled, only have its result discarded
+    it('does not persist a rotation that resolves after the session was dropped', async () => {
+        // Given a stored session and a refresh that will still be in flight when the session is dropped
         await seedSession(SESSION_A);
         const refreshDeferred = Promise.withResolvers<CloudflareSession>();
         jest.mocked(oAuthClient.refreshTokens).mockReturnValue(refreshDeferred.promise);
 
-        // When sign-out bumps the session generation before the rotation resolves
-        const refresh = SessionActions.refreshCloudflareSession();
-        sessionCleanup.runSessionCleanupCallbacks();
+        // When the session is dropped, bumping the generation, before the rotation resolves
+        const refresh = SessionActions.refreshCloudflareSession(SESSION_A.accessToken);
+        await SessionActions.clearCloudflareSession();
         refreshDeferred.resolve(SESSION_B);
 
-        // Then the late result must be dropped so the signed-out account's session is never resurrected
+        // Then the late result must be dropped, so a session deliberately thrown away is never resurrected
         await expect(refresh).resolves.toBe('reauth-required');
         // Then the cache is written before Onyx, so a null cache is proof the rotated pair never reached the store
         expect(SessionActions.getCloudflareSession()).toBeNull();
+    });
+
+    it('keeps a rotation that resolves after an Expensify sign-out', async () => {
+        // Given a stored session and a refresh still in flight when the user signs out of Expensify
+        await seedSession(SESSION_A);
+        const refreshDeferred = Promise.withResolvers<CloudflareSession>();
+        jest.mocked(oAuthClient.refreshTokens).mockReturnValue(refreshDeferred.promise);
+
+        // When the sign-out clear drops the key from Onyx before the rotation resolves. No sign-out list
+        // preserves it, which KeysToPreserveTest proves
+        const refresh = SessionActions.refreshCloudflareSession(SESSION_A.accessToken);
+        await Onyx.clear();
+        await waitForBatchedUpdates();
+        expect(SessionActions.getCloudflareSession()).toBeNull();
+        refreshDeferred.resolve(SESSION_B);
+        await refresh;
+
+        // Then the rotation stands: the Cloudflare identity is the developer's, not the signed-in account's
+        expect(SessionActions.getCloudflareSession()).toEqual(SESSION_B);
     });
 });
 
@@ -332,18 +365,18 @@ describe('redirectToCloudflareSignIn', () => {
         Object.defineProperty(window, 'sessionStorage', {value: realSessionStorage, writable: true, configurable: true});
     });
 
-    it('refuses to navigate when sign-out invalidated the flow while the key material was generated', async () => {
+    it('refuses to navigate when the session was dropped while the key material was generated', async () => {
         // Given key-material generation still pending when the redirect starts
         const pkceDeferred = Promise.withResolvers<PKCEPair>();
         jest.mocked(pkce.generatePKCEPair).mockReturnValue(pkceDeferred.promise);
 
-        // When sign-out invalidates the flow before the key material arrives
+        // When the session is dropped, invalidating the flow, before the key material arrives
         const redirect = SessionActions.redirectToCloudflareSignIn('http://localhost/settings/troubleshoot');
-        sessionCleanup.runSessionCleanupCallbacks();
+        await SessionActions.clearCloudflareSession();
         pkceDeferred.resolve(PAIR_1);
 
-        // Then it must reject without navigating or storing anything: sign-out cannot cancel the in-flight
-        // work, so its late result is discarded rather than sending a signed-out tab into the authorize flow
+        // Then it must reject without navigating or storing anything: dropping the session cannot cancel the
+        // in-flight work, so its late result is discarded rather than sending the tab into a stale authorize
         await expect(redirect).rejects.toThrow();
         expect(assignSpy).not.toHaveBeenCalled();
         expect(window.sessionStorage.getItem('QA_AUTH_REDIRECT_FLOW')).toBeNull();
@@ -412,22 +445,6 @@ describe('exchangeCodeForCloudflareSession', () => {
         exchangeDeferred.resolve(SESSION_A);
         await first;
         expect(SessionActions.getPendingCloudflareCodeExchange()).toBeNull();
-    });
-
-    it('discards an exchange that resolves after sign-out, so the signed-out account is not resurrected', async () => {
-        // Given an exchange that will still be in flight when sign-out runs
-        const exchangeDeferred = Promise.withResolvers<CloudflareSession>();
-        jest.mocked(oAuthClient.exchangeCode).mockReturnValue(exchangeDeferred.promise);
-
-        // When sign-out bumps the session generation before the exchange resolves
-        const completion = SessionActions.exchangeCodeForCloudflareSession({code: 'auth-code-1', codeVerifier: PAIR_1.codeVerifier});
-        sessionCleanup.runSessionCleanupCallbacks();
-        exchangeDeferred.resolve(SESSION_A);
-
-        await completion;
-        // Then the late result is dropped, since in-flight work cannot be cancelled, only discarded. Because
-        // the cache is written before Onyx, a null cache is proof the exchanged pair never reached the store
-        expect(SessionActions.getCloudflareSession()).toBeNull();
     });
 
     it('resolves and keeps the usable session in cache when the exchange succeeded but Onyx.set rejected', async () => {

@@ -37,6 +37,12 @@ type CloudflareAuthProbeOptions = {
  * With no session (or on a consented re-auth, see the options) it navigates the tab away and never settles.
  */
 async function runCloudflareAuthProbe({shouldRedirectOnReauthRequired = false}: CloudflareAuthProbeOptions = {}): Promise<CloudflareAuthProbeResult> {
+    // Checked here rather than in isQAAuthConfigured: only the probe reads CHECK_PATH, and an empty one
+    // would otherwise POST to the bare API root
+    if (!CONFIG.QA_AUTH.CHECK_PATH) {
+        return {status: 'error', detail: 'QA_AUTH_CHECK_PATH is not set'};
+    }
+
     try {
         await waitForCloudflareSessionHydration();
         // A callback boot may still be exchanging the code. Join it instead of starting a second round trip
@@ -54,7 +60,7 @@ async function runCloudflareAuthProbe({shouldRedirectOnReauthRequired = false}: 
             // Never settles. Nothing below runs
             await redirectToCloudflareSignIn();
         } else if (isSessionNearExpiry(session)) {
-            const refreshResult = await refreshCloudflareSession();
+            const refreshResult = await refreshCloudflareSession(session.accessToken);
             if (refreshResult === 'reauth-required') {
                 if (shouldRedirectOnReauthRequired) {
                     await redirectToCloudflareSignIn();

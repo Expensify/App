@@ -1,4 +1,4 @@
-import type {GetOAuthRedirectURI, GetQAOrigin, IsQAAuthConfigured, IsQAServerRequest} from './types';
+import type {GetOAuthRedirectURI, GetQAResource, IsQAAuthConfigured, IsQAServerRequest} from './types';
 
 /**
  * QA auth is web-only: receiving the OAuth callback needs claimed Universal/App Links, so the feature is
@@ -9,8 +9,8 @@ const isQAAuthConfigured: IsQAAuthConfigured = () => false;
 
 const isQAServerRequest: IsQAServerRequest = () => false;
 
-const getQAOrigin: GetQAOrigin = () => '';
+const getQAResource: GetQAResource = () => '';
 
 const getOAuthRedirectURI: GetOAuthRedirectURI = () => '';
 
-export {getOAuthRedirectURI, getQAOrigin, isQAAuthConfigured, isQAServerRequest};
+export {getOAuthRedirectURI, getQAResource, isQAAuthConfigured, isQAServerRequest};

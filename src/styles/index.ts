@@ -7198,6 +7198,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             return {
                 width: shouldUseNarrowLayout ? '100%' : '91%',
                 height,
+                maxHeight: '100%',
                 borderRadius: variables.componentBorderRadiusLarge,
                 borderBottomRightRadius: borderBottomRadius,
                 borderBottomLeftRadius: borderBottomRadius,
