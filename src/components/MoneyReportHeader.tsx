@@ -1,6 +1,5 @@
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
-import useMoneyReportHeaderMoreContentVisibility from '@hooks/useMoneyReportHeaderMoreContentVisibility';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportPrimaryAction from '@hooks/useReportPrimaryAction';
@@ -10,33 +9,27 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
-import {isDM} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import {useRoute} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import HeaderLoadingBar from './HeaderLoadingBar';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MoneyReportHeaderActions from './MoneyReportHeaderActions';
-import {ExportDownloadStatusProvider} from './MoneyReportHeaderActions/ExportDownloadStatusContext';
 import MoneyReportHeaderModals from './MoneyReportHeaderModals';
 import MoneyReportHeaderMoreContent from './MoneyReportHeaderMoreContent';
-import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
-import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
 import {PaymentAnimationsProvider} from './PaymentAnimationsContext';
 import {useSearchSelectionActions} from './Search/SearchContext';
 
 type MoneyReportHeaderProps = {
-    /** The reportID of the report currently being looked at */
     reportID: string | undefined;
 
     /** Whether back button should be displayed in header */
@@ -49,15 +42,13 @@ type MoneyReportHeaderProps = {
 function MoneyReportHeader({reportID, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
     return (
         <MoneyReportHeaderModals reportID={reportID}>
-            <ExportDownloadStatusProvider>
-                <PaymentAnimationsProvider>
-                    <MoneyReportHeaderContent
-                        reportID={reportID}
-                        shouldDisplayBackButton={shouldDisplayBackButton}
-                        onBackButtonPress={onBackButtonPress}
-                    />
-                </PaymentAnimationsProvider>
-            </ExportDownloadStatusProvider>
+            <PaymentAnimationsProvider>
+                <MoneyReportHeaderContent
+                    reportID={reportID}
+                    shouldDisplayBackButton={shouldDisplayBackButton}
+                    onBackButtonPress={onBackButtonPress}
+                />
+            </PaymentAnimationsProvider>
         </MoneyReportHeaderModals>
     );
 }
@@ -84,29 +75,14 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     const transactions = Object.values(reportTransactions);
 
-    const [activeTransactionIDs] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
-
-    const singleTransactionID = transactions.length === 1 ? transactions.at(0)?.transactionID : undefined;
-
-    const anchorTransactionIDFromRoute = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? route.params.anchorTransactionID : undefined;
-    const multiTxAnchorTransactionID = anchorTransactionIDFromRoute && activeTransactionIDs?.includes(anchorTransactionIDFromRoute) ? anchorTransactionIDFromRoute : undefined;
-    const carouselAnchorTransactionID = singleTransactionID ?? multiTxAnchorTransactionID;
-    const shouldShowTransactionNavigation = !!carouselAnchorTransactionID && !!activeTransactionIDs?.includes(carouselAnchorTransactionID);
-
     const styles = useThemeStyles();
 
-    const {isWideRHPDisplayedOnWideLayout, isSuperWideRHPDisplayedOnWideLayout} = useResponsiveLayoutOnWideRHP();
+    const {isWideRHPDisplayedOnWideLayout, isSuperWideRHPDisplayedOnWideLayout, shouldUseNarrowLayout: shouldUseNarrowLayoutOnWideRHP} = useResponsiveLayoutOnWideRHP();
 
     const shouldShowHeaderButtonsInHeaderRow = isInLandscapeMode || !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
-
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
-
     const isReportInRHP = route.name !== SCREENS.REPORT;
+    const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
     const isReportInSearch = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT;
-
-    const {statusBarType, shouldShowNextStep, hasStatusOrNextStep} = useMoneyReportHeaderMoreContentVisibility(reportIDProp);
-    const shouldRenderActionsInHeaderRow = shouldShowHeaderButtonsInHeaderRow && !hasStatusOrNextStep && !isReportInSearch && isDM(chatReport);
-    const shouldDisplaySearchRouter = !isReportInRHP || (isSmallScreenWidth && !isReportInSearch);
 
     const backTo = (route.params as {backTo?: Route} | undefined)?.backTo;
 
@@ -115,6 +91,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const isFocused = useIsFocused();
 
     useEffect(() => {
         return () => {
@@ -122,22 +99,28 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         };
     }, []);
 
-    if (isMobileSelectionModeEnabled && shouldUseNarrowLayout) {
-        // If mobile selection mode is enabled but only one or no transactions remain, turn it off
+    if (isMobileSelectionModeEnabled && shouldUseNarrowLayout && isFocused) {
+        // If mobile selection mode is enabled but only one or no transactions remain, turn it off. The selection mode
+        // is shared with every screen, so this report only gets to turn it off while it is the focused one. Another
+        // screen on top of it, such as the add existing expense modal, owns the mode for as long as it is open.
         const visibleTransactions = transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
         if (visibleTransactions.length <= 1) {
             turnOffMobileSelectionMode();
         }
 
-        return (
-            <HeaderWithBackButton
-                title={translate('common.selectMultiple')}
-                onBackButtonPress={() => {
-                    clearSelectedTransactions(true);
-                    turnOffMobileSelectionMode();
-                }}
-            />
-        );
+        // In a wide/super-wide RHP on a wide screen the header stays in its wide state and shows the "X selected"
+        // dropdown instead, matching the transaction list and the selection toolbar which are both wide-RHP aware.
+        if (shouldUseNarrowLayoutOnWideRHP) {
+            return (
+                <HeaderWithBackButton
+                    title={translate('common.selectMultiple')}
+                    onBackButtonPress={() => {
+                        clearSelectedTransactions(true);
+                        turnOffMobileSelectionMode();
+                    }}
+                />
+            );
+        }
     }
 
     return (
@@ -155,19 +138,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 shouldEnableDetailPageNavigation
                 openParentReportInCurrentTab
             >
-                {isReportInSearch &&
-                    (shouldShowTransactionNavigation && carouselAnchorTransactionID ? (
-                        <MoneyRequestReportTransactionsNavigation
-                            currentTransactionID={carouselAnchorTransactionID}
-                            shouldDisplayNarrowVersion={!shouldShowHeaderButtonsInHeaderRow}
-                        />
-                    ) : (
-                        <MoneyRequestReportNavigation
-                            reportID={reportIDProp}
-                            shouldDisplayNarrowVersion={!shouldShowHeaderButtonsInHeaderRow}
-                        />
-                    ))}
-                {shouldRenderActionsInHeaderRow && (
+                {shouldShowHeaderButtonsInHeaderRow && (
                     <MoneyReportHeaderActions
                         reportID={reportIDProp}
                         primaryAction={primaryAction}
@@ -184,14 +155,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                     backTo={backTo}
                 />
             )}
-            <MoneyReportHeaderMoreContent
-                reportID={reportIDProp}
-                primaryAction={primaryAction}
-                backTo={backTo}
-                statusBarType={statusBarType}
-                shouldShowNextStep={shouldShowNextStep}
-                shouldRenderActionsInRow={shouldShowHeaderButtonsInHeaderRow && !shouldRenderActionsInHeaderRow}
-            />
+            <MoneyReportHeaderMoreContent reportID={reportIDProp} />
             <HeaderLoadingBar />
         </View>
     );

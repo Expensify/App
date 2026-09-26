@@ -1,4 +1,5 @@
 import Badge from '@components/Badge';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -10,8 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeDifferenceIntervals, getTimeForDisplay} from '@libs/PerDiemRequestUtils';
 
 import CONST from '@src/CONST';
-import type {IOUAction, IOUType} from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomUnit} from '@src/types/onyx/Policy';
 
@@ -26,16 +26,13 @@ type PerDiemFieldsProps = {
     isReadOnly: boolean;
     didConfirm: boolean;
     transactionID: string | undefined;
-    action: IOUAction;
-    iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-    reportID: string;
     shouldDisplayFieldError: boolean;
     formError: string;
 };
 
-function PerDiemFields({perDiemCustomUnit, transaction, isReadOnly, didConfirm, transactionID, action, iouType, reportID, shouldDisplayFieldError, formError}: PerDiemFieldsProps) {
+function PerDiemFields({perDiemCustomUnit, transaction, isReadOnly, didConfirm, transactionID, shouldDisplayFieldError, formError}: PerDiemFieldsProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid']);
 
     const subRates = getSubratesFields(perDiemCustomUnit, transaction);
@@ -53,7 +50,7 @@ function PerDiemFields({perDiemCustomUnit, transaction, isReadOnly, didConfirm, 
                 if (!transactionID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SUBRATE_EDIT.getRoute(action, iouType, transactionID, reportID, index, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SUBRATE_EDIT.getRoute(index)));
             }}
             disabled={didConfirm}
             interactive={!isReadOnly}
@@ -99,38 +96,38 @@ function PerDiemFields({perDiemCustomUnit, transaction, isReadOnly, didConfirm, 
 
     return (
         <>
-            <MenuItemWithTopDescription
-                shouldShowRightIcon={!isReadOnly}
-                title={getDestinationForDisplay(perDiemCustomUnit, transaction)}
-                description={translate('common.destination')}
-                style={[styles.moneyRequestMenuItem]}
-                titleStyle={styles.flex1}
-                onPress={() => {
-                    if (!transactionID) {
-                        return;
-                    }
-                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.path));
-                }}
-                disabled={didConfirm}
-                interactive={!isReadOnly}
+            <MenuItemField
+                value={getDestinationForDisplay(perDiemCustomUnit, transaction)}
+                name={translate('common.destination')}
+                onPress={
+                    !isReadOnly
+                        ? () => {
+                              if (!transactionID) {
+                                  return;
+                              }
+                              Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.path));
+                          }
+                        : undefined
+                }
+                isDisabled={didConfirm}
                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESTINATION_FIELD}
             />
             <View style={styles.dividerLine} />
-            <MenuItemWithTopDescription
-                shouldShowRightIcon={!isReadOnly}
-                title={getTimeForDisplay(transaction)}
-                description={translate('iou.time')}
-                style={[styles.moneyRequestMenuItem]}
-                titleStyle={styles.flex1}
-                onPress={() => {
-                    if (!transactionID) {
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.getRoute(action, iouType, transactionID, reportID));
-                }}
-                disabled={didConfirm}
-                interactive={!isReadOnly}
-                numberOfLinesTitle={2}
+            <MenuItemField
+                value={getTimeForDisplay(transaction, dateFnsLocale)}
+                name={translate('iou.time')}
+                onPress={
+                    !isReadOnly
+                        ? () => {
+                              if (!transactionID) {
+                                  return;
+                              }
+                              Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.path));
+                          }
+                        : undefined
+                }
+                isDisabled={didConfirm}
+                numberOfLinesValue={2}
                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TIME_FIELD}
             />
             <View style={[styles.flexRow, styles.gap1, styles.justifyContentStart, styles.mh3, styles.flexWrap, styles.pt1]}>{badgeElements}</View>

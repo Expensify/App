@@ -2,6 +2,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -51,7 +52,7 @@ function usePopoverEditStateImpl({
     anchorEdge = CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
 }: UsePopoverEditStateOptions) {
     const {windowHeight} = useWindowDimensions();
-    const anchorRef = useRef<View>(null);
+    const anchorRef = useRef<ComponentRef<typeof View>>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [popoverPosition, setPopoverPosition] = useState<PopoverPosition>({horizontal: 0, vertical: 0});
@@ -130,7 +131,7 @@ type UsePopoverEditStateOptionsGeneric<T> = {
  *   - measureInWindow-based position calculation
  *   - Overflow detection (inverts when too close to bottom)
  *   - Adaptive height calculation (shrinks popover when space is limited)
- *   - Auto-open after layout via InteractionManager
+ *   - Auto-open after layout via requestAnimationFrame
  *   - isEditing + isPopoverVisible toggling
  *   - Auto-cancel when canEdit becomes false
  *   - Value comparison to prevent no-op saves

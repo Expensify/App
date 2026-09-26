@@ -1,14 +1,12 @@
+import useGroupedItems from '@components/Search/hooks/useGroupedItems';
 import type {ChartView, GroupedItem, SearchQueryJSON, SearchView} from '@components/Search/types';
 
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import {search} from '@libs/actions/Search';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
-import {getSections, getSortedSections, isGroupedItemArray, isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -61,10 +59,6 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
     const {groupBy} = queryJSON ?? {};
     const view = queryJSON?.view && isChartView(queryJSON.view) ? queryJSON.view : CONST.SEARCH.VIEW.BAR;
 
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
-    const {accountID, login} = useCurrentUserPersonalDetails();
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
 
     const {isOffline} = useNetwork();
@@ -80,9 +74,10 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
             queryJSON,
             searchKey,
             offset: 0,
-            isOffline,
             isLoading: false,
             shouldUpdateLastSearchParams: false,
+            // The query is a static canned search, so it doesn't need anything OpenApp delivers. Don't sit behind it.
+            skipWaitForWrites: true,
         });
     };
 
@@ -97,32 +92,7 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
         onConfigChanged();
     }, [queryJSON?.hash, isOffline, isFocused]);
 
-    const sortedSections =
-        searchResults?.data && queryJSON && groupBy && login
-            ? getSortedSections(
-                  queryJSON.type,
-                  getSections({
-                      type: queryJSON.type,
-                      data: searchResults.data,
-                      groupBy,
-                      queryJSON,
-                      currentAccountID: accountID,
-                      currentUserEmail: login,
-                      translate,
-                      formatPhoneNumber,
-                      bankAccountList: undefined,
-                      conciergeReportID,
-                      convertToDisplayString,
-                      reportAttributesDerivedValue: undefined,
-                  })[0],
-                  localeCompare,
-                  translate,
-                  queryJSON.sortBy,
-                  queryJSON.sortOrder,
-                  groupBy,
-              )
-            : undefined;
-    const sortedData = sortedSections && isGroupedItemArray(sortedSections) ? sortedSections : undefined;
+    const sortedData = useGroupedItems(searchResults, queryJSON);
 
     const state = getInsightState(isOffline, searchResults, queryJSON, sortedData);
 

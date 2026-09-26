@@ -1,13 +1,11 @@
+import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
+import AvatarNamesTooltip from '@components/Avatar/tooltips/AvatarNamesTooltip';
+import AvatarTooltip from '@components/Avatar/tooltips/AvatarTooltip';
 import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
-import UserDetailsTooltip from '@components/UserDetailsTooltip';
 
-import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import {getUserDetailTooltipText} from '@libs/ReportUtils';
 
 import variables from '@styles/variables';
 
@@ -19,8 +17,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 import type {MultipleAvatarsProps} from './types';
-
-import Avatar from '..';
 
 type HorizontalStackingOptions = Partial<{
     isHovered: boolean;
@@ -47,7 +43,6 @@ function HorizontalAvatars({
     avatarBorderColor,
     overlapDivider = 3,
     size,
-    shouldShowTooltip,
     icons,
     isInReportAction,
     fallbackDisplayName,
@@ -55,7 +50,6 @@ function HorizontalAvatars({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {formatPhoneNumber, translate} = useLocalize();
 
     const oneAvatarSize = StyleUtils.getAvatarStyle(size);
     const overlapSize = oneAvatarSize.width / overlapDivider;
@@ -70,8 +64,6 @@ function HorizontalAvatars({
         rowIndex === rowCount - 1 ? icons.slice(rowIndex * rowSize) : icons.slice(rowIndex * rowSize, (rowIndex + 1) * rowSize),
     );
 
-    const tooltipTexts = shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, translate, icon.name)) : [''];
-
     return avatarRows.map((avatars, rowIndex) => (
         <View
             style={avatarContainerStyles}
@@ -80,46 +72,32 @@ function HorizontalAvatars({
             testID="ReportActionAvatars-MultipleAvatars-StackedHorizontally-Row"
         >
             {avatars.slice(0, maxAvatarsPerRow).map((icon, index) => (
-                <UserDetailsTooltip
+                <AvatarTooltip
                     key={`stackedAvatars-${icon.id}`}
-                    accountID={Number(icon.id)}
-                    icon={icon}
-                    fallbackUserDetails={{
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        displayName: fallbackDisplayName || icon.name,
-                    }}
-                    shouldRender={shouldShowTooltip}
+                    avatar={icon}
+                    fallbackDisplayName={fallbackDisplayName}
+                    style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(size, StyleUtils.getShapeFromIconType(icon.type))]}
                 >
-                    <View style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(size, icon.type)]}>
-                        <Avatar
-                            iconAdditionalStyles={[
-                                StyleUtils.getHorizontalStackedAvatarBorderStyle({
-                                    theme,
-                                    isHovered,
-                                    isPressed,
-                                    isInReportAction,
-                                    avatarBorderColor,
-                                    isActive,
-                                }),
-                                StyleUtils.getAvatarBorderWidth(size),
-                            ]}
-                            type={icon.type}
-                            source={icon.source}
-                            name={icon.name ?? ''}
-                            avatarID={icon.id ?? CONST.DEFAULT_NUMBER_ID}
-                            fallbackIcon={icon.fallbackIcon}
-                            fill={icon.fill}
-                            size={size}
-                            testID="ReportActionAvatars-MultipleAvatars-StackedHorizontally-Avatar"
-                        />
-                    </View>
-                </UserDetailsTooltip>
+                    <AvatarFromIcon
+                        iconAdditionalStyles={[
+                            StyleUtils.getHorizontalStackedAvatarBorderStyle({
+                                theme,
+                                isHovered,
+                                isPressed,
+                                isInReportAction,
+                                avatarBorderColor,
+                                isActive,
+                            }),
+                            StyleUtils.getAvatarBorderWidth(size),
+                        ]}
+                        icon={icon}
+                        size={size}
+                        testID="ReportActionAvatars-MultipleAvatars-StackedHorizontally-Avatar"
+                    />
+                </AvatarTooltip>
             ))}
             {avatars.length > maxAvatarsPerRow && (
-                <Tooltip
-                    text={tooltipTexts.slice(avatarRows.length * maxAvatarsPerRow - 1, avatarRows.length * maxAvatarsPerRow + 9).join(', ')}
-                    shouldRender={shouldShowTooltip}
-                >
+                <AvatarNamesTooltip avatars={icons.slice(avatarRows.length * maxAvatarsPerRow - 1, avatarRows.length * maxAvatarsPerRow + 9)}>
                     <View
                         testID="ReportActionAvatars-MultipleAvatars-StackedHorizontally-LimitReached"
                         style={[
@@ -134,7 +112,7 @@ function HorizontalAvatars({
                             }),
                             StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity),
                             StyleUtils.getHorizontalStackedOverlayAvatarStyle(size),
-                            icons.at(3)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons.at(3)?.type),
+                            icons.at(3)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, CONST.AVATAR_SHAPE.ROUNDED_SQUARE),
                         ]}
                     >
                         <View style={[styles.justifyContentCenter, styles.alignItemsCenter, StyleUtils.getHeight(oneAvatarSize.height), StyleUtils.getWidthStyle(oneAvatarSize.width)]}>
@@ -144,7 +122,7 @@ function HorizontalAvatars({
                             >{`+${avatars.length - maxAvatarsPerRow}`}</Text>
                         </View>
                     </View>
-                </Tooltip>
+                </AvatarNamesTooltip>
             )}
         </View>
     ));

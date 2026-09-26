@@ -33,7 +33,7 @@ function DiscardGPSTripButton() {
         showConfirmModal({
             title: translate('gps.discardDistanceTrackingModal.title'),
             prompt: translate('gps.discardDistanceTrackingModal.prompt'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             confirmText: translate('gps.discardDistanceTrackingModal.confirm'),
             cancelText: translate('common.cancel'),
         }).then((result) => {

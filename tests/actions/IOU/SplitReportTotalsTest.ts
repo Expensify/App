@@ -24,7 +24,7 @@ import Onyx from 'react-native-onyx';
 
 import currencyList from '../../unit/currencyList.json';
 import createMock from '../../utils/createMock';
-import {getGlobalFetchMock, formatPhoneNumber} from '../../utils/TestHelper';
+import {getGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -54,14 +54,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 jest.mock('@libs/actions/IOU/PendingNewTransactions', () => ({
@@ -69,19 +61,7 @@ jest.mock('@libs/actions/IOU/PendingNewTransactions', () => ({
     deletePendingNewTransactionIDs: jest.fn(),
     isOneToTwoTransactionTransition: jest.fn(() => false),
 }));
-// In production, requestMoney defers its API.write() call until the target screen's
-// content lays out (or a safety timeout fires). In tests there is no target component
-// to flush the deferred write, so we bypass the deferral by executing the callback immediately.
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    registerDeferredWrite: (_key: string, callback: () => void) => callback(),
-    flushDeferredWrite: jest.fn(),
-    cancelDeferredWrite: jest.fn(),
-    hasDeferredWrite: () => false,
-    getOptimisticWatchKey: () => undefined,
-    deferOrExecuteWrite: (apiWrite: () => void) => apiWrite(),
-    reserveDeferredWriteChannel: jest.fn(),
-    resetForTesting: jest.fn(),
-}));
+jest.mock('@libs/API/writeWhenReady');
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const unapprovedCashHash = 71801560;
@@ -489,6 +469,7 @@ describe('actions/IOU', () => {
                 participantsPolicyTags?: Record<string, PolicyTagLists>;
             } = {},
         ) => ({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: overrides.participants ?? [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,
@@ -503,12 +484,13 @@ describe('actions/IOU', () => {
             transactionViolations: {},
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
-            betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             participantsPolicyTags: overrides.participantsPolicyTags ?? {},
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber,
+            rules: undefined,
+            isVendorMatchingBetaEnabled: false,
         });
 
         it('returns valid splitData with chatReportID, transactionID, and reportActionID', () => {
@@ -745,6 +727,9 @@ describe('actions/IOU', () => {
 
         function buildBaseParams(overrides: Record<string, unknown> = {}) {
             return {
+                isVendorMatchingBetaEnabled: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
                 allTransactionsList: {},
                 allReportsList: {},
                 allReportActionsList: {},
@@ -765,7 +750,6 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
-                betas: [],
                 allPolicyTags: {},
                 personalDetails: undefined,
                 transactionReport: {reportID: 'tx-report-1', parentReportID: 'parent-report-1'},
@@ -773,6 +757,8 @@ describe('actions/IOU', () => {
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
+                rules: undefined,
                 ...overrides,
             };
         }

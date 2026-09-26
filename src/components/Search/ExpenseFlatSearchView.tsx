@@ -41,8 +41,11 @@ function ExpenseFlatSearchView({
     columns,
     canSelectMultiple,
     isActionColumnWide,
+    columnSizeOptions,
     isAttendeesEnabledForMovingPolicy,
     nonPersonalAndWorkspaceCards,
+    policyCategories,
+    policyTags,
     isMobileSelectionModeEnabled,
     SearchTableHeader: searchTableHeader,
     tableHeaderVisible,
@@ -53,6 +56,7 @@ function ExpenseFlatSearchView({
     onEndReached,
     onLayout,
     onScroll,
+    onViewableItemsChanged,
     contentContainerStyle,
     containerStyle,
     ref,
@@ -120,7 +124,6 @@ function ExpenseFlatSearchView({
                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                     onFocus={onFocus}
                     onUndelete={handleUndelete}
-                    keyForList={item.keyForList}
                     isFirstItem={index === firstVisibleIndex}
                     isLastItem={index === lastVisibleIndex && !ListFooterComponent}
                 />
@@ -136,8 +139,13 @@ function ExpenseFlatSearchView({
             columns={columns}
             type={type}
             isActionColumnWide={isActionColumnWide}
+            columnSizeOptions={columnSizeOptions}
             isHeaderVisible={!!searchTableHeader}
             dataKey={data}
+            data={data}
+            nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+            policyCategories={policyCategories}
+            policyTags={policyTags}
             isKeyboardShown={isKeyboardShown}
             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
             containerStyle={containerStyle}
@@ -162,6 +170,7 @@ function ExpenseFlatSearchView({
                 onSelectRow={handleSelectRow}
                 keyExtractor={keyExtractor}
                 onScroll={onScroll}
+                onViewableItemsChanged={onViewableItemsChanged}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
                 columns={columns}

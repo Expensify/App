@@ -24,11 +24,12 @@ A **Workspace member** is anyone added to a workspace with one of the following 
 To invite someone to your workspace:
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
-2. Click **Invite Member**.
-3. Search for the user by name, email, or phone number.
-4. (Optional) Click **Role** to change the default role (Member).
-5. (Optional) Add a message to the invitation.
-6. Click **Invite**.
+2. Click **Invite member**.
+3. Search for the user by name, email, or phone number, then select them from the list.
+4. Click **Next** to open **Confirm details**.
+5. (Optional) Click **Role** to change the default role (Member).
+6. (Optional) Add a **Message** to the invitation.
+7. Click **Invite**.
 
 **Tip:** You can also invite members under **Settings > Profile** by clicking **Share** to send the workspace’s URL or QR code.
 
@@ -93,6 +94,8 @@ If someone no longer needs access to your workspace, you can remove them individ
 4. Select the new role and confirm.
 
 **Note:** People admins can change a member’s role between **Member** and **Auditor** only. Granting or removing the admin role or any scoped admin role (such as Card admin, People admin, or Payments admin) requires a Workspace admin.
+
+**Note:** You can’t change the role of the member set as the workspace’s authorized payer. Their **Role** can’t be edited and role-change options are hidden until you assign a different payer. To change their role, first go to **Workspaces > Workflows**, open **Payments**, and set a different admin as the **Payer**.
 
 ---
 

@@ -8,6 +8,8 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
+
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import React, {useState} from 'react';
@@ -23,7 +25,6 @@ type CopyableTextFieldProps = {
     /** Custom styles for the outer most View */
     style?: StyleProp<ViewStyle>;
 
-    /** Custom styles for the displayed text */
     textStyle?: StyleProp<TextStyle>;
 
     /** Whether the text field should be expandable */
@@ -62,12 +63,12 @@ function CopyableTextField({value, isLoading = false, style, textStyle, shouldDi
                     </View>
                     {shouldDisplayShowMoreButton && (
                         <Button
-                            small
-                            text={translate(expanded ? 'common.showLess' : 'common.showMore')}
+                            size={CONST.BUTTON_SIZE.SMALL}
                             onPress={() => setExpanded((current) => !current)}
-                            shouldShowRightIcon
-                            iconRight={expanded ? icons.UpArrow : icons.DownArrow}
-                        />
+                        >
+                            <Button.Text>{translate(expanded ? 'common.showLess' : 'common.showMore')}</Button.Text>
+                            <Button.Icon src={expanded ? icons.UpArrow : icons.DownArrow} />
+                        </Button>
                     )}
                 </>
             )}

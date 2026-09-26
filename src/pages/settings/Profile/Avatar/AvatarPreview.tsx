@@ -1,5 +1,5 @@
 import AttachmentPicker from '@components/AttachmentPicker';
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import UserInitialsAvatar from '@components/UserInitialsAvatar';
@@ -33,9 +33,7 @@ type AvatarPreviewProps = {
     isRemoved: boolean;
     /** Callback when the current avatar photo is removed */
     onImageRemoved: () => void;
-    /** The image data */
     imageData: ImageData;
-    /** The function to set the error */
     setError: (error: TranslationPaths | null, phraseParam?: Record<string, unknown>) => void;
     /** Opens the avatar crop screen for the picked image */
     openCropper: (image: FileObject) => void;
@@ -130,14 +128,13 @@ function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError
                     />
                 </View>
             ) : (
-                <Avatar
+                <UserAvatar
                     containerStyles={avatarStyle}
                     imageStyles={avatarStyle}
                     source={avatarURL}
-                    avatarID={accountID}
+                    accountID={accountID}
                     fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
                     size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                    type={CONST.ICON_TYPE_AVATAR}
                 />
             )}
             <AttachmentPicker
@@ -149,15 +146,16 @@ function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError
                     if (menuItems?.length <= 1) {
                         return (
                             <Button
-                                icon={icons.Upload}
-                                text={translate('avatarPage.uploadPhoto')}
                                 accessibilityLabel={translate('avatarPage.uploadPhoto')}
                                 onPress={() => {
                                     openPicker({
                                         onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
                                     });
                                 }}
-                            />
+                            >
+                                <Button.Icon src={icons.Upload} />
+                                <Button.Text>{translate('avatarPage.uploadPhoto')}</Button.Text>
+                            </Button>
                         );
                     }
 

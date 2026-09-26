@@ -1,3 +1,5 @@
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+
 import {setMoneyRequestAmount} from '@libs/actions/IOU/MoneyRequest';
 import {setSplitShares} from '@libs/actions/IOU/Split';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -43,6 +45,7 @@ function useDistanceRequestData({
     isSplitRequest,
     currentUserAccountID,
 }: UseDistanceRequestDataParams): (participants: Participant[]) => void {
+    const {getCurrencyDecimals} = useCurrencyListActions();
     return (participants: Participant[]) => {
         // Get policy report based on transaction participants
         const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
@@ -62,7 +65,7 @@ function useDistanceRequestData({
 
         const participantAccountIDs: number[] | undefined = participants?.map((participant) => Number(participant.accountID ?? CONST.DEFAULT_NUMBER_ID));
         if (isSplitRequest && amount && currency && !isPolicyExpenseChat) {
-            setSplitShares(transaction, amount, currency ?? '', participantAccountIDs ?? [], currentUserAccountID);
+            setSplitShares(transaction, amount, currency ?? '', participantAccountIDs ?? [], currentUserAccountID, getCurrencyDecimals);
         }
     };
 }

@@ -1,17 +1,19 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Rule, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {addMonths, format, isPast, setDate} from 'date-fns';
+import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 
-import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
-import {getOriginalMessage, isDynamicExternalWorkflowApproveFailedAction} from './ReportActionsUtils';
+import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimbursementChoice, getReimburserAccountID} from './PolicyUtils';
+import {getOriginalMessage} from './ReportActionMessageUtils';
+import {isDynamicExternalWorkflowApproveFailedAction} from './ReportActionTypeGuards';
 import {
     getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
@@ -44,6 +46,7 @@ type BuildNextStepNewParams = {
     bypassNextApproverID?: number;
     isTrackIntentUser: boolean | undefined;
     translate?: LocaleContextProps['translate'];
+    rules: OnyxCollection<Rule>;
 };
 
 type GetReportNextStepParams = {
@@ -54,16 +57,18 @@ type GetReportNextStepParams = {
     transactionViolations: OnyxCollection<TransactionViolations>;
     currentUserEmail: string;
     currentUserAccountID: number;
+    rules: OnyxCollection<Rule>;
 };
 
 function buildNextStepMessage(
     nextStep: ReportNextStep,
     translate: LocaleContextProps['translate'],
+    dateFnsLocale: DateFnsLocale | undefined,
     currentUserAccountID: number,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): string {
     // Escape actor name to prevent HTML injection since this will be rendered as HTML
-    const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber, translate}) ?? '');
+    const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}) ?? '');
     let actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
     if (nextStep.actorAccountID === currentUserAccountID) {
         actorType = CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER;
@@ -80,11 +85,19 @@ function buildNextStepMessage(
         etaType = CONST.NEXT_STEP.ETA_TYPE.KEY;
     } else if (nextStep.eta?.dateTime) {
         const formatString = nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT ? CONST.DATE.ORDINAL_DAY_OF_MONTH : CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY;
-        eta = format(new Date(nextStep.eta.dateTime), formatString);
+        // `eta.dateTime` is a date-only string (yyyy-MM-dd). Native `new Date(...)` parses it as UTC midnight,
+        // which shifts the day back by one when formatted in a UTC-negative timezone. `parseISO` parses it as
+        // local midnight so the rendered day matches the day set in the workspace settings.
+        eta = format(parseISO(nextStep.eta.dateTime), formatString, {locale: dateFnsLocale});
         etaType = CONST.NEXT_STEP.ETA_TYPE.DATE_TIME;
     }
 
-    return `<next-step>${translate(`nextStep.message.${nextStep.messageKey}`, actor, actorType, eta, etaType)}</next-step>`;
+    const requiredDepositCurrency = nextStep.requiredDepositCurrency ? Str.htmlEncode(nextStep.requiredDepositCurrency) : undefined;
+    const message =
+        nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT
+            ? translate('nextStep.message.waitingForSubmitterAccount', actor, actorType, eta, etaType, requiredDepositCurrency)
+            : translate(`nextStep.message.${nextStep.messageKey}`, actor, actorType, eta, etaType);
+    return `<next-step>${message}</next-step>`;
 }
 
 function doesReportContainTransactions(report: OnyxEntry<Report>): boolean {
@@ -106,6 +119,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
         isRejectedReport: isRejectedReportParam,
         bypassNextApproverID,
         isTrackIntentUser,
+        rules,
     } = params;
 
     if (!isExpenseReport(report)) {
@@ -117,7 +131,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
     const isInstantSubmitEnabled = autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
     const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
     const hasTransactions = doesReportContainTransactions(report);
-    const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, isUnapprove);
+    const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, rules, isUnapprove);
     const reimburserAccountID = getReimburserAccountID(policy);
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
@@ -156,7 +170,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             }
             if (isReopen) {
                 nextStep = {
-                    messageKey: shouldShowMarkAsDone({isTrackIntentUser, report, policy})
+                    messageKey: shouldShowMarkAsDone({isTrackIntentUser, report, policy, rules})
                         ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE
                         : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -223,6 +237,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
                         isTrackIntentUser,
                         report,
                         policy,
+                        rules,
                     })
                         ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE
                         : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
@@ -269,19 +284,21 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             break;
 
         // Generates an optimistic nextStep once a report has been approved
-        case CONST.REPORT.STATUS_NUM.APPROVED:
-            if (isInvoiceReport(report) || !isPayer(currentUserAccountIDParam, currentUserEmailParam, report, undefined) || reimbursableSpend === 0) {
+        case CONST.REPORT.STATUS_NUM.APPROVED: {
+            const isReimbursementDisabled = getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+            if (isInvoiceReport(report) || reimbursableSpend === 0 || isReimbursementDisabled) {
                 nextStep = nextStepNoActionRequired;
                 break;
             }
 
-            // Self review
+            // The report still needs to be paid whether or not the approver is the one who pays it.
             nextStep = {
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                 actorAccountID: reimburserAccountID,
             };
             break;
+        }
 
         // Clear nextStep
         default:
@@ -306,7 +323,16 @@ function buildOptimisticFixIssueNextStep(ownerAccountID: number): ReportNextStep
     };
 }
 
-function getReportNextStep({moneyRequestReport, moneyRequestReportOwnerLogin, transactions, policy, transactionViolations, currentUserEmail, currentUserAccountID}: GetReportNextStepParams) {
+function getReportNextStep({
+    moneyRequestReport,
+    moneyRequestReportOwnerLogin,
+    transactions,
+    policy,
+    transactionViolations,
+    currentUserEmail,
+    currentUserAccountID,
+    rules,
+}: GetReportNextStepParams) {
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
     const shouldShowNoFurtherAction =
         reimbursableSpend === 0 &&
@@ -329,7 +355,7 @@ function getReportNextStep({moneyRequestReport, moneyRequestReportOwnerLogin, tr
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
     // We should always show this optimistic message for policies with preventSelfApproval
     // to avoid any flicker during transitions between online/offline states
-    if (shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy)) {
+    if (shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy, rules)) {
         return buildOptimisticNextStepForPreventSelfApprovalsEnabled();
     }
 
@@ -345,11 +371,12 @@ function getReportNextStep({moneyRequestReport, moneyRequestReportOwnerLogin, tr
 
 /**
  * Whether to show the DEW approve-error next step.
- * Only manual approve failures (`automaticAction` false/absent) for the current approver should show it.
- * Auto-approval blocks keep the normal workflow next step.
+ * Only manual approve failures (`automaticAction` false/absent) should show it. Auto-approval blocks keep the normal
+ * workflow next step. The approver check is not repeated here: `hasDEWApproveFailed` comes from the
+ * `HAS_DEW_APPROVE_FAILED` reason, which is already gated on the current user being the report manager.
  */
-function shouldShowDynamicExternalWorkflowApproveErrorNextStep(reportAction: OnyxEntry<ReportAction>, hasDEWApproveFailed: boolean, isCurrentUserTheApprover: boolean): boolean {
-    if (!hasDEWApproveFailed || !isCurrentUserTheApprover || !isDynamicExternalWorkflowApproveFailedAction(reportAction)) {
+function shouldShowDynamicExternalWorkflowApproveErrorNextStep(reportAction: OnyxEntry<ReportAction>, hasDEWApproveFailed: boolean): boolean {
+    if (!hasDEWApproveFailed || !isDynamicExternalWorkflowApproveFailedAction(reportAction)) {
         return false;
     }
 

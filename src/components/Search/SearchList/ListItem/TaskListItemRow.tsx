@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -114,15 +114,16 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
 
     return (
         <Button
-            small
-            success
-            text={translate('task.action')}
+            size={CONST.BUTTON_SIZE.SMALL}
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             style={[styles.w100]}
             isDisabled={!isTaskActionable}
             onPress={callFunctionIfActionIsAllowed(() => {
                 completeTask(taskItem as Report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail, taskItem.reportID);
             })}
-        />
+        >
+            <Button.Text>{translate('task.action')}</Button.Text>
+        </Button>
     );
 }
 
@@ -193,13 +194,11 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
 
                     <View style={[styles.gap2, styles.alignItemsEnd]}>
                         {!!item.assignee.accountID && (
-                            <Avatar
-                                imageStyles={[styles.alignSelfCenter]}
+                            <UserAvatar
+                                imageStyles={styles.alignSelfCenter}
                                 size={CONST.AVATAR_SIZE.XXX_SMALL}
                                 source={item.assignee.avatar}
-                                name={item.formattedAssignee}
-                                type={CONST.ICON_TYPE_AVATAR}
-                                avatarID={item.assignee.accountID}
+                                accountID={item.assignee.accountID}
                             />
                         )}
 
@@ -217,7 +216,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, containerStyle]}>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide: item.shouldShowYear})]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide: item.shouldShowYear, isDateColumnCreated: true})]}>
                     <DateCell
                         date={item.created}
                         showTooltip={showTooltip}

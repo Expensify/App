@@ -1,10 +1,8 @@
 ---
 title: How to Troubleshoot Expensify Card Issues
 description: Learn how to fix common problems with your Expensify Card, including declined transactions, card activation issues, and Smart Limit errors.
-keywords: [Expensify Card, card declined, Smart Limit, inactive card, activation issues, card won’t work, workspace admin, cardholder, Wallet, domain limit]
+keywords: [Expensify Card, card declined, Smart Limit, inactive card, card status, fix this connection, activation issues, card won’t work, workspace admin, cardholder, Wallet, domain limit]
 ---
-
-<div id="new-expensify" markdown="1">
 
 You can troubleshoot most Expensify Card issues in just a few steps. This guide walks you through the most common problems — like declined transactions, activation issues, or Smart Limit errors — and shows how to get your card working again.
 
@@ -59,6 +57,8 @@ Every workspace has a shared spend limit that affects all cards. If the workspac
 
 Workspace Admins can check the available limit by going to **Workspaces > [Workspace Name] > Expensify Card**. From there, Workspace Admins can view the current balance, remaining limit, and any warnings related to settlement.
 
+![The Workspace Admin Expensify Card page (Workspaces > [Workspace Name] > Expensify Card) showing remaining limit/balance and the "Settle Balance" button]({{site.url}}/assets/images/Expensify_Card_Settle_Now.png){:width="100%"}
+
 ## Transaction declined by a Spend Rule
 
 Your Workspace Admin may have set a Spend Rule on your card that declines transactions based on the merchant, spend category, or amount. Certain categories (such as ATMs and gambling) are also blocked by default on every Expensify Card and cannot be overridden.
@@ -69,6 +69,17 @@ To check whether a Spend Rule caused the decline:
 - **On mobile:** Go to **Wallet > Expensify Card** using the navigation tabs at the bottom.
 
 Then click your card to view its Spend Rule summary. If a Spend Rule is blocking your purchase, contact your Workspace Admin, since only an admin can change the rule. To learn more, [learn about Expensify Card Spend Rules](/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
+
+## What the Inactive status on your Expensify Card in Wallet means
+
+In the navigation tabs (on the left on web, on the bottom on mobile), go to **Account > Wallet**. Under **Cards**, each Expensify Card shows one of these statuses:
+
+- **Active** — The card is ready to use.
+- **Inactive** — The card is suspended and can't be used for purchases, usually because your Workspace Admin suspended it or set its limit to $0.
+
+An **Inactive** Expensify Card is not a broken connection. Your Expensify Card is issued by Expensify rather than imported from a bank, so it has no bank connection to re-authenticate and nothing for you to fix in **Wallet**. To use the card again, contact your Workspace Admin and ask them to reactivate it or restore your limit.
+
+Connection messages such as **Please fix this connection** apply only to personal cards and company cards, which import transactions from a bank. [Learn how to fix a broken personal card connection](/articles/new-expensify/connect-credit-cards/Manage-Personal-Cards).
 
 ---
 
@@ -99,8 +110,9 @@ To check for bank account issues, navigate to **Workspaces > [Workspace Name] > 
 The workspace limit refreshes automatically after the workspace's regular Expensify Card settlement. To refresh it earlier:
 
 1. Go to **Workspaces > [Workspace Name] > Expensify Card**
-2. Click **Settle Balance** to trigger an early settlement.
-3. Once the settlement clears, the workspace limit will be refreshed.
+2. Click **Settle balance**.
+3. In the confirmation window, click **Settle balance** again to confirm the early settlement.
+4. Once the settlement clears, the workspace limit will be refreshed.
 
 </div>
 

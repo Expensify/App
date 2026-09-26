@@ -1,23 +1,25 @@
 ---
 title: Prioritize and Pin Chats
 description: Learn how to customize the order of your chats using pinning and message priority settings in Expensify.
-keywords: [New Expensify, chat inbox, reorder chats, pinned messages, focus mode, priority mode, chat display]
+keywords: [New Expensify, chat inbox, reorder chats, pinned messages, focus mode, priority mode, chat display, admins room pinned, why is my admins room pinned]
 ---
+
+# Prioritize and Pin Chats 
 
 Customize your Expensify chat inbox to stay focused on what matters most. To organize your messages, you can pin key conversations to the top and choose between two display modes.
 
 ---
 
-# Ways to Organize Your Inbox
+## How to organize your Inbox
 
 - **Pin**: Keep important chats at the top of your inbox for quick access.
-- **Priority Mode**: Choose how your chats are sorted:
-  - **Most Recent** – Displays all chats sorted by the most recent activity. Pinned chats remain at the top.
+- **Priority mode**: Choose how your chats are sorted:
+  - **Most recent** – Displays all chats sorted by the most recent activity. Pinned chats remain at the top.
   - **#focus** – Displays only unread and pinned chats, sorted alphabetically.
 
 ---
 
-# Pin or Unpin a Chat
+## How to pin and unpin a chat
 
 **To pin a chat:**
 - Right-click the chat in your inbox and select **Pin**.
@@ -25,17 +27,30 @@ Customize your Expensify chat inbox to stay focused on what matters most. To org
 
 To unpin a chat, repeat the same action and select **Unpin**.
 
-📌 **Note:** Pinned chats always appear at the top of your inbox.
+**Note:** Pinned chats always appear at the top of your inbox.
 
 ---
 
-# Change Priority Mode
+## What chats Expensify pins for you automatically
+
+Expensify pins one chat for you: the **#admins** room of the **first workspace you create when you sign up**. That room holds your onboarding tasks, so it stays at the top of your inbox while you get set up.
+
+Every workspace you create after that is different. Its **#admins** room is **not** pinned, because your onboarding tasks already live in the first one. You can still pin it yourself using the steps above.
+
+To unpin the first workspace's **#admins** room once you're finished onboarding, open the room, click the room header, and select **Unpin**.
+
+Learn more about [what the #admins room is for](/articles/new-expensify/chat/Expensify-Chat-Rooms-for-Admins).
+
+---
+
+## How to change priority mode
 
 To adjust how chats are sorted in your inbox:
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Account > Preferences**.
-2. Click or tap **Priority Mode**.
-3. Select either **#focus** or **Most Recent**.
+2. Click or tap **Priority mode**.
+3. Select either **#focus** or **Most recent**.
+4. Click or tap **Save**.
 
-🧠 **Note:** Choose **#focus** for a distraction-free inbox with only unread and pinned chats, or stick with **Most Recent** to see everything chronologically.
+**Note:** Choose **#focus** for a distraction-free inbox with only unread and pinned chats, or stick with **Most recent** to see everything chronologically. The change is applied only after you tap **Save**.
 

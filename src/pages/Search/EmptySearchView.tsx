@@ -27,8 +27,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {canSendInvoice, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {getAllPolicyValues, getFilterFromQuery, isDefaultExpenseReportsQuery, isDefaultExpensesQuery, isSearchBeforeViolationsSnapshotStarted} from '@libs/SearchQueryUtils';
-import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
+import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -80,15 +80,14 @@ type EmptySearchViewItem = {
 
 function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, violationSnapshotStartedAt, onScroll, contentContainerStyle}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {typeMenuSections} = useSearchTypeMenuSections();
-    const {isBetaEnabled} = usePermissions();
+    const typeMenuSections = useSearchTypeMenuSections();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
 
-    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPolicies, isBetaEnabled(CONST.BETAS.SUBMIT_2026));
+    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPolicies);
 
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
@@ -136,7 +135,7 @@ function EmptySearchViewContent({
     onScroll,
     contentContainerStyle,
 }: EmptySearchViewContentProps) {
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const timezone = useCurrentTimezone();
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -145,7 +144,6 @@ function EmptySearchViewContent({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {accountID} = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID, '');
@@ -157,8 +155,9 @@ function EmptySearchViewContent({
         selector: hasExpenseReportsSelector,
     });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
-    const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<Policy>>, activePolicy);
+    const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled, activePolicy);
 
     const filteredPolicyID = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
     let isFilteredWorkspaceAccessible = true;
@@ -178,9 +177,9 @@ function EmptySearchViewContent({
             hasViolations,
             isASAPSubmitBetaEnabled,
             defaultChatEnabledPolicy,
-            betas,
             isTrackIntentUser,
             getCurrencyDecimals,
+            rules,
             false,
             shouldDismissEmptyReportsConfirmation,
         );
@@ -220,7 +219,10 @@ function EmptySearchViewContent({
         content = {
             ...defaultViewItemHeader.folder,
             title: translate('search.searchResults.emptyStatementsResults.title'),
-            subtitle: translate('search.searchResults.emptyViolationSnapshotResults.subtitle', DateUtils.formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt, timezone)),
+            subtitle: translate(
+                'search.searchResults.emptyViolationSnapshotResults.subtitle',
+                DateUtils.formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt, timezone, dateFnsLocale),
+            ),
         };
     }
 
@@ -309,7 +311,7 @@ function EmptySearchViewContent({
                                       {
                                           buttonText: translate('quickAction.createReport'),
                                           buttonAction: createReport,
-                                          success: true,
+                                          buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                       },
                                   ]
                                 : []),
@@ -333,7 +335,7 @@ function EmptySearchViewContent({
                         };
                     } else if (!hasResults || !hasTransactions) {
                         content = {
-                            ...defaultViewItemHeader.folder,
+                            ...defaultViewItemHeader.expenses,
                             title: translate('search.searchResults.emptyExpenseResults.title'),
                             subtitle: translate(hasSeenTour ? 'search.searchResults.emptyExpenseResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyExpenseResults.subtitle'),
                             buttons: [
@@ -348,7 +350,7 @@ function EmptySearchViewContent({
                                 {
                                     buttonText: translate('iou.createExpense'),
                                     buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.CREATE),
-                                    success: true,
+                                    buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                 },
                             ],
                         };
@@ -385,7 +387,7 @@ function EmptySearchViewContent({
                                       {
                                           buttonText: translate('workspace.invoices.sendInvoice'),
                                           buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.INVOICE),
-                                          success: true,
+                                          buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                       },
                                   ]
                                 : []),

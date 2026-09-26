@@ -13,10 +13,11 @@ import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
-import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, translateLocal, formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const CURRENT_USER_LOGIN = 'test@example.com';
+const CURRENT_USER_ACCOUNT_ID = 12345;
 
 beforeAll(() => {
     IntlStore.load(CONST.LOCALES.EN);
@@ -72,9 +73,12 @@ test('[ModifiedExpenseMessage] getForReportAction on 1k reports and policies', a
             convertToDisplayString,
             translate: translateLocal,
             reportAction,
+            movedFromReportName: undefined,
             policy: undefined,
             policyTags: mockedPolicyTags,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             currentUserLogin: CURRENT_USER_LOGIN,
+            formatPhoneNumber,
         }),
     );
 });

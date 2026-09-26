@@ -2,11 +2,13 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import AvatarSkeleton from '@components/AvatarSkeleton';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
-import type {IllustrationName} from '@components/Icon/IllustrationLoader';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -17,7 +19,8 @@ import Section from '@components/Section';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
-import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useIsAgentAccount from '@hooks/useIsAgentAccount';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -27,13 +30,15 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getVacationDelegateErrors from '@libs/getVacationDelegateErrors';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getFormattedAddress, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {useIsAgentAccount} from '@libs/SessionUtils';
 import {expensifyLoginsSelector, getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
+
+import useTimeSensitiveHomeAddress from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveHomeAddress';
 
 import {clearAgentAvatarUpdateError} from '@userActions/Agent';
 
@@ -46,11 +51,13 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
+import {homeAndOfficeCommuterExclusionPolicyNameSelector} from '@selectors/Policy';
 import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -64,7 +71,7 @@ function ProfilePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const scrollEnabled = useScrollEnabled();
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
@@ -82,13 +89,14 @@ function ProfilePage() {
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const isAgentAccount = useIsAgentAccount();
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
-    const {asset: Profile} = useMemoizedLazyAsset(() => loadIllustration('Profile' as IllustrationName));
     const icons = useMemoizedLazyExpensifyIcons(['QrCode']);
 
     const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList, currentUserPersonalDetails?.email);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
+    const {shouldShowAddHomeAddress: shouldShowAddHomeAddressGBR} = useTimeSensitiveHomeAddress();
+    const [commuterExclusionsWorkspaceName] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: homeAndOfficeCommuterExclusionPolicyNameSelector});
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
     const {isActingAsDelegate} = useDelegateNoAccessState();
@@ -103,7 +111,7 @@ function ProfilePage() {
     }> = [
         {
             description: translate('displayNamePage.headerTitle'),
-            title: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: currentUserPersonalDetails, translate})),
+            title: temporaryGetDisplayNameOrDefault({passedPersonalDetails: currentUserPersonalDetails, translate, formatPhoneNumber}),
             pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
             testID: 'display-name-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DISPLAY_NAME,
@@ -123,11 +131,11 @@ function ProfilePage() {
             description: translate('statusPage.status'),
             title: emojiCode ? `${emojiCode} ${currentUserPersonalDetails?.status?.text ?? ''}` : '',
             pageRoute: ROUTES.SETTINGS_STATUS,
-            brickRoadIndicator: isEmptyObject(vacationDelegate?.errors) ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            brickRoadIndicator: isEmptyObject(getVacationDelegateErrors(vacationDelegate)) ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
             testID: 'status-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.STATUS,
         },
-        ...(!isAgentAccount
+        ...(isAgentAccount === false
             ? [
                   {
                       description: translate('pronounsPage.pronouns'),
@@ -155,7 +163,15 @@ function ProfilePage() {
         Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(fieldToFocus));
     };
 
-    const privateOptions = [
+    const privateOptions: Array<{
+        description: string;
+        title: string;
+        testID: string;
+        sentryLabel: string;
+        action: () => void;
+        brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+        furtherDetails?: string;
+    }> = [
         {
             description: translate('privatePersonalDetails.legalName'),
             title: legalName,
@@ -184,6 +200,8 @@ function ProfilePage() {
             testID: 'address-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.ADDRESS,
             action: () => navigateToPrivateDetails(INPUT_IDS.ADDRESS_LINE_1),
+            brickRoadIndicator: shouldShowAddHomeAddressGBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined,
+            furtherDetails: commuterExclusionsWorkspaceName ? translate('privatePersonalDetails.commuterExclusionsHint', {workspaceName: commuterExclusionsWorkspaceName}) : undefined,
         },
     ];
 
@@ -193,21 +211,22 @@ function ProfilePage() {
             testID="ProfilePage"
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
-                title={translate('common.profile')}
-                onBackButtonPress={() => {
-                    if (route.params?.backTo) {
-                        Navigation.goBack(route.params?.backTo);
-                        return;
-                    }
-                    Navigation.goBack();
-                }}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-                icon={Profile}
-                shouldUseHeadlineHeader
-            />
+            <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
+                <HeaderWithBackButton
+                    title={translate('common.profile')}
+                    onBackButtonPress={() => {
+                        if (route.params?.backTo) {
+                            Navigation.goBack(route.params?.backTo);
+                            return;
+                        }
+                        Navigation.goBack();
+                    }}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldDisplaySearchRouter
+                    shouldDisplayHelpButton
+                    shouldUseHeadlineHeader
+                />
+            </CollapsibleHeaderOnKeyboard>
             <ScrollView
                 ref={scrollViewRef}
                 style={styles.pt3}
@@ -258,18 +277,24 @@ function ProfilePage() {
                             {publicOptions.map((detail) => {
                                 const {pageRoute} = detail;
                                 return (
-                                    <MenuItemWithTopDescription
+                                    <MenuItemSectionRoot
                                         key={detail.testID}
-                                        interactive={!!pageRoute}
-                                        shouldShowRightIcon={!!pageRoute}
-                                        title={detail.title}
-                                        description={detail.description}
-                                        wrapperStyle={styles.sectionMenuItemTopDescription}
                                         onPress={pageRoute ? () => Navigation.navigate(pageRoute) : undefined}
-                                        brickRoadIndicator={detail.brickRoadIndicator}
-                                        pressableTestID={detail?.testID}
+                                        testID={detail?.testID}
                                         sentryLabel={detail.sentryLabel}
-                                    />
+                                    >
+                                        <MenuItemField.Row
+                                            name={detail.description}
+                                            value={detail.title}
+                                        >
+                                            {(!!detail.brickRoadIndicator || !!pageRoute) && (
+                                                <>
+                                                    {!!detail.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={detail.brickRoadIndicator} />}
+                                                    {!!pageRoute && <MenuItem.Chevron />}
+                                                </>
+                                            )}
+                                        </MenuItemField.Row>
+                                    </MenuItemSectionRoot>
                                 );
                             })}
                             <Button
@@ -305,6 +330,7 @@ function ProfilePage() {
                                             wrapperStyle={styles.sectionMenuItemTopDescription}
                                             onPress={detail.action}
                                             brickRoadIndicator={detail.brickRoadIndicator}
+                                            furtherDetails={detail.furtherDetails}
                                             pressableTestID={detail?.testID}
                                             sentryLabel={detail.sentryLabel}
                                         />
@@ -312,7 +338,7 @@ function ProfilePage() {
                                 </MenuItemGroup>
                             )}
                         </Section>
-                        {isAgentAccount && (
+                        {isAgentAccount === true && (
                             <AgentAIPromptSection
                                 accountID={accountID}
                                 parentScrollViewRef={scrollViewRef}

@@ -1,6 +1,7 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 
 import {getFilesFromClipboardEvent} from '@libs/fileDownload/FileUtils';
@@ -34,6 +35,8 @@ type UseReceiptDropParams = {
 
 function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactionID}: UseReceiptDropParams) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
@@ -57,6 +60,7 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
         if (shouldAddOrReplaceReceipt && transactionID) {
             const source = URL.createObjectURL(files.at(0) as Blob);
             replaceReceipt({
+                isVendorMatchingBetaEnabled,
                 transaction,
                 file: files.at(0) as File,
                 source,
@@ -103,7 +107,7 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
         );
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(onFilesValidated);
+    const {validateFiles, PDFValidationComponent} = useFilesValidation(onFilesValidated);
 
     const onReceiptDropped = (e: DragEvent) => {
         if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)) {
@@ -127,7 +131,7 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
         validateFiles(files, items, {isValidatingReceipts: true});
     };
 
-    return {onReceiptDropped, PDFValidationComponent, ErrorModal};
+    return {onReceiptDropped, PDFValidationComponent};
 }
 
 export default useReceiptDrop;

@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceTaxRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -12,7 +12,7 @@ import Text from '@components/Text';
 
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -30,7 +30,14 @@ import {clearTaxRateError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs
 import {getLatestErrorFieldForAnyField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {canEditTaxRate as canEditTaxRatePolicyUtils, getConnectedIntegration, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, shouldShowSyncError} from '@libs/PolicyUtils';
+import {
+    canDisableOrDeleteTaxRate as canDisableOrDeleteTaxRateUtil,
+    getConnectedIntegration,
+    hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
+    isControlPolicy,
+    isTaxCodeCustomized,
+    shouldShowSyncError,
+} from '@libs/PolicyUtils';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
@@ -45,7 +52,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {TaxRate} from '@src/types/onyx';
 
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -82,7 +88,6 @@ function WorkspaceTaxesPage({
     const enabledRatesCount = selectedTaxesIDs.filter((taxID) => !policy?.taxRates?.taxes[taxID]?.isDisabled).length;
     const disabledRatesCount = selectedTaxesIDs.length - enabledRatesCount;
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Gear', 'Plus', 'Trashcan']);
-    const illustrations = useMemoizedLazyIllustrations(['Coins']);
 
     const fetchTaxes = useCallback(() => {
         openPolicyTaxesPage(policyID);
@@ -113,7 +118,7 @@ function WorkspaceTaxesPage({
                 if (
                     policy?.taxRates?.taxes?.[taxID] &&
                     policy?.taxRates?.taxes?.[taxID].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                    canEditTaxRatePolicyUtils(policy, taxID)
+                    canDisableOrDeleteTaxRateUtil(policy, taxID)
                 ) {
                     newSelectedTaxesIDs.push(taxID);
                 }
@@ -129,20 +134,18 @@ function WorkspaceTaxesPage({
         onNavigationCallBack: () => Navigation.goBack(),
     });
 
-    const textForDefault = useCallback(
-        (taxID: string, taxRate: TaxRate): string => {
-            let suffix;
+    const getDefaultLabel = useCallback(
+        (taxID: string): string => {
             if (taxID === defaultExternalID && taxID === foreignTaxDefault) {
-                suffix = translate('common.default');
-            } else if (taxID === defaultExternalID) {
-                suffix = translate('workspace.taxes.workspaceDefault');
-            } else if (taxID === foreignTaxDefault) {
-                suffix = translate('workspace.taxes.foreignDefault');
+                return translate('common.default');
             }
-            if (suffix) {
-                return `${taxRate.value} ${CONST.DOT_SEPARATOR} ${suffix}`;
+            if (taxID === defaultExternalID) {
+                return translate('workspace.taxes.workspaceDefault');
             }
-            return `${taxRate.value}`;
+            if (taxID === foreignTaxDefault) {
+                return translate('workspace.taxes.foreignDefault');
+            }
+            return '';
         },
         [defaultExternalID, foreignTaxDefault, translate],
     );
@@ -177,16 +180,20 @@ function WorkspaceTaxesPage({
                 return acc;
             }
 
-            const canEditTaxRate = canWriteTaxes && canEditTaxRatePolicyUtils(policy, key);
+            const canDisableOrDeleteTaxRate = canWriteTaxes && canDisableOrDeleteTaxRateUtil(policy, key);
 
             acc.push({
                 keyForList: key,
                 name: value.name,
-                alternateText: textForDefault(key, value),
+                taxRateValue: value.value,
+                // The record is keyed by the tax code, but only a customized code is a code the admin set, so the rest
+                // are internal ids that would mean nothing in the column. This matches what WorkspaceEditTaxPage shows.
+                taxCode: isTaxCodeCustomized(key, policy) ? key : '',
+                defaultLabel: getDefaultLabel(key),
                 enabled: !value.isDisabled,
-                disabled: isDeleting || !canEditTaxRatePolicyUtils(policy, key),
-                isLocked: !canEditTaxRate,
-                isSwitchDisabled: !canEditTaxRate || isDeleting,
+                disabled: isDeleting || !canDisableOrDeleteTaxRateUtil(policy, key),
+                isLocked: !canDisableOrDeleteTaxRate,
+                isSwitchDisabled: !canDisableOrDeleteTaxRate || isDeleting,
                 pendingAction: value.pendingAction ?? (Object.keys(value.pendingFields ?? {}).length > 0 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null),
                 errors: value.errors ?? getLatestErrorFieldForAnyField(value),
                 action: () => navigateToEditTaxRate(key),
@@ -197,7 +204,12 @@ function WorkspaceTaxesPage({
 
             return acc;
         }, []);
-    }, [canWriteTaxes, isOffline, navigateToEditTaxRate, policy, policyID, textForDefault, updateWorkspaceTaxEnabled, withReadOnlyFallback]);
+    }, [canWriteTaxes, getDefaultLabel, isOffline, navigateToEditTaxRate, policy, policyID, updateWorkspaceTaxEnabled, withReadOnlyFallback]);
+
+    // Tax codes are a Control feature, and a Collect workspace is sent to the upgrade path instead of an editable code,
+    // so the column has nothing to show there.
+    // Purely a data question. The table owns the width at which the column stops being rendered.
+    const shouldShowTaxCodeColumn = isControlPolicy(policy) && taxRows.some((taxRow) => !!taxRow.taxCode);
 
     const hasVisibleTaxes = taxRows.length > 0;
     const isLoading = !isOffline && !policy?.taxRates;
@@ -230,6 +242,7 @@ function WorkspaceTaxesPage({
                 icon: icons.Trashcan,
                 text: isMultiple ? translate('workspace.taxes.actions.deleteMultiple') : translate('workspace.taxes.actions.delete'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     const {action} = await showConfirmModal({
                         title: translate('workspace.taxes.actions.delete'),
@@ -239,7 +252,7 @@ function WorkspaceTaxesPage({
                                 : translate('workspace.taxes.deleteTaxConfirmation'),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
-                        danger: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
                     if (action === ModalActions.CONFIRM) {
                         deleteTaxes();
@@ -380,7 +393,6 @@ function WorkspaceTaxesPage({
                 offlineIndicatorStyle={styles.mtAuto}
             >
                 <HeaderWithBackButton
-                    icon={!selectionModeHeader ? illustrations.Coins : undefined}
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.taxes')}
                     shouldShowBackButton={shouldUseNarrowLayout}
@@ -405,16 +417,14 @@ function WorkspaceTaxesPage({
                     />
                 )}
                 {!isLoading && (
-                    <>
-                        {hasVisibleTaxes && headerContent}
-
-                        <WorkspaceTaxesTable
-                            taxes={taxRows}
-                            selectionEnabled={canWriteTaxes}
-                            selectedKeys={selectedTaxesIDs}
-                            onRowSelectionChange={setSelectedTaxesIDs}
-                        />
-                    </>
+                    <WorkspaceTaxesTable
+                        taxes={taxRows}
+                        selectionEnabled={canWriteTaxes}
+                        selectedKeys={selectedTaxesIDs}
+                        shouldShowTaxCodeColumn={shouldShowTaxCodeColumn}
+                        onRowSelectionChange={setSelectedTaxesIDs}
+                        headerComponent={hasVisibleTaxes ? headerContent : undefined}
+                    />
                 )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

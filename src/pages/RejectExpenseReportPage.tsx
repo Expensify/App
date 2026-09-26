@@ -12,15 +12,18 @@ import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
-import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getSortedReportActions} from '@libs/ReportActionsUtils';
 
 import variables from '@styles/variables';
@@ -76,16 +79,16 @@ function submitterAndLastForwardedActorEmailSelector(submitterAccountID: number 
 
 function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const {reportID} = route.params;
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const [lastForwardedActorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`, {selector: lastForwardedActorAccountIDSelector});
-    const [{submitterEmail, lastForwardedActorEmail} = getEmptyObject<{submitterEmail: string | undefined; lastForwardedActorEmail: string | undefined}>()] = useOnyx(
-        ONYXKEYS.PERSONAL_DETAILS_LIST,
-        {selector: submitterAndLastForwardedActorEmailSelector(report?.ownerAccountID, lastForwardedActorAccountID)},
+    const [{submitterEmail, lastForwardedActorEmail} = getEmptyObject<{submitterEmail: string | undefined; lastForwardedActorEmail: string | undefined}>()] = useAllPersonalDetails(
+        submitterAndLastForwardedActorEmailSelector(report?.ownerAccountID, lastForwardedActorAccountID),
     );
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -93,13 +96,15 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const [selectionError, setSelectionError] = useState<string>('');
     const isSubmitAttempt = useRef(false);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
-    const lastForwardedActorDetails = getPersonalDetailByEmail(lastForwardedActorEmail);
+    const lastForwardedActorDetails = usePersonalDetailByLogin(lastForwardedActorEmail);
+
     const previousApprover = !lastForwardedActorDetails?.accountID
         ? null
         : {
               accountID: lastForwardedActorDetails.accountID,
-              displayName: temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastForwardedActorDetails, translate}),
+              displayName: temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastForwardedActorDetails, translate, formatPhoneNumber}),
               email: lastForwardedActorEmail,
           };
 
@@ -118,7 +123,9 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
         });
     }
 
-    const submitterName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: getPersonalDetailByEmail(submitterEmail), translate});
+    const submitterName = usePersonalDetailByLogin(submitterEmail, (personalDetails) =>
+        temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate, formatPhoneNumber}),
+    );
     options.push({
         text: `${submitterName} (${translate('iou.rejectReport.submitter')})`,
         alternateText: submitterEmail,
@@ -164,6 +171,8 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
             currentUserPersonalDetails?.displayName,
             currentUserPersonalDetails?.avatar,
             isTrackIntentUser,
+            delegateAccountID,
+            rules,
         );
         Navigation.goBack();
     };
@@ -187,7 +196,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
                 onBeforeSubmit={handleBeforeSubmit}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
-                isSubmitActionDangerous
+                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
                 shouldRenderFooterAboveSubmit
                 footerContent={selectionError ? <FormHelpMessage message={selectionError} /> : undefined}
             >

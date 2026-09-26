@@ -3,10 +3,12 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
@@ -19,6 +21,7 @@ import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import {clearErrorFields, clearErrors} from '@userActions/FormActions';
 import {rejectMoneyRequest} from '@userActions/IOU/RejectMoneyRequest';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
@@ -34,6 +37,7 @@ type RejectReasonPageProps =
 
 function RejectReasonPage({route}: RejectReasonPageProps) {
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
     const {transactionID, reportID, backTo} = route.params;
     const {removeTransaction} = useSearchSelectionActions();
@@ -41,7 +45,8 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
     const policy = usePolicy(reportPolicyID);
     const {superWideRHPRouteKeys} = useWideRHPState();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {isBetaEnabled} = usePermissions();
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const delegateAccountID = useDelegateAccountID();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -51,7 +56,18 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
             return;
         }
 
-        const urlToNavigateBack = rejectMoneyRequest(transactionID, reportID, values.comment, policy, currentUserAccountID, currentUserLogin ?? '', betas, delegateAccountID);
+        const urlToNavigateBack = rejectMoneyRequest(
+            transactionID,
+            reportID,
+            values.comment,
+            policy,
+            currentUserAccountID,
+            currentUserLogin ?? '',
+            isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+            delegateAccountID,
+            getCurrencyDecimals,
+            {rules},
+        );
         removeTransaction(transactionID);
         // If the super wide rhp is not opened, dismiss the entire modal.
         if (superWideRHPRouteKeys.length > 0) {

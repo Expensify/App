@@ -8,7 +8,7 @@ import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useRef} from 'react';
 
-import type {MenuData} from './InitialSettingsPage';
+import type {MenuData} from './useInitialSettingsPageMenuData';
 
 type SettingsMenuItemProps = {
     item: MenuData;
@@ -55,7 +55,7 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
             title={keyTitle}
             icon={item.icon}
             iconType={item.iconType}
-            disabled={isExecuting}
+            disabled={isExecuting && !isFocused}
             onPress={onPress}
             iconStyles={item.iconStyles}
             badgeText={item.badgeText}
@@ -65,7 +65,6 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
             isBadgeCondensed={item.isBadgeCondensed}
             fallbackIcon={item.fallbackIcon}
             brickRoadIndicator={item.brickRoadIndicator}
-            shouldStackHorizontally={item.shouldStackHorizontally}
             ref={popoverAnchor}
             shouldBlockSelection={!!item.link}
             onSecondaryInteraction={onSecondaryInteraction}
@@ -77,6 +76,7 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
             iconRight={item.iconRight}
             shouldShowRightIcon={item.shouldShowRightIcon}
             shouldIconUseAutoWidthStyle
+            shouldGreyOutWhenDisabled={false}
         />
     );
 }

@@ -7,14 +7,14 @@ import type {PersonalPolicyTypeExcludedProps} from '@pages/settings/Subscription
 import type {SubscriptionType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, IntroSelected, Policy, StripeCustomerID} from '@src/types/onyx';
+import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, IntroSelected, Policy, PrivateSubscription, StripeCustomerID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
+import {addMonths, differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
 import {fromZonedTime} from 'date-fns-tz';
 
 import {convertToShortDisplayString} from './CurrencyUtils';
@@ -25,6 +25,8 @@ const PAYMENT_STATUS = {
     POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE: 'policy_owner_with_amount_owed_overdue',
     OWNER_OF_POLICY_UNDER_INVOICING: 'owner_of_policy_under_invoicing',
     OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE: 'owner_of_policy_under_invoicing_overdue',
+    OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE: 'owner_of_policy_with_overdue_travel_invoice',
+    OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE_LOCKED: 'owner_of_policy_with_overdue_travel_invoice_locked',
     BILLING_DISPUTE_PENDING: 'billing_dispute_pending',
     CARD_AUTHENTICATION_REQUIRED: 'authentication_required',
     INSUFFICIENT_FUNDS: 'insufficient_funds',
@@ -55,8 +57,8 @@ type SubscriptionPlanInfo = {
 /**
  * @returns Whether the workspace owner's grace period is overdue.
  */
-function hasGracePeriodOverdue(gracePeriodEnd: OnyxEntry<number>): boolean {
-    return !!gracePeriodEnd && Date.now() > new Date(gracePeriodEnd).getTime();
+function hasGracePeriodOverdue(gracePeriodEndUnixSeconds: OnyxEntry<number>): boolean {
+    return !!gracePeriodEndUnixSeconds && isAfter(new Date(), fromUnixTime(gracePeriodEndUnixSeconds));
 }
 
 /**
@@ -223,7 +225,19 @@ function getSubscriptionStatus(
     billingStatus: OnyxEntry<BillingStatus>,
     amountOwed: number,
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
+    ownerTravelBillingGracePeriodEnd: OnyxEntry<number>,
 ): SubscriptionStatus | undefined {
+    // An overdue travel invoice is independent of the subscription balance, and it locks the workspace on its own,
+    // so it outranks every subscription status below
+    if (ownerTravelBillingGracePeriodEnd) {
+        return {
+            status: hasGracePeriodOverdue(ownerTravelBillingGracePeriodEnd)
+                ? PAYMENT_STATUS.OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE_LOCKED
+                : PAYMENT_STATUS.OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE,
+            isError: true,
+        };
+    }
+
     if (ownerBillingGracePeriodEnd) {
         if (amountOwed !== 0) {
             // 1. Policy owner with amount owed, within grace period
@@ -329,10 +343,20 @@ function hasSubscriptionRedDotError(
     billingStatus: OnyxEntry<BillingStatus>,
     amountOwed: number,
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
+    ownerTravelBillingGracePeriodEnd: OnyxEntry<number>,
 ): boolean {
     return (
-        getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, amountOwed, ownerBillingGracePeriodEnd)
-            ?.isError ?? false
+        getSubscriptionStatus(
+            stripeCustomerId,
+            retryBillingSuccessful,
+            billingDisputePending,
+            retryBillingFailed,
+            fundList,
+            billingStatus,
+            amountOwed,
+            ownerBillingGracePeriodEnd,
+            ownerTravelBillingGracePeriodEnd,
+        )?.isError ?? false
     );
 }
 
@@ -348,10 +372,20 @@ function hasSubscriptionGreenDotInfo(
     billingStatus: OnyxEntry<BillingStatus>,
     amountOwed: number,
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
+    ownerTravelBillingGracePeriodEnd: OnyxEntry<number>,
 ): boolean {
     return (
-        getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, amountOwed, ownerBillingGracePeriodEnd)
-            ?.isError === false
+        getSubscriptionStatus(
+            stripeCustomerId,
+            retryBillingSuccessful,
+            billingDisputePending,
+            retryBillingFailed,
+            fundList,
+            billingStatus,
+            amountOwed,
+            ownerBillingGracePeriodEnd,
+            ownerTravelBillingGracePeriodEnd,
+        )?.isError === false
     );
 }
 
@@ -392,7 +426,8 @@ function getFreeTrialText(
         return translate('subscription.billingBanner.preTrial.title');
     }
     if (isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
-        return translate('subscription.billingBanner.trialStarted.title', calculateRemainingFreeTrialDays(lastDayFreeTrial));
+        // Badges have less room than the billing banner, so they drop the "Trial:" prefix and show only the remaining days.
+        return translate('subscription.billingBanner.trialStarted.badgeTitle', {count: calculateRemainingFreeTrialDays(lastDayFreeTrial)});
     }
 
     return undefined;
@@ -471,10 +506,17 @@ function canCancelSubscription(
 }
 
 /**
+ * The only policy fields the billing restriction depends on: `ownerAccountID` for the check itself and `id` for the
+ * restricted-action route. Callers can pass this fixed-size projection instead of a whole `Policy`, so a `useOnyx`
+ * selector carrying a policy to the gate does not drag `employeeList`/`customUnits` through its output deep-compare.
+ */
+type BillingRestrictionPolicy = Pick<Policy, 'id' | 'ownerAccountID'>;
+
+/**
  * Whether the user's billable actions should be restricted.
  */
 function shouldRestrictUserBillableActions(
-    policy: OnyxEntry<Policy>,
+    policy: OnyxEntry<Pick<Policy, 'ownerAccountID'>>,
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>,
     amountOwed: OnyxEntry<number>,
@@ -627,6 +669,27 @@ function shouldShowTrialEndedUI(
     return hasUserFreeTrialEnded(lastDayFreeTrial);
 }
 
+/**
+ * Whether to warn the subscription owner that their annual subscription is about to lapse, matching the Expensify
+ * Classic trigger: an annual subscription, auto-renew switched off, and an end date one month or less away.
+ *
+ * `endDate` is compared against now rather than trusting `type` alone: billing converts a lapsed subscription to
+ * pay-per-use asynchronously, so the NVP can still read annual with an end date in the past. That makes this a
+ * strictly pre-expiry warning. It never renders a retroactive "your subscription expired on X".
+ */
+function shouldShowSubscriptionExpiringSoonUI(privateSubscription: OnyxEntry<PrivateSubscription>): boolean {
+    // An absent `autoRenew` means the subscription still renews, so only an explicit `false` qualifies.
+    if (privateSubscription?.type !== CONST.SUBSCRIPTION.TYPE.ANNUAL || (privateSubscription?.autoRenew ?? true) || !privateSubscription?.endDate) {
+        return false;
+    }
+
+    // `endDate` is a date-only string. Anchor it to midnight the way `formatSubscriptionEndDate` does.
+    const endDate = new Date(`${privateSubscription.endDate}T00:00:00`);
+    const now = new Date();
+
+    return isAfter(endDate, now) && !isAfter(endDate, addMonths(now, 1));
+}
+
 function isSubscriptionTypeOfInvoicing(privateSubscriptionType: SubscriptionType | undefined) {
     return privateSubscriptionType === CONST.SUBSCRIPTION.TYPE.INVOICING;
 }
@@ -685,10 +748,11 @@ export {
     getSubscriptionPrice,
     shouldUseSimplifiedCollectSubscriptionUI,
     shouldShowTrialEndedUI,
+    shouldShowSubscriptionExpiringSoonUI,
     isSubscriptionTypeOfInvoicing,
     calculateTrialDayNumber,
     calculateRemainingTrialSeconds,
     hasInsufficientFundsError,
 };
 
-export type {DiscountInfo};
+export type {BillingRestrictionPolicy, DiscountInfo};

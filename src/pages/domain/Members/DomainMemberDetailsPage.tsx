@@ -1,7 +1,8 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import DecisionModal from '@components/DecisionModal';
 import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
@@ -31,6 +32,7 @@ import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDeta
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {clearVacationDelegateError} from '@userActions/Domain';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -101,7 +103,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             prompt: translate('domain.members.closeAccountPrompt'),
             confirmText: translate('domain.members.closeAccount', {count: 1}),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             shouldShowCancelButton: true,
         });
 
@@ -110,7 +112,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             setShouldForceCloseAccount(undefined);
             return;
         }
-        closeUserAccount(domainAccountID, domainName ?? '', memberLogin, userSecurityGroup, shouldForceCloseAccount);
+        closeUserAccount(domainAccountID, domainName ?? '', memberLogin, accountID, userSecurityGroup, shouldForceCloseAccount);
         setShouldForceCloseAccount(undefined);
         Navigation.dismissModal();
     };
@@ -158,11 +160,10 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                     errors={getLatestError(domainErrors?.memberErrors?.[memberLogin]?.changeDomainSecurityGroupErrors)}
                     onClose={() => clearChangeDomainSecurityGroupError(domainAccountID, memberLogin)}
                 >
-                    <MenuItemWithTopDescription
-                        description={translate('domain.members.domainGroup')}
-                        title={userSecurityGroup?.securityGroup?.name ?? ''}
+                    <MenuItemField
+                        name={translate('domain.members.domainGroup')}
                         onPress={() => Navigation.navigate(ROUTES.DOMAIN_MEMBER_MOVE_TO_GROUP.getRoute(domainAccountID, accountID))}
-                        shouldShowRightIcon
+                        value={userSecurityGroup?.securityGroup?.name}
                     />
                 </OfflineWithFeedback>
                 <VacationDelegateMenuItem
@@ -197,7 +198,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 )}
                 <View style={styles.mt6} />
                 {!!accountRequiresTwoFactorAuth && (
-                    <MenuItem
+                    <MenuItemAction
                         title={translate('domain.common.resetTwoFactorAuth')}
                         icon={icons.CircularArrowBackwards}
                         onPress={() => {
@@ -208,21 +209,37 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 )}
 
                 {isAccountLocked ? (
-                    <MenuItem
+                    <MenuItemAction
                         key="UnlockAccount"
                         title={translate('lockAccountPage.unlockAccount')}
                         icon={icons.Unlock}
                         onPress={showUnlockAccountModal}
                     />
                 ) : (
-                    <MenuItem
+                    <MenuItem.Root
                         key="ReportSuspiciousActivity"
-                        title={translate('lockAccountPage.reportSuspiciousActivity')}
-                        icon={icons.Flag}
-                        onPress={() => Navigation.navigate(ROUTES.DOMAIN_LOCK_ACCOUNT.getRoute(domainAccountID, accountID))}
-                        brickRoadIndicator={lockDomainErrorMessage ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        errorText={lockDomainErrorMessage}
-                    />
+                        onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.DOMAIN_LOCK_ACCOUNT.getRoute(domainAccountID, accountID)))}
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <MenuItem.Icon src={icons.Flag} />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>{translate('lockAccountPage.reportSuspiciousActivity')}</MenuItem.Title>
+                            </MenuItem.Content>
+                            {!!lockDomainErrorMessage && (
+                                <MenuItem.Trailing>
+                                    <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                </MenuItem.Trailing>
+                            )}
+                        </MenuItem.Row>
+                        {!!lockDomainErrorMessage && (
+                            <MenuItem.HelpText
+                                isError
+                                message={lockDomainErrorMessage}
+                            />
+                        )}
+                    </MenuItem.Root>
                 )}
             </BaseDomainMemberDetailsComponent>
             <DecisionModal

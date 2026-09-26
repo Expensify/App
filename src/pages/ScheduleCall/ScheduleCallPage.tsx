@@ -33,7 +33,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import {compareAsc, parse} from 'date-fns';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import AvailableBookingDay from './AvailableBookingDay';
@@ -51,7 +51,7 @@ const adminReportNameValuePairsSelector = (data?: ReportNameValuePairs) => ({
 
 function ScheduleCallPage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const route = useRoute<PlatformStackRouteProp<ScheduleCallParamList, typeof SCREENS.SCHEDULE_CALL.BOOK>>();
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -81,11 +81,9 @@ function ScheduleCallPage() {
     }, [adminsRoomReportID]);
 
     // Clear selected time when user comes back to the selection screen
-    useFocusEffect(
-        useCallback(() => {
-            saveBookingDraft({timeSlot: null});
-        }, []),
-    );
+    useFocusEffect(() => {
+        saveBookingDraft({timeSlot: null});
+    });
 
     useEffect(() => {
         return () => {
@@ -94,11 +92,11 @@ function ScheduleCallPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const loadTimeSlotsAndSaveDate = useCallback((date: string) => {
+    const loadTimeSlotsAndSaveDate = (date: string) => {
         saveBookingDraft({date});
-    }, []);
+    };
 
-    const timeSlotDateMap: Record<string, TimeSlot[]> = useMemo(() => {
+    const timeSlotDateMap: Record<string, TimeSlot[]> = (() => {
         if (!calendlySchedule?.data) {
             return {};
         }
@@ -122,7 +120,7 @@ function ScheduleCallPage() {
         // Group time slots by date to render per day slots on calendar
         const timeSlotMap: Record<string, TimeSlot[]> = {};
         for (const timeSlot of allTimeSlots) {
-            const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING);
+            const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING, {locale: dateFnsLocale});
             if (!timeSlotMap[timeSlotDate]) {
                 timeSlotMap[timeSlotDate] = [];
             }
@@ -135,7 +133,7 @@ function ScheduleCallPage() {
         }
 
         return timeSlotMap;
-    }, [calendlySchedule?.data, userTimezone]);
+    })();
 
     const selectableDates = Object.keys(timeSlotDateMap).sort(compareAsc);
     const firstDate = selectableDates.at(0);
@@ -152,12 +150,8 @@ function ScheduleCallPage() {
     }, [firstDate, calendlySchedule?.isLoading, scheduleCallDraft?.date]);
 
     // When there is only one time slot on the row, it will take full width of the row, use a hidden filler item to keep 2 columns
-    const timeFillerItem = useMemo(() => {
-        if (timeSlotsForSelectedData.length % 2 === 0) {
-            return null;
-        }
-
-        return (
+    const timeFillerItem =
+        timeSlotsForSelectedData.length % 2 === 0 ? null : (
             <View
                 key="time-filler-col"
                 aria-hidden
@@ -165,7 +159,6 @@ function ScheduleCallPage() {
                 style={[styles.twoColumnLayoutCol, styles.visibilityHidden]}
             />
         );
-    }, [styles.twoColumnLayoutCol, styles.visibilityHidden, timeSlotsForSelectedData.length]);
 
     return (
         <ScreenWrapper
@@ -217,7 +210,7 @@ function ScheduleCallPage() {
                                 <Text style={[styles.mb5]}>
                                     <RenderHTML
                                         html={translate('scheduledCall.book.slots', {
-                                            date: DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT),
+                                            date: DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT, {locale: dateFnsLocale}),
                                         })}
                                     />
                                 </Text>
@@ -225,8 +218,8 @@ function ScheduleCallPage() {
                                     {timeSlotsForSelectedData.map((timeSlot: TimeSlot) => (
                                         <Button
                                             key={`time-slot-${timeSlot.startTime}`}
-                                            large
-                                            success={scheduleCallDraft?.timeSlot === timeSlot.startTime}
+                                            size={CONST.BUTTON_SIZE.LARGE}
+                                            variant={scheduleCallDraft?.timeSlot === timeSlot.startTime ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                                             onPress={() => {
                                                 saveBookingDraft({
                                                     timeSlot: timeSlot.startTime,
@@ -239,10 +232,13 @@ function ScheduleCallPage() {
                                                 });
                                                 Navigation.navigate(ROUTES.SCHEDULE_CALL_CONFIRMATION.getRoute(reportID));
                                             }}
-                                            shouldEnableHapticFeedback
+                                            enableHapticFeedback
                                             style={styles.twoColumnLayoutCol}
-                                            text={DateUtils.formatInTimeZoneWithFallback(timeSlot.startTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)}
-                                        />
+                                        >
+                                            <Button.Text>
+                                                {DateUtils.formatInTimeZoneWithFallback(timeSlot.startTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}
+                                            </Button.Text>
+                                        </Button>
                                     ))}
                                     {timeFillerItem}
                                 </View>

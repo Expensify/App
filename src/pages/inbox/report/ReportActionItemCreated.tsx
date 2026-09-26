@@ -1,16 +1,17 @@
+import ReportAvatar from '@components/Avatar/connected/ReportAvatar';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportWelcomeText from '@components/ReportWelcomeText';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useOptimisticPersonalDetails from '@hooks/useOptimisticPersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {hasDeferredWriteForReport} from '@libs/deferredLayoutWrite';
+import {hasPendingSubmitWriteForReport} from '@libs/pendingSubmitWrite';
 import {isChatReport, isCurrentUserInvoiceReceiver, isInvoiceRoom, navigateToDetailsPage, shouldDisableDetailPage as shouldDisableDetailPageReportUtils} from '@libs/ReportUtils';
 
 import {clearCreateChatError} from '@userActions/Report';
@@ -26,7 +27,6 @@ import {View} from 'react-native';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 
 type ReportActionItemCreatedProps = {
-    /** The id of the report */
     reportID: string | undefined;
 
     /** The id of the policy */
@@ -43,12 +43,12 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID} = currentUserPersonalDetail;
     const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
     const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
+    const optimisticPersonalDetails = useOptimisticPersonalDetails();
 
     const otherParticipantAccountID =
         Object.keys(report?.participants ?? {})
@@ -73,22 +73,22 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                     conciergeReportID,
                     introSelected,
                     currentUserAccountID,
-                    betas,
                     isSelfTourViewed,
                     reportOwnerPersonalDetail,
                     currentUserPersonalDetail,
                     conciergePersonalDetail,
+                    optimisticPersonalDetails,
                 )
             }
         >
             <View style={[styles.pRelative]}>
-                {/* hasDeferredWriteForReport is non-reactive (reads a module-level Map, not tracked by React).
-                   This is intentional: we only suppress the animation on the initial render while a
-                   DISMISS_MODAL write targeting THIS report is pending. The animation re-appears on the
+                {/* hasPendingSubmitWriteForReport is non-reactive (reads module-level state, not tracked by
+                   React). This is intentional: we only suppress the animation on the initial render while a
+                   submit write targeting THIS report is pending. The animation re-appears on the
                    next organic re-render (e.g. Onyx updates after the API write resolves). The check is
                    scoped to `report.reportID` so an unrelated submit flow's dismiss doesn't suppress the
                    animation here. */}
-                {!hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, report?.reportID) && <AnimatedEmptyStateBackground />}
+                {!hasPendingSubmitWriteForReport(report?.reportID) && <AnimatedEmptyStateBackground />}
                 <View
                     accessibilityLabel={translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5]}
@@ -102,7 +102,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                             disabled={shouldDisableDetailPage}
                             sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_CREATED}
                         >
-                            <ReportActionAvatars
+                            <ReportAvatar
                                 reportID={reportID}
                                 size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                 horizontalStacking={{

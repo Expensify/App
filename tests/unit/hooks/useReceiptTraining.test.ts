@@ -4,6 +4,8 @@ import useReceiptTraining from '@components/MoneyRequestConfirmationList/hooks/u
 
 import type * as OnyxTypes from '@src/types/onyx';
 
+import createMock from '../../utils/createMock';
+
 jest.mock('@components/ProductTrainingContext', () => ({
     useProductTrainingContext: () => ({
         shouldShowProductTrainingTooltip: false,
@@ -12,7 +14,7 @@ jest.mock('@components/ProductTrainingContext', () => ({
 }));
 
 function makeTransaction(receipt: Partial<NonNullable<OnyxTypes.Transaction['receipt']>> = {}): OnyxTypes.Transaction {
-    return {transactionID: 'txn1', receipt} as unknown as OnyxTypes.Transaction;
+    return createMock<OnyxTypes.Transaction>({transactionID: 'txn1', receipt});
 }
 
 describe('useReceiptTraining', () => {

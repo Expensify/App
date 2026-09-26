@@ -3,6 +3,7 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
+import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
@@ -11,10 +12,11 @@ import getComponentDisplayName from '@libs/getComponentDisplayName';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FlagCommentNavigatorParamList, SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
-import {canAccessReport} from '@libs/ReportUtils';
+import {canAccessReport, hasExpensifyGuidesEmails} from '@libs/ReportUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -23,13 +25,13 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ComponentType} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useEffect} from 'react';
 
 type WithReportAndReportActionOrNotFoundProps = PlatformStackScreenProps<
     FlagCommentNavigatorParamList & SplitDetailsNavigatorParamList,
     typeof SCREENS.DYNAMIC_FLAG_COMMENT | typeof SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT
 > & {
-    /** The report currently being looked at */
     report: OnyxTypes.Report;
 
     /** The reportAction from the current route */
@@ -38,7 +40,6 @@ type WithReportAndReportActionOrNotFoundProps = PlatformStackScreenProps<
     /** The parent report if the current report is a thread and it has a parent */
     parentReport: OnyxEntry<OnyxTypes.Report>;
 
-    /** The report's parentReportAction */
     parentReportAction: NonNullable<OnyxEntry<OnyxTypes.ReportAction>> | null;
 };
 
@@ -52,10 +53,15 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${props.route.params.reportID}`);
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {isBetaEnabled} = usePermissions();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.route.params.reportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
+    const hasGuidesEmails = hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), guideAccountIDs);
 
     const parentReportAction = useParentReportAction(report);
     let linkedReportAction: OnyxEntry<OnyxTypes.ReportAction> = reportActions?.[`${props.route.params.reportActionID}`];
@@ -74,7 +80,15 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
         if (!shouldUseNarrowLayout || (!isEmptyObject(report) && !isEmptyObject(linkedReportAction))) {
             return;
         }
-        openReport({reportID: props.route.params.reportID, introSelected, betas, hasReportActions, currentUserAccountID});
+        openReport({
+            reportID: props.route.params.reportID,
+            introSelected,
+            conciergeChat,
+            hasReportActions,
+            currentUserAccountID,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldUseNarrowLayout, props.route.params.reportID, currentUserAccountID]);
 
@@ -82,7 +96,7 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
     const isLoadingReport = isLoadingReportData && !report?.reportID;
     const isLoadingReportAction = isEmptyObject(reportActions) || (reportLoadingState?.isLoadingInitialReportActions && isEmptyObject(linkedReportAction));
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const shouldHideReport = !isLoadingReport && (!report?.reportID || !canAccessReport(report, betas, isReportArchived));
+    const shouldHideReport = !isLoadingReport && (!report?.reportID || !canAccessReport(report, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), hasGuidesEmails, isReportArchived));
 
     if ((isLoadingReport || isLoadingReportAction) && !shouldHideReport) {
         return <FullscreenLoadingIndicator />;

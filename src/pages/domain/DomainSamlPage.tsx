@@ -94,8 +94,8 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('domain.saml')}
+                    shouldUseHeadlineHeader
                     onBackButtonPress={Navigation.goBack}
-                    icon={illustrations.LockClosed}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplayHelpButton
                 />
@@ -131,7 +131,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                                         subtitleMuted
                                         isCentralPane
                                         titleStyles={styles.accountSettingsSectionTitle}
-                                        childrenStyles={[styles.gap6, styles.pt6]}
+                                        childrenStyles={[styles.pt6]}
                                     >
                                         <SamlConfigurationDetailsSectionContent
                                             accountID={domainAccountID}

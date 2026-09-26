@@ -3,7 +3,12 @@
 # download at our private GitHub Packages Maven repo (matched by patches hash).
 # Must be required after react_native_pods.rb, which defines ReactNativeCoreUtils.
 
+require 'digest'
+require 'fileutils'
 require 'json'
+require 'etc'
+require 'pathname'
+require 'uri'
 
 module PatchedIOSArtifacts
     # scripts/artifacts-utils/ios/ -> repo root is three levels up.
@@ -13,17 +18,32 @@ module PatchedIOSArtifacts
     # setup never ran, prebuilt-only pod tweaks are a no-op rather than misapplied.
     @using_prebuilt = false
 
+    # Tarballs fetched during setup, keyed by remote URL, so nothing downloads mid-install.
+    @prefetched = {}
+
+    # Separates the hybrid and standalone source links, whose tarballs share a basename.
+    @package_name = nil
+
+    # Matches the resolver and Gradle, so one tag covers artifact logging on both platforms.
+    LOG_PREFIX = '[PatchedArtifacts]'
+
+    def self.log(message, level = :info)
+        return unless defined?(Pod::UI)
+        level == :error ? Pod::UI.warn("#{LOG_PREFIX} #{message}") : Pod::UI.puts("#{LOG_PREFIX} #{message}")
+    end
+
     def self.setup
         is_hybrid = ENV['IS_HYBRID_APP'] == 'true'
-        package_name = is_hybrid ? 'react-hybrid' : 'react-standalone'
 
         # Manual escape hatch: force a full from-source build (e.g. to unblock a prebuild issue).
         build_from_source = ENV['BUILD_RN_FROM_SOURCE'] == '1'
-        resolution = build_from_source ? {'buildFromSource' => true, 'version' => nil} : resolve(package_name, is_hybrid)
+        # The escape hatch short-circuits before anything touches the network: no resolver, no prefetch.
+        resolution = build_from_source ? {'buildFromSource' => true, 'version' => nil} : prefetch(resolve(is_hybrid))
 
         # A single decision drives both prebuilt flags, so we never land in a mixed
         # prebuilt-deps / source-core state (which desyncs the CocoaPods sandbox).
         @using_prebuilt = !resolution['buildFromSource']
+        @package_name = resolution['packageName']
         flag = @using_prebuilt ? '1' : '0'
         ENV['RCT_USE_RN_DEP'] = flag
         ENV['RCT_USE_PREBUILT_RNCORE'] = flag
@@ -33,6 +53,136 @@ module PatchedIOSArtifacts
         ReactNativeCoreUtils.class_variable_set(:@@patched_artifact_url_prefix, resolution['artifactUrlPrefix'])
         ReactNativeCoreUtils.class_variable_set(:@@patched_github_token, resolution['githubToken'])
         ReactNativeCoreUtils.class_variable_set(:@@patched_build_from_source, resolution['buildFromSource'])
+
+        # Content identity of this install's artifacts; '+dsym' so flipping the flag counts as a change.
+        @artifacts_stamp = @using_prebuilt ?
+            "#{resolution['version']}#{ENV['RCT_SYMBOLICATE_PREBUILT_FRAMEWORKS'] == '1' ? '+dsym' : ''}" : nil
+
+        force_rncore_podspec_reevaluation if @using_prebuilt
+        force_hermes_podspec_reevaluation
+    end
+
+    def self.artifacts_stamp_path
+        File.join(Pod::Config.instance.project_pods_root, 'ReactNativeCore-artifacts', '.artifacts-version')
+    end
+
+    SOURCE_LINK_ROOT = '/tmp/expensify-react-native-artifacts'
+
+    # Podfile.lock hashes this path, so it has to read the same on every machine.
+    # The tarball itself stays under Pods, where replace-rncore-version.js expects it.
+    def self.stable_source_link(tarball)
+        raise "#{LOG_PREFIX} Cannot build the React-Core-prebuilt source path without a package name; " \
+              'hybrid and standalone would share one link.' if @package_name.to_s.empty?
+
+        link = File.join(SOURCE_LINK_ROOT, @package_name, File.basename(tarball))
+        assert_ours(SOURCE_LINK_ROOT)
+        assert_ours(File.dirname(link))
+        assert_ours(link)
+        return link if File.symlink?(link) && File.identical?(link, tarball)
+
+        FileUtils.mkdir_p(File.dirname(link))
+        assert_ours(File.dirname(link))
+        # The rename below cannot replace a real directory.
+        FileUtils.remove_entry(link) if File.directory?(link) && !File.symlink?(link)
+        staging = "#{link}.#{Process.pid}"
+        begin
+            FileUtils.rm_f(staging)
+            File.symlink(tarball, staging)
+            File.rename(staging, link)
+        ensure
+            FileUtils.rm_f(staging)
+        end
+        link
+    end
+
+    HERMES_CLI_PREFIX = '${PODS_ROOT}'
+
+    # hermes-engine.podspec resolves the compiler with require.resolve, which yields an absolute
+    # path. Podfile.lock hashes it, and Xcode expands PODS_ROOT before the bundling phase reads it.
+    def self.pods_root_relative_path(path)
+        # A path outside the checkout still differs between machines once PODS_ROOT is expanded.
+        raise "#{LOG_PREFIX} #{path} sits outside #{NEW_DOT_ROOT}, so hermes-engine would keep a " \
+              'checksum that no other machine reproduces.' unless path.start_with?("#{NEW_DOT_ROOT}/")
+
+        relative = Pathname.new(path).relative_path_from(Pod::Config.instance.project_pods_root)
+        "#{HERMES_CLI_PREFIX}/#{relative}"
+    end
+
+    # Every account shares /tmp, so a path owned by someone else can aim a podspec source at a file
+    # we did not put there. Sticky /tmp keeps its owner, so only they or root can clear it.
+    def self.assert_ours(path)
+        return unless File.symlink?(path) || File.exist?(path)
+
+        owner = File.lstat(path).uid
+        return if owner == Process.uid
+
+        name = Etc.getpwuid(owner)&.name || "uid #{owner}"
+        raise "#{LOG_PREFIX} #{path} belongs to #{name}, so this install cannot write there. " \
+              "Ask #{name} to remove it, or remove it as root, then run pod install again."
+    end
+
+    # A stored podspec keeps whatever compiler path it was written with, and CocoaPods reuses that
+    # copy instead of reading the podspec again.
+    def self.force_hermes_podspec_reevaluation
+        stored = stored_podspec('hermes-engine')
+        return if stored.nil? && Pod::Config.instance.sandbox.specification_path('hermes-engine').nil?
+
+        hermes_cli_path = stored&.dig('user_target_xcconfig', 'HERMES_CLI_PATH').to_s
+        return if hermes_cli_path.start_with?(HERMES_CLI_PREFIX)
+
+        Pod::Config.instance.sandbox.remove_local_podspec('hermes-engine')
+        log('The hermes-engine podspec carries a machine-specific compiler path; re-evaluating it.')
+    end
+
+    # CocoaPods memoizes external :podspec sources and may skip re-reading ours, whose source is
+    # resolved dynamically. When the tarballs in Pods don't match this install's resolution, drop
+    # the memoized copy so CocoaPods re-evaluates the podspec, re-running our download (and dSYM
+    # merge). The re-read podspec is byte-identical, so Podfile.lock stays put.
+    def self.force_rncore_podspec_reevaluation
+        stamp_matches = File.exist?(artifacts_stamp_path) && File.read(artifacts_stamp_path) == @artifacts_stamp
+        reason = if !stamp_matches
+                     "Artifacts changed to #{@artifacts_stamp}"
+                 elsif !stored_source_link_exists?
+                     "#{SOURCE_LINK_ROOT} no longer holds this install's tarball link"
+                 end
+        return if reason.nil?
+
+        Pod::Config.instance.sandbox.remove_local_podspec('React-Core-prebuilt')
+        log("#{reason}; the React-Core-prebuilt podspec will be re-evaluated.")
+    end
+
+    # The link lives in /tmp, which reboot empties, so a stored source can point at nothing.
+    def self.stored_source_link_exists?
+        source = stored_podspec('React-Core-prebuilt')&.dig('source', 'http').to_s
+        return true unless source.start_with?('file://')
+
+        File.exist?(URI::DEFAULT_PARSER.unescape(URI(source).path))
+    end
+
+    # A podspec left unparseable by an interrupted install is a reason to re-evaluate, not to stop.
+    def self.stored_podspec(name)
+        path = Pod::Config.instance.sandbox.specification_path(name)
+        return nil if path.nil?
+
+        JSON.parse(File.read(path))
+    rescue JSON::ParserError, Errno::ENOENT
+        nil
+    end
+
+    # Prepends sync-prebuilt-rncore.sh to react-native's '[RNCore] Replace ...' build phase, so a
+    # build re-extracts the prebuilt React Core when the artifact version changed — CocoaPods won't,
+    # as its caches key on our never-changing source URL. Prepended into that phase (not added as
+    # its own) because CocoaPods sorts phases by name on save, which would push ours after [RNCore].
+    def self.add_sync_prebuilt_script_phase(installer)
+        return unless @using_prebuilt
+
+        target = installer.pods_project.targets.find { |t| t.name == 'React-Core-prebuilt' }
+        phase = target&.shell_script_build_phases&.find { |p| p.name.to_s.include?('[RNCore] Replace') }
+        raise "#{LOG_PREFIX} The [RNCore] Replace build phase was not found on the React-Core-prebuilt target, " \
+              'so the extracted prebuilt React Core would keep following a stale artifact version.' unless phase
+
+        prelude = %(bash "#{File.join(NEW_DOT_ROOT, 'scripts/artifacts-utils/ios/sync-prebuilt-rncore.sh')}" || exit 1\n)
+        phase.shell_script = prelude + phase.shell_script unless phase.shell_script.start_with?(prelude)
     end
 
     # True only when a matching prebuilt artifact resolved and prebuilds are enabled.
@@ -46,6 +196,8 @@ module PatchedIOSArtifacts
     def self.configure_prebuilt_pods(installer)
         return unless @using_prebuilt
 
+        assert_local_rncore_source(installer)
+
         installer.pod_targets.each do |pod|
             # RNFB and RNSentry #import non-modular <React/...> headers, which under
             # use_frameworks! with a prebuilt React Core trips Clang's modular-import
@@ -58,17 +210,129 @@ module PatchedIOSArtifacts
         end
     end
 
-    def self.resolve(package_name, is_hybrid)
+    # CocoaPods downloads podspec sources itself, without our token, so a remote URL here always 401s.
+    # Runs before pods download, to name the cause instead of leaving a bare curl failure.
+    def self.assert_local_rncore_source(installer)
+        target = installer.pod_targets.find { |pod| pod.name == 'React-Core-prebuilt' }
+        return if target.nil?
+
+        source = target.root_spec&.source
+        url = source.is_a?(Hash) ? source[:http].to_s : ''
+        # react-native rescues our podspec source hook and carries on with no source, so name the cause here.
+        raise "#{LOG_PREFIX} React-Core-prebuilt resolved with no source. Its source hook raised, most likely " \
+              "while writing the link under #{SOURCE_LINK_ROOT}; check that path's ownership and permissions." if url.empty?
+        return unless url.start_with?('http://', 'https://')
+        raise "#{LOG_PREFIX} React-Core-prebuilt resolved to the remote URL #{url}, which CocoaPods " \
+              'cannot authenticate against. Its source must be the tarball we download ourselves — check whether ' \
+              'react-native changed how it resolves the prebuilt RNCore podspec source.'
+    end
+
+    # Shared with stable_tarball_url, so the prefetch cannot miss a classifier the install asks for.
+    def self.classifier(build_type, dsyms)
+        "reactnative-core-#{dsyms ? 'dSYM-' : ''}#{build_type}"
+    end
+
+    def self.required_classifiers
+        build_types = [:debug, :release]
+        # dSYMs only when asked for, matching ReactNativeCoreUtils' @@download_dsyms.
+        dsym_types = ENV['RCT_SYMBOLICATE_PREBUILT_FRAMEWORKS'] == '1' ? build_types : []
+        build_types.map { |type| classifier(type, false) } + dsym_types.map { |type| classifier(type, true) }
+    end
+
+    def self.prefetched_path(tarball_url)
+        @prefetched[tarball_url]
+    end
+
+    # Mirrors react-native's own artifact cache, keyed by package and artifact version: our filenames are
+    # indistinguishable from vanilla ones, and the hybrid and standalone packages number their versions
+    # independently, so a version alone does not identify an artifact. Each package keeps a single
+    # version, so the cache cannot grow over time and one package never evicts the other.
+    CACHE_ROOT = File.join(Dir.home, 'Library', 'Caches', 'Expensify', 'react-native-artifacts')
+
+    def self.prune_cache(package, version)
+        Dir.glob(File.join(CACHE_ROOT, package, '*')).each do |entry|
+            next if File.basename(entry) == version
+            FileUtils.rm_rf(entry)
+            log("Removed stale cached artifacts for #{package}:#{File.basename(entry)}")
+        end
+    end
+
+    # Fetches everything the install needs while the prebuilt/source decision is still reversible, so
+    # any failure downgrades to a source build. After pod resolution, switching would leave a mixed sandbox.
+    def self.prefetch(resolution)
+        return resolution if resolution['buildFromSource']
+
+        package = resolution['packageName'].to_s
+        version = resolution['version'].to_s
+        prefetched = {}
+        required_classifiers.each do |name|
+            url = "#{resolution['artifactUrlPrefix']}-#{name}.tar.gz"
+            destination = File.join(CACHE_ROOT, package, version, "#{name}.tar.gz")
+            prefetched[url] = download_and_verify(url, destination, resolution['githubToken'])
+        end
+        prune_cache(package, version)
+        @prefetched = prefetched
+        resolution
+    rescue => e
+        log("#{e.message} Building react-native from source.", :error)
+        @prefetched = {}
+        {'buildFromSource' => true, 'version' => nil}
+    end
+
+    # curl drops the Authorization header on the cross-host redirect to the object store.
+    def self.auth_header(github_token)
+        github_token ? %(-H "Authorization: Bearer #{github_token}") : ''
+    end
+
+    # react-native's validate_tarball, plus the token its own curl cannot carry. As upstream does, a
+    # checksum Maven does not serve skips validation rather than failing the fetch.
+    def self.checksum_valid?(path, name, url, github_token)
+        expected = `curl -sL #{auth_header(github_token)} "#{url}.sha1"`.strip.downcase
+        unless $?.success? && expected.match?(/\A[a-f0-9]{40}\z/)
+            log("SHA1 not available from Maven for #{name}. Skipping validation.")
+            return true
+        end
+        actual = Digest::SHA1.file(path).hexdigest
+        if actual == expected
+            log("SHA1 verified for #{name}")
+            return true
+        end
+        log("SHA1 mismatch for #{name}: expected #{expected}, got #{actual}", :error)
+        false
+    end
+
+    # Verified here because a corrupt archive would otherwise only surface at extraction, too late to fall back.
+    def self.download_and_verify(url, destination, github_token)
+        name = File.basename(destination)
+        if File.exist?(destination)
+            log("Cache hit: #{name} already in #{File.dirname(destination)}. Skipping download.")
+            return destination
+        end
+
+        log("Cache miss: downloading #{name} from #{url}")
+        tmp = "#{destination}.download"
+        FileUtils.mkdir_p(File.dirname(destination))
+        downloaded = system(%(curl --fail --location --proto '=https' #{auth_header(github_token)} "#{url}" -o "#{tmp}"))
+        log("Verifying checksum for #{name}...") if downloaded
+        unless downloaded && checksum_valid?(tmp, name, url, github_token)
+            FileUtils.rm_f(tmp)
+            raise "Could not fetch a usable #{name} from #{url}."
+        end
+        FileUtils.mv(tmp, destination)
+        destination
+    end
+
+    def self.resolve(is_hybrid)
         cmd = [
             'bun', File.join(NEW_DOT_ROOT, 'scripts/artifacts-utils/resolve-artifacts.ts'),
-            '--platform=ios', "--package=#{package_name}", "--hybrid=#{is_hybrid}", "--new-dot-root=#{NEW_DOT_ROOT}"
+            '--platform=ios', "--hybrid=#{is_hybrid}", "--new-dot-root=#{NEW_DOT_ROOT}"
         ]
         # stdout is pure JSON; the resolver logs to stderr.
         output = IO.popen(cmd, chdir: NEW_DOT_ROOT, &:read)
         raise "resolver exited #{$?.exitstatus}" unless $?.success?
         JSON.parse(output)
     rescue => e
-        Pod::UI.warn("[PatchedIOSArtifacts] Resolver failed (#{e.message}); building from source.") if defined?(Pod::UI)
+        log("Resolver failed (#{e.message}); building from source.", :error)
         {'buildFromSource' => true, 'version' => nil}
     end
 end
@@ -84,23 +348,91 @@ class ReactNativeCoreUtils
     end
 
     def self.stable_tarball_url(_version, build_type, dsyms = false)
-        classifier = "reactnative-core-#{dsyms ? 'dSYM-' : ''}#{build_type}"
-        "#{@@patched_artifact_url_prefix}-#{classifier}.tar.gz"
+        "#{@@patched_artifact_url_prefix}-#{PatchedIOSArtifacts.classifier(build_type, dsyms)}.tar.gz"
     end
 
+    # Since 0.86 react-native returns the remote URL here unless dSYMs are downloaded, leaving the
+    # download to CocoaPods, which sends no Authorization header. Point the podspec at our own
+    # authenticated download instead — unconditionally, so RCT_SYMBOLICATE_PREBUILT_FRAMEWORKS stops
+    # changing how the source resolves. Release is needed too: the script phase swaps it in at compile time.
+    def self.podspec_source_download_prebuild_stable_tarball
+        return if @@build_from_source
+
+        debug = download_stable_rncore(@@react_native_path, @@react_native_version, :debug)
+        release = download_stable_rncore(@@react_native_path, @@react_native_version, :release)
+
+        if @@download_dsyms
+            process_dsyms(debug, download_stable_rncore(@@react_native_path, @@react_native_version, :debug, true))
+            process_dsyms(release, download_stable_rncore(@@react_native_path, @@react_native_version, :release, true))
+        end
+
+        # Content version of the flat tarballs — their names can't carry it, replace-rncore-version.js hardcodes them.
+        File.write(File.join(File.dirname(debug), '.artifacts-version'),
+                   "#{@@patched_version}#{@@download_dsyms ? '+dsym' : ''}")
+
+        # URI::File.build validates path components as ASCII, so escape the filesystem path first —
+        # matches RN 0.86's own ReactNativePodsUtils.local_file_uri, which this replaces.
+        source_path = PatchedIOSArtifacts.stable_source_link(debug)
+        {:http => URI::File.build(path: URI::DEFAULT_PARSER.escape(source_path)).to_s}
+    end
+
+    # Overriding this also keeps our artifacts out of react-native's shared cache, where their filenames
+    # would be indistinguishable from vanilla ones. That cache still serves ReactNativeDependencies.
     def self.download_rncore_tarball(_react_native_path, tarball_url, version, configuration, dsyms = false)
         dir = artifacts_dir
         destination = configuration.nil? ?
             "#{dir}/reactnative-core-#{version}#{dsyms ? '-dSYM' : ''}.tar.gz" :
             "#{dir}/reactnative-core-#{version}#{dsyms ? '-dSYM' : ''}-#{configuration}.tar.gz"
 
-        unless File.exist?(destination)
+        prefetched = PatchedIOSArtifacts.prefetched_path(tarball_url)
+        if prefetched
+            # Overwrite unconditionally: this filename carries only the react-native version, so a leftover
+            # from an earlier patches version looks identical to the one we actually resolved.
+            FileUtils.mkdir_p(dir)
+            FileUtils.cp(prefetched, destination)
+            PatchedIOSArtifacts.log("Installed #{File.basename(destination)} into Pods from cache")
+        elsif !File.exist?(destination)
+            # Only if something asks for a classifier the prefetch did not anticipate. abort, because
+            # react-native rescues exceptions here and carries on with a nil source.
+            FileUtils.mkdir_p(dir)
             tmp = "#{dir}/reactnative-core.download"
             # curl drops the Authorization header on the cross-host redirect to the object store.
             header = @@patched_github_token ? %(-H "Authorization: Bearer #{@@patched_github_token}") : ''
-            ok = system(%(mkdir -p "#{dir}" && curl --fail --location --proto '=https' #{header} "#{tarball_url}" -o "#{tmp}" && mv "#{tmp}" "#{destination}"))
-            raise "[PatchedIOSArtifacts] Failed to download #{tarball_url}" unless ok
+            ok = system(%(curl --fail --location --proto '=https' #{header} "#{tarball_url}" -o "#{tmp}" && mv "#{tmp}" "#{destination}"))
+            abort("#{PatchedIOSArtifacts::LOG_PREFIX} Failed to download #{tarball_url}") unless ok
         end
         destination
     end
 end
+
+# The bundling phase runs this path and CocoaPods hashes the stored podspec into SPEC CHECKSUMS,
+# so this is the last point where the path can be made machine independent.
+module PatchedHermesCliPath
+    def store_podspec(name, podspec, external_source = false, json = false)
+        if name.to_s == 'hermes-engine'
+            if podspec.is_a?(Pod::Specification)
+                rewrite_hermes_cli_path(podspec)
+            else
+                # Only a Specification carries the attributes we rewrite, so any other form reaches
+                # Podfile.lock with the path react-native resolved.
+                PatchedIOSArtifacts.log("CocoaPods stored the hermes-engine podspec as a #{podspec.class}, " \
+                                        'so its compiler path stays machine specific.', :error)
+            end
+        end
+        super
+    end
+
+    def rewrite_hermes_cli_path(podspec)
+        settings = podspec.attributes_hash['user_target_xcconfig']
+        hermes_cli_path = settings.is_a?(Hash) ? settings['HERMES_CLI_PATH'] : nil
+        return unless hermes_cli_path.to_s.start_with?('/')
+
+        settings['HERMES_CLI_PATH'] = PatchedIOSArtifacts.pods_root_relative_path(hermes_cli_path)
+    end
+
+    private :rewrite_hermes_cli_path
+end
+
+require 'cocoapods/sandbox'
+
+Pod::Sandbox.prepend(PatchedHermesCliPath)

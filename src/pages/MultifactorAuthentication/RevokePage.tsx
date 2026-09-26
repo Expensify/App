@@ -1,14 +1,14 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/ButtonComposed';
-import ConfirmModal from '@components/ConfirmModal';
+import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useBiometricRegistrationStatus from '@hooks/useBiometricRegistrationStatus';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -19,16 +19,27 @@ import {openMultifactorAuthenticationRevokePage} from '@userActions/User';
 
 import CONST from '@src/CONST';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
-type ConfirmMode = 'thisDevice' | 'single' | 'multiple' | 'all';
+import RevokeRow from './RevokeRow';
+
+const CONFIRM_MODE = {
+    THIS_DEVICE: 'thisDevice',
+    SINGLE: 'single',
+    MULTIPLE: 'multiple',
+    ALL: 'all',
+} as const;
+
+type ConfirmMode = ValueOf<typeof CONFIRM_MODE>;
 
 const confirmPromptKeys = {
-    thisDevice: 'multifactorAuthentication.revoke.confirmationPromptThisDevice',
-    single: 'multifactorAuthentication.revoke.confirmationPrompt',
-    multiple: 'multifactorAuthentication.revoke.confirmationPromptMultiple',
-    all: 'multifactorAuthentication.revoke.confirmationPromptAll',
+    [CONFIRM_MODE.THIS_DEVICE]: 'multifactorAuthentication.revoke.confirmationPromptThisDevice',
+    [CONFIRM_MODE.SINGLE]: 'multifactorAuthentication.revoke.confirmationPrompt',
+    [CONFIRM_MODE.MULTIPLE]: 'multifactorAuthentication.revoke.confirmationPromptMultiple',
+    [CONFIRM_MODE.ALL]: 'multifactorAuthentication.revoke.confirmationPromptAll',
 } as const;
 
 /**
@@ -56,8 +67,7 @@ const confirmPromptKeys = {
 function MultifactorAuthenticationRevokePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
-    const [confirmMode, setConfirmMode] = useState<ConfirmMode>('single');
+    const {showConfirmModal, closeModal} = useConfirmModal();
     const [errorMessage, setErrorMessage] = useState<string | undefined>();
     const [isThisDeviceLoading, setIsThisDeviceLoading] = useState(false);
     const [isOtherDevicesLoading, setIsOtherDevicesLoading] = useState(false);
@@ -66,21 +76,19 @@ function MultifactorAuthenticationRevokePage() {
     const hasDevices = totalDeviceCount > 0;
     const hasMultipleKeys = totalDeviceCount > 1;
 
+    // localCredentialID hydrates asynchronously, and the confirmation modal resolves after the render that opened it,
+    // so read it through a ref: a stale undefined would make the 'single' path revoke this device's credential too.
+    const localCredentialIDRef = useRef(localCredentialID);
+    useEffect(() => {
+        localCredentialIDRef.current = localCredentialID;
+    }, [localCredentialID]);
+
     useEffect(() => {
         openMultifactorAuthenticationRevokePage();
     }, []);
 
     const onGoBackPress = () => {
         Navigation.goBack();
-    };
-
-    const showConfirmModal = (mode: ConfirmMode) => {
-        setConfirmMode(mode);
-        setConfirmModalVisibility(true);
-    };
-
-    const hideConfirmModal = () => {
-        setConfirmModalVisibility(false);
     };
 
     const executeRevoke = useCallback(
@@ -96,11 +104,9 @@ function MultifactorAuthenticationRevokePage() {
         [translate],
     );
 
-    // Since localCredentialID is loaded asynchronously, it can become undefined between the render that shows
-    // the button and the moment the user taps it. If these callbacks closed over localCredentialID directly, a
-    // stale undefined value could cause revokeThisDevice to silently no-op, or revokeOtherDevices to send
-    // empty params and accidentally revoke ALL credentials. The call sites pass localCredentialID at render time
-    // so the closure captures the value that was known-good when the button was displayed.
+    // Since localCredentialID is loaded asynchronously, a callback that closed over it directly could see a stale
+    // undefined and make revokeThisDevice silently no-op, or make revokeOtherDevices send empty params and
+    // accidentally revoke ALL credentials. These take the key as an argument so the caller supplies the latest value.
     const revokeThisDevice = useCallback(
         async (keyID: string) => {
             await executeRevoke({onlyKeyID: keyID}, setIsThisDeviceLoading);
@@ -124,51 +130,72 @@ function MultifactorAuthenticationRevokePage() {
         await executeRevoke({}, setLoading);
     }, [executeRevoke]);
 
-    const handleRevokeConfirm = async () => {
-        if (confirmMode === 'thisDevice') {
-            if (!localCredentialID) {
-                hideConfirmModal();
+    // isConfirmLoading keeps the modal open in a loading state after the promise resolves, so every path has to call closeModal() to dismiss it.
+    const handleRevokeConfirm = async (mode: ConfirmMode) => {
+        const keyID = localCredentialIDRef.current;
+
+        if (mode === CONFIRM_MODE.THIS_DEVICE) {
+            if (!keyID) {
+                closeModal();
                 return;
             }
-            await revokeThisDevice(localCredentialID);
-        } else if (confirmMode === 'multiple') {
-            if (!localCredentialID) {
-                hideConfirmModal();
+            await revokeThisDevice(keyID);
+        } else if (mode === CONFIRM_MODE.MULTIPLE) {
+            if (!keyID) {
+                closeModal();
                 return;
             }
-            await revokeOtherDevices(localCredentialID);
-        } else if (confirmMode === 'single') {
-            if (!localCredentialID) {
+            await revokeOtherDevices(keyID);
+        } else if (mode === CONFIRM_MODE.SINGLE) {
+            if (!keyID) {
                 await revokeAll();
             } else {
-                await revokeOtherDevices(localCredentialID);
+                await revokeOtherDevices(keyID);
             }
-        } else if (confirmMode === 'all') {
+        } else if (mode === CONFIRM_MODE.ALL) {
             await revokeAll();
         }
-        hideConfirmModal();
+        closeModal();
     };
 
-    const confirmPromptKey = confirmPromptKeys[confirmMode];
+    const promptRevoke = (mode: ConfirmMode) => {
+        const ctaKey = mode === CONFIRM_MODE.ALL ? 'multifactorAuthentication.revoke.ctaAll' : 'multifactorAuthentication.revoke.cta';
+
+        showConfirmModal({
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+            title: translate(ctaKey),
+            prompt: translate(confirmPromptKeys[mode]),
+            confirmText: translate(ctaKey),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+            // Has to be defined, not just truthy, for the modal to take its async branch and show a loading state while the revoke request is in flight.
+            isConfirmLoading: false,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            handleRevokeConfirm(mode);
+        });
+    };
 
     const otherDevicesConfirmMode = (): ConfirmMode => {
         if (otherDeviceCount === 1) {
-            return 'single';
+            return CONFIRM_MODE.SINGLE;
         }
 
         // Revoking multiple "other devices" when the current device is not registered
         // is equivalent to revoking all devices, so the modal should say "Revoke all".
         if (!isCurrentDeviceRegistered) {
-            return 'all';
+            return CONFIRM_MODE.ALL;
         }
-        return 'multiple';
+        return CONFIRM_MODE.MULTIPLE;
     };
 
     const revokeAllConfirmMode = (): ConfirmMode => {
         if (!hasMultipleKeys) {
-            return isCurrentDeviceRegistered ? 'thisDevice' : 'single';
+            return isCurrentDeviceRegistered ? CONFIRM_MODE.THIS_DEVICE : CONFIRM_MODE.SINGLE;
         }
-        return 'all';
+        return CONFIRM_MODE.ALL;
     };
 
     return (
@@ -188,48 +215,24 @@ function MultifactorAuthenticationRevokePage() {
                             {/* The isCurrentDeviceRegistered guard guarantees localCredentialID is
                                truthy here. Do not remove this guard without updating the non-null assertion on localCredentialID below. */}
                             {isCurrentDeviceRegistered && (
-                                <MenuItem
+                                <RevokeRow
                                     title={translate('multifactorAuthentication.revoke.thisDevice')}
-                                    interactive={false}
-                                    shouldShowRightComponent
-                                    rightComponent={
-                                        <View style={styles.justifyContentCenter}>
-                                            <Button
-                                                variant={CONST.BUTTON_VARIANT.DANGER}
-                                                size={CONST.BUTTON_SIZE.SMALL}
-                                                isLoading={isThisDeviceLoading}
-                                                onPress={() => {
-                                                    if (!localCredentialID) {
-                                                        return;
-                                                    }
-                                                    showConfirmModal('thisDevice');
-                                                }}
-                                            >
-                                                <Button.Text>{translate('multifactorAuthentication.revoke.revoke')}</Button.Text>
-                                            </Button>
-                                        </View>
-                                    }
+                                    isLoading={isThisDeviceLoading}
+                                    onPress={() => {
+                                        if (!localCredentialID) {
+                                            return;
+                                        }
+                                        promptRevoke(CONFIRM_MODE.THIS_DEVICE);
+                                    }}
                                 />
                             )}
                             {otherDeviceCount > 0 && (
-                                <MenuItem
-                                    title={translate('multifactorAuthentication.revoke.otherDevices', otherDeviceCount)}
-                                    interactive={false}
-                                    shouldShowRightComponent
-                                    rightComponent={
-                                        <View style={styles.justifyContentCenter}>
-                                            <Button
-                                                variant={CONST.BUTTON_VARIANT.DANGER}
-                                                size={CONST.BUTTON_SIZE.SMALL}
-                                                isLoading={isOtherDevicesLoading}
-                                                onPress={() => {
-                                                    showConfirmModal(otherDevicesConfirmMode());
-                                                }}
-                                            >
-                                                <Button.Text>{translate('multifactorAuthentication.revoke.revoke')}</Button.Text>
-                                            </Button>
-                                        </View>
-                                    }
+                                <RevokeRow
+                                    title={translate('multifactorAuthentication.revoke.otherDevices', {count: otherDeviceCount})}
+                                    isLoading={isOtherDevicesLoading}
+                                    onPress={() => {
+                                        promptRevoke(otherDevicesConfirmMode());
+                                    }}
                                 />
                             )}
                         </View>
@@ -248,7 +251,7 @@ function MultifactorAuthenticationRevokePage() {
                             variant={CONST.BUTTON_VARIANT.DANGER}
                             style={styles.flex1}
                             isLoading={isThisDeviceLoading && isOtherDevicesLoading}
-                            onPress={() => showConfirmModal(revokeAllConfirmMode())}
+                            onPress={() => promptRevoke(revokeAllConfirmMode())}
                         >
                             <Button.Text>{translate(hasMultipleKeys ? 'multifactorAuthentication.revoke.ctaAll' : 'multifactorAuthentication.revoke.cta')}</Button.Text>
                         </Button>
@@ -264,20 +267,6 @@ function MultifactorAuthenticationRevokePage() {
                     )}
                 </View>
             </FullPageOfflineBlockingView>
-            <ConfirmModal
-                danger
-                title={translate(confirmMode === 'all' ? 'multifactorAuthentication.revoke.ctaAll' : 'multifactorAuthentication.revoke.cta')}
-                prompt={translate(confirmPromptKey)}
-                confirmText={translate(confirmMode === 'all' ? 'multifactorAuthentication.revoke.ctaAll' : 'multifactorAuthentication.revoke.cta')}
-                cancelText={translate('common.cancel')}
-                isVisible={isConfirmModalVisible}
-                onConfirm={() => {
-                    handleRevokeConfirm();
-                }}
-                onCancel={hideConfirmModal}
-                shouldShowCancelButton
-                isConfirmLoading={isThisDeviceLoading || isOtherDevicesLoading}
-            />
         </ScreenWrapper>
     );
 }

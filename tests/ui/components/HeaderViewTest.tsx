@@ -232,6 +232,62 @@ describe('HeaderView', () => {
         );
     }
 
+    it('should display the localized category update message for a thread on a category update action', async () => {
+        // Given an #admins room with a report action that made attendees required on a category
+        const policyID = '400';
+        const adminsReportID = '401';
+        const threadReportID = '402';
+        const rawServerMessage = 'updated the category "Advertising" by changing the Attendees from Not Required to Required';
+
+        const parentReportAction: ReportAction = {
+            reportActionID: '4001',
+            actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY,
+            created: '2026-01-01 00:00:00.000',
+            message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: rawServerMessage, text: rawServerMessage}],
+            originalMessage: {
+                categoryName: 'Advertising',
+                updatedField: 'areAttendeesRequired',
+                oldValue: '',
+                newValue: true,
+            },
+        };
+
+        const adminsReport = {
+            ...createRandomReport(Number(adminsReportID), CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
+            type: CONST.REPORT.TYPE.CHAT,
+            policyID,
+        };
+
+        // And a chat thread opened on that action
+        const threadReport = {
+            ...createRandomReport(Number(threadReportID), undefined),
+            type: CONST.REPORT.TYPE.CHAT,
+            policyID,
+            parentReportID: adminsReportID,
+            parentReportActionID: parentReportAction.reportActionID,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsReportID}`, {
+            [parentReportAction.reportActionID]: parentReportAction,
+        });
+        await waitForBatchedUpdates();
+
+        const adminsReportKey = `${ONYXKEYS.COLLECTION.REPORT}${adminsReportID}` as const;
+        const threadReportKey = `${ONYXKEYS.COLLECTION.REPORT}${threadReportID}` as const;
+        await Onyx.multiSet(
+            createMock<KeyValueMapping>({
+                [adminsReportKey]: adminsReport,
+                [threadReportKey]: threadReport,
+            }),
+        );
+
+        renderHeader(threadReport.reportID);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the thread header should show the same copy as the system message in the chat
+        await waitFor(() => expect(screen.getByTestId('DisplayNames')).toHaveTextContent(translateLocal('workspaceActions.updateAreAttendeesRequired', 'Advertising', true)));
+    });
+
     it('should display the Book a call button in the 1:1 DM with the account manager', async () => {
         // Given a 1:1 DM with the assigned account manager who has a calendar link
         const report = createRegularChat(500, [currentUserAccountID, accountManagerAccountID]);
@@ -239,7 +295,7 @@ describe('HeaderView', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: String(accountManagerAccountID), accountManagerCalendarLink});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID, accountManagerCalendarLink});
         });
 
         renderHeader(report.reportID);
@@ -256,7 +312,7 @@ describe('HeaderView', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, report.reportID);
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: String(accountManagerAccountID), accountManagerCalendarLink});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID, accountManagerCalendarLink});
         });
 
         renderHeader(report.reportID);
@@ -273,7 +329,7 @@ describe('HeaderView', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: String(accountManagerAccountID)});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID});
         });
 
         renderHeader(report.reportID);
@@ -290,7 +346,7 @@ describe('HeaderView', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: String(accountManagerAccountID), accountManagerCalendarLink});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID, accountManagerCalendarLink});
         });
 
         renderHeader(report.reportID);

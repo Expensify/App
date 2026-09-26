@@ -23,7 +23,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {ReactNode} from 'react';
+import type {ComponentRef, ReactNode} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, View} from 'react-native';
 
 import React, {useRef, useState} from 'react';
@@ -35,8 +35,7 @@ type PressableProps = {
     /** Whether the row is the currently focused/active option. Drives the focused background and accessibility metadata. */
     isOptionFocused: boolean;
 
-    /** Press handler invoked with the option data and the popover anchor ref. */
-    onSelectRow: (optionItem: OptionData, popoverAnchor: React.RefObject<View | null>) => void;
+    onSelectRow: (optionItem: OptionData, popoverAnchor: React.RefObject<ComponentRef<typeof View> | null>) => void;
 
     /** Layout handler forwarded to the underlying pressable. */
     onLayout?: (event: LayoutChangeEvent) => void;
@@ -51,10 +50,10 @@ type PressableProps = {
     children: ReactNode;
 
     /** Whether to show the "Mark as Done" state for this row. */
-    isMarkAsDone?: boolean;
+    shouldShowMarkAsDoneCopy?: boolean;
 };
 
-function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverIn, onHoverOut, children, isMarkAsDone}: PressableProps) {
+function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverIn, onHoverOut, children, shouldShowMarkAsDoneCopy}: PressableProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -63,12 +62,12 @@ function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverI
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {hideProductTrainingTooltip} = useLHNRowProductTrainingTooltip();
 
-    const popoverAnchor = useRef<View>(null);
+    const popoverAnchor = useRef<ComponentRef<typeof View>>(null);
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
     const reportID = optionItem.reportID;
     const brickRoadIndicator = optionItem.brickRoadIndicator;
-    const actionBadgeText = getActionBadgeText(optionItem.actionBadge, translate, isMarkAsDone);
+    const actionBadgeText = getActionBadgeText(optionItem.actionBadge, translate, shouldShowMarkAsDoneCopy);
 
     let accessibilityLabelForBadge = '';
     if (brickRoadIndicator) {
@@ -159,7 +158,7 @@ function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverI
                     }}
                     withoutFocusOnSecondaryInteraction
                     activeOpacity={variables.pressDimValue}
-                    opacityAnimationDuration={0}
+                    opacityAnimationDuration={variables.instantAnimationDuration}
                     style={[
                         styles.flexRow,
                         styles.alignItemsCenter,

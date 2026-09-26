@@ -25,6 +25,7 @@ import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalCo
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
 
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
@@ -67,6 +68,7 @@ function BaseModal({
     modalId,
     shouldEnableNewFocusManagement = false,
     shouldReturnFocus,
+    launcherRef,
     restoreFocusType,
     shouldUseModalPaddingStyle = true,
     initialFocus = false,
@@ -83,6 +85,7 @@ function BaseModal({
     ref,
     shouldDisplayBelowModals = false,
     shouldKeepRightDockedBackdropInNarrowPane = false,
+    shouldShowBackdrop = false,
     shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode = true,
 }: BaseModalProps) {
     const theme = useTheme();
@@ -110,7 +113,7 @@ function BaseModal({
 
     const shouldCallHideModalOnUnmount = useRef(false);
     const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>(undefined);
-    const bottomDockedDismissButtonRef = useRef<View>(null);
+    const bottomDockedDismissButtonRef = useRef<ComponentRef<typeof View>>(null);
     const [fallbackModalID] = useState(() => ComposerFocusManager.getId());
     const coveringModalID = fallbackModalID;
     // On Android the hide callback fires from the reanimated exit-animation snapshot taken when the close began,
@@ -294,18 +297,14 @@ function BaseModal({
         default: false,
     };
 
-    // In Modals we need to reset the ScreenWrapperOfflineIndicatorContext to allow nested ScreenWrapper components to render offline indicators,
-    // except if we are in a narrow pane navigator. In this case, we use the narrow pane's original values.
     const {isInNarrowPane} = useContext(NarrowPaneContext);
-    const {originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
-    const offlineIndicatorContextValue = isInNarrowPane ? (originalValues ?? {}) : {};
 
     const shouldSuppressRightDockedBackdrop =
         type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal) && !shouldKeepRightDockedBackdropInNarrowPane;
     const isFullWidthNarrowSheet =
         (type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED || type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT) && isSmallScreenWidth && !shouldKeepRightDockedBackdropInNarrowPane;
     const backdropOpacityAdjusted =
-        hideBackdrop || shouldSuppressRightDockedBackdrop || isFullWidthNarrowSheet // full-width narrow sheets (RHP-like) shouldn't dim a backdrop behind them
+        !shouldShowBackdrop && (hideBackdrop || shouldSuppressRightDockedBackdrop || isFullWidthNarrowSheet) // full-width narrow sheets (RHP-like) shouldn't dim a backdrop behind them
             ? 0
             : backdropOpacity;
 
@@ -322,7 +321,7 @@ function BaseModal({
 
     return (
         <ModalContext.Provider value={modalContextValue}>
-            <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
+            <ScreenWrapperOfflineIndicatorContext.Provider value={{}}>
                 <View
                     // this is a workaround for modal not being visible on the new arch in some cases
                     // it's necessary to have a non-collapsible view as a parent of the modal to prevent
@@ -391,6 +390,7 @@ function BaseModal({
                         shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
                         supportedOrientations={['portrait', 'portrait-upside-down', 'landscape', 'landscape-left', 'landscape-right']}
                         shouldReturnFocus={shouldReturnFocus}
+                        launcherRef={launcherRef}
                     >
                         <Animated.View
                             onLayout={onViewLayout}

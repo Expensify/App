@@ -1,5 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import type {ComposerRef} from '@components/Composer/types';
+
 import {editReportComment} from '@libs/actions/Report';
 
 import {showDeleteModal} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -9,6 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
 
+import createMock from '../../utils/createMock';
 import * as LHNTestUtils from '../../utils/LHNTestUtils';
 
 jest.mock('@libs/actions/Report', () => {
@@ -55,9 +58,10 @@ jest.mock('@hooks/useReportIsArchived', () => ({
     default: () => false,
 }));
 
+const mockScrollToIndex = jest.fn();
 jest.mock('@hooks/useReportScrollManager', () => ({
     __esModule: true,
-    default: () => ({scrollToIndex: jest.fn()}),
+    default: () => ({scrollToIndex: mockScrollToIndex}),
 }));
 
 jest.mock('@libs/ReportUtils', () => {
@@ -78,10 +82,11 @@ type HookProps = Parameters<typeof useEditMessage>[0];
 type DebouncedValidator = HookProps['debouncedCommentMaxLengthValidation'];
 
 function makeDebouncedValidator({flushResult}: {flushResult: boolean}): DebouncedValidator {
-    return {
+    const validator = jest.fn<boolean, [string]>(() => flushResult);
+    return Object.assign(validator, {
         flush: jest.fn(() => flushResult),
         cancel: jest.fn(),
-    } as unknown as DebouncedValidator;
+    });
 }
 
 describe('useEditMessage', () => {
@@ -105,7 +110,7 @@ describe('useEditMessage', () => {
             originalReportID: report.reportID,
             reportAction,
             debouncedCommentMaxLengthValidation: makeDebouncedValidator({flushResult: true}),
-            composerRef: {current: {blur: jest.fn()} as never},
+            composerRef: {current: createMock<ComposerRef>({blur: jest.fn()})},
             ...overrides,
         };
         const hook = renderHook(() => useEditMessage(props));
@@ -137,5 +142,45 @@ describe('useEditMessage', () => {
 
         const args = mockShowDeleteModal.mock.calls.at(0);
         expect(args?.[1]?.reportActionID).toBe(props.reportAction?.reportActionID);
+    });
+
+    it('scrolls to index zero after deleting the newest message draft without a list-specific callback', () => {
+        const {hook} = renderUseEditMessage({shouldScrollToLastMessage: true});
+
+        act(() => {
+            hook.result.current.publishDraft('   ');
+        });
+        act(() => {
+            mockShowDeleteModal.mock.calls.at(0)?.[3]?.();
+        });
+
+        expect(mockScrollToIndex).toHaveBeenCalledWith(0);
+    });
+
+    it('uses the list-specific scroll after deleting the newest message draft', () => {
+        const scrollToLastMessage = jest.fn();
+        const {hook} = renderUseEditMessage({shouldScrollToLastMessage: true, scrollToLastMessage});
+
+        act(() => {
+            hook.result.current.publishDraft('   ');
+        });
+        act(() => {
+            mockShowDeleteModal.mock.calls.at(0)?.[3]?.();
+        });
+
+        expect(scrollToLastMessage).toHaveBeenCalledTimes(1);
+        expect(mockScrollToIndex).not.toHaveBeenCalled();
+    });
+
+    it('does not scroll after deleting a non-newest message draft', () => {
+        const scrollToLastMessage = jest.fn();
+        const {hook} = renderUseEditMessage({shouldScrollToLastMessage: false, scrollToLastMessage});
+
+        act(() => {
+            hook.result.current.deleteDraft();
+        });
+
+        expect(scrollToLastMessage).not.toHaveBeenCalled();
+        expect(mockScrollToIndex).not.toHaveBeenCalled();
     });
 });

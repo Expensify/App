@@ -18,16 +18,9 @@ import {View} from 'react-native';
 import type {DomainMemberRowData} from '.';
 
 type DomainMembersTableRowProps = {
-    /** Data about the domain member */
     item: DomainMemberRowData;
-
-    /** The index of the row relative to all other rows */
     rowIndex: number;
-
-    /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
-
-    /** Whether the group column should be shown */
     shouldShowGroupColumn: boolean;
 };
 
@@ -70,7 +63,6 @@ export default function DomainMembersTableRow({item, rowIndex, shouldUseNarrowTa
                             size={avatarSize}
                             accountID={item.accountID}
                             fallbackDisplayName={item.name}
-                            shouldShowTooltip
                         />
                         <View style={[shouldUseNarrowTableLayout && styles.gap1, styles.flex1]}>
                             <TextWithTooltip

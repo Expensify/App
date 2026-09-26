@@ -139,9 +139,14 @@ compute: ([reports, personalDetails]) => {
 - Document any special cases or performance considerations
 - Include type annotations for better developer experience
 
+### - Recompute rate is monitored in production
+Every derived value flush passes through `detectOnyxDerivedLoop` (`src/libs/telemetry/detectOnyxDerivedLoop.ts`). If one derived key recomputes more than `RECOMPUTE_THRESHOLD` times inside `WINDOW_MS`, it reports `[OnyxDerived] recompute loop detected for <key>` once per key per session to Sentry (fingerprinted `['onyx-derived-loop', <key>]`) and to the server log, with a per-dependency count showing which dependency is driving the churn. Recomputes during app startup are ignored, since dependencies legitimately hydrate in bursts.
+
+If your derived value trips it, look at the dependency counts to find which dependency recomputed the most. There are two common causes: the derived value depends on a key that updates much more often than it needs, or it depends on another derived value that in turn depends back on it.
+
 ## Onyx State Export
 
-Users can export their Onyx state from **Settings → Troubleshoot → Export Onyx state** (used mainly to attach state to bug reports). Because Onyx holds sensitive data (credentials, tokens, banking data, personal details), the export is passed through `maskOnyxState` (`src/libs/ExportOnyxState/common.ts`) which removes or masks fragile data before it ever leaves the device.
+Users can export their Onyx state from **Settings → Troubleshoot → Export Onyx state** (used mainly to attach state to bug reports). Because Onyx holds sensitive data (credentials, tokens, banking data, personal details), the export is passed through `maskOnyxState` (`src/libs/ExportOnyxState/masking.ts`) which removes or masks fragile data before it ever leaves the device.
 
 ### - There are two ways the export masks data
 The buckets below make more sense once you know how the two masking treatments differ.
@@ -159,7 +164,7 @@ That last point matters. If a secret is stored under a field name it doesn't kno
 In short, write a rule when you can't be sure what every field holds, and use `maskFragileData` when you can.
 
 ### - Every Onyx key MUST be deliberately categorized for export
-A key holding credentials and a key holding a boolean flag both need a decision made about them, and there's no default that's safe for both. So every top-level and `COLLECTION.*` key in `ONYXKEYS` goes into exactly one of four buckets in `src/libs/ExportOnyxState/common.ts`.
+A key holding credentials and a key holding a boolean flag both need a decision made about them, and there's no default that's safe for both. So every top-level and `COLLECTION.*` key in `ONYXKEYS` goes into exactly one of four buckets in `src/libs/ExportOnyxState/masking.ts`.
 
 **1. `onyxKeysToRemove` — dropped from the export.**
 This is the most sensitive data that belongs to a user, so use this bucket for anything that might cause a security concern if it was leaked: credentials, access tokens and third-party secrets like the push notification ID, Stripe customer ID, Plaid and merge-HR link tokens, Onfido token and applicant ID, and the Mapbox access token. It's also the right choice when a value is a secret that neither masking treatment would catch. All `DERIVED` keys live here too, since they're recomputed from other keys and add nothing to a bug report.

@@ -1,11 +1,14 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
 import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {rejectMoneyRequestsOnSearch} from '@libs/actions/Search';
@@ -17,6 +20,7 @@ import type {SearchReportActionsParamList} from '@navigation/types';
 
 import RejectReasonFormView from '@pages/iou/RejectReasonFormView';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -35,9 +39,12 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
     const {reportID} = route.params ?? {};
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const allReportsTransactionsAndViolations = useAllReportsTransactionsAndViolations();
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {isBetaEnabled} = usePermissions();
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     // When coming from the report view, selectedTransactions is empty, build it from selectedTransactionIDs
@@ -60,17 +67,20 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
                 return;
             }
 
-            const urlToNavigateBack = rejectMoneyRequestsOnSearch(
-                currentSearchHash,
-                selectedTransactionsForReject,
+            const urlToNavigateBack = rejectMoneyRequestsOnSearch({
+                hash: currentSearchHash,
+                selectedTransactions: selectedTransactionsForReject,
                 comment,
                 allPolicies,
                 allReports,
-                currentUserAccountID,
-                currentUserLogin ?? '',
-                betas,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserLogin: currentUserLogin ?? '',
+                isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 delegateAccountID,
-            );
+                getCurrencyDecimals,
+                allReportsTransactionsAndViolations,
+                rules,
+            });
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS) {
                 clearSelectedTransactions(true);
             } else {
@@ -89,8 +99,11 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
             allReports,
             currentUserAccountID,
             currentUserLogin,
-            betas,
+            isBetaEnabled,
             delegateAccountID,
+            getCurrencyDecimals,
+            allReportsTransactionsAndViolations,
+            rules,
             route.name,
             showDelegateNoAccessModal,
             clearSelectedTransactions,

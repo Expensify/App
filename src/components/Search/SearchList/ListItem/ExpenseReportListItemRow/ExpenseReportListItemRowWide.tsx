@@ -1,6 +1,7 @@
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import {ReportSubmitToPopoverMeasurableAnchor} from '@components/ReportSubmitToPopoverAnchor';
+import {useSearchColumnStyles} from '@components/Search/SearchColumnWidthsContext';
 import DeferredActionCell from '@components/Search/SearchList/ListItem/ActionCell/DeferredActionCell';
 import DateCell from '@components/Search/SearchList/ListItem/DateCell';
 import ExportedIconCell from '@components/Search/SearchList/ListItem/ExportedIconCell';
@@ -10,9 +11,9 @@ import TotalCell from '@components/Search/SearchList/ListItem/TotalCell';
 import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
+import {useListItemContext, useListItemHovered} from '@components/SelectionList/ListItemContext';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -36,43 +37,33 @@ function ExpenseReportListItemRowWide({
     onButtonPress = () => {},
     isActionLoading,
     chatReport,
-    containerStyle,
-    showTooltip,
     canSelectMultiple,
     isSelectAllChecked,
     isIndeterminate,
     isDisabledCheckbox,
     columns = [],
-    isHovered = false,
-    isFocused = false,
-    isPendingDelete = false,
     shouldDisableActionPointerEvents = false,
-    isMarkAsDone,
+    shouldShowMarkAsDoneCopy,
 }: ExpenseReportListItemRowWideProps) {
-    const StyleUtils = useStyleUtils();
+    const getSearchColumnStyles = useSearchColumnStyles();
     const styles = useThemeStyles();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {isSelected} = useRowSelection(item.keyForList);
+    const isHovered = useListItemHovered();
+    const {isDisabled} = useListItemContext();
 
     const currency = item.currency ?? CONST.CURRENCY.USD;
     const {totalDisplaySpend = 0, nonReimbursableSpend = 0, reimbursableSpend = 0, isAllScanning: isScanning = false} = item;
     const submitterUserID = item.submitterUserID;
     const submitterPayrollID = item.submitterPayrollID;
     const orderDealNumbers = item.orderDealNumbers;
+    const {debitedAmount, debitedCurrency, creditedAmount, creditedCurrency} = item;
 
     const columnComponents = {
-        [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
-            <ExpenseReportListItemAvatar
-                item={item}
-                showTooltip={showTooltip}
-                isHovered={isHovered}
-                isFocused={isFocused}
-                isLargeScreenWidth
-            />
-        ),
+        [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: <ExpenseReportListItemAvatar item={item} />,
         [CONST.SEARCH.TABLE_COLUMNS.DATE]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide: item.shouldShowYear})]}>
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide: item.shouldShowYear, isDateColumnCreated: true})]}>
                 <DateCell
                     date={item.created ?? ''}
                     showTooltip
@@ -81,7 +72,7 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, {isSubmittedColumnWide: item.shouldShowYearSubmitted})]}>
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, {isSubmittedColumnWide: item.shouldShowYearSubmitted})]}>
                 <DateCell
                     date={item.submitted ?? ''}
                     showTooltip
@@ -91,7 +82,7 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, {isApprovedColumnWide: item.shouldShowYearApproved})]}>
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, {isApprovedColumnWide: item.shouldShowYearApproved})]}>
                 <DateCell
                     date={item.approved ?? ''}
                     showTooltip
@@ -101,7 +92,7 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER)]}>
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER)]}>
                 {!!item.firstApproverAccountID && (
                     <UserInfoCell
                         accountID={item.firstApproverAccountID}
@@ -113,7 +104,7 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED)]}>
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED)]}>
                 <DateCell
                     date={item.firstApproved ?? ''}
                     showTooltip
@@ -121,8 +112,20 @@ function ExpenseReportListItemRowWide({
                 />
             </View>
         ),
+        [CONST.SEARCH.TABLE_COLUMNS.PAID_BY]: (
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.PAID_BY)]}>
+                {!!item.paidByAccountID && (
+                    <UserInfoCell
+                        accountID={item.paidByAccountID}
+                        avatar={item.paidByAvatar}
+                        displayName={item.formattedPaidBy ?? ''}
+                        isLargeScreenWidth
+                    />
+                )}
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, {isExportedColumnWide: item.shouldShowYearExported})]}>
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, {isExportedColumnWide: item.shouldShowYearExported})]}>
                 <DateCell
                     date={item.exported ?? ''}
                     showTooltip
@@ -132,7 +135,7 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.STATUS]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}>
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}>
                 <StatusCell
                     stateNum={item.stateNum}
                     statusNum={item.statusNum}
@@ -142,7 +145,7 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS)]}>
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS)]}>
                 <TextCell
                     text={item.formattedPaidStatus ?? ''}
                     isLargeScreenWidth
@@ -150,7 +153,7 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.TITLE]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
                 <TextCell
                     text={item.reportName ?? ''}
                     isLargeScreenWidth
@@ -158,7 +161,7 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.FROM]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                 {!!item.from && (
                     <UserInfoCell
                         accountID={item.from.accountID}
@@ -170,7 +173,7 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.TO]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TO)]}>
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TO)]}>
                 {!!item.to && (
                     <UserInfoCell
                         accountID={item.to.accountID}
@@ -182,11 +185,7 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: (
-            <View
-                style={[
-                    StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL, {isAmountColumnWide: item.isAmountColumnWide, shouldRemoveTotalColumnFlex: true}),
-                ]}
-            >
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL, {isAmountColumnWide: item.isAmountColumnWide, shouldRemoveTotalColumnFlex: true})]}>
                 <TotalCell
                     total={reimbursableSpend}
                     currency={currency}
@@ -197,7 +196,7 @@ function ExpenseReportListItemRowWide({
         [CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: (
             <View
                 style={[
-                    StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL, {
+                    getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL, {
                         isAmountColumnWide: item.isAmountColumnWide,
                         shouldRemoveTotalColumnFlex: true,
                     }),
@@ -211,7 +210,7 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, {isAmountColumnWide: item.isAmountColumnWide, shouldRemoveTotalColumnFlex: true})]}>
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, {isAmountColumnWide: item.isAmountColumnWide, shouldRemoveTotalColumnFlex: true})]}>
                 <TotalCell
                     total={totalDisplaySpend}
                     currency={currency}
@@ -220,37 +219,57 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID)]}>
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID)]}>
                 <TextCell text={submitterUserID} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID)]}>
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID)]}>
                 <TextCell text={submitterPayrollID} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS)]}>
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS)]}>
                 <TextCell text={orderDealNumbers} />
             </View>
         ),
+        [CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED]: (
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED)]}>
+                {!!debitedAmount && !!debitedCurrency && (
+                    <TotalCell
+                        total={debitedAmount}
+                        currency={debitedCurrency}
+                    />
+                )}
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED]: (
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED)]}>
+                {!!creditedAmount && !!creditedCurrency && (
+                    <TotalCell
+                        total={creditedAmount}
+                        currency={creditedCurrency}
+                    />
+                )}
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REPORT_ID)]}>
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REPORT_ID)]}>
                 <TextCell text={item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : item.reportID} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID)]}>
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID)]}>
                 <TextCell text={item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(item.reportID))} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO)]}>
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO)]}>
                 <ExportedIconCell reportActions={reportActions} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
                 <ReportSubmitToPopoverMeasurableAnchor wrapperStyle={styles.w100}>
                     <DeferredActionCell
                         action={item.action}
@@ -262,14 +281,14 @@ function ExpenseReportListItemRowWide({
                         hash={item.hash}
                         amount={item.total}
                         chatReport={chatReport}
-                        isMarkAsDone={isMarkAsDone}
-                        shouldDisablePointerEvents={isPendingDelete || shouldDisableActionPointerEvents}
+                        shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
+                        shouldDisablePointerEvents={isDisabled || shouldDisableActionPointerEvents}
                     />
                 </ReportSubmitToPopoverMeasurableAnchor>
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME)]}>
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME)]}>
                 <WorkspaceCell
                     policyID={item.policyID}
                     report={item}
@@ -279,7 +298,7 @@ function ExpenseReportListItemRowWide({
     };
 
     return (
-        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, containerStyle]}>
+        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                 {!!canSelectMultiple && (
                     <Checkbox

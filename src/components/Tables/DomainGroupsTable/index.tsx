@@ -74,6 +74,7 @@ export default function DomainGroupsTable({domainAccountID, groups}: DomainGroup
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
         />
     );
+    const tableHeaderComponent = <Table.FilterBar label={translate('domain.groups.findGroup')} />;
 
     return (
         <Table
@@ -87,7 +88,7 @@ export default function DomainGroupsTable({domainAccountID, groups}: DomainGroup
             title={translate('domain.groups.title')}
             keyExtractor={(item) => item.keyForList}
         >
-            <Table.FilterBar label={translate('domain.groups.findGroup')} />
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />

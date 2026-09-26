@@ -4,21 +4,25 @@ import type {OptionList} from '@libs/OptionsListUtils/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {pendingDeleteMemberAccountIDsByReportIDSelector} from '@selectors/ReportMetaData';
 import {useCallback, useMemo, useState} from 'react';
 
+import {useCurrencyListActions} from './useCurrencyList';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
+import {useAllPersonalDetails} from './usePersonalDetails';
 import usePrivateIsArchivedMap from './usePrivateIsArchivedMap';
 import useReportAttributes from './useReportAttributes';
-import useSortedActions from './useSortedActions';
+import useSortedReportActionsData from './useSortedReportActionsData';
 
 type UseFilteredOptionsConfig = {
     /** Maximum number of recent reports to pre-filter and process (default: 500). */
     maxRecentReports?: number;
     /** Whether the hook should be enabled (default: true) */
     enabled?: boolean;
-    /** Whether to include P2P personal details (default: true) */
-    includeP2P?: boolean;
+    /** Whether to build contact shells. This value must match the downstream `includeP2P` value. */
+    includeP2P: boolean;
     /** Number of reports to load per batch when paginating (default: 100) */
     batchSize?: number;
     /** Whether to enable dynamic loading/pagination (default: true) */
@@ -67,6 +71,7 @@ type UseFilteredOptionsResult = {
  * const {options, isLoading} = useFilteredOptions({
  *   maxRecentReports: 500,
  *   enabled: didScreenTransitionEnd,
+ *   includeP2P: true,
  * });
  *
  * <SelectionList
@@ -74,24 +79,29 @@ type UseFilteredOptionsResult = {
  *   shouldShowLoadingPlaceholder={isLoading}
  * />
  */
-function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredOptionsResult {
-    const {maxRecentReports = 500, enabled = true, includeP2P = true, batchSize = 100, isSearching = false, deferContactsUntilSearch = false} = config;
+function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOptionsResult {
+    const {maxRecentReports = 500, enabled = true, includeP2P, batchSize = 100, isSearching = false, deferContactsUntilSearch = false} = config;
 
     const [reportsLimit, setReportsLimit] = useState(maxRecentReports);
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [allPersonalDetails] = useAllPersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [pendingDeleteMemberAccountIDsByReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {selector: pendingDeleteMemberAccountIDsByReportIDSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const reportAttributesDerived = useReportAttributes();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     // Option building is locale-dependent, so a consumer that stays mounted through a language switch recomputes.
-    const {preferredLocale} = useLocalize();
+    const {preferredLocale, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
 
     // Sorted report actions from the RAM_ONLY_SORTED_REPORT_ACTIONS derived value; a new reference on
     // every recompute, so it doubles as the report-actions invalidation signal for the option-list cache.
-    const sortedActions = useSortedActions();
+    const sortedReportActionsData = useSortedReportActionsData();
+    const sortedActions = sortedReportActionsData?.sortedActions;
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
@@ -107,7 +117,19 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
                       reportAttributesDerived,
                       privateIsArchivedMap,
                       allPolicies,
-                      {conciergeReportID, maxRecentReports: reportsLimit, includeP2P, isSearching, deferContactsUntilSearch, locale: preferredLocale},
+                      {
+                          currentUserAccountID,
+                          dateFnsLocale,
+                          convertToDisplayString,
+                          conciergeReportID,
+                          maxRecentReports: reportsLimit,
+                          includeP2P,
+                          isSearching,
+                          deferContactsUntilSearch,
+                          locale: preferredLocale,
+                          pendingDeleteMemberAccountIDsByReportID,
+                      },
+                      rules,
                       undefined,
                       undefined,
                       isTrackIntentUser,
@@ -122,6 +144,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
             privateIsArchivedMap,
             allPolicies,
             conciergeReportID,
+            rules,
             reportsLimit,
             includeP2P,
             isSearching,
@@ -129,6 +152,10 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
             preferredLocale,
             isTrackIntentUser,
             sortedActions,
+            currentUserAccountID,
+            pendingDeleteMemberAccountIDsByReportID,
+            dateFnsLocale,
+            convertToDisplayString,
         ],
     );
 

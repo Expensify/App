@@ -37,6 +37,10 @@ export default {
         height: 52,
     },
 
+    h42: {
+        height: 168,
+    },
+
     w15: {
         width: '15%',
     },
@@ -84,16 +88,16 @@ export default {
         minHeight: 52,
     },
 
+    mnh16: {
+        minHeight: 64,
+    },
+
     mnw0: {
         minWidth: 0,
     },
 
     mnw2: {
         minWidth: 8,
-    },
-
-    mnw8: {
-        minWidth: 32,
     },
 
     mnw25: {

@@ -2,8 +2,9 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import UserAvatar from '@components/Avatar/UserAvatar';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
-import Header from '@components/Header';
+import HeaderTitle from '@components/HeaderTitle';
 import Icon from '@components/Icon';
+import AccountAvatarButton from '@components/Navigation/AccountAvatarButton';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
@@ -11,6 +12,7 @@ import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
 import useInitialFocusRef from '@hooks/useInitialFocusRef';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
@@ -50,6 +52,8 @@ function HeaderWithBackButton({
     onThreeDotsButtonPress = () => {},
     report,
     policyAvatar,
+    policyAvatarSize = CONST.AVATAR_SIZE.DEFAULT,
+    titleStyles,
     shouldShowReportAvatarWithDisplay = false,
     shouldDisplayStatus,
     shouldShowBackButton = true,
@@ -68,6 +72,7 @@ function HeaderWithBackButton({
     subtitle = '',
     title = '',
     titleColor,
+    numberOfTitleLines = 1,
     threeDotsAnchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -81,8 +86,8 @@ function HeaderWithBackButton({
     shouldOverlay = false,
     shouldNavigateToTopMostReport = false,
     shouldDisplayHelpButton = false,
+    shouldDisplayAccountButton = false,
     shouldDisplaySearchRouter = false,
-    progressBarPercentage,
     style,
     subTitleLink = '',
     shouldMinimizeMenuButton = false,
@@ -99,35 +104,11 @@ function HeaderWithBackButton({
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
+    const {contentHeaderHeightStyle} = useContentHeaderHeight();
     const setBackButtonRef = useInitialFocusRef({shouldSkip: shouldSkipFocusAfterTransition});
 
     const middleContent = useMemo(() => {
         const stepCounterTranslation = stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : undefined;
-        if (progressBarPercentage) {
-            const progressBarLabel = stepCounter ? `${translate('common.progressBarLabel')}, ${stepCounterTranslation}` : undefined;
-            return (
-                <>
-                    {/* Reserves as much space for the middleContent as possible */}
-                    <View style={styles.flexGrow1} />
-                    {/* Uses absolute positioning so that it's always centered instead of being affected by the
-                    presence or absence of back/close buttons to the left/right of it */}
-                    <View style={styles.headerProgressBarContainer}>
-                        <View
-                            style={styles.headerProgressBar}
-                            accessible={!!progressBarLabel}
-                            accessibilityLabel={progressBarLabel}
-                            role={CONST.ROLE.PROGRESSBAR}
-                            aria-valuetext={progressBarLabel}
-                        >
-                            <View
-                                aria-hidden
-                                style={[{width: `${progressBarPercentage}%`}, styles.headerProgressBarFill]}
-                            />
-                        </View>
-                    </View>
-                </>
-            );
-        }
         if (shouldShowReportAvatarWithDisplay) {
             return (
                 <AvatarWithDisplayName
@@ -139,34 +120,39 @@ function HeaderWithBackButton({
             );
         }
 
+        const resolvedSubtitle = stepCounterTranslation ?? subtitle;
+
         return (
-            <Header
-                title={title}
-                subtitle={stepCounterTranslation ?? subtitle}
-                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2]}
-                subTitleLink={subTitleLink}
-                numberOfTitleLines={1}
-                isScreenHeader
+            <HeaderTitle
+                dialogLabel={title}
                 shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
-            />
+            >
+                {!!title && (
+                    <HeaderTitle.Text
+                        numberOfLines={numberOfTitleLines}
+                        style={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2, titleStyles]}
+                    >
+                        {title}
+                    </HeaderTitle.Text>
+                )}
+                {!!resolvedSubtitle && <HeaderTitle.Subtitle>{resolvedSubtitle}</HeaderTitle.Subtitle>}
+                {!!subTitleLink && <HeaderTitle.SubtitleLink>{subTitleLink}</HeaderTitle.SubtitleLink>}
+            </HeaderTitle>
         );
     }, [
         StyleUtils,
         subTitleLink,
         shouldUseHeadlineHeader,
-        progressBarPercentage,
         report,
         shouldEnableDetailPageNavigation,
         shouldShowReportAvatarWithDisplay,
         stepCounter,
-        styles.flexGrow1,
-        styles.headerProgressBar,
-        styles.headerProgressBarContainer,
-        styles.headerProgressBarFill,
         styles.textHeadlineH2,
         subtitle,
         title,
         titleColor,
+        titleStyles,
+        numberOfTitleLines,
         translate,
         openParentReportInCurrentTab,
         shouldDisplayStatus,
@@ -224,11 +210,8 @@ function HeaderWithBackButton({
         <View
             style={[
                 styles.headerBar,
-                shouldUseHeadlineHeader && styles.headerBarHeight,
+                contentHeaderHeightStyle,
                 shouldShowBorderBottom && styles.borderBottom,
-                // progressBarPercentage can be 0 which would
-                // be falsy, hence using !== undefined explicitly
-                progressBarPercentage !== undefined && styles.pl0,
                 shouldShowBackButton && [styles.pl2],
                 shouldOverlay && StyleSheet.absoluteFill,
                 style,
@@ -276,14 +259,16 @@ function HeaderWithBackButton({
                 {!!policyAvatar &&
                     (policyAvatar.type === CONST.ICON_TYPE_WORKSPACE ? (
                         <WorkspaceAvatar
-                            containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
+                            containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(policyAvatarSize)), styles.mr3]}
+                            size={policyAvatarSize}
                             source={policyAvatar.source}
                             name={policyAvatar.name ?? ''}
                             avatarID={policyAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
                         />
                     ) : (
                         <UserAvatar
-                            containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
+                            containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(policyAvatarSize)), styles.mr3]}
+                            size={policyAvatarSize}
                             source={policyAvatar.source}
                             accountID={getAccountIDFromAvatarID(policyAvatar.id)}
                         />
@@ -315,7 +300,7 @@ function HeaderWithBackButton({
                                     >
                                         <Icon
                                             src={icons.Download}
-                                            fill={iconFill ?? StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
+                                            fill={iconFill ?? StyleUtils.getIconFillColor({buttonState: getButtonState({isComplete: !isDownloadButtonActive})})}
                                         />
                                     </PressableWithoutFeedback>
                                 </Tooltip>
@@ -363,6 +348,7 @@ function HeaderWithBackButton({
                 </View>
                 {shouldDisplaySearchRouter && <SearchButton />}
                 {shouldDisplayHelpButton && <SidePanelButton />}
+                {shouldDisplayAccountButton && <AccountAvatarButton />}
             </View>
         </View>
     );

@@ -1,6 +1,5 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {translate} from '@libs/Localize';
 import {
     buildReportNameFromParticipantNames,
@@ -12,7 +11,6 @@ import {
     getMoneyRequestReportName,
     getPolicyExpenseChatName,
     getReportName,
-    deprecatedGetReportName,
 } from '@libs/ReportNameUtils';
 import {buildTransactionsByReportID} from '@libs/TodosUtils';
 
@@ -20,17 +18,19 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyTagLists, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {Message} from '@src/types/onyx/ReportAction';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createRandomReportAction from '../utils/collections/reportActions';
 import {createAdminRoom, createExpenseReport, createPolicyExpenseChat, createRegularChat, createRegularTaskReport, createSelfDM, createWorkspaceThread} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
-import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, formatPhoneNumber, getCurrencySymbolLocal, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const currentUserLogin = 'lagertha2@vikings.net';
@@ -47,6 +47,10 @@ describe('ReportNameUtils', () => {
         currentUserID = currentUserAccountID,
     ) =>
         computeReportNameOriginal({
+            dateFnsLocale: undefined,
+            convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
+            getCurrencySymbol: getCurrencySymbolLocal,
             conciergeReportID: undefined,
             report,
             reports,
@@ -60,6 +64,7 @@ describe('ReportNameUtils', () => {
             reportTransactions: buildTransactionsByReportID(transactions),
             translate: translateLocal,
             isTrackIntentUser: false,
+            rules: undefined,
         });
     const participantsPersonalDetails: PersonalDetailsList = [
         {
@@ -92,10 +97,10 @@ describe('ReportNameUtils', () => {
             login: 'lagertha2@vikings.net',
             pronouns: 'She/her',
         },
-    ].reduce((acc, detail) => {
+    ].reduce<PersonalDetailsList>((acc, detail) => {
         acc[String(detail.accountID)] = detail;
         return acc;
-    }, {} as PersonalDetailsList);
+    }, {});
 
     beforeAll(async () => {
         Onyx.init({keys: ONYXKEYS});
@@ -107,12 +112,18 @@ describe('ReportNameUtils', () => {
         await waitForBatchedUpdates();
     });
 
-    const emptyCollections = {
-        reports: {} as Record<string, Report>,
-        policies: {} as Record<string, Policy>,
-        transactions: {} as Record<string, unknown>,
-        reportNameValuePairs: {} as Record<string, ReportNameValuePairs>,
-        reportActions: {} as Record<string, ReportActions>,
+    const emptyCollections: {
+        reports: OnyxCollection<Report>;
+        policies: OnyxCollection<Policy>;
+        transactions: OnyxCollection<Transaction>;
+        reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+        reportActions: OnyxCollection<ReportActions>;
+    } = {
+        reports: {},
+        policies: {},
+        transactions: {},
+        reportNameValuePairs: {},
+        reportActions: {},
     };
 
     describe('computeReportName - DMs and Group chats', () => {
@@ -215,7 +226,7 @@ describe('ReportNameUtils', () => {
             const report = createAdminRoom(11);
             const reportNameValuePairs = {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: {private_isArchived: 'true'},
-            } as Record<string, ReportNameValuePairs>;
+            } satisfies Record<string, ReportNameValuePairs>;
 
             const nameEn = computeReportName(
                 report,
@@ -298,6 +309,10 @@ describe('ReportNameUtils', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: 'lagertha2@vikings.net', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
             const translateWithYouMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.you' ? 'You Marker' : translateLocal(path, ...parameters));
             const name = computeReportNameOriginal({
+                dateFnsLocale: undefined,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                getCurrencySymbol: getCurrencySymbolLocal,
                 conciergeReportID: undefined,
                 report,
                 reports: emptyCollections.reports,
@@ -310,6 +325,7 @@ describe('ReportNameUtils', () => {
                 translate: translateWithYouMarker,
                 isTrackIntentUser: false,
                 reportTransactions: {},
+                rules: undefined,
             });
             // temporaryGetDisplayNameOrDefault lowercases the "you" postfix sourced from translate('common.you').
             expect(name).toBe('Lagertha Lothbrok (you marker)');
@@ -396,10 +412,81 @@ describe('ReportNameUtils', () => {
         });
     });
 
+    describe('computeReportName - Concierge threads', () => {
+        const conciergeReportID = '777';
+        const parentReportActionID = '888';
+        const question = 'How do I set up QuickBooks?';
+
+        const computeConciergeThreadName = (threadReportName: string, parentMessage: Message = {type: 'COMMENT', html: question, text: question}) => {
+            const conciergeDM = {...createRegularChat(90, [currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]), reportID: conciergeReportID};
+            const thread: Report = {
+                ...createRegularChat(91, [currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]),
+                reportName: threadReportName,
+                parentReportID: conciergeReportID,
+                parentReportActionID,
+            };
+            const parentAction = createMock<ReportAction>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: parentReportActionID,
+                message: [parentMessage],
+                created: '',
+                lastModified: '',
+                actorAccountID: currentUserAccountID,
+                person: [],
+            });
+
+            return computeReportNameOriginal({
+                dateFnsLocale: undefined,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                conciergeReportID,
+                report: thread,
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`]: conciergeDM},
+                policies: emptyCollections.policies,
+                transactions: undefined,
+                allReportNameValuePairs: undefined,
+                personalDetailsList: participantsPersonalDetails,
+                reportActions: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`]: {[parentReportActionID]: parentAction}},
+                currentUserAccountID,
+                currentUserLogin,
+                reportTransactions: buildTransactionsByReportID(undefined),
+                translate: translateLocal,
+                isTrackIntentUser: false,
+                rules: undefined,
+            });
+        };
+
+        test('uses the generated title once Concierge has titled the thread', () => {
+            expect(computeConciergeThreadName('QuickBooks setup')).toBe('QuickBooks setup');
+        });
+
+        test('falls back to the question while the thread still has the default name', () => {
+            expect(computeConciergeThreadName(CONST.REPORT.DEFAULT_REPORT_NAME)).toBe(question);
+        });
+
+        test('localizes an attachment thread named after its parent message', async () => {
+            // A thread opened by hand is named after the parent message, so an attachment stores the literal "[Attachment]".
+            const attachmentMessage: Message = {
+                type: 'COMMENT',
+                html: `<img src="https://example.com/receipt.png" ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="https://example.com/receipt.png" />`,
+                text: CONST.ATTACHMENT_MESSAGE_TEXT,
+                translationKey: CONST.TRANSLATION_KEYS.ATTACHMENT,
+            };
+
+            await IntlStore.load(CONST.LOCALES.ES);
+            const threadName = computeConciergeThreadName(CONST.ATTACHMENT_MESSAGE_TEXT, attachmentMessage);
+            expect(threadName).not.toBe(CONST.ATTACHMENT_MESSAGE_TEXT);
+            expect(threadName).toBe(`[${translateLocal('common.attachment')}]`);
+
+            await IntlStore.load(CONST.LOCALES.EN);
+        });
+    });
+
     describe('computeReportName - Thread report action names', () => {
         test('Submitted parent action', () => {
             const thread: Report = createWorkspaceThread(50);
-            const parentAction: ReportAction = {
+            const parentAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
                 reportActionID: String(thread.parentReportActionID),
                 message: [],
@@ -410,7 +497,7 @@ describe('ReportNameUtils', () => {
                 originalMessage: {
                     message: 'via workflow',
                 },
-            } as unknown as ReportAction;
+            });
 
             expect(thread.parentReportID).toBeDefined();
             expect(thread.parentReportActionID).toBeDefined();
@@ -439,7 +526,7 @@ describe('ReportNameUtils', () => {
 
         test('Rejected parent action', () => {
             const thread: Report = createWorkspaceThread(51);
-            const parentAction: ReportAction = {
+            const parentAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED,
                 reportActionID: String(thread.parentReportActionID),
                 message: [],
@@ -447,7 +534,7 @@ describe('ReportNameUtils', () => {
                 lastModified: '',
                 actorAccountID: 1,
                 person: [],
-            } as unknown as ReportAction;
+            });
 
             expect(thread.parentReportID).toBeDefined();
             expect(thread.parentReportActionID).toBeDefined();
@@ -573,7 +660,7 @@ describe('ReportNameUtils', () => {
         });
         test('Hold parent action', () => {
             const thread: Report = createWorkspaceThread(52);
-            const parentAction: ReportAction = {
+            const parentAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.HOLD,
                 reportActionID: String(thread.parentReportActionID),
                 message: [],
@@ -581,7 +668,7 @@ describe('ReportNameUtils', () => {
                 lastModified: '',
                 actorAccountID: 1,
                 person: [],
-            } as unknown as ReportAction;
+            });
 
             expect(thread.parentReportID).toBeDefined();
             expect(thread.parentReportActionID).toBeDefined();
@@ -609,7 +696,7 @@ describe('ReportNameUtils', () => {
         });
         test('Unhold parent action', () => {
             const thread: Report = createWorkspaceThread(53);
-            const parentAction: ReportAction = {
+            const parentAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.UNHOLD,
                 reportActionID: String(thread.parentReportActionID),
                 message: [],
@@ -617,7 +704,7 @@ describe('ReportNameUtils', () => {
                 lastModified: '',
                 actorAccountID: 1,
                 person: [],
-            } as unknown as ReportAction;
+            });
 
             expect(thread.parentReportID).toBeDefined();
             expect(thread.parentReportActionID).toBeDefined();
@@ -651,7 +738,7 @@ describe('ReportNameUtils', () => {
                 parentReportID: '1000',
                 parentReportActionID: '2000',
             };
-            const parentAction: ReportAction = {
+            const parentAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                 reportActionID: String(thread.parentReportActionID),
                 message: [],
@@ -663,7 +750,7 @@ describe('ReportNameUtils', () => {
                     oldTag: 'Engineering',
                     tag: 'Finance',
                 },
-            } as unknown as ReportAction;
+            });
 
             const parentId = String(thread.parentReportID);
             const actionId = String(thread.parentReportActionID);
@@ -682,9 +769,13 @@ describe('ReportNameUtils', () => {
                         tags: {},
                     },
                 },
-            } as OnyxCollection<PolicyTagLists>;
+            } satisfies OnyxCollection<PolicyTagLists>;
 
             const name = computeReportNameOriginal({
+                dateFnsLocale: undefined,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                getCurrencySymbol: getCurrencySymbolLocal,
                 conciergeReportID: undefined,
                 report: thread,
                 reports: emptyCollections.reports,
@@ -698,6 +789,7 @@ describe('ReportNameUtils', () => {
                 allPolicyTags: policyTagsCollection,
                 reportTransactions: {},
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             expect(name).toContain('Cost Center');
@@ -705,7 +797,7 @@ describe('ReportNameUtils', () => {
 
         test('ADD_CARD_FEED parent action', () => {
             const thread: Report = createWorkspaceThread(100);
-            const parentAction: ReportAction = {
+            const parentAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED,
                 reportActionID: String(thread.parentReportActionID),
                 message: [],
@@ -716,7 +808,7 @@ describe('ReportNameUtils', () => {
                 originalMessage: {
                     feedName: 'Visa Commercial',
                 },
-            } as unknown as ReportAction;
+            });
 
             const parentId = String(thread.parentReportID);
             const actionId = String(thread.parentReportActionID);
@@ -739,7 +831,7 @@ describe('ReportNameUtils', () => {
 
         test('UPDATE_REQUIRE_COMPANY_CARDS_ENABLED parent action', () => {
             const thread: Report = createWorkspaceThread(150);
-            const enabledParentAction: ReportAction = {
+            const enabledParentAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED,
                 reportActionID: String(thread.parentReportActionID),
                 message: [],
@@ -750,7 +842,7 @@ describe('ReportNameUtils', () => {
                 originalMessage: {
                     enabled: true,
                 },
-            } as unknown as ReportAction;
+            });
 
             const parentId = String(thread.parentReportID);
             const actionId = String(thread.parentReportActionID);
@@ -770,12 +862,12 @@ describe('ReportNameUtils', () => {
             );
             expect(enabledName).toBe('enabled the company card purchases requirement');
 
-            const disabledParentAction: ReportAction = {
+            const disabledParentAction = createMock<ReportAction>({
                 ...enabledParentAction,
                 originalMessage: {
                     enabled: false,
                 },
-            } as unknown as ReportAction;
+            });
             const disabledReportActionsCollection: Record<string, ReportActions> = {
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: disabledParentAction},
             };
@@ -792,9 +884,281 @@ describe('ReportNameUtils', () => {
             expect(disabledName).toBe('disabled the company card purchases requirement');
         });
 
+        test('UPDATE_REQUIRES_CATEGORY parent action', () => {
+            const thread: Report = createWorkspaceThread(151);
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const enabledParentAction: ReportAction = {
+                ...createRandomReportAction(151),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY,
+                reportActionID: actionId,
+                originalMessage: {enabled: true},
+            };
+
+            const enabledName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: enabledParentAction}},
+                currentUserAccountID,
+            );
+            expect(enabledName).toBe('enabled the expense categorization requirement');
+
+            const disabledParentAction: ReportAction = {...enabledParentAction, originalMessage: {enabled: false}};
+            const disabledName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: disabledParentAction}},
+                currentUserAccountID,
+            );
+            expect(disabledName).toBe('disabled the expense categorization requirement');
+        });
+
+        test('UPDATE_REQUIRES_TAG parent action', () => {
+            const thread: Report = createWorkspaceThread(152);
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const enabledParentAction: ReportAction = {
+                ...createRandomReportAction(152),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG,
+                reportActionID: actionId,
+                originalMessage: {enabled: true},
+            };
+
+            const enabledName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: enabledParentAction}},
+                currentUserAccountID,
+            );
+            expect(enabledName).toBe('enabled the expense tagging requirement');
+
+            const disabledParentAction: ReportAction = {...enabledParentAction, originalMessage: {enabled: false}};
+            const disabledName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: disabledParentAction}},
+                currentUserAccountID,
+            );
+            expect(disabledName).toBe('disabled the expense tagging requirement');
+        });
+
+        test('UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE parent action', () => {
+            const thread: Report = createWorkspaceThread(153);
+            const companyPaysParentAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE,
+                reportActionID: String(thread.parentReportActionID),
+                originalMessage: {
+                    preference: CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY,
+                },
+            };
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const companyPaysName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: companyPaysParentAction}},
+                currentUserAccountID,
+            );
+            expect(companyPaysName).toBe('updated the currency conversion fee setting to "Company pays"');
+
+            const employeePaysParentAction: ReportAction = {
+                ...companyPaysParentAction,
+                originalMessage: {
+                    preference: CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.EMPLOYEE,
+                },
+            };
+            const employeePaysName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: employeePaysParentAction}},
+                currentUserAccountID,
+            );
+            expect(employeePaysName).toBe('updated the currency conversion fee setting to "Employee pays"');
+        });
+
+        test('UPDATE_OVER_LIMIT_FORWARDS_TO parent action', () => {
+            const thread: Report = createWorkspaceThread(153);
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const member = {email: 'member@example.com', name: 'Member', accountID: 100};
+            const approver = {email: 'approver@example.com', name: 'Approver', accountID: 200};
+            const setParentAction: ReportAction = {
+                ...createRandomReportAction(153),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                reportActionID: actionId,
+                originalMessage: {member, overLimitForwardsTo: approver, limit: 10000, currency: 'USD'},
+            };
+
+            const setName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: setParentAction}},
+                currentUserAccountID,
+            );
+            expect(setName).toBe('set the approval workflow for member@example.com to forward reports over $100.00 to approver@example.com');
+
+            const removedParentAction: ReportAction = {
+                ...setParentAction,
+                originalMessage: {member, previousOverLimitForwardsTo: approver, previousLimit: 10000, currency: 'USD'},
+            };
+            const removedName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: removedParentAction}},
+                currentUserAccountID,
+            );
+            expect(removedName).toBe('changed the approval workflow for member@example.com to stop forwarding reports over $100.00 (previously forwarded to approver@example.com)');
+        });
+
+        test('UPDATE_APPROVAL_LIMIT parent action', () => {
+            const thread: Report = createWorkspaceThread(154);
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const parentAction: ReportAction = {
+                ...createRandomReportAction(154),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT,
+                reportActionID: actionId,
+                originalMessage: {
+                    member: {email: 'member@example.com', name: 'Member', accountID: 100},
+                    limit: 20000,
+                    previousLimit: 10000,
+                    currency: 'USD',
+                },
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: parentAction}},
+                currentUserAccountID,
+            );
+            expect(name).toBe('changed the approval workflow for member@example.com to forward reports over $200.00 (previously $100.00)');
+        });
+
+        test('UPDATE_CUSTOM_UNIT_RATE parent action', () => {
+            const thread: Report = createWorkspaceThread(153);
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const parentAction: ReportAction = {
+                ...createRandomReportAction(153),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                reportActionID: actionId,
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxClaimablePercentage',
+                    oldValue: 0.5,
+                    newValue: 0.7,
+                },
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: parentAction}},
+                currentUserAccountID,
+            );
+            expect(name).toBe('changed the tax reclaimable portion on the distance rate "Default Rate" to "70%" (previously "50%")');
+        });
+
+        test('UPDATE_AUTO_HARVESTING parent action', () => {
+            const thread: Report = createWorkspaceThread(151);
+            const enabledParentAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING,
+                reportActionID: String(thread.parentReportActionID),
+                originalMessage: {
+                    value: true,
+                },
+            };
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: enabledParentAction},
+            };
+
+            const enabledName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(enabledName).toBe('enabled submissions');
+
+            const disabledParentAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING,
+                reportActionID: String(thread.parentReportActionID),
+                originalMessage: {
+                    value: false,
+                },
+            };
+            const disabledReportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: disabledParentAction},
+            };
+            const disabledName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                disabledReportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(disabledName).toBe('disabled submissions');
+        });
+
         test('UPDATE_CATEGORY_TAX_RATE parent action renders the rendered category default tax rate change', () => {
             const thread: Report = createWorkspaceThread(160);
-            const parentAction: ReportAction = {
+            const parentAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE,
                 reportActionID: String(thread.parentReportActionID),
                 message: [],
@@ -809,7 +1173,7 @@ describe('ReportNameUtils', () => {
                     newTaxName: 'Tax Rate 1',
                     newTaxPercentage: '5%',
                 },
-            } as unknown as ReportAction;
+            });
 
             const parentId = String(thread.parentReportID);
             const actionId = String(thread.parentReportActionID);
@@ -832,9 +1196,122 @@ describe('ReportNameUtils', () => {
             expect(name).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Tax Exempt (0%)")');
         });
 
+        test.each([
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY, {categoryName: 'Advertising'}, 'added the category "Advertising"'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY, {categoryName: 'Advertising'}, 'removed the category "Advertising"'],
+            [
+                CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY,
+                {categoryName: 'Advertising', updatedField: 'areAttendeesRequired', oldValue: '', newValue: true},
+                'changed the "Advertising" category attendees to required (previously not required)',
+            ],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME, {oldName: 'Advertising', newName: 'Marketing'}, 'renamed the category "Advertising" to "Marketing"'],
+        ])('%s parent action renders the same message as the system message in the chat', (actionName, originalMessage, expected) => {
+            const thread: Report = createWorkspaceThread(161);
+            const parentAction = createMock<ReportAction>({
+                actionName,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage,
+            });
+
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${String(thread.parentReportID)}`]: {
+                    [String(thread.parentReportActionID)]: parentAction,
+                },
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(name).toBe(expected);
+        });
+
+        test('UPDATE_CATEGORY parent action renders the description hint as plain text', () => {
+            const thread: Report = createWorkspaceThread(163);
+            const parentAction = createMock<ReportAction>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    categoryName: 'Advertising',
+                    updatedField: 'commentHint',
+                    oldValue: '',
+                    newValue: 'Client&#x27;s &amp; partner&#x27;s names',
+                },
+            });
+
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${String(thread.parentReportID)}`]: {
+                    [String(thread.parentReportActionID)]: parentAction,
+                },
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(name).toBe(`added the description hint "Client's & partner's names" to the category "Advertising"`);
+        });
+
+        test('UPDATE_CATEGORY parent action formats the workspace default receipt amount with the policy currency', () => {
+            const thread: Report = createWorkspaceThread(162);
+            const parentAction = createMock<ReportAction>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    categoryName: 'Advertising',
+                    updatedField: 'maxAmountNoReceipt',
+                    oldValue: 0,
+                    newValue: '',
+                },
+            });
+
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${String(thread.parentReportID)}`]: {
+                    [String(thread.parentReportActionID)]: parentAction,
+                },
+            };
+            const policies: OnyxCollection<Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${String(thread.policyID)}`]: createMock<Policy>({
+                    id: String(thread.policyID),
+                    maxExpenseAmountNoReceipt: 5000,
+                    outputCurrency: 'EUR',
+                }),
+            };
+
+            const name = computeReportName(thread, emptyCollections.reports, policies, undefined, undefined, participantsPersonalDetails, reportActionsCollection, currentUserAccountID);
+            expect(name).toBe('changed the "Advertising" category to €50 • Default (previously Always require receipts)');
+        });
+
         test('DELETE_CARD_FEED parent action', () => {
             const thread: Report = createWorkspaceThread(101);
-            const parentAction: ReportAction = {
+            const parentAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CARD_FEED,
                 reportActionID: String(thread.parentReportActionID),
                 message: [],
@@ -845,7 +1322,7 @@ describe('ReportNameUtils', () => {
                 originalMessage: {
                     feedName: 'Amex Corporate',
                 },
-            } as unknown as ReportAction;
+            });
 
             const parentId = String(thread.parentReportID);
             const actionId = String(thread.parentReportActionID);
@@ -868,7 +1345,7 @@ describe('ReportNameUtils', () => {
 
         test('RENAME_CARD_FEED parent action', () => {
             const thread: Report = createWorkspaceThread(102);
-            const parentAction: ReportAction = {
+            const parentAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.RENAME_CARD_FEED,
                 reportActionID: String(thread.parentReportActionID),
                 message: [],
@@ -880,7 +1357,7 @@ describe('ReportNameUtils', () => {
                     oldName: 'Old Feed Name',
                     newName: 'New Feed Name',
                 },
-            } as unknown as ReportAction;
+            });
 
             const parentId = String(thread.parentReportID);
             const actionId = String(thread.parentReportActionID);
@@ -903,7 +1380,7 @@ describe('ReportNameUtils', () => {
 
         test('ASSIGN_COMPANY_CARD parent action', () => {
             const thread: Report = createWorkspaceThread(103);
-            const parentAction: ReportAction = {
+            const parentAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ASSIGN_COMPANY_CARD,
                 reportActionID: String(thread.parentReportActionID),
                 message: [],
@@ -916,7 +1393,7 @@ describe('ReportNameUtils', () => {
                     feedName: 'US Bank',
                     cardLastFour: '1234',
                 },
-            } as unknown as ReportAction;
+            });
 
             const parentId = String(thread.parentReportID);
             const actionId = String(thread.parentReportActionID);
@@ -939,7 +1416,7 @@ describe('ReportNameUtils', () => {
 
         test('UNASSIGN_COMPANY_CARD parent action', () => {
             const thread: Report = createWorkspaceThread(104);
-            const parentAction: ReportAction = {
+            const parentAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD,
                 reportActionID: String(thread.parentReportActionID),
                 message: [],
@@ -952,7 +1429,7 @@ describe('ReportNameUtils', () => {
                     feedName: 'US Bank',
                     cardLastFour: '5678',
                 },
-            } as unknown as ReportAction;
+            });
 
             const parentId = String(thread.parentReportID);
             const actionId = String(thread.parentReportActionID);
@@ -975,7 +1452,7 @@ describe('ReportNameUtils', () => {
 
         test('UPDATE_CARD_FEED_LIABILITY parent action with ALLOW type', () => {
             const thread: Report = createWorkspaceThread(105);
-            const parentAction: ReportAction = {
+            const parentAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_LIABILITY,
                 reportActionID: String(thread.parentReportActionID),
                 message: [],
@@ -987,7 +1464,7 @@ describe('ReportNameUtils', () => {
                     feedName: 'Visa Commercial',
                     liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.ALLOW,
                 },
-            } as unknown as ReportAction;
+            });
 
             const parentId = String(thread.parentReportID);
             const actionId = String(thread.parentReportActionID);
@@ -1010,7 +1487,7 @@ describe('ReportNameUtils', () => {
 
         test('UPDATE_CARD_FEED_STATEMENT_PERIOD parent action with numeric days', () => {
             const thread: Report = createWorkspaceThread(106);
-            const parentAction: ReportAction = {
+            const parentAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD,
                 reportActionID: String(thread.parentReportActionID),
                 message: [],
@@ -1023,7 +1500,7 @@ describe('ReportNameUtils', () => {
                     statementPeriodEndDay: '15',
                     previousStatementPeriodEndDay: '20',
                 },
-            } as unknown as ReportAction;
+            });
 
             const parentId = String(thread.parentReportID);
             const actionId = String(thread.parentReportActionID);
@@ -1046,7 +1523,7 @@ describe('ReportNameUtils', () => {
 
         test('UPDATE_MCC_GROUP_CATEGORY parent action renders the friendly MCC group label', () => {
             const thread: Report = createWorkspaceThread(75);
-            const parentAction: ReportAction = {
+            const parentAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY,
                 reportActionID: String(thread.parentReportActionID),
                 message: [],
@@ -1059,7 +1536,7 @@ describe('ReportNameUtils', () => {
                     oldCategory: 'Insurance',
                     newCategory: 'Travel',
                 },
-            } as unknown as ReportAction;
+            });
 
             const parentId = String(thread.parentReportID);
             const actionId = String(thread.parentReportActionID);
@@ -1101,7 +1578,7 @@ describe('ReportNameUtils', () => {
                 },
             };
 
-            expect(deprecatedGetReportName(report, derived)).toBe("Ragnar Lothbrok's expenses");
+            expect(getReportName(report, derived[report.reportID]?.reportName)).toBe("Ragnar Lothbrok's expenses");
         });
 
         test('Falls back to report.reportName when derived missing', () => {
@@ -1112,7 +1589,7 @@ describe('ReportNameUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            expect(deprecatedGetReportName(report, {} as never)).toBe('Custom Report Name');
+            expect(getReportName(report, undefined)).toBe('Custom Report Name');
         });
 
         test('Returns empty string when neither present', () => {
@@ -1123,7 +1600,7 @@ describe('ReportNameUtils', () => {
                 reportName: undefined,
             };
 
-            expect(deprecatedGetReportName(report, {} as never)).toBe('');
+            expect(getReportName(report, undefined)).toBe('');
         });
     });
 
@@ -1198,7 +1675,7 @@ describe('ReportNameUtils', () => {
             };
             const reportNameValuePairs = {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: {private_isArchived: 'true'},
-            } as Record<string, ReportNameValuePairs>;
+            } satisfies Record<string, ReportNameValuePairs>;
 
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
             const name = computeReportName(
@@ -1217,20 +1694,20 @@ describe('ReportNameUtils', () => {
 
     describe('buildReportNameFromParticipantNames', () => {
         test('Excludes current user and uses short names for multiple participants', () => {
-            const report = {
+            const report = createMock<Report>({
                 ...createRegularChat(1000, [currentUserAccountID, 1, 2]),
-            };
+            });
 
-            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails, currentUserAccountID, translate: translateLocal});
+            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails, currentUserAccountID, translate: translateLocal, formatPhoneNumber});
             expect(name).toBe('Ragnar, floki@vikings.net');
         });
 
         test('Uses full name when only one participant remains after filtering current user', () => {
-            const report = {
+            const report = createMock<Report>({
                 ...createRegularChat(1001, [currentUserAccountID, 1]),
-            };
+            });
 
-            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails, currentUserAccountID, translate: translateLocal});
+            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails, currentUserAccountID, translate: translateLocal, formatPhoneNumber});
             expect(name).toBe('Ragnar Lothbrok');
         });
 
@@ -1245,6 +1722,7 @@ describe('ReportNameUtils', () => {
                 personalDetailsList: {[hiddenAccountID]: {accountID: hiddenAccountID, login: '', displayName: ''}},
                 currentUserAccountID,
                 translate: translateWithHiddenMarker,
+                formatPhoneNumber,
             });
             expect(name).toBe('HiddenMarker');
         });
@@ -1252,7 +1730,7 @@ describe('ReportNameUtils', () => {
 
     describe('Invoice naming helpers', () => {
         test('Invoice room uses policy name when current user is receiver', () => {
-            const receiverPolicy = {name: 'Personal Workspace'} as unknown as Policy;
+            const receiverPolicy = createMock<Policy>({name: 'Personal Workspace'});
             const report: Report = {
                 reportID: 'invoice-chat-1',
                 invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: currentUserAccountID},
@@ -1272,7 +1750,7 @@ describe('ReportNameUtils', () => {
         });
 
         test('Invoice room displays receiver name for other individuals', () => {
-            const receiverPolicy = {name: 'Vendor Workspace'} as unknown as Policy;
+            const receiverPolicy = createMock<Policy>({name: 'Vendor Workspace'});
             const report: Report = {
                 reportID: 'invoice-chat-2',
                 invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 1},
@@ -1393,30 +1871,30 @@ describe('ReportNameUtils', () => {
 
     describe('getPolicyExpenseChatName', () => {
         it("returns owner's display name when available", () => {
-            const report = {
+            const report = createMock<Report>({
                 ownerAccountID: 1,
                 reportName: 'Fallback Report Name',
-            } as unknown as Report;
+            });
 
             const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateLocal});
             expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', 'Ragnar Lothbrok'));
         });
 
         it('falls back to owner login when display name not present', () => {
-            const report = {
+            const report = createMock<Report>({
                 ownerAccountID: 2,
                 reportName: 'Fallback Report Name',
-            } as unknown as Report;
+            });
 
             const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateLocal});
             expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', 'floki'));
         });
 
         it('returns report name when no personal details or owner', () => {
-            const report = {
+            const report = createMock<Report>({
                 ownerAccountID: undefined,
                 reportName: 'Fallback Report Name',
-            } as unknown as Report;
+            });
 
             const name = getPolicyExpenseChatName({report, personalDetailsList: {}, translate: translateLocal});
             expect(name).toBe('Fallback Report Name');
@@ -1607,6 +2085,7 @@ describe('ReportNameUtils', () => {
             const reportName = getMoneyRequestReportName({
                 report: iouReport,
                 translate: translateWithHiddenMarker,
+                convertToDisplayString,
                 personalDetailsList: undefined,
                 linkedTransactions: [],
             });
@@ -1632,7 +2111,13 @@ describe('ReportNameUtils', () => {
                 currency: 'USD',
             };
 
-            const reportName = getMoneyRequestReportName({report: invoiceReport, personalDetailsList: participantsPersonalDetails, linkedTransactions: [], translate: translateLocal});
+            const reportName = getMoneyRequestReportName({
+                report: invoiceReport,
+                personalDetailsList: participantsPersonalDetails,
+                linkedTransactions: [],
+                translate: translateLocal,
+                convertToDisplayString,
+            });
             expect(reportName?.replaceAll(/\s+/g, ' ')).toContain('Ragnar Lothbrok');
         });
 
@@ -1662,6 +2147,7 @@ describe('ReportNameUtils', () => {
                 personalDetailsList: undefined,
                 linkedTransactions: [],
                 translate: translateLocal,
+                convertToDisplayString,
             });
 
             // Then it should return "New Report"
@@ -1710,6 +2196,7 @@ describe('ReportNameUtils', () => {
                 personalDetailsList: undefined,
                 linkedTransactions: [],
                 translate: translateLocal,
+                convertToDisplayString,
             });
 
             // Then it should NOT return empty string — it should fall through to dynamic name computation
@@ -1772,6 +2259,7 @@ describe('ReportNameUtils', () => {
                 personalDetailsList: undefined,
                 linkedTransactions: [nonReimbursableTransaction],
                 translate: translateLocal,
+                convertToDisplayString,
             });
 
             // Then it should use the "spent" wording with the owner's display name
@@ -1828,6 +2316,7 @@ describe('ReportNameUtils', () => {
                 personalDetailsList: undefined,
                 linkedTransactions: [],
                 translate: translateWithUnavailableMarker,
+                convertToDisplayString,
             });
 
             expect(reportName).toContain('UnavailableWorkspaceMarker');
@@ -1847,7 +2336,7 @@ describe('ReportNameUtils', () => {
                 parentReportActionID,
             };
 
-            const parentAction: ReportAction = {
+            const parentAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 reportActionID: parentReportActionID,
                 message: [{type: 'TEXT', text: 'test'}],
@@ -1863,7 +2352,7 @@ describe('ReportNameUtils', () => {
                     currency: CONST.CURRENCY.USD,
                     participantAccountIDs: [1, 2],
                 },
-            } as ReportAction;
+            });
 
             const transaction: Transaction = {
                 ...createRandomTransaction(1),
@@ -1923,7 +2412,7 @@ describe('ReportNameUtils', () => {
                 parentReportActionID,
             };
 
-            const parentAction: ReportAction = {
+            const parentAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 reportActionID: parentReportActionID,
                 message: [{type: 'TEXT', text: 'test'}],
@@ -1939,7 +2428,7 @@ describe('ReportNameUtils', () => {
                     currency: CONST.CURRENCY.USD,
                     participantAccountIDs: [1, 2],
                 },
-            } as ReportAction;
+            });
 
             const reportActionsCollection: Record<string, ReportActions> = {
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]: {
@@ -1970,6 +2459,10 @@ describe('ReportNameUtils', () => {
 
             // When the threaded conciergeReportID matches the report
             const nameWithMatchingID = computeReportNameOriginal({
+                dateFnsLocale: undefined,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                getCurrencySymbol: getCurrencySymbolLocal,
                 conciergeReportID: 'concierge-name-1',
                 report,
                 transactions: undefined,
@@ -1978,11 +2471,16 @@ describe('ReportNameUtils', () => {
                 translate: translateLocal,
                 reportTransactions: {},
                 isTrackIntentUser: false,
+                rules: undefined,
             });
             expect(nameWithMatchingID).toBe(CONST.CONCIERGE_DISPLAY_NAME);
 
             // And an identical report with a non-matching conciergeReportID keeps its regular name
             const nameWithDifferentID = computeReportNameOriginal({
+                dateFnsLocale: undefined,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                getCurrencySymbol: getCurrencySymbolLocal,
                 conciergeReportID: 'a-different-report-id',
                 report,
                 transactions: undefined,
@@ -1991,6 +2489,7 @@ describe('ReportNameUtils', () => {
                 translate: translateLocal,
                 reportTransactions: {},
                 isTrackIntentUser: false,
+                rules: undefined,
             });
             expect(nameWithDifferentID).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });

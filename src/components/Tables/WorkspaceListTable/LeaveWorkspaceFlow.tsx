@@ -2,8 +2,10 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsApproverOfOutstandingPolicyReports from '@hooks/useIsApproverOfOutstandingPolicyReports';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 
 import {close} from '@libs/actions/Modal';
 import {leaveWorkspace} from '@libs/actions/Policy/Policy';
@@ -11,10 +13,8 @@ import {getLeaveWorkspaceConfirmationPrompt} from '@libs/WorkspacesSettingsUtils
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import {displayNameSelector} from '@src/selectors/PersonalDetails';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import {useEffect, useRef} from 'react';
 
@@ -25,8 +25,6 @@ type LeaveWorkspaceFlowProps = {
     /** Called when the flow is finished or abandoned, so the parent can unmount this component */
     onDismiss: () => void;
 };
-
-const ownerDisplayNameSelector = (ownerAccountID: number) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[ownerAccountID]?.displayName ?? '';
 
 /**
  * Self-contained "leave workspace" flow, mounted only after the user picks Leave in the row menu.
@@ -39,7 +37,8 @@ function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceFlowProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [policy, policyResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const ownerAccountID = policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [policyOwnerDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: ownerDisplayNameSelector(ownerAccountID)});
+    const [policyOwnerDisplayName = ''] = usePersonalDetail(ownerAccountID, displayNameSelector);
+    const isApproverOfOutstandingReports = useIsApproverOfOutstandingPolicyReports(policyID);
 
     const isLoadingData = isLoadingOnyxValue(policyResult);
 
@@ -53,24 +52,24 @@ function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceFlowProps) {
 
         close(() => {
             const userLogin = currentUserPersonalDetails.login ?? '';
-            const prompt = getLeaveWorkspaceConfirmationPrompt(policy, userLogin, policyOwnerDisplayName ?? '', translate);
+            const prompt = getLeaveWorkspaceConfirmationPrompt(policy, userLogin, policyOwnerDisplayName ?? '', translate, isApproverOfOutstandingReports);
             if (policy?.achAccount?.reimburser === userLogin) {
                 showConfirmModal({
-                    title: translate('common.leaveWorkspace'),
+                    title: policy?.name ? translate('common.leaveWorkspaceTitle', policy.name) : translate('common.leaveWorkspace'),
                     prompt,
                     confirmText: translate('common.buttonConfirm'),
-                    success: true,
+                    buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                     shouldShowCancelButton: false,
                 }).then(() => onDismiss());
                 return;
             }
 
             showConfirmModal({
-                title: translate('common.leaveWorkspace'),
+                title: policy?.name ? translate('common.leaveWorkspaceTitle', policy.name) : translate('common.leaveWorkspace'),
                 prompt,
-                confirmText: translate('common.leaveWorkspace'),
+                confirmText: translate('common.leave'),
                 cancelText: translate('common.cancel'),
-                danger: true,
+                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             }).then((result) => {
                 if (result.action === ModalActions.CONFIRM && policy) {
                     leaveWorkspace(currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '', policy);

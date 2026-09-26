@@ -2,14 +2,14 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import {getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     getInvoiceReceiverPolicyID,
@@ -41,7 +41,6 @@ import RenderHTML from './RenderHTML';
 import Text from './Text';
 
 type ReportWelcomeTextProps = {
-    /** The report currently being looked at */
     report: OnyxEntry<Report>;
 
     /** The policy for the current route */
@@ -49,11 +48,12 @@ type ReportWelcomeTextProps = {
 };
 
 function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
     const derivedReportName = useDerivedReportNameByReportID(report?.reportID);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -68,10 +68,10 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const isSelfDM = isSelfDMReportUtils(report);
     const isInvoiceRoom = isInvoiceRoomReportUtils(report);
     const isSystemChat = isSystemChatReportUtils(report);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isSystemChat);
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true, reportMetadata);
-    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, betas, isReportArchived, isRestrictedToPreferredPolicy);
+    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, rules, isReportArchived, isRestrictedToPreferredPolicy);
     const policyName = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
@@ -98,8 +98,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) ||
         moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT);
 
-    const reportRHPActiveRoute = Navigation.getReportRHPActiveRoute();
-    const reportDetailsPath = reportRHPActiveRoute ? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, reportRHPActiveRoute) : createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path);
+    const reportDetailsPath = buildDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path);
     const reportDetailsLink = report?.reportID ? `${environmentURL}/${reportDetailsPath}` : '';
 
     let welcomeHeroText = translate('reportActionsView.sayHello');
@@ -136,6 +135,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         additionalText,
         isTrackIntentUser: !!isTrackIntentUser,
         currentUserAccountID,
+        formatPhoneNumber,
     });
 
     return (

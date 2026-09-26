@@ -178,7 +178,7 @@ describe('LoadTest middleware', () => {
         await Request.processWithMiddleware({command: TEST_COMMAND, data: {authToken: 'testToken', reportID: '1'}});
         await waitForNetworkPromises();
 
-        // Then the first request itself fans out to 1 real + 2 duplicates because the header is parsed in
+        // Then the first request itself makes 1 real + 2 duplicates because the header is parsed in
         // HttpUtils.processHTTPRequest before the LoadTest middleware's .finally runs (matches Web-Expensify's
         // setLoadTestParametersCallback running before duplicateMockPostRequest in api.js).
         expect(getMockCallsForTestUrl()).toHaveLength(3);
@@ -187,7 +187,7 @@ describe('LoadTest middleware', () => {
         await Request.processWithMiddleware({command: TEST_COMMAND, data: {authToken: 'testToken', reportID: '2'}});
         await waitForNetworkPromises();
 
-        // Then it should also fan out to 3 calls (1 real + 2 duplicates) using the previously stored multiplier
+        // Then it should also make 3 calls (1 real + 2 duplicates) using the previously stored multiplier
         expect(getMockCallsForTestUrl()).toHaveLength(3 + 3);
     });
 
@@ -200,7 +200,7 @@ describe('LoadTest middleware', () => {
         await Request.processWithMiddleware({command: TEST_COMMAND, data: {authToken: 'testToken', reportID: '1'}});
         await waitForNetworkPromises();
 
-        // Then it should fan out to 3 calls (1 real + 2 duplicates)
+        // Then it should make 3 calls (1 real + 2 duplicates)
         expect(getMockCallsForTestUrl()).toHaveLength(3);
 
         // And given the next response explicitly returns Headers without an X-Load-Test entry

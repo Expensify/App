@@ -9,6 +9,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyData from '@hooks/usePolicyData';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -16,9 +17,10 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {deleteExpensifyCardRule} from '@libs/actions/Card';
-import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
+import {deletePolicyCategoryTaxes, openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import {deletePolicyCodingRule} from '@libs/actions/Policy/Rules';
+import {getCategoryNameFromTaxRuleKey, isCategoryTaxRuleKey} from '@libs/CategoryTaxRulesUtils';
 import {deleteFlagForReviewRule, getFlagForReviewTableData} from '@libs/FlagForReviewRulesUtils';
 import {getExpenseDefaultsTableData, isMerchantTypeRuleKey} from '@libs/MerchantTypeRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -55,6 +57,8 @@ function isTableSelectionTab(tab: RulesTab): tab is TableSelectionTab {
 function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, canWriteRules, clearTableSelection}: UseRulesTableBulkActionsParams) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
@@ -112,7 +116,6 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
             prompt: translate('workspace.rules.spendRules.builtInProtectionModal.description'),
             promptStyles: [styles.mb1],
             shouldShowCancelButton: false,
-            success: false,
             confirmText: translate('common.buttonConfirm'),
             innerContainerStyle: shouldUseNarrowLayout ? undefined : StyleUtils.getWidthStyle(variables.wideConfirmModalWidth),
         });
@@ -152,6 +155,8 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
     const expenseDefaultsTableData: ExpenseDefaultTableItem[] = getExpenseDefaultsTableData({
         policy,
         policyID,
+        // Unlike the tables below, the raw value: a category pending deletion is exactly what marks its rule deleting.
+        policyCategories: policyCategoriesOnyx,
         translate,
         isOffline,
         onNavigate: Navigation.navigate,
@@ -227,7 +232,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
 
         if (activeTab === RULES_TAB.REQUIRE_FIELDS) {
             for (const ruleKey of filteredSelectedRequireFieldsRuleKeys) {
-                deleteRequireFieldsRule(policyData, ruleKey);
+                deleteRequireFieldsRule(policyData, ruleKey, isVendorMatchingBetaEnabled);
             }
             clearTableSelection();
             return;
@@ -245,15 +250,29 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
             return;
         }
 
+        // Category tax defaults live in `expenseRules`, a plain array, so they delete together in one pass that threads
+        // the array through rather than one independent write each.
+        const selectedCategoryNames: string[] = [];
+
         for (const ruleID of filteredSelectedExpenseDefaultKeys) {
             if (isMerchantTypeRuleKey(ruleID)) {
                 continue;
             }
 
+            if (isCategoryTaxRuleKey(ruleID)) {
+                selectedCategoryNames.push(getCategoryNameFromTaxRuleKey(ruleID));
+                continue;
+            }
+
             deletePolicyCodingRule(policy, ruleID);
+        }
+
+        if (selectedCategoryNames.length > 0) {
+            deletePolicyCategoryTaxes(policy, selectedCategoryNames);
         }
         clearTableSelection();
     }, [
+        isVendorMatchingBetaEnabled,
         activeTab,
         clearTableSelection,
         defaultFundID,

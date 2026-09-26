@@ -1,4 +1,4 @@
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 
 import useLocalize from '@hooks/useLocalize';
@@ -6,6 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountSubmitCallback from '@hooks/useReimbursementAccountSubmitCallback';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
@@ -20,10 +21,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-import type {ForwardedRef} from 'react';
-import type {View} from 'react-native';
+import type {ComponentRef, ForwardedRef} from 'react';
 
 import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 
 import Address from './subSteps/Address';
 import Confirmation from './subSteps/Confirmation';
@@ -38,8 +39,7 @@ type PersonalInfoProps = {
     /** Handles submit button press (URL-based navigation) */
     onSubmit?: () => void;
 
-    /** Reference to the outer element */
-    ref?: ForwardedRef<View>;
+    ref?: ForwardedRef<ComponentRef<typeof View>>;
 
     /** Back to URL for preserving navigation context */
     backTo?: string;
@@ -59,6 +59,7 @@ const pages = [
 
 function PersonalInfo({onBackButtonPress, onSubmit, ref, backTo}: PersonalInfoProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
@@ -117,7 +118,9 @@ function PersonalInfo({onBackButtonPress, onSubmit, ref, backTo}: PersonalInfoPr
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
             {isRedirecting ? (
-                <FullScreenLoadingIndicator />
+                <View style={[styles.flex1, styles.fullScreenLoading]}>
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                </View>
             ) : (
                 <CurrentPage
                     isEditing={isEditing}

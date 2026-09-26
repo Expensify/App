@@ -44,11 +44,15 @@ function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily,
             const lineFontFamily = fontFamily?.[index];
             const lineFontStyle = fontStyle?.[index];
             const lineLineHeight = lineHeight?.[index];
-            const typeface = getChartSkiaTypeface(typefaces, {
-                fontFamily: lineFontFamily,
-                fontStyle: lineFontStyle,
-                fontWeight: lineFontWeight,
-            });
+            const typeface = getChartSkiaTypeface(
+                typefaces,
+                {
+                    fontFamily: lineFontFamily,
+                    fontStyle: lineFontStyle,
+                    fontWeight: lineFontWeight,
+                },
+                line,
+            );
             const lineFont = typeface && lineFontSize ? Skia.Font(typeface, lineFontSize) : null;
             const {ascent, lineHeight: metricsLineHeight} = getSkiaLineMetrics(lineFont);
             const lineWidth = lineFont?.getGlyphWidths(lineFont.getGlyphIDs(line)).reduce((totalWidth, width) => totalWidth + width, 0) ?? 0;

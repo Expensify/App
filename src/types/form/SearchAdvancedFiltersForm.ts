@@ -44,11 +44,18 @@ const DATE_FILTER_KEYS: SearchDateFilterKeys[] = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
 ];
 
-const AMOUNT_FILTER_KEYS: SearchAmountFilterKeys[] = [CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT];
+const AMOUNT_FILTER_KEYS: SearchAmountFilterKeys[] = [
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED,
+];
 
 const NEGATABLE_FILTER_KEYS = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY,
@@ -56,6 +63,7 @@ const NEGATABLE_FILTER_KEYS = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS,
 ] as const;
 
 type SearchNegatableFilterKeys = TupleToUnion<typeof NEGATABLE_FILTER_KEYS>;
@@ -160,6 +168,16 @@ const FILTER_KEYS = {
     TOTAL_LESS_THAN: 'totalLessThan',
     TOTAL_GREATER_THAN: 'totalGreaterThan',
 
+    AMOUNT_DEBITED_NOT: 'amountDebitedNot',
+    AMOUNT_DEBITED_EQUAL_TO: 'amountDebitedEqualTo',
+    AMOUNT_DEBITED_LESS_THAN: 'amountDebitedLessThan',
+    AMOUNT_DEBITED_GREATER_THAN: 'amountDebitedGreaterThan',
+
+    AMOUNT_REIMBURSED_NOT: 'amountReimbursedNot',
+    AMOUNT_REIMBURSED_EQUAL_TO: 'amountReimbursedEqualTo',
+    AMOUNT_REIMBURSED_LESS_THAN: 'amountReimbursedLessThan',
+    AMOUNT_REIMBURSED_GREATER_THAN: 'amountReimbursedGreaterThan',
+
     TAX_RATE_NOT: 'taxRateNot',
     TAX_RATE: 'taxRate',
 
@@ -168,6 +186,9 @@ const FILTER_KEYS = {
 
     RECEIPT_TYPE_NOT: 'receiptTypeNot',
     RECEIPT_TYPE: 'receiptType',
+
+    TRANSACTION_STATUS: 'transactionStatus',
+    TRANSACTION_STATUS_NOT: 'transactionStatusNot',
 
     TAG_NOT: 'tagNot',
     TAG: 'tag',
@@ -182,6 +203,9 @@ const FILTER_KEYS = {
 
     PAYER_NOT: 'payerNot',
     PAYER: 'payer',
+
+    PAID_BY_NOT: 'paidByNot',
+    PAID_BY: 'paidBy',
 
     EXPORTER_NOT: 'exporterNot',
     EXPORTER: 'exporter',
@@ -258,6 +282,8 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.EXPENSE_TYPE_NOT,
         FILTER_KEYS.RECEIPT_TYPE,
         FILTER_KEYS.RECEIPT_TYPE_NOT,
+        FILTER_KEYS.TRANSACTION_STATUS,
+        FILTER_KEYS.TRANSACTION_STATUS_NOT,
         FILTER_KEYS.MERCHANT,
         FILTER_KEYS.MERCHANT_NOT,
         FILTER_KEYS.DATE_ON,
@@ -282,6 +308,8 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.TAG_NOT,
         FILTER_KEYS.PAYER,
         FILTER_KEYS.PAYER_NOT,
+        FILTER_KEYS.PAID_BY,
+        FILTER_KEYS.PAID_BY_NOT,
         FILTER_KEYS.DESCRIPTION,
         FILTER_KEYS.DESCRIPTION_NOT,
         FILTER_KEYS.CARD_ID,
@@ -384,11 +412,21 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.TOTAL_NOT,
         FILTER_KEYS.TOTAL_GREATER_THAN,
         FILTER_KEYS.TOTAL_LESS_THAN,
+        FILTER_KEYS.AMOUNT_DEBITED_EQUAL_TO,
+        FILTER_KEYS.AMOUNT_DEBITED_NOT,
+        FILTER_KEYS.AMOUNT_DEBITED_GREATER_THAN,
+        FILTER_KEYS.AMOUNT_DEBITED_LESS_THAN,
+        FILTER_KEYS.AMOUNT_REIMBURSED_EQUAL_TO,
+        FILTER_KEYS.AMOUNT_REIMBURSED_NOT,
+        FILTER_KEYS.AMOUNT_REIMBURSED_GREATER_THAN,
+        FILTER_KEYS.AMOUNT_REIMBURSED_LESS_THAN,
         FILTER_KEYS.CURRENCY,
         FILTER_KEYS.CURRENCY_NOT,
         FILTER_KEYS.GROUP_CURRENCY,
         FILTER_KEYS.PAYER,
         FILTER_KEYS.PAYER_NOT,
+        FILTER_KEYS.PAID_BY,
+        FILTER_KEYS.PAID_BY_NOT,
         FILTER_KEYS.WITHDRAWAL_TYPE,
         FILTER_KEYS.WITHDRAWAL_TYPE_NOT,
         FILTER_KEYS.WITHDRAWAL_STATUS,
@@ -474,6 +512,8 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.TAG_NOT,
         FILTER_KEYS.PAYER,
         FILTER_KEYS.PAYER_NOT,
+        FILTER_KEYS.PAID_BY,
+        FILTER_KEYS.PAID_BY_NOT,
         FILTER_KEYS.DESCRIPTION,
         FILTER_KEYS.DESCRIPTION_NOT,
         FILTER_KEYS.CARD_ID,
@@ -571,6 +611,8 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.TAG_NOT,
         FILTER_KEYS.PAYER,
         FILTER_KEYS.PAYER_NOT,
+        FILTER_KEYS.PAID_BY,
+        FILTER_KEYS.PAID_BY_NOT,
         FILTER_KEYS.DESCRIPTION,
         FILTER_KEYS.DESCRIPTION_NOT,
         FILTER_KEYS.CARD_ID,
@@ -679,6 +721,7 @@ type ExpenseTypeValue = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 type ExpenseTypeValues = ExpenseTypeValue[];
 type ReceiptTypeValue = ValueOf<typeof CONST.SEARCH.RECEIPT_TYPE>;
 type ReceiptTypeValues = ReceiptTypeValue[];
+type TransactionStatusValue = ValueOf<typeof CONST.SEARCH.TRANSACTION_STATUS>;
 
 type SearchAdvancedFiltersForm = Form<
     SearchAdvancedFiltersKey,
@@ -781,6 +824,16 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.TOTAL_LESS_THAN]: string;
         [FILTER_KEYS.TOTAL_GREATER_THAN]: string;
 
+        [FILTER_KEYS.AMOUNT_DEBITED_EQUAL_TO]: string;
+        [FILTER_KEYS.AMOUNT_DEBITED_NOT]: string;
+        [FILTER_KEYS.AMOUNT_DEBITED_LESS_THAN]: string;
+        [FILTER_KEYS.AMOUNT_DEBITED_GREATER_THAN]: string;
+
+        [FILTER_KEYS.AMOUNT_REIMBURSED_EQUAL_TO]: string;
+        [FILTER_KEYS.AMOUNT_REIMBURSED_NOT]: string;
+        [FILTER_KEYS.AMOUNT_REIMBURSED_LESS_THAN]: string;
+        [FILTER_KEYS.AMOUNT_REIMBURSED_GREATER_THAN]: string;
+
         [FILTER_KEYS.KEYWORD]: string;
 
         [FILTER_KEYS.TAX_RATE]: string[];
@@ -792,6 +845,9 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.RECEIPT_TYPE]: ReceiptTypeValues;
         [FILTER_KEYS.RECEIPT_TYPE_NOT]: ReceiptTypeValues;
 
+        [FILTER_KEYS.TRANSACTION_STATUS]: TransactionStatusValue;
+        [FILTER_KEYS.TRANSACTION_STATUS_NOT]: TransactionStatusValue;
+
         [FILTER_KEYS.TAG]: string[];
         [FILTER_KEYS.TAG_NOT]: string[];
 
@@ -800,6 +856,9 @@ type SearchAdvancedFiltersForm = Form<
 
         [FILTER_KEYS.PAYER]: string;
         [FILTER_KEYS.PAYER_NOT]: string;
+
+        [FILTER_KEYS.PAID_BY]: string[];
+        [FILTER_KEYS.PAID_BY_NOT]: string[];
 
         [FILTER_KEYS.EXPORTER]: string[];
         [FILTER_KEYS.EXPORTER_NOT]: string[];
@@ -874,6 +933,7 @@ export type {
     ExpenseTypeValue,
     ExpenseTypeValues,
     ReceiptTypeValue,
+    TransactionStatusValue,
     SearchNegatableFilterKeys,
 };
 export default FILTER_KEYS;

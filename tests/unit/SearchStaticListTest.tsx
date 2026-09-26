@@ -16,6 +16,7 @@ const mockConciergeReportID = jest.fn((): string | undefined => undefined);
 
 jest.mock('@components/OnyxListItemProvider', () => ({
     useSession: jest.fn(() => ({accountID: 999, email: 'me@expensify.com'})),
+    usePersonalDetails: jest.fn(() => ({})),
 }));
 jest.mock('@hooks/useOnyx', () =>
     jest.fn((key: string) => {
@@ -64,9 +65,6 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
         removeListener: jest.fn(),
         getCurrentRoute: jest.fn(),
     },
-}));
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    hasDeferredWrite: jest.fn(() => false),
 }));
 jest.mock('@components/TransactionItemRow', () => jest.fn(() => null));
 jest.mock('@components/Skeletons/SearchRowSkeleton', () => jest.fn(() => null));

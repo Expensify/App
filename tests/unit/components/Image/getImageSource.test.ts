@@ -6,7 +6,6 @@ import type Session from '@src/types/onyx/Session';
 const NOW = new Date('2026-04-15T00:00:00Z');
 const MOCK_URI = 'https://example.com/receipt.jpg';
 const MOCK_TOKEN = 'encrypted-token';
-type GetImageSourceParams = Parameters<typeof getImageSource>[0];
 
 describe('getImageSource', () => {
     beforeAll(() => {
@@ -99,10 +98,40 @@ describe('getImageSource', () => {
         ).toEqual({source: undefined, shouldReauthenticate: true});
     });
 
-    it('preserves numeric image sources', () => {
+    it('returns an authenticated source for an expired session running on a delegate token', () => {
+        const propsSource = {uri: MOCK_URI};
+        const session: Session = {
+            encryptedAuthToken: MOCK_TOKEN,
+            creationDate: NOW.getTime() - CONST.SESSION_EXPIRATION_TIME_MS - 1,
+            authTokenType: CONST.AUTH_TOKEN_TYPES.DELEGATE,
+        };
+
         expect(
             getImageSource({
-                propsSource: {uri: 42} as unknown as GetImageSourceParams['propsSource'],
+                propsSource,
+                session,
+                isAuthTokenRequired: true,
+                isOffline: false,
+            }),
+        ).toEqual({
+            source: {
+                ...propsSource,
+                cacheKey: MOCK_URI,
+                headers: {
+                    [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: MOCK_TOKEN,
+                },
+            },
+            shouldReauthenticate: false,
+        });
+    });
+
+    it('preserves numeric image sources', () => {
+        // @ts-expect-error -- Numeric object URIs intentionally exercise the runtime compatibility branch not represented by the public image source model.
+        const propsSource: Parameters<typeof getImageSource>[0]['propsSource'] = {uri: 42};
+
+        expect(
+            getImageSource({
+                propsSource,
                 session: undefined,
                 isAuthTokenRequired: true,
                 isOffline: false,

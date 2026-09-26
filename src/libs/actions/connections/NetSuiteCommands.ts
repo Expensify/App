@@ -813,6 +813,16 @@ function updateNetSuiteExportToNextOpenPeriod(policyID: string, value: boolean, 
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_EXPORT_TO_NEXT_OPEN_PERIOD, parameters, onyxData);
 }
 
+function updateNetSuiteSplitExportsByPostingPeriod(policyID: string, value: boolean, oldValue: boolean) {
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.SPLIT_EXPORTS_BY_POSTING_PERIOD, value, oldValue);
+
+    const parameters = {
+        policyID,
+        enabled: value,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_SPLIT_EXPORTS_BY_POSTING_PERIOD, parameters, onyxData);
+}
+
 function updateNetSuiteAutoSync(policyID: string | undefined, value: boolean) {
     if (!policyID) {
         return;
@@ -1043,6 +1053,16 @@ function updateNetSuiteApprovalAccount(policyID: string, value: string, oldValue
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_APPROVAL_ACCOUNT, parameters, onyxData);
 }
 
+function updateNetSuiteFxExpenseAccount(policyID: string, value: string, oldValue?: string) {
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.FX_EXPENSE_ACCOUNT, value, oldValue);
+
+    const parameters = {
+        policyID,
+        value,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_FX_EXPENSE_ACCOUNT, parameters, onyxData);
+}
+
 function updateNetSuiteCustomFormIDOptions(
     policyID: string,
     value: string,
@@ -1070,26 +1090,26 @@ function updateNetSuiteCustomFormIDOptions(
     API.write(commandName, parameters, onyxData);
 }
 
-function updateNetSuiteTravelInvoicingPayableAccount(policyID: string, accountID: string, oldAccountID?: string) {
-    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, accountID, oldAccountID);
+function updateNetSuiteTravelBillingPayableAccount(policyID: string, accountID: string, oldAccountID?: string) {
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT, accountID, oldAccountID);
     const parameters = {
         policyID,
         bankAccountID: accountID,
     };
-    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_BILLING_PAYABLE_ACCOUNT, parameters, onyxData);
 }
 
-function updateNetSuiteTravelInvoicingJournalPostingPreference(
+function updateNetSuiteTravelBillingJournalPostingPreference(
     policyID: string,
     postingPreference: ValueOf<typeof CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE>,
     oldPostingPreference?: ValueOf<typeof CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE>,
 ) {
-    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE, postingPreference, oldPostingPreference);
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE, postingPreference, oldPostingPreference);
     const parameters = {
         policyID,
         value: postingPreference,
     };
-    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE, parameters, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE, parameters, onyxData);
 }
 
 export {
@@ -1113,6 +1133,7 @@ export {
     updateNetSuiteProvincialTaxPostingAccount,
     updateNetSuiteAllowForeignCurrency,
     updateNetSuiteExportToNextOpenPeriod,
+    updateNetSuiteSplitExportsByPostingPeriod,
     updateNetSuiteImportMapping,
     updateNetSuiteCrossSubsidiaryCustomersConfiguration,
     updateNetSuiteCustomSegments,
@@ -1129,9 +1150,10 @@ export {
     updateNetSuiteExportVendorBillsTo,
     updateNetSuiteExportJournalsTo,
     updateNetSuiteApprovalAccount,
+    updateNetSuiteFxExpenseAccount,
     updateNetSuiteCustomFormIDOptions,
     updateNetSuiteCustomersJobsMapping,
     updateNetSuiteAccountingMethod,
-    updateNetSuiteTravelInvoicingPayableAccount,
-    updateNetSuiteTravelInvoicingJournalPostingPreference,
+    updateNetSuiteTravelBillingPayableAccount,
+    updateNetSuiteTravelBillingJournalPostingPreference,
 };

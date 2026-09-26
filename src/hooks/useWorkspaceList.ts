@@ -2,7 +2,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {WorkspaceListItemType as WorkspaceListItem} from '@components/SelectionList/ListItem/types';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 
-import {isPolicyAdmin, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
+import {isPolicyAdmin, isArchivedPolicy, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -25,6 +25,7 @@ type UseWorkspaceListParams = {
     localeCompare: LocaleContextProps['localeCompare'];
     additionalFilter?: (policy: OnyxEntry<Policy>) => boolean;
     shouldSortSelectedToTop?: boolean;
+    policyIDsToSortToTop?: string[];
     includeArchivedPolicy?: boolean;
 };
 
@@ -37,6 +38,7 @@ function useWorkspaceList({
     localeCompare,
     additionalFilter,
     shouldSortSelectedToTop = true,
+    policyIDsToSortToTop,
     includeArchivedPolicy = false,
 }: UseWorkspaceListParams) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
@@ -70,6 +72,7 @@ function useWorkspaceList({
                 ],
                 keyForList: `${policy.id}`,
                 isPolicyAdmin: isPolicyAdmin(policy),
+                isArchived: isArchivedPolicy(policy),
                 isSelected: policy.id && selectedPolicyIDs ? selectedPolicyIDs.includes(policy.id) : false,
             });
         }
@@ -80,11 +83,16 @@ function useWorkspaceList({
         () =>
             tokenizedSearch(usersWorkspaces, searchTerm, (policy) => [policy.text]).sort((policy1, policy2) => {
                 if (shouldSortSelectedToTop) {
-                    return sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, selectedPolicyIDs, localeCompare);
+                    return sortWorkspacesBySelected(
+                        {policyID: policy1.policyID, name: policy1.text},
+                        {policyID: policy2.policyID, name: policy2.text},
+                        policyIDsToSortToTop ?? selectedPolicyIDs,
+                        localeCompare,
+                    );
                 }
                 return localeCompare(policy1.text, policy2.text);
             }),
-        [searchTerm, usersWorkspaces, selectedPolicyIDs, localeCompare, shouldSortSelectedToTop],
+        [searchTerm, usersWorkspaces, selectedPolicyIDs, policyIDsToSortToTop, localeCompare, shouldSortSelectedToTop],
     );
 
     const sections = useMemo(() => {

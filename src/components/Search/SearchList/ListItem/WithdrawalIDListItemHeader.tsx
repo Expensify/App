@@ -33,10 +33,7 @@ import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 
 type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
-    /** The withdrawal ID currently being looked at */
     withdrawalID: TransactionWithdrawalIDGroupListItemType;
-
-    /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
 
     /** Whether this section items disabled for selection */
@@ -51,7 +48,6 @@ type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
     /** Whether only some transactions are selected */
     isIndeterminate?: boolean;
 
-    /** Callback for when the down arrow is clicked */
     onDownArrowClick?: () => void;
 
     /** Whether the down arrow is expanded */
@@ -80,7 +76,7 @@ function WithdrawalIDListItemHeaderImpl({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {environmentURL} = useEnvironment();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
@@ -92,6 +88,7 @@ function WithdrawalIDListItemHeaderImpl({
     const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
         withdrawalIDItem.debitPosted,
         DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+        dateFnsLocale,
     );
     const {debitedAmount, debitedCurrency, creditedAmount, creditedCurrency} = withdrawalIDItem;
 

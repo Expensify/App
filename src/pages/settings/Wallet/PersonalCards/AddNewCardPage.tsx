@@ -31,7 +31,6 @@ function AddPersonalNewCardPage() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {currentStep} = addNewPersonalCardFeed ?? {};
     const [isModalVisible, setIsModalVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
@@ -67,7 +66,7 @@ function AddPersonalNewCardPage() {
                         setIsModalVisible(true);
                         showConfirmModal({
                             title: translate('workspace.companyCards.addNewCard.exitModal.title'),
-                            success: true,
+                            buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                             confirmText: translate('workspace.companyCards.addNewCard.exitModal.confirmText'),
                             cancelText: translate('workspace.companyCards.addNewCard.exitModal.cancelText'),
                             prompt: translate('workspace.companyCards.addNewCard.exitModal.prompt'),
@@ -76,7 +75,7 @@ function AddPersonalNewCardPage() {
                                 if (result.action !== ModalActions.CONFIRM) {
                                     return;
                                 }
-                                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+                                navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed});
                             })
                             .finally(() => {
                                 setIsModalVisible(false);

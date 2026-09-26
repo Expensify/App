@@ -1,3 +1,4 @@
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
@@ -49,8 +50,8 @@ type TaxFieldsProps = {
 function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyTaxFields, didConfirm, transactionID, action, iouType, reportID, formError, clearFormErrors}: TaxFieldsProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
-    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
-    const {isNewManualExpenseFlowEnabled, isEditingSplitBill, onTaxAmountEmptyChange} = useConfirmationFields();
+    const {convertToDisplayString, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const {isEditingSplitBill, onTaxAmountEmptyChange} = useConfirmationFields();
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -95,7 +96,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
         // When editing a split expense, persist directly to the split draft so that
         // SplitBillDetailsPage and completeSplitBill read the latest value.
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits});
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 
@@ -103,9 +104,6 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     };
 
     useEffect(() => {
-        if (!isNewManualExpenseFlowEnabled) {
-            return;
-        }
         // Compare the numeric value rather than the formatted string. An in-progress edit such as "5.0" (or an
         // empty field) represents the same stored amount as the re-padded "5.00", so it must not be overwritten
         // while the user is typing. Only refresh the field when the stored tax amount genuinely differs (e.g. the
@@ -119,21 +117,21 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
         }
         numberFormRef.current?.updateNumber(taxAmountInput);
         onTaxAmountEmptyChange?.(false);
-    }, [isNewManualExpenseFlowEnabled, taxAmount, taxAmountInput, onTaxAmountEmptyChange]);
+    }, [taxAmount, taxAmountInput, onTaxAmountEmptyChange]);
 
     useEffect(() => {
-        if (isNewManualExpenseFlowEnabled && canModifyTaxFields) {
+        if (canModifyTaxFields) {
             return () => onTaxAmountEmptyChange?.(false);
         }
         onTaxAmountEmptyChange?.(false);
-    }, [isNewManualExpenseFlowEnabled, canModifyTaxFields, onTaxAmountEmptyChange]);
+    }, [canModifyTaxFields, onTaxAmountEmptyChange]);
 
     useEffect(() => {
-        if (!isNewManualExpenseFlowEnabled || formError !== 'iou.error.invalidTaxAmount' || taxAmount > maxTaxAmount) {
+        if (formError !== 'iou.error.invalidTaxAmount' || taxAmount > maxTaxAmount) {
             return;
         }
         clearFormErrors(['iou.error.invalidTaxAmount']);
-    }, [isNewManualExpenseFlowEnabled, formError, taxAmount, maxTaxAmount, clearFormErrors]);
+    }, [formError, taxAmount, maxTaxAmount, clearFormErrors]);
 
     return (
         <>
@@ -158,7 +156,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                 errorText={shouldDisplayTaxRateError ? translate(formError as TranslationPaths) : ''}
                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
             />
-            {isNewManualExpenseFlowEnabled && canModifyTaxFields ? (
+            {canModifyTaxFields ? (
                 <View style={[styles.mh4, styles.mv2]}>
                     <NumberWithSymbolForm
                         numberFormRef={numberFormRef}
@@ -177,23 +175,23 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                     />
                 </View>
             ) : (
-                <MenuItemWithTopDescription
+                <MenuItemField
                     key={`${taxRates?.name}_amount`}
-                    pressableTestID={`${taxRates?.name}_amount`}
-                    shouldShowRightIcon={canModifyTaxFields}
-                    title={formattedTaxAmount}
-                    description={translate('iou.taxAmount')}
-                    style={[styles.moneyRequestMenuItem]}
-                    titleStyle={styles.flex1}
-                    onPress={() => {
-                        if (!transactionID) {
-                            return;
-                        }
+                    testID={`${taxRates?.name}_amount`}
+                    value={formattedTaxAmount}
+                    name={translate('iou.taxAmount')}
+                    onPress={
+                        canModifyTaxFields
+                            ? () => {
+                                  if (!transactionID) {
+                                      return;
+                                  }
 
-                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID)));
-                    }}
-                    disabled={didConfirm}
-                    interactive={canModifyTaxFields}
+                                  Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID)));
+                              }
+                            : undefined
+                    }
+                    isDisabled={didConfirm}
                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_AMOUNT_FIELD}
                 />
             )}

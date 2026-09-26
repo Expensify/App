@@ -47,6 +47,9 @@ Expensify automatically notifies the recipient via email, SMS, and mobile app wi
 ## Can invoices be exported to accounting integrations?
 Yes. You can export invoices to any connected [accounting integration](https://help.expensify.com/new-expensify/hubs/connections/).
 
+## Can I collect extra details on my invoices?
+Yes. On the Control plan, you can add invoice fields to collect invoice-level details like a PO number or a client code. [Learn how to enable Invoice fields](/articles/new-expensify/workspaces/Enable-Invoice-Fields).
+
 ## Who can send and pay an invoice?
 Only workspace admins can send invoices. Invoices can be paid by anyone, even if they don’t have an Expensify account.
 

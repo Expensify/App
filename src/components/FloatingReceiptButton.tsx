@@ -9,6 +9,7 @@ import variables from '@styles/variables';
 
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Role, Text, View as ViewType} from 'react-native';
 
@@ -20,13 +21,10 @@ import {PressableWithoutFeedback} from './Pressable';
 import Tooltip from './Tooltip';
 
 type FloatingReceiptButtonProps = WithSentryLabel & {
-    /* Callback to fire on request to toggle the FloatingReceiptButton */
+    /** Callback to fire on request to toggle the FloatingReceiptButton */
     onPress: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
 
-    /* An accessibility label for the button */
     accessibilityLabel: string;
-
-    /* An accessibility role for the button */
     role: Role;
 };
 
@@ -34,7 +32,7 @@ function FloatingReceiptButton({onPress, accessibilityLabel, role, sentryLabel}:
     const {successHover, textLight} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
-    const fabPressable = useRef<HTMLDivElement | ViewType | Text | null>(null);
+    const fabPressable = useRef<HTMLDivElement | ComponentRef<typeof ViewType> | ComponentRef<typeof Text> | null>(null);
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus']);
     const {translate} = useLocalize();
 

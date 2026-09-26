@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
@@ -89,7 +90,7 @@ function DynamicIOURequestStepDestination({
 }: DynamicIOURequestStepDestinationProps) {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const isEditPage = name === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT;
-    const backPath = useDynamicBackPath(isEditPage ? DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.path : DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path);
+    const editBackPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.path);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -102,6 +103,7 @@ function DynamicIOURequestStepDestination({
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
     const {top} = useSafeAreaInsets();
+    const {contentHeaderHeight} = useContentHeaderHeight();
     const customUnit = getPerDiemCustomUnit(policy);
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
@@ -124,7 +126,11 @@ function DynamicIOURequestStepDestination({
     const shouldShowOfflineView = isEmptyObject(customUnit?.rates) && isOffline;
 
     const navigateBack = () => {
-        Navigation.goBack(backPath);
+        if (isEditPage) {
+            Navigation.goBack(editBackPath);
+            return;
+        }
+        Navigation.goBack();
     };
 
     const updateDestination = (destination: ListItem & {currency: string}) => {
@@ -162,7 +168,16 @@ function DynamicIOURequestStepDestination({
         if (isEditPage) {
             navigateBack();
         } else {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID, backToReport));
+            // Time is a dynamic route: build it on the start base when the destination is shown inline on the start page
+            // (single per-diem policy) and on the destination base otherwise, so Time's back returns to the right step.
+            // Only the shape of this base reaches the stack - the base route already exists and keeps its own params.
+            const timeBase = openedFromStartPage
+                ? ROUTES.MONEY_REQUEST_CREATE.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID, backToReport)
+                : createDynamicRoute(
+                      DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path,
+                      ROUTES.MONEY_REQUEST_CREATE.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID, backToReport),
+                  );
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME.path, timeBase));
         }
     };
 
@@ -209,7 +224,7 @@ function DynamicIOURequestStepDestination({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionID, policy?.customUnits, transaction?.iouRequestType]);
 
-    const keyboardVerticalOffset = openedFromStartPage ? variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0;
+    const keyboardVerticalOffset = openedFromStartPage ? contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0;
 
     return (
         <ScreenWrapper
@@ -244,8 +259,8 @@ function DynamicIOURequestStepDestination({
                         {isPolicyAdmin(policy) && (
                             <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                                 <Button
-                                    large
-                                    success
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                    size={CONST.BUTTON_SIZE.LARGE}
                                     style={[styles.w100]}
                                     onPress={() => {
                                         if (!policy?.id) {
@@ -261,10 +276,11 @@ function DynamicIOURequestStepDestination({
                                             Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id, backToRoute));
                                         });
                                     }}
-                                    text={translate('workspace.perDiem.editPerDiemRates')}
-                                    pressOnEnter
                                     sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_PER_DIEM_RATES_BUTTON}
-                                />
+                                >
+                                    <Button.KeyboardShortcut />
+                                    <Button.Text>{translate('workspace.perDiem.editPerDiemRates')}</Button.Text>
+                                </Button>
                             </FixedFooter>
                         )}
                     </View>

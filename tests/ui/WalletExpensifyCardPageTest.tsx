@@ -27,6 +27,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import currencyList from '../unit/currencyList.json';
+import createMock from '../utils/createMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -69,10 +70,12 @@ describe('ExpensifyCardPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Mock the useResponsiveLayout hook to control layout behavior in tests.
-        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
-            isSmallScreenWidth: false,
-            shouldUseNarrowLayout: false,
-        } as ResponsiveLayoutResult);
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+            createMock<ResponsiveLayoutResult>({
+                isSmallScreenWidth: false,
+                shouldUseNarrowLayout: false,
+            }),
+        );
     });
 
     afterEach(async () => {

@@ -1,13 +1,13 @@
-import July26PromoImage from '@assets/images/july26-promo.png';
+import September2026PromoImage from '@assets/images/september2026-promo.png';
 
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 
 import type {ImageSourcePropType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 type ProductMarketingAnnouncementVisual =
     | {
@@ -19,8 +19,13 @@ type ProductMarketingAnnouncementVisual =
           name: IllustrationName;
       };
 
-/** One audience-specific content variant of a product marketing announcement. All content is authored by marketing per release. */
-type ProductMarketingAnnouncementVariant = {
+type ProductMarketingAnnouncementUpdateKey = ValueOf<typeof CONST.MARKETING_WINDOW_UPDATE_KEYS>;
+
+/** A single product marketing announcement, shown to every user. All content is authored by marketing per release. */
+type ProductMarketingAnnouncement = {
+    /** Stable key for this product update. A later update must use a new key. */
+    updateKey: ProductMarketingAnnouncementUpdateKey;
+
     /** Marketing-supplied product screenshot or fallback illustration shown at the top of the window. */
     visual: ProductMarketingAnnouncementVisual;
 
@@ -33,20 +38,8 @@ type ProductMarketingAnnouncementVariant = {
     /** Label of the primary CTA button. */
     ctaLabel: TranslationPaths;
 
-    /** Builds the route the primary CTA navigates to. Admin announcements receive the target workspace ID. */
-    getCtaRoute: (adminPolicyID?: string) => Route;
-};
-
-/** A single product marketing announcement with audience-targeted content variants. */
-type ProductMarketingAnnouncement = {
-    /** Stable key shared by every audience variant of this product update. A later update must use a new key. */
-    updateKey: string;
-
-    /** Variant shown to users who are an admin on at least one active workspace. Admin prevails when a user is both member and admin. */
-    admin: ProductMarketingAnnouncementVariant;
-
-    /** Optional variant shown to users without an admin role on any active workspace. */
-    member?: ProductMarketingAnnouncementVariant;
+    /** External page the primary CTA opens in a new tab. */
+    ctaUrl: string;
 };
 
 /**
@@ -55,35 +48,24 @@ type ProductMarketingAnnouncement = {
  * announcement is dismissed, nothing is shown until a later release replaces it with a new update key.
  */
 const ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT: ProductMarketingAnnouncement | null = {
-    updateKey: 'productUpdateJuly2026',
-    admin: {
-        visual: {type: 'image', source: July26PromoImage},
-        heading: 'productMarketingWindow.roleTypes.admin.heading',
-        body: 'productMarketingWindow.roleTypes.admin.body',
-        ctaLabel: 'productMarketingWindow.roleTypes.admin.cta',
-        getCtaRoute: (adminPolicyID) => ROUTES.WORKSPACE_MEMBERS.getRoute(adminPolicyID),
-    },
+    updateKey: CONST.MARKETING_WINDOW_UPDATE_KEYS.PRODUCT_UPDATE_SEPTEMBER_2026,
+    visual: {type: 'image', source: September2026PromoImage},
+    heading: 'productMarketingWindow.heading',
+    body: 'productMarketingWindow.body',
+    ctaLabel: 'common.learnMore',
+    ctaUrl: CONST.CLAUDE_MCP_HELP_URL,
 };
 
-/** Whether the given announcement was already dismissed by the user. */
-function isProductMarketingAnnouncementDismissed(announcement: ProductMarketingAnnouncement | null, lastDismissedMarketingWindow: OnyxEntry<string>): boolean {
-    return !!announcement && announcement.updateKey === lastDismissedMarketingWindow;
-}
-
 /**
- * Resolves the content variant of the announcement the user should see, or undefined when no window should be shown.
- * Dismissal never falls through to another announcement — when the active announcement is dismissed, nothing is shown.
+ * Whether the given announcement was already dismissed by the user.
+ * If the dismissed key from the BE doesn't exist in the client-side keys, we know that the user is on an older client
+ * (and has seen a newer announcement on a different client), so we dont need to show the modal
  */
-function getProductMarketingAnnouncementVariant(
-    announcement: ProductMarketingAnnouncement | null,
-    hasActiveAdminPolicies: boolean,
-    lastDismissedMarketingWindow: OnyxEntry<string>,
-): ProductMarketingAnnouncementVariant | undefined {
-    if (!announcement || isProductMarketingAnnouncementDismissed(announcement, lastDismissedMarketingWindow)) {
-        return undefined;
-    }
-    return hasActiveAdminPolicies ? announcement.admin : announcement.member;
+function isProductMarketingAnnouncementDismissed(announcement: ProductMarketingAnnouncement | null, lastDismissedMarketingWindow: OnyxEntry<string>): boolean {
+    const isAnnouncementDismissed = !!announcement && announcement.updateKey === lastDismissedMarketingWindow;
+    const isStale = !!lastDismissedMarketingWindow && !(Object.values(CONST.MARKETING_WINDOW_UPDATE_KEYS) as string[]).includes(lastDismissedMarketingWindow);
+    return isAnnouncementDismissed || isStale;
 }
 
-export {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, isProductMarketingAnnouncementDismissed, getProductMarketingAnnouncementVariant};
-export type {ProductMarketingAnnouncement, ProductMarketingAnnouncementVariant};
+export {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, isProductMarketingAnnouncementDismissed};
+export type {ProductMarketingAnnouncement};

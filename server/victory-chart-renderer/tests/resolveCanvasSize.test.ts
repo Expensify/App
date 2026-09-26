@@ -1,6 +1,7 @@
+import {describe, expect, test} from 'bun:test';
+
 import type {TNode} from 'react-native-render-html';
 
-import {describe, expect, test} from 'bun:test';
 import createMock from 'tests/utils/createMock';
 
 import resolveCanvasSize from '../src/resolveCanvasSize';

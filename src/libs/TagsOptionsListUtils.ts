@@ -9,8 +9,16 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {Option} from './OptionsListUtils';
 
 import {insertTagIntoTransactionTagsString} from './IOUUtils';
-import {hasEnabledOptions} from './OptionsListUtils';
-import {getCleanedTagName, getTagList, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isMultiLevelTags as isMultiLevelTagsPolicyUtils} from './PolicyUtils';
+import {hasEnabledOptions, isOptionEnabled} from './OptionsListUtils';
+import {
+    getCleanedTagName,
+    getGLCodeFromPolicyTag,
+    getTagList,
+    getTagLists,
+    hasDependentTags as hasDependentTagsPolicyUtils,
+    isMultiLevelTags as isMultiLevelTagsPolicyUtils,
+    matchesParentTagPath,
+} from './PolicyUtils';
 import tokenizedSearch from './tokenizedSearch';
 import {getTagArrayFromName, getTagForDisplay} from './TransactionUtils';
 
@@ -22,12 +30,15 @@ type SelectedTagOption = {
     pendingAction?: PendingAction;
 };
 
+type TagOptionInput = Pick<PolicyTag, 'name' | 'enabled' | 'pendingAction'> & {
+    glCode?: string;
+};
+
 type TagOption = Option & {
     keyForList: string;
 };
 
 type TagVisibility = {
-    /** Flag indicating if the tag is required */
     isTagRequired: boolean;
 
     /** Flag indicating if the tag should be shown */
@@ -49,12 +60,14 @@ type UpdatedTransactionTagParams = {
  *
  * @param tags - an initial tag array
  */
-function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled' | 'pendingAction'>>, selectedOptions?: SelectedTagOption[]): TagOption[] {
+function getTagsOptions(tags: TagOptionInput[], selectedOptions?: SelectedTagOption[], shouldShowGLCode = false): TagOption[] {
     return tags.map((tag) => {
         // This is to remove unnecessary escaping backslash in tag name sent from backend.
         const cleanedName = getCleanedTagName(tag.name);
+        const glCode = tag.glCode ?? '';
         return {
             text: cleanedName,
+            ...(shouldShowGLCode && glCode ? {alternateText: glCode} : {}),
             keyForList: tag.name,
             searchText: tag.name,
             tooltipText: cleanedName,
@@ -76,6 +89,7 @@ function getTagListSections({
     searchValue = '',
     maxRecentReportsToShow = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
     translate,
+    shouldShowGLCode = false,
 }: {
     tags: PolicyTags | Array<SelectedTagOption | PolicyTag>;
     localeCompare: LocaleContextProps['localeCompare'];
@@ -84,23 +98,32 @@ function getTagListSections({
     searchValue?: string;
     maxRecentReportsToShow?: number;
     translate: LocalizedTranslate;
+    shouldShowGLCode?: boolean;
 }) {
     const tagSections = [];
     const sortedTags = sortTags(tags, localeCompare);
+    const tagByName = new Map(sortedTags.map((tag) => [tag.name, tag]));
+    const withGLCode = (tag: SelectedTagOption | PolicyTag): TagOptionInput => {
+        if (!shouldShowGLCode) {
+            return tag;
+        }
+        const fullTag = 'GL Code' in tag ? tag : tagByName.get(tag.name);
+        return {...tag, glCode: getGLCodeFromPolicyTag(fullTag)};
+    };
 
     const selectedOptionNames = new Set(selectedOptions.map((selectedOption) => selectedOption.name));
-    const enabledTags = sortedTags.filter((tag) => tag.enabled);
+    const enabledTags = sortedTags.filter((tag) => tag.enabled).map(withGLCode);
     const enabledTagsNames = new Set(enabledTags.map((tag) => tag.name));
     const enabledTagsWithoutSelectedOptions = enabledTags.filter((tag) => !selectedOptionNames.has(tag.name));
-    const selectedTagsWithDisabledState: SelectedTagOption[] = [];
+    const selectedTagsWithDisabledState: TagOptionInput[] = [];
     const numberOfTags = enabledTags.length;
 
     for (const tag of selectedOptions) {
         if (enabledTagsNames.has(tag.name)) {
-            selectedTagsWithDisabledState.push({...tag, enabled: true});
+            selectedTagsWithDisabledState.push(withGLCode({...tag, enabled: true}));
             continue;
         }
-        selectedTagsWithDisabledState.push({...tag, enabled: false});
+        selectedTagsWithDisabledState.push(withGLCode({...tag, enabled: false}));
     }
 
     // If all tags are disabled but there's a previously selected tag, show only the selected tag
@@ -109,7 +132,7 @@ function getTagListSections({
             // "Selected" section
             title: '',
             sectionIndex: 0,
-            data: getTagsOptions(selectedTagsWithDisabledState, selectedOptions),
+            data: getTagsOptions(selectedTagsWithDisabledState, selectedOptions, shouldShowGLCode),
         });
 
         return tagSections;
@@ -117,15 +140,15 @@ function getTagListSections({
 
     if (searchValue) {
         const tagsForSearch = [
-            ...tokenizedSearch(selectedTagsWithDisabledState, searchValue, (tag) => [getCleanedTagName(tag.name)]),
-            ...tokenizedSearch(enabledTagsWithoutSelectedOptions, searchValue, (tag) => [getCleanedTagName(tag.name)]),
+            ...tokenizedSearch(selectedTagsWithDisabledState, searchValue, (tag) => (shouldShowGLCode ? [getCleanedTagName(tag.name), tag.glCode ?? ''] : [getCleanedTagName(tag.name)])),
+            ...tokenizedSearch(enabledTagsWithoutSelectedOptions, searchValue, (tag) => (shouldShowGLCode ? [getCleanedTagName(tag.name), tag.glCode ?? ''] : [getCleanedTagName(tag.name)])),
         ];
 
         tagSections.push({
             // "Search" section
             title: '',
             sectionIndex: 1,
-            data: getTagsOptions(tagsForSearch, selectedOptions),
+            data: getTagsOptions(tagsForSearch, selectedOptions, shouldShowGLCode),
         });
 
         return tagSections;
@@ -136,7 +159,7 @@ function getTagListSections({
             // "All" section when items amount less than the threshold
             title: '',
             sectionIndex: 2,
-            data: getTagsOptions([...selectedTagsWithDisabledState, ...enabledTagsWithoutSelectedOptions], selectedOptions),
+            data: getTagsOptions([...selectedTagsWithDisabledState, ...enabledTagsWithoutSelectedOptions], selectedOptions, shouldShowGLCode),
         });
 
         return tagSections;
@@ -144,17 +167,20 @@ function getTagListSections({
 
     const filteredRecentlyUsedTags = recentlyUsedTags
         .filter((recentlyUsedTag) => {
-            const tagObject = sortedTags.find((tag) => tag.name === recentlyUsedTag);
+            const tagObject = tagByName.get(recentlyUsedTag);
             return !!tagObject?.enabled && !selectedOptionNames.has(recentlyUsedTag) && tagObject?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         })
-        .map((tag) => ({name: tag, enabled: true}));
+        .map((tagName) => {
+            const tagObject = tagByName.get(tagName);
+            return withGLCode(tagObject ?? {name: tagName, enabled: true});
+        });
 
     if (selectedOptions.length) {
         tagSections.push({
             // "Selected" section
             title: '',
             sectionIndex: 3,
-            data: getTagsOptions(selectedTagsWithDisabledState, selectedOptions),
+            data: getTagsOptions(selectedTagsWithDisabledState, selectedOptions, shouldShowGLCode),
         });
     }
 
@@ -165,7 +191,7 @@ function getTagListSections({
             // "Recent" section
             title: translate('common.recent'),
             sectionIndex: 4,
-            data: getTagsOptions(cutRecentlyUsedTags, selectedOptions),
+            data: getTagsOptions(cutRecentlyUsedTags, selectedOptions, shouldShowGLCode),
         });
     }
 
@@ -173,7 +199,7 @@ function getTagListSections({
         // "All" section when items amount more than the threshold
         title: translate('common.all'),
         sectionIndex: 5,
-        data: getTagsOptions(enabledTagsWithoutSelectedOptions, selectedOptions),
+        data: getTagsOptions(enabledTagsWithoutSelectedOptions, selectedOptions, shouldShowGLCode),
     });
 
     return tagSections;
@@ -183,12 +209,27 @@ function getTagListSections({
  * Verifies that there is at least one enabled tag
  */
 function hasEnabledTags(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists]>) {
-    const policyTagValueList = policyTagList
-        .filter((tag) => tag?.tags)
-        .map(({tags}) => Object.values(tags))
-        .flat();
+    for (const tagList of policyTagList) {
+        const tags = tagList?.tags;
 
-    return hasEnabledOptions(policyTagValueList);
+        if (!tags) {
+            continue;
+        }
+
+        for (const tagName in tags) {
+            if (!Object.hasOwn(tags, tagName)) {
+                continue;
+            }
+
+            const tag = tags[tagName];
+
+            if (isOptionEnabled(tag)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 /**
@@ -217,7 +258,7 @@ function getTagVisibility({
     const policyTagLists = getTagLists(policyTags);
 
     return policyTagLists.map(({tags, required}, index) => {
-        const isTagRequired = required || !!policy?.requiresTag;
+        const isTagRequired = isMultilevelTags && !hasDependentTags ? (required ?? true) : required || !!policy?.requiresTag;
         let shouldShow = false;
 
         if (shouldShowTags) {
@@ -241,32 +282,54 @@ function getTagVisibility({
 }
 
 /**
- * Determines whether a dependent tag list should be shown based on the selected parent tag
- * and available enabled tags for the current level.
+ * Whether a tag list has an enabled tag under a parent tag path.
+ *
+ * Resolves on the first match, and skips disabled tags before touching their filter.
  */
-function shouldShowDependentTagList(tagListIndex: number, transactionTag: string | undefined, tags: PolicyTags | undefined): boolean {
-    if (tagListIndex === 0) {
-        return true;
+function hasEnabledTagUnderParentTag(tags: PolicyTags | undefined, parentTag: string): boolean {
+    for (const tagName in tags) {
+        if (!Object.hasOwn(tags, tagName)) {
+            continue;
+        }
+
+        const tag = tags[tagName];
+
+        if (!isOptionEnabled(tag)) {
+            continue;
+        }
+
+        if (matchesParentTagPath(tag, parentTag)) {
+            return true;
+        }
     }
 
+    return false;
+}
+
+/**
+ * Determines which tag lists are visible for a transaction tag, when the policy uses dependent tag lists.
+ *
+ * Answers every tag list in one call so the transaction tag is split once, and resolves a tag list on its first
+ * selectable tag below the parent - a parent filter is a regular expression, so evaluating fewer tags is the point.
+ *
+ * @returns one entry per tag list, in the order given
+ */
+function getDependentTagVisibility(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists]>, transactionTag: string | undefined): boolean[] {
     const tagParts = getTagArrayFromName(transactionTag ?? '');
-    const previousTagValue = tagParts.at(tagListIndex - 1);
-    if (!previousTagValue) {
-        return false;
-    }
 
-    const parentTag = tagParts.slice(0, tagListIndex).join(':');
-    const availableTags = Object.values(tags ?? {}).filter((policyTag) => {
-        const filterRegex = policyTag.rules?.parentTagsFilter;
-        if (!filterRegex) {
+    return policyTagList.map((tagList, index) => {
+        // The first tag list has no parent to wait for
+        if (index === 0) {
             return true;
         }
 
-        const regex = new RegExp(filterRegex);
-        return regex.test(parentTag ?? '');
-    });
+        // A deeper tag list waits for its parent level to have a value
+        if (!tagParts.at(index - 1)) {
+            return false;
+        }
 
-    return availableTags.some((tag) => tag.enabled);
+        return hasEnabledTagUnderParentTag(tagList?.tags, tagParts.slice(0, index).join(':'));
+    });
 }
 
 /**
@@ -308,19 +371,17 @@ function getUpdatedTransactionTag({transactionTag, selectedTagName, currentTag, 
             tagParts.splice(tagListIndex, tagParts.length - tagListIndex, selectedTagName);
 
             const policyTagLists = getTagLists(policyTags);
-            // Auto-select subsequent tags if there is only one enabled tag
+            // Auto-selects the next level when the selected parent leaves exactly one enabled option.
             for (let i = tagListIndex + 1; i < policyTagLists.length; i++) {
                 const availableNextLevelTags = getTagList(policyTags, i);
-                const enabledTags = Object.values(availableNextLevelTags.tags).filter((tag) => tag.enabled);
+                const enabledTags = getEnabledTags(availableNextLevelTags.tags, tagParts.join(':'), i);
 
                 if (enabledTags.length === 1) {
-                    // If there is only one enabled tag, we can auto-select it.
                     const firstTag = enabledTags.at(0);
                     if (firstTag) {
                         tagParts.push(firstTag.name);
                     }
                 } else {
-                    // If there are no enabled tags or more than one, stop auto-selecting.
                     break;
                 }
             }
@@ -352,10 +413,9 @@ function getEnabledTags(tags: PolicyTags, tag: string, index: number) {
         if (!policyTag.enabled) {
             return false;
         }
-        const filterRegex = policyTag.rules?.parentTagsFilter ?? policyTag.parentTagsFilter;
-        return !filterRegex || new RegExp(filterRegex).test(parentTag);
+        return matchesParentTagPath(policyTag, parentTag);
     });
 }
 
-export {getTagListSections, hasEnabledTags, sortTags, getTagVisibility, hasMatchingTag, getUpdatedTransactionTag, shouldShowDependentTagList, getEnabledTags};
+export {getTagListSections, hasEnabledTags, sortTags, getTagVisibility, hasMatchingTag, getUpdatedTransactionTag, getDependentTagVisibility, getEnabledTags};
 export type {SelectedTagOption, TagOption};
