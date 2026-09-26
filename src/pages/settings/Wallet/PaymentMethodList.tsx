@@ -5,6 +5,7 @@ import Text from '@components/Text';
 
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -15,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getBankAccountConnectionStatus, getBankAccountState, isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import type {BankAccountConnectionStatus} from '@libs/BankAccountUtils';
+import {getAssignedCardFeedAccess, getPolicyIDsNamedByCardFeeds} from '@libs/CardFeedUtils';
 import {
     getAssignedCardSortKey,
     getCardConnectionStatusDisplay,
@@ -22,9 +24,8 @@ import {
     getCardFeedWithDomainID,
     getCompanyCardFeedWithDomainIDForCard,
     getPlaidInstitutionIconUrl,
+    hasCardConnectionIssue,
     isActionableVirtualExpensifyCard,
-    isBrokenConnectionPastDismissThreshold,
-    isCardConnectionBroken,
     doesCardConnectionNeedReauthentication,
     isCardFrozen,
     isCardInactive,
@@ -33,9 +34,7 @@ import {
     isExpensifyCardPending,
     isExpensifyCardPendingAction,
     isExpiredCard,
-    isLastScrapePastDismissThreshold,
     isPersonalCard,
-    isPersonalCardBrokenConnection,
     isTravelCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
@@ -44,7 +43,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {areAddressAndPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
-import {getDescriptionForPolicyDomainCard, getPolicyIDFromDomainName, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
 import {getTravelBillingCard, isTravelCVVEligible} from '@libs/TravelBillingUtils';
 
 import colors from '@styles/theme/colors';
@@ -67,7 +66,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {isActingAsDelegateSelector, isUserValidatedSelector} from '@selectors/Account';
-import {createPoliciesForDomainCardsSelector} from '@selectors/Policy';
+import {createPoliciesForAssignedCardsSelector} from '@selectors/Policy';
 import {FlashList} from '@shopify/flash-list';
 import lodashSortBy from 'lodash/sortBy';
 import React from 'react';
@@ -213,14 +212,13 @@ function PaymentMethodList({
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
     const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST);
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
-    const cardDomains = shouldShowAssignedCards
-        ? Object.values(isLoadingCardList ? {} : (cardList ?? {}))
-              .filter((card) => !!card.domainName)
-              .map((card) => card.domainName)
-        : [];
-    const policiesForDomainCardsSelectorFactory = createPoliciesForDomainCardsSelector(cardDomains);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [allCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const cardsForPolicyLookup = shouldShowAssignedCards ? Object.values(isLoadingCardList ? {} : (cardList ?? {})).filter((card) => !!card.domainName || !!card.fundID) : [];
+    const policiesForAssignedCardsSelectorFactory = createPoliciesForAssignedCardsSelector(cardsForPolicyLookup, getPolicyIDsNamedByCardFeeds(cardsForPolicyLookup, allCardFeeds));
     const [policiesForAssignedCards] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (policies: OnyxCollection<Policy>) => policiesForDomainCardsSelectorFactory(policies),
+        selector: (policies: OnyxCollection<Policy>) => policiesForAssignedCardsSelectorFactory(policies),
     });
     // Temporarily disabled because P2P debit cards are disabled.
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
@@ -274,9 +272,9 @@ function PaymentMethodList({
                 const isUserPersonalCard = isPersonalCard(card);
                 const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
                 const assignedCardsGrouped = isUserPersonalCard ? personalCardsGrouped : companyCardsGrouped;
-                const policyIDForCard = shouldShowConnectionStatus && card.domainName ? getPolicyIDFromDomainName(card.domainName) : undefined;
-                const policyForCard = policyIDForCard ? policiesForAssignedCards?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDForCard}`] : undefined;
-                const isAdminForCardPolicy = shouldShowConnectionStatus ? isPolicyAdmin(policyForCard) : false;
+                const {policyID: policyIDForCard, isAdmin: isAdminForCardPolicy} = shouldShowConnectionStatus
+                    ? getAssignedCardFeedAccess(card, allCardFeeds, policiesForAssignedCards, allDomains, currentUserAccountID)
+                    : {policyID: undefined, isAdmin: false};
 
                 let icon;
                 if (isUserPersonalCard && isCSVCard) {
@@ -309,14 +307,14 @@ function PaymentMethodList({
                     }
                 }
 
-                if (isUserPersonalCard && (!isEmptyObject(card.errors) || isPersonalCardBrokenConnection(card))) {
+                if (isUserPersonalCard && (!isEmptyObject(card.errors) || hasCardConnectionIssue(card))) {
                     brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                 }
 
                 const companyCardFeedForCard = getCompanyCardFeedWithDomainIDForCard(card);
-                const isCardBroken = isUserPersonalCard
-                    ? isPersonalCardBrokenConnection(card) && !isLastScrapePastDismissThreshold(card)
-                    : isCardConnectionBroken(card) && !isBrokenConnectionPastDismissThreshold(card);
+                // The grace period and the ignored scrape statuses only stop us from prompting the user. The status itself
+                // stays truthful, so a card reporting a connection error still reads as Inactive with a way to fix it.
+                const isCardBroken = hasCardConnectionIssue(card);
                 const isCardInactiveState = isCardInactive(card);
                 const cardConnectionStatusDisplay = getCardConnectionStatusDisplay({
                     shouldShowConnectionStatus,
