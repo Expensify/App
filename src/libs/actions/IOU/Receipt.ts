@@ -21,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
-import type {ReceiptSource} from '@src/types/onyx/Transaction';
+import type {Receipt, ReceiptSource} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -317,9 +317,12 @@ function replaceReceipt({
         });
     }
 
+    const receipt: Receipt = file;
+    receipt.source = source;
+
     const parameters: ReplaceReceiptParams = {
         transactionID,
-        receipt: file,
+        receipt,
         receiptState: state,
         isSameReceipt,
     };
