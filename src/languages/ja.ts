@@ -4695,6 +4695,12 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             settlementFrequency: '清算頻度',
             setAsDefault: 'デフォルトのワークスペースに設定',
             defaultNote: `${CONST.EMAIL.RECEIPTS} に送信されたレシートは、このワークスペースに表示されます。`,
+            archive: 'Archive workspace',
+            archiveConfirmation: 'Are you sure you want to archive this workspace?',
+            archiveWithThirdPartyCardsConfirmation:
+                'Are you sure you want to archive this workspace? This will unassign all credit cards from users and permanently delete any unsubmitted card expenses.',
+            archiveWithExpensifyCardsConfirmation:
+                'Are you sure you want to archive this workspace? This will set all Expensify Card limits to $0 and automatically decline any new purchase attempts.',
             deleteWorkspaceTitle: (workspaceName: string) => `${workspaceName} を削除しますか？`,
             deleteConfirmation: 'このワークスペースを削除してもよろしいですか？',
             deleteWithCardsConfirmation: 'このワークスペースを削除してもよろしいですか？ すべてのカードフィードと割り当て済みカードが削除されます。',

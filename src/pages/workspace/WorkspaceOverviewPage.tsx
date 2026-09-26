@@ -29,6 +29,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
@@ -80,6 +81,7 @@ import {View} from 'react-native';
 
 import type {WithPolicyProps} from './withPolicy';
 
+import ArchiveWorkspaceFlow from './archiveWorkspace/ArchiveWorkspaceFlow';
 import DeleteWorkspaceFlow from './deleteWorkspace/DeleteWorkspaceFlow';
 import withPolicy from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
@@ -96,8 +98,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencySymbol} = useCurrencyListActions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Box', 'Exit', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
     const buildDynamicRoute = useScreenBoundDynamicRoute();
+    const {isBetaEnabled} = usePermissions();
+    const canArchivePolicies = isBetaEnabled(CONST.BETAS.ARCHIVE_POLICIES);
 
     const backTo = route.params.backTo;
     const routePolicyID = route.params.policyID;
@@ -106,6 +110,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [isComingFromGlobalReimbursementsFlow] = useOnyx(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW);
     const {showConfirmModal} = useConfirmModal();
     const [isDeleteWorkspaceFlowVisible, setIsDeleteWorkspaceFlowVisible] = useState(false);
+    const [isArchiveWorkspaceFlowVisible, setIsArchiveWorkspaceFlowVisible] = useState(false);
 
     // Primitive-valued subscriptions configuring the Delete menu item (popover behavior and the loading spinner)
     // before a deletion starts. The deletion itself is handled by DeleteWorkspaceFlow, mounted on demand below.
@@ -379,15 +384,20 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         });
         if (isOwner) {
             secondaryActions.push({
-                value: 'delete',
-                text: translate('common.delete'),
-                icon: expensifyIcons.Trashcan,
+                value: canArchivePolicies ? 'archive' : 'delete',
+                text: translate(canArchivePolicies ? 'workspace.common.archive' : 'common.delete'),
+                icon: canArchivePolicies ? expensifyIcons.Box : expensifyIcons.Trashcan,
                 onSelected: () => {
                     if (isLoadingBill) {
                         return;
                     }
 
-                    // All the pre-deletion checks and the confirmation modal are handled by DeleteWorkspaceFlow, which mounts when this is set.
+                    // All the pre-checks and the confirmation modal are handled by the archive/delete flow, which mounts when this is set.
+                    if (canArchivePolicies) {
+                        setIsArchiveWorkspaceFlowVisible(true);
+                        return;
+                    }
+
                     setIsDeleteWorkspaceFlowVisible(true);
                 },
                 disabled: isLoadingBill,
@@ -457,6 +467,14 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     policyID={policyID}
                     onDismiss={() => setIsDeleteWorkspaceFlowVisible(false)}
                     onDeleteComplete={goBackFromInvalidPolicy}
+                />
+            )}
+            {isArchiveWorkspaceFlowVisible && !!policyID && (
+                <ArchiveWorkspaceFlow
+                    key={`archive-${policyID}`}
+                    policyID={policyID}
+                    onDismiss={() => setIsArchiveWorkspaceFlowVisible(false)}
+                    onArchiveComplete={goBackFromInvalidPolicy}
                 />
             )}
             {!!pendingRulesDocumentFile && (

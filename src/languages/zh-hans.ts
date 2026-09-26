@@ -4581,6 +4581,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             settlementFrequency: '结算频率',
             setAsDefault: '设为默认工作区',
             defaultNote: `发送到 ${CONST.EMAIL.RECEIPTS} 的收据将显示在此工作区中。`,
+            archive: 'Archive workspace',
+            archiveConfirmation: 'Are you sure you want to archive this workspace?',
+            archiveWithThirdPartyCardsConfirmation:
+                'Are you sure you want to archive this workspace? This will unassign all credit cards from users and permanently delete any unsubmitted card expenses.',
+            archiveWithExpensifyCardsConfirmation:
+                'Are you sure you want to archive this workspace? This will set all Expensify Card limits to $0 and automatically decline any new purchase attempts.',
             deleteWorkspaceTitle: (workspaceName: string) => `删除 ${workspaceName}？`,
             deleteConfirmation: '确定要删除此工作区吗？',
             deleteWithCardsConfirmation: '确定要删除此工作区吗？这将移除所有卡片数据源和已分配的卡片。',

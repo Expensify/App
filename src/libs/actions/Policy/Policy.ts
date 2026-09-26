@@ -11,6 +11,7 @@ import type {
     AddPaymentCardParams,
     ChangePolicyUberBillingAccountPageParams,
     CreateWorkspaceFromIOUPaymentParams,
+    ArchivePolicyParams,
     CreateWorkspaceParams,
     DeletePolicyRulesDocumentParams,
     DeleteWorkspaceAvatarParams,
@@ -734,6 +735,63 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
     if (policyID === lastAccessedWorkspacePolicyID) {
         updateLastAccessedWorkspace(undefined);
     }
+}
+
+type ArchivePolicyActionParams = {
+    policyID: string;
+    policyName?: string;
+    hasArchiveExpensifyCardsError?: boolean;
+};
+
+function archivePolicy(params: ArchivePolicyActionParams) {
+    const {policyID, policyName, hasArchiveExpensifyCardsError} = params;
+
+    // Offline pre-flight guard: we already know locally the workspace has active Expensify Cards, so surface the error instead of queuing an archive that the backend will reject on reconnect.
+    if (hasArchiveExpensifyCardsError) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.common.deleteOpenExpensifyCardsError'),
+        });
+        return;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                archivedDate: DateUtils.getDBTime(),
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                errors: null,
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                archivedDate: null,
+                pendingAction: null,
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingAction: null,
+            },
+        },
+    ];
+
+    const apiParams: ArchivePolicyParams = {policyID};
+
+    API.write(WRITE_COMMANDS.ARCHIVE_POLICY, apiParams, {optimisticData, failureData, successData});
+
+    Log.info(`[ArchivePolicy] Archived policy ${policyName} (${policyID})`);
 }
 
 /* Set the auto harvesting on a workspace. This goes in tandem with auto reporting. so when you enable/disable
@@ -8086,6 +8144,7 @@ export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
     deleteWorkspace,
+    archivePolicy,
     updateAddress,
     updateLastAccessedWorkspace,
     dismissWorkspaceError,

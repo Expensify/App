@@ -5,6 +5,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -40,8 +41,11 @@ type WorkspaceRowThreeDotsMenuProps = {
     /** Called when the user picks Delete, so the page can mount the delete flow */
     onDeleteWorkspace: (policyID: string) => void;
 
-    /** ID of the workspace with a deletion in progress, if any */
-    pendingDeletePolicyID?: string;
+    /** Called when the user picks Archive, so the page can mount the archive flow */
+    onArchiveWorkspace: (policyID: string) => void;
+
+    /** ID of the workspace with a deletion or archive in progress, if any */
+    pendingPolicyID?: string;
 };
 
 /**
@@ -49,12 +53,14 @@ type WorkspaceRowThreeDotsMenuProps = {
  * primitive-valued subscriptions, and mounts the leave/transfer flows on demand so their heavier
  * subscriptions (the full policy entry) exist only while the corresponding action is in progress.
  */
-function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicyID}: WorkspaceRowThreeDotsMenuProps) {
+function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace, pendingPolicyID}: WorkspaceRowThreeDotsMenuProps) {
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Plus', 'Copy', 'Star', 'Trashcan', 'Transfer']);
+    const {isBetaEnabled} = usePermissions();
+    const icons = useMemoizedLazyExpensifyIcons(['Box', 'Building', 'Exit', 'Plus', 'Copy', 'Star', 'Trashcan', 'Transfer']);
+    const canArchivePolicies = isBetaEnabled(CONST.BETAS.ARCHIVE_POLICIES);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
@@ -140,15 +146,20 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
 
         if (isOwner) {
             menuItems.push({
-                icon: icons.Trashcan,
-                text: translate('workspace.common.delete'),
-                shouldShowLoadingSpinnerIcon: !!isLoadingBill && pendingDeletePolicyID === item.policyID,
+                icon: canArchivePolicies ? icons.Box : icons.Trashcan,
+                text: translate(canArchivePolicies ? 'workspace.common.archive' : 'workspace.common.delete'),
+                shouldShowLoadingSpinnerIcon: !!isLoadingBill && pendingPolicyID === item.policyID,
                 onSelected: () => {
                     if (isLoadingBill) {
                         return;
                     }
 
-                    // All the pre-deletion checks and the confirmation modal are handled by DeleteWorkspaceFlow, mounted by the page.
+                    // All the pre-checks and the confirmation modal are handled by the archive/delete flow, mounted by the page.
+                    if (canArchivePolicies) {
+                        onArchiveWorkspace(item.policyID);
+                        return;
+                    }
+
                     onDeleteWorkspace(item.policyID);
                 },
                 shouldKeepModalOpen: shouldCalculateBillNewDot && !wouldBlockDeletion,

@@ -4761,6 +4761,12 @@ ${amount} für ${merchant} – ${date}`,
             settlementFrequency: 'Auszahlungsfrequenz',
             setAsDefault: 'Als Standard-Arbeitsbereich festlegen',
             defaultNote: `Belege, die an ${CONST.EMAIL.RECEIPTS} gesendet werden, erscheinen in diesem Workspace.`,
+            archive: 'Archive workspace',
+            archiveConfirmation: 'Are you sure you want to archive this workspace?',
+            archiveWithThirdPartyCardsConfirmation:
+                'Are you sure you want to archive this workspace? This will unassign all credit cards from users and permanently delete any unsubmitted card expenses.',
+            archiveWithExpensifyCardsConfirmation:
+                'Are you sure you want to archive this workspace? This will set all Expensify Card limits to $0 and automatically decline any new purchase attempts.',
             deleteWorkspaceTitle: (workspaceName: string) => `${workspaceName} löschen?`,
             deleteConfirmation: 'Möchten Sie diesen Workspace wirklich löschen?',
             deleteWithCardsConfirmation: 'Möchtest du diesen Workspace wirklich löschen? Dadurch werden alle Kartenfeeds und zugewiesenen Karten entfernt.',

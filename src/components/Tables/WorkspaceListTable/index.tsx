@@ -61,11 +61,14 @@ type WorkspaceListTableProps = {
     /** Called when the user picks Delete in a row menu, so the page can mount the delete flow */
     onDeleteWorkspace: (policyID: string) => void;
 
-    /** ID of the workspace with a deletion in progress, if any */
-    pendingDeletePolicyID?: string;
+    /** Called when the user picks Archive in a row menu, so the page can mount the archive flow */
+    onArchiveWorkspace: (policyID: string) => void;
+
+    /** ID of the workspace with a deletion or archive in progress, if any */
+    pendingPolicyID?: string;
 };
 
-export default function WorkspaceListTable({ref, workspaces, headerComponent, onDeleteWorkspace, pendingDeletePolicyID}: WorkspaceListTableProps) {
+export default function WorkspaceListTable({ref, workspaces, headerComponent, onDeleteWorkspace, onArchiveWorkspace, pendingPolicyID}: WorkspaceListTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {isBetaEnabled} = usePermissions();
@@ -139,7 +142,8 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
                 rowIndex={index}
                 shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
                 onDeleteWorkspace={onDeleteWorkspace}
-                pendingDeletePolicyID={pendingDeletePolicyID}
+                onArchiveWorkspace={onArchiveWorkspace}
+                pendingPolicyID={pendingPolicyID}
             />
         );
     };
