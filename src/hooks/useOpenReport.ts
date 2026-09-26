@@ -37,4 +37,3 @@ function useOpenReport() {
 }
 
 export default useOpenReport;
-export type {UseOpenReportParams};
