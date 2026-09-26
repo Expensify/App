@@ -30,6 +30,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {pendingDeleteMemberAccountIDsByReportIDSelector} from '@selectors/ReportMetaData';
 import React, {useEffect} from 'react';
 
 import ListFilterView from './ListFilterViewWrapper';
@@ -81,6 +82,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [pendingDeleteMemberAccountIDsByReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {selector: pendingDeleteMemberAccountIDsByReportIDSelector});
 
     const buildReportOption = (id: string, isSelected: boolean): OptionData => {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${id}`];
@@ -101,6 +103,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                     reportAttributesDerived,
                     isTrackIntentUser,
                     currentUserAccountID,
+                    pendingDeleteMemberAccountIDs: pendingDeleteMemberAccountIDsByReportID?.[id],
                 }),
             ),
             isSelected,

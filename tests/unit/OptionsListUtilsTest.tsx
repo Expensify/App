@@ -7196,6 +7196,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Then it should return an option with isSelfDM and alternateText set
@@ -7228,6 +7229,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Then it should return an option with invoice room text and alternateText
@@ -7262,6 +7264,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Then it should return an option with unknownUserDetails data
@@ -7295,6 +7298,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Then it should return an option with workspace name
@@ -7336,6 +7340,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Then it should use the custom personalDetails parameter
@@ -7365,6 +7370,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Then it should not throw and return a valid option
@@ -7389,6 +7395,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Then it should return a valid option (createOption handles undefined)
@@ -7558,6 +7565,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.text).toBe('Test Workspace');
@@ -7600,6 +7608,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: ownerAccountID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.text).toBe(`Test (${translateLocal('common.you').toLowerCase()})`);
@@ -7665,6 +7674,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.text).toBe('Test Workspace with Submit');
@@ -7699,6 +7709,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.isDisabled).toBe(true);
@@ -7751,6 +7762,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // The option.isSelfDM is set by createOption based on the report type
@@ -7797,6 +7809,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.isInvoiceRoom).toBe(true);
@@ -7850,6 +7863,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.text).toBe(POLICY.name);
@@ -7904,6 +7918,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.isDisabled).toBe(true);
@@ -7934,6 +7949,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.isDisabled).toBeFalsy();
@@ -7961,6 +7977,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.isDisabled).toBe(true);
@@ -7992,6 +8009,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.isDisabled).toBeFalsy();
@@ -8026,6 +8044,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8061,6 +8080,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8093,6 +8113,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8129,6 +8150,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8165,6 +8187,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8199,6 +8222,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.isSelected).toBe(true);
@@ -8231,6 +8255,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8264,6 +8289,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8311,6 +8337,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8384,6 +8411,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8420,6 +8448,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8453,6 +8482,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8514,6 +8544,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8547,6 +8578,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8577,6 +8609,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8625,6 +8658,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8656,6 +8690,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
             const optionWithoutConcierge = getReportOption({
                 participant,
@@ -8668,6 +8703,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Both should produce the same result since the IDs don't match
@@ -10047,6 +10083,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Then the option should be created successfully using the reports collection
@@ -10132,6 +10169,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions: undefined,
                 conciergeReportID: report.reportID,
+                pendingDeleteMemberAccountIDs: undefined,
             });
             expect(conciergeOption.subtitle).toBe(translateLocal('reportActionsView.conciergeSupport'));
 
@@ -10147,6 +10185,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions: undefined,
                 conciergeReportID: 'a-different-report-id',
+                pendingDeleteMemberAccountIDs: undefined,
             });
             expect(regularOption.subtitle).not.toBe(translateLocal('reportActionsView.conciergeSupport'));
         });
@@ -10179,6 +10218,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions,
                 conciergeReportID: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(result).toBeDefined();
@@ -10214,6 +10254,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions,
                 conciergeReportID: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(result).toBeDefined();
@@ -10248,6 +10289,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions,
                 conciergeReportID: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(result).toBeDefined();
@@ -10282,6 +10324,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions,
                 conciergeReportID: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(result).toBeDefined();
@@ -10318,6 +10361,7 @@ describe('OptionsListUtils', () => {
                 sortedActions,
                 conciergeReportID: undefined,
                 config,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(result).toBeDefined();
@@ -10357,6 +10401,7 @@ describe('OptionsListUtils', () => {
                 policy: POLICY,
                 sortedActions,
                 conciergeReportID: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
             const personalDetailsOption = createOptionFromReport({
                 dateFnsLocale: undefined,
@@ -10370,6 +10415,7 @@ describe('OptionsListUtils', () => {
                 sortedActions,
                 conciergeReportID: undefined,
                 config: {showPersonalDetails: true},
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(roomOption.text).toBe('#admins');
@@ -10420,6 +10466,7 @@ describe('OptionsListUtils', () => {
                     conciergeReportID: undefined,
                     config: {showChatPreviewLine: true},
                     convertToDisplayString,
+                    pendingDeleteMemberAccountIDs: undefined,
                 };
             };
 
@@ -11182,6 +11229,7 @@ describe('OptionsListUtils', () => {
                 policy: POLICY,
                 sortedActions,
                 conciergeReportID: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
             expect(result).toBeDefined();
             expect(result.policyID).toBe(policyID);
@@ -11215,6 +11263,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
             expect(result).toBeDefined();
             expect(result.policyID).toBe(policyID);
@@ -12067,6 +12116,42 @@ describe('OptionsListUtils', () => {
             // The non-search path caches its result, so the pending deletions have to be part of the cache inputs.
             expect(buildGroupChatOption(undefined, false)?.icons?.at(0)?.name).toBe('Black Panther, Iron Man, Spider-Man');
             expect(buildGroupChatOption({[GROUP_CHAT_REPORT_ID]: ['4']}, false)?.icons?.at(0)?.name).toBe('Iron Man, Spider-Man');
+        });
+    });
+
+    describe('single report options with members pending removal', () => {
+        it('leaves the members pending removal out of the group chat icon', () => {
+            // Given a group chat with no custom name, so its avatar label is built from the participants,
+            // and one of those members is pending removal
+            const groupChatReport: Report = {
+                reportID: '9002',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                reportName: '',
+                participants: {
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            // When the option is built with that member passed as pending removal
+            const option = createOptionFromReport({
+                dateFnsLocale: undefined,
+                convertToDisplayString,
+                report: groupChatReport,
+                personalDetails: PERSONAL_DETAILS,
+                privateIsArchived: undefined,
+                rules: undefined,
+                policy: undefined,
+                sortedActions: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                pendingDeleteMemberAccountIDs: ['4'],
+            });
+
+            // Then the avatar label names only the members that are staying
+            expect(option.icons?.at(0)?.name).toBe('Iron Man, Spider-Man');
         });
     });
 });
