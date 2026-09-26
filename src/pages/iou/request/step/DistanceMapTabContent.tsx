@@ -55,7 +55,7 @@ type DistanceMapTabContentProps = {
     /** The state of the transaction being rendered, used to persist route selection to the correct Onyx key */
     transactionState: TransactionStateType;
 
-    /** Navigates to the Reuse prior route page. The Reuse route button is hidden when omitted. */
+    /** Navigates to the "reuse prior route" page. The "Reuse route" button is hidden when omitted. */
     navigateToReuseRoutePage?: () => void;
 };
 

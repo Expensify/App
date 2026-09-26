@@ -4101,15 +4101,13 @@ const staticStyles = (theme: ThemeColors) =>
 
         reuseRouteThumbnail: {
             width: '100%',
-            // Map area from the Figma spec: 354x192 inside the card padding.
             aspectRatio: 1.84,
             borderRadius: 12,
             overflow: 'hidden',
             backgroundColor: theme.border,
         },
 
-        // Float above the map thumbnail so the date stays readable over the map image.
-        // Fixed dark green because the badge always sits on the map image, in both themes.
+        // Floats above the map thumbnail so the date stays readable over the map image.
         reuseRouteLastUsedBadge: {
             position: 'absolute',
             top: 12,

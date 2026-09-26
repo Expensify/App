@@ -87,8 +87,8 @@ function IOURequestStepReuseRoute({
         currentUserAccountID: currentUserPersonalDetails.accountID,
     });
 
-    // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
-    // request and the workspace requires a category or a tag
+    // For quick button actions, we'll skip the confirmation page unless the report is archived or
+    // this is a workspace request and the workspace requires a category or a tag
     const shouldSkipConfirmation: boolean = useMemo(() => {
         if (!skipConfirmation || !report?.reportID) {
             return false;
@@ -149,7 +149,6 @@ function IOURequestStepReuseRoute({
         route,
         text: getRouteEndpoints(route).start,
         keyForList: route.transactionID,
-        // The whole card is the tap target, so the radio button adds noise without function.
         shouldHideSelectionButton: true,
     }));
 
