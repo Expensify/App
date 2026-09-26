@@ -12964,14 +12964,23 @@ function prepareOnboardingOnyxData({
     }
 
     if (userReportedIntegration) {
-        const requiresControlPlan: AllConnectionName[] = [CONST.POLICY.CONNECTIONS.NAME.NETSUITE, CONST.POLICY.CONNECTIONS.NAME.QBD, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT];
+        // These integrations can only be connected on Control, so picking one during onboarding creates a Control workspace.
+        // Intuit Enterprise Suite is a QBO alias, not a connection name.
+        const requiresControlPlan: Array<AllConnectionName | typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE> = [
+            CONST.POLICY.CONNECTIONS.NAME.NETSUITE,
+            CONST.POLICY.CONNECTIONS.NAME.QBD,
+            CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
+            CONST.POLICY.CONNECTIONS.NAME.CERTINIA,
+            CONST.POLICY.CONNECTIONS.NAME.RILLET,
+            CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE,
+        ];
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${onboardingPolicyID}`,
             value: {
                 areConnectionsEnabled: true,
-                ...(requiresControlPlan.includes(userReportedIntegration as AllConnectionName)
+                ...(requiresControlPlan.some((integration) => integration === userReportedIntegration)
                     ? {
                           type: CONST.POLICY.TYPE.CORPORATE,
                       }
