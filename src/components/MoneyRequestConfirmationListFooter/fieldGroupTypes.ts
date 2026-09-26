@@ -41,7 +41,7 @@ type VisibilityFlags = {
     shouldShowTax: boolean;
 
     /** Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount autofocus on picker close. */
-    isParticipantPickerVisible: boolean;
+    isParticipantPickerVisible?: boolean;
 
     /**
      * Whether the list renders a participant section ("To" / "Paid by") above the footer. The manual form draws a
@@ -78,8 +78,8 @@ type CompactControls = {
 
 /** Receipt-related inputs threaded into the receipt section */
 type ReceiptOptions = {
-    receiptFilename: string;
-    receiptPath: string | number;
+    receiptFilename?: string;
+    receiptPath?: string | number;
     isLoadingReceipt?: boolean;
     isReceiptEditable?: boolean;
     shouldDisplayReceipt: boolean;

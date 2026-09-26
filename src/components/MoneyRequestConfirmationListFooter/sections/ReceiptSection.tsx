@@ -37,10 +37,10 @@ type ReceiptSectionProps = {
     isLoadingReceipt?: boolean;
 
     /** Path of the receipt asset (URL or local) */
-    receiptPath: string | number;
+    receiptPath?: string | number;
 
     /** Filename of the receipt asset */
-    receiptFilename: string;
+    receiptFilename?: string;
 
     /** Whether optional fields are expanded (drives compact-mode dimensions) */
     showMoreFields?: boolean;
@@ -61,8 +61,8 @@ type ReceiptSectionProps = {
 function ReceiptSection({
     policy,
     shouldDisplayReceipt,
-    receiptPath,
-    receiptFilename,
+    receiptPath = '',
+    receiptFilename = '',
     onPDFLoadError,
     onPDFPassword,
     showMoreFields = false,
