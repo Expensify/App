@@ -484,6 +484,40 @@ function ReportFetchHandler() {
         updateLoadingInitialReportAction(reportIDFromRoute, true);
     }, [reportIDFromRoute, reportLoadingState.hasOnceLoadedReportActions]);
 
+    // `hasOnceLoadedReportActions` is memory-only too, so "Clear cache and restart" drops it underneath an
+    // already-mounted report screen. Nothing re-fetches in that case - the fetch effect below only re-runs on a
+    // route change - so the effect above would re-arm `isLoadingInitialReportActions` for a load that is never
+    // issued, pinning every consumer of the flag (e.g. the report preview carousel) on a spinner forever.
+    // Re-fetch when the stamp is lost so the flag can settle again. See issue #100524.
+    //
+    // This is deliberately gated on losing a stamp we previously had rather than on the flag simply being falsy,
+    // so a normal report open does not double up on the fetch effect below. The lost stamp is latched by reportID
+    // because the wipe can land while the screen is blurred, offline or in a preloaded tab, and because this screen
+    // can be re-parameterized to a different report without unmounting.
+    const prevHasOnceLoadedReportActions = usePrevious(reportLoadingState.hasOnceLoadedReportActions);
+    const reportIDWithLostLoadedStampRef = useRef<string | undefined>(undefined);
+    useEffect(() => {
+        if (reportLoadingState.hasOnceLoadedReportActions) {
+            if (reportIDWithLostLoadedStampRef.current === reportIDFromRoute) {
+                reportIDWithLostLoadedStampRef.current = undefined;
+            }
+            return;
+        }
+
+        if (prevHasOnceLoadedReportActions) {
+            reportIDWithLostLoadedStampRef.current = reportIDFromRoute;
+        }
+
+        // Held while the Inbox tab is merely preloaded, like every other fetch here: OpenReport would mark a report
+        // the user has never opened as read. The latch survives the bail, so opening the tab re-runs this effect and
+        // the fetch is deferred rather than lost.
+        if (reportIDWithLostLoadedStampRef.current !== reportIDFromRoute || !isFocused || isOffline || isInPreloadedTab) {
+            return;
+        }
+        reportIDWithLostLoadedStampRef.current = undefined;
+        fetchReport();
+    }, [reportIDFromRoute, reportLoadingState.hasOnceLoadedReportActions, prevHasOnceLoadedReportActions, isFocused, isOffline, isInPreloadedTab]);
+
     // isLoadingInitialReportActions only clears via OpenReport's success/failure Onyx update (no client timeout), so
     // a reconciliation stall that pauses the queue before that response arrives leaves the skeleton stuck with
     // nothing else to log it. See Expensify#667674.
