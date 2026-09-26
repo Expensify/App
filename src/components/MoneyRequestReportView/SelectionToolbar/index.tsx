@@ -22,6 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissRejectUseExplanation} from '@libs/actions/IOU/RejectMoneyRequest';
 import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isEveryReportTransactionSelected, isSelectableReportTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -86,6 +87,8 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK> | null>(null);
 
     const transactionsWithoutPendingDelete = transactions.filter((t) => !isTransactionPendingDelete(t));
+    // Select All answers from the rule the list's own Select All and its group headers use, or it checks a row they cannot uncheck.
+    const selectableTransactions = transactions.filter(isSelectableReportTransaction);
 
     const beginExportWithTemplate = (templateName: string, templateType: string, transactionIDList: string[], exportName: string) => {
         if (isOffline) {
@@ -233,7 +236,8 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
     };
 
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
-    const isSelectAllChecked = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length;
+    // The rule the report-level actions answer from, so this checkbox cannot read fully checked while they are withheld.
+    const isSelectAllChecked = isEveryReportTransactionSelected(transactions, selectedTransactionIDs);
 
     return (
         <>
@@ -270,9 +274,9 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
                         <SelectAllCheckbox
                             isSelectAllChecked={isSelectAllChecked}
-                            isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
+                            isIndeterminate={selectedTransactionIDs.length > 0 && !isSelectAllChecked}
                             hasAnySelected={selectedTransactionIDs.length > 0}
-                            onSelectAll={() => setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID))}
+                            onSelectAll={() => setSelectedTransactions(selectableTransactions.map((t) => t.transactionID))}
                             onClearAll={() => clearSelectedTransactions(true)}
                         />
                     </View>

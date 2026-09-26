@@ -853,9 +853,6 @@ function getTransactionItemCommonFormattedProperties(
     };
 }
 
-/**
- * @private
- */
 function isReportEntry(key: string): key is ReportKey {
     return key.startsWith(ONYXKEYS.COLLECTION.REPORT);
 }
@@ -878,9 +875,6 @@ function isReportActionEntry(key: string): key is ReportActionKey {
     return key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 }
 
-/**
- * @private
- */
 function isTransactionEntry(key: string): key is TransactionKey {
     return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
 }
@@ -7255,6 +7249,8 @@ export {
     isTransactionQuarterGroupListItemType,
     isGroupedItemArray,
     isGroupEntry,
+    isReportEntry,
+    isTransactionEntry,
     isSearchResultsEmpty,
     isTransactionListItemType,
     isReportActionListItemType,

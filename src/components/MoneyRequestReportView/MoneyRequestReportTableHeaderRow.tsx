@@ -1,6 +1,6 @@
 import Checkbox from '@components/Checkbox';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SearchSortBy, SortOrder, TableColumnSize} from '@components/Search/types';
 import Text from '@components/Text';
 
@@ -12,11 +12,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {SortableColumnName} from '@libs/ReportUtils';
 import {hasFlexColumn} from '@libs/SearchUIUtils';
-import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
-import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import React from 'react';
@@ -25,8 +23,11 @@ import {View} from 'react-native';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 
 type MoneyRequestReportTableHeaderRowProps = {
-    /** List of transactions belonging to one report */
-    transactions: OnyxTypes.Transaction[];
+    /** The rows Select All covers, from the list that writes them, so the checkbox and the press cannot answer from two lists */
+    selectableTransactionIDs: string[];
+
+    /** Select All: the list decides whether that selects every row it can or clears the selection */
+    onToggleAll: () => void;
 
     /** The report's offline pending action, shown as feedback on the whole row */
     pendingAction: PendingAction | undefined;
@@ -63,7 +64,8 @@ type MoneyRequestReportTableHeaderRowProps = {
  * The transaction table's header row: the select-all checkbox plus the sortable column headers.
  */
 function MoneyRequestReportTableHeaderRow({
-    transactions,
+    selectableTransactionIDs,
+    onToggleAll,
     pendingAction,
     columns,
     sortBy,
@@ -81,10 +83,10 @@ function MoneyRequestReportTableHeaderRow({
     const {isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const {selectedTransactionIDs} = useSearchSelectionContext();
-    const {setSelectedTransactions, clearSelectedTransactions} = useSearchSelectionActions();
+    const selectedTransactionIDSet = new Set(selectedTransactionIDs);
+    const isSelectAllChecked = selectableTransactionIDs.length > 0 && selectableTransactionIDs.every((transactionID) => selectedTransactionIDSet.has(transactionID));
 
     const isDesktopTableLayout = !shouldUseNarrowLayout;
-    const transactionsWithoutPendingDelete = transactions.filter((t) => !isTransactionPendingDelete(t));
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
@@ -111,16 +113,10 @@ function MoneyRequestReportTableHeaderRow({
                     ]}
                 >
                     <Checkbox
-                        onPress={() => {
-                            if (selectedTransactionIDs.length !== 0) {
-                                clearSelectedTransactions(true);
-                            } else {
-                                setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
-                            }
-                        }}
+                        onPress={onToggleAll}
                         accessibilityLabel={translate('accessibilityHints.selectAllTransactions')}
-                        isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
-                        isChecked={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length}
+                        isIndeterminate={selectedTransactionIDs.length > 0 && !isSelectAllChecked}
+                        isChecked={isSelectAllChecked}
                         containerStyle={isDesktopTableLayout && styles.m0}
                         style={isDesktopTableLayout && styles.mr3}
                     />

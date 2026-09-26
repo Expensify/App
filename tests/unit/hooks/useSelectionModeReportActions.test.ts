@@ -9,6 +9,7 @@ import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPop
 import useSelectionModeReportActions from '@hooks/useSelectionModeReportActions';
 
 import {submitReport} from '@libs/actions/IOU/ReportWorkflow';
+import type * as MoneyRequestReportUtils from '@libs/MoneyRequestReportUtils';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {
     getNextApproverAccountID,
@@ -292,6 +293,7 @@ jest.mock('@libs/ReportActionsUtils', () => ({
 }));
 
 jest.mock('@libs/MoneyRequestReportUtils', () => ({
+    ...jest.requireActual<typeof MoneyRequestReportUtils>('@libs/MoneyRequestReportUtils'),
     __esModule: true,
     getTotalAmountForIOUReportPreviewButton: jest.fn(() => '$100.00'),
 }));
@@ -309,6 +311,7 @@ jest.mock('@libs/TransactionUtils', () => ({
     isExpensifyCardTransaction: jest.fn(() => false),
     isPending: jest.fn(() => false),
     getReimbursable: jest.fn(() => true),
+    isTransactionPendingDelete: jest.fn(() => false),
 }));
 
 jest.mock('@userActions/Transaction', () => ({
@@ -442,6 +445,20 @@ describe('useSelectionModeReportActions', () => {
             });
 
             expect(result.current.allExpensesSelected).toBe(false);
+        });
+
+        it('returns true when Select All has written every row it can, leaving only an expense the backend refused to reject', () => {
+            // Given a report whose third expense carries a refused reject, which keeps it on the report until the user dismisses it
+            const transactions = [buildTransaction(1), buildTransaction(2), buildTransaction(3, {errorFields: {reject: {1700000000000: 'iou.rejectReport.couldNotRejectExpense'}}})];
+
+            // When Select All writes the two rows a checkbox can reach
+            const {result} = renderSelectionModeHook({
+                transactions,
+                selectedTransactionIDs: ['1', '2'],
+            });
+
+            // Then the report counts as covered, or Submit, Approve and Pay stay hidden for as long as that error stands
+            expect(result.current.allExpensesSelected).toBe(true);
         });
 
         it('returns false when no transactions are selected', () => {

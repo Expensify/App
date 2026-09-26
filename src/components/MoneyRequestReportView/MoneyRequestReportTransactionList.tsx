@@ -15,10 +15,11 @@ import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isSelectableReportTransaction} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getMoneyRequestSpendBreakdown, getReportOfflinePendingActionAndErrors, isExpenseReport, isIOUReport} from '@libs/ReportUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
-import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {getTransactionPendingAction} from '@libs/TransactionUtils';
 
 import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperWideRHP';
 import Navigation from '@navigation/Navigation';
@@ -56,6 +57,7 @@ import useMoneyRequestReportColumns from './useMoneyRequestReportColumns';
 import useMoneyRequestReportGroupedTransactions from './useMoneyRequestReportGroupedTransactions';
 import useMoneyRequestReportLayout from './useMoneyRequestReportLayout';
 import useMoneyRequestReportSortedTransactions, {EMPTY_VIOLATIONS} from './useMoneyRequestReportSortedTransactions';
+import useReportTransactionShiftRange from './useReportTransactionShiftRange';
 
 /**
  * Bundle of data + JSX nodes the parent needs to render the unified list around the transaction-list state.
@@ -229,19 +231,6 @@ function MoneyRequestReportTransactionList({
     useHandleSelectionMode(selectedTransactionIDs);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
-    const toggleTransaction = useCallback(
-        (transactionID: string) => {
-            let newSelectedTransactionIDs = selectedTransactionIDs;
-            if (selectedTransactionIDs.includes(transactionID)) {
-                newSelectedTransactionIDs = selectedTransactionIDs.filter((t) => t !== transactionID);
-            } else {
-                newSelectedTransactionIDs = [...selectedTransactionIDs, transactionID];
-            }
-            setSelectedTransactions(newSelectedTransactionIDs);
-        },
-        [setSelectedTransactions, selectedTransactionIDs],
-    );
-
     const isTransactionSelected = useCallback((transactionID: string) => selectedTransactionIDs.includes(transactionID), [selectedTransactionIDs]);
 
     useFocusEffect(
@@ -296,9 +285,7 @@ function MoneyRequestReportTransactionList({
 
     useEffect(() => {
         clearSelectedTransactions(true);
-        // We don't want to run the effect on change of clearSelectedTransactions since it can cause an infinite loop.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportID]);
+    }, [reportID, clearSelectedTransactions]);
 
     const {sortBy, sortOrder, onSortPress, sortedTransactions, resolvedTransactions, highlightedTransactionIDs, transactionThreadReportIDByTransactionID, violationsByTransactionID} =
         useMoneyRequestReportSortedTransactions({
@@ -316,7 +303,7 @@ function MoneyRequestReportTransactionList({
 
     const {currentSelection, currentGroupBy, shouldGroupTransactions, selectLayout} = useMoneyRequestReportLayout(shouldShowGroupedTransactions);
 
-    const {groupedTransactions, listItems, visualOrderTransactionIDs, lastTransactionID} = useMoneyRequestReportGroupedTransactions({
+    const {groupedTransactions, listItems, visualOrderTransactions, visualOrderTransactionIDs, lastTransactionID} = useMoneyRequestReportGroupedTransactions({
         reportCurrency: report.currency ?? '',
         sortedTransactions,
         resolvedTransactions,
@@ -326,11 +313,22 @@ function MoneyRequestReportTransactionList({
     });
     useMoneyRequestReportActiveTransactionIDs(visualOrderTransactionIDs);
 
+    // Narrower than the carousel's rows: a rejected expense renders and navigates but no checkbox can hold it.
+    const selectableTransactionIDs = visualOrderTransactions.filter(isSelectableReportTransaction).map((transaction) => transaction.transactionID);
+
+    const {toggleTransaction, toggleGroup, toggleAll} = useReportTransactionShiftRange({
+        reportID,
+        transactions: visualOrderTransactions,
+        selectedTransactionIDs,
+        setSelectedTransactions,
+        clearSelectedTransactions,
+    });
+
     const groupSelectionState = useMemo(() => {
         const state = new Map<string, {isSelected: boolean; isIndeterminate: boolean; isDisabled: boolean; pendingAction?: PendingAction}>();
 
         for (const group of groupedTransactions) {
-            const groupTransactionIDs = group.transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID);
+            const groupTransactionIDs = group.transactions.filter(isSelectableReportTransaction).map((t) => t.transactionID);
             const groupPendingAction = group.transactions.some((t) => getTransactionPendingAction(t)) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined;
 
             if (groupTransactionIDs.length === 0) {
@@ -356,18 +354,9 @@ function MoneyRequestReportTransactionList({
             if (!group) {
                 return;
             }
-            const groupTransactionIDs = group.transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID);
-            const anySelected = groupTransactionIDs.some((id) => selectedTransactionIDs.includes(id));
-
-            let newSelectedTransactionIDs = selectedTransactionIDs;
-            if (anySelected) {
-                newSelectedTransactionIDs = selectedTransactionIDs.filter((id) => !groupTransactionIDs.includes(id));
-            } else {
-                newSelectedTransactionIDs = [...selectedTransactionIDs, ...groupTransactionIDs];
-            }
-            setSelectedTransactions(newSelectedTransactionIDs);
+            toggleGroup(group.transactions.filter(isSelectableReportTransaction).map((t) => t.transactionID));
         },
-        [groupedTransactions, selectedTransactionIDs, setSelectedTransactions],
+        [groupedTransactions, toggleGroup],
     );
 
     /**
@@ -538,7 +527,8 @@ function MoneyRequestReportTransactionList({
     const tableColumnHeader =
         isEmptyTransactions || shouldUseNarrowLayout ? null : (
             <MoneyRequestReportTableHeaderRow
-                transactions={transactions}
+                selectableTransactionIDs={selectableTransactionIDs}
+                onToggleAll={() => toggleAll(selectableTransactionIDs)}
                 pendingAction={reportPendingAction}
                 columns={columnsToShow}
                 sortBy={sortBy}

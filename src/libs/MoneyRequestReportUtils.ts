@@ -9,6 +9,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {getLatestErrorField} from './ErrorUtils';
 import {hasPendingSubmitWriteForReport} from './pendingSubmitWrite';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
@@ -25,6 +26,33 @@ import {
     isReportTransactionThread,
 } from './ReportUtils';
 import {getSupersededPendingCardTransactionIDs, isTransactionPendingDelete} from './TransactionUtils';
+
+/**
+ * The key of a reject the backend recorded against an expense it has already moved. It reports those under the
+ * expense's own `reject` field rather than the generic `errors`, and it is what disables the row.
+ */
+function getTransactionRejectErrorKey(transaction: OnyxEntry<Transaction>): string | undefined {
+    return Object.keys(getLatestErrorField(transaction, 'reject')).at(0);
+}
+
+/** The rows a click can select, which Select All and a range both have to reach or the three disagree about one row. */
+function isSelectableReportTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    return !isTransactionPendingDelete(transaction) && !getTransactionRejectErrorKey(transaction);
+}
+
+/**
+ * Whether a selection covers every row of the report it can reach, which is what the report-level actions are offered on.
+ * Asked of the rows Select All writes rather than of every row on the report: an expense the backend refused to reject
+ * stays on the report with an error to dismiss, and no checkbox can put it in the selection.
+ */
+function isEveryReportTransactionSelected(transactions: Transaction[], selectedTransactionIDs: string[]): boolean {
+    const selectableTransactions = transactions.filter(isSelectableReportTransaction);
+    if (selectedTransactionIDs.length === 0 || selectableTransactions.length === 0) {
+        return false;
+    }
+    const selectedTransactionIDSet = new Set(selectedTransactionIDs);
+    return selectableTransactions.every((transaction) => selectedTransactionIDSet.has(transaction.transactionID));
+}
 
 function isBillableEnabledOnPolicy(policy: Policy | OnyxEntry<Policy> | undefined): boolean {
     return !!policy && isPaidGroupPolicy(policy) && policy.disabledFields?.defaultBillable !== true;
@@ -227,4 +255,7 @@ export {
     shouldDisplayReportTableView,
     shouldWaitForTransactions,
     isBillableEnabledOnPolicy,
+    getTransactionRejectErrorKey,
+    isSelectableReportTransaction,
+    isEveryReportTransactionSelected,
 };
