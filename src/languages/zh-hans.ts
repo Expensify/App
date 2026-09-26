@@ -9481,7 +9481,11 @@ ${reportName}`,
             topMerchants: '热门商家',
             violationsBySubmitter: '提交人违规',
         },
-        mergeReports: {title: '合并报表', description: '选择要保留的报表。所有费用都将移入该报表，其他报表将被删除。'},
+        mergeReports: {
+            title: '合并报表',
+            description: '选择要保留的报表。所有费用都将移入该报表，其他报表将被删除。',
+            listPage: {noEligibleReportsFound: '未找到符合条件的报表', noEligibleReportsFoundSubtitle: '您没有任何可合并的报表。'},
+        },
         percentOfSpend: ({percent}: {percent: string}) => `${percent} 的支出`,
     },
     genericErrorPage: {

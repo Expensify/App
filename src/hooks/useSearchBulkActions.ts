@@ -2787,7 +2787,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 text: translate('search.mergeReports.title'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE_REPORTS,
                 shouldCloseModalOnSelect: true,
-                onSelected: () => Navigation.navigate(ROUTES.MERGE_REPORTS_SEARCH_RHP.getRoute()),
+                onSelected: () => Navigation.navigate(ROUTES.MERGE_REPORTS_SEARCH_RHP.getRoute(Navigation.getActiveRoute())),
             });
         }
 

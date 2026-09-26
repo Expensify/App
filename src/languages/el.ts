@@ -10129,6 +10129,7 @@ ${reportName}`,
         mergeReports: {
             title: 'Συγχώνευση αναφορών',
             description: 'Επιλέξτε την αναφορά που θέλετε να κρατήσετε. Όλες οι δαπάνες θα μετακινηθούν σε αυτήν και οι άλλες αναφορές θα διαγραφούν.',
+            listPage: {noEligibleReportsFound: 'Δεν βρέθηκαν κατάλληλες αναφορές', noEligibleReportsFoundSubtitle: 'Δεν έχετε καμία αναφορά που να μπορεί να συγχωνευθεί.'},
         },
         goTo: ({destination}: {destination: string}) => `Μετάβαση στο ${destination}`,
         mySavedSearch: 'Οι δαπάνες μου',

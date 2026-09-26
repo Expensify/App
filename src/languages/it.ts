@@ -9890,7 +9890,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             topMerchants: 'Principali esercenti',
             violationsBySubmitter: 'Violazioni da parte dell’autore dell’invio',
         },
-        mergeReports: {title: 'Unisci report', description: 'Seleziona il report da mantenere. Tutte le spese verranno spostate al suo interno e gli altri report verranno eliminati.'},
+        mergeReports: {
+            title: 'Unisci report',
+            description: 'Seleziona il report da mantenere. Tutte le spese verranno spostate al suo interno e gli altri report verranno eliminati.',
+            listPage: {noEligibleReportsFound: 'Nessun report idoneo trovato', noEligibleReportsFoundSubtitle: 'Non hai nessun report che possa essere unito.'},
+        },
         percentOfSpend: ({percent}: {percent: string}) => `${percent} della spesa`,
     },
     genericErrorPage: {

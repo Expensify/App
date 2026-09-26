@@ -9757,7 +9757,11 @@ ${reportName}`,
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Por favor, selecciona fechas para Desde y Hasta',
         },
-        mergeReports: {title: 'Combinar informes', description: 'Selecciona el informe que quieres conservar. Todos los gastos se moverán a él y los demás informes se eliminarán.'},
+        mergeReports: {
+            title: 'Combinar informes',
+            description: 'Selecciona el informe que quieres conservar. Todos los gastos se moverán a él y los demás informes se eliminarán.',
+            listPage: {noEligibleReportsFound: 'No se encontraron informes aptos', noEligibleReportsFoundSubtitle: 'No tienes ningún informe que se pueda combinar.'},
+        },
         percentOfSpend: ({percent}: {percent: string}) => `${percent} del gasto`,
     },
     genericErrorPage: {

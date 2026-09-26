@@ -10118,6 +10118,10 @@ const translations = {
         mergeReports: {
             title: 'Merge reports',
             description: 'Select the report to keep. All expenses will be moved into it and the other reports will be deleted.',
+            listPage: {
+                noEligibleReportsFound: 'No eligible reports found',
+                noEligibleReportsFoundSubtitle: "You don't have any reports that can be merged.",
+            },
         },
     },
     genericErrorPage: {

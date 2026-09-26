@@ -37,12 +37,14 @@ function ExpenseReportListItemRowNarrow({item, onCheckboxPress = () => {}, canSe
             )}
             <View style={[styles.flexColumn, styles.gap1, styles.flex1]}>
                 <View style={[styles.flexRow, styles.gap2]}>
-                    <Text
-                        numberOfLines={2}
-                        style={[styles.lh20, styles.flex1]}
-                    >
-                        {item.reportName ?? ''}
-                    </Text>
+                    <View style={styles.flex1}>
+                        <Text
+                            numberOfLines={2}
+                            style={[styles.lh20, styles.flex1]}
+                        >
+                            {item.reportName ?? ''}
+                        </Text>
+                    </View>
                     <Text style={[styles.lh20, styles.flexShrink0, styles.textAlignRight]}>{amountText}</Text>
                 </View>
                 <View style={[styles.flexRow, styles.gap2]}>
