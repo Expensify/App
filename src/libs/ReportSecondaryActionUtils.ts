@@ -843,7 +843,13 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
     return isMoneyRequestReportEligibleForMerge(parentReport.reportID, isAdmin, rules);
 }
 
-function isMergeActionForSelectedTransactions(transactions: Transaction[], reports: Report[], policies: Policy[], rules: OnyxCollection<Rule>, currentUserAccountID?: number) {
+function isMergeActionForSelectedTransactions(
+    transactions: Transaction[],
+    reports: Report[],
+    policies: Array<OnyxEntry<Policy>>,
+    rules: OnyxCollection<Rule>,
+    currentUserAccountID?: number,
+) {
     if ([transactions, reports, policies].some((collection) => collection?.length > 2)) {
         return false;
     }

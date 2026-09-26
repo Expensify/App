@@ -10042,6 +10042,113 @@ describe('actions/Report', () => {
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
         });
 
+        it('should mark optimistic transaction thread actions as loaded when requested', async () => {
+            const parentReport: OnyxTypes.Report = {
+                ...createRandomReport(600, undefined),
+                reportID: '600',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+            await waitForBatchedUpdates();
+
+            const reportAction: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(6),
+                reportActionID: 'action-6',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            };
+
+            const result = Report.createTransactionThreadReport({
+                introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
+                currentUserLogin: TEST_USER_LOGIN,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                iouReport: parentReport,
+                iouReportAction: reportAction,
+                hasOptimisticReportActions: true,
+            });
+            await waitForBatchedUpdates();
+
+            const loadingState = await getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${result?.reportID}`);
+
+            expect(loadingState?.hasOnceLoadedReportActions).toBe(true);
+            expect(loadingState?.isLoadingInitialReportActions).toBe(false);
+        });
+
+        it('should not pin an already-loaded report on the loading skeleton while offline', async () => {
+            // Given a transaction thread that already exists with its actions in Onyx. Merging into an expense that
+            // already has a thread skips createTransactionThreadReport, so nothing marks the thread as loaded.
+            const existingThread: OnyxTypes.Report = {
+                ...createRandomReport(900, undefined),
+                reportID: '900',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${existingThread.reportID}`, existingThread);
+            await waitForBatchedUpdates();
+
+            // When the report screen opens it while offline, so the OpenReport response never arrives
+            const mockFetchOffline = TestHelper.createGlobalFetchMock();
+            global.fetch = mockFetchOffline;
+            mockFetchOffline.pause();
+            setHasRadio(false);
+
+            Report.openReport({
+                reportID: existingThread.reportID,
+                introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
+                currentUserLogin: TEST_USER_LOGIN,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                hasReportActions: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Then it is not left loading, because isLoadingInitialReportActions only clears from that response
+            const loadingStateOffline = await getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${existingThread.reportID}`);
+
+            expect(loadingStateOffline?.isLoadingInitialReportActions).toBe(false);
+
+            setHasRadio(true);
+            await mockFetchOffline.resume();
+        });
+
+        it('should still show the loading state offline for a report with no actions yet', async () => {
+            // Given a report whose actions are not in Onyx, so there is nothing to render in place of the skeleton
+            const emptyReport: OnyxTypes.Report = {
+                ...createRandomReport(902, undefined),
+                reportID: '902',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${emptyReport.reportID}`, emptyReport);
+            await waitForBatchedUpdates();
+
+            // When the report screen opens it while offline
+            const mockFetchOffline = TestHelper.createGlobalFetchMock();
+            global.fetch = mockFetchOffline;
+            mockFetchOffline.pause();
+            setHasRadio(false);
+
+            Report.openReport({
+                reportID: emptyReport.reportID,
+                introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
+                currentUserLogin: TEST_USER_LOGIN,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                hasReportActions: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the loading state is kept, since showing an empty report would be worse than the skeleton
+            const loadingStateOffline = await getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${emptyReport.reportID}`);
+
+            expect(loadingStateOffline?.isLoadingInitialReportActions).toBe(true);
+
+            setHasRadio(true);
+            await mockFetchOffline.resume();
+        });
+
         it('threads the conciergeChat report into the guided setup data sent with OpenReport', async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
             const conciergeChat: OnyxTypes.Report = {...createRandomReport(777, undefined), reportID: 'concierge-thread-1'};
