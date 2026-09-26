@@ -478,6 +478,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'welcomeMessage':
         case 'origin':
         case 'originalID':
+        case 'conciergeFeedbackForReportActionID':
         case 'submitterUserID':
         case 'submitterPayrollID':
         case 'orderDealNumbers':
@@ -491,6 +492,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'hasParentAccess':
         case 'isDeletedParentAction':
         case 'isWaitingOnBankAccount':
+        case 'canCancelReimbursement':
         case 'hasReportBeenRetracted':
         case 'isCancelledIOU':
         case 'hasReportBeenReopened':
@@ -671,6 +673,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 reimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 unheldReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isWaitingOnBankAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                canCancelReimbursement: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isCancelledIOU: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasReportBeenRetracted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasReportBeenReopened: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -705,6 +708,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 transactionCount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 origin: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 originalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                conciergeFeedbackForReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
         case 'expensify_text_title':
             return validateObject<ObjectElement<ReportNameValuePairs, 'expensify_text_title'>>(value, {
@@ -1526,6 +1530,7 @@ function getReasonForShowingRowInLHN({
     currentUserAccountID,
     conciergeReportID,
     hasGuidesEmails,
+    derivedIsEmptyReport,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -1539,6 +1544,7 @@ function getReasonForShowingRowInLHN({
     currentUserAccountID?: number;
     hasGuidesEmails: boolean;
     conciergeReportID: string | undefined;
+    derivedIsEmptyReport: boolean | undefined;
 }): TranslationPaths | null {
     if (!report) {
         return null;
@@ -1559,6 +1565,7 @@ function getReasonForShowingRowInLHN({
         currentUserLogin,
         currentUserAccountID,
         conciergeReportID,
+        derivedIsEmptyReport,
         hasGuidesEmails,
     });
 

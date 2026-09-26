@@ -82,7 +82,6 @@ function MoneyRequestReportPreview({
     const personalDetailsList = usePersonalDetails();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
@@ -259,7 +258,6 @@ function MoneyRequestReportPreview({
                         conciergeChat,
                         currentUserLogin: currentUserEmail ?? '',
                         currentUserAccountID,
-                        betas,
                         iouReport,
                         iouReportAction: transactionIOUAction,
                         personalDetails: personalDetailsList,
@@ -268,7 +266,7 @@ function MoneyRequestReportPreview({
             }
             return childReportID;
         },
-        [betas, conciergeChat, currentUserAccountID, currentUserEmail, introSelected, iouReport, personalDetailsList, policyID],
+        [conciergeChat, currentUserAccountID, currentUserEmail, introSelected, iouReport, personalDetailsList, policyID],
     );
 
     // `routeAtPress` is captured when the user pressed, not read live: a second press inside the cascade window
@@ -379,7 +377,7 @@ function MoneyRequestReportPreview({
                         openReportFromPreview();
                         return;
                     }
-                    openReport({reportID: iouReportID, introSelected, conciergeChat, betas, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
+                    openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
                 }
                 navigateToExpense(childReportID, routeAtPress);
                 return;
@@ -387,14 +385,13 @@ function MoneyRequestReportPreview({
 
             if (!isIOUActionLoaded && iouReportID && !isOffline) {
                 pendingExpenseTransactionRef.current = {transaction, originRoute: routeAtPress};
-                openReport({reportID: iouReportID, introSelected, conciergeChat, betas, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
+                openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
                 return;
             }
 
             openReportFromPreview();
         },
         [
-            betas,
             conciergeChat,
             currentUserAccountID,
             hasIOUReportActions,

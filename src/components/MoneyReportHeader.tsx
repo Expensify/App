@@ -24,7 +24,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useRoute} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 
@@ -117,7 +117,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     const styles = useThemeStyles();
 
-    const {isWideRHPDisplayedOnWideLayout, isSuperWideRHPDisplayedOnWideLayout} = useResponsiveLayoutOnWideRHP();
+    const {isWideRHPDisplayedOnWideLayout, isSuperWideRHPDisplayedOnWideLayout, shouldUseNarrowLayout: shouldUseNarrowLayoutOnWideRHP} = useResponsiveLayoutOnWideRHP();
 
     const shouldShowHeaderButtonsInHeaderRow = isInLandscapeMode || !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
 
@@ -142,6 +142,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const isFocused = useIsFocused();
 
     useEffect(() => {
         return () => {
@@ -149,22 +150,28 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         };
     }, []);
 
-    if (isMobileSelectionModeEnabled && shouldUseNarrowLayout) {
-        // If mobile selection mode is enabled but only one or no transactions remain, turn it off
+    if (isMobileSelectionModeEnabled && shouldUseNarrowLayout && isFocused) {
+        // If mobile selection mode is enabled but only one or no transactions remain, turn it off. The selection mode
+        // is shared with every screen, so this report only gets to turn it off while it is the focused one. Another
+        // screen on top of it, such as the add existing expense modal, owns the mode for as long as it is open.
         const visibleTransactions = transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
         if (visibleTransactions.length <= 1) {
             turnOffMobileSelectionMode();
         }
 
-        return (
-            <HeaderWithBackButton
-                title={translate('common.selectMultiple')}
-                onBackButtonPress={() => {
-                    clearSelectedTransactions(true);
-                    turnOffMobileSelectionMode();
-                }}
-            />
-        );
+        // In a wide/super-wide RHP on a wide screen the header stays in its wide state and shows the "X selected"
+        // dropdown instead, matching the transaction list and the selection toolbar which are both wide-RHP aware.
+        if (shouldUseNarrowLayoutOnWideRHP) {
+            return (
+                <HeaderWithBackButton
+                    title={translate('common.selectMultiple')}
+                    onBackButtonPress={() => {
+                        clearSelectedTransactions(true);
+                        turnOffMobileSelectionMode();
+                    }}
+                />
+            );
+        }
     }
 
     return (

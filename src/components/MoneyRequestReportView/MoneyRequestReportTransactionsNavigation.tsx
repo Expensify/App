@@ -91,7 +91,6 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     // Values required to create a transaction thread on the fly when paging onto an expense that has no thread yet.
     const {accountID, email} = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
@@ -225,7 +224,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         }
         pendingSiblingRef.current = {transactionID, originRoute: Navigation.getActiveRoute()};
         // Always true here: we are fetching this report's actions, so it must not overwrite its cached name.
-        openReport({reportID: parentReportID, introSelected, conciergeChat, betas, currentUserAccountID: accountID, hasReportActions: true});
+        openReport({reportID: parentReportID, introSelected, conciergeChat, currentUserAccountID: accountID, hasReportActions: true});
         return true;
     };
 
@@ -242,7 +241,6 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const resolveContext = {
         introSelected,
         conciergeChat,
-        betas,
         currentUserEmail: email,
         currentUserAccountID: accountID,
         personalDetails,

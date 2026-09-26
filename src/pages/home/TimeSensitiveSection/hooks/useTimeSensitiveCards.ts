@@ -2,19 +2,17 @@ import useOnyx from '@hooks/useOnyx';
 
 import {
     isActionableVirtualExpensifyCard,
-    isCard,
+    isActiveExpensifyCard,
     isCardPendingActivate,
     isCardPendingDigitalWalletApproval,
     isCardPendingIssue,
     isCardPendingReplace,
     isCardWithCustomZeroLimit,
     isCardWithPotentialFraud,
-    isExpensifyCard,
 } from '@libs/CardUtils';
 import {areAddressAndPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getUnresolvedCardFraudAlertAction} from '@libs/ReportUtils';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
 
@@ -32,14 +30,11 @@ function useTimeSensitiveCards() {
     const cardsWithFraud: Card[] = [];
     const virtualCardsNeedingPersonalDetails: Card[] = [];
     const cardsPendingDigitalWalletApproval: Card[] = [];
-    let hasActiveExpensifyCard = false;
 
     for (const card of Object.values(cards ?? {})) {
-        if (!isCard(card) || !isExpensifyCard(card) || !CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state)) {
+        if (!isActiveExpensifyCard(card)) {
             continue;
         }
-
-        hasActiveExpensifyCard = true;
 
         if (isCardPendingDigitalWalletApproval(card)) {
             cardsPendingDigitalWalletApproval.push(card);
@@ -90,7 +85,6 @@ function useTimeSensitiveCards() {
         shouldShowReviewCardFraud,
         shouldShowAddVirtualCardPersonalDetails,
         shouldShowConfirmDigitalWalletAddition,
-        hasActiveExpensifyCard,
         cardsNeedingShippingAddress,
         cardsNeedingActivation,
         cardsWithFraud,

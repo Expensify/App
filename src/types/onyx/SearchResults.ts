@@ -141,6 +141,9 @@ type SearchGroupBase = {
     /** Currency of total value */
     currency: string;
 
+    /** The group's share of `search.total` in percentage points */
+    percentOfTotal?: number;
+
     /** Set to `delete` while every expense in the group is being deleted, so the row can leave the list before the next Search response drops the group */
     pendingAction?: PendingAction;
 };
@@ -231,6 +234,12 @@ type SearchTagGroup = SearchGroupBase & {
     tag: string;
 };
 
+/** Model of day grouped search result */
+type SearchDayGroup = SearchGroupBase & {
+    /** Date in YYYY-MM-DD format */
+    day: string;
+};
+
 /** Model of month grouped search result */
 type SearchMonthGroup = SearchGroupBase & {
     /** Year */
@@ -278,6 +287,7 @@ type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTIO
         | SearchCategoryGroup
         | SearchMerchantGroup
         | SearchTagGroup
+        | SearchDayGroup
         | SearchMonthGroup
         | SearchWeekGroup
         | SearchYearGroup
@@ -312,6 +322,7 @@ export type {
     SearchCategoryGroup,
     SearchMerchantGroup,
     SearchTagGroup,
+    SearchDayGroup,
     SearchMonthGroup,
     SearchWeekGroup,
     SearchYearGroup,

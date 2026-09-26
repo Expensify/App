@@ -509,7 +509,7 @@ const config = defineConfig([
 
     // Rspack loaders receive their `this` from the bundler, and it's standard practice to use it
     {
-        files: ['config/rsbuild/loaders/*-loader.mjs'],
+        files: ['config/rsbuild/loaders/*-loader.mjs', 'config/repack/*-loader.mjs'],
         rules: {
             'no-invalid-this': 'off',
         },
@@ -664,7 +664,7 @@ const config = defineConfig([
             'src/libs/PersonalDetailsStore.ts',
             'src/libs/PersonalDetailsUtils.ts',
             'src/components/OnyxListItemProvider.tsx',
-            'src/libs/ExportOnyxState/common.ts',
+            'src/libs/ExportOnyxState/masking.ts',
             'tests/**/*.{ts,tsx}',
             'jest/**/*.{ts,tsx}',
             '__mocks__/**/*.{ts,tsx}',

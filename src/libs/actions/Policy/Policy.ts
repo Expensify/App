@@ -1,5 +1,6 @@
 import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type PolicyData from '@hooks/usePolicyData/types';
@@ -95,7 +96,14 @@ import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {getCustomUnitsForDuplication, getMemberAccountIDsForWorkspace, goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
+import {
+    getCustomUnitsForDuplication,
+    getMemberAccountIDsForWorkspace,
+    getOwnerChangePayerSuccessData,
+    goBackWhenEnableFeature,
+    isControlPolicy,
+    navigateToExpensifyCardPage,
+} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {getNegatedAmountTransaction} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
@@ -115,7 +123,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicySelector} from '@src/selectors/Policy';
 import type {
     BankAccountList,
-    Beta,
     CardFeeds,
     DuplicateWorkspace,
     IntroSelected,
@@ -232,6 +239,7 @@ type CreateWorkspaceFromIOUPaymentOptions = {
     reportActionsList: OnyxCollection<ReportActions>;
     doesEmployeePersonalDetailExist: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    reportTransactions: Transaction[];
     /** Whether the current user already owns a paid workspace. CreatePolicy leaves the #admins room unpinned when they do. */
     hasOwnedPaidPolicy: boolean;
 };
@@ -288,7 +296,6 @@ type BuildPolicyDataOptions = {
     delegateAccountID: number | undefined;
     /** Whether the current user already owns a paid workspace. CreatePolicy leaves the #admins room unpinned when they do. */
     hasOwnedPaidPolicy: boolean | undefined;
-    betas?: OnyxEntry<Beta[]>;
     personalTrackGoal?: string;
 };
 
@@ -308,6 +315,7 @@ type DuplicatePolicyDataOptions = {
     file?: File | CustomRNImageManipulatorResult;
     policyCategories?: PolicyCategories;
     localCurrency: string;
+    personalDetailsByLogins?: PersonalDetailsByLogin;
 };
 
 type SetWorkspaceReimbursementActionParams = {
@@ -1573,7 +1581,7 @@ function leaveWorkspace(currentUserAccountID: number, currentUserEmail: string, 
 }
 
 function addBillingCardAndRequestPolicyOwnerChange(
-    policyID: string | undefined,
+    policy: OnyxEntry<Policy>,
     currentUserAccountID: number,
     currentUserEmail: string,
     cardData: {
@@ -1586,6 +1594,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
         currency: string;
     },
 ) {
+    const policyID = policy?.id;
     if (!policyID) {
         return;
     }
@@ -1615,6 +1624,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
                 isChangeOwnerFailed: false,
                 owner: currentUserEmail,
                 ownerAccountID: currentUserAccountID,
+                ...getOwnerChangePayerSuccessData(policy, currentUserEmail),
             },
         },
     ];
@@ -1663,7 +1673,12 @@ function addBillingCardAndRequestPolicyOwnerChange(
  * Properly updates the nvp_privateStripeCustomerID onyx data for 3DS payment
  *
  */
-function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string, currentUserAccountID: number, currentUserEmail: string) {
+function verifySetupIntentAndRequestPolicyOwnerChange(policy: OnyxEntry<Policy>, currentUserAccountID: number, currentUserEmail: string) {
+    const policyID = policy?.id;
+    if (!policyID) {
+        return;
+    }
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1687,6 +1702,7 @@ function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string, currentU
                 isChangeOwnerFailed: false,
                 owner: currentUserEmail,
                 ownerAccountID: currentUserAccountID,
+                ...getOwnerChangePayerSuccessData(policy, currentUserEmail),
             },
         },
     ];
@@ -3577,6 +3593,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         localCurrency,
         currentUserAccountID,
         currentUserEmail,
+        personalDetailsByLogins,
     } = options;
 
     const {
@@ -3596,7 +3613,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
 
     const outputCurrency = isOverviewOptionSelected && policy?.outputCurrency ? policy?.outputCurrency : localCurrency;
 
-    const policyMemberAccountIDs = isMemberOptionSelected ? Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false)) : [];
+    const policyMemberAccountIDs = isMemberOptionSelected ? Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, personalDetailsByLogins, false, false)) : [];
     const {customUnitID: distanceCustomUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(outputCurrency);
     const perDiemCustomUnitID = generateCustomUnitID();
 
@@ -4416,6 +4433,7 @@ function createWorkspaceFromIOUPayment({
     reportActionsList,
     doesEmployeePersonalDetailExist,
     getCurrencyDecimals,
+    reportTransactions,
     hasOwnedPaidPolicy,
 }: CreateWorkspaceFromIOUPaymentOptions): WorkspaceFromIOUCreationData | undefined {
     // This flow only works for IOU reports
@@ -4729,7 +4747,6 @@ function createWorkspaceFromIOUPayment({
         fieldList: newWorkspace.fieldList,
     };
 
-    const reportTransactions = ReportUtils.getReportTransactions(iouReportID);
     const transactionsRecord: Record<string, Transaction> = {};
     for (const transaction of reportTransactions) {
         if (transaction?.transactionID) {
