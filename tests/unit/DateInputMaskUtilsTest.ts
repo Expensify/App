@@ -56,14 +56,34 @@ describe('DateInputMaskUtils', () => {
             expect(typeDigitIntoSegments(segments('2026', '0', ''), 'month', '0')).toEqual({segments: segments('2026', '0', ''), nextSegmentName: undefined});
         });
 
-        it('caps the day at the longest month rather than the one that was typed', () => {
+        it('caps the day at the month that was typed', () => {
+            // Given January, which has a 31st
             expect(typeDigitIntoSegments(segments('2026', '01', '3'), 'day', '1')).toEqual({segments: segments('2026', '01', '31'), nextSegmentName: undefined});
 
-            // February has no 31st, but the field takes it and validation is what rejects the date
-            expect(typeDigitIntoSegments(segments('2026', '02', '3'), 'day', '1')).toEqual({segments: segments('2026', '02', '31'), nextSegmentName: undefined});
+            // Given February, which has no 31st, so the 3 can only have meant the 3rd
+            expect(typeDigitIntoSegments(segments('2026', '02', '3'), 'day', '1')).toEqual({segments: segments('2026', '02', '03'), nextSegmentName: undefined});
+        });
+
+        it('finishes the day early in a month too short to start it with a 3', () => {
+            // Given February, where no day starts with a 3, so a 3 completes the segment instead of waiting
+            expect(typeDigitIntoSegments(segments('2026', '02', ''), 'day', '3')).toEqual({segments: segments('2026', '02', '03'), nextSegmentName: undefined});
+
+            // Given March, which has a 31st, so the 3 waits for a digit that might complete it
+            expect(typeDigitIntoSegments(segments('2026', '03', ''), 'day', '3')).toEqual({segments: segments('2026', '03', '3'), nextSegmentName: undefined});
+        });
+
+        it('allows February 29 in a leap year and not otherwise', () => {
+            expect(typeDigitIntoSegments(segments('2024', '02', '2'), 'day', '9')).toEqual({segments: segments('2024', '02', '29'), nextSegmentName: undefined});
+            expect(typeDigitIntoSegments(segments('2026', '02', '2'), 'day', '9')).toEqual({segments: segments('2026', '02', '02'), nextSegmentName: undefined});
+        });
+
+        it('caps the day at the longest month while no month has been typed', () => {
+            // Given a day entered before a month, which cannot be held to a limit the user has not set yet
+            expect(typeDigitIntoSegments(segments('2026', '', '3'), 'day', '1')).toEqual({segments: segments('2026', '', '31'), nextSegmentName: undefined});
         });
 
         it('keeps a day the newly typed month cannot have, leaving it to validation', () => {
+            // Given a day typed before the month that rules it out, which the day's own limits never see
             expect(typeDigitIntoSegments(segments('2026', '1', '31'), 'month', '1').segments).toEqual(segments('2026', '11', '31'));
         });
 

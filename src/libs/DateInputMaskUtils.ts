@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 
 import type {TupleToUnion} from 'type-fest';
 
-import {isValid, parse} from 'date-fns';
+import {getDaysInMonth, isValid, parse} from 'date-fns';
 
 const DATE_SEGMENT_NAMES = ['year', 'month', 'day'] as const;
 
@@ -18,13 +18,15 @@ const FIRST_MONTH = 1;
 
 /**
  * The highest a segment may read, and the highest its leading digit may be while still allowing a second one. The day
- * is capped at the longest month rather than the one that has been typed, so an impossible date such as the 31st of
- * February can be entered and is then rejected by validation, rather than being silently corrected mid-keystroke.
+ * entry here is the longest month, which stands in until a month has been typed to say how long its own month is.
  */
 const SEGMENT_LIMITS = {
     month: {max: 12, maxLeadingDigit: 1},
     day: {max: 31, maxLeadingDigit: 3},
 } as const;
+
+/** Stands in for a year that is not finished, so February keeps its 29th until the year rules it out */
+const FALLBACK_LEAP_YEAR = 2024;
 
 /** Mask characters standing in for a digit are letters, so anything else is a separator to copy through verbatim */
 const MASK_LETTER_REGEX = /\p{L}/u;
@@ -134,11 +136,30 @@ type SegmentDigitResult = {
 };
 
 /**
+ * How high the day may go, and how high its leading digit may be, in the month that has been typed. Falling back to
+ * the longest month while no month has been typed is what keeps a day entered before a month from being held to a
+ * limit the user has not set yet.
+ */
+function getDayLimits(segments: DateSegments): {max: number; maxLeadingDigit: number} {
+    const monthNumber = Number(segments.month);
+
+    if (!segments.month || monthNumber < FIRST_MONTH || monthNumber > SEGMENT_LIMITS.month.max) {
+        return SEGMENT_LIMITS.day;
+    }
+
+    const year = segments.year.length === YEAR_LENGTH ? Number(segments.year) : FALLBACK_LEAP_YEAR;
+    const max = getDaysInMonth(new Date(year, monthNumber - 1, 1));
+
+    // A month of 28 or 29 days cannot start a day with a 3, since there is no 30th to complete it
+    return {max, maxLeadingDigit: Math.floor(max / 10)};
+}
+
+/**
  * Adds one typed digit to a single segment, without knowing about the others. A digit that cannot extend what is
  * already there is handed on rather than dropped, so typing 1 then 3 into the month reads as January and starts the
  * day off with the 3.
  */
-function typeDigitIntoOneSegment(name: DateSegmentName, typedSoFar: string, digit: string): SegmentDigitResult {
+function typeDigitIntoOneSegment(name: DateSegmentName, typedSoFar: string, digit: string, segments: DateSegments): SegmentDigitResult {
     const current = typedSoFar.length >= getSegmentLength(name) ? '' : typedSoFar;
 
     if (name === 'year') {
@@ -147,7 +168,7 @@ function typeDigitIntoOneSegment(name: DateSegmentName, typedSoFar: string, digi
         return {value: year, shouldAdvance: year.length === YEAR_LENGTH};
     }
 
-    const limits = SEGMENT_LIMITS[name];
+    const limits = name === 'day' ? getDayLimits(segments) : SEGMENT_LIMITS[name];
 
     if (current.length === 1) {
         const combined = `${current}${digit}`;
@@ -191,7 +212,7 @@ function typeDigitIntoSegments(
     let nextSegmentName: DateSegmentName | undefined;
 
     for (;;) {
-        const result = typeDigitIntoOneSegment(currentName, typedSoFar, currentDigit);
+        const result = typeDigitIntoOneSegment(currentName, typedSoFar, currentDigit, filled);
         filled[currentName] = result.value;
 
         const followingName = getFollowingSegmentName(currentName);

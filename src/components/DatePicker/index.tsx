@@ -54,7 +54,6 @@ function DatePicker({
     shouldDismissKeyboardBeforeShow = false,
     rightHandSideComponent,
     onPickerVisibilityChange,
-    onInvalidEntryChange,
     shouldHideCalendarIcon = false,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
@@ -246,11 +245,6 @@ function DatePicker({
     // Digits that do not add up to a date read as no date at all, so a form with no rule about this field would accept
     // the entry in silence.
     const invalidEntryError = segmentInput.hasInvalidEntry ? translate('common.error.dateInvalid') : undefined;
-
-    // The form is told separately, since the empty value it receives cannot tell a refused entry from a blank field
-    useEffect(() => {
-        onInvalidEntryChange?.(segmentInput.hasInvalidEntry);
-    }, [segmentInput.hasInvalidEntry, onInvalidEntryChange]);
     // Nullish coalescing would keep an empty errorText, which is a form reporting no error rather than an empty one
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const dateErrorText = errorText || invalidEntryError;
