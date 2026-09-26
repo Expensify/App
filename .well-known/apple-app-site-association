@@ -5,112 +5,53 @@
                 "appIDs": ["368M544MTT.com.chat.expensify.chat", "452835FXHF.com.expensify.expensifylite"],
                 "components": [
                     {
-                       "/": "/r/*",
-                       "comment": "Reports"
+                        "/": "/",
+                        "exclude": true,
+                        "comment": "Site root, opened in the browser from the app"
                     },
                     {
-                        "/": "/a/*",
-                        "comment": "Profile Page"
+                        "/": "/NewExpensify.dmg",
+                        "exclude": true,
+                        "comment": "Desktop app download, see CONST.PATHS_TO_TREAT_AS_EXTERNAL"
                     },
                     {
-                        "/": "/home/*",
-                        "comment": "Home Page"
+                        "/": "/docs/*",
+                        "exclude": true,
+                        "comment": "Storybook, see CONST.PATHS_TO_TREAT_AS_EXTERNAL"
                     },
                     {
-                        "/": "/workspaces/*",
-                        "comment": "Workspaces List Page"
+                        "/": "/pdfs/*",
+                        "exclude": true,
+                        "comment": "Static PDFs, e.g. the PDS and FSG paperwork"
                     },
                     {
-                        "/": "/settings/*",
-                        "comment": "Profile and app settings"
+                        "/": "/oauth/callback",
+                        "exclude": true,
+                        "comment": "Web Cloudflare Access sign-in callback, see CONST.CLOUDFLARE_ACCESS"
                     },
                     {
-                        "/": "/details/*",
-                        "comment": "Details of another users"
+                        "?": {"oauth_state_id": "?*"},
+                        "exclude": true,
+                        "comment": "Web Plaid OAuth return, the Plaid session lives in the browser tab"
                     },
                     {
-                        "/": "/v/*",
-                        "comment": "Account validation"
+                        "/": "/transition",
+                        "exclude": true,
+                        "comment": "Browser sign-in handoff (web SAML, Supportal, OldDot web), carries a short-lived auth token"
                     },
                     {
-                        "/": "/bank-account/*",
-                        "comment": "Bank account setup and its steps"
+                        "/": "/connection-complete",
+                        "exclude": true,
+                        "comment": "Final page of web accounting connection flows, native flows detect it in a WebView"
                     },
                     {
-                        "/": "/iou/*",
-                        "comment": "I Owe You reports"
+                        "/": "/bank-connection-complete",
+                        "exclude": true,
+                        "comment": "Final page of web bank connection flows, native flows detect it in a WebView"
                     },
                     {
-                        "/": "/enable-payments/*",
-                        "comment": "Payments setup"
-                    },
-                    {
-                        "/": "/partners/plaid/oauth_ios",
-                        "comment": "Plaid setup"
-                    },
-                    {
-                        "/": "/oauth/native-callback",
-                        "comment": "Native-only Cloudflare Access OAuth callback, no web route"
-                    },
-                    {
-                        "/": "/statements/*",
-                        "comment": "Wallet statements"
-                    },
-                    {
-                        "/": "/concierge/*",
-                        "comment": "Concierge"
-                    },
-                    {
-                        "/": "/split/*",
-                        "comment": "Split Expense"
-                    },
-                    {
-                        "/": "/submit/*",
-                        "comment": "Submit Expense"
-                    },
-                    {
-                        "/": "/request/*",
-                        "comment": "Submit Expense"
-                    },
-                    {
-                        "/": "/new/*",
-                        "comment": "New Chat"
-                    },
-                    {
-                        "/": "/workspace/*",
-                        "comment": "Workspace Details"
-                    },
-                    {
-                        "/": "/get-assistance/*",
-                        "comment": "Get Assistance Pages"
-                    },
-                    {
-                        "/": "/teachersunite/*",
-                        "comment": "Teachers Unite!"
-                    },
-                    {
-                        "/": "/search/*",
-                        "comment": "Search"
-                    },
-                    {
-                        "/": "/pay/*",
-                        "comment": "Pay someone"
-                    },
-                    {
-                        "/": "/send/*",
-                        "comment": "Pay someone"
-                    },
-                    {
-                        "/": "/money2020/*",
-                        "comment": "Money 2020"
-                    },
-                    {
-                        "/": "/track-expense/*",
-                        "comment": "Track Expense"
-                    },
-                    {
-                        "/": "/submit-expense/*",
-                        "comment": "Submit Expense"
+                        "/": "*",
+                        "comment": "Every other path on this domain"
                     }
                 ]
             }
