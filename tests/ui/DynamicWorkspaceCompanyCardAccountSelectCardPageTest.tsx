@@ -37,7 +37,7 @@ jest.mock(
 jest.mock('@pages/workspace/companyCards/utils', () => ({getExportMenuItem: jest.fn()}));
 jest.mock('@pages/workspace/accounting/utils', () => ({getCurrentAccountingIntegrationName: jest.fn(() => '')}));
 
-jest.mock('@hooks/useCardsList', () => jest.fn(() => [{'07': {}}]));
+jest.mock('@hooks/useCardsList', () => jest.fn(() => [Object.fromEntries([['07', {}]])]));
 jest.mock('@hooks/useCardFeeds', () => jest.fn(() => [undefined]));
 jest.mock('@hooks/usePolicy', () => jest.fn(() => ({})));
 jest.mock('@hooks/useWorkspaceAccountID', () => jest.fn(() => 1));
