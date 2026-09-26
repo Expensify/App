@@ -1418,3 +1418,93 @@ describe('isLookingAroundSearchRoutingActive', () => {
         expect(IOUUtils.isLookingAroundSearchRoutingActive(false, true)).toBe(false);
     });
 });
+
+describe('getDefaultReimbursableForPolicy', () => {
+    // These cases pin down what an ABSENT `defaultReimbursable` means at expense creation time. It has to
+    // agree with getCashExpenseReimbursableMode on the Rules page, otherwise the page claims a rule is
+    // enforced while newly created expenses quietly ignore it.
+    it('treats an absent defaultReimbursable as reimbursable', () => {
+        // Given a group policy that has no stored defaultReimbursable
+        const policy: Policy = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM), defaultReimbursable: undefined};
+
+        // When a new expense is created in its policy expense chat
+        const result = IOUUtils.getDefaultReimbursableForPolicy({policy, isPolicyExpenseChat: true, isCreatingTrackExpense: false});
+
+        // Then it defaults to reimbursable, which is what the backend assumes for an absent value
+        expect(result).toBe(true);
+    });
+
+    it('honors a locked non-reimbursable policy even when the participant is not flagged as a policy expense chat', () => {
+        // Given a workspace locked to "cash expenses are always non-reimbursable"
+        const policy: Policy = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM), defaultReimbursable: false, disabledFields: {reimbursable: true}};
+
+        // When a new expense is created without the policy-expense-chat flag
+        const result = IOUUtils.getDefaultReimbursableForPolicy({policy, isPolicyExpenseChat: false, isCreatingTrackExpense: false});
+
+        // Then the lock wins, because members have no way to correct the value afterwards
+        expect(result).toBe(false);
+    });
+
+    it('still reports reimbursable for a locked policy whose defaultReimbursable is absent', () => {
+        // Given a workspace with a locked reimbursable field but no stored default
+        const policy: Policy = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM), defaultReimbursable: undefined, disabledFields: {reimbursable: true}};
+
+        // When a new expense is created in its policy expense chat
+        const result = IOUUtils.getDefaultReimbursableForPolicy({policy, isPolicyExpenseChat: true, isCreatingTrackExpense: false});
+
+        // Then it is reimbursable - the same answer the Rules page now shows, instead of the two disagreeing
+        expect(result).toBe(true);
+    });
+
+    it('uses the stored default for an unlocked policy', () => {
+        // Given a workspace defaulting to non-reimbursable without locking the field
+        const policy: Policy = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM), defaultReimbursable: false, disabledFields: {reimbursable: false}};
+
+        // When a new expense is created in its policy expense chat
+        const result = IOUUtils.getDefaultReimbursableForPolicy({policy, isPolicyExpenseChat: true, isCreatingTrackExpense: false});
+
+        // Then the stored default applies
+        expect(result).toBe(false);
+    });
+
+    it('stays reimbursable for a P2P expense with no policy', () => {
+        // Given no policy at all, which is the P2P case
+        // When a new expense is created
+        const result = IOUUtils.getDefaultReimbursableForPolicy({policy: undefined, isPolicyExpenseChat: false, isCreatingTrackExpense: false});
+
+        // Then it is reimbursable, the long-standing behavior for P2P
+        expect(result).toBe(true);
+    });
+});
+
+describe('calculateDefaultReimbursable', () => {
+    it('applies a locked non-reimbursable workspace rule to a submitted expense', () => {
+        // Given a workspace locked to "cash expenses are always non-reimbursable"
+        const policy: Policy = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM), defaultReimbursable: false, disabledFields: {reimbursable: true}};
+
+        // When submitting a new expense to its policy expense chat
+        const result = IOUUtils.calculateDefaultReimbursable({
+            iouType: CONST.IOU.TYPE.SUBMIT,
+            policy,
+            participant: {isPolicyExpenseChat: true},
+        });
+
+        // Then the expense is created non-reimbursable
+        expect(result).toBe(false);
+    });
+
+    it('defaults to reimbursable when the workspace has no stored defaultReimbursable', () => {
+        // Given a workspace whose policy blob is missing defaultReimbursable
+        const policy: Policy = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM), defaultReimbursable: undefined};
+
+        // When submitting a new expense to its policy expense chat
+        const result = IOUUtils.calculateDefaultReimbursable({
+            iouType: CONST.IOU.TYPE.SUBMIT,
+            policy,
+            participant: {isPolicyExpenseChat: true},
+        });
+
+        // Then the expense is reimbursable
+        expect(result).toBe(true);
+    });
+});

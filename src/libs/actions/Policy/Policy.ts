@@ -6890,15 +6890,22 @@ function getCashExpenseReimbursableMode(policy: OnyxEntry<Policy>): PolicyCashEx
         return undefined;
     }
 
-    if (policy.defaultReimbursable && !policy.disabledFields?.reimbursable) {
+    // `defaultReimbursable` is optional on the policy blob. An absent value means "reimbursable",
+    // which is what the backend and the expense creation path both assume, so read it the same way
+    // here. Treating an absent value as `false` made this page claim "always non-reimbursable" on
+    // workspaces that actually create reimbursable expenses.
+    const defaultReimbursable = policy.defaultReimbursable ?? true;
+    const isReimbursableDisabled = !!policy.disabledFields?.reimbursable;
+
+    if (defaultReimbursable && !isReimbursableDisabled) {
         return CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.REIMBURSABLE_DEFAULT;
     }
 
-    if (!policy.disabledFields?.reimbursable && !policy.defaultReimbursable) {
+    if (!defaultReimbursable && !isReimbursableDisabled) {
         return CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.NON_REIMBURSABLE_DEFAULT;
     }
 
-    if (policy.defaultReimbursable && policy.disabledFields?.reimbursable) {
+    if (defaultReimbursable && isReimbursableDisabled) {
         return CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_REIMBURSABLE;
     }
 
