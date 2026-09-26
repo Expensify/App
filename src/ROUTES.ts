@@ -731,6 +731,10 @@ const DYNAMIC_ROUTES = {
         path: 'certinia/advanced',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],
     },
+    POLICY_ACCOUNTING_CERTINIA_FX_EXPENSE_ACCOUNT: {
+        path: 'certinia-fx-expense-account/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_ADVANCED],
+    },
     POLICY_ACCOUNTING_CERTINIA_REPORT_EXPORT_STATUS: {
         path: 'certinia-report-status/select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT],
@@ -1232,6 +1236,7 @@ const DYNAMIC_ROUTES = {
         path: 'workspace-tag-settings/:orderWeight/:tagName',
         entryScreens: [SCREENS.WORKSPACE.TAGS, SCREENS.WORKSPACE.DYNAMIC_TAG_LIST_VIEW],
         getRoute: (orderWeight: number, tagName: string) => `workspace-tag-settings/${orderWeight}/${encodeURIComponent(tagName)}`,
+        queryParams: ['parentTagsFilter'],
     },
     WORKSPACE_TAG_APPROVER: {
         path: 'workspace-tag-approver',
@@ -1455,6 +1460,7 @@ const DYNAMIC_ROUTES = {
         path: 'tag-settings/:orderWeight/:tagName',
         entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT, SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW],
         getRoute: (orderWeight: number, tagName: string) => `tag-settings/${orderWeight}/${encodeURIComponent(tagName)}`,
+        queryParams: ['parentTagsFilter'],
     },
     SETTINGS_TAGS_EDIT: {
         path: 'settings-tags-edit/:orderWeight',
@@ -2190,6 +2196,7 @@ const ROUTES = {
         },
     },
     CHANGE_APPROVER_ADD_APPROVER_SEARCH_RHP: 'search/change-approver/add',
+    CHANGE_APPROVER_REASSIGN_APPROVER_SEARCH_RHP: 'search/change-approver/reassign',
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
@@ -2732,6 +2739,10 @@ const ROUTES = {
     REPORT_CHANGE_APPROVER_ADD_APPROVER: {
         route: 'r/:reportID/change-approver/add',
         getRoute: (reportID: string) => `r/${reportID}/change-approver/add` as const,
+    },
+    REPORT_CHANGE_APPROVER_REASSIGN_APPROVER: {
+        route: 'r/:reportID/change-approver/reassign',
+        getRoute: (reportID: string) => `r/${reportID}/change-approver/reassign` as const,
     },
     REPORT_SETTINGS_COLUMNS: {
         route: 'r/:reportID/settings/columns',
@@ -3555,6 +3566,10 @@ const ROUTES = {
     WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS: {
         route: 'workspaces/:policyID/recruiting/merge/import-settings',
         getRoute: (policyID: string) => `workspaces/${policyID}/recruiting/merge/import-settings` as const,
+    },
+    WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS_FILTER: {
+        route: 'workspaces/:policyID/recruiting/merge/import-settings/:filterType',
+        getRoute: (policyID: string, filterType: ValueOf<typeof CONST.MERGE.ATS_FILTER_TYPE>) => `workspaces/${policyID}/recruiting/merge/import-settings/${filterType}` as const,
     },
     WORKSPACE_RECRUITING_MERGE_APPROVAL_MODE: {
         route: 'workspaces/:policyID/recruiting/merge/approval-mode',
@@ -4868,6 +4883,15 @@ const ROUTES = {
             return `workspaces/${policyID}/accounting/certinia/advanced` as const;
         },
     },
+    POLICY_ACCOUNTING_CERTINIA_FX_EXPENSE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/certinia/advanced/fx-expense-account',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_FX_EXPENSE_ACCOUNT route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/advanced/fx-expense-account` as const;
+        },
+    },
     POLICY_ACCOUNTING_CERTINIA_TAGS_MAPPING: {
         route: 'workspaces/:policyID/accounting/certinia/import/tags-mapping',
         getRoute: (policyID: string | undefined) => {
@@ -5059,6 +5083,26 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/campfire/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/import` as const,
     },
+    POLICY_ACCOUNTING_CAMPFIRE_EXPORT: {
+        route: 'workspaces/:policyID/accounting/campfire/export',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_PREFERRED_EXPORTER: {
+        route: 'workspaces/:policyID/accounting/campfire/export/preferred-exporter',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/preferred-exporter` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_VENDOR_BILL_DATE: {
+        route: 'workspaces/:policyID/accounting/campfire/export/vendor-bill-date',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/vendor-bill-date` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_DEFAULT_COMPANY_CARD_VENDOR: {
+        route: 'workspaces/:policyID/accounting/campfire/export/default-company-card-vendor',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/default-company-card-vendor` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_COMPANY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/campfire/export/company-card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/company-card-account` as const,
+    },
     POLICY_ACCOUNTING_BUSINESS_CENTRAL_PREREQUISITES: {
         route: 'workspaces/:policyID/accounting/business-central/prerequisites',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/prerequisites` as const,
@@ -5070,6 +5114,10 @@ const ROUTES = {
     POLICY_ACCOUNTING_BUSINESS_CENTRAL_COMPANY_SELECTOR: {
         route: 'workspaces/:policyID/accounting/business-central/company-selector',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/company-selector` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_IMPORT: {
+        route: 'workspaces/:policyID/accounting/business-central/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/import` as const,
     },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',

@@ -817,10 +817,15 @@ function shouldFilterExpensifyTeam(policyOwner: string | undefined, currentUserL
  * Creates a selector for useOnyx that computes the filtered member count.
  * Returns a primitive number to prevent unnecessary re-renders when unrelated personal details change.
  */
-function createFilteredMemberCountSelector(employeeList: PolicyEmployeeList | undefined, policyOwner: string | undefined, currentUserLogin: string | undefined) {
+function createFilteredMemberCountSelector(
+    employeeList: PolicyEmployeeList | undefined,
+    policyOwner: string | undefined,
+    currentUserLogin: string | undefined,
+    personalDetailsByLogins: PersonalDetailsByLogin,
+) {
     return (personalDetails: PersonalDetailsList | undefined): number => {
         const shouldFilter = shouldFilterExpensifyTeam(policyOwner, currentUserLogin);
-        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, undefined, false, false);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, personalDetailsByLogins, false, false);
 
         return Object.keys(policyMemberEmailsToAccountIDs).reduce((count, email) => {
             const accountID = policyMemberEmailsToAccountIDs[email];
@@ -1155,14 +1160,36 @@ function hasTags(policyTagList: OnyxEntry<PolicyTagLists>): boolean {
     return tagLists.some((tagList) => Object.keys(tagList.tags ?? {}).length > 0);
 }
 
+// An anchored filter with no regex operators. Letter and digit escapes (\d, \w, ...) are classes, not literals.
+const LITERAL_PARENT_TAGS_FILTER = /^\^((?:\\[^A-Za-z0-9]|[^\\.*+?()[\]{}|^$])*)\$$/;
+const ESCAPED_CHARACTER = /\\([\s\S])/g;
+
+/**
+ * Whether a parentTagsFilter matches a parent tag path.
+ * Filters are almost always an anchored, escaped parent path, which is compared as a string -
+ * compiling a RegExp per tag dominates scans over large tag lists.
+ */
+function matchesParentTagsFilter(filter: string | undefined, parentTagPath: string): boolean {
+    if (!filter) {
+        return true;
+    }
+
+    const literal = LITERAL_PARENT_TAGS_FILTER.exec(filter)?.[1];
+
+    if (literal !== undefined) {
+        return literal.replaceAll(ESCAPED_CHARACTER, '$1') === parentTagPath;
+    }
+
+    return new RegExp(filter).test(parentTagPath);
+}
+
 /**
  * Checks whether a policy tag is selectable under a given parent tag path.
  * Tags of a dependent list only apply below the parents their parentTagsFilter matches,
  * while tags without a filter apply everywhere.
  */
 function matchesParentTagPath(policyTag: ValueOf<PolicyTags>, parentTagPath: string): boolean {
-    const filterRegex = policyTag.rules?.parentTagsFilter ?? policyTag.parentTagsFilter;
-    return !filterRegex || new RegExp(filterRegex).test(parentTagPath);
+    return matchesParentTagsFilter(policyTag.rules?.parentTagsFilter ?? policyTag.parentTagsFilter, parentTagPath);
 }
 
 /**
@@ -1180,6 +1207,36 @@ function findPolicyTagAtLevel(levelTags: PolicyTags, tagName: string, parentTagP
 
     const directMatch = levelTags[tagName];
     return matchesTagAtLevel(directMatch) ? directMatch : Object.values(levelTags).find(matchesTagAtLevel);
+}
+
+/**
+ * Finds a policy tag record and its Onyx storage key within a tag list.
+ * Dependent tag lists can hold same-named child tags under different parents (stored under unique
+ * record keys), so a tag only matches by name when its parent filter also matches.
+ */
+function findPolicyTagEntryByParentFilter(tags: PolicyTags | undefined, tagName: string, parentTagsFilter?: string): {tag: ValueOf<PolicyTags>; tagKey: string} | undefined {
+    if (!tags) {
+        return undefined;
+    }
+
+    if (parentTagsFilter) {
+        const match = Object.entries(tags).find(([, tag]) => tag.name === tagName && (tag.rules?.parentTagsFilter ?? tag.parentTagsFilter) === parentTagsFilter);
+        if (match) {
+            return {tag: match[1], tagKey: match[0]};
+        }
+        return undefined;
+    }
+
+    if (tags[tagName]) {
+        return {tag: tags[tagName], tagKey: tagName};
+    }
+
+    const renamedTag = Object.entries(tags).find(([, tag]) => tag.previousTagName === tagName);
+    if (renamedTag) {
+        return {tag: renamedTag[1], tagKey: renamedTag[0]};
+    }
+
+    return undefined;
 }
 
 function isTagInPolicy(tagValue: string, policyTags: OnyxEntry<PolicyTagLists>): boolean {
@@ -2282,8 +2339,31 @@ function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<Po
     if (!policy?.hasMultipleTagLists) {
         return false;
     }
+
+    // Walks the records instead of `Object.values(...).some(...)`: a tag list can hold thousands of tags, and copying
+    // them into an array to ask whether any of them has a filter costs that copy on every caller render.
     // An empty tag list arrives without the `tags` key, despite the type.
-    return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags ?? {}).some((tag) => !!tag.rules?.parentTagsFilter || !!tag.parentTagsFilter));
+    for (const tagListName in policyTagList) {
+        if (!Object.hasOwn(policyTagList, tagListName)) {
+            continue;
+        }
+
+        const tags = policyTagList[tagListName]?.tags;
+
+        for (const tagName in tags) {
+            if (!Object.hasOwn(tags, tagName)) {
+                continue;
+            }
+
+            const tag = tags[tagName];
+
+            if (tag?.rules?.parentTagsFilter || tag?.parentTagsFilter) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 function hasIndependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
@@ -2760,9 +2840,20 @@ function isCampfireVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
+ * True when a Certinia FFA connection is configured. Only FFA qualifies. A PSA connection's
+ * account dimension is a PSA project rather than a vendor. A missing `hasPSA` flag is treated
+ * as FFA, matching how the rest of the product reads it. Mirrors `FinancialForce::hasVendorFeature`
+ * on the PHP side.
+ */
+function isCertiniaVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    const config = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config;
+    return config?.isConfigured === true && config?.hasPSA !== true;
+}
+
+/**
  * True when Xero is the *active* vendor-matching source for the workspace — i.e. Xero is
  * connected AND neither QBO nor Intacct is in a vendor-matching export mode. Mirrors the precedence
- * in `getActiveVendorMatchingIntegration` (QBO → Intacct → Xero → Rillet → DualEntry → Business Central → Campfire) so the UI labels, copy, and
+ * in `getActiveVendorMatchingIntegration` (QBO → Intacct → Xero → Rillet → DualEntry → Business Central → Campfire → Certinia) so the UI labels, copy, and
  * inactive-vendor guardrail stay bound to whichever integration's vendor list is actually being consulted.
  * Without this scoping, a workspace with active QBO matching + a lingering Xero connection would render
  * QBO vendors under the "Supplier" label.
@@ -2786,6 +2877,7 @@ function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
  *   - DualEntry configured connection. GA, so no beta required
  *   - Business Central configured connection. Beta required
  *   - Campfire has no export destination enum, so a configured connection is enough. Beta required
+ *   - Certinia FFA configured connection. Beta required
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     if (!policy) {
@@ -2794,7 +2886,10 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
     if (isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy) || isDualEntryVendorMatchingActive(policy)) {
         return true;
     }
-    return isVendorMatchingBetaEnabled && (isXeroVendorMatchingActive(policy) || isBusinessCentralVendorMatchingActive(policy) || isCampfireVendorMatchingActive(policy));
+    return (
+        isVendorMatchingBetaEnabled &&
+        (isXeroVendorMatchingActive(policy) || isBusinessCentralVendorMatchingActive(policy) || isCampfireVendorMatchingActive(policy) || isCertiniaVendorMatchingActive(policy))
+    );
 }
 
 /**
@@ -2806,7 +2901,7 @@ function hasVendorFeatureOnAnyPolicy(policies: OnyxCollection<Policy>, isVendorM
 
 /**
  * Single source of truth for which connected integration scopes the vendor field for this workspace
- * (QBO, Sage Intacct, Xero, Rillet, DualEntry, Business Central, or Campfire) and what its vendor list looks like. Returns `undefined` when no
+ * (QBO, Sage Intacct, Xero, Rillet, DualEntry, Business Central, Campfire, or Certinia) and what its vendor list looks like. Returns `undefined` when no
  * vendor-matching integration is active OR when the active integration's list hasn't synced yet —
  * distinct from `[]` (loaded-empty). Lets callers tell "no vendors" from "not loaded".
  *
@@ -2852,6 +2947,9 @@ function getActiveVendorMatchingIntegration(policy: OnyxEntry<Policy>): Connecti
     }
     if (isCampfireVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE;
+    }
+    if (isCertiniaVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.CERTINIA;
     }
     return undefined;
 }
@@ -2918,12 +3016,15 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
     if (isCampfireVendorMatchingActive(policy)) {
         return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.data?.vendors === undefined ? undefined : getCampfireVendors(policy);
     }
+    if (isCertiniaVendorMatchingActive(policy)) {
+        return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.data?.vendors === undefined ? undefined : getCertiniaVendors(policy);
+    }
     return undefined;
 }
 
 /**
  * Returns the vendor list imported into the workspace from whichever connected integration scopes
- * the vendor field for this workspace (QBO, Sage Intacct, Xero, Rillet, DualEntry, Business Central, or Campfire). Empty array when no integration
+ * the vendor field for this workspace (QBO, Sage Intacct, Xero, Rillet, DualEntry, Business Central, Campfire, or Certinia). Empty array when no integration
  * is connected or the sync hasn't populated vendors yet. Source of truth for the vendor selector
  * RHP and inactive-vendor lookups.
  */
@@ -3026,7 +3127,11 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
     if (campfireVendor) {
         return campfireVendor;
     }
-    return getDualEntryVendors(policy).find((vendor) => vendor.id === vendorID);
+    const dualEntryVendor = getDualEntryVendors(policy).find((vendor) => vendor.id === vendorID);
+    if (dualEntryVendor) {
+        return dualEntryVendor;
+    }
+    return getCertiniaVendors(policy).find((vendor) => vendor.id === vendorID);
 }
 
 /**
@@ -3098,6 +3203,11 @@ function getVendorEmptyState(policy: OnyxEntry<Policy>, translate: LocaleContext
                 title: translate('workspace.campfire.noVendorsFound'),
                 subtitle: translate('workspace.campfire.noVendorsFoundDescription'),
             };
+        case CONST.POLICY.CONNECTIONS.NAME.CERTINIA:
+            return {
+                title: translate('workspace.certinia.noVendorsFound'),
+                subtitle: translate('workspace.certinia.noVendorsFoundDescription'),
+            };
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
         default: {
             const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
@@ -3139,6 +3249,16 @@ function getDualEntryVendors(policy: OnyxEntry<Policy>): Vendor[] {
     return (connection?.data?.vendors ?? [])
         .filter((vendor) => !!vendor.id && vendor.isActive === true && (!vendor.companyID || vendor.companyID === companyID))
         .map((vendor) => ({id: vendor.id, name: vendor.name, currency: '', email: vendor.email ?? ''}));
+}
+
+/**
+ * Certinia-scoped vendor list, normalized to the shared `Vendor` shape. Bound strictly to the FFA
+ * connection's synced Salesforce vendor Accounts so Certinia-only controls stay on Certinia data
+ * regardless of which integration is the active matching source.
+ */
+function getCertiniaVendors(policy: OnyxEntry<Policy>): Vendor[] {
+    const vendors = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.data?.vendors;
+    return (vendors ?? []).map((vendor) => ({id: vendor.id, name: vendor.name, currency: '', email: ''}));
 }
 
 /**
@@ -3536,6 +3656,7 @@ function getConnectionExporters(policy: OnyxInputOrEntry<Policy>): Array<string 
         policy?.connections?.netsuite?.options?.config?.exporter,
         policy?.connections?.rillet?.config?.export?.exporter,
         policy?.connections?.dualEntry?.config?.export?.exporter,
+        policy?.connections?.campfire?.config?.export?.exporter,
     ];
 }
 
@@ -3634,9 +3755,12 @@ export {
     getXeroSupplierByID,
     getXeroSuppliers,
     getDualEntryVendors,
+    getCampfireVendors,
+    getCertiniaVendors,
     isRilletVendorMatchingActive,
     isBusinessCentralVendorMatchingActive,
     isDualEntryVendorMatchingActive,
+    isCertiniaVendorMatchingActive,
     isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
     hasVendorFeature,
@@ -3662,7 +3786,9 @@ export {
     hasTags,
     isTagInPolicy,
     findPolicyTagAtLevel,
+    findPolicyTagEntryByParentFilter,
     matchesParentTagPath,
+    matchesParentTagsFilter,
     hasCustomCategories,
     hasConfiguredRules,
     isMaxExpenseAmountSet,

@@ -1,4 +1,5 @@
 import MenuItem from '@components/MenuItem';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import PaymentCardDetails from '@components/PaymentCardDetails';
 import RenderHTML from '@components/RenderHTML';
@@ -24,6 +25,7 @@ import {
     isUserOnFreeTrial,
     shouldShowDiscountBanner,
     shouldShowPreTrialBillingBanner,
+    shouldShowSubscriptionExpiringSoonUI,
     shouldShowTrialEndedUI,
 } from '@libs/SubscriptionUtils';
 
@@ -44,6 +46,7 @@ import type {BillingStatusResult} from './utils';
 import EarlyDiscountBanner from './BillingBanner/EarlyDiscountBanner';
 import PreTrialBillingBanner from './BillingBanner/PreTrialBillingBanner';
 import SubscriptionBillingBanner from './BillingBanner/SubscriptionBillingBanner';
+import SubscriptionExpiringSoonBanner from './BillingBanner/SubscriptionExpiringSoonBanner';
 import TrialEndedBillingBanner from './BillingBanner/TrialEndedBillingBanner';
 import TrialStartedBillingBanner from './BillingBanner/TrialStartedBillingBanner';
 import CancelSubscriptionMenuItem from './CancelSubscriptionMenuItem';
@@ -214,6 +217,9 @@ function CardSection() {
         BillingBanner = <TrialStartedBillingBanner />;
     } else if (shouldShowTrialEndedUI(session?.accountID, lastDayFreeTrial, userBillingFundID, allPolicies, isGrandfatheredFree, account?.isFromInternalDomain, privateSubscription?.type)) {
         BillingBanner = <TrialEndedBillingBanner />;
+    } else if (shouldShowSubscriptionExpiringSoonUI(privateSubscription)) {
+        // A subscription with an end date is never on trial, so this can only ever be reached when the trial branches above miss
+        BillingBanner = <SubscriptionExpiringSoonBanner endDate={privateSubscription?.endDate} />;
     }
     if (billingStatus) {
         BillingBanner = (
@@ -278,25 +284,25 @@ function CardSection() {
             )}
 
             {!!account?.hasPurchases && (
-                <MenuItem
-                    shouldShowRightIcon
-                    icon={expensifyIcons.History}
-                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                    title={translate('subscription.cardSection.viewPaymentHistory')}
-                    titleStyle={styles.textStrong}
+                <MenuItemSectionRoot
                     onPress={viewPurchases}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.VIEW_PAYMENT_HISTORY}
-                />
+                >
+                    <MenuItem.Row>
+                        <MenuItem.Icon src={expensifyIcons.History} />
+                        <MenuItem.Content>
+                            <MenuItem.Title>{translate('subscription.cardSection.viewPaymentHistory')}</MenuItem.Title>
+                        </MenuItem.Content>
+                        <MenuItem.Trailing>
+                            <MenuItem.Chevron />
+                        </MenuItem.Trailing>
+                    </MenuItem.Row>
+                </MenuItemSectionRoot>
             )}
 
             {!!(subscriptionPlan && account?.isEligibleForRefund) && (
-                <MenuItem
-                    shouldShowRightIcon
-                    icon={expensifyIcons.Bill}
-                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                    title={translate('subscription.cardSection.requestRefund')}
-                    titleStyle={styles.textStrong}
-                    disabled={isOffline}
+                <MenuItemSectionRoot
+                    isDisabled={isOffline}
                     onPress={async () => {
                         const result = await showRequestRefundModal();
                         if (result.action !== ModalActions.CONFIRM) {
@@ -305,7 +311,17 @@ function CardSection() {
                         requestRefund();
                     }}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.REQUEST_REFUND}
-                />
+                >
+                    <MenuItem.Row>
+                        <MenuItem.Icon src={expensifyIcons.Bill} />
+                        <MenuItem.Content>
+                            <MenuItem.Title>{translate('subscription.cardSection.requestRefund')}</MenuItem.Title>
+                        </MenuItem.Content>
+                        <MenuItem.Trailing>
+                            <MenuItem.Chevron />
+                        </MenuItem.Trailing>
+                    </MenuItem.Row>
+                </MenuItemSectionRoot>
             )}
 
             {!privateSubscription?.pendingFields?.type && canCancelSubscription(privateSubscription?.type, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, account?.hasPurchases) && (
