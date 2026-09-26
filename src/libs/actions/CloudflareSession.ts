@@ -9,6 +9,7 @@
 import {isQAAuthConfigured} from '@libs/CloudflareAccess/Config';
 import {generatePKCEPair, generateState} from '@libs/CloudflareAccess/generatePKCE';
 import {buildAuthorizeURL, exchangeCode, OAuthError, refreshTokens} from '@libs/CloudflareAccess/OAuthClient';
+import type {AuthorizationCodeExchange} from '@libs/CloudflareAccess/OAuthClient';
 import {savePendingAuthFlow} from '@libs/CloudflareAccess/PendingAuthFlowStorage';
 import Log from '@libs/Log';
 
@@ -67,10 +68,10 @@ function isSessionNearExpiry(session: CloudflareSession): boolean {
  * Cache first: requests during this boot must see the token before disk I/O settles. A failed persist is
  * not fatal, because the cache holds the only usable credential and a reload self-heals.
  */
-function cacheAndPersistSession(session: CloudflareSession, flow: 'exchanged' | 'rotated'): Promise<void> {
+function cacheAndPersistSession(session: CloudflareSession, source: 'exchanged' | 'rotated'): Promise<void> {
     sessionCache = session;
     return Onyx.set(ONYXKEYS.CLOUDFLARE_SESSION, session).catch((error: unknown) => {
-        Log.warn(`[CloudflareSession] Failed to persist the ${flow} session`, {error});
+        Log.warn(`[CloudflareSession] Failed to persist the ${source} session`, {error});
     });
 }
 
@@ -107,7 +108,7 @@ async function redirectToCloudflareSignIn(returnURL: string = window.location.hr
 
 let codeExchangePromise: Promise<void> | null = null;
 
-function exchangeCodeForCloudflareSession({code, codeVerifier}: {code: string; codeVerifier: string}): Promise<void> {
+function exchangeCodeForCloudflareSession({code, codeVerifier}: AuthorizationCodeExchange): Promise<void> {
     const generation = sessionGeneration;
     // Single-flight: a caller joining mid-exchange must not burn the single-use authorization code twice
     codeExchangePromise ??= exchangeCode({code, codeVerifier})
@@ -182,7 +183,8 @@ async function refreshCloudflareSessionUnderLock(staleAccessToken: string): Prom
 
 /** Pass the access token the caller decided to refresh from: if it is no longer the current one, a rotation beat this call */
 function refreshCloudflareSession(staleAccessToken: string): Promise<CloudflareRefreshResult> {
-    // Joining guarantees the rotated pair already hit Onyx. Preconditions are re-checked inside the lock
+    // A joiner resumes only once the rotated pair is cached, and persisted unless the write failed.
+    // Preconditions are re-checked inside the lock
     if (refreshPromise) {
         return refreshPromise;
     }

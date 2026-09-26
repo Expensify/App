@@ -7,7 +7,7 @@ import './src/polyfills/PromiseWithResolvers';
 import './src/polyfills/requestIdleCallback';
 import {AppRegistry} from 'react-native';
 // Must precede the app import: it rewrites the QA auth callback URL
-import './src/setup/captureQAAuthCallbackURL';
+import './src/setup/captureCloudflareAuthCallbackURL';
 import App from './src/App';
 import Config from './src/CONFIG';
 import additionalAppSetup from './src/setup';

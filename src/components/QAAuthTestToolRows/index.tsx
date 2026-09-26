@@ -32,7 +32,7 @@ function getFailedRedirectResult(): CloudflareAuthProbeResult | null {
         return null;
     }
     const {outcome, errorMessage} = getCapturedCloudflareAuthCallback();
-    if (outcome === 'not-a-callback' || outcome === 'exchanging') {
+    if (outcome === 'not-a-callback' || outcome === 'code-captured') {
         return null;
     }
     return {status: 'signInFailed', detail: errorMessage};

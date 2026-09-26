@@ -114,7 +114,7 @@ describe('the boot-time QA auth callback handling', () => {
         pendingAuthFlowStorage.savePendingAuthFlow(FLOW);
 
         // When the handler picks up the code delivered as the document's own location
-        expect(runBoot()).toBe('exchanging');
+        expect(runBoot()).toBe('code-captured');
         // Then the URL is rewritten synchronously. Before React Navigation reads window.location, since no app route lives at the redirect path and the boot would otherwise land in /not-found
         expect(replaceStateSpy).toHaveBeenCalledWith(null, '', '/settings/troubleshoot');
         // Then the exchange runs with the stored verifier, the proof that this tab began the flow
@@ -128,8 +128,8 @@ describe('the boot-time QA auth callback handling', () => {
         jest.mocked(sessionActions.exchangeCodeForCloudflareSession).mockReturnValue(Promise.reject(new Error('invalid_grant')));
 
         // When the handler starts the exchange
-        expect(runBoot()).toBe('exchanging');
-        // When the rejection lands. Its handler runs on a later microtask, so asserting synchronously would still read 'exchanging'
+        expect(runBoot()).toBe('code-captured');
+        // When the rejection lands. Its handler runs on a later microtask, so asserting synchronously would miss the log line
         await Promise.resolve();
 
         // Then the reason must reach the log: nothing else can ever observe the rejection
@@ -142,11 +142,11 @@ describe('the boot-time QA auth callback handling', () => {
         pendingAuthFlowStorage.savePendingAuthFlow(FLOW);
 
         // When the handler runs
-        // Then state must be validated before anything else: a callback failing provenance is discarded wholesale with its other params untrusted, so the reported error is our mismatch rather than the attacker's
+        // Then state must be validated before anything else: a callback failing provenance is discarded wholesale with its other params untrusted, so the planted code never reaches the exchange and the reported error is our mismatch, not the attacker's (CSRF/injection protection)
         expect(runBoot()).toBe('invalid-callback');
         expect(sessionActions.exchangeCodeForCloudflareSession).not.toHaveBeenCalled();
         expect(mockLogWarn).toHaveBeenCalledWith('[CloudflareSession] Sign-in callback did not complete', {outcome: 'invalid-callback', errorMessage: 'OAuth callback state mismatch'});
-        // Then the boot is still rescued off the redirect path
+        // Then the boot is still rescued off the redirect path, which has no app route
         expect(replaceStateSpy).toHaveBeenCalledWith(null, '', '/settings/troubleshoot');
     });
 
@@ -178,19 +178,19 @@ describe('the boot-time QA auth callback handling', () => {
         arrangeCallbackURL('?code=auth-code-1&state=state-1');
 
         // When the handler runs
-        // Then the callback is refused because nothing proves this tab initiated it, and with no stored returnURL the boot falls back to the root
+        // Then the callback is refused because nothing proves this tab initiated it, and with no stored returnURL the boot falls back to the root, still a safe route off the redirect path
         expect(runBoot()).toBe('no-pending-flow');
         expect(sessionActions.exchangeCodeForCloudflareSession).not.toHaveBeenCalled();
         expect(replaceStateSpy).toHaveBeenCalledWith(null, '', '/');
     });
 
     it('never navigates to a foreign origin, even though the returnURL is our own storage', () => {
-        // Given a genuine callback whose stored flow carries a foreign-origin returnURL
+        // Given a genuine callback whose stored flow carries a foreign-origin returnURL. The one stored field fed back into navigation, so it must be treated as tainted even though it came from our own storage
         arrangeCallbackURL('?code=auth-code-1&state=state-1');
         pendingAuthFlowStorage.savePendingAuthFlow({...FLOW, returnURL: 'https://evil.example.com/steal'});
 
         // When the handler accepts the callback and starts the exchange
-        expect(runBoot()).toBe('exchanging');
+        expect(runBoot()).toBe('code-captured');
         // Then navigation falls back to the root: rewriting to another origin would hand out an open redirect, so a foreign returnURL is never followed
         expect(replaceStateSpy).toHaveBeenCalledWith(null, '', '/');
     });

@@ -4,7 +4,7 @@
  */
 import CONFIG from '@src/CONFIG';
 
-import type {GetOAuthRedirectURI, GetQAOrigins, GetQAResource, IsQAAuthConfigured, IsQAServerRequest} from './types';
+import type {GetOAuthRedirectURI, GetQAResource, IsQAAuthConfigured, IsQAServerRequest} from './types';
 
 /** A bare hostname: no scheme, no slash, no port. Loose about labels (custom Access domains exist). */
 const TEAM_DOMAIN_SHAPE = /^[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}$/;
@@ -48,11 +48,11 @@ const getQAResource: GetQAResource = () => {
     return parseHTTPSOrigin(CONFIG.QA_AUTH.API_ROOT) ?? '';
 };
 
-/** Entries are configured hosts, never inferred from the primary name */
-const getQAOrigins: GetQAOrigins = () => {
+/** Every origin allowed to receive the QA bearer. Entries are configured hosts, never inferred from the primary name */
+function getQAOrigins(): string[] {
     const {API_ROOT, SECURE_API_ROOT} = CONFIG.QA_AUTH;
     return [API_ROOT, SECURE_API_ROOT].map((root) => parseHTTPSOrigin(root)).filter((origin) => origin !== null);
-};
+}
 
 const isQAServerRequest: IsQAServerRequest = (url) => {
     if (!isQAAuthConfigured()) {
@@ -71,4 +71,4 @@ const getOAuthRedirectURI: GetOAuthRedirectURI = () => {
     return `${window.location.origin}/oauth/callback`;
 };
 
-export {getOAuthRedirectURI, getQAOrigins, getQAResource, isQAAuthConfigured, isQAServerRequest};
+export {getOAuthRedirectURI, getQAResource, isQAAuthConfigured, isQAServerRequest};

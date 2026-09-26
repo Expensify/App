@@ -66,12 +66,11 @@ function runCapture(): CapturedAuthCallback {
         return {outcome: 'invalid-callback', errorMessage: 'OAuth callback is missing the authorization code'};
     }
 
-    return {outcome: 'exchanging', exchange: {code, codeVerifier: flow.codeVerifier}};
+    return {outcome: 'code-captured', exchange: {code, codeVerifier: flow.codeVerifier}};
 }
 
 const captureCloudflareAuthCallbackURL: CaptureCloudflareAuthCallbackURL = () => {
     captured = runCapture();
-    return captured;
 };
 
 const getCapturedCloudflareAuthCallback: GetCapturedCloudflareAuthCallback = () => captured;

@@ -1,6 +1,6 @@
 import type {CaptureCloudflareAuthCallbackURL, GetCapturedCloudflareAuthCallback} from './types';
 
-const captureCloudflareAuthCallbackURL: CaptureCloudflareAuthCallbackURL = () => ({outcome: 'not-a-callback'});
+const captureCloudflareAuthCallbackURL: CaptureCloudflareAuthCallbackURL = () => {};
 
 const getCapturedCloudflareAuthCallback: GetCapturedCloudflareAuthCallback = () => ({outcome: 'not-a-callback'});
 

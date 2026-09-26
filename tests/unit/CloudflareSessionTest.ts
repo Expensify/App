@@ -146,6 +146,7 @@ describe('refreshCloudflareSession', () => {
             return undefined;
         });
         await waitForBatchedUpdates();
+        // Not before the rotated pair is persisted
         expect(isSettled).toBe(false);
 
         persistDeferred.resolve();
@@ -164,7 +165,8 @@ describe('refreshCloudflareSession', () => {
     });
 
     it.each(['invalid_grant', 'invalid_response'])('keeps the session and resolves reauth-required on the terminal %s', async (code) => {
-        // Given a stored session whose refresh the server rejects with a terminal OAuth error
+        // Given a stored session whose refresh the server rejects with a terminal OAuth error (each
+        // parametrized code means this refresh token can never succeed again)
         await seedSession(SESSION_A);
         jest.mocked(oAuthClient.refreshTokens).mockRejectedValue(new oAuthClient.OAuthError(code));
 
@@ -205,7 +207,8 @@ describe('refreshCloudflareSession', () => {
     it('resolves reauth-required without a network call when there is no session', async () => {
         // Given an empty store: there is no refresh token to spend
         await seedSession(null);
-        // When a refresh is requested, Then it resolves reauth-required without touching the network
+        // When a refresh is requested, Then it resolves reauth-required without touching the network,
+        // because the authorize round trip is the only path that can produce a session from nothing
         await expect(SessionActions.refreshCloudflareSession(SESSION_A.accessToken)).resolves.toBe('reauth-required');
         expect(oAuthClient.refreshTokens).not.toHaveBeenCalled();
     });
@@ -229,7 +232,8 @@ describe('refreshCloudflareSession', () => {
     });
 
     it('re-reads the session after acquiring the cross-tab lock, so the tab that waited cannot spend a rotated token', async () => {
-        // Given a Web Lock held by another tab, so this tab's refresh queues behind it
+        // Given a Web Lock held by another tab, so this tab's refresh queues behind it (the cross-tab lock
+        // exists because refresh tokens are single-use and only one context may spend one at a time)
         await seedSession(SESSION_A);
         const lockDeferred = Promise.withResolvers<void>();
         Object.defineProperty(navigator, 'locks', {
@@ -301,8 +305,8 @@ describe('redirectToCloudflareSignIn', () => {
         await waitForBatchedUpdates();
 
         expect(assignSpy).toHaveBeenCalledWith(AUTHORIZE_URL);
-        // Then the record must already be readable at the moment the navigation is requested: without the
-        // stored verifier the returning code could never be exchanged
+        // Then the record must already be readable at the moment the navigation is requested: module memory
+        // does not survive the unload, and without the stored verifier the returning code could never be exchanged
         expect(savedBeforeAssign.at(0)).not.toBeNull();
         expect(pendingAuthFlowStorage.consumePendingAuthFlow()).toMatchObject({
             state: 'test-state',
@@ -408,9 +412,12 @@ describe('exchangeCodeForCloudflareSession', () => {
         });
         await waitForBatchedUpdates();
 
-        // Then the session is cached before the disk write settles, while the promise still waits for the write
+        // Then the session is cached before the disk write settles. Requests fired during this boot need the
+        // token before disk I/O finishes. While the promise still waits for the write to actually complete
         expect(oAuthClient.exchangeCode).toHaveBeenCalledWith({code: 'auth-code-1', codeVerifier: PAIR_1.codeVerifier});
+        // Cache first, because requests during this boot must see the token right away
         expect(SessionActions.getCloudflareSession()).toEqual(SESSION_A);
+        // But the completion waits for the disk write
         expect(isSettled).toBe(false);
 
         persistDeferred.resolve();
@@ -445,7 +452,7 @@ describe('exchangeCodeForCloudflareSession', () => {
 
         // When the completion runs, Then it still resolves
         await expect(SessionActions.exchangeCodeForCloudflareSession({code: 'auth-code-1', codeVerifier: PAIR_1.codeVerifier})).resolves.toBeUndefined();
-        // Then the cache keeps the usable session
+        // Then a failed persist is not a failed sign-in. The cache keeps the usable session and a reload self-heals
         expect(SessionActions.getCloudflareSession()).toEqual(SESSION_A);
         setSpy.mockRestore();
     });
@@ -502,6 +509,7 @@ describe('builds without QA auth configured', () => {
         const connectedKeys = connectSpy.mock.calls.map(([connection]) => connection.key);
         expect(connectedKeys).not.toContain(ONYXKEYS.CLOUDFLARE_SESSION);
         expect(sessionActions.getCloudflareSession()).toBeNull();
+        // Then hydration still resolves even though no subscription will ever fire, so no caller can hang on it
         await expect(sessionActions.waitForCloudflareSessionHydration()).resolves.toBeUndefined();
         connectSpy.mockRestore();
     });

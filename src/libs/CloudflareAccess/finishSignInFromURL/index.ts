@@ -7,7 +7,7 @@ import Log from '@libs/Log';
 
 import {exchangeCodeForCloudflareSession} from '@userActions/CloudflareSession';
 
-import type {FinishCloudflareSignInFromURL} from './types';
+import type FinishCloudflareSignInFromURL from './types';
 
 const finishCloudflareSignInFromURL: FinishCloudflareSignInFromURL = () => {
     const captured = getCapturedCloudflareAuthCallback();

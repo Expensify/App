@@ -85,8 +85,13 @@ async function buildAuthorizeURL({state, codeChallenge}: {state: string; codeCha
     return url.toString();
 }
 
+type AuthorizationCodeExchange = {
+    code: string;
+    codeVerifier: string;
+};
+
 /** Exchanges an authorization code (plus the PKCE verifier) for a session */
-function exchangeCode({code, codeVerifier}: {code: string; codeVerifier: string}): Promise<CloudflareSession> {
+function exchangeCode({code, codeVerifier}: AuthorizationCodeExchange): Promise<CloudflareSession> {
     const body = new URLSearchParams();
     body.set('grant_type', 'authorization_code');
     body.set('code', code);
@@ -109,3 +114,4 @@ function refreshTokens(refreshToken: string): Promise<CloudflareSession> {
 }
 
 export {buildAuthorizeURL, exchangeCode, OAuthError, refreshTokens};
+export type {AuthorizationCodeExchange};

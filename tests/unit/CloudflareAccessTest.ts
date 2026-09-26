@@ -41,8 +41,8 @@ jest.mock('@libs/CloudflareAccess/getWebCrypto', () => ({
 
 // Lazy-require so the @src/CONFIG mock factory sees an initialized mockQAAuth. Otherwise the
 // hoisted import order would resolve CONFIG.default while mockQAAuth was still in the TDZ.
-const {getQAOrigins, getQAResource, isQAAuthConfigured, isQAServerRequest} = require<typeof ConfigModule>('@libs/CloudflareAccess/Config/index.ts');
-const {clearPendingAuthFlow, consumePendingAuthFlow, savePendingAuthFlow} = require<typeof PendingAuthFlowStorageModule>('@libs/CloudflareAccess/PendingAuthFlowStorage');
+const {getQAResource, isQAAuthConfigured, isQAServerRequest} = require<typeof ConfigModule>('@libs/CloudflareAccess/Config/index.ts');
+const {consumePendingAuthFlow, savePendingAuthFlow} = require<typeof PendingAuthFlowStorageModule>('@libs/CloudflareAccess/PendingAuthFlowStorage');
 const {buildAuthorizeURL, exchangeCode, OAuthError, refreshTokens} = require<typeof OAuthClientModule>('@libs/CloudflareAccess/OAuthClient');
 const {getAuthServerEndpoints} = require<typeof AuthServerMetadataModule>('@libs/CloudflareAccess/AuthServerMetadata');
 const {generatePKCEPair, generateState} = require<typeof PKCEModule>('@libs/CloudflareAccess/generatePKCE');
@@ -185,19 +185,18 @@ describe('config', () => {
     it('derives the RFC 8707 resource in origin form (no trailing slash)', () => {
         // Given the configured API root, when the resource indicator is derived, then it must be the bare origin. RFC 8707 resource values are matched literally, so a trailing slash would name a different resource
         expect(getQAResource()).toBe('https://qa.example.com');
-        expect(getQAOrigins()).toStrictEqual(['https://qa.example.com', 'https://qa-secure.example.com']);
     });
 
     it('drops the secure origin from the allowlist when it is not configured', () => {
-        // Given a config with no secure root. When the allowlist is read, then it must carry only the primary origin and reject the unconfigured host
+        // Given a config with no secure root. When requests are checked against the allowlist, then it must carry only the primary origin and reject the unconfigured host, because an origin earns the bearer by being configured, never by resembling one that is
         mockQAAuth.SECURE_API_ROOT = '';
         expect(isQAAuthConfigured()).toBe(true);
-        expect(getQAOrigins()).toStrictEqual(['https://qa.example.com']);
+        expect(isQAServerRequest('https://qa.example.com/api/OpenApp')).toBe(true);
         expect(isQAServerRequest('https://qa-secure.example.com/api/Authenticate')).toBe(false);
     });
 
     it.each(['http://qa-secure.example.com/', 'not a url at all'])('a malformed secure root (%s) disables the whole feature', (secureRoot) => {
-        // Given a malformed secure root. When checked, then the entire feature must disable
+        // Given a malformed secure root. When checked, then the entire feature must disable, because the shouldUseSecure commands would otherwise go out without the bearer and 401 unrecoverably
         mockQAAuth.SECURE_API_ROOT = secureRoot;
         expect(isQAAuthConfigured()).toBe(false);
         expect(isQAServerRequest('https://qa.example.com/api/OpenApp')).toBe(false);
@@ -525,15 +524,6 @@ describe('pendingAuthFlowStorage', () => {
         window.sessionStorage.setItem(STORAGE_KEY, raw);
         expect(consumePendingAuthFlow()).toBeNull();
         expect(window.sessionStorage.getItem(STORAGE_KEY)).toBeNull();
-    });
-
-    it('clearPendingAuthFlow drops a pending record', () => {
-        // Given a saved flow
-        savePendingAuthFlow(FLOW);
-        // When the flow is explicitly abandoned
-        clearPendingAuthFlow();
-        // Then nothing must remain to consume. A leftover verifier could otherwise pair with a later, unrelated callback
-        expect(consumePendingAuthFlow()).toBeNull();
     });
 
     it('reports the record absent when reading it throws, rather than taking down the boot it runs in', () => {
