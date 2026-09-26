@@ -60,7 +60,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
 
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
@@ -102,6 +102,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 currentUserAccountID,
                 reportAttributesDerived,
                 rules,
+                formatPhoneNumber,
             }),
         [
             report,
@@ -116,6 +117,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             dateFnsLocale,
             convertToDisplayString,
             rules,
+            formatPhoneNumber,
         ],
     );
 

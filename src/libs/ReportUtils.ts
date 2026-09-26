@@ -4318,6 +4318,7 @@ function getReimbursementQueuedActionMessage({
  */
 function getReimbursementDeQueuedOrCanceledActionMessage(
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
     reportOwnerAccountID: number | undefined,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
@@ -4333,7 +4334,7 @@ function getReimbursementDeQueuedOrCanceledActionMessage(
         getDisplayNameForParticipant({
             accountID: reportOwnerAccountID,
             shouldUseShortForm: true,
-            formatPhoneNumber: formatPhoneNumberPhoneUtils,
+            formatPhoneNumber,
             hiddenTranslation: translate('common.hidden'),
         }) ?? '';
     return translate('iou.canceledRequest', formattedAmount, submitterDisplayName);

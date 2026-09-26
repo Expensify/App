@@ -1,4 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Section as SelectionListSection} from '@components/SelectionList/SelectionListWithSections/types';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
@@ -121,6 +121,7 @@ type LazyHydrationContext = {
 
     /** Currency formatter used when the option list was built. */
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type SearchOption<T> = SearchOptionData & {
@@ -309,6 +310,7 @@ type GetUserToInviteConfig = {
     currentUserEmail: string;
     currentUserAccountID: number;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {

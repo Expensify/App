@@ -250,6 +250,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     },
                     isTrackIntentUser,
                     currentUserAccountID,
+                    formatPhoneNumber,
                 });
                 reportForContextualSearch = option;
             }
@@ -322,6 +323,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             dateFnsLocale,
             currentUserAccountID,
             convertToDisplayString,
+            formatPhoneNumber,
             rules,
         ],
     );

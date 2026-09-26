@@ -136,6 +136,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         translate,
         convertToDisplayString,
         dateFnsLocale,
+        formatPhoneNumber,
     });
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 

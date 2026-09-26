@@ -283,6 +283,7 @@ function SearchAutocompleteList({
             isTrackIntentUser,
             translate,
             rules,
+            formatPhoneNumber,
         }).options;
     }, [
         listOptions,
@@ -303,6 +304,7 @@ function SearchAutocompleteList({
         dateFnsLocale,
         convertToDisplayString,
         rules,
+        formatPhoneNumber,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
