@@ -1,7 +1,7 @@
 ---
 title: Managing Expenses in a Report
 description: Learn how to add, remove, and move expenses in a report in New Expensify, including how comments and system messages interact with them.
-keywords: [New Expensify, manage expenses, add expense, delete expense, move expense, expense table, edit report, report approval, expense actions, create report, admin create report, inline editing, edit expense inline]
+keywords: [New Expensify, manage expenses, add expense, delete expense, move expense, expense table, edit report, report approval, expense actions, create report, admin create report, inline editing, edit expense inline, Columns picker, Vendor column, vendor matching]
 ---
 
 Managing expenses in reports helps you keep everything organized and ready for approval, payment, or export. This guide covers adding, moving, deleting, and editing expenses, as well as understanding audit trails and collaboration.
@@ -131,7 +131,10 @@ Additional columns can be enabled from the **Columns** picker:
   - Tax
   - Tax code
   - Tax rate
+  - Vendor
   - Withdrawal ID
+
+The **Vendor** column only appears when the report's workspace uses vendor matching, and it shows the vendor assigned to each non-reimbursable company card expense. If that workspace doesn't use vendor matching, the column isn't listed in the **Columns** picker and it's also removed from the report's expense table, even if you already saved it in your column layout. Because this is checked per workspace, the column can show on a report from one workspace and be absent on a report from another. To learn how vendors are assigned, [learn more about vendor matching for QuickBooks Online](/articles/new-expensify/connections/quickbooks-online/Manage-Vendor-Matching-for-QuickBooks-Online).
 
 Clicking a row opens the full expense details in a side panel (web) or details screen (mobile).
 

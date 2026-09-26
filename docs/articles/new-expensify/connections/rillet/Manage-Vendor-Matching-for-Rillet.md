@@ -1,7 +1,7 @@
 ---
 title: Manage Vendor Matching for Rillet
 description: Learn how Rillet vendor matching assigns vendors to non-reimbursable company card expenses before they export, including automatic matching, manual selection, and default vendor behavior.
-keywords: [Rillet, vendor matching, vendor, company card expenses, default company card vendor, credit cards, company card export]
+keywords: [Rillet, vendor matching, vendor, company card expenses, default company card vendor, credit cards, company card export, Vendor column, Edit columns]
 internalScope: Audience is Workspace Admins using the Rillet connection for company card exports. Covers imported Rillet vendors, automatic and manual vendor assignment, default company card vendor behavior, and vendors that are no longer valid. Does not cover Rillet connection setup, other Rillet configuration settings, or vendor matching for other accounting connections.
 noindex: true
 sitemap: false
@@ -99,3 +99,15 @@ The vendor selector shows **No vendors found** when your Rillet vendor list is e
 ## How do I know why Expensify assigned a vendor automatically?
 
 When Expensify automatically assigns a vendor, Concierge posts a system message on the expense indicating whether the vendor was assigned by a merchant rule or by vendor matching.
+
+## Where can I see the vendor for several expenses at once?
+
+Add the **Vendor** column to your expense table. Column customization is not available on mobile.
+
+1. Go to the **Spend** tab in the navigation on the left, then select **Expenses**.
+2. Click **Display**, then select **Edit columns**.
+3. Check **Vendor**, then click **Save**.
+
+Inside a single report, click **Columns** above the expense table, check **Vendor**, then click **Save**.
+
+The column shows the vendor assigned to each non-reimbursable company card expense and stays blank when no vendor is assigned yet.
