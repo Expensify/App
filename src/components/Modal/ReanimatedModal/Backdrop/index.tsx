@@ -10,6 +10,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 import React from 'react';
+import {StyleSheet} from 'react-native';
 import Animated, {Keyframe} from 'react-native-reanimated';
 
 function Backdrop({
@@ -23,8 +24,8 @@ function Backdrop({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const Entering = new Keyframe(getModalInAnimation('fadeIn')).duration(animationInTiming);
-    const Exiting = new Keyframe(getModalOutAnimation('fadeOut')).duration(animationOutTiming);
+    const Entering = new Keyframe(getModalInAnimation('fadeIn', backdropOpacity)).duration(animationInTiming);
+    const Exiting = new Keyframe(getModalOutAnimation('fadeOut', backdropOpacity)).duration(animationOutTiming);
 
     const BackdropOverlay = (
         <Animated.View
@@ -39,9 +40,12 @@ function Backdrop({
     if (!customBackdrop) {
         return (
             <PressableWithoutFeedback
+                // The absolute child doesn't size its parent. Native touch handling needs full-screen bounds to allow small finger movements.
+                style={StyleSheet.absoluteFill}
                 accessible
-                accessibilityLabel={translate('modal.backdropLabel')}
-                onPressIn={onBackdropPress}
+                role={CONST.ROLE.BUTTON}
+                accessibilityLabel={translate('common.dismiss')}
+                onPress={onBackdropPress}
                 sentryLabel={CONST.SENTRY_LABEL.REANIMATED_MODAL.BACKDROP}
             >
                 {BackdropOverlay}

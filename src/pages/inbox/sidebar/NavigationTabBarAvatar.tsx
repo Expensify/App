@@ -37,7 +37,7 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
             onPress={onPress}
             accessibilityLabel={`${translate('initialSettingsPage.account')}, ${translate('sidebarScreen.buttonMySettings')}. ${status ? `${translate('common.yourReviewIsRequired')}.` : ''}`}
             role={CONST.ROLE.TAB}
-            wrapperStyle={styles.flex1}
+            wrapperStyle={shouldUseNarrowLayout ? styles.flex1 : styles.leftNavigationTabBarItem}
             accessibilityState={accountAccessibilityState}
             aria-selected={accountAccessibilityState.selected}
             style={({hovered}) => [style, !shouldUseNarrowLayout && hovered && styles.navigationTabBarItemHovered]}

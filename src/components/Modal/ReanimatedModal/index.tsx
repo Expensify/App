@@ -18,13 +18,14 @@ import type {NativeEventSubscription, ViewStyle} from 'react-native';
 
 import noop from 'lodash/noop';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {BackHandler, Modal, StyleSheet, View} from 'react-native';
+import {BackHandler, StyleSheet, View} from 'react-native';
 import {LayoutAnimationConfig} from 'react-native-reanimated';
 
 import type ReanimatedModalProps from './types';
 
 import Backdrop from './Backdrop';
 import Container from './Container';
+import ModalHost from './ModalHost';
 
 function ReanimatedModal({
     testID,
@@ -230,7 +231,7 @@ function ReanimatedModal({
     const modalVisibility = isVisibleState || isTransitioning || isContainerOpen !== isVisibleState;
     return (
         <LayoutAnimationConfig skipExiting={getPlatform() !== CONST.PLATFORM.WEB}>
-            <Modal
+            <ModalHost
                 transparent
                 animationType="none"
                 visible={modalVisibility}
@@ -266,7 +267,7 @@ function ReanimatedModal({
                         {isVisibleState && containerView}
                     </FocusTrapForModal>
                 )}
-            </Modal>
+            </ModalHost>
         </LayoutAnimationConfig>
     );
 }

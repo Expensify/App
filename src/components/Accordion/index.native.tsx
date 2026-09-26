@@ -1,5 +1,3 @@
-import useThemeStyles from '@hooks/useThemeStyles';
-
 import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
@@ -26,7 +24,6 @@ type AccordionProps = {
 
 function Accordion({isExpanded, children, duration = 300, isToggleTriggered, style}: AccordionProps) {
     const height = useSharedValue(0);
-    const styles = useThemeStyles();
 
     const derivedHeight = useDerivedValue(() => {
         if (!isToggleTriggered.get()) {
@@ -69,9 +66,9 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
             };
         }
         return {
-            height: !isToggleTriggered.get() ? height.get() : derivedHeight.get(),
+            height: !isToggleTriggered.get() ? undefined : derivedHeight.get(),
             opacity: derivedOpacity.get(),
-            overflow: isExpanded.get() ? 'visible' : 'hidden',
+            overflow: isToggleTriggered.get() ? 'hidden' : 'visible',
         };
     });
 
@@ -81,7 +78,6 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
                 onLayout={(e) => {
                     height.set(e.nativeEvent.layout.height);
                 }}
-                style={[styles.pAbsolute, styles.l0, styles.r0, styles.t0]}
             >
                 {children}
             </View>

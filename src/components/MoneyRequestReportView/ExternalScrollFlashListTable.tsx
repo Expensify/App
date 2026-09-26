@@ -67,6 +67,9 @@ type ExternalScrollDriverProps = Omit<ScrollViewProps, 'ref'> & {
     /** Where the table region starts within the parent page's scrollable content (px from the top). */
     offsetTop?: number;
 
+    /** Native Views need an explicit cross-axis size inside the horizontal scroller. */
+    contentWidth?: number;
+
     /** Imperative handle FlashList drives (scrollTo/scrollToEnd/getScrollableNode…). */
     ref?: React.Ref<MinimalScrollRef>;
 };
@@ -79,7 +82,7 @@ type ExternalScrollDriverProps = Omit<ScrollViewProps, 'ref'> & {
  * corrections settle below the fold exactly like the parent-driven windowing. Must be a stable module-level component:
  * FlashList memoizes its scroll component on identity.
  */
-function ExternalScrollDriver({store, offsetTop = 0, onScroll, children, style, ref}: ExternalScrollDriverProps) {
+function ExternalScrollDriver({store, offsetTop = 0, contentWidth, onScroll, children, style, ref}: ExternalScrollDriverProps) {
     const nodeRef = useRef<ComponentRef<typeof View>>(null);
 
     useImperativeHandle(
@@ -124,7 +127,8 @@ function ExternalScrollDriver({store, offsetTop = 0, onScroll, children, style, 
     return (
         <View
             ref={nodeRef}
-            style={style}
+            testID="external-scroll-driver"
+            style={[style, {width: contentWidth}]}
         >
             {children}
         </View>
@@ -232,12 +236,13 @@ function ExternalScrollFlashListTable<T>({
                 drawDistance={estimatedRowHeight * 12}
                 renderScrollComponent={ExternalScrollDriver}
                 // Consumed by ExternalScrollDriver (FlashList spreads overrideProps onto the scroll component).
-                overrideProps={{store, offsetTop}}
+                overrideProps={{store, offsetTop, contentWidth}}
                 // Treat the parent viewport as the list's window instead of measuring the (full-height) driver View.
                 overrideWindowSize={{width: contentWidth, height: viewportHeight}}
                 // Grow to content height and don't clip — the parent page owns vertical scroll, so the list's own
                 // clipping viewport must be neutralized.
-                style={{width: contentWidth, flexGrow: 0, flexShrink: 0, flexBasis: 'auto', overflow: 'visible'}}
+                // Clear FlashList's default flex: 1 too, or Android gives this container zero width and hides its children from accessibility.
+                style={{width: contentWidth, flex: 0, flexGrow: 0, flexShrink: 0, flexBasis: 'auto', overflow: 'visible'}}
                 scrollEnabled={false}
             />
         </ScrollView>

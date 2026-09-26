@@ -1,18 +1,5 @@
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
 
-// jest-expo resolves `.native` files by default (defaultPlatform 'ios'), but the super wide RHP is a
-// web/desktop-only layout whose native stubs are intentional no-ops. Force the web `index.ts` (and the
-// receipt pane width it depends on) so these tests exercise the real width math (same pattern as
-// resetOnboardingStackToRootTest).
-jest.mock('@libs/Navigation/helpers/calculateSuperWideRHPWidth', () =>
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    jest.requireActual('@libs/Navigation/helpers/calculateSuperWideRHPWidth/index.ts'),
-);
-jest.mock('@libs/Navigation/helpers/calculateReceiptPaneRHPWidth', () =>
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    jest.requireActual('@libs/Navigation/helpers/calculateReceiptPaneRHPWidth/index.ts'),
-);
-
 // The expected widths below are pinned to concrete pixels rather than recomputed from variables, so any
 // change to superWideRHPLeftMargin (147), sideBarWidth (375), receiptPaneRHPMaxWidth (465) or
 // sidePanelWidth (375) forces a deliberate, visible update here instead of silently tracking the value.

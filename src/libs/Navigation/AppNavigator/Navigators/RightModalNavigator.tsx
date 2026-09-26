@@ -22,8 +22,10 @@ import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwi
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import useModalStackScreenOptions from '@libs/Navigation/AppNavigator/ModalStackNavigators/useModalStackScreenOptions';
 import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptions';
+import {useRHPFrameStyle} from '@libs/Navigation/AppNavigator/useRHPTransition';
 import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
+import getRHPLayoutValue from '@libs/Navigation/helpers/getRHPLayoutValue';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
@@ -99,12 +101,13 @@ function MergeATSApprovalWithDraftContext(props: Record<string, unknown>) {
 function SecondaryOverlay() {
     const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP} = useWideRHPState();
     const {sidePanelOffset} = useSidePanelState();
+    const {windowWidth} = useWindowDimensions();
 
     if (shouldRenderSecondaryOverlayForWideRHP) {
         return (
             <Overlay
                 progress={secondOverlayWideRHPProgress}
-                positionRightValue={Animated.add(sidePanelOffset.current, animatedWideRHPWidth)}
+                positionRightValue={getRHPLayoutValue(getWideRHPWidth(windowWidth), Animated.add<number>(sidePanelOffset.current, animatedWideRHPWidth))}
                 onPress={() => Navigation.closeRHPFlow()}
             />
         );
@@ -114,7 +117,7 @@ function SecondaryOverlay() {
         return (
             <Overlay
                 progress={secondOverlayRHPOnWideRHPProgress}
-                positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
+                positionRightValue={getRHPLayoutValue(singleRHPWidth, Animated.add<number>(sidePanelOffset.current, singleRHPWidth))}
                 onPress={Navigation.dismissToPreviousRHP}
             />
         );
@@ -124,7 +127,7 @@ function SecondaryOverlay() {
         return (
             <Overlay
                 progress={secondOverlayRHPOnSuperWideRHPProgress}
-                positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
+                positionRightValue={getRHPLayoutValue(singleRHPWidth, Animated.add<number>(sidePanelOffset.current, singleRHPWidth))}
                 onPress={Navigation.dismissToSuperWideRHP}
             />
         );
@@ -162,6 +165,7 @@ type RightModalDialogFrameProps = {
 function RightModalDialogFrame({hasDialogSemantics, style, onContainerRef, children}: RightModalDialogFrameProps) {
     const {dialogAriaLabel} = useDialogLabelData();
     const hasName = !!dialogAriaLabel;
+    const frameStyle = useRHPFrameStyle();
 
     return (
         <Animated.View
@@ -171,7 +175,7 @@ function RightModalDialogFrame({hasDialogSemantics, style, onContainerRef, child
             aria-label={hasDialogSemantics && hasName ? dialogAriaLabel : undefined}
             // Focusable so SRs / claimDialogFocus can land on the dialog when it has no nested controls.
             tabIndex={hasDialogSemantics ? -1 : undefined}
-            style={style}
+            style={[style, frameStyle]}
         >
             {children}
         </Animated.View>
@@ -214,8 +218,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // When the wide rhp page is opened as first one, it will be animated with the entire RightModalNavigator.
     const animationEnabledOnSearchReport = superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || isSmallScreenWidth;
 
-    // When the Concierge/Help Side Panel is open on a wide (extra large) layout, it shifts the whole RHP
-    // left by its width via paddingRight (see useModalCardStyleInterpolator + SidePanelContextProvider).
+    // When the Concierge/Help Side Panel is open on a wide (extra large) layout, the panel frame shifts
+    // left by its width (see useRHPFrameStyle + SidePanelContextProvider).
     // The super wide RHP already spans almost the full window, so without shrinking it by the same amount
     // its left edge would be pushed off-screen once the Side Panel opens. Subtract the Side Panel offset
     // from the super wide width only (progress === 2) so the sheet's left edge stays put while the Side
@@ -230,13 +234,15 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         superWideRHPSidePanelOffset,
     );
 
-    const animatedWidthStyle = useMemo(() => {
-        return {
-            width: shouldUseNarrowLayout ? '100%' : animatedWidth,
-        } as const;
-    }, [animatedWidth, shouldUseNarrowLayout]);
+    let rhpWidth: number = singleRHPWidth;
+    if (superWideRHPRouteKeys.length > 0) {
+        rhpWidth = calculateSuperWideRHPWidth(windowWidth);
+    } else if (wideRHPRouteKeys.length > 0) {
+        rhpWidth = getWideRHPWidth(windowWidth);
+    }
+    const animatedWidthStyle = {width: shouldUseNarrowLayout ? '100%' : getRHPLayoutValue(rhpWidth, animatedWidth)} as const;
 
-    const overlayPositionLeft = useMemo(() => -1 * calculateSuperWideRHPWidth(windowWidth), [windowWidth]);
+    const dismissalPositionRight = getRHPLayoutValue(rhpWidth, Animated.add<number>(animatedWidth, sidePanelOffset.current));
 
     const screenListeners = useMemo(
         () => ({
@@ -301,7 +307,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
             <NoDropZone>
                 {!shouldUseNarrowLayout && (
                     <Overlay
-                        positionLeftValue={overlayPositionLeft}
+                        dismissalPositionRight={dismissalPositionRight}
                         onPress={handleOverlayPress}
                     />
                 )}
@@ -579,7 +585,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {!shouldUseNarrowLayout && shouldRenderTertiaryOverlay && (
                     <Overlay
                         progress={thirdOverlayProgress}
-                        positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
+                        positionRightValue={getRHPLayoutValue(singleRHPWidth, Animated.add<number>(sidePanelOffset.current, singleRHPWidth))}
                         onPress={Navigation.dismissToPreviousRHP}
                     />
                 )}
