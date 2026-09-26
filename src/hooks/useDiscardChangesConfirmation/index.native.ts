@@ -32,6 +32,7 @@ function useDiscardChangesConfirmation({
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const blockedNavigationAction = useRef<NavigationAction | undefined>(undefined);
+    const navigationCallbackRef = useRef<(() => void) | undefined>(undefined);
     const isDiscardModalOpen = useRef(false);
     const isReplayingBlockedNavigation = useRef(false);
 
@@ -58,10 +59,19 @@ function useDiscardChangesConfirmation({
             onVisibilityChange?.(false);
             if (result.action !== ModalActions.CONFIRM) {
                 blockedNavigationAction.current = undefined;
+                navigationCallbackRef.current = undefined;
                 onCancel?.();
                 return;
             }
-            const confirmNavigation = () => {
+            const continueNavigation = () => {
+                const navigationCallback = navigationCallbackRef.current;
+                navigationCallbackRef.current = undefined;
+                if (navigationCallback) {
+                    isSavingRef.current = true;
+                    navigationCallback();
+                    return;
+                }
+
                 if (!isFocused && onConfirmWhenUnfocused) {
                     isSavingRef.current = true;
                     blockedNavigationAction.current = undefined;
@@ -78,8 +88,9 @@ function useDiscardChangesConfirmation({
                 }
                 isReplayingBlockedNavigation.current = false;
             };
-            runDiscardConfirmation(onConfirm, confirmNavigation, () => {
+            runDiscardConfirmation(onConfirm, continueNavigation, () => {
                 blockedNavigationAction.current = undefined;
+                navigationCallbackRef.current = undefined;
             });
         });
     };
@@ -95,6 +106,20 @@ function useDiscardChangesConfirmation({
         }
         showDiscardModal(data.action);
     });
+
+    const confirmNavigation = (navigationCallback: () => void) => {
+        if (!hasUnsavedChanges()) {
+            navigationCallback();
+            return;
+        }
+
+        if (isDiscardModalOpen.current) {
+            return;
+        }
+
+        navigationCallbackRef.current = navigationCallback;
+        showDiscardModal();
+    };
 
     // A tab-switch hardware back is an index-only TabRouter change that never fires `beforeRemove`, so intercept it here,
     // ahead of react-navigation's container handler (BackHandler runs listeners newest-first).
@@ -116,7 +141,7 @@ function useDiscardChangesConfirmation({
         isSavingRef.current = shouldSuppress;
     };
 
-    return {suppressDiscardPrompt};
+    return {suppressDiscardPrompt, confirmNavigation};
 }
 
 export default useDiscardChangesConfirmation;

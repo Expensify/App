@@ -14,6 +14,9 @@ type UseDiscardChangesConfirmationOptions = {
 type DiscardChangesConfirmation = {
     /** Suppress the discard prompt during an intentional navigation (a save, or a redirect such as the billing restriction). Pass `false` to clear it if that navigation aborts without leaving. */
     suppressDiscardPrompt: (shouldSuppress?: boolean) => void;
+
+    /** Runs a navigation callback immediately when clean, or after the user confirms discarding unsaved changes. */
+    confirmNavigation: (navigationCallback: () => void) => void;
 };
 
 export default UseDiscardChangesConfirmationOptions;
