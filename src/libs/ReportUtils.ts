@@ -12371,6 +12371,8 @@ type PrepareOnboardingOnyxDataParams = {
     companyDomain?: string;
     /** The user's work email, used by the join-workspace onboarding tasks. */
     workEmail?: string;
+    /** Whether the validation task should resume an account merge instead of validating the current account. */
+    shouldResumeAccountMerge?: boolean;
     /** Whether this posts a follow-up Concierge item after onboarding has completed. */
     isIncremental?: boolean;
 };
@@ -12396,6 +12398,7 @@ function prepareOnboardingOnyxData({
     shouldSkipConciergeOnboarding = false,
     companyDomain,
     workEmail,
+    shouldResumeAccountMerge = false,
     isIncremental = false,
 }: PrepareOnboardingOnyxDataParams) {
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
@@ -12470,9 +12473,9 @@ function prepareOnboardingOnyxData({
         corporateCardLink: `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(onboardingPolicyID)}`,
         companyDomain: companyDomain ?? '',
         workEmail: workEmail ?? '',
-        // The Concierge report is a VERIFY_ACCOUNT entry screen, which keeps the task conversation behind the
-        // validation RHP instead of replacing it with Home.
-        validateEmailLink: `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.getRoute(true), ROUTES.REPORT_WITH_ID.getRoute(targetChatReportID))}`,
+        validateEmailLink: shouldResumeAccountMerge
+            ? `${environmentURL}/${ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute(true)}`
+            : `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.getRoute(true), ROUTES.REPORT_WITH_ID.getRoute(targetChatReportID))}`,
         workEmailLink: `${environmentURL}/${ROUTES.ONBOARDING_WORK_EMAIL.getRoute(true)}`,
         joinWorkspaceLink: `${environmentURL}/${ROUTES.ONBOARDING_WORKSPACES.getRoute(undefined, true)}`,
     };

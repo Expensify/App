@@ -982,6 +982,30 @@ describe('ReportUtils', () => {
             );
         });
 
+        it('provides the merge-code screen for an account-merge validation task link', () => {
+            const description = jest.fn(() => '');
+
+            prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL, title: '', description, autoCompleted: false}],
+                },
+                companySize: undefined,
+                conciergeChat: {reportID: REPORT_ID},
+                delegateAccountID: undefined,
+                shouldResumeAccountMerge: true,
+            });
+
+            expect(description).toHaveBeenCalledWith(
+                expect.objectContaining<OnboardingTaskLinks>({
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    validateEmailLink: expect.stringContaining('/onboarding/work-email-validation?isJoinWorkspaceTask=true'),
+                }),
+            );
+        });
+
         it('persists and rolls back only incremental join-workspace task IDs', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE, createWorkspace: 'existing-task'},
