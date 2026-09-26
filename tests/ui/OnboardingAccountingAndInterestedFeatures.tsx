@@ -153,13 +153,11 @@ describe('Onboarding interested features and accounting pages', () => {
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
     });
 
-    it('keeps Other half-width, auto-focuses its input, and completes with a trimmed integration name', async () => {
+    it('auto-focuses the Other input and completes with a trimmed integration name', async () => {
         const scrollToEndSpy = jest.spyOn(ScrollView.prototype, 'scrollToEnd');
         const renderResult = renderAccountingPage();
 
         await waitForBatchedUpdatesWithAct();
-        expect(screen.queryByText(TestHelper.translateLocal('onboarding.accounting.none'))).not.toBeOnTheScreen();
-        expect(screen.getByTestId('onboarding-accounting-wide-layout-spacer')).toHaveStyle({backgroundColor: 'transparent', flexBasis: '35%', flexGrow: 1});
 
         fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.accounting.other')));
         const otherAccountingSoftwareLabel = TestHelper.translateLocal('onboarding.accounting.otherAccountingSoftware');
@@ -228,6 +226,85 @@ describe('Onboarding interested features and accounting pages', () => {
             expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith({
                 featuresMap: expect.arrayContaining([{id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED, enabled: true, enabledByDefault: true}]),
                 userReportedIntegration: 'quickbooksOnline',
+                userReportedIntegrationName: undefined,
+            });
+        });
+    });
+
+    it('renders one tile per option in the accounting mapping', async () => {
+        // Given the onboarding accounting step, whose tiles come from CONST.ONBOARDING_ACCOUNTING_MAPPING
+        renderAccountingPage();
+
+        // When the step has rendered
+        await waitForBatchedUpdatesWithAct();
+
+        // Then every key in the mapping has exactly one tile
+        const tiles = screen.getAllByRole(CONST.ROLE.RADIO);
+        expect(tiles).toHaveLength(Object.keys(CONST.ONBOARDING_ACCOUNTING_MAPPING).length);
+
+        // Then the tiles follow the mapping's order, with Other last
+        const expectedLabels = [
+            'workspace.accounting.qbo',
+            'workspace.accounting.intuitEnterpriseSuite',
+            'workspace.accounting.qbd',
+            'workspace.accounting.xero',
+            'workspace.accounting.netsuite',
+            'workspace.accounting.intacct',
+            'workspace.certinia.title',
+            'workspace.accounting.rillet',
+            'workspace.accounting.sap',
+            'workspace.accounting.oracle',
+            'workspace.accounting.microsoftDynamics',
+            'workspace.accounting.other',
+        ] as const;
+        expect(expectedLabels.map((label) => tiles.indexOf(screen.getByRole(CONST.ROLE.RADIO, {name: TestHelper.translateLocal(label)})))).toEqual(
+            expectedLabels.map((label, index) => index),
+        );
+
+        // Then the new integrations reuse existing labels
+        expect(screen.getByText(TestHelper.translateLocal('workspace.accounting.intuitEnterpriseSuite'))).toBeOnTheScreen();
+        expect(screen.getByText(TestHelper.translateLocal('workspace.certinia.title'))).toBeOnTheScreen();
+        expect(screen.getByText(TestHelper.translateLocal('workspace.accounting.rillet'))).toBeOnTheScreen();
+    });
+
+    it('reports the connection name rather than the label for a newly added integration', async () => {
+        // Given the onboarding accounting step showing the Certinia tile
+        renderAccountingPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When Certinia is selected and the step is submitted
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.certinia.title')));
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
+
+        // Then the connection name is reported rather than the label, since downstream consumers key off it
+        await waitFor(() => {
+            expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith({
+                featuresMap: expect.arrayContaining([{id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED, enabled: true, enabledByDefault: true}]),
+                userReportedIntegration: CONST.POLICY.CONNECTIONS.NAME.CERTINIA,
+                userReportedIntegrationName: undefined,
+            });
+        });
+    });
+
+    it('restores a previously reported integration instead of falling back to Other', async () => {
+        // Given a user who already chose Certinia on an earlier visit to this step
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, CONST.POLICY.CONNECTIONS.NAME.CERTINIA);
+        });
+
+        // When the step is opened again
+        renderAccountingPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the saved choice is recognized, so the Other input stays hidden
+        expect(screen.queryByLabelText(TestHelper.translateLocal('onboarding.accounting.otherAccountingSoftware'))).not.toBeOnTheScreen();
+
+        // Then submitting keeps that choice
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
+        await waitFor(() => {
+            expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith({
+                featuresMap: expect.arrayContaining([{id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED, enabled: true, enabledByDefault: true}]),
+                userReportedIntegration: CONST.POLICY.CONNECTIONS.NAME.CERTINIA,
                 userReportedIntegrationName: undefined,
             });
         });

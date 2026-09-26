@@ -137,6 +137,7 @@ type ActionContentRouterProps = {
 
     setIsPaymentMethodPopoverActive: (value: boolean) => void;
     isTrackIntentUser?: boolean;
+    paymentExpectedDate?: string;
 };
 
 function ActionContentRouter({
@@ -159,6 +160,7 @@ function ActionContentRouter({
     setIsPaymentMethodPopoverActive,
     isTrackIntentUser,
     isLatestConciergeFeedbackAction,
+    paymentExpectedDate,
 }: ActionContentRouterProps): React.JSX.Element | null {
     const {translate, formatTravelDate} = useLocalize();
     const styles = useThemeStyles();
@@ -291,6 +293,7 @@ function ActionContentRouter({
         return (
             <PaymentContent
                 action={action}
+                expectedDate={paymentExpectedDate}
                 policyID={policyID}
             />
         );

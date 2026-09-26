@@ -24,13 +24,13 @@ type ManualDetailsFieldsProps = {
     errorState: ErrorState;
 
     /** Whether the parent-owned participant picker modal is currently open (new manual expense flow) */
-    isParticipantPickerVisible: boolean;
+    isParticipantPickerVisible?: boolean;
 };
 
 /**
  * The expense-type-driven fields for a manual, scanned or invoice confirmation: Amount, Merchant and Description.
  */
-function ManualDetailsFields({policy, amountDisplay, requiredFlags, errorState, isParticipantPickerVisible}: ManualDetailsFieldsProps) {
+function ManualDetailsFields({policy, amountDisplay, requiredFlags, errorState, isParticipantPickerVisible = false}: ManualDetailsFieldsProps) {
     const {fieldVisibility, isCompactMode, iouCurrencyCode} = useDetailsFields();
 
     return (
