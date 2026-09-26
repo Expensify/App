@@ -10,7 +10,7 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {ProductMarketingAnnouncementVariant} from '@libs/ProductMarketingWindowUtils';
+import type {ProductMarketingAnnouncement} from '@libs/ProductMarketingWindowUtils';
 
 import variables from '@styles/variables';
 
@@ -21,14 +21,11 @@ import {useState} from 'react';
 import {View} from 'react-native';
 
 type ProductMarketingWindowProps = {
-    /** Content variant to display, already resolved for the user's audience. */
-    variant: ProductMarketingAnnouncementVariant;
+    /** Announcement content to display. */
+    announcement: ProductMarketingAnnouncement;
 
-    /** Resolved illustration asset for illustration-backed variants. Typed optional to match ImageSVG's src. */
+    /** Resolved illustration asset for illustration-backed announcements. Typed optional to match ImageSVG's src. */
     illustration: IconAsset | undefined;
-
-    /** Whether the CTA must wait for its destination data to settle. */
-    isCtaDisabled?: boolean;
 
     /** Called when the primary CTA is pressed. */
     onCtaPress: () => void;
@@ -37,7 +34,7 @@ type ProductMarketingWindowProps = {
     onDismiss: () => void;
 };
 
-function ProductMarketingWindow({variant, illustration, isCtaDisabled = false, onCtaPress, onDismiss}: ProductMarketingWindowProps) {
+function ProductMarketingWindow({announcement, illustration, onCtaPress, onDismiss}: ProductMarketingWindowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isExtraSmallScreenHeight, isInLandscapeMode} = useResponsiveLayout();
@@ -47,7 +44,7 @@ function ProductMarketingWindow({variant, illustration, isCtaDisabled = false, o
     const shouldUseCompactNarrowLayout = shouldUseNarrowLayout && isExtraSmallScreenHeight && isInLandscapeMode;
     const narrowBottomOffset = safeAreaPaddingBottom + variables.productMarketingWindowOffsetNarrow;
     const buttonSize = shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL;
-    const [isImageLoading, setIsImageLoading] = useState(variant.visual.type === 'image');
+    const [isImageLoading, setIsImageLoading] = useState(announcement.visual.type === 'image');
 
     return (
         <View
@@ -79,11 +76,11 @@ function ProductMarketingWindow({variant, illustration, isCtaDisabled = false, o
                     ]}
                     testID="ProductMarketingWindowVisual"
                 >
-                    {variant.visual.type === 'image' ? (
+                    {announcement.visual.type === 'image' ? (
                         <>
                             {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                             <Image
-                                source={variant.visual.source}
+                                source={announcement.visual.source}
                                 style={styles.productMarketingWindowImage}
                                 resizeMode="cover"
                                 onLoadStart={() => setIsImageLoading(true)}
@@ -111,10 +108,10 @@ function ProductMarketingWindow({variant, illustration, isCtaDisabled = false, o
                     )}
                 </View>
                 <Text style={[styles.textStrong, shouldUseLightMarketingWindow ? styles.productMarketingWindowHeadingLight : styles.productMarketingWindowHeadingDark]}>
-                    {translate(variant.heading)}
+                    {translate(announcement.heading)}
                 </Text>
                 <Text style={[styles.textLabel, shouldUseLightMarketingWindow ? styles.productMarketingWindowBodyLight : styles.productMarketingWindowBodyDark, styles.mt0Half]}>
-                    {translate(variant.body)}
+                    {translate(announcement.body)}
                 </Text>
                 <View
                     style={[styles.flexRow, styles.gap3, styles.mt4]}
@@ -137,12 +134,11 @@ function ProductMarketingWindow({variant, illustration, isCtaDisabled = false, o
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={buttonSize}
                         style={styles.flex1}
-                        isDisabled={isCtaDisabled}
                         onPress={onCtaPress}
                         sentryLabel={CONST.SENTRY_LABEL.PRODUCT_MARKETING_WINDOW.CTA}
                         testID="ProductMarketingWindowCTA"
                     >
-                        <Button.Text>{translate(variant.ctaLabel)}</Button.Text>
+                        <Button.Text>{translate(announcement.ctaLabel)}</Button.Text>
                     </Button>
                 </View>
             </View>

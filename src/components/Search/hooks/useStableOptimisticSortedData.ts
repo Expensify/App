@@ -1,6 +1,6 @@
 import type {SearchListItem, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
-import {getOptimisticWatchKey, hasDeferredWrite} from '@libs/deferredLayoutWrite';
+import {getSearchWriteWatchKey, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -11,14 +11,14 @@ import type {OnyxKey} from 'react-native-onyx';
 import {useEffect, useState} from 'react';
 
 /**
- * Resolves the optimistic watch key from the deferred write channel and
+ * Looks up the Onyx key of the optimistic item created by the pending Search write and
  * synchronizes the mutable ref + React state via requestAnimationFrame.
  *
  * Returns a cleanup function (to cancel the rAF) when a key is found, or
  * `undefined` when no key is available yet.
  */
 function resolveWatchKey(tracking: TrackingMutableState, setOptimisticWatchKey: React.Dispatch<React.SetStateAction<OnyxKey | undefined>>): (() => void) | undefined {
-    const latestKey = getOptimisticWatchKey(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+    const latestKey = getSearchWriteWatchKey();
     if (!latestKey) {
         return undefined;
     }
@@ -103,7 +103,7 @@ function useStableOptimisticSortedData(sortedData: SearchListItem[], searchResul
 
         if (!tracking.optimisticWatchKey) {
             const cleanup = resolveWatchKey(tracking, setOptimisticWatchKey);
-            if (!cleanup && !hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+            if (!cleanup && !hasPendingSearchWrite()) {
                 clearOptimisticTracking();
             }
             return cleanup;
