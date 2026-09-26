@@ -654,6 +654,60 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['b', 'c'], toDeselect: ['d', 'e']});
         });
 
+        it('narrows only the block a cold click lands in, never another block the user picked', () => {
+            const onApplyRange = makeApplyMock();
+            // Given two groups selected from their headers, so every row in both reads as selected and none as picked on its own
+            const twoBlocks: Row[] = [
+                {keyForList: 'h1', isHeader: true},
+                {keyForList: 'a'},
+                {keyForList: 'b'},
+                {keyForList: 'c'},
+                {keyForList: 'h2', isHeader: true},
+                {keyForList: 'd'},
+                {keyForList: 'e'},
+            ];
+            const {result} = renderHook(() =>
+                useShiftRangeSelection<Row>(
+                    makeParams({items: twoBlocks, isHeaderItem: (row) => !!row.isHeader, isItemSelected: (row) => !row.isHeader, isItemProtected: () => false, onApplyRange}),
+                ),
+            );
+
+            // When the first shift+click of a session lands inside the first group
+            act(() => {
+                result.current.applyShiftClick({keyForList: 'b'}, true);
+            });
+
+            // Then that group narrows and the second is left alone, rather than being given back for a click that never reached it
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b'], toDeselect: ['c']});
+        });
+
+        it('anchors a cold click at the start of the block it lands in, so a later block narrows onto its own rows', () => {
+            const onApplyRange = makeApplyMock();
+            // Given the same two groups selected from their headers
+            const twoBlocks: Row[] = [
+                {keyForList: 'h1', isHeader: true},
+                {keyForList: 'a'},
+                {keyForList: 'b'},
+                {keyForList: 'c'},
+                {keyForList: 'h2', isHeader: true},
+                {keyForList: 'd'},
+                {keyForList: 'e'},
+            ];
+            const {result} = renderHook(() =>
+                useShiftRangeSelection<Row>(
+                    makeParams({items: twoBlocks, isHeaderItem: (row) => !!row.isHeader, isItemSelected: (row) => !row.isHeader, isItemProtected: () => false, onApplyRange}),
+                ),
+            );
+
+            // When the first shift+click of a session lands on the second group's first row
+            act(() => {
+                result.current.applyShiftClick({keyForList: 'd'}, true);
+            });
+
+            // Then the range stays inside that group, rather than running from the first group and sweeping it into the span
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['d'], toDeselect: ['e']});
+        });
+
         it('adopts an unprotected block on a cold click, anchoring in it and narrowing it in one go', () => {
             const onApplyRange = makeApplyMock();
             // Given rows b..e reading as selected with none of them picked on their own, which is how a group-level selection looks

@@ -38,7 +38,7 @@ const defaultSelectionState: SelectionState = {
 // Owns selection state + pure setters only; the write actions (toggle/toggleAll) live in SearchWriteActionsProvider.
 function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
     const {currentSearchHash, currentSearchQueryJSON} = useSearchQueryContext();
-    const isExpenseSearch = currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
+    const supportsAllMatchingExclusions = currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE || currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const [selectionState, setSelectionState] = useState<SelectionState>(defaultSelectionState);
 
@@ -55,7 +55,7 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
     }, [currentSearchHash, syncSearchHash]);
 
     const hasSelectedTransactions =
-        (isExpenseSearch && selectionState.areAllMatchingItemsSelected) ||
+        (supportsAllMatchingExclusions && selectionState.areAllMatchingItemsSelected) ||
         selectionState.selectedTransactionIDs.length > 0 ||
         Object.values(selectionState.selectedTransactions).some((t) => t.isSelected);
 
@@ -127,8 +127,8 @@ function createSelectionActions(setSelectionState: React.Dispatch<React.SetState
     // Read-modify-write the selection atomically. The updater receives the previous map so write actions never
     // need to close over (and re-render on) selection state. `totalSelectableItemsCount` unchecks select-all when
     // the new selection no longer covers every item; omitting it (e.g. during data reconcile) leaves select-all
-    // untouched, which is what the former `isRefreshingSelection` flag protected. Expense row toggles preserve
-    // an all-matching selection and record their removed entries as explicit exclusions.
+    // untouched, which is what the former `isRefreshingSelection` flag protected. Expense and report row toggles
+    // preserve an all-matching selection and record their removed entries as explicit exclusions.
     const applySelection: SearchSelectionActionsValue['applySelection'] = (updater, options) => {
         setSelectionState((prevState) => {
             const selectedTransactions = updater(prevState.selectedTransactions, {

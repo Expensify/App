@@ -153,24 +153,47 @@ function seedRangeState<TItem>(params: Params<TItem>, isIncluded: (key: string) 
     return null;
 }
 
-/** Rows selected without being picked on their own came from a block, which a range may narrow. */
-function adoptUnprotectedBlock<TItem>(params: Params<TItem>): ReadonlySet<string> {
-    // Without a protection predicate of its own every selected row is protected, so the block is empty by definition.
+type AdoptedBlock = {anchor: string; painted: ReadonlySet<string>};
+
+/**
+ * Rows selected without being picked on their own came from a block, which a range may narrow — but only the block the click lands in:
+ * the run of selected rows around the target, ended by a header or by a row outside the selection. Another block the user picked is
+ * a separate gesture, and a click that never reached it must not give it back.
+ */
+function adoptUnprotectedBlock<TItem>(params: Params<TItem>, keyToIndex: Map<string, number>, targetKey: string): AdoptedBlock | null {
+    // Without a protection predicate of its own every selected row is protected, so there is no block by definition.
     const isProtected = params.isItemProtected;
-    if (!isProtected) {
-        return NO_KEYS;
+    const targetIdx = keyToIndex.get(targetKey);
+    const target = targetIdx === undefined ? undefined : params.items.at(targetIdx);
+    if (!isProtected || targetIdx === undefined || target == null || !params.isItemSelected(target)) {
+        return null;
     }
-    const keys = new Set<string>();
-    for (const row of params.items) {
-        if (isExcluded(params, row)) {
+
+    // A row that cannot be selected sits inside a block without ending it, as a row being deleted does inside a group.
+    const continuesRun = (row: TItem | undefined) => row != null && !params.isHeaderItem?.(row) && (!!params.isDisabledItem?.(row) || params.isItemSelected(row));
+    let start = targetIdx;
+    while (start > 0 && continuesRun(params.items.at(start - 1))) {
+        start--;
+    }
+    let end = targetIdx;
+    while (end < params.items.length - 1 && continuesRun(params.items.at(end + 1))) {
+        end++;
+    }
+
+    let anchor: string | null = null;
+    const painted = new Set<string>();
+    for (const row of params.items.slice(start, end + 1)) {
+        const key = isExcluded(params, row) ? null : keyOf(params, row);
+        if (key == null) {
             continue;
         }
-        const key = keyOf(params, row);
-        if (key != null && params.isItemSelected(row) && !isProtected(row)) {
-            keys.add(key);
+        anchor ??= key;
+        if (!isProtected(row)) {
+            painted.add(key);
         }
     }
-    return keys;
+    // A run of rows all picked on their own is not a block, so the anchor rule for a cold click stands.
+    return anchor !== null && painted.size > 0 ? {anchor, painted} : null;
 }
 
 /** Selected keys the session didn't paint — derived fresh each click so protection tracks the live selection; the session never deselects these. */
@@ -201,20 +224,21 @@ function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, ta
     const resolved: ResolvedSession = state.kind === 'seeded' ? (seedRangeState(params, state.isMember, state.carried) ?? {kind: 'anchored', anchor: targetKey}) : state;
 
     const seed = resolved.kind === 'idle' ? null : resolved.anchor;
-    const anchor = resolveAnchor(params, keyToIndex, seed);
-    if (anchor == null) {
+    const resolvedAnchor = resolveAnchor(params, keyToIndex, seed);
+    if (resolvedAnchor == null) {
         return null;
     }
     // The session survives only while the same anchor does; a re-resolved or cold anchor starts fresh.
-    const sameAnchor = resolved.kind !== 'idle' && anchor === resolved.anchor;
+    const sameAnchor = resolved.kind !== 'idle' && resolvedAnchor === resolved.anchor;
     const continuing = resolved.kind === 'ranging' && sameAnchor;
+    // Starting fresh inside a block anchors at that block's start instead, so the span stays inside the block it narrows.
+    const adoptedBlock = sameAnchor ? null : adoptUnprotectedBlock(params, keyToIndex, targetKey);
+    const anchor = adoptedBlock?.anchor ?? resolvedAnchor;
     let prevPainted: ReadonlySet<string>;
     if (continuing) {
         prevPainted = resolved.painted;
-    } else if (sameAnchor) {
-        prevPainted = NO_KEYS;
     } else {
-        prevPainted = adoptUnprotectedBlock(params);
+        prevPainted = adoptedBlock?.painted ?? NO_KEYS;
     }
     const preSelected = protectedKeys(params, prevPainted);
 

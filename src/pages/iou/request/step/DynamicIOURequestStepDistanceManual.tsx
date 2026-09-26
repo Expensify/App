@@ -121,7 +121,6 @@ function DynamicIOURequestStepDistanceManual({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = useAllPersonalDetails(personalDetailsLoginSelector(parentReport?.ownerAccountID));
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: validTransactionDraftIDsSelector,
     });
@@ -339,7 +338,6 @@ function DynamicIOURequestStepDistanceManual({
             isOffline,
             selfDMReport,
             policyForMovingExpenses,
-            betas,
             recentWaypoints,
             unit,
             personalOutputCurrency: personalPolicy?.outputCurrency,

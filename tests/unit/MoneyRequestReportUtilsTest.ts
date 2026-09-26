@@ -190,6 +190,7 @@ describe('MoneyRequestReportUtils', () => {
             // Given an expense with nothing against it
             const transaction = createMock<Transaction>({transactionID: '1'});
 
+            // When the list asks whether anything may select it
             // Then it counts as selectable
             expect(isSelectableReportTransaction(transaction)).toBe(true);
         });
@@ -198,6 +199,7 @@ describe('MoneyRequestReportUtils', () => {
             // Given an expense the user has deleted, still on screen until the server drops it
             const transaction = createMock<Transaction>({transactionID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
 
+            // When the list asks whether anything may select it
             // Then nothing may select it
             expect(isSelectableReportTransaction(transaction)).toBe(false);
         });
@@ -206,6 +208,7 @@ describe('MoneyRequestReportUtils', () => {
             // Given an expense carrying a reject the backend recorded against it
             const transaction = createMock<Transaction>({transactionID: '1', errorFields: {reject: {[REJECTED_AT]: 'iou.rejectReport.couldNotRejectExpense'}}});
 
+            // When the list asks whether anything may select it
             // Then nothing may select it, so Select All and a range agree with the checkbox
             expect(isSelectableReportTransaction(transaction)).toBe(false);
         });
@@ -224,19 +227,22 @@ describe('MoneyRequestReportUtils', () => {
         });
 
         test('does not count a report while a row the user can still check is out', () => {
-            // Given the same report with only one of its two selectable rows selected
+            // Given the same report
+            // When only one of its two selectable rows is selected
             // Then it does not read covered, since a checkbox is left the user has not pressed
             expect(isEveryReportTransactionSelected([ordinary, other, rejected], ['1'])).toBe(false);
         });
 
         test('does not count an empty selection, whichever rows the report holds', () => {
-            // Given nothing selected
+            // Given a report of two ordinary expenses
+            // When nothing is selected
             // Then the report is not covered, so pressing nothing cannot offer an action over everything
             expect(isEveryReportTransactionSelected([ordinary, other], [])).toBe(false);
         });
 
         test('does not count a report holding no row anything can select', () => {
-            // Given a report whose only expense carries a refused reject, and a selection left holding its ID
+            // Given a report whose only expense carries a refused reject
+            // When a selection is left holding its ID
             // Then it does not read covered: `every` over an empty list is vacuously true, which would offer the actions on nothing
             expect(isEveryReportTransactionSelected([rejected], ['3'])).toBe(false);
         });

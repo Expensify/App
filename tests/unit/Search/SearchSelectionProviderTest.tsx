@@ -331,7 +331,7 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
         expect(result.current.state.excludedTransactions).toEqual({});
     });
 
-    it('keeps the original expense-report behavior when a report is deselected', () => {
+    it('preserves an all-matching expense-report selection when a report is deselected', () => {
         // Given an all-matching selection in a Reports search, where a row is a whole report
         mockCurrentSearchQueryJSON = expenseReportQueryJSON;
         const {result} = renderSelection();
@@ -341,17 +341,17 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
         act(() => {
             result.current.actions.applySelection((selectedTransactions) => removeTransaction(selectedTransactions, 'tx_1'), {
                 totalSelectableItemsCount: 2,
-                shouldPreserveAllMatchingSelection: false,
+                shouldPreserveAllMatchingSelection: true,
             });
         });
 
-        // Then the flag drops, which is main's behaviour for that surface and is left as it was
-        expect(result.current.state.areAllMatchingItemsSelected).toBe(false);
+        // Then the flag stands and the report is recorded as an exclusion, which is what a Reports search can express now
+        expect(result.current.state.areAllMatchingItemsSelected).toBe(true);
         expect(Object.keys(result.current.state.selectedTransactions)).toEqual(['tx_2']);
-        expect(result.current.state.excludedTransactions).toEqual({});
+        expect(Object.keys(result.current.state.excludedTransactions)).toEqual(['tx_1']);
     });
 
-    it('does not treat an empty expense-report all-matching state as a loaded selection', () => {
+    it('keeps an empty loaded expense-report selection active while all matching reports are selected', () => {
         // Given a Reports search with nothing loaded
         mockCurrentSearchQueryJSON = expenseReportQueryJSON;
         const {result} = renderSelection();
@@ -361,7 +361,7 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
 
         // Then the flag is on while nothing is loaded to act on, which is what the bulk bar reads
         expect(result.current.state.areAllMatchingItemsSelected).toBe(true);
-        expect(result.current.state.hasSelectedTransactions).toBe(false);
+        expect(result.current.state.hasSelectedTransactions).toBe(true);
     });
 });
 
