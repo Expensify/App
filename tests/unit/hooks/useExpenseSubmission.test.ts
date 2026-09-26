@@ -199,6 +199,23 @@ function buildPerDiemTransaction(overrides: Partial<Transaction> = {}): Transact
     });
 }
 
+function buildOverriddenMapDistanceTransaction(): Transaction {
+    return buildTransaction({
+        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+        comment: {
+            customUnit: {
+                quantity: 29,
+                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            },
+            waypoints: {
+                waypoint0: {address: 'San Francisco', lat: 37.7749, lng: -122.4194},
+                waypoint1: {address: 'New York', lat: 40.7128, lng: -74.006},
+            },
+        },
+        routes: {route0: {distance: 2900000, geometry: {coordinates: []}}},
+    });
+}
+
 function buildParams(overrides: Partial<Parameters<typeof useExpenseSubmission>[0]> = {}): Parameters<typeof useExpenseSubmission>[0] {
     const transaction = buildTransaction();
     return {
@@ -605,6 +622,118 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(mockTrackExpenseAction).toHaveBeenCalledWith(expect.objectContaining({existingTransaction: params.transactions.at(0)}));
+        });
+
+        it('sends the overridden distance and keeps the waypoints when tracking a map distance expense', async () => {
+            // Given a map distance draft whose quantity the user replaced on the Manual tab, so it no longer matches its route
+            const mapDistance = buildOverriddenMapDistanceTransaction();
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.TRACK,
+                        transaction: mapDistance,
+                        transactions: [mapDistance],
+                        isDistanceRequest: true,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the expense is created
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the typed distance goes to the server and the waypoints go with it, because dropping them would
+            // trade the map receipt away for the number, and the request stays a map expense so the created expense
+            // still edits and renders as one
+            expect(mockTrackExpenseAction).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        distance: 29,
+                        distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                        validWaypoints: mapDistance.comment?.waypoints,
+                    }),
+                }),
+            );
+        });
+
+        it('sends the overridden distance when submitting a map distance expense to a workspace', async () => {
+            // Given the same overridden map distance draft, but headed for a workspace, which goes out as a different command
+            const mapDistance = buildOverriddenMapDistanceTransaction();
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transaction: mapDistance,
+                        transactions: [mapDistance],
+                        isDistanceRequest: true,
+                        isPolicyExpenseChat: true,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the expense is created
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the workspace path sends the typed distance under the map type too, so both destinations store the
+            // same shape
+            expect(mockCreateDistanceRequestAction).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        distance: 29,
+                        distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                    }),
+                }),
+            );
+        });
+
+        it('sends the manual distance when the map route has not been fetched yet', async () => {
+            // Given a map draft picked offline, so it carries a typed quantity but no route to compare it against
+            const mapDistance = buildTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    customUnit: {quantity: 1, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    waypoints: {
+                        waypoint0: {address: 'Aspen', lat: 39.1911, lng: -106.8175},
+                        waypoint1: {address: 'Breckenridge', lat: 39.4817, lng: -106.0384},
+                    },
+                },
+            });
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transaction: mapDistance,
+                        transactions: [mapDistance],
+                        isDistanceRequest: true,
+                        isPolicyExpenseChat: true,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the expense is created
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the quantity is still treated as an override, because offline a map draft can only get one from the
+            // Manual tab, otherwise the queued request would carry no distance and the server would use the route
+            expect(mockCreateDistanceRequestAction).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        distance: 1,
+                        distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                    }),
+                }),
+            );
         });
 
         // Regression test for #94282: an expense whose sole recipient is the current user must be a self-DM track
