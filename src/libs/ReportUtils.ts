@@ -9858,10 +9858,22 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
     // If the user was mentioned and the comment got deleted the lastMentionedTime will be more recent than the lastVisibleActionCreated
     const isUnreadFromTimestamp = lastReadTime < (lastVisibleActionCreated ?? '') || lastReadTime < lastMentionedTime;
 
-    const drivingActorAccountID =
-        (oneTransactionThreadReport?.lastVisibleActionCreated ?? '') > (report?.lastVisibleActionCreated ?? '') ? oneTransactionThreadReport?.lastActorAccountID : report?.lastActorAccountID;
+    const isThreadDriving = (oneTransactionThreadReport?.lastVisibleActionCreated ?? '') > (report?.lastVisibleActionCreated ?? '');
+    const drivingReport = isThreadDriving ? oneTransactionThreadReport : report;
+    // Some backend paths send lastActorAccountID as a string, so coerce before comparing against the numeric accountID.
+    const drivingActorAccountID = Number(drivingReport?.lastActorAccountID);
 
-    if (isUnreadFromTimestamp && drivingActorAccountID === deprecatedCurrentUserAccountID && !(lastReadTime < lastMentionedTime)) {
+    if (!isUnreadFromTimestamp || lastReadTime < lastMentionedTime) {
+        return isUnreadFromTimestamp;
+    }
+
+    if (drivingActorAccountID === deprecatedCurrentUserAccountID) {
+        return false;
+    }
+
+    // An automation acting on the report (a workspace rule paying it, the harvester submitting it) is not news the
+    // submitter already knows, so it stays unread for them but does not bump it for everyone else on the report.
+    if (drivingReport?.lastActionIsAutomatic && report.ownerAccountID !== deprecatedCurrentUserAccountID) {
         return false;
     }
 
