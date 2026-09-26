@@ -362,4 +362,20 @@ describe('MoneyReportHeader transaction carousel anchor', () => {
         expect(getHeaderRowTestIDs(toJSON())).not.toContain(TRANSACTIONS_CAROUSEL_TEST_ID);
         expect(getHeaderRowTestIDs(toJSON())).not.toContain(REPORT_CAROUSEL_TEST_ID);
     });
+
+    /**
+     * Regression guard for https://github.com/Expensify/App/pull/100331#issuecomment-5815107865: a report reached
+     * from the Reports list only ever gets there through SEARCH_MONEY_REQUEST_REPORT, so its own single expense
+     * must not anchor an expense carousel. Letting it did meant a leftover list from the Expenses tab took the
+     * report arrows over and paged the user onto an expense instead of the next report.
+     */
+    it('keeps the report carousel on a report opened from the Reports list', () => {
+        mockThread({activeIDs: ['other-tx', THREAD_TRANSACTION_ID], parentActions: {[PARENT_ACTION_ID]: parentIOUAction}});
+        mockedUseRoute.mockReturnValue({key: 'route-1', name: SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, params: {}});
+
+        const {toJSON} = renderHeader();
+
+        expect(getHeaderRowTestIDs(toJSON())).not.toContain(TRANSACTIONS_CAROUSEL_TEST_ID);
+        expect(getHeaderRowTestIDs(toJSON())).toContain(REPORT_CAROUSEL_TEST_ID);
+    });
 });

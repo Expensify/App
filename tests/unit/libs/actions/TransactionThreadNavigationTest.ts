@@ -246,12 +246,28 @@ describe('TransactionThreadNavigation carousel ownership', () => {
             expect(shouldRefreshActiveTransactionIDs(OTHER_SEARCH_SOURCE, SPEND_PAGE_IDS)).toBe(true);
         });
 
-        it('still refuses a disowned carousel to a list with nothing to page between', async () => {
+        /**
+         * Regression guard for https://github.com/Expensify/App/pull/100331#issuecomment-5812384643: switching from
+         * Spend > Expenses to Spend > Reports unmounts the expense list (which disowns its carousel) and mounts a
+         * list of report groups with no transaction rows to seed from. Refusing that empty write left the Expenses
+         * tab's list active, so the first one-expense report the user paged onto swapped its report arrows for that
+         * stale expense carousel and paged them out of the reports they were browsing.
+         */
+        it('lets the screen that replaces the previous writer retire a disowned carousel', async () => {
             await setActiveTransactionIDs(SEEDED_IDS, {source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH});
 
             disownActiveTransactionIDs(SEARCH_SOURCE);
 
-            expect(shouldRefreshActiveTransactionIDs(OTHER_SEARCH_SOURCE, ['A1'])).toBe(false);
+            expect(shouldRefreshActiveTransactionIDs(OTHER_SEARCH_SOURCE, ['A1'])).toBe(true);
+            expect(shouldRefreshActiveTransactionIDs(OTHER_SEARCH_SOURCE, [])).toBe(true);
+        });
+
+        it('leaves a disowned carousel alone when the replacement list is identical', async () => {
+            await setActiveTransactionIDs(SEEDED_IDS, {source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH});
+
+            disownActiveTransactionIDs(SEARCH_SOURCE);
+
+            expect(shouldRefreshActiveTransactionIDs(OTHER_SEARCH_SOURCE, SEEDED_IDS)).toBe(false);
         });
 
         it('leaves a carousel another screen has taken over', async () => {

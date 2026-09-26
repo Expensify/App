@@ -105,7 +105,12 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const routeAnchorTransactionID = anchorTransactionIDFromRoute && activeTransactionIDs.includes(anchorTransactionIDFromRoute) ? anchorTransactionIDFromRoute : undefined;
     // The route anchor is the most reliable source right after a cold open: the report's own transactions and its
     // parent report action may not have loaded yet, and without it the carousel would pop in only once they do.
-    const carouselAnchorTransactionID = singleTransactionID ?? threadTransactionID ?? routeAnchorTransactionID;
+    //
+    // A report reached from the Reports list (or paged onto by that list's own arrows) is never anchored to an
+    // expense: every entry point that opens an expense with a carousel uses SEARCH_REPORT instead. Anchoring it
+    // let a one-expense report hand its arrows to whatever expense list happened to be active - the Expenses tab's
+    // list, one tab over - and page the user out of the reports they were browsing.
+    const carouselAnchorTransactionID = route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? undefined : (singleTransactionID ?? threadTransactionID ?? routeAnchorTransactionID);
     // Two entries are the minimum for a carousel; with fewer, fall through to the report-level arrows rather than
     // rendering an expense carousel that decides on its own to show nothing.
     //
