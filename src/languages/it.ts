@@ -7471,6 +7471,8 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Per sbloccare, imposta un conto per le tue esportazioni.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Per sbloccare, abilita la sincronizzazione automatica.',
             campfire: 'Campfire',
+            continuousReconciliationFeedSelection:
+                '<muted-text-label>La Riconciliazione continua è configurata per ogni flusso di carte. Scegli il flusso qui sopra per configurarla.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
         },
         export: {

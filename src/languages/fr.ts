@@ -7533,6 +7533,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Pour le déverrouiller, définissez un compte pour vos exports.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Pour le déverrouiller, activez la synchronisation automatique.',
             campfire: 'Campfire',
+            continuousReconciliationFeedSelection:
+                '<muted-text-label>Le rapprochement continu est configuré par flux de carte. Choisissez le flux ci-dessus pour le configurer.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
         },
         export: {

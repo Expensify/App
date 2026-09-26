@@ -7199,6 +7199,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             syncTravelInvoicingSettlementsNoAccountTooltip: '要解锁，请为导出设置一个账户。',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: '若要解锁，请启用自动同步。',
             campfire: 'Campfire',
+            continuousReconciliationFeedSelection: '<muted-text-label>按卡片流水单独配置持续对账。请选择上面的流水以进行配置。</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
         },
         export: {

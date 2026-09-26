@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
+import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -50,7 +51,11 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const policyID = route.params?.policyID;
-    const defaultFundID = useDefaultFundID(policyID);
+    const fundIDFromRoute = Number(route.params?.fundID);
+    const defaultFundIDFromCardPages = useDefaultFundID(policyID);
+    const {allFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
+    const isFundIDFromRouteValid = !!fundIDFromRoute && !Number.isNaN(fundIDFromRoute) && allFeeds.some((entry) => entry.fundID === fundIDFromRoute);
+    const defaultFundID = isFundIDFromRouteValid ? fundIDFromRoute : defaultFundIDFromCardPages;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path);
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
