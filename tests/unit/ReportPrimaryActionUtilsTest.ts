@@ -1265,6 +1265,84 @@ describe('getPrimaryAction', () => {
         ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
     });
 
+    it('should return PAY for expense report whose reimbursable transactions cancel out to a 0 total', async () => {
+        // Given a finished expense report whose reimbursable expenses net to exactly $0
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            total: 0,
+            nonReimbursableTotal: 0,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+        });
+        const reimbursableTransaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+            reimbursable: true,
+            amount: 5000,
+        });
+        const offsettingTransaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+            reimbursable: true,
+            amount: -5000,
+        });
+
+        // When the primary action is resolved
+        // Then PAY is offered so the payer can close the report out
+        expect(
+            getReportPrimaryAction({
+                rules: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                ownerLogin: '',
+                chatReport,
+                reportTransactions: [reimbursableTransaction, offsettingTransaction],
+                violations: {},
+                bankAccountList: {},
+                policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    });
+
+    it('should not return PAY for expense report with a 0 total and no transactions', async () => {
+        // Given a finished expense report with a $0 total because it has no expenses at all
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            total: 0,
+            nonReimbursableTotal: 0,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+        });
+
+        // When the primary action is resolved
+        // Then PAY is not offered, because an empty report has nothing to mark as paid
+        expect(
+            getReportPrimaryAction({
+                rules: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                ownerLogin: '',
+                chatReport,
+                reportTransactions: [],
+                violations: {},
+                bankAccountList: {},
+                policy,
+                isChatReportArchived: false,
+            }),
+        ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    });
+
     it('should return EXPORT TO ACCOUNTING for finished reports', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,

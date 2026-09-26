@@ -72,6 +72,7 @@ import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     allHavePendingRTERViolation,
+    getAmount as getTransactionAmount,
     hasAnyTransactionWithoutRTERViolation,
     isDuplicate,
     isOnHold,
@@ -266,6 +267,17 @@ function canIOUBePaid(
     const isIOU = isIOUReport(iouReport);
     const canShowMarkedAsPaidForNegativeAmount = onlyShowPayElsewhere && reimbursableSpend < 0;
     const isOnlyNonReimbursablePayElsewhere = onlyShowPayElsewhere && nonReimbursableSpend !== 0 && hasOnlyNonReimbursableTransactions(iouReport?.reportID, transactions);
+    // A report whose expenses cancel out to exactly zero (for example a $50 and a -$50 expense) has nothing to settle,
+    // so only the pay elsewhere flow applies. Checking the stored total keeps reports that simply have not loaded
+    // their totals yet out of this path, requiring a non-zero expense keeps empty reports out, and reports made up
+    // entirely of non-reimbursable expenses keep their existing optional-payment handling.
+    const canShowMarkedAsPaidForOffsettingExpenses =
+        onlyShowPayElsewhere &&
+        reimbursableSpend === 0 &&
+        nonReimbursableSpend === 0 &&
+        iouReport?.total === 0 &&
+        !!transactions?.some((transaction) => getTransactionAmount(transaction, true, false, true) !== 0) &&
+        !hasOnlyNonReimbursableTransactions(iouReport?.reportID, transactions);
 
     if (isIOU && canPay && !iouSettled && reimbursableSpend > 0) {
         return true;
@@ -281,7 +293,7 @@ function canIOUBePaid(
         canPay &&
         isReportFinished &&
         !iouSettled &&
-        (reimbursableSpend > 0 || canShowMarkedAsPaidForNegativeAmount || isOnlyNonReimbursablePayElsewhere) &&
+        (reimbursableSpend > 0 || canShowMarkedAsPaidForNegativeAmount || isOnlyNonReimbursablePayElsewhere || canShowMarkedAsPaidForOffsettingExpenses) &&
         !isPayBlockedByArchivedState(iouReport, policy, isChatReportArchived) &&
         !isAutoReimbursable &&
         !isPayAtEndExpenseReport &&
