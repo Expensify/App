@@ -97,7 +97,6 @@ function NetSuiteCustomListSelectorPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
             <ScreenWrapper
-                includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="NetSuiteCustomListSelectorPage"
             >
