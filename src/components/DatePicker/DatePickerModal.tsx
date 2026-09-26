@@ -43,13 +43,23 @@ function DatePickerModal({
     anchorPosition,
     anchorAlignment = DEFAULT_ANCHOR_ORIGIN,
     onSelected,
+    onMonthOrYearSelected,
     shouldCloseWhenBrowserNavigationChanged = false,
     shouldPositionFromTop = false,
     forwardedFSClass,
     shouldEnableMonthYearBackdropInNarrowPane = false,
+    anchorRef: anchorRefProp,
+    withoutOverlay = false,
+    shouldAllowWithoutOverlayInNarrowPane = false,
+    shouldCloseOnWheel = true,
+    viewDate,
+    viewDateVersion,
 }: DatePickerProps) {
     const [selectedDate, setSelectedDate] = useState(value ?? defaultValue ?? undefined);
-    const anchorRef = useRef<ComponentRef<typeof View>>(null);
+    const fallbackAnchorRef = useRef<ComponentRef<typeof View>>(null);
+    // PopoverProvider treats a click inside the anchor as "not outside", so the caller's own anchor has to be used
+    // or clicking the date input while the calendar is open would dismiss it.
+    const anchorRef = anchorRefProp ?? fallbackAnchorRef;
     const styles = useThemeStyles();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
@@ -65,11 +75,20 @@ function DatePickerModal({
         }
     }, [formID, inputID, selectedDate, shouldSaveDraft, value]);
 
-    const handleDateSelection = (newValue: string) => {
-        onSelected?.(newValue);
+    const applySelection = (newValue: string) => {
         onTouched?.();
         onInputChange?.(newValue);
         setSelectedDate(newValue);
+    };
+
+    const handleDateSelection = (newValue: string) => {
+        onSelected?.(newValue);
+        applySelection(newValue);
+    };
+
+    const handleMonthOrYearSelection = (newValue: string) => {
+        onMonthOrYearSelected?.(newValue);
+        applySelection(newValue);
     };
 
     // Pass the CalendarPicker's existing bottom padding (pb4) as the base style so the safe-area padding is
@@ -96,14 +115,20 @@ function DatePickerModal({
             forwardedFSClass={forwardedFSClass}
             shouldDisplayBelowModals
             enableEdgeToEdgeBottomSafeAreaPadding
+            withoutOverlay={withoutOverlay}
+            shouldAllowWithoutOverlayInNarrowPane={shouldAllowWithoutOverlayInNarrowPane}
+            shouldCloseOnWheel={shouldCloseOnWheel}
         >
             <CalendarPicker
                 minDate={minDate}
                 maxDate={maxDate}
                 value={selectedDate}
                 onSelected={handleDateSelection}
+                onMonthOrYearSelected={onMonthOrYearSelected ? handleMonthOrYearSelection : undefined}
                 containerStyle={bottomSafeAreaPaddingStyle}
                 shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
+                viewDate={viewDate}
+                viewDateVersion={viewDateVersion}
             />
         </PopoverWithMeasuredContent>
     );

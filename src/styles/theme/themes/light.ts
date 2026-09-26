@@ -63,6 +63,7 @@ const lightTheme = {
     textDark: colors.productLight900,
     textReversed: colors.productDark900,
     textBackground: colors.productLight200,
+    textSelectionBackground: colors.blue100,
     textMutedReversed: colors.productLight700,
     textError: colors.red,
     offline: colors.productLight700,
