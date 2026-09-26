@@ -1,12 +1,9 @@
-import SubscriptAvatar from '@components/Avatar/layouts/SubscriptAvatar';
 import type {AvatarIcon} from '@components/Avatar/types';
 
-import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useOnyx from '@hooks/useOnyx';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
-import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,12 +13,12 @@ import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {expenseReportAvatarSelector} from '@selectors/Report';
+import {reportAvatarFieldsSelector} from '@selectors/Report';
 import {getReportActionByIDSelector} from '@selectors/ReportAction';
 import React from 'react';
 
-import useAccountIcons from './useAccountIcons';
-import useReportWorkspaceIcon from './useReportWorkspaceIcon';
+import {useSeededAccountIcons} from './useAccountIcons';
+import WorkspaceSubscriptAvatar from './WorkspaceSubscriptAvatar';
 
 type ExpenseReportAvatarProps = {
     /** Expense report whose avatars to render */
@@ -41,32 +38,25 @@ type ExpenseReportAvatarProps = {
 };
 
 /**
- * Renders an expense report's avatars: the report owner as the primary avatar with the workspace icon as the subscript.
+ * Renders an expense report's avatars: the owner with the workspace icon as the subscript.
  * When a copilot created the report on the owner's behalf, the copilot is the primary avatar instead, matching the LHN row.
- * Expense reports never render in any other layout.
  */
 function ExpenseReportAvatar({reportID, size, backdropColor, containerStyle, fallbackDisplayName}: ExpenseReportAvatarProps) {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: expenseReportAvatarSelector});
-    const defaultAvatars = useDefaultAvatars();
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportAvatarFieldsSelector});
     const parentReportActionID = report?.parentReportActionID;
     const delegateAccountIDSelector = (reportActions: OnyxEntry<ReportActions>) => getDelegateAccountIDFromReportAction(getReportActionByIDSelector(reportActions, parentReportActionID));
+    // An optimistic expense report links its workspace chat only through chatReportID.
     const parentChatReportID = getNonEmptyStringOnyxID(report?.chatReportID) ?? getNonEmptyStringOnyxID(report?.parentReportID);
     const [delegateAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentChatReportID}`, {selector: delegateAccountIDSelector});
     const ownerAccountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const primaryAccountID = delegateAccountID ?? ownerAccountID;
-    const [primaryIcon] = useAccountIcons([primaryAccountID]);
-    // Get deterministic user fallback icon instead of generic.
-    const resolvedIcon =
-        primaryIcon.source === defaultAvatars.FallbackAvatar && primaryAccountID !== CONST.DEFAULT_NUMBER_ID
-            ? {...primaryIcon, source: getDefaultAvatarURL({accountID: primaryAccountID})}
-            : primaryIcon;
-    const primaryAvatar: AvatarIcon = delegateAccountID ? {...resolvedIcon, copilot: {accountID: delegateAccountID, actedForAccountID: ownerAccountID}} : resolvedIcon;
-    const workspaceIcon = useReportWorkspaceIcon(report);
+    const [primaryIcon] = useSeededAccountIcons([primaryAccountID]);
+    const primaryAvatar: AvatarIcon = delegateAccountID ? {...primaryIcon, copilot: {accountID: delegateAccountID, actedForAccountID: ownerAccountID}} : primaryIcon;
 
     return (
-        <SubscriptAvatar
+        <WorkspaceSubscriptAvatar
+            report={report}
             primaryAvatar={primaryAvatar}
-            secondaryAvatar={workspaceIcon}
             size={size}
             backdropColor={backdropColor}
             containerStyle={containerStyle}

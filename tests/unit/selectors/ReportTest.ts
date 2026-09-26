@@ -1,7 +1,7 @@
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 
-import {expenseReportAvatarSelector, reportAvatarKindSelector, reportPolicyFieldsSelector} from '@selectors/Report';
+import {reportAvatarFieldsSelector, reportAvatarKindSelector, reportPolicyFieldsSelector} from '@selectors/Report';
 
 const REPORT_ID = 'report123';
 const PARENT_REPORT_ID = 'parentReport123';
@@ -36,8 +36,9 @@ describe('reportAvatarKindSelector', () => {
         ['a DM', {type: CONST.REPORT.TYPE.CHAT}, CONST.REPORT_AVATAR_KIND.DEFAULT],
         ['a self DM', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM}, CONST.REPORT_AVATAR_KIND.DEFAULT],
         ['a system chat', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SYSTEM}, CONST.REPORT_AVATAR_KIND.DEFAULT],
-        // Trip rooms keep bespoke avatar logic in the legacy hook, so they stay on the default kind for now.
-        ['a trip room', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM}, CONST.REPORT_AVATAR_KIND.DEFAULT],
+        // A trip room is itself a thread of its trip preview, so it routes to the thread wrapper.
+        ['a trip room', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM, ...threadFields}, CONST.REPORT_AVATAR_KIND.CHAT_THREAD],
+        ['a trip room without parent fields', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM}, CONST.REPORT_AVATAR_KIND.DEFAULT],
         ['a report without a type', {}, CONST.REPORT_AVATAR_KIND.DEFAULT],
         // Legacy getIcons classifies chats purely off chatType — a chat row whose type hasn't populated yet still routes by it.
         ['a group chat without a type', {chatType: CONST.REPORT.CHAT_TYPE.GROUP}, CONST.REPORT_AVATAR_KIND.GROUP_CHAT],
@@ -53,34 +54,36 @@ describe('reportAvatarKindSelector', () => {
     });
 });
 
-describe('expenseReportAvatarSelector', () => {
-    it('should project exactly the fields the expense report avatar renders from', () => {
+describe('reportAvatarFieldsSelector', () => {
+    it('should project exactly the fields the report-type avatar wrappers render from', () => {
         const report = createReport({
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: 42,
+            chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
             policyID: 'policy123',
             policyAvatar: 'https://example.com/policy-avatar.png',
             policyName: 'Policy Name',
             oldPolicyName: 'Old Policy Name',
             chatReportID: 'chatReport123',
-            parentReportID: PARENT_REPORT_ID,
-            // A field the avatar does not read, to prove it is stripped
+            ...threadFields,
+            // A field the avatars do not read, to prove it is stripped
             lastMessageText: 'Hello',
         });
 
-        expect(expenseReportAvatarSelector(report)).toEqual({
+        expect(reportAvatarFieldsSelector(report)).toEqual({
             ownerAccountID: 42,
+            chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
             policyID: 'policy123',
             policyAvatar: 'https://example.com/policy-avatar.png',
             policyName: 'Policy Name',
             oldPolicyName: 'Old Policy Name',
             chatReportID: 'chatReport123',
-            parentReportID: PARENT_REPORT_ID,
+            ...threadFields,
         });
     });
 
     it('should return undefined when the report is not in Onyx', () => {
-        expect(expenseReportAvatarSelector(undefined)).toBeUndefined();
+        expect(reportAvatarFieldsSelector(undefined)).toBeUndefined();
     });
 });
 
