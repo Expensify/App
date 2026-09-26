@@ -81,7 +81,7 @@ import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams} fr
 import type {UpdateMoneyRequestDataKeys} from './UpdateMoneyRequest';
 
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
-import {getAllReports} from './index';
+import {getAllReports, getIOUAndChatReportForIOUAction} from './index';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {getMoneyRequestInformation, getReportPreviewReportAction} from './MoneyRequestBuilder';
 import {getDeleteTrackExpenseInformation} from './TrackExpense';
@@ -1430,7 +1430,7 @@ function updateSplitTransactions({
 
         // getDeleteTrackExpenseInformation only handles deleting the transaction report thread, so we need to update the report preview action here
         if (originalReportPreviewAction) {
-            const currentActionIOUReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportAction?.reportID}`];
+            const {iouReport: currentActionIOUReport, chatReport: currentActionChatReport} = getIOUAndChatReportForIOUAction(currentReportAction, allReportsList);
             const cleanUpTransactionThreadReportOnyxData = getCleanUpTransactionThreadReportOnyxData({
                 shouldDeleteTransactionThread: false,
                 reportAction: currentReportAction,
@@ -1438,7 +1438,7 @@ function updateSplitTransactions({
                 shouldAddUpdatedReportPreviewActionToOnyxData: false,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 iouReport: currentActionIOUReport,
-                chatReport: allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${currentActionIOUReport?.chatReportID}`],
+                chatReport: currentActionChatReport,
                 // shouldDeleteTransactionThread is false, so the transaction-thread report actions are never read here.
                 transactionThreadReportActionsParam: undefined,
             });
@@ -1684,8 +1684,7 @@ function updateSplitTransactions({
                         },
                     }),
                 };
-                const iouActionIOUReportID = isMoneyRequestAction(iouActionToCleanUp) ? iouActionToCleanUp.reportID : undefined;
-                const iouActionIOUReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${iouActionIOUReportID}`];
+                const {iouReport: iouActionIOUReport, chatReport: iouActionChatReport} = getIOUAndChatReportForIOUAction(iouActionToCleanUp, allReportsList);
 
                 const {optimisticData, successData, failureData} = getCleanUpTransactionThreadReportOnyxData({
                     transactionThreadID: iouActionToCleanUp.childReportID,
@@ -1695,7 +1694,7 @@ function updateSplitTransactions({
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     transactionThread: allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${iouActionToCleanUp.childReportID}`],
                     iouReport: iouActionIOUReport,
-                    chatReport: allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${iouActionIOUReport?.chatReportID}`],
+                    chatReport: iouActionChatReport,
                     transactionThreadReportActionsParam: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouActionToCleanUp.childReportID}`],
                 });
 

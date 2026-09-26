@@ -66,7 +66,7 @@ import type {PerDiemExpenseInformation} from './PerDiem';
 import type {CreateDistanceRequestInformation} from './Split';
 import type {CreateTrackExpenseParams} from './TrackExpense';
 
-import {getAllTransactions, getCurrentUserAccountIDFromSession} from '.';
+import {getAllTransactions, getCurrentUserAccountIDFromSession, getIOUAndChatReportForIOUAction} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {submitPerDiemExpense} from './PerDiem';
@@ -306,9 +306,7 @@ function mergeDuplicates({
         for (const [index, iouAction] of actions.entries()) {
             const transactionThreadID = iouAction.childReportID;
             const transactionThread = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`];
-            const iouReportID = isMoneyRequestAction(iouAction) ? iouAction?.reportID : undefined;
-            const iouReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
-            const chatReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
+            const {chatReport, iouReport} = getIOUAndChatReportForIOUAction(iouAction, allReportsList);
             const cleanUp = getCleanUpTransactionThreadReportOnyxData({
                 transactionThreadID,
                 shouldDeleteTransactionThread: !!transactionThreadID,
