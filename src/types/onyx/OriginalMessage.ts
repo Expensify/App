@@ -1194,6 +1194,9 @@ type OriginalMessageMarkedReimbursed = {
 
 /** Model of `reimbursed` report action */
 type OriginalMessageReimbursed = {
+    /** Account IDs for which the reimbursement should mark the report unread */
+    actionableForAccountIDs?: number[];
+
     /** Whether this action was created from NewDot */
     isNewDot?: boolean;
 

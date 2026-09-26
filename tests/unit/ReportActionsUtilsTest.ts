@@ -6725,6 +6725,79 @@ describe('ReportActionsUtils', () => {
             isReversed: false,
         };
 
+        it('skips a reimbursement that is not actionable for the current user', () => {
+            const reimbursement = makeAction({
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: 'reimbursement',
+                originalMessage: {actionableForAccountIDs: [2]},
+            });
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions: [reimbursement],
+                }),
+            ).toEqual([null, -1]);
+        });
+
+        it('shows a marker for a reimbursement that is actionable for the current user', () => {
+            const reimbursement = makeAction({
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: 'reimbursement',
+                originalMessage: {actionableForAccountIDs: [currentUserAccountID]},
+            });
+            expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [reimbursement]})).toEqual(['reimbursement', 0]);
+        });
+
+        it('skips an export when finding the oldest eligible unread action', () => {
+            const comment = makeAction({reportActionID: 'comment', created: '2023-01-01 12:00:00.000'});
+            const exportAction = makeAction({
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                reportActionID: 'export',
+                originalMessage: {label: CONST.EXPORT_LABELS.QBO, lastModified: '2023-01-01 11:00:00.000'},
+            });
+            expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [comment, exportAction]})).toEqual(['comment', 0]);
+        });
+
+        it('does not show a marker when an export is the only unread action', () => {
+            const exportAction = makeAction({
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                reportActionID: 'qbo-export',
+                originalMessage: {label: CONST.EXPORT_LABELS.QBO, lastModified: '2023-01-01 11:00:00.000'},
+            });
+            expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [exportAction]})).toEqual([null, -1]);
+        });
+
+        it('advances a filtered offline boundary to the oldest eligible action', () => {
+            const comment = makeAction({reportActionID: 'comment', created: '2023-01-01 12:00:00.000'});
+            const exportAction = makeAction({
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                reportActionID: 'export',
+                originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'},
+            });
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions: [comment, exportAction],
+                    earliestReceivedOfflineMessageIndex: 1,
+                }),
+            ).toEqual(['comment', 0]);
+        });
+
+        it('allows an explicitly marked unread export to anchor the marker', () => {
+            const exportAction = makeAction({
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                reportActionID: 'export',
+                originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'},
+            });
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions: [exportAction],
+                    manuallyMarkedUnreadReportActionID: exportAction.reportActionID,
+                }),
+            ).toEqual(['export', 0]);
+        });
+
         it('short-circuits to [null, -1] for an anonymous user', () => {
             const visibleReportActions = [makeAction({reportActionID: 'a'})];
             expect(
@@ -6786,6 +6859,17 @@ describe('ReportActionsUtils', () => {
                     isReversed: true,
                 }),
             ).toEqual(['unread-newer', 1]);
+        });
+
+        it('preserves the concierge greeting as a marker candidate when isReversed is true', () => {
+            const visibleReportActions = [makeAction({reportActionID: CONST.CONCIERGE_GREETING_ACTION_ID}), makeAction({reportActionID: 'unread-newer', created: '2023-01-01 12:00:00.000'})];
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                    isReversed: true,
+                }),
+            ).toEqual([CONST.CONCIERGE_GREETING_ACTION_ID, 0]);
         });
 
         it("clears the marker entirely when the only unread action is the current user's own new message", () => {
