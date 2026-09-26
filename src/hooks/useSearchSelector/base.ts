@@ -223,6 +223,7 @@ function useSearchSelectorBase({
         isLoading: isLoadingOptions,
         loadMore: loadMoreReports,
         hasMore: hasMoreReports,
+        getReportByID,
     } = useFilteredOptions({
         enabled: shouldInitialize,
         isSearching: isSearchingOptions,
@@ -306,6 +307,7 @@ function useSearchSelectorBase({
                     conciergeReportID,
                     isTrackIntentUser,
                     translate,
+                    getReportByID,
                     rules,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
@@ -340,6 +342,7 @@ function useSearchSelectorBase({
                         allPolicyTags,
                         sortedActions,
                         isTrackIntentUser,
+                        getReportByID,
                         ...appliedGetValidOptionsConfig,
                     },
                     translate,
@@ -379,6 +382,7 @@ function useSearchSelectorBase({
                         allPolicyTags,
                         sortedActions,
                         isTrackIntentUser,
+                        getReportByID,
                         ...appliedGetValidOptionsConfig,
                     },
                     translate,
@@ -416,6 +420,7 @@ function useSearchSelectorBase({
                         allPolicyTags,
                         sortedActions,
                         isTrackIntentUser,
+                        getReportByID,
                         ...appliedGetValidOptionsConfig,
                     },
                     translate,
