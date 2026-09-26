@@ -54,13 +54,4 @@ type ManualFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptS
 
 type InvoiceFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptStitchError' | 'isCompactMode' | 'compactControls' | 'distanceData'>;
 
-export type {
-    MoneyRequestConfirmationListFooterProps,
-    TimeFooterProps,
-    PerDiemFooterProps,
-    DistanceFooterProps,
-    DistanceOdometerFooterProps,
-    ScanFooterProps,
-    ManualFooterProps,
-    InvoiceFooterProps,
-};
+export type {TimeFooterProps, PerDiemFooterProps, DistanceFooterProps, DistanceOdometerFooterProps, ScanFooterProps, ManualFooterProps, InvoiceFooterProps};

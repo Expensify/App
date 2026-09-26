@@ -11,10 +11,11 @@ import type * as NativeNavigation from '@react-navigation/native';
 
 const mockSearch = jest.fn<void, unknown[]>();
 let mockCurrentSearchResults: SearchResults | undefined;
+let mockShouldUseLiveData = false;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: () => ({currentSearchKey: 'expenses'}),
-    useSearchResultsContext: () => ({currentSearchResults: mockCurrentSearchResults, shouldUseLiveData: false}),
+    useSearchResultsContext: () => ({currentSearchResults: mockCurrentSearchResults, shouldUseLiveData: mockShouldUseLiveData}),
     useSearchSelectionActions: () => ({clearSelectedTransactions: jest.fn()}),
     useSearchSelectionContext: () => ({areAllMatchingItemsSelected: false}),
 }));
@@ -30,6 +31,8 @@ jest.mock('@libs/actions/ReportNavigation', () => ({
 jest.mock('@libs/actions/Search', () => ({
     openSearch: jest.fn(),
     search: (...args: unknown[]) => mockSearch(...args),
+    markPageRequestedSearch: jest.fn(),
+    clearPageRequestedSearch: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -84,6 +87,7 @@ function getQueryJSON() {
 describe('useSearchPageSetup', () => {
     beforeEach(() => {
         mockSearch.mockClear();
+        mockShouldUseLiveData = false;
     });
 
     it('retries an unresolved search when temporary search prevention clears', async () => {
@@ -120,6 +124,36 @@ describe('useSearchPageSetup', () => {
 
         renderHook(() => useSearchPageSetup(queryJSON));
 
+        await Promise.resolve();
+        expect(mockSearch).not.toHaveBeenCalled();
+    });
+
+    it('does not fetch a first page for a live to-do tab with nothing stranded', async () => {
+        const queryJSON = getQueryJSON();
+        mockShouldUseLiveData = true;
+        mockCurrentSearchResults = makeCachedSearchResults(queryJSON.hash, false, CONST.SEARCH.SNAPSHOT_STATE.LOADED);
+
+        renderHook(() => useSearchPageSetup(queryJSON));
+
+        await Promise.resolve();
+        expect(mockSearch).not.toHaveBeenCalled();
+    });
+
+    it('never restarts a stranded page on a live to-do tab; paging owns its own requests', async () => {
+        const queryJSON = getQueryJSON();
+        mockShouldUseLiveData = true;
+        mockCurrentSearchResults = makeCachedSearchResults(queryJSON.hash, true, CONST.SEARCH.SNAPSHOT_STATE.LOADING, CONST.SEARCH.RESULTS_PAGE_SIZE);
+
+        const {rerender} = renderHook(
+            ({isLoading}) => {
+                mockCurrentSearchResults = makeCachedSearchResults(queryJSON.hash, isLoading, CONST.SEARCH.SNAPSHOT_STATE.LOADING, CONST.SEARCH.RESULTS_PAGE_SIZE);
+                useSearchPageSetup(queryJSON);
+            },
+            {initialProps: {isLoading: true}},
+        );
+
+        await Promise.resolve();
+        rerender({isLoading: false});
         await Promise.resolve();
         expect(mockSearch).not.toHaveBeenCalled();
     });
