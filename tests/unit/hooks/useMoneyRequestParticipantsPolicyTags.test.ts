@@ -74,6 +74,7 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
             translate,
             convertToDisplayString: mockConvertToDisplayString,
             dateFnsLocale: undefined,
+            formatPhoneNumber: expect.any(Function),
         });
     });
 
