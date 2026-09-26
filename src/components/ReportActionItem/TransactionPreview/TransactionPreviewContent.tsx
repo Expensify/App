@@ -390,7 +390,7 @@ function TransactionPreviewContent({
                                         />
                                         <Text
                                             numberOfLines={1}
-                                            style={[isDeleted && styles.lineThrough, styles.textMicroSupporting, styles.pre, styles.flexShrink1, {color: theme.danger}]}
+                                            style={[isDeleted && styles.lineThrough, styles.textMicroSupporting, styles.pre, styles.flexShrink1, {color: theme.textError}]}
                                         >
                                             {RBRMessage}
                                         </Text>

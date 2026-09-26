@@ -72,6 +72,7 @@ type ThemeColors = {
     textBackground: Color;
     textMutedReversed: Color;
     textError: Color;
+    textSuccess: Color;
     offline: Color;
     modalBackground: Color;
     cardBG: Color;
