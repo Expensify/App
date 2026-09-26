@@ -1136,6 +1136,97 @@ describe('useSearchBulkActions - export options', () => {
         expect(exportToIntegrationOnSearch).not.toHaveBeenCalled();
     });
 
+    it('warns instead of marking when Reports select-all matching would only cover the loaded page', async () => {
+        // Given Reports-tab "select all matching" is on and the query matches far more reports (147) than the one loaded page,
+        // so the client-built ID list would silently cover only that page. See https://github.com/Expensify/App/issues/101106.
+        mockAreAllMatchingItemsSelected = true;
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+        mockCurrentSearchResults.search.reportCount = 147;
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // Under select all, the export options surface at the top level of the dropdown rather than in a nested submenu.
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'workspace.common.markAsExported')).toBeDefined();
+        });
+
+        // When the user clicks "Mark as exported".
+        getExportOptionByText(result.current.headerButtonsOptions, 'workspace.common.markAsExported')?.onSelected?.();
+
+        // Then the interim safeguard modal is shown referencing the full matching count, and nothing is marked or exported.
+        await waitFor(() => {
+            expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'search.bulkActions.markAsExportedAllMatchingTitle'}));
+        });
+
+        expect(markAsManuallyExported).not.toHaveBeenCalled();
+        expect(exportToIntegrationOnSearch).not.toHaveBeenCalled();
+    });
+
+    it('does not warn under select all when every matching report is loaded but split across integrations', async () => {
+        // Given "select all matching" is on and every matching report (2) is already loaded, but the selection spans two
+        // integrations (report1 → NetSuite, report2 → QBO).
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID_2}`, {
+            id: POLICY_ID_2,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {}},
+        });
+
+        mockAreAllMatchingItemsSelected = true;
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport(), makeSnapshotReport(REPORT_ID_2, POLICY_ID_2)]);
+        // Every matching report is on the loaded page, so nothing is unloaded even though the chosen integration is a subset.
+        mockCurrentSearchResults.search.reportCount = 2;
+        mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: REPORT_ID_2, policyID: POLICY_ID_2})];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction(),
+            tx2: makeSelectedTransaction({reportID: REPORT_ID_2, policyID: POLICY_ID_2}),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'workspace.common.markAsExported')).toBeDefined();
+        });
+
+        // When the user clicks NetSuite's "Mark as exported", whose group is only report1.
+        getExportOptionByText(result.current.headerButtonsOptions, 'workspace.common.markAsExported')?.onSelected?.();
+
+        // Then the page-limit safeguard must NOT fire (reportCount equals the loaded selection); the existing partial-export
+        // modal handles the single-integration subset instead, and report1 is marked.
+        await waitFor(() => {
+            expect(markAsManuallyExported).toHaveBeenCalledWith([REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, expect.anything());
+        });
+
+        expect(mockShowConfirmModal).not.toHaveBeenCalledWith(expect.objectContaining({title: 'search.bulkActions.markAsExportedAllMatchingTitle'}));
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'workspace.exportPartialModal.title'}));
+    });
+
+    it('warns under select all when more results exist but the matching total is unavailable', async () => {
+        // Given "select all matching" is on and more pages of reports exist (`hasMoreResults`), but the server total is
+        // unavailable (e.g. offline with a stale snapshot, or a failed totals request).
+        mockAreAllMatchingItemsSelected = true;
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+        mockCurrentSearchResults.search.hasMoreResults = true;
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'workspace.common.markAsExported')).toBeDefined();
+        });
+
+        // When the user clicks "Mark as exported".
+        getExportOptionByText(result.current.headerButtonsOptions, 'workspace.common.markAsExported')?.onSelected?.();
+
+        // Then the safeguard still fires from `hasMoreResults` alone, so the unloaded reports aren't silently marked.
+        await waitFor(() => {
+            expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'search.bulkActions.markAsExportedAllMatchingTitle'}));
+        });
+
+        expect(markAsManuallyExported).not.toHaveBeenCalled();
+    });
+
     it('marks already-exported reports without showing the export-again modal', async () => {
         /**
          * Given: a single-integration selection where every selected report has already been exported
