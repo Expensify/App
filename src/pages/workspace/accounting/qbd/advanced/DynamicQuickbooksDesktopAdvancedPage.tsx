@@ -15,6 +15,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
+import {isQBDExportingOnPayment} from '@pages/workspace/accounting/qbd/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -39,10 +40,6 @@ function DynamicQuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsPro
     const {expenseAccounts} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.path);
     const accountingMethod = qbdConfig?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
-
-    // The conversion cost rides on the bill, and it is only known once the reimbursement has run, so an accrual
-    // export at approval can never carry it
-    const isExportingOnPayment = accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
 
     const selectedFxExpenseAccountName = expenseAccounts?.find(({id}) => id === qbdConfig?.fxExpenseAccount)?.name;
 
@@ -86,7 +83,7 @@ function DynamicQuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsPro
                     {!!qbdConfig?.autoSync?.enabled && <MenuItem.HelpText message={translate(`workspace.qbd.accountingMethods.alternateText.${accountingMethod}` as TranslationPaths)} />}
                 </MenuItemSectionRoot>
             </OfflineWithFeedback>
-            {canConfigureCurrencyConversionFees && isExportingOnPayment && (
+            {canConfigureCurrencyConversionFees && isQBDExportingOnPayment(qbdConfig) && (
                 <OfflineWithFeedback
                     pendingAction={settingsPendingAction(fxExpenseAccountSettings, qbdConfig?.pendingFields)}
                     style={styles.mt3}

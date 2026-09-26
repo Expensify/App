@@ -55,7 +55,7 @@ import {
     shouldHideTaxPostingAccountSelect,
     shouldShowInvoiceItemMenuItem,
 } from './netsuite/utils';
-import getQuickbooksDesktopSetupEntryRoute from './qbd/utils';
+import getQuickbooksDesktopSetupEntryRoute, {isQBDExportingOnPayment} from './qbd/utils';
 
 function getCurrentAccountingIntegrationName(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string | undefined {
     const currentConnectionName = getCurrentConnectionName(policy);
@@ -412,7 +412,8 @@ function getAccountingIntegrationData(
                 subscribedAdvancedSettings: [
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR,
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC,
-                    CONST.QUICKBOOKS_DESKTOP_CONFIG.FX_EXPENSE_ACCOUNT,
+                    // Only where the Advanced page shows the row, or a failed save would leave a dot nothing can clear
+                    ...(isQBDExportingOnPayment(policy?.connections?.quickbooksDesktop?.config) ? [CONST.QUICKBOOKS_DESKTOP_CONFIG.FX_EXPENSE_ACCOUNT] : []),
                 ],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.quickbooksDesktop.alias,

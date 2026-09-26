@@ -78,8 +78,11 @@ describe('actions/connections/QuickbooksDesktop', () => {
 
     describe('updateQuickbooksDesktopFxExpenseAccount', () => {
         it('writes the UpdateQuickbooksDesktopFxExpenseAccount command with the account ID', () => {
+            // Given a workspace with a different fee account saved
+            // When a new account is picked
             updateQuickbooksDesktopFxExpenseAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
 
+            // Then the command carries the account the backend books the cost to
             const call = writeSpy.mock.calls.at(0);
             if (!call) {
                 throw new Error('API.write was not called');
@@ -97,8 +100,11 @@ describe('actions/connections/QuickbooksDesktop', () => {
         });
 
         it('merges fxExpenseAccount optimistically onto the QBD config and reverts on failure', () => {
+            // Given a workspace with a different fee account saved
+            // When a new account is picked
             updateQuickbooksDesktopFxExpenseAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
 
+            // Then the row shows it straight away, and goes back to the old account if the write fails
             const call = writeSpy.mock.calls.at(0);
             if (!call) {
                 throw new Error('API.write was not called');
@@ -128,14 +134,20 @@ describe('actions/connections/QuickbooksDesktop', () => {
         });
 
         it('skips the API call when the account has not changed', () => {
+            // Given a workspace with an account already saved
+            // When the same account is picked again
             updateQuickbooksDesktopFxExpenseAccount(MOCK_POLICY_ID, 'old-account', 'old-account');
 
+            // Then nothing is sent, since there is no change to save
             expect(writeSpy).not.toHaveBeenCalled();
         });
 
         it('skips the API call when policyID is missing', () => {
+            // Given a policy that has not loaded, so there is no ID to write against
+            // When an account is picked
             updateQuickbooksDesktopFxExpenseAccount(undefined, 'account-123', 'old-account');
 
+            // Then nothing is sent rather than a request the backend would reject
             expect(writeSpy).not.toHaveBeenCalled();
         });
     });

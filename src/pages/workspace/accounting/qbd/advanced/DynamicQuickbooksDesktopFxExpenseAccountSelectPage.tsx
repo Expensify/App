@@ -16,6 +16,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
+import {isQBDExportingOnPayment} from '@pages/workspace/accounting/qbd/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -26,7 +27,6 @@ import {clearQBDErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -41,9 +41,6 @@ function DynamicQuickbooksDesktopFxExpenseAccountSelectPage({policy}: WithPolicy
     const expenseAccounts = policy?.connections?.quickbooksDesktop?.data?.expenseAccounts ?? [];
     const {selectedAccountID, hasChanges, selectAccount, buildList} = useFxExpenseAccountPicker(qbdConfig?.fxExpenseAccount);
 
-    // The cost rides on the bill and is only known once the reimbursement has run, so the Advanced page hides this
-    // for an accrual export and a deep link has to be blocked the same way
-    const isExportingOnPayment = (qbdConfig?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH) === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT_SELECT.path);
 
     const accountOptions: SelectorType[] = expenseAccounts.map((account) => ({
@@ -85,7 +82,7 @@ function DynamicQuickbooksDesktopFxExpenseAccountSelectPage({policy}: WithPolicy
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            shouldBeBlocked={!canConfigureCurrencyConversionFees || !isExportingOnPayment}
+            shouldBeBlocked={!canConfigureCurrencyConversionFees || !isQBDExportingOnPayment(qbdConfig)}
             displayName="DynamicQuickbooksDesktopFxExpenseAccountSelectPage"
             data={listData}
             textInputOptions={textInputOptions}
