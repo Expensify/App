@@ -185,6 +185,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                             stateNum={transactionItem.report?.stateNum}
                             statusNum={transactionItem.report?.statusNum}
                             isSelected={isSelected}
+                            shouldAllowStatusTextSelection
                         />
                         <TransactionItemRow
                             transactionItem={transactionItem}
