@@ -29,7 +29,7 @@ Prepare a spreadsheet where each row is one rule. Include a column for the merch
 1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Workspaces > [workspace name]**.
 2. Select **Rules**.
 3. Select **More**, then choose **Import merchant rules**.
-4. Drag and drop your spreasheet into the window, or select **Choose file** to upload your spreadsheet.
+4. Drag and drop your spreadsheet into the window, or select **Choose file** to upload your spreadsheet.
 5. Map each column to a merchant rule field. Map the merchant column to **Merchant is** or **Merchant contains**, and map at least one field to update, such as **Updated merchant**, **Updated category**, **Updated tag**, or **Updated description**.
 6. Select **Import**.
 
