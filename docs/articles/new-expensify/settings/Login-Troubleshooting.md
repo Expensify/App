@@ -1,7 +1,8 @@
 ---
 title: Login Troubleshooting
-description: Troubleshoot common login issues — like missing security codes, 2FA lockouts, SSO problems, or blocked emails — and find out who to contact to get back in fast.
-keywords: [New Expensify, Expensify login, can't log in, login help, security code missing, Two-Factor Authentication, SSO login, email domain blocked, login error, Concierge login support, account access issue, locked out, change password, update password, reset password, forgot password, password reset, new password, password change]
+description: Troubleshoot common login issues — like missing security codes, 2FA lockouts, SSO problems, blocked emails, or account details that won't load — and find out who to contact to get back in fast.
+keywords: [New Expensify, Expensify login, can't log in, login help, security code missing, Two-Factor Authentication, SSO login, email domain blocked, login error, Concierge login support, account access issue, locked out, change password, update password, reset password, forgot password, password reset, new password, password change, couldn't retrieve account details, account details error, too many login attempts, login blocked temporarily]
+internalScope: Audience is members who can't log in to New Expensify. Covers diagnosing and resolving login-time errors and lockouts, does not cover changing your login email, enabling Two-Factor Authentication, or setting up SAML SSO.
 ---
 
 # Login troubleshooting
@@ -111,6 +112,28 @@ If you see errors like "mimecast", "blacklist", or "SMTP errors":
 - Ask them to allowlist `expensify.com`.
 
 [More on allowlisting and domain blocks →](https://help.expensify.com/articles/expensify-classic/email/How-to-Allowlist-Expensify)
+
+---
+
+## What to do when you see "Couldn't retrieve account details"
+
+If the login screen shows "Couldn't retrieve account details. Please wait a few minutes and try again.", Expensify couldn't look up your account for that login. This is a temporary problem with the request itself, not a problem with your account.
+
+**Common Cause**
+Too many sign-in attempts were made from your network or device in a short period of time, so further attempts are temporarily held. Opening the same email or approval link several times can trigger this, because each click starts a new sign-in attempt.
+
+**What you can try**
+- Wait a few minutes before trying again, then enter your email and click **Continue**.
+- Close any extra tabs or windows that are sitting on the login screen.
+- Check [Expensify’s system status page](https://status.expensify.com) to rule out a wider outage.
+
+**What won’t help**
+- Clicking **Continue** repeatedly. Each attempt restarts the waiting period, so retrying right away keeps you blocked for longer.
+- Switching browsers or devices, or reopening the email link. Each one counts as another sign-in attempt.
+- Resetting anything on your account. Nothing on your account needs to change to clear this error.
+
+**Who to contact**
+- Still seeing the error after waiting **15 minutes**? Contact Concierge and include the email you're signing in with, the time you last tried, and a screenshot of the error.
 
 ---
 
