@@ -55,15 +55,22 @@ function toMonthNamePattern(name: string): RegExp {
 const getEnglishMonthNameByLocalizedName = memoize(
     (locale: Locale): Array<[localizedName: RegExp, englishName: string]> => {
         const names: Array<[string, string]> = [];
-        const localizedNames = [...DateUtils.getMonthNames(locale), ...DateUtils.getShortMonthNames(locale)];
+        const seen = new Set<string>();
+        const addName = (name: string, englishName: string) => {
+            // Deduplicated because the lists overlap: only Greek writes a month beside a day differently from one standing alone.
+            if (seen.has(name)) {
+                return;
+            }
+            seen.add(name);
+            names.push([name, englishName]);
+        };
+        // Both long forms, because a cell carries whichever one the exporting tool wrote.
+        const localizedNames = [...DateUtils.getMonthNames(locale), ...DateUtils.getInflectedMonthNames(locale), ...DateUtils.getShortMonthNames(locale)];
         for (const [index, name] of localizedNames.entries()) {
             const englishName = CONST.DATE.ENGLISH_MONTH_NAMES.at(index % CONST.DATE.ENGLISH_MONTH_NAMES.length) ?? '';
-            names.push([name, englishName]);
+            addName(name, englishName);
             // A language may abbreviate a month with a trailing point, which the tool that wrote the file may have dropped.
-            const withoutPoints = name.replaceAll('.', '');
-            if (withoutPoints !== name) {
-                names.push([withoutPoints, englishName]);
-            }
+            addName(name.replaceAll('.', ''), englishName);
         }
         return names.sort(([nameA], [nameB]) => nameB.length - nameA.length).map(([name, englishName]) => [toMonthNamePattern(name), englishName]);
     },

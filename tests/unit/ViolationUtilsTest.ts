@@ -258,7 +258,7 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(customUnitOutOfPolicyViolation);
         });
 
-        it('should keep the customUnitOutOfPolicy violation if the rate exists but is disabled', () => {
+        it('should remove the customUnitOutOfPolicy violation if the rate exists but is disabled', () => {
             const customUnitRateID = 'rate_id';
             policy.customUnits = {
                 unitId: {
@@ -290,7 +290,7 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
 
-            expect(result.value).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
         });
     });
 
@@ -454,6 +454,7 @@ describe('getViolationsOnyxData', () => {
                             currency: 'USD',
                             customUnitRateID,
                             enabled: false,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                             name: '2025 mileage',
                             rate: 65.5,
                             startDate: '2025-01-01',
@@ -481,6 +482,71 @@ describe('getViolationsOnyxData', () => {
                     name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
                 }),
             );
+            expect(result.value).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should keep the customUnitOutOfPolicy violation when the distance rate is pending deletion', () => {
+            transactionViolations = [customUnitOutOfPolicyViolation];
+            policy.customUnits = {
+                unitId: {
+                    attributes: {unit: 'mi'},
+                    customUnitID: 'unitId',
+                    defaultCategory: 'Car',
+                    enabled: true,
+                    name: 'Distance',
+                    rates: {
+                        [customUnitRateID]: {
+                            currency: 'USD',
+                            customUnitRateID,
+                            enabled: false,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                            name: '2025 mileage',
+                            rate: 65.5,
+                        },
+                    },
+                },
+            };
+
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: false,
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            expect(result.value).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should keep the customUnitOutOfPolicy violation when the distance rate is not on the policy at all', () => {
+            transactionViolations = [customUnitOutOfPolicyViolation];
+            policy.customUnits = {
+                unitId: {
+                    attributes: {unit: 'mi'},
+                    customUnitID: 'unitId',
+                    defaultCategory: 'Car',
+                    enabled: true,
+                    name: 'Distance',
+                    rates: {},
+                },
+            };
+
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: false,
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
             expect(result.value).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
         });
 

@@ -54,14 +54,15 @@ function tick() {
 }
 
 function subscribe(listener: () => void): () => void {
-    // `advanceIfStale` consumes the minute transition, so whoever was already subscribed has to hear about it here: the
-    // pending tick will see the same minute and skip its own notify.
+    // Added first, because `advanceIfStale` consumes the minute transition and the pending tick then skips its own
+    // notify: everyone subscribed has to hear about it here, this listener included. React has already compared its
+    // snapshot by the time it calls this, so a listener notified after the comparison is the only one that re-reads.
+    listeners.add(listener);
     if (advanceIfStale()) {
         for (const other of listeners) {
             other();
         }
     }
-    listeners.add(listener);
     scheduleNextTick();
     return () => {
         listeners.delete(listener);

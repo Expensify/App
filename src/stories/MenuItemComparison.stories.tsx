@@ -10,9 +10,11 @@ import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+import Section from '@components/Section';
 import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -26,6 +28,7 @@ import {contextMenuRef, showContextMenu} from '@pages/inbox/report/ContextMenu/R
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {ComponentRef} from 'react';
 import type {Meta} from 'storybook-react-rsbuild';
 
 import React, {useRef} from 'react';
@@ -141,18 +144,18 @@ function SectionHeading({title, children}: {title: string; children?: string}) {
 
 function Comparison() {
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'FallbackAvatar', 'NewWindow']);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'FallbackAvatar', 'NewWindow', 'Download']);
 
     // The legacy external-link row anchors its context menu to the row itself, which the composable API does for the call site
-    const popoverAnchor = useRef<View>(null);
+    const popoverAnchor = useRef<ComponentRef<typeof View>>(null);
 
-    if (!icons.Gear || !icons.FallbackAvatar || !icons.NewWindow) {
+    if (!icons.Gear || !icons.FallbackAvatar || !icons.NewWindow || !icons.Download) {
         return null;
     }
 
     return (
         <View style={[styles.p4, styles.flexRow, styles.flexWrap, styles.gap4]}>
-            <SectionHeading title="Phase 4 — title styles">numberOfLinesTitle became numberOfLines on the text leaves.</SectionHeading>
+            <SectionHeading title="Phase 4 - styles" />
 
             <Card
                 title="description, numberOfLinesTitle, title"
@@ -279,6 +282,34 @@ function Comparison() {
                         onPress={noop}
                         value="$4.20"
                     />
+                }
+            />
+
+            <Card
+                title="icon, onPress, title, wrapperStyle={styles.sectionMenuItemTopDescription}"
+                legacy={
+                    <Section title="Share">
+                        <MenuItem
+                            title="Download"
+                            icon={icons.Download}
+                            onPress={noop}
+                            wrapperStyle={styles.sectionMenuItemTopDescription}
+                        />
+                    </Section>
+                }
+                composable={
+                    <Section title="Share">
+                        <MenuItemSectionRoot onPress={noop}>
+                            <MenuItem.Row>
+                                <MenuItem.Leading>
+                                    <MenuItem.Icon src={icons.Download} />
+                                </MenuItem.Leading>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>Download</MenuItem.Title>
+                                </MenuItem.Content>
+                            </MenuItem.Row>
+                        </MenuItemSectionRoot>
+                    </Section>
                 }
             />
 
@@ -479,6 +510,85 @@ function Comparison() {
                     >
                         <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
                     </MenuItemField>
+                }
+            />
+
+            <Card
+                title="brickRoadIndicator, description, errorText, onPress, shouldShowRightIcon, title"
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Country"
+                        title="United States"
+                        shouldShowRightIcon
+                        onPress={noop}
+                        brickRoadIndicator={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
+                        errorText="Please select a country"
+                    />
+                }
+                composable={
+                    <MenuItem.Root onPress={noop}>
+                        <MenuItemField.Row
+                            name="Country"
+                            value="United States"
+                        >
+                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                            <MenuItem.Chevron />
+                        </MenuItemField.Row>
+                        <MenuItem.HelpText
+                            isError
+                            message="Please select a country"
+                        />
+                    </MenuItem.Root>
+                }
+            />
+
+            <Card
+                title="description, hintText, non-interactive, title"
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Limit type"
+                        title="Smart limit"
+                        interactive={false}
+                        hintText="Resets every month"
+                    />
+                }
+                composable={
+                    <MenuItem.Root>
+                        <MenuItemField.Row
+                            name="Limit type"
+                            value="Smart limit"
+                        />
+                        <MenuItem.HelpText message="Resets every month" />
+                    </MenuItem.Root>
+                }
+            />
+
+            <Card
+                title="description, errorText, hintText, onPress, shouldShowRightIcon, title"
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Limit type"
+                        title="Smart limit"
+                        shouldShowRightIcon
+                        onPress={noop}
+                        errorText="Please select a limit type"
+                        hintText="Resets every month"
+                    />
+                }
+                composable={
+                    <MenuItem.Root onPress={noop}>
+                        <MenuItemField.Row
+                            name="Limit type"
+                            value="Smart limit"
+                        >
+                            <MenuItem.Chevron />
+                        </MenuItemField.Row>
+                        <MenuItem.HelpText
+                            isError
+                            message="Please select a limit type"
+                        />
+                        <MenuItem.HelpText message="Resets every month" />
+                    </MenuItem.Root>
                 }
             />
 

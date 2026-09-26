@@ -1,3 +1,5 @@
+// cspell:ignore Ιανουάριος Φεβρουάριος Μάρτιος Απρίλιος Μάιος Ιούνιος Ιούλιος Αύγουστος Σεπτέμβριος Οκτώβριος Νοέμβριος Δεκέμβριος Ιανουαρίου
+// cspell:ignore -- the Greek months as the language writes one standing alone, and the form it writes beside a day.
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
@@ -159,7 +161,16 @@ function formatIntlPart(locale: Locale, formatKey: IntlFormatKey, date: Date, pa
         return '';
     }
     const formatter = getIntlDateTimeFormat(locale, formatKey, timeZone);
-    return formatter?.formatToParts(date).find((part) => part.type === partType)?.value ?? '';
+    if (!formatter) {
+        return '';
+    }
+    try {
+        return formatter.formatToParts(date).find((part) => part.type === partType)?.value ?? '';
+    } catch (error) {
+        // Same engines as `getDateFieldParts`: the callers render with no error boundary, so an absent `formatToParts` has to read as no value.
+        Log.warn('[DateUtils] Intl.DateTimeFormat.formatToParts unavailable', {locale, formatKey, error});
+        return '';
+    }
 }
 
 /**
@@ -500,11 +511,42 @@ function monthNamesWithFallback(locale: Locale, formatKey: IntlFormatKey, englis
 }
 
 /**
+ * Greek is the one shipped language whose month-only skeleton still returns the form that goes beside a day,
+ * `15 Ιανουαρίου`, "of January", where a list standing on its own reads as the nominative. A test asserts that no
+ * other language diverges, so this stays one entry rather than a mirror of CLDR.
+ */
+const STANDALONE_MONTH_NAMES_BY_LOCALE: Partial<Record<Locale, readonly string[]>> = {
+    [CONST.LOCALES.EL]: Object.freeze([
+        'Ιανουάριος',
+        'Φεβρουάριος',
+        'Μάρτιος',
+        'Απρίλιος',
+        'Μάιος',
+        'Ιούνιος',
+        'Ιούλιος',
+        'Αύγουστος',
+        'Σεπτέμβριος',
+        'Οκτώβριος',
+        'Νοέμβριος',
+        'Δεκέμβριος',
+    ]),
+};
+
+/**
  * As a language writes a month inside a sentence (es `enero`), so only a label that stands alone capitalizes it.
  * Never add day or year to `LONG_MONTH`: that flips Intl into format context and inflects the label (ru "января").
  * Memoized for MonthPickerModal, the one caller React Compiler does not cover.
  */
-const getMonthNames = memoize((locale: Locale): readonly string[] => monthNamesWithFallback(locale, 'LONG_MONTH', CONST.DATE.ENGLISH_MONTH_NAMES), {maxSize: 16, equality: 'shallow'});
+const getMonthNames = memoize(
+    (locale: Locale): readonly string[] => STANDALONE_MONTH_NAMES_BY_LOCALE[locale] ?? monthNamesWithFallback(locale, 'LONG_MONTH', CONST.DATE.ENGLISH_MONTH_NAMES),
+    {maxSize: 16, equality: 'shallow'},
+);
+
+/** The month as it reads beside a day, which Greek inflects. Only the CSV parser wants it, to match what a spreadsheet wrote. */
+const getInflectedMonthNames = memoize((locale: Locale): readonly string[] => monthNamesWithFallback(locale, 'LONG_MONTH', CONST.DATE.ENGLISH_MONTH_NAMES), {
+    maxSize: 16,
+    equality: 'shallow',
+});
 
 /** @returns ene (es) / Mär (de), as a language abbreviates a month. */
 const getShortMonthNames = memoize((locale: Locale): readonly string[] => monthNamesWithFallback(locale, 'SHORT_MONTH', ENGLISH_SHORT_MONTH_NAMES), {maxSize: 16, equality: 'shallow'});
@@ -1060,13 +1102,13 @@ function getFormattedDateRange(translate: LocalizedTranslate, date1: Date, date2
         // Dates are from the same day
         return formatIntl(locale, 'MONTH_DAY', date1);
     }
-    const to = ` ${translate('common.to').toLocaleLowerCase(locale)} `;
     if (isSameMonth(date1, date2)) {
         const isDayFirst = isDayBeforeMonth(locale);
         const startPart = isDayFirst ? formatIntl(locale, 'DAY_ONLY', date1) : formatIntl(locale, 'MONTH_DAY', date1);
         const endPart = isDayFirst ? formatIntl(locale, 'MONTH_DAY', date2) : formatIntl(locale, 'DAY_ONLY', date2);
         return joinRange(startPart, endPart, '-');
     }
+    const to = ` ${translate('common.to').toLocaleLowerCase(locale)} `;
     if (isSameYear(date1, date2)) {
         // Dates are in the same year, differ by months
         return joinRange(formatIntl(locale, 'MONTH_DAY', date1), formatIntl(locale, 'MONTH_DAY', date2), to);
@@ -1629,6 +1671,32 @@ function getYearDateRange(year: number): {start: string; end: string} {
     };
 }
 
+const POLISH_QUARTER_NUMERALS = ['I', 'II', 'III', 'IV'];
+const CHINESE_QUARTER_NUMERALS = ['一', '二', '三', '四'];
+
+/**
+ * The abbreviated quarter each language writes, as CLDR spells it. A table because no `Intl` API names a quarter at all,
+ * and a test pins every entry against date-fns, which is where those labels otherwise reach this app.
+ */
+const QUARTER_LABEL_BY_LOCALE: Readonly<Record<Locale, (quarter: number) => string>> = {
+    [CONST.LOCALES.EN]: (quarter) => `Q${quarter}`,
+    [CONST.LOCALES.DE]: (quarter) => `Q${quarter}`,
+    [CONST.LOCALES.JA]: (quarter) => `Q${quarter}`,
+    [CONST.LOCALES.ES]: (quarter) => `T${quarter}`,
+    [CONST.LOCALES.IT]: (quarter) => `T${quarter}`,
+    [CONST.LOCALES.PT_BR]: (quarter) => `T${quarter}`,
+    [CONST.LOCALES.NL]: (quarter) => `K${quarter}`,
+    /** A Greek capital tau, not a Latin T. */
+    [CONST.LOCALES.EL]: (quarter) => `Τ${quarter}`,
+    [CONST.LOCALES.FR]: (quarter) => (quarter === 1 ? '1er trim.' : `${quarter}ème trim.`),
+    [CONST.LOCALES.PL]: (quarter) => `${POLISH_QUARTER_NUMERALS.at(quarter - 1) ?? quarter} kw.`,
+    [CONST.LOCALES.ZH_HANS]: (quarter) => `第${CHINESE_QUARTER_NUMERALS.at(quarter - 1) ?? quarter}季`,
+};
+
+function getQuarterLabel(locale: Locale, quarter: number): string {
+    return (QUARTER_LABEL_BY_LOCALE[locale] ?? QUARTER_LABEL_BY_LOCALE[CONST.LOCALES.DEFAULT])(quarter);
+}
+
 function getQuarterDateBounds(year: number, quarter: number): {start: Date; end: Date} {
     const startMonth = (quarter - 1) * 3 + 1;
     const endMonth = quarter * 3;
@@ -1649,12 +1717,13 @@ function getQuarterDateRange(year: number, quarter: number): {start: string; end
 
 function getFormattedQuarterForSearch(year: number, quarter: number, locale: Locale): string {
     const {start, end} = getQuarterDateBounds(year, quarter);
+    const quarterLabel = getQuarterLabel(locale, quarter);
     const formattedStart = formatIntl(locale, 'MONTH_DAY', start);
     const formattedEnd = formatIntl(locale, 'MONTH_DAY', end);
     if (!formattedStart || !formattedEnd) {
-        return `Q${quarter} ${year}`;
+        return `${quarterLabel} ${year}`;
     }
-    return `Q${quarter} ${year} (${formattedStart} - ${formattedEnd})`;
+    return `${quarterLabel} ${year} (${formattedStart} - ${formattedEnd})`;
 }
 
 function isDate(arg: unknown): arg is Date {
@@ -1664,8 +1733,8 @@ function isDate(arg: unknown): arg is Date {
 /**
  * Returns a compact quarter label, e.g. "Q3 ’25".
  */
-function getShortFormattedQuarterForSearch(year: number, quarter: number): string {
-    return `Q${quarter} ${getShortYearSuffix(new Date(year, 0, 1))}`;
+function getShortFormattedQuarterForSearch(year: number, quarter: number, locale: Locale): string {
+    return `${getQuarterLabel(locale, quarter)} ${getShortYearSuffix(new Date(year, 0, 1))}`;
 }
 
 function getNextNthOfMonth(nth: number) {
@@ -1687,6 +1756,7 @@ function getNextNthOfMonth(nth: number) {
 registerDerivedIntlCache(() => {
     getMonthNames.cache.clear();
     getShortMonthNames.cache.clear();
+    getInflectedMonthNames.cache.clear();
     getLocalizedDatePlaceholder.cache.clear();
     isDayBeforeMonth.cache.clear();
     deviceTimeZone = undefined;
@@ -1745,6 +1815,7 @@ const DateUtils = {
     isYesterday,
     getMonthNames,
     getShortMonthNames,
+    getInflectedMonthNames,
     getFilteredMonthItems,
     getDaysOfWeekNarrow,
     toLocalDate,

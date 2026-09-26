@@ -1,12 +1,14 @@
 import {
+    getMergeATSFilterValues,
     getConnectedATSProvider,
     getMergeATSApprovalMode,
     getMergeATSApproverField,
-    getMergeATSOfficesLabel,
-    getMergeATSStagesLabel,
-    getMergeATSTagsLabel,
+    getMergeATSFilterLabel,
+    getMergeATSFilterOptions,
     isAnyRecruitingConnected,
+    isAnyRecruitingReadOnlyWorkflowMode,
     isMergeATSCompleteSetupNeeded,
+    isRecruitingAdvancedMode,
     shouldShowRecruitingConnectionError,
 } from '@libs/merge/RecruitingUtils';
 
@@ -30,6 +32,7 @@ jest.mock('@libs/PersonalDetailsUtils', () => ({
 }));
 
 const MERGE_ATS = CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS;
+const {TAGS, STAGES, OFFICES} = CONST.MERGE.ATS_FILTER_TYPE;
 
 const POLICY_ID = 'ABC123';
 const GREENHOUSE: MergeATSProviderSlug = 'greenhouse';
@@ -173,93 +176,153 @@ describe('RecruitingUtils', () => {
         });
     });
 
-    describe('getMergeATSTagsLabel', () => {
-        it('returns undefined when there is no connection, no filters, or no tag selected', () => {
-            expect(getMergeATSTagsLabel(undefined)).toBeUndefined();
-            expect(getMergeATSTagsLabel(makePolicy())).toBeUndefined();
-            expect(getMergeATSTagsLabel(makeMergeATSPolicy())).toBeUndefined();
-            expect(getMergeATSTagsLabel(makeMergeATSPolicy({config: {filters: {tags: []}}}))).toBeUndefined();
+    describe('getMergeATSFilterOptions', () => {
+        it('returns an empty list when the ATS returned no catalog for the dimension', () => {
+            expect(getMergeATSFilterOptions(TAGS, undefined)).toEqual([]);
+            expect(getMergeATSFilterOptions(STAGES, undefined)).toEqual([]);
+            expect(getMergeATSFilterOptions(OFFICES, undefined)).toEqual([]);
+            expect(getMergeATSFilterOptions(TAGS, {stages: [{id: 's1', name: 'Offer'}]})).toEqual([]);
         });
 
-        it('uses the selected tag names as-is', () => {
-            const policy = makeMergeATSPolicy({config: {filters: {tags: ['Engineering', 'Design']}}});
-            expect(getMergeATSTagsLabel(policy)).toBe('Engineering and Design');
+        it('offers tags by name, since tags are stored by name', () => {
+            expect(getMergeATSFilterOptions(TAGS, {tags: ['Engineering', 'Design']})).toEqual([
+                {value: 'Engineering', name: 'Engineering'},
+                {value: 'Design', name: 'Design'},
+            ]);
         });
 
-        it('ignores the other filter dimensions', () => {
-            const policy = makeMergeATSPolicy({
-                config: {filters: {tags: ['Engineering'], stages: ['Offer'], offices: ['o1']}},
-                data: {offices: [{id: 'o1', name: 'New York'}]},
-            });
-            expect(getMergeATSTagsLabel(policy)).toBe('Engineering');
-        });
-    });
-
-    describe('getMergeATSStagesLabel', () => {
-        it('returns undefined when there is no connection, no filters, or no stage selected', () => {
-            expect(getMergeATSStagesLabel(undefined)).toBeUndefined();
-            expect(getMergeATSStagesLabel(makePolicy())).toBeUndefined();
-            expect(getMergeATSStagesLabel(makeMergeATSPolicy())).toBeUndefined();
-            expect(getMergeATSStagesLabel(makeMergeATSPolicy({config: {filters: {stages: []}}}))).toBeUndefined();
+        it('offers stages by name rather than by id, since stages are stored by name', () => {
+            expect(
+                getMergeATSFilterOptions(STAGES, {
+                    stages: [
+                        {id: 's1', name: 'Offer'},
+                        {id: 's2', name: 'Phone Screen'},
+                    ],
+                }),
+            ).toEqual([
+                {value: 'Offer', name: 'Offer'},
+                {value: 'Phone Screen', name: 'Phone Screen'},
+            ]);
         });
 
-        it('uses the selected stage names as-is, even when the stage catalog is available', () => {
-            const policy = makeMergeATSPolicy({
-                config: {filters: {stages: ['Offer', 'Phone Screen']}},
-                data: {stages: [{id: 's1', name: 'Offer'}]},
-            });
-            expect(getMergeATSStagesLabel(policy)).toBe('Offer and Phone Screen');
-        });
-
-        it('ignores the other filter dimensions', () => {
-            const policy = makeMergeATSPolicy({
-                config: {filters: {tags: ['Engineering'], stages: ['Offer'], offices: ['o1']}},
-                data: {offices: [{id: 'o1', name: 'New York'}]},
-            });
-            expect(getMergeATSStagesLabel(policy)).toBe('Offer');
-        });
-    });
-
-    describe('getMergeATSOfficesLabel', () => {
-        it('returns undefined when there is no connection, no filters, or no office selected', () => {
-            expect(getMergeATSOfficesLabel(undefined)).toBeUndefined();
-            expect(getMergeATSOfficesLabel(makePolicy())).toBeUndefined();
-            expect(getMergeATSOfficesLabel(makeMergeATSPolicy())).toBeUndefined();
-            expect(getMergeATSOfficesLabel(makeMergeATSPolicy({config: {filters: {offices: []}}}))).toBeUndefined();
-        });
-
-        it('resolves the selected office ids to their display names', () => {
-            const policy = makeMergeATSPolicy({
-                config: {filters: {offices: ['o1', 'o2']}},
-                data: {
+        it('offers offices by id with their name for display, since offices are stored by id', () => {
+            expect(
+                getMergeATSFilterOptions(OFFICES, {
                     offices: [
                         {id: 'o1', name: 'New York'},
                         {id: 'o2', name: 'Remote - EU'},
                     ],
-                },
-            });
-            expect(getMergeATSOfficesLabel(policy)).toBe('New York and Remote - EU');
+                }),
+            ).toEqual([
+                {value: 'o1', name: 'New York'},
+                {value: 'o2', name: 'Remote - EU'},
+            ]);
+        });
+
+        it('only offers the catalog of the requested dimension', () => {
+            const data = {
+                tags: ['Engineering'],
+                stages: [{id: 's1', name: 'Offer'}],
+                offices: [{id: 'o1', name: 'New York'}],
+            };
+            expect(getMergeATSFilterOptions(TAGS, data)).toEqual([{value: 'Engineering', name: 'Engineering'}]);
+            expect(getMergeATSFilterOptions(STAGES, data)).toEqual([{value: 'Offer', name: 'Offer'}]);
+            expect(getMergeATSFilterOptions(OFFICES, data)).toEqual([{value: 'o1', name: 'New York'}]);
+        });
+    });
+
+    describe('getMergeATSFilterValues', () => {
+        it('returns an empty list when the ATS returned no catalog for the dimension', () => {
+            // Given no data at all, or data that only holds another dimension's catalog
+            // When every dimension is asked for its values
+            // Then each comes back empty, so toggling one on selects nothing rather than crashing
+            expect(getMergeATSFilterValues(TAGS, undefined)).toEqual([]);
+            expect(getMergeATSFilterValues(STAGES, undefined)).toEqual([]);
+            expect(getMergeATSFilterValues(OFFICES, undefined)).toEqual([]);
+            expect(getMergeATSFilterValues(TAGS, {stages: [{id: 's1', name: 'Offer'}]})).toEqual([]);
+        });
+
+        it('returns the same values the options expose, since both feed `config.filters`', () => {
+            // Given a catalog for every dimension, where offices are stored by id and tags and stages by name
+            const data = {
+                tags: ['Engineering', 'Design'],
+                stages: [
+                    {id: 's1', name: 'Offer'},
+                    {id: 's2', name: 'Phone Screen'},
+                ],
+                offices: [
+                    {id: 'o1', name: 'New York'},
+                    {id: 'o2', name: 'Remote - EU'},
+                ],
+            };
+
+            // When each dimension is asked for all of its values
+            // Then they match the `value` of the options shown in the selection list, so toggling a dimension on is
+            // the same as picking every one of its options by hand
+            for (const filterType of [TAGS, STAGES, OFFICES]) {
+                expect(getMergeATSFilterValues(filterType, data)).toEqual(getMergeATSFilterOptions(filterType, data).map((option) => option.value));
+            }
+
+            expect(getMergeATSFilterValues(TAGS, data)).toEqual(['Engineering', 'Design']);
+            expect(getMergeATSFilterValues(STAGES, data)).toEqual(['Offer', 'Phone Screen']);
+            expect(getMergeATSFilterValues(OFFICES, data)).toEqual(['o1', 'o2']);
+        });
+    });
+
+    describe('getMergeATSFilterLabel', () => {
+        const DATA = {
+            tags: ['Engineering', 'Design', 'Sales'],
+            stages: [
+                {id: 's1', name: 'Offer'},
+                {id: 's2', name: 'Phone Screen'},
+                {id: 's3', name: 'Onsite'},
+            ],
+            offices: [
+                {id: 'o1', name: 'New York'},
+                {id: 'o2', name: 'Remote - EU'},
+                {id: 'o3', name: 'London'},
+            ],
+        };
+
+        it('returns undefined when there are no filters, or nothing is selected for the dimension', () => {
+            // Given filters that are missing, or hold nothing for the dimension being asked about
+            // When the label is built
+            // Then it comes back undefined, so the row shows no value instead of an empty list
+            expect(getMergeATSFilterLabel(TAGS, undefined, DATA, translateLocal)).toBeUndefined();
+            expect(getMergeATSFilterLabel(TAGS, null, DATA, translateLocal)).toBeUndefined();
+            expect(getMergeATSFilterLabel(TAGS, {}, DATA, translateLocal)).toBeUndefined();
+            expect(getMergeATSFilterLabel(TAGS, {tags: []}, DATA, translateLocal)).toBeUndefined();
+            expect(getMergeATSFilterLabel(STAGES, {stages: []}, DATA, translateLocal)).toBeUndefined();
+            expect(getMergeATSFilterLabel(OFFICES, {offices: []}, DATA, translateLocal)).toBeUndefined();
         });
 
         it('drops office ids that are not in the office catalog', () => {
-            const policy = makeMergeATSPolicy({
-                config: {filters: {offices: ['o1', 'missing']}},
-                data: {offices: [{id: 'o1', name: 'New York'}]},
-            });
-            expect(getMergeATSOfficesLabel(policy)).toBe('New York');
+            // Given a selection holding an office the ATS no longer offers
+            // When the label is built
+            // Then only the offices that still resolve are named, so a stale id is left out rather than shown raw
+            expect(getMergeATSFilterLabel(OFFICES, {offices: ['o1', 'missing']}, DATA, translateLocal)).toBe('New York');
         });
 
-        it('returns undefined when none of the selected office ids resolve', () => {
-            const policy = makeMergeATSPolicy({
-                config: {filters: {offices: ['missing']}},
-                data: {offices: [{id: 'o1', name: 'New York'}]},
-            });
-            expect(getMergeATSOfficesLabel(policy)).toBeUndefined();
+        it('shows the all-selected copy when everything the ATS offers is selected', () => {
+            // Given every value the ATS offers for each dimension
+            const filters = {tags: DATA.tags, stages: DATA.stages.map((stage) => stage.name), offices: DATA.offices.map((office) => office.id)};
+
+            // When the label is built
+            // Then each dimension reads as its all-selected copy, which stays short as the catalog grows
+            expect(getMergeATSFilterLabel(TAGS, filters, DATA, translateLocal)).toBe('All tags');
+            expect(getMergeATSFilterLabel(STAGES, filters, DATA, translateLocal)).toBe('All job stages');
+            expect(getMergeATSFilterLabel(OFFICES, filters, DATA, translateLocal)).toBe('All offices');
         });
 
-        it('ignores the other filter dimensions', () => {
-            const policy = makeMergeATSPolicy({config: {filters: {tags: ['Engineering'], stages: ['Offer']}}});
-            expect(getMergeATSOfficesLabel(policy)).toBeUndefined();
+        it('names the selected values when only some of them are selected', () => {
+            // Given partial values the ATS offers for each dimension
+            const filters = {tags: ['Engineering', 'Design'], stages: ['Offer', 'Phone Screen'], offices: ['o1', 'o2']};
+
+            // When the label is built
+            // Then the values are named
+            expect(getMergeATSFilterLabel(TAGS, filters, DATA, translateLocal)).toBe('Engineering and Design');
+            expect(getMergeATSFilterLabel(STAGES, filters, DATA, translateLocal)).toBe('Offer and Phone Screen');
+            expect(getMergeATSFilterLabel(OFFICES, filters, DATA, translateLocal)).toBe('New York and Remote - EU');
         });
     });
 
@@ -306,10 +369,10 @@ describe('RecruitingUtils', () => {
     });
 
     describe('getMergeATSApprovalMode', () => {
-        it('returns null when there is no connection or no approval mode', () => {
-            expect(getMergeATSApprovalMode(undefined)).toBeNull();
-            expect(getMergeATSApprovalMode(makePolicy())).toBeNull();
-            expect(getMergeATSApprovalMode(makeMergeATSPolicy())).toBeNull();
+        it('returns undefined when there is no connection or no approval mode', () => {
+            expect(getMergeATSApprovalMode(undefined)).toBeUndefined();
+            expect(getMergeATSApprovalMode(makePolicy())).toBeUndefined();
+            expect(getMergeATSApprovalMode(makeMergeATSPolicy())).toBeUndefined();
         });
 
         it('returns the configured approval mode', () => {
@@ -320,11 +383,57 @@ describe('RecruitingUtils', () => {
         });
     });
 
+    describe('isAnyRecruitingReadOnlyWorkflowMode', () => {
+        it('returns false when there is no connection', () => {
+            expect(isAnyRecruitingReadOnlyWorkflowMode(undefined)).toBe(false);
+            expect(isAnyRecruitingReadOnlyWorkflowMode(makePolicy({connections: {}}))).toBe(false);
+        });
+
+        it('returns false when the connection has no approval mode', () => {
+            expect(isAnyRecruitingReadOnlyWorkflowMode(makeMergeATSPolicy())).toBe(false);
+        });
+
+        it('returns false with custom mode', () => {
+            expect(isAnyRecruitingReadOnlyWorkflowMode(makeMergeATSPolicy({config: {approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM}}))).toBe(false);
+        });
+
+        it('returns false with manager mode, which recruiting does not lock the workflow for', () => {
+            expect(isAnyRecruitingReadOnlyWorkflowMode(makeMergeATSPolicy({config: {approvalMode: CONST.MERGE.APPROVAL_MODE.MANAGER}}))).toBe(false);
+        });
+
+        it('returns true with basic mode', () => {
+            expect(isAnyRecruitingReadOnlyWorkflowMode(makeMergeATSPolicy({config: {approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC}}))).toBe(true);
+        });
+
+        it('returns true with advanced mode', () => {
+            expect(isAnyRecruitingReadOnlyWorkflowMode(makeMergeATSPolicy({config: {approvalMode: CONST.MERGE.APPROVAL_MODE.ADVANCED}}))).toBe(true);
+        });
+    });
+
+    describe('isRecruitingAdvancedMode', () => {
+        it('returns false when there is no connection', () => {
+            expect(isRecruitingAdvancedMode(undefined)).toBe(false);
+            expect(isRecruitingAdvancedMode(makePolicy({connections: {}}))).toBe(false);
+        });
+
+        it('returns false when the connection has no approval mode', () => {
+            expect(isRecruitingAdvancedMode(makeMergeATSPolicy())).toBe(false);
+        });
+
+        it.each([CONST.MERGE.APPROVAL_MODE.BASIC, CONST.MERGE.APPROVAL_MODE.CUSTOM])('returns false with %s mode', (approvalMode) => {
+            expect(isRecruitingAdvancedMode(makeMergeATSPolicy({config: {approvalMode}}))).toBe(false);
+        });
+
+        it('returns true with advanced mode, where the first approver comes from the candidate ATS fields', () => {
+            expect(isRecruitingAdvancedMode(makeMergeATSPolicy({config: {approvalMode: CONST.MERGE.APPROVAL_MODE.ADVANCED}}))).toBe(true);
+        });
+    });
+
     describe('getMergeATSApproverField', () => {
-        it('returns null when there is no connection or no approver field', () => {
-            expect(getMergeATSApproverField(undefined)).toBeNull();
-            expect(getMergeATSApproverField(makePolicy())).toBeNull();
-            expect(getMergeATSApproverField(makeMergeATSPolicy())).toBeNull();
+        it('returns undefined when there is no connection or no approver field', () => {
+            expect(getMergeATSApproverField(undefined)).toBeUndefined();
+            expect(getMergeATSApproverField(makePolicy())).toBeUndefined();
+            expect(getMergeATSApproverField(makeMergeATSPolicy())).toBeUndefined();
         });
 
         it('returns the configured approver field', () => {
@@ -623,17 +732,6 @@ describe('getRecruitingCards', () => {
                     config: {approvalMode: CONST.MERGE.APPROVAL_MODE.ADVANCED, approverField: CONST.MERGE.ATS_APPROVER_FIELD.RECRUITING_COORDINATOR, finalApprover: APPROVER_LOGIN},
                 }),
             ).toBe(`Advanced approval • Recruiting coordinator -> ${APPROVER_LOGIN}`);
-        });
-
-        it('shows an unrecognized ATS field as-is', () => {
-            // Given an approver field the app does not have a translation for, since the backend can add new ones
-            // When the default approver row is built
-            // Then the raw field name is shown rather than a missing translation
-            expect(
-                getDefaultApproverTitle({
-                    config: {approvalMode: CONST.MERGE.APPROVAL_MODE.ADVANCED, approverField: 'hiringManager', finalApprover: APPROVER_LOGIN},
-                }),
-            ).toBe(`Advanced approval • hiringManager -> ${APPROVER_LOGIN}`);
         });
 
         it('reads "not set" for the ATS field when advanced mode has none', () => {

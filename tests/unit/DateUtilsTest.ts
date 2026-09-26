@@ -1,4 +1,5 @@
-// cspell:ignore Montag Dienstag Freitag Sonntag März Τρίτη Κυριακή -- German and Greek weekday and month
+// cspell:ignore Montag Dienstag Freitag Sonntag März Τρίτη Κυριακή Januar grudzień janv styczeń stycznia
+// cspell:ignore Ιανουάριος Ιανουαρίου -- German, Polish, French and Greek weekday and month
 // names, asserted verbatim so the locale-driven formatters are covered rather than only the English path.
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
@@ -7,6 +8,7 @@ import {clearIntlFormatterCaches, refreshIntlFormatterCaches} from '@libs/IntlFo
 import {translate} from '@libs/Localize';
 
 import CONST from '@src/CONST';
+import type {Locale} from '@src/CONST/LOCALES';
 import {SORTED_LOCALES} from '@src/CONST/LOCALES';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
@@ -16,6 +18,19 @@ import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 /* eslint-disable @typescript-eslint/naming-convention */
 import {addDays, addMinutes, endOfDay, format, set, setHours, setMinutes, startOfDay, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
 import {fromZonedTime, toZonedTime, format as tzFormat} from 'date-fns-tz';
+// Aliased one by one: the barrel import is restricted, and the bare names would shadow this file's own `es` and `ja`
+// values, as well as Jest's `it`.
+import {de as deDateFns} from 'date-fns/locale/de';
+import {el as elDateFns} from 'date-fns/locale/el';
+import {enUS as enDateFns} from 'date-fns/locale/en-US';
+import {es as esDateFns} from 'date-fns/locale/es';
+import {fr as frDateFns} from 'date-fns/locale/fr';
+import {it as itDateFns} from 'date-fns/locale/it';
+import {ja as jaDateFns} from 'date-fns/locale/ja';
+import {nl as nlDateFns} from 'date-fns/locale/nl';
+import {pl as plDateFns} from 'date-fns/locale/pl';
+import {ptBR as ptBRDateFns} from 'date-fns/locale/pt-BR';
+import {zhCN as zhHansDateFns} from 'date-fns/locale/zh-CN';
 import Onyx from 'react-native-onyx';
 
 import {translateLocal} from '../utils/TestHelper';
@@ -25,6 +40,24 @@ jest.mock('@src/libs/Log');
 
 const LOCALE = CONST.LOCALES.EN;
 const UTC: SelectedTimezone = 'Atlantic/Reykjavik';
+
+/** date-fns carries CLDR's quarter and standalone-month labels, so the tables that replaced it are pinned against its own data here. */
+const DATE_FNS_LOCALE_BY_TAG: Record<Locale, typeof enDateFns> = {
+    [CONST.LOCALES.EN]: enDateFns,
+    [CONST.LOCALES.ES]: esDateFns,
+    [CONST.LOCALES.FR]: frDateFns,
+    [CONST.LOCALES.IT]: itDateFns,
+    [CONST.LOCALES.PT_BR]: ptBRDateFns,
+    [CONST.LOCALES.NL]: nlDateFns,
+    [CONST.LOCALES.DE]: deDateFns,
+    [CONST.LOCALES.PL]: plDateFns,
+    [CONST.LOCALES.EL]: elDateFns,
+    [CONST.LOCALES.JA]: jaDateFns,
+    [CONST.LOCALES.ZH_HANS]: zhHansDateFns,
+};
+
+const QUARTERS = [1, 2, 3, 4] as const;
+const MONTHS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] as const;
 
 const intlFormatForTest = (date: Date, preset: Intl.DateTimeFormatOptions, timeZone: string) =>
     new Intl.DateTimeFormat(LOCALE, {...preset, timeZone}).format(date).replaceAll(CONST.DATE.INTL_NBSP_PATTERN, ' ');
@@ -445,6 +478,115 @@ describe('DateUtils', () => {
             const cardMonth = 1;
             const cardYear = new Date().getFullYear() + 1;
             expect(DateUtils.isCardExpired(cardMonth, cardYear)).toBe(false);
+        });
+    });
+
+    describe('getMonthNames', () => {
+        it('returns twelve months in the given language', () => {
+            // Given a reader of English and one of German
+            // When the month list is built for each
+            // Then both hold twelve names in that language
+            const englishMonths = DateUtils.getMonthNames(CONST.LOCALES.EN);
+            expect(englishMonths).toHaveLength(12);
+            expect(englishMonths.at(0)).toBe('January');
+            expect(englishMonths.at(11)).toBe('December');
+            expect(DateUtils.getMonthNames(CONST.LOCALES.DE).at(0)).toBe('Januar');
+        });
+
+        it('names the month on its own, which Greek and Polish inflect differently from the one beside a day', () => {
+            // Given languages that decline the month when a day number follows it, where the name would read
+            // `Ιανουαρίου` or `stycznia`, meaning "of January"
+            // When the month list is built, which a picker shows with no day beside it
+            // Then each name is the nominative, because a month asked for on its own is the standalone form
+            expect(DateUtils.getMonthNames(CONST.LOCALES.EL).at(0)).toBe('Ιανουάριος');
+            expect(DateUtils.getMonthNames(CONST.LOCALES.PL).at(0)).toBe('styczeń');
+            expect(DateUtils.getMonthNames(CONST.LOCALES.PL).at(11)).toBe('grudzień');
+        });
+
+        it('reproduces the standalone month of every supported locale', () => {
+            // Given CLDR's standalone month for each shipped language, read from date-fns' own locale data
+            for (const locale of SORTED_LOCALES) {
+                for (const month of MONTHS) {
+                    // When the month list is built
+                    const name = DateUtils.getMonthNames(locale).at(month);
+
+                    // Then it matches, which is what pins the one language `Intl` answers in the other form. A second
+                    // language diverging fails here rather than reaching a picker in the genitive
+                    expect(name).toBe(DATE_FNS_LOCALE_BY_TAG[locale].localize.month(month, {width: 'wide', context: 'standalone'}));
+                }
+            }
+        });
+
+        it('keeps the form that goes beside a day for the CSV parser', () => {
+            // Given Greek, where the two forms differ
+            // When both lists are read
+            // Then the inflected one is what a spreadsheet writes in a date, so the importer can still match it
+            expect(DateUtils.getInflectedMonthNames(CONST.LOCALES.EL).at(0)).toBe('Ιανουαρίου');
+            expect(DateUtils.getInflectedMonthNames(CONST.LOCALES.EN).at(0)).toBe('January');
+        });
+    });
+
+    describe('getFormattedQuarterForSearch', () => {
+        it('covers each quarter with the right month boundaries', () => {
+            // Given the four quarters of 2026
+            // When each is rendered for an English reader
+            // Then the label names the quarter and the range spans its own first and last day
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, CONST.LOCALES.EN)).toBe('Q1 2026 (Jan 1 - Mar 31)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 2, CONST.LOCALES.EN)).toBe('Q2 2026 (Apr 1 - Jun 30)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 3, CONST.LOCALES.EN)).toBe('Q3 2026 (Jul 1 - Sep 30)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 4, CONST.LOCALES.EN)).toBe('Q4 2026 (Oct 1 - Dec 31)');
+        });
+
+        it('labels the quarter the way the locale does, with the range in the locale field order', () => {
+            // Given languages that do not call a quarter "Q", which a hardcoded `Q${quarter}` cannot express
+            // When the first quarter of 2026 is rendered in each
+            // Then the label comes from the language and the range reads day-first, where the date-fns `MMM d`
+            // pattern this replaced rendered French as `janv. 1`
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, CONST.LOCALES.FR)).toBe('1er trim. 2026 (1 janv. - 31 mars)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, CONST.LOCALES.PL)).toBe('I kw. 2026 (1 sty - 31 mar)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, CONST.LOCALES.NL)).toBe('K1 2026 (1 jan - 31 mrt)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, CONST.LOCALES.EL)).toBe('Τ1 2026 (1 Ιαν - 31 Μαρ)');
+            // German abbreviates quarters exactly as English does, so a dropped locale would not show up there.
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, CONST.LOCALES.DE)).toBe('Q1 2026 (1. Jan. - 31. März)');
+        });
+    });
+
+    describe('getShortFormattedQuarterForSearch', () => {
+        it('names every quarter of the year', () => {
+            // Given the four quarters of 2026, whose boundaries the caller derives from the quarter number alone
+            const quarters = [1, 2, 3, 4];
+
+            // When each is rendered for an English reader
+            const labels = quarters.map((quarter) => DateUtils.getShortFormattedQuarterForSearch(2026, quarter, CONST.LOCALES.EN));
+
+            // Then each label names its own quarter, so a wrong month offset would surface as a mislabelled group
+            expect(labels).toEqual(['Q1 ’26', 'Q2 ’26', 'Q3 ’26', 'Q4 ’26']);
+        });
+
+        it('takes the quarter abbreviation from the language rather than hardcoding Q', () => {
+            // Given the same languages
+            // When the first quarter of 2026 is rendered in each
+            // Then the abbreviation follows the language while the year suffix keeps its shape
+            expect(DateUtils.getShortFormattedQuarterForSearch(2026, 1, CONST.LOCALES.FR)).toBe('1er trim. ’26');
+            expect(DateUtils.getShortFormattedQuarterForSearch(2026, 1, CONST.LOCALES.PL)).toBe('I kw. ’26');
+            expect(DateUtils.getShortFormattedQuarterForSearch(2026, 1, CONST.LOCALES.NL)).toBe('K1 ’26');
+            expect(DateUtils.getShortFormattedQuarterForSearch(2026, 1, CONST.LOCALES.EL)).toBe('Τ1 ’26');
+            expect(DateUtils.getShortFormattedQuarterForSearch(2026, 1, CONST.LOCALES.ZH_HANS)).toBe('第一季 ’26');
+        });
+
+        it('reproduces date-fns quarter abbreviations for every supported locale', () => {
+            // Given CLDR's abbreviated quarter for each shipped language, read from date-fns' own locale data, since
+            // no `Intl` API names a quarter at all
+            for (const locale of SORTED_LOCALES) {
+                for (const quarter of QUARTERS) {
+                    // When the short label is built from the table
+                    const label = DateUtils.getShortFormattedQuarterForSearch(2026, quarter, locale);
+
+                    // Then it carries the abbreviation that language writes, so an edited entry fails here rather than
+                    // shipping a quarter no language uses
+                    expect(label).toBe(`${DATE_FNS_LOCALE_BY_TAG[locale].localize.quarter(quarter, {width: 'abbreviated', context: 'standalone'})} ’26`);
+                }
+            }
         });
     });
 
@@ -1455,8 +1597,8 @@ describe('DateUtils', () => {
             // When the quarter label is built
             const result = DateUtils.getFormattedQuarterForSearch(2025, 3, 'es');
 
-            // Then the quarter name stays and its first and last days use Spanish month abbreviations
-            expect(result).toContain('Q3 2025');
+            // Then the quarter carries the Spanish abbreviation and its first and last days use Spanish months
+            expect(result).toContain('T3 2025');
             expect(result).toContain('jul');
             expect(result).toContain('sept');
         });

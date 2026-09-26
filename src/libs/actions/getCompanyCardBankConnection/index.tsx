@@ -39,8 +39,12 @@ function getCompanyCardBankConnection(policyID?: string, bankName?: string | nul
     // embedded in the CompanyCardFeedWithDomainID. This lets the server refresh credentials on the feed the cards
     // actually belong to (e.g. a Classic domain-level feed surfaced into a workspace via "preferred workspace")
     // instead of always targeting the synthetic workspace-policy domain.
-    const domainID = feed ? splitCardFeedWithDomainID(feed)?.domainID : undefined;
+    const selectedFeed = splitCardFeedWithDomainID(feed);
+    const domainID = selectedFeed?.domainID;
     const queryParams: Record<string, string> = domainID ? {...params, domainAccountID: String(domainID)} : params;
+    if (selectedFeed) {
+        queryParams.feed = selectedFeed.feedName;
+    }
 
     const bank = CONST.COMPANY_CARDS.BANK_CONNECTIONS[bankConnection as keyof typeof CONST.COMPANY_CARDS.BANK_CONNECTIONS];
 

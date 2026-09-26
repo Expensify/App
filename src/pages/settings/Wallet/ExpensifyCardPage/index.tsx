@@ -10,7 +10,9 @@ import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FrozenCardHeader from '@components/FrozenCardHeader';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -28,6 +30,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
+import useRefreshPendingDigitalWalletApproval from '@hooks/useRefreshPendingDigitalWalletApproval';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {freezeCard, unfreezeCard} from '@libs/actions/Card';
@@ -40,6 +43,7 @@ import {
     getDomainCards,
     getTranslationKeyForLimitType,
     isCardFrozen,
+    isCardPendingDigitalWalletApproval,
     isOfflinePINMarket,
     isTravelCard,
     isUkEuExpensifyCard,
@@ -66,6 +70,7 @@ import {getSpendRuleByCardID, getSpendRuleSummaryText} from '@libs/SpendRulesUti
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {getNormalizedSubPageValues} from '@pages/MissingPersonalDetails/utils';
 import CardDetailsActionButtons, {CardDetailsActionButton} from '@pages/settings/Wallet/CardDetailsActionButtons';
+import PendingDigitalWalletApprovalRow from '@pages/settings/Wallet/PendingDigitalWalletApprovalRow';
 import RedDotCardSection from '@pages/settings/Wallet/RedDotCardSection';
 import CardDetails from '@pages/settings/Wallet/WalletPage/CardDetails';
 
@@ -143,6 +148,10 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         return [cardList?.[cardID]];
     }, [shouldDisplayCardDomain, cardList, cardID, domain]);
     const currentCard = useMemo(() => cardsToShow?.find((card) => String(card?.cardID) === cardID) ?? cardsToShow?.at(0), [cardsToShow, cardID]);
+
+    // Any of the domain's cards can be the one awaiting approval, and the CTA has to open that card's flow.
+    const cardPendingDigitalWalletApproval = useMemo(() => cardsToShow?.find((card) => isCardPendingDigitalWalletApproval(card)), [cardsToShow]);
+    useRefreshPendingDigitalWalletApproval();
 
     const virtualCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && !isTravelCard(card)), [cardsToShow]);
     const travelCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && isTravelCard(card)), [cardsToShow]);
@@ -401,6 +410,13 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 </CardDetailsActionButton>
                             </CardDetailsActionButtons>
                         )}
+                        {!!cardPendingDigitalWalletApproval && (
+                            <PendingDigitalWalletApprovalRow
+                                cardID={cardPendingDigitalWalletApproval.cardID}
+                                walletProvider={cardPendingDigitalWalletApproval.nameValuePairs?.pendingDigitalWalletApproval?.walletProvider}
+                                style={[styles.ph5, styles.mt6, styles.mb5]}
+                            />
+                        )}
                         {cardToAdd !== undefined && (
                             <AddToWalletButton
                                 card={cardToAdd}
@@ -436,25 +452,28 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 accessibilityLabel={spendRulesSummary.join('. ')}
                             />
                         )}
-                        <MenuItemWithTopDescription
-                            description={translate('cardPage.availableSpend')}
-                            title={formattedAvailableSpendAmount}
-                            interactive={false}
-                            titleStyle={styles.walletCardLimit}
-                            hintText={remainingLimitHint}
-                        />
-                        <MenuItemWithTopDescription
-                            description={translate('workspace.card.issueNewCard.limitType')}
-                            title={currentCardLimitTypeTranslationKey ? translate(currentCardLimitTypeTranslationKey) : ''}
-                            interactive={false}
-                            hintText={getCardHintText(
-                                currentCard?.nameValuePairs?.validFrom,
-                                currentCard?.nameValuePairs?.validThru,
-                                personalDetails?.[currentCard?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.timezone?.selected,
-                                preferredLocale,
-                                translate,
-                            )}
-                        />
+                        <MenuItem.Root>
+                            <MenuItemField.Row
+                                name={translate('cardPage.availableSpend')}
+                                value={formattedAvailableSpendAmount}
+                            />
+                            {!!remainingLimitHint && <MenuItem.HelpText message={remainingLimitHint} />}
+                        </MenuItem.Root>
+                        <MenuItem.Root>
+                            <MenuItemField.Row
+                                name={translate('workspace.card.issueNewCard.limitType')}
+                                value={currentCardLimitTypeTranslationKey ? translate(currentCardLimitTypeTranslationKey) : ''}
+                            />
+                            <MenuItem.HelpText
+                                message={getCardHintText(
+                                    currentCard?.nameValuePairs?.validFrom,
+                                    currentCard?.nameValuePairs?.validThru,
+                                    personalDetails?.[currentCard?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.timezone?.selected,
+                                    preferredLocale,
+                                    translate,
+                                )}
+                            />
+                        </MenuItem.Root>
                         {shouldShowReportLostCardButton && (
                             <>
                                 <MenuItemWithTopDescription

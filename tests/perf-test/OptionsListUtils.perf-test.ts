@@ -200,6 +200,7 @@ describe('OptionsListUtils', () => {
                 {
                     preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
+                    currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 },
                 undefined,
             );
@@ -231,6 +232,7 @@ describe('OptionsListUtils', () => {
                 {
                     preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
+                    currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 },
                 undefined,
             );
@@ -444,6 +446,7 @@ describe('OptionsListUtils', () => {
                 {
                     preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
+                    currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 },
                 undefined,
             );

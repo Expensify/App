@@ -616,7 +616,6 @@ type CreateWorkspaceWithPolicyDraftParams = {
     currentUserEmailParam: string;
     shouldCreateControlPolicy?: boolean;
     type?: PolicyType;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     hasActiveAdminPolicies: boolean;
     hasOwnedPaidPolicy: boolean;
     isAnnualSubscription?: boolean;
@@ -647,7 +646,6 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         shouldCreateControlPolicy,
         type,
         isSelfTourViewed,
-        betas,
         hasActiveAdminPolicies,
         hasOwnedPaidPolicy,
         isAnnualSubscription = false,
@@ -689,7 +687,6 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             shouldCreateControlPolicy,
             type,
             isSelfTourViewed,
-            betas,
             hasActiveAdminPolicies,
             hasOwnedPaidPolicy,
             isAnnualSubscription,
@@ -731,7 +728,6 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         currentUserEmailParam,
         shouldCreateControlPolicy,
         isSelfTourViewed,
-        betas,
         hasActiveAdminPolicies,
         delegateAccountID,
         hasOwnedPaidPolicy,
@@ -762,7 +758,6 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         allReportsParam: allReports,
         shouldCreateControlPolicy,
         isSelfTourViewed,
-        betas,
         hasActiveAdminPolicies,
         delegateAccountID,
         hasOwnedPaidPolicy,
@@ -786,7 +781,6 @@ type SavePolicyDraftByNewWorkspaceParams = {
     allReportsParam: OnyxCollection<OnyxTypes.Report>;
     shouldCreateControlPolicy?: boolean;
     type?: PolicyType;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     hasActiveAdminPolicies: boolean;
     hasOwnedPaidPolicy: boolean;
     isAnnualSubscription?: boolean;
@@ -813,7 +807,6 @@ function savePolicyDraftByNewWorkspace({
     shouldCreateControlPolicy,
     type,
     isSelfTourViewed,
-    betas,
     hasActiveAdminPolicies,
     hasOwnedPaidPolicy,
     isAnnualSubscription = false,
@@ -837,7 +830,6 @@ function savePolicyDraftByNewWorkspace({
         shouldCreateControlPolicy,
         type,
         isSelfTourViewed,
-        betas,
         hasActiveAdminPolicies,
         hasOwnedPaidPolicy,
         isAnnualSubscription,
@@ -866,7 +858,6 @@ type SetUpPoliciesAndNavigateParams = {
     currency: string;
     activePolicy: OnyxEntry<OnyxTypes.Policy>;
     isSelfTourViewed: boolean | undefined;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     hasActiveAdminPolicies: boolean;
     lastWorkspaceNumber: number | undefined;
     translate: LocalizedTranslate;
@@ -883,7 +874,6 @@ function setUpPoliciesAndNavigate({
     currency,
     activePolicy,
     isSelfTourViewed,
-    betas,
     hasActiveAdminPolicies,
     hasOwnedPaidPolicy,
     lastWorkspaceNumber,
@@ -925,7 +915,6 @@ function setUpPoliciesAndNavigate({
             currentUserAccountIDParam: currentSessionData.accountID ?? CONST.DEFAULT_NUMBER_ID,
             currentUserEmailParam: currentSessionData.email ?? '',
             isSelfTourViewed,
-            betas,
             hasActiveAdminPolicies,
             delegateAccountID,
             hasOwnedPaidPolicy,

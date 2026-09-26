@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
-import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import getPlatform from '@libs/getPlatform';
 import {canMeasureText} from '@libs/measureTextWidth';
 import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
@@ -268,18 +268,40 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     isItemInFilter,
     isItemInSearch,
     initialSortColumn,
+    initialSortOrder,
     narrowLayoutSortColumn,
     children,
     selectionEnabled,
     shouldEnableSelectionInNarrowPaneModal,
     shouldUseDynamicColumns = false,
+    shouldAlwaysEnableSelection,
+    shouldPreserveSelectionOnSearchAndFilter,
+    shouldFooterRenderAsLastRow,
     onRowSelectionChange,
     onSearchStringChange,
     onSortingChange,
     ...listProps
 }: TableProps<DataType, ColumnKey, FilterKey>) {
     const {translate} = useLocalize();
-    const isMobileSelectionEnabled = useMobileSelectionMode();
+    const isGlobalMobileSelectionEnabled = useMobileSelectionMode();
+
+    // A table whose only purpose is picking rows is always in selection mode, so it shows its checkboxes from the
+    // start rather than hiding them behind a long press. It also leaves the app wide selection mode alone, which
+    // other screens write to and would otherwise clear the selection midway through.
+    const isMobileSelectionEnabled = !!shouldAlwaysEnableSelection || isGlobalMobileSelectionEnabled;
+
+    const setMobileSelectionModeEnabled = (isEnabled: boolean) => {
+        if (shouldAlwaysEnableSelection) {
+            return;
+        }
+
+        if (isEnabled) {
+            turnOnMobileSelectionMode();
+            return;
+        }
+
+        turnOffMobileSelectionMode();
+    };
     const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
@@ -297,6 +319,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const {middleware: searchMiddleware, activeSearchString, methods: searchMethods, hasActiveSearchString} = useSearching<DataType>({isItemInSearch});
     const searchedData = searchMiddleware(filteredData);
 
+    const columnKeys = columns.map((column) => column.key);
+
     const {
         activeSorting,
         methods: sortMethods,
@@ -304,9 +328,11 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     } = useSorting<DataType, ColumnKey>({
         compareItems,
         initialSortColumn,
+        initialSortOrder,
         narrowLayoutSortColumn,
         shouldUseNarrowTableLayout,
         onSortingChange,
+        columnKeys,
     });
     const sortedData = sortMiddleware(searchedData);
 
@@ -322,6 +348,10 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         selectedKeys,
         onRowSelectionChange,
         shouldEnableSelectionInNarrowPaneModal,
+        isSelectionModeEnabled: isMobileSelectionEnabled,
+        setSelectionModeEnabled: setMobileSelectionModeEnabled,
+        shouldPreserveSelectionOnSearchAndFilter,
+        shouldAlwaysEnableSelection,
     });
     const selectionData = selectionMiddleware(sortedData);
 
@@ -441,9 +471,12 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
             return;
         }
 
-        turnOnMobileSelectionMode();
+        setMobileSelectionModeEnabled(true);
         selectionMethods.handleSingleRowSelection(mobileSelectionModalRowKey);
         selectionMethods.setMobileSelectionModalRowKey(null);
+        // This should only run when the user confirms the selection, so setMobileSelectionModeEnabled is left out of
+        // the dependencies below. It is redefined on every render, which would otherwise run this again straight away.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mobileSelectionModalRowKey, selectionMethods, shouldSkipMobileSelectionFocusRestore, shouldSubmitMobileSelection]);
 
     useEffect(
@@ -474,6 +507,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         activeFilters: currentFilters,
         activeSorting,
         initialSortColumn,
+        initialSortOrder: initialSortOrder ?? CONST.SEARCH.SORT_ORDER.ASC,
         narrowLayoutSortColumn,
         activeSearchString,
         tableMethods,
@@ -483,6 +517,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         isEmptyResult,
         isDefaultViewEmpty,
         shouldUseNarrowTableLayout,
+        shouldFooterRenderAsLastRow,
         selectionEnabled,
         shouldEnableSelectionInNarrowPaneModal,
         isMobileSelectionEnabled,
@@ -507,6 +542,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 rowCount={processedData.length}
                 columnCount={semanticColumnCount}
                 rendersBodyWhenEmpty={rendersBodyWhenEmpty}
+                shouldUseDynamicColumns={shouldUseDynamicColumns}
                 scrollWidth={dynamicScrollWidth}
                 onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
             >

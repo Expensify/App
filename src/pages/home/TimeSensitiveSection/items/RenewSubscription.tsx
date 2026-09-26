@@ -1,0 +1,36 @@
+import BaseWidgetItem from '@components/BaseWidgetItem';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+
+import Navigation from '@libs/Navigation/Navigation';
+
+import {formatSubscriptionEndDate} from '@pages/settings/Subscription/utils';
+
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+
+type RenewSubscriptionProps = {
+    /** Date-only string of the day the annual subscription lapses */
+    endDate: string | undefined;
+};
+
+function RenewSubscription({endDate}: RenewSubscriptionProps) {
+    const {translate, preferredLocale} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid']);
+
+    return (
+        <BaseWidgetItem
+            icon={icons.CalendarSolid}
+            title={translate('homePage.timeSensitiveSection.renewSubscription.title')}
+            subtitle={translate('homePage.timeSensitiveSection.renewSubscription.subtitle', {date: formatSubscriptionEndDate(endDate, preferredLocale)})}
+            ctaText={translate('homePage.timeSensitiveSection.renewSubscription.cta')}
+            onCtaPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS)}
+            buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
+        />
+    );
+}
+
+export default RenewSubscription;

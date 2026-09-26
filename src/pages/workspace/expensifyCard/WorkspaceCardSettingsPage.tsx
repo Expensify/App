@@ -1,6 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -25,6 +25,8 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -91,29 +93,38 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                             />
                         </OfflineWithFeedback>
                         <OfflineWithFeedback errorRowStyles={styles.mh5}>
-                            <MenuItemWithTopDescription
-                                description={translate('workspace.expensifyCard.settlementFrequency')}
-                                title={translate(`workspace.expensifyCard.frequency.${settlementFrequency}`)}
-                                shouldShowRightIcon={settlementFrequency !== CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY}
-                                interactive={!isSettlementFrequencyBlocked}
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID))}
-                                hintText={
-                                    isSettlementFrequencyBlocked ? (
-                                        <>
-                                            {translate('workspace.expensifyCard.settlementFrequencyInfo')}{' '}
-                                            <TextLink
-                                                href={CONST.EXPENSIFY_CARD.MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK}
-                                                style={styles.label}
-                                            >
-                                                {translate('common.learnMore')}
-                                            </TextLink>
-                                            .
-                                        </>
-                                    ) : (
-                                        monthlySettlementDateText
-                                    )
+                            <MenuItem.Root
+                                onPress={
+                                    isSettlementFrequencyBlocked
+                                        ? undefined
+                                        : callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID)))
                                 }
-                            />
+                            >
+                                <MenuItemField.Row
+                                    name={translate('workspace.expensifyCard.settlementFrequency')}
+                                    value={translate(`workspace.expensifyCard.frequency.${settlementFrequency}`)}
+                                >
+                                    {settlementFrequency !== CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY && <MenuItem.Chevron />}
+                                </MenuItemField.Row>
+                                <MenuItem.HelpText
+                                    message={
+                                        isSettlementFrequencyBlocked ? (
+                                            <>
+                                                {translate('workspace.expensifyCard.settlementFrequencyInfo')}{' '}
+                                                <TextLink
+                                                    href={CONST.EXPENSIFY_CARD.MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK}
+                                                    style={styles.label}
+                                                >
+                                                    {translate('common.learnMore')}
+                                                </TextLink>
+                                                .
+                                            </>
+                                        ) : (
+                                            monthlySettlementDateText
+                                        )
+                                    }
+                                />
+                            </MenuItem.Root>
                         </OfflineWithFeedback>
                         {shouldShowCashbackToggle && (
                             <ToggleSettingOptionRow
