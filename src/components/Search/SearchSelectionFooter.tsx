@@ -348,7 +348,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
 
     // The other case with no answer to give: the whole-search report count comes from the server, and a search that
     // returned none of it (a grouped search, or a to-do search counting live Onyx data) has nothing to switch to.
-    const shouldShowCountSelector = (isExpenseType || isReportsSearch) && !hasGroupSelection && (hasPartialSelection || (!shouldUseLiveData && typeof metadataReportCount === 'number'));
+    const shouldShowCountSelector = (isExpenseType || isReportsSearch) && !hasGroupSelection;
     const footerCountType = shouldShowCountSelector ? (footerSelection.footerCount ?? defaultFooterCountType) : undefined;
 
     // An empty result set has no total to break down, so it keeps the plain total spend with no selector.
