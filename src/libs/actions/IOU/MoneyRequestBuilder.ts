@@ -1499,7 +1499,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                     }
                 } else if (isCurrencyMatching) {
                     // Reimbursable transaction: reflect the change in the freshly tracked reimbursableTotal too.
-                    iouReport.reimbursableTotal = previousReimbursableTotal - reportAmount;
+                    iouReport.reimbursableTotal = newReportTotal ? newReportTotal - (iouReport.nonReimbursableTotal ?? 0) : previousReimbursableTotal - reportAmount;
                 }
 
                 // The reimbursable totals are what the report preview and details actually read, so they are
@@ -1520,7 +1520,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                     iouReport.unheldTotal -= reportAmount;
                 }
                 if (reimbursable && newUnheldReimbursableTotal === undefined && isCurrencyMatching) {
-                    iouReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - reportAmount;
+                    iouReport.unheldReimbursableTotal = newReportTotal ? newReportTotal - (iouReport.unheldNonReimbursableTotal ?? 0) : previousUnheldReimbursableTotal - reportAmount;
                 }
             }
         }
