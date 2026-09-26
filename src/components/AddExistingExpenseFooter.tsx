@@ -63,6 +63,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [allReportActionsList] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 
     const [transactions] = useTransactionsByID(selectedIds);
     const reports = useChangeTransactionsReportReports(transactions, reportToConfirm?.reportID);
@@ -95,6 +96,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         isTrackIntentUser,
                         formatPhoneNumber,
                         rules,
+                        allReportActionsList,
                     });
                 } else {
                     changeTransactionsReport({

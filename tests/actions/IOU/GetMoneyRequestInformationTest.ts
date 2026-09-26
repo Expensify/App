@@ -2,7 +2,7 @@ import {getMoneyRequestInformation} from '@libs/actions/IOU/MoneyRequestBuilder'
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTagLists, Report, Transaction} from '@src/types/onyx';
+import type {PolicyTagLists, Report, ReportAction, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -79,6 +79,7 @@ const baseParams = {
     isTrackIntentUser: false,
     formatPhoneNumber,
     rules: undefined,
+    allReportActionsList: undefined,
 } as const;
 
 describe('getMoneyRequestInformation', () => {
@@ -358,6 +359,68 @@ describe('getMoneyRequestInformation', () => {
             const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal});
 
             expect(result.iouReport.reportID).not.toBe(SUBMITTED_REPORT_ID);
+        });
+    });
+
+    describe('report preview action from allReportActionsList', () => {
+        const EXPENSE_REPORT_ID = 'expense-report-with-preview';
+        const PREVIEW_ACTION_ID = 'report-preview-action-1';
+
+        beforeEach(async () => {
+            // `canAddTransaction` requires the submitter to own the report and the policy to be a group policy.
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: PAYEE_ACCOUNT_ID, email: 'payee@example.com'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.USER});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, parentChatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`, {
+                reportID: EXPENSE_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: POLICY_ID,
+                chatReportID: CHAT_REPORT_ID,
+                ownerAccountID: PAYEE_ACCOUNT_ID,
+                managerID: PAYEE_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                currency: 'USD',
+                total: 0,
+                created: '2024-01-02',
+            });
+            await waitForBatchedUpdates();
+        });
+
+        it('reuses the existing report preview action supplied via allReportActionsList', () => {
+            // Given an existing expense report on the chat and a REPORT_PREVIEW action linked to it that is supplied
+            // only through the allReportActionsList param deliberately never written to Onyx, so the deprecated
+            // getAllReportActionsFromIOU fallback inside getReportPreviewReportAction cannot be its source.
+            const reportPreviewAction = {
+                reportActionID: PREVIEW_ACTION_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2024-01-02 00:00:00',
+                message: [{type: 'COMMENT', html: '', text: ''}],
+                originalMessage: {linkedReportID: EXPENSE_REPORT_ID},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>;
+            const allReportActionsList = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`]: {[PREVIEW_ACTION_ID]: reportPreviewAction},
+            };
+
+            // When a new expense is added to that existing report with the threaded report actions collection.
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal, moneyRequestReportID: EXPENSE_REPORT_ID, allReportActionsList});
+
+            // Then the supplied preview action is found and updated in place instead of a new optimistic
+            // REPORT_PREVIEW action being built, proving the threaded data is used over the deprecated fallback.
+            expect(result.iouReport.reportID).toBe(EXPENSE_REPORT_ID);
+            expect(result.reportPreviewAction.reportActionID).toBe(PREVIEW_ACTION_ID);
+        });
+
+        it('builds a new optimistic report preview action when the collection is not passed', () => {
+            // Given the same existing expense report but an undefined `allReportActionsList` and no report actions
+            // in Onyx, so neither the param nor the deprecated fallback can find an existing preview action.
+            // When a new expense is added to that existing report.
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal, moneyRequestReportID: EXPENSE_REPORT_ID});
+
+            // Then a brand-new optimistic preview action is generated, confirming the previous test's reuse
+            // really came from the threaded collection rather than some other source.
+            expect(result.iouReport.reportID).toBe(EXPENSE_REPORT_ID);
+            expect(result.reportPreviewAction.reportActionID).not.toBe(PREVIEW_ACTION_ID);
         });
     });
 

@@ -2279,6 +2279,8 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             formatPhoneNumber,
             getCurrencyDecimals,
             rules,
+            // Real report actions are not available at this call site yet; see #66522.
+            allReportActionsList: undefined,
         });
 
         onyxData = moneyRequestOnyxData;
