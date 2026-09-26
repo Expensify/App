@@ -80,6 +80,7 @@ import type DomainHighlightItems from './DomainHighlightItems';
 import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
+import type EarlyRenewalOfferEligibility from './EarlyRenewalOfferEligibility';
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardLoadingState from './ExpensifyCardLoadingState';
@@ -253,6 +254,7 @@ export type {
     CurrencyList,
     CustomStatusDraft,
     DatabaseSizeMeasurement,
+    EarlyRenewalOfferEligibility,
     UnshareBankAccount,
     DismissedReferralBanners,
     Domain,

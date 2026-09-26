@@ -42,6 +42,7 @@ import {View} from 'react-native';
 import type {BillingStatusResult} from './utils';
 
 import EarlyDiscountBanner from './BillingBanner/EarlyDiscountBanner';
+import EarlyRenewalBillingBanner from './BillingBanner/EarlyRenewalBillingBanner';
 import PreTrialBillingBanner from './BillingBanner/PreTrialBillingBanner';
 import SubscriptionBillingBanner from './BillingBanner/SubscriptionBillingBanner';
 import SubscriptionExpiringSoonBanner from './BillingBanner/SubscriptionExpiringSoonBanner';
@@ -248,7 +249,7 @@ function CardSection() {
             isCentralPane
             titleStyles={styles.textStrong}
             subtitleMuted
-            banner={BillingBanner}
+            banner={billingStatus ? BillingBanner : <EarlyRenewalBillingBanner fallback={BillingBanner} />}
         >
             {!isEmptyObject(defaultCard?.accountData) && (
                 <View style={[styles.mt8, styles.mb3, styles.flexRow]}>

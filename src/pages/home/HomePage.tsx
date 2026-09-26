@@ -24,6 +24,7 @@ import {PortalHost} from '@gorhom/portal';
 import {useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import EarlyRenewalOfferSection from './EarlyRenewalOfferSection';
 import ForYouSection from './ForYouSection';
 import FreeTrialSection from './FreeTrialSection';
 import GettingStartedSection from './GettingStartedSection';
@@ -78,6 +79,7 @@ function HomePage() {
                 </>
             ) : (
                 <>
+                    <EarlyRenewalOfferSection />
                     <GettingStartedSection />
                     <UpcomingTravelSection />
                     <YourSpendSection />
@@ -110,6 +112,7 @@ function HomePage() {
                     <HomePageSkeletonRowCards />
                 ) : (
                     <>
+                        <EarlyRenewalOfferSection />
                         <FreeTrialSection />
                         <YourSpendSection />
                         <RecentlyAddedSection />
