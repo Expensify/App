@@ -1,8 +1,8 @@
 ---
 title: Use Search Operators to Filter and Analyze
 description: Learn how to use search operators, filters, and grouping to find, organize, and analyze expenses, chats, reports, and tasks in Expensify.
-keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter, custom field, international reimbursement IDs, transaction status filter, pending card expenses, posted card expenses]
-internalScope: Audience is all Expensify members. Covers search operator syntax for filtering, grouping, and chart views. Does not cover saved search management or Search page UI navigation.
+keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter, custom field, international reimbursement IDs, transaction status filter, pending card expenses, posted card expenses, limit results, limit search results, top 10 categories]
+internalScope: Audience is all Expensify members. Covers search operator syntax for filtering, grouping, limiting, and chart views. Does not cover saved search management or Search page UI navigation.
 ---
 
 # Use Search Operators to Filter and Analyze
@@ -156,6 +156,7 @@ Use these operators to analyze and visualize your results:
 - `group-by:` groups results by a specific dimension  
 - `view:` controls how grouped results are displayed  
 - `group-currency:` converts totals into a single currency  
+- `limit:` caps how many results are returned  
 
 **Normalize totals using `group-currency:`**
 
@@ -205,6 +206,46 @@ Supported views:
 - `view:line` - line chart
 
 > **Note:** The `view:` operator only applies when `group-by:` is also used. Without `group-by:`, the `view:` value is ignored.
+
+---
+
+## How to limit the number of results using search operators
+
+Use `limit:` to cap how many results a search returns. What it counts depends on whether the search is grouped:
+
+- On a search without `group-by:`, `limit:` caps the number of expenses returned. For example, `type:expense limit:10` returns 10 expenses.
+- On a search with `group-by:`, `limit:` caps the number of groups returned. For example, `type:expense group-by:category limit:10` returns the top 10 categories, no matter how many expenses each category contains.
+
+**Example search:**  
+`type:expense group-by:category date:last-month view:bar limit:5`
+
+You can also set this without typing it into the search bar:
+
+1. Run a search that uses `type:expense`.
+2. Click **Display**.
+3. Click **Limit results**.
+4. Enter the number of results you want, then click **Apply**.
+
+To remove the limit, reopen **Limit results** and click **Reset**.
+
+<!-- SCREENSHOT:
+Suggestion: The Display menu open on a grouped expense search, showing the Group by, Group currency, View, and Limit results fields with a value entered for Limit results.
+Location: Immediately after the numbered steps in "How to limit the number of results using search operators"
+Purpose: Members look for Limit results among the search filters rather than in the Display menu, so they cannot find where the limit is set or cleared.
+-->
+
+---
+
+## What happens when you open a group on a limited search
+
+When you open a group on a search that uses `limit:`, the limit does not carry over to the expenses inside that group. Opening a group shows every expense it contains.
+
+This applies when you:
+
+- Expand a group row in **Table** view.
+- Click a bar, slice, or point in **Bar**, **Pie**, or **Line** view.
+
+For example, `type:expense group-by:category limit:5` shows five categories. Opening the **Advertising** category shows every Advertising expense that matches the rest of the search, even if there are more than five. The limit only ever bounds how many groups you see.
 
 ---
 ## How to build reports using search operators

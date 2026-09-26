@@ -207,6 +207,14 @@ No. Grouped totals cannot be exported directly. You must expand each group and e
 
 ---
 
+## Does the number of groups an Insight shows limit the expenses inside each group?
+
+No. An Insight such as **Top categories** shows a set number of groups, but that limit applies only to the groups. When you expand a group or click a bar, slice, or point in a chart, you see every expense in that group.
+
+[Learn how to limit the number of results using search operators](/articles/new-expensify/reports-and-expenses/Using-search-operators)
+
+---
+
 ## How often do Insights update in Expensify?
 
 Insights update in realtime as expenses are created, edited, approved, or reimbursed.
