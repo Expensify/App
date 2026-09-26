@@ -152,6 +152,9 @@ type PressableProps = RNPressableProps &
          */
         interactive?: boolean;
 
+        /** Whether descendants can use native text selection inside the pressable */
+        shouldAllowTextSelection?: boolean;
+
         /**
          * Whether the pressable is nested in another one.
          */

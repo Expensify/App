@@ -7,8 +7,9 @@ import Parser from '@libs/Parser';
 import type {RenderersProps} from 'react-native-render-html';
 
 import React, {useMemo} from 'react';
-import {RenderHTMLConfigProvider, RenderHTMLSource} from 'react-native-render-html';
+import {RenderHTMLConfigProvider, RenderHTMLSource, useSharedProps} from 'react-native-render-html';
 
+import htmlRenderers from './HTMLEngineProvider/HTMLRenderers';
 import BulletItemRenderer from './HTMLEngineProvider/HTMLRenderers/BulletItemRenderer';
 import ConciergeLinkRenderer from './HTMLEngineProvider/HTMLRenderers/ConciergeLinkRenderer';
 import OLRenderer from './HTMLEngineProvider/HTMLRenderers/OLRenderer';
@@ -33,6 +34,30 @@ type RenderHTMLProps = {
     /** Whether the rendered text should be selectable */
     isSelectable?: boolean;
 };
+
+type SelectableHTMLConfigProviderProps = {
+    children: React.ReactNode;
+    isSelectable: boolean;
+};
+
+function SelectableHTMLConfigProvider({children, isSelectable}: SelectableHTMLConfigProviderProps) {
+    const styles = useThemeStyles();
+    const sharedProps = useSharedProps();
+
+    return (
+        <RenderHTMLConfigProvider
+            {...sharedProps}
+            defaultTextProps={{
+                ...sharedProps.defaultTextProps,
+                selectable: isSelectable,
+                style: [sharedProps.defaultTextProps.style, styles.overflowVisible],
+            }}
+            renderers={htmlRenderers}
+        >
+            {children}
+        </RenderHTMLConfigProvider>
+    );
+}
 
 // We are using the explicit composite architecture for performance gains.
 // Configuration for RenderHTML is handled in a top-level component providing
@@ -87,17 +112,23 @@ function RenderHTML({html: htmlParam, onLinkPress, onConciergeLinkPress, isSelec
         />
     );
 
-    return onLinkPress || onConciergeLinkPress ? (
-        <RenderHTMLConfigProvider
-            defaultTextProps={{selectable: isSelectable ?? true, allowFontScaling: false, style: styles.overflowVisible}}
-            renderersProps={renderersProps}
-            renderers={renderers}
-        >
-            {htmlSource}
-        </RenderHTMLConfigProvider>
-    ) : (
-        htmlSource
-    );
+    if (onLinkPress || onConciergeLinkPress) {
+        return (
+            <RenderHTMLConfigProvider
+                defaultTextProps={{selectable: isSelectable ?? true, allowFontScaling: false, style: styles.overflowVisible}}
+                renderersProps={renderersProps}
+                renderers={renderers}
+            >
+                {htmlSource}
+            </RenderHTMLConfigProvider>
+        );
+    }
+
+    if (isSelectable === undefined) {
+        return htmlSource;
+    }
+
+    return <SelectableHTMLConfigProvider isSelectable={isSelectable}>{htmlSource}</SelectableHTMLConfigProvider>;
 }
 
 export default RenderHTML;

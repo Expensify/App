@@ -97,6 +97,7 @@ import {
     isTrackExpenseReportNew,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
+import {COPYABLE_ROW_DATA_SET, COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import {getDependentTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getAttendeesListDisplayString,
@@ -992,29 +993,32 @@ function MoneyRequestView({
         });
     };
 
-    const distanceCopyValue = !canEditDistance ? distanceToDisplay : undefined;
-    const distanceRateCopyValue = !canEditDistanceRate ? rateToDisplay : undefined;
-    const amountCopyValue = !canEditAmount ? amountTitle : undefined;
+    const distanceCopyValue = distanceToDisplay || undefined;
+    const distanceRateCopyValue = rateToDisplay || undefined;
+    const amountCopyValue = amountTitle || undefined;
     const descriptionHTML = updatedTransactionDescription ?? transactionDescription;
-    const descriptionCopyValue = !canEdit && descriptionHTML ? Parser.htmlToText(descriptionHTML) : undefined;
-    const merchantCopyValue = !canEditMerchant ? updatedMerchantTitle : undefined;
-    const dateCopyValue = !canEditDate ? transactionDate : undefined;
+    const descriptionCopyValue = descriptionHTML ? Parser.htmlToText(descriptionHTML) : undefined;
+    const merchantCopyValue = updatedMerchantTitle;
+    const dateCopyValue = actualTransactionDate;
     const categoryValue = updatedTransaction?.category ?? categoryForDisplay;
     const decodedCategoryName = getDecodedLeafCategoryName(categoryValue);
-    const categoryCopyValue = !canEdit ? decodedCategoryName : undefined;
+    const categoryCopyValue = decodedCategoryName || undefined;
+    const vendorCopyValue = transactionVendorName || undefined;
     const cardCopyValue = cardProgramName;
     const taxRateValue = hasTaxValueChanged ? taxValue : (transaction?.taxName ?? taxRateTitle ?? fallbackTaxRateTitle ?? '');
-    const taxRateCopyValue = !canEditTaxFields ? taxRateValue : undefined;
+    const taxRateCopyValue = taxRateValue;
     const taxAmountTitle = formattedTaxAmount ? formattedTaxAmount.toString() : '';
-    const taxAmountCopyValue = !canEditTaxFields ? taxAmountTitle : undefined;
+    const taxAmountCopyValue = taxAmountTitle || undefined;
 
     const distanceRequestFields = (
         <>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints') ?? getPendingFieldAction('merchant')}>
                 <MenuItemWithTopDescription
                     description={distanceToDisplayDescription}
+                    descriptionTextStyle={styles.userSelectNone}
                     title={distanceToDisplay}
                     hintText={distanceToDisplayHintText}
+                    hintTextStyle={styles.userSelectNone}
                     numberOfLinesTitle={2}
                     interactive={canEditDistance}
                     shouldShowRightIcon={canEditDistance}
@@ -1048,13 +1052,16 @@ function MoneyRequestView({
                     }}
                     brickRoadIndicator={getErrorForField('waypoints') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={getErrorForField('waypoints')}
+                    errorTextStyle={styles.userSelectNone}
                     copyValue={distanceCopyValue}
-                    copyable={!!distanceCopyValue}
+                    copyable={!canEditDistance && !!distanceCopyValue}
+                    isTitleSelectable={!!distanceCopyValue}
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('customUnitRateID')}>
                 <MenuItemWithTopDescription
                     description={translate('common.rate')}
+                    descriptionTextStyle={styles.userSelectNone}
                     title={rateToDisplay}
                     numberOfLinesTitle={2}
                     interactive={canEditDistanceRate}
@@ -1105,8 +1112,10 @@ function MoneyRequestView({
                     }}
                     brickRoadIndicator={getErrorForField('customUnitRateID') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={getErrorForField('customUnitRateID')}
+                    errorTextStyle={styles.userSelectNone}
                     copyValue={distanceRateCopyValue}
-                    copyable={!!distanceRateCopyValue}
+                    copyable={!canEditDistanceRate && !!distanceRateCopyValue}
+                    isTitleSelectable={!!distanceRateCopyValue}
                 />
             </OfflineWithFeedback>
         </>
@@ -1128,7 +1137,7 @@ function MoneyRequestView({
 
     // actualAttendees is already sorted by enrichAndSortAttendees above; pass without localeCompare to preserve that order while stripping the SMS domain.
     const getAttendeesTitle = Array.isArray(actualAttendees) ? getAttendeesListDisplayString(actualAttendees) : '';
-    const attendeesCopyValue = !canEdit ? getAttendeesTitle : undefined;
+    const attendeesCopyValue = getAttendeesTitle || undefined;
 
     const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
         const tagForDisplay = getTagForDisplay(updatedTransaction ?? transaction, index);
@@ -1147,7 +1156,7 @@ function MoneyRequestView({
             hasDependentTags,
             tagForDisplay,
         );
-        const tagCopyValue = !canEdit ? tagForDisplay : undefined;
+        const tagCopyValue = tagForDisplay || undefined;
 
         return (
             <OfflineWithFeedback
@@ -1157,6 +1166,7 @@ function MoneyRequestView({
                 <HighlightableMenuItemWithTopDescription
                     highlighted={hasDependentTags && shouldShow && !getTagForDisplay(transaction, index) && currentTagLength > previousTagLength}
                     description={name ?? translate('common.tag')}
+                    descriptionTextStyle={styles.userSelectNone}
                     title={tagForDisplay}
                     numberOfLinesTitle={2}
                     interactive={canEdit}
@@ -1178,10 +1188,12 @@ function MoneyRequestView({
                     }}
                     brickRoadIndicator={tagError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={tagError}
+                    errorTextStyle={styles.userSelectNone}
                     shouldShowBasicTitle
                     shouldShowDescriptionOnTop
                     copyValue={tagCopyValue}
-                    copyable={!!tagCopyValue}
+                    copyable={!canEdit && !!tagCopyValue}
+                    isTitleSelectable={!!tagCopyValue}
                 />
             </OfflineWithFeedback>
         );
@@ -1190,7 +1202,7 @@ function MoneyRequestView({
     const parentReportDerivedName = parentReport?.reportID ? derivedReportNames?.[parentReport.reportID] : undefined;
     const reportNameToDisplay = isFromMergeTransaction ? (updatedTransaction?.reportName ?? translate('common.none')) : getReportName(parentReport, parentReportDerivedName);
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
-    const reportCopyValue = !canEditReport && reportNameToDisplay !== translate('common.none') ? reportNameToDisplay : undefined;
+    const reportCopyValue = reportNameToDisplay !== translate('common.none') ? reportNameToDisplay : undefined;
     const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(transaction, transactionReport);
     // In this case we want to use this value. The shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -1208,7 +1220,10 @@ function MoneyRequestView({
     }
 
     return (
-        <View style={[styles.moneyRequestView]}>
+        <View
+            style={[styles.moneyRequestView]}
+            dataSet={COPYABLE_ROW_DATA_SET}
+        >
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <>
                 {(!isInWideRHP || isSmallScreenWidth || isFromReviewDuplicates || isFromMergeTransaction) && (
@@ -1220,7 +1235,10 @@ function MoneyRequestView({
                     />
                 )}
                 {isCustomUnitOutOfPolicy && isPerDiemRequest && (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mh4, styles.mb2]}>
+                    <View
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mh4, styles.mb2, styles.userSelectNone]}
+                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                    >
                         <Icon
                             src={icons.DotIndicator}
                             fill={theme.danger}
@@ -1241,7 +1259,9 @@ function MoneyRequestView({
                         shouldShowTitleIcon={shouldShowPaid}
                         titleIcon={icons.Checkmark}
                         description={amountDescription}
+                        descriptionTextStyle={styles.userSelectNone}
                         hintText={amountHintText}
+                        hintTextStyle={styles.userSelectNone}
                         titleStyle={styles.textHeadlineH2}
                         numberOfLinesTitle={2}
                         interactive={canEditAmount}
@@ -1279,14 +1299,17 @@ function MoneyRequestView({
                         }}
                         brickRoadIndicator={getErrorForField('amount') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={getErrorForField('amount')}
+                        errorTextStyle={styles.userSelectNone}
                         copyValue={amountCopyValue}
-                        copyable={!!amountCopyValue}
+                        copyable={!canEditAmount && !!amountCopyValue}
+                        isTitleSelectable={!!amountCopyValue}
                     />
                 </OfflineWithFeedback>
                 {!shouldHideEmptyDescription && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('comment')}>
                         <MenuItemWithTopDescription
                             description={translate('common.description')}
+                            descriptionTextStyle={styles.userSelectNone}
                             shouldRenderAsHTML
                             title={updatedTransactionDescription ?? transactionDescription}
                             interactive={canEdit}
@@ -1302,9 +1325,11 @@ function MoneyRequestView({
                             wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                             brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('comment')}
+                            errorTextStyle={styles.userSelectNone}
                             numberOfLinesTitle={0}
                             copyValue={descriptionCopyValue}
-                            copyable={!!descriptionCopyValue}
+                            copyable={!canEdit && !!descriptionCopyValue}
+                            isTitleSelectable={!!descriptionCopyValue}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -1314,6 +1339,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>
                         <MenuItemWithTopDescription
                             description={translate('common.merchant')}
+                            descriptionTextStyle={styles.userSelectNone}
                             title={updatedMerchantTitle}
                             interactive={canEditMerchant}
                             shouldShowRightIcon={canEditMerchant}
@@ -1329,15 +1355,18 @@ function MoneyRequestView({
                             furtherDetailsComponent={shouldShowGoogleMerchantSearchLink ? renderGoogleMerchantSearchLink() : undefined}
                             brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('merchant')}
+                            errorTextStyle={styles.userSelectNone}
                             numberOfLinesTitle={0}
                             copyValue={merchantCopyValue}
-                            copyable={!!merchantCopyValue}
+                            copyable={!canEditMerchant && !!merchantCopyValue}
+                            isTitleSelectable={!!merchantCopyValue}
                         />
                     </OfflineWithFeedback>
                 )}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('created')}>
                     <MenuItemWithTopDescription
                         description={dateDescription}
+                        descriptionTextStyle={styles.userSelectNone}
                         title={actualTransactionDate}
                         numberOfLinesTitle={2}
                         interactive={canEditDate}
@@ -1352,14 +1381,17 @@ function MoneyRequestView({
                         }}
                         brickRoadIndicator={getErrorForField('date') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={getErrorForField('date')}
+                        errorTextStyle={styles.userSelectNone}
                         copyValue={dateCopyValue}
-                        copyable={!!dateCopyValue}
+                        copyable={!canEditDate && !!dateCopyValue}
+                        isTitleSelectable={!!dateCopyValue}
                     />
                 </OfflineWithFeedback>
                 {!!shouldShowCategory && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('category')}>
                         <MenuItemWithTopDescription
                             description={translate('common.category')}
+                            descriptionTextStyle={styles.userSelectNone}
                             title={shouldShowCategoryAnalyzing ? translate('common.analyzing') : decodedCategoryName}
                             numberOfLinesTitle={2}
                             interactive={canEdit}
@@ -1419,8 +1451,10 @@ function MoneyRequestView({
                             }}
                             brickRoadIndicator={getErrorForField('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('category')}
+                            errorTextStyle={styles.userSelectNone}
                             copyValue={categoryCopyValue}
-                            copyable={!!categoryCopyValue}
+                            copyable={!canEdit && !!categoryCopyValue}
+                            isTitleSelectable={!!categoryCopyValue}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -1428,6 +1462,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('vendor')}>
                         <MenuItemWithTopDescription
                             description={vendorFieldLabel}
+                            descriptionTextStyle={styles.userSelectNone}
                             title={transactionVendorName}
                             numberOfLinesTitle={2}
                             interactive={canEdit}
@@ -1449,6 +1484,10 @@ function MoneyRequestView({
                             }}
                             brickRoadIndicator={getErrorForField('vendor') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('vendor')}
+                            errorTextStyle={styles.userSelectNone}
+                            copyValue={vendorCopyValue}
+                            copyable={!canEdit && !!vendorCopyValue}
+                            isTitleSelectable={!!vendorCopyValue}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -1457,12 +1496,14 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('cardID')}>
                         <MenuItemWithTopDescription
                             description={translate('iou.card')}
+                            descriptionTextStyle={styles.userSelectNone}
                             title={cardCopyValue}
                             numberOfLinesTitle={2}
                             titleStyle={styles.flex1}
                             interactive={false}
                             copyValue={cardCopyValue}
                             copyable={!!cardCopyValue}
+                            isTitleSelectable={!!cardCopyValue}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -1471,6 +1512,7 @@ function MoneyRequestView({
                         <MenuItemWithTopDescription
                             title={taxRateValue}
                             description={taxRatesDescription ?? translate('common.tax')}
+                            descriptionTextStyle={styles.userSelectNone}
                             numberOfLinesTitle={2}
                             interactive={canEditTaxFields}
                             shouldShowRightIcon={canEditTaxFields}
@@ -1489,8 +1531,10 @@ function MoneyRequestView({
                             }}
                             brickRoadIndicator={getErrorForField('tax') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('tax')}
+                            errorTextStyle={styles.userSelectNone}
                             copyValue={taxRateCopyValue}
-                            copyable={!!taxRateCopyValue}
+                            copyable={!canEditTaxFields && !!taxRateCopyValue}
+                            isTitleSelectable={!!taxRateCopyValue}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -1499,6 +1543,7 @@ function MoneyRequestView({
                         <MenuItemWithTopDescription
                             title={taxAmountTitle}
                             description={taxAmountDescription}
+                            descriptionTextStyle={styles.userSelectNone}
                             numberOfLinesTitle={2}
                             interactive={canEditTaxFields}
                             shouldShowRightIcon={canEditTaxFields}
@@ -1516,7 +1561,8 @@ function MoneyRequestView({
                                 );
                             }}
                             copyValue={taxAmountCopyValue}
-                            copyable={!!taxAmountCopyValue}
+                            copyable={!canEditTaxFields && !!taxAmountCopyValue}
+                            isTitleSelectable={!!taxAmountCopyValue}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -1530,7 +1576,7 @@ function MoneyRequestView({
                                     ? `${CONST.DOT_SEPARATOR} ${formattedPerAttendeeAmount} ${translate('common.perPerson')}`
                                     : ''
                             }`}
-                            descriptionTextStyle={styles.textLabelSupportingNormal}
+                            descriptionTextStyle={[styles.textLabelSupportingNormal, styles.userSelectNone]}
                             titleComponent={
                                 Array.isArray(actualAttendees) ? (
                                     <UserPills
@@ -1541,6 +1587,7 @@ function MoneyRequestView({
                                             email: a?.email,
                                         }))}
                                         maxVisible={canEdit ? undefined : actualAttendees.length}
+                                        isCopyable={!!attendeesCopyValue}
                                     />
                                 ) : undefined
                             }
@@ -1555,10 +1602,12 @@ function MoneyRequestView({
                             }}
                             brickRoadIndicator={getErrorForField('attendees') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('attendees')}
+                            errorTextStyle={styles.userSelectNone}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             copyValue={attendeesCopyValue}
-                            copyable={!!attendeesCopyValue}
+                            copyable={!canEdit && !!attendeesCopyValue}
+                            isTitleSelectable={!!attendeesCopyValue}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -1571,6 +1620,8 @@ function MoneyRequestView({
                             <Text
                                 accessible={false}
                                 aria-hidden
+                                style={styles.userSelectText}
+                                dataSet={COPYABLE_TEXT_DATA_SET}
                             >
                                 {Str.UCFirst(translate('iou.reimbursable'))}
                             </Text>
@@ -1592,22 +1643,26 @@ function MoneyRequestView({
                             <Text
                                 accessible={false}
                                 aria-hidden
+                                style={styles.userSelectNone}
+                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             >
                                 {translate('common.billable')}
                             </Text>
                             {!!getErrorForField('billable') && (
-                                <ViolationMessages
-                                    violations={getViolationsForField('billable')}
-                                    containerStyle={[styles.mt1]}
-                                    textStyle={[styles.ph0]}
-                                    isLast
-                                    isMarkAsCash={isMarkAsCash}
-                                    canEdit={canEdit}
-                                    companyCardPageURL={companyCardPageURL}
-                                    connectionLink={connectionLink}
-                                    routeDistanceMeters={transaction?.comment?.customUnit?.routeDistanceMeters}
-                                    distanceUnit={transaction?.comment?.customUnit?.distanceUnit}
-                                />
+                                <View dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}>
+                                    <ViolationMessages
+                                        violations={getViolationsForField('billable')}
+                                        containerStyle={[styles.mt1, styles.userSelectNone]}
+                                        textStyle={[styles.ph0]}
+                                        isLast
+                                        isMarkAsCash={isMarkAsCash}
+                                        canEdit={canEdit}
+                                        companyCardPageURL={companyCardPageURL}
+                                        connectionLink={connectionLink}
+                                        routeDistanceMeters={transaction?.comment?.customUnit?.routeDistanceMeters}
+                                        distanceUnit={transaction?.comment?.customUnit?.distanceUnit}
+                                    />
+                                </View>
                             )}
                         </View>
                         <Switch
@@ -1624,6 +1679,7 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEditReport}
                             title={reportNameToDisplay}
                             description={translate('common.report')}
+                            descriptionTextStyle={styles.userSelectNone}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => {
@@ -1653,7 +1709,8 @@ function MoneyRequestView({
                             interactive={canEditReport}
                             shouldRenderAsHTML
                             copyValue={reportCopyValue}
-                            copyable={!!reportCopyValue}
+                            copyable={!canEditReport && !!reportCopyValue}
+                            isTitleSelectable={!!reportCopyValue}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -1686,11 +1743,14 @@ function MoneyRequestView({
                 )}
 
                 {hasRequiredCompanyCardViolation && (
-                    <DotIndicatorMessage
-                        type="error"
-                        style={[styles.mv3, styles.mh4]}
-                        messages={{error: translate('violations.companyCardRequired')}}
-                    />
+                    <View dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}>
+                        <DotIndicatorMessage
+                            type="error"
+                            style={[styles.mv3, styles.mh4, styles.userSelectNone]}
+                            messages={{error: translate('violations.companyCardRequired')}}
+                            isSelectable={false}
+                        />
+                    </View>
                 )}
             </>
         </View>

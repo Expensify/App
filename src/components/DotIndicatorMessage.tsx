@@ -43,6 +43,8 @@ type DotIndicatorMessageProps = {
 
     textStyles?: StyleProp<TextStyle>;
 
+    isSelectable?: boolean;
+
     // Unused here, but OfflineWithFeedback still passes it to every error row.
     // eslint-disable-next-line react/no-unused-prop-types
     dismissError?: () => void;
@@ -50,7 +52,7 @@ type DotIndicatorMessageProps = {
     onRetryReceiptUpload?: () => void;
 };
 
-function DotIndicatorMessage({messages = {}, style, type, textStyles, onRetryReceiptUpload}: DotIndicatorMessageProps) {
+function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectable, onRetryReceiptUpload}: DotIndicatorMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -74,7 +76,9 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, onRetryRec
     const isErrorMessage = type === 'error';
     const receiptError = uniqueMessages.find(isReceiptError);
 
-    const isTextSelectable = !canUseTouchScreen() || !shouldUseNarrowLayout;
+    const isTextSelectable = isSelectable ?? (!canUseTouchScreen() || !shouldUseNarrowLayout);
+    const selectionDataSet = isTextSelectable ? undefined : {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true};
+    const receiptSelectionDataSet = isSelectable === false ? selectionDataSet : undefined;
 
     const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
         if (isReceiptError(message)) {
@@ -125,7 +129,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, onRetryRec
         const messageRow = (
             <View style={[styles.dotIndicatorMessage, isStackedLayout && styles.alignItemsStart, styles.flex1]}>
                 <Text
-                    style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles, styles.flex1]}
+                    style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles, styles.flex1, isSelectable === false && styles.userSelectNone]}
                     accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
                     accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
                 >
@@ -157,14 +161,20 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, onRetryRec
         );
         if (!isStackedLayout) {
             return (
-                <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, style]}>
+                <View
+                    style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, style]}
+                    dataSet={receiptSelectionDataSet}
+                >
                     {messageRow}
                     {buttonsRow}
                 </View>
             );
         }
         return (
-            <View style={style}>
+            <View
+                style={style}
+                dataSet={receiptSelectionDataSet}
+            >
                 {messageRow}
                 <View style={styles.mt3}>{buttonsRow}</View>
             </View>
@@ -172,7 +182,10 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, onRetryRec
     }
 
     return (
-        <View style={[styles.dotIndicatorMessage, style]}>
+        <View
+            style={[styles.dotIndicatorMessage, style]}
+            dataSet={selectionDataSet}
+        >
             <View
                 style={styles.offlineFeedbackErrorDot}
                 accessible={isErrorMessage}

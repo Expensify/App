@@ -52,6 +52,7 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
             text={categoryForDisplay}
             numberOfLines={1}
             style={[styles.lineHeightLarge, styles.justifyContentCenter]}
+            isCopyable
         />
     );
 

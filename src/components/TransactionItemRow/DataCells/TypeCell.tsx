@@ -102,6 +102,7 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
             shouldShowTooltip={shouldShowTooltip}
             text={translate(typeText)}
             style={[styles.mutedNormalTextLabel, styles.pre, styles.justifyContentCenter, styles.flexShrink0]}
+            isCopyable
         />
     ) : (
         <Tooltip text={translate(getDetailedExpenseTypeTranslationKey(transactionItem, card))}>
