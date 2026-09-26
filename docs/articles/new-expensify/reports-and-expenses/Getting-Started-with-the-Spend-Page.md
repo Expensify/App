@@ -1,7 +1,7 @@
 ---
 title: Getting Started with the Spend Page
 description: Learn how to use the Spend page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
-keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total, sort by amount, Amount column, sort amount column, negative amount, credit, refund, negative expense sorting, selected total, total spend negative]
+keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total, sort by amount, Amount column, sort amount column, negative amount, credit, refund, negative expense sorting, selected total, total spend negative, move all matching expenses, select all matching expenses, bulk move expenses to report, move unreported expenses, All matching items selected]
 ---
 
 The Spend page in New Expensify gives you a full list of your reports and related expenses. From the Spend page you can explore, filter, and export your expense data.
@@ -80,6 +80,40 @@ Each row represents an expense and includes:
    - An existing draft or submitted report
    - Remove from report 
 4. The expense is moved. A system message records the move when you move an expense into a submitted report or select **Remove from report**. Moving an expense into a draft report does not add a system message.
+
+## How to move all matching expenses to a report from the Spend page
+
+Use **Select all** to move every expense that matches your search in one step, including expenses further down the list that haven't loaded yet.
+
+Web:
+
+1. In the navigation tabs on the left, click **Spend** > **Expenses**.
+2. Click **Filters** > **Status**, then select **Unreported**.
+3. Click the checkbox at the top of the expense list, then click **Select all**.
+4. Wait for the count of matching expenses to load. The toolbar reads **All matching items selected**.
+5. Click **Move to report**. If it isn't shown on the toolbar, click **More** > **Move to report**.
+6. Choose a destination report, or select **Create report**.
+
+Mobile:
+
+1. In the navigation tabs on the bottom, tap **Spend** > **Expenses**.
+2. Tap the **Filters** icon next to the search box, tap **Status**, then select **Unreported**.
+3. Tap the checkbox at the top of the expense list, then tap **Select all**.
+4. Wait for the count of matching expenses to load. The button reads **All matching items selected**.
+5. Tap **All matching items selected** > **Move to report**.
+6. Choose a destination report, or select **Create report**.
+
+All matching expenses are moved to the report you chose, not just the ones loaded on the page.
+
+## When you can move all matching expenses to a report
+
+**Move to report** is shown for an **All matching items selected** selection only when all of these are true:
+
+- You haven't unchecked any expenses after choosing **Select all**.
+- Every matching expense has loaded on the page, or the **Status** filter is set to **Unreported** only.
+- Every selected expense can be moved to a report.
+
+You must be online to move all matching expenses. If you're offline, selecting **Move to report** shows **You appear to be offline.** Reconnect, then try again.
 
 ## How to add a new expense to the table
 - The expense appears in the table.  
@@ -233,6 +267,10 @@ Previews update **in real time** as expenses are added or removed. Deleted repor
 
 ## Can someone comment on a report?
 Yes. When someone comments, a Comments section appears in the preview, and the layout adjusts to accommodate the discussion.
+
+## Why don't I see Move to report after selecting all matching expenses?
+
+**Move to report** is hidden when you've unchecked any expenses after choosing **Select all**, or when more matching expenses remain to load and the **Status** filter isn't set to **Unreported** only. Set the **Status** filter to **Unreported**, or narrow your filters until every matching expense loads, then choose **Select all** again.
 
 ## Why can't I change the total spend currency?
 The currency picker is only disabled in two cases: when you're offline, or while the totals are still loading. Both happen because converting the total requires a refresh from Expensify. Reconnect or wait for the totals to finish loading to enable it.
