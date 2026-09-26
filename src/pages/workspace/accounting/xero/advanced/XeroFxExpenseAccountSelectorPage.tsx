@@ -1,9 +1,9 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
-import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 
 import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
+import useFxExpenseAccountPicker from '@hooks/useFxExpenseAccountPicker';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSelectionListSearch from '@hooks/useSelectionListSearch';
@@ -36,22 +36,25 @@ function XeroFxExpenseAccountSelectorPage({policy}: WithPolicyConnectionsProps) 
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const {config, data} = policy?.connections?.xero ?? {};
     const {syncReimbursedReports} = config?.sync ?? {};
-    const fxExpenseAccount = config?.fxExpenseAccount;
-    const xeroSelectorOptions = getXeroExpenseAccounts(data?.expenseAccounts, fxExpenseAccount);
-    const {filteredData, textInputOptions} = useSelectionListSearch(xeroSelectorOptions);
+    const expenseAccounts = data?.expenseAccounts ?? [];
+    const {selectedAccountID, hasChanges, selectAccount, buildList} = useFxExpenseAccountPicker(config?.fxExpenseAccount);
+    const xeroSelectorOptions = getXeroExpenseAccounts(expenseAccounts, selectedAccountID);
+
+    const saveSelectedAccount = () => {
+        if (hasChanges) {
+            updateXeroFxExpenseAccount(policyID, selectedAccountID, config?.fxExpenseAccount);
+        }
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
+    };
+
+    const {searchableList, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(xeroSelectorOptions, expenseAccounts.length, saveSelectedAccount);
+    const {filteredData: listData, textInputOptions} = useSelectionListSearch(searchableList, translate('common.noResultsFound'));
 
     const listHeaderComponent = (
         <View style={[styles.pb2, styles.ph5]}>
             <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.advancedConfig.fxExpenseAccountDescription')}</Text>
         </View>
     );
-
-    const initiallyFocusedOptionKey = xeroSelectorOptions.find((option) => option.isSelected)?.keyForList;
-
-    const updateAccount = ({value}: SelectorType) => {
-        updateXeroFxExpenseAccount(policyID, value, fxExpenseAccount);
-        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
-    };
 
     const listEmptyContent = (
         <BlockingView
@@ -70,21 +73,24 @@ function XeroFxExpenseAccountSelectorPage({policy}: WithPolicyConnectionsProps) 
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="XeroFxExpenseAccountSelectorPage"
-            data={filteredData}
+            data={listData}
             textInputOptions={textInputOptions}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             shouldBeBlocked={!syncReimbursedReports || !canConfigureCurrencyConversionFees}
-            onSelectRow={updateAccount}
+            onSelectRow={selectAccount}
             shouldSingleExecuteRowSelect
+            shouldUpdateFocusedIndex
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID))}
             title="workspace.xero.advancedConfig.xeroFxExpenseAccount"
             listEmptyContent={listEmptyContent}
+            shouldShowListEmptyContent={!textInputOptions.value}
             pendingAction={settingsPendingAction([CONST.XERO_CONFIG.FX_EXPENSE_ACCOUNT], config?.pendingFields)}
             errors={getLatestErrorField(config ?? {}, CONST.XERO_CONFIG.FX_EXPENSE_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearXeroErrorField(policyID, CONST.XERO_CONFIG.FX_EXPENSE_ACCOUNT)}
+            confirmButtonOptions={confirmButtonOptions}
         />
     );
 }

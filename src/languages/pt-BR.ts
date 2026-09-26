@@ -5959,6 +5959,11 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     return `${customAccountsCount} cartões com contas personalizadas`;
                 },
             },
+            fxExpenseAccount: {
+                label: 'Conta de taxa de conversão de moeda Rillet',
+                description:
+                    'Quando sua empresa cobrir o custo de conversão de moeda em um pagamento feito no exterior, vamos lançar esse custo nesta conta no Rillet como um lançamento contábil.',
+            },
         },
         dualEntry: {
             dualEntrySetup: 'Configuração do DualEntry',

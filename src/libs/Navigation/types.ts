@@ -1353,6 +1353,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_BILL_PAYMENT_ACCOUNT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_FX_EXPENSE_ACCOUNT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT]: {
         policyID: string;
     };

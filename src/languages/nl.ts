@@ -5960,6 +5960,11 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     return `${customAccountsCount} kaarten met aangepaste rekeningen`;
                 },
             },
+            fxExpenseAccount: {
+                label: 'Rillet-valutaconversiekostenrekening',
+                description:
+                    'Wanneer je bedrijf de kosten voor valutaomrekening dekt voor een betaling in het buitenland, boeken we die kosten in Rillet op deze rekening als een journaalpost.',
+            },
         },
         dualEntry: {
             dualEntrySetup: 'DualEntry-configuratie',

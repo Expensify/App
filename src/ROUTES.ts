@@ -4969,6 +4969,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/rillet/advanced/bill-payment-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/bill-payment-account` as const,
     },
+    POLICY_ACCOUNTING_RILLET_FX_EXPENSE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/rillet/advanced/fx-expense-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/fx-expense-account` as const,
+    },
     POLICY_ACCOUNTING_RILLET_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/rillet/advanced/expensify-card-settlement-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/expensify-card-settlement-account` as const,

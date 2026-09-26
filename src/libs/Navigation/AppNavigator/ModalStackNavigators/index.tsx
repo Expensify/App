@@ -946,6 +946,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_EXPORT_METHOD]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/advanced/RilletExportMethodPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_BILL_PAYMENT_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/advanced/RilletBillPaymentAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_FX_EXPENSE_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/advanced/RilletFxExpenseAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/advanced/RilletExpensifyCardSettlementAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_TRAVEL_BILLING_SETTLEMENT_ACCOUNT]: () =>

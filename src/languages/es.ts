@@ -5890,6 +5890,11 @@ ${amount} para ${merchant} - ${date}`,
                     return `${customAccountsCount} tarjetas con cuentas personalizadas`;
                 },
             },
+            fxExpenseAccount: {
+                label: 'Cuenta de comisión por conversión de divisa de Rillet',
+                description:
+                    'Cuando tu empresa cubra el coste de conversión de divisa en un pago realizado en el extranjero, registraremos ese coste en esta cuenta en Rillet como un asiento contable.',
+            },
         },
         dualEntry: {
             dualEntrySetup: 'Configuración de DualEntry',

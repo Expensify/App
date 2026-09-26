@@ -5965,6 +5965,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     return `${customAccountsCount} carte con conti personalizzati`;
                 },
             },
+            fxExpenseAccount: {
+                label: 'Conto commissioni conversione valuta Rillet',
+                description:
+                    'Quando la tua azienda copre il costo di conversione valutaria su un pagamento effettuato all’estero, registreremo tale costo su questo conto in Rillet come registrazione contabile.',
+            },
         },
         dualEntry: {
             dualEntrySetup: 'Configurazione DualEntry',
