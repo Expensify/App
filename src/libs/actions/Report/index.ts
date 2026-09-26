@@ -6165,14 +6165,18 @@ async function completeOnboarding({
         // Wait for the workspace to be created before completing the guided setup
         await waitForWrites(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP);
 
-        // Pop onboarding nested stack after waiting so the modal doesn't rewind to step 1
-        // during the wait. Must run before the API call so useLinking processes each step
-        // pop before the optimistic data unmounts the modal.
-        resetOnboardingStackToRoot();
+        // waitForWrites also resolves when the app goes offline with requests still queued,
+        // so check again and fall through to API.write if the connection dropped while waiting
+        if (!isOfflineNetwork()) {
+            // Pop onboarding nested stack after waiting so the modal doesn't rewind to step 1
+            // during the wait. Must run before the API call so useLinking processes each step
+            // pop before the optimistic data unmounts the modal.
+            resetOnboardingStackToRoot();
 
-        // We need to access the nvp_onboardingRHPVariant directly from the response to redirect the user to the correct page
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
+            // We need to access the nvp_onboardingRHPVariant directly from the response to redirect the user to the correct page
+            // eslint-disable-next-line rulesdir/no-api-side-effects-method
+            return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
+        }
     }
 
     // Pop onboarding nested stack just before the API write so useLinking removes browser

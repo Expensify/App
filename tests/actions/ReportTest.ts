@@ -29,6 +29,7 @@ import {toggleEmojiReaction} from '@userActions/EmojiReactions';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
+import * as Policy from '@src/libs/actions/Policy/Policy';
 import {initReconnect} from '@src/libs/actions/Reconnect';
 import * as Report from '@src/libs/actions/Report';
 import * as User from '@src/libs/actions/User';
@@ -3424,10 +3425,85 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
         });
 
+        it('should queue CompleteGuidedSetup when the app goes offline while waiting for CreateWorkspace, even if waiting for the RHP variant', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await waitForBatchedUpdates();
+
+            // Given the user is online and CreateWorkspace is still in flight, so completeOnboarding has to wait for it.
+            // The in-flight request fails once the connection drops, and so does every request after it.
+            let rejectCreateWorkspace: ((error: Error) => void) | undefined;
+            global.fetch = jest
+                .fn()
+                .mockImplementationOnce(
+                    () =>
+                        new Promise((_resolve, reject) => {
+                            rejectCreateWorkspace = reject;
+                        }),
+                )
+                .mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
+            Policy.createWorkspace({
+                conciergeChat: rhpVariantConciergeChat,
+                policyOwner: {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID},
+                makeMeAdmin: true,
+                policyName: 'Test workspace',
+                policyID: 'A70D00C752416811',
+                engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                currency: CONST.CURRENCY.USD,
+                isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
+                activePolicy: undefined,
+                delegateAccountID: undefined,
+            });
+            await waitForBatchedUpdates();
+            expect(rejectCreateWorkspace).toBeDefined();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const makeRequestWithSideEffectsSpy = jest.spyOn(API, 'makeRequestWithSideEffects');
+
+            // When the web Track flow completes onboarding and asks to wait for the RHP variant
+            const completeOnboardingPromise = completeTrackOnboardingWaitingForRHPVariant();
+            await waitForBatchedUpdates();
+
+            // And the app goes offline while completeOnboarding is still waiting for CreateWorkspace, which resolves the wait
+            // even though CreateWorkspace is still queued
+            setHasRadio(false);
+            rejectCreateWorkspace?.(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
+            await completeOnboardingPromise;
+            await waitForNetworkPromises();
+
+            // Then the request goes through API.write instead of the side-effect request, which would fail right away offline
+            expect(makeRequestWithSideEffectsSpy).not.toHaveBeenCalled();
+            expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, expect.anything(), expect.anything());
+
+            // And it is persisted in the queue behind CreateWorkspace, so both are replayed once the user is back online
+            const persistedCommands = PersistedRequests.getAll().map((request) => request.command);
+            expect(persistedCommands).toContain(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP);
+
+            // And the optimistic data is not rolled back, so the onboarding modal does not reappear
+            const onboarding = await getOnyxValue(ONYXKEYS.NVP_ONBOARDING);
+            expect(onboarding?.hasCompletedGuidedSetupFlow).toBe(true);
+
+            // And no onboarding message in the Concierge chat gets an "Unexpected error" from the failure data
+            const conciergeReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rhpVariantConciergeChat.reportID}`);
+            expect(Object.keys(conciergeReportActions ?? {}).length).toBeGreaterThan(0);
+            const conciergeReportActionsWithErrors = Object.values(conciergeReportActions ?? {}).filter((reportAction) => !isEmptyObject(reportAction?.errors));
+            expect(conciergeReportActionsWithErrors).toHaveLength(0);
+
+            makeRequestWithSideEffectsSpy.mockRestore();
+            global.fetch = TestHelper.createGlobalFetchMock();
+            setHasRadio(true);
+            await waitForBatchedUpdates();
+        });
+
         it('should send CompleteGuidedSetup as a side-effect request when online and waiting for the RHP variant', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
             await waitForBatchedUpdates();
-            // Spying on the method does not call the API, it only records the call made by completeOnboarding
+            // Spying on the method keeps the real implementation, so the side-effect request still runs against the
+            // mocked fetch. The spy only lets us check which API method completeOnboarding used.
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const makeRequestWithSideEffectsSpy = jest.spyOn(API, 'makeRequestWithSideEffects');
 
