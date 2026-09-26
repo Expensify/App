@@ -2917,9 +2917,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             continue;
                         }
                         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+                        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
                         unholdRequest(
                             transactionID,
-                            selectedTransactions[transactionID].reportAction?.childReportID,
+                            allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
+                            allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedTransactions[transactionID].reportAction?.childReportID}`],
                             policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactions[transactionID].policyID}`],
                             isOffline,
                             currentUserLogin ?? '',

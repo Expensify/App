@@ -361,9 +361,12 @@ function useSelectedTransactionsActions({
                             continue;
                         }
                         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+                        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+
                         unholdRequest(
                             transactionID,
-                            action.childReportID,
+                            allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
+                            allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action.childReportID}`],
                             policy,
                             isOffline,
                             login ?? '',

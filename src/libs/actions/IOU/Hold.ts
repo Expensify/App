@@ -378,7 +378,8 @@ function putTransactionsOnHold(
  */
 function unholdRequest(
     transactionID: string,
-    reportID: string,
+    transactionReport: OnyxEntry<OnyxTypes.Report>,
+    report: OnyxEntry<OnyxTypes.Report>,
     policy: OnyxEntry<OnyxTypes.Policy>,
     isOffline: boolean,
     currentUserLogin: string,
@@ -389,13 +390,12 @@ function unholdRequest(
     rules: OnyxCollection<OnyxTypes.Rule>,
 ) {
     const allTransactions = getAllTransactions();
-    const allReports = getAllReports();
 
     const createdReportAction = buildOptimisticUnHoldReportAction(delegateAccountID);
     const updatedTransactionViolations = transactionViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD) ?? [];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const iouReport = transactionReport;
+    const reportID = report?.reportID;
 
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT>
