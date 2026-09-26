@@ -40,8 +40,12 @@ type WorkspaceTagTableRowData = TableData & {
     isLocked: boolean;
     isSwitchDisabled?: boolean;
     showEnabledSwitch: boolean;
+    /** Only single-level tags opt in. */
+    canEditName?: boolean;
     action: () => void;
     onToggleEnabled?: (enabled: boolean) => void;
+    /** Provided only when `canEditName` is supported. */
+    onRenameName?: (newName: string) => void;
     onClose: () => void;
 };
 
@@ -83,6 +87,10 @@ export default function WorkspaceTagsTable({
             key: 'name',
             label: translate('common.name'),
             sortable: true,
+            styling: {
+                // editableCellHeader matches the padded name cell so the label and value share an edge.
+                containerStyles: [styles.editableCellHeader],
+            },
         },
         ...(shouldShowGLCodeColumn
             ? [

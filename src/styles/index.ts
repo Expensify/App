@@ -1299,6 +1299,14 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 4,
         },
 
+        /**
+         * Cancels editableCell's horizontal chrome so the value lines up with a
+         * sibling that has no edit padding, such as a card title under a cardholder name.
+         */
+        editableCellFlushWithSibling: {
+            marginHorizontal: -(variables.editableCellChromeWidth / 2),
+        },
+
         editableCell: {
             width: '100%',
             borderWidth: 1,

@@ -3,6 +3,7 @@ import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -51,7 +52,13 @@ type WorkspaceExpensifyCardTableRowData = TableData & {
     frozenDate?: string;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
+    canEditName?: boolean;
+    canEditLimitType?: boolean;
+    canEditLimit?: boolean;
     action: () => void;
+    onRenameName?: (newName: string) => void;
+    onChangeLimitType?: (limitType: CardLimitType) => void;
+    onChangeLimit?: (newLimit: string) => void;
     onClose: () => void;
 };
 
@@ -106,6 +113,7 @@ export default function WorkspaceExpensifyCardsTable({
     listContentContainerStyle,
 }: WorkspaceExpensifyCardsTableProps) {
     const styles = useThemeStyles();
+    const policy = usePolicy(policyID);
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
@@ -150,7 +158,10 @@ export default function WorkspaceExpensifyCardsTable({
             label: translate('workspace.card.issueNewCard.limitType'),
             sortable: true,
             styling: {
-                containerStyles: [styles.mnw0],
+                // minWidth: 0 lets the grid track size purely from its 1fr share instead of the cell content,
+                // so a long limit type value truncates instead of widening the column.
+                // editableCellHeader matches the padded Limit type cell so the label and value share an edge.
+                containerStyles: [styles.mnw0, styles.editableCellHeader],
             },
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: translate(getTranslationKeyForLimitType(item.limitType)), fontSize: fontScale.text}],
@@ -187,7 +198,8 @@ export default function WorkspaceExpensifyCardsTable({
             label: translate('workspace.expensifyCard.limit'),
             sortable: true,
             styling: {
-                containerStyles: [styles.justifyContentEnd],
+                // editableCellHeader insets the right-aligned label to match the padded Limit cell.
+                containerStyles: [styles.justifyContentEnd, styles.editableCellHeader],
             },
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: convertToShortDisplayString(item.limit, item.currency), fontSize: fontScale.text}],
@@ -199,7 +211,8 @@ export default function WorkspaceExpensifyCardsTable({
             label: translate('workspace.expensifyCard.remaining'),
             sortable: true,
             styling: {
-                containerStyles: [styles.justifyContentEnd],
+                // Same chrome as Limit so the two amount columns share a right edge even though Remaining is not editable.
+                containerStyles: [styles.justifyContentEnd, styles.editableCellHeader],
             },
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: convertToShortDisplayString(item.remainingLimit, item.currency), fontSize: fontScale.text}],
@@ -269,6 +282,7 @@ export default function WorkspaceExpensifyCardsTable({
             item={item}
             rowIndex={index}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
+            policy={policy}
             shouldShowExportAccountColumn={shouldShowExportAccountColumn}
         />
     );

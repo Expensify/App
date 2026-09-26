@@ -819,7 +819,7 @@ function updateCompanyCardName(domainOrWorkspaceAccountID: number, cardID: strin
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES,
-            value: {[cardID]: oldCardTitle},
+            value: {[cardID]: oldCardTitle ?? null},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,

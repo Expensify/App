@@ -740,6 +740,18 @@ function canRolePay(role: string | undefined): boolean {
  */
 const PAYER_ROLES = Object.values(CONST.POLICY.ROLE).filter(canRolePay);
 
+function isPolicyReimburser(policy: OnyxEntry<Policy>, memberLogin: string | undefined): boolean {
+    const reimburserEmail = getReimburserEmail(policy);
+    return !!reimburserEmail && reimburserEmail === memberLogin;
+}
+
+/**
+ * Roles the member may be assigned. Restricted to payer roles when they are the Authorized Payer, otherwise undefined so the full assignable list is used.
+ */
+function getAllowedRolesForMember(policy: OnyxEntry<Policy>, memberLogin: string | undefined): Array<ValueOf<typeof CONST.POLICY.ROLE>> | undefined {
+    return isPolicyReimburser(policy, memberLogin) ? [...PAYER_ROLES] : undefined;
+}
+
 function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean {
     if (!policy) {
         return false;
@@ -3841,6 +3853,8 @@ export {
     isPolicyMember,
     isPolicyPayer,
     getReimburserEmail,
+    isPolicyReimburser,
+    getAllowedRolesForMember,
     getOwnerChangePayerSuccessData,
     PAYER_ROLES,
     canRolePay,

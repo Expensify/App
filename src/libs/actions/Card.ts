@@ -1125,18 +1125,46 @@ function updateExpensifyCardTitle(workspaceAccountID: number, cardID: number, ne
     API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_TITLE, parameters, {optimisticData, successData, failureData});
 }
 
-function updateExpensifyCardLimitType(
-    workspaceAccountID: number,
-    cardID: number,
-    newLimitType: CardLimitType,
-    timeZone: SelectedTimezone | undefined,
-    oldCardNameValuePairs?: Card['nameValuePairs'],
-    validFrom?: string,
-    validThru?: string,
-    shouldClearValidityDates?: boolean,
-) {
+type UpdateExpensifyCardLimitTypeActionParams = {
+    workspaceAccountID: number;
+    cardID: number;
+    newLimitType: CardLimitType;
+    timeZone?: SelectedTimezone;
+    oldCardNameValuePairs?: Card['nameValuePairs'];
+    validFrom?: string;
+    validThru?: string;
+    shouldClearValidityDates?: boolean;
+    /** Leave existing validity dates unchanged. Used by inline table edits. */
+    shouldSkipValidityDateUpdate?: boolean;
+};
+
+function updateExpensifyCardLimitType({
+    workspaceAccountID,
+    cardID,
+    newLimitType,
+    timeZone,
+    oldCardNameValuePairs,
+    validFrom,
+    validThru,
+    shouldClearValidityDates,
+    shouldSkipValidityDateUpdate = false,
+}: UpdateExpensifyCardLimitTypeActionParams) {
     const normalizedValidFrom = validFrom ? DateUtils.normalizeDateToStartOfDay(validFrom, timeZone) : undefined;
     const normalizedValidThru = validThru ? DateUtils.normalizeDateToEndOfDay(validThru, timeZone) : undefined;
+
+    const pendingFields = {
+        limitType: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        ...(shouldSkipValidityDateUpdate
+            ? {}
+            : {
+                  validFrom: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                  validThru: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+              }),
+    };
+    const clearedPendingFields = {
+        limitType: null,
+        ...(shouldSkipValidityDateUpdate ? {} : {validFrom: null, validThru: null}),
+    };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [
         {
@@ -1146,13 +1174,13 @@ function updateExpensifyCardLimitType(
                 [cardID]: {
                     nameValuePairs: {
                         limitType: newLimitType,
-                        pendingFields: {
-                            limitType: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            validFrom: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            validThru: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
-                        validFrom: shouldClearValidityDates ? null : normalizedValidFrom,
-                        validThru: shouldClearValidityDates ? null : normalizedValidThru,
+                        pendingFields,
+                        ...(shouldSkipValidityDateUpdate
+                            ? {}
+                            : {
+                                  validFrom: shouldClearValidityDates ? null : normalizedValidFrom,
+                                  validThru: shouldClearValidityDates ? null : normalizedValidThru,
+                              }),
                     },
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     pendingFields: {availableSpend: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
@@ -1171,7 +1199,7 @@ function updateExpensifyCardLimitType(
                 [cardID]: {
                     isLoading: false,
                     nameValuePairs: {
-                        pendingFields: {limitType: null, validFrom: null, validThru: null},
+                        pendingFields: clearedPendingFields,
                     },
                     pendingAction: null,
                     pendingFields: {availableSpend: null},
@@ -1188,9 +1216,13 @@ function updateExpensifyCardLimitType(
                 [cardID]: {
                     nameValuePairs: {
                         limitType: oldCardNameValuePairs?.limitType,
-                        validFrom: oldCardNameValuePairs?.validFrom,
-                        validThru: oldCardNameValuePairs?.validThru,
-                        pendingFields: {limitType: null, validFrom: null, validThru: null},
+                        pendingFields: clearedPendingFields,
+                        ...(shouldSkipValidityDateUpdate
+                            ? {}
+                            : {
+                                  validFrom: oldCardNameValuePairs?.validFrom,
+                                  validThru: oldCardNameValuePairs?.validThru,
+                              }),
                     },
                     pendingFields: {availableSpend: null},
                     pendingAction: null,
@@ -1204,9 +1236,13 @@ function updateExpensifyCardLimitType(
     const parameters: UpdateExpensifyCardLimitTypeParams = {
         cardID,
         limitType: newLimitType,
-        validFrom: normalizedValidFrom,
-        validThru: normalizedValidThru,
-        clearValidityDates: shouldClearValidityDates,
+        ...(shouldSkipValidityDateUpdate
+            ? {}
+            : {
+                  validFrom: normalizedValidFrom,
+                  validThru: normalizedValidThru,
+                  clearValidityDates: shouldClearValidityDates,
+              }),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT_TYPE, parameters, {optimisticData, successData, failureData});

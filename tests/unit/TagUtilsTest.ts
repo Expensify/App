@@ -1,4 +1,4 @@
-import {getDecodedTagName, isTagMissing, trimTag} from '@libs/TagUtils';
+import {getDecodedTagName, getTagNameError, isTagMissing, trimTag} from '@libs/TagUtils';
 
 import CONST from '@src/CONST';
 
@@ -86,6 +86,56 @@ describe('TagUtils', () => {
         it('decodes other common HTML entities', () => {
             expect(getDecodedTagName('a &lt; b &gt; c')).toBe('a < b > c');
             expect(getDecodedTagName('&quot;hello&quot;')).toBe('"hello"');
+        });
+    });
+
+    describe('getTagNameError', () => {
+        const encodedResearchAndDevelopment = 'R&amp;D';
+        const tags = {
+            Engineering: {name: 'Engineering', enabled: true},
+            [encodedResearchAndDevelopment]: {name: encodedResearchAndDevelopment, enabled: true},
+        };
+
+        it('does not flag an HTML-encoded tag as a duplicate of its decoded name', () => {
+            expect(getTagNameError(tags, 'R&D', 'R&D')).toBeUndefined();
+        });
+
+        it('flags a decoded name that already exists as an encoded tag', () => {
+            expect(getTagNameError(tags, 'R&D')).toBe('existing');
+            expect(getTagNameError(tags, 'R&D', 'Engineering')).toBe('existing');
+        });
+
+        it('returns tooLong when a colon pushes the escaped stored name over the limit', () => {
+            // Given a 255-character name with one colon. Persistence turns `:` into `\:`, so the stored name is 256 characters.
+            const nameWithColon = `${'a'.repeat(CONST.API_TRANSACTION_TAG_MAX_LENGTH - 1)}:`;
+
+            // When we validate the name for create, edit, or inline
+            const error = getTagNameError(undefined, nameWithColon);
+
+            // Then it is too long because expense submit rejects stored tags over the API max
+            expect(error).toBe('tooLong');
+        });
+
+        it('accepts a name at the limit when escaping does not add characters', () => {
+            // Given a 255-character name with no colons, so the stored name stays 255 characters
+            const name = 'a'.repeat(CONST.API_TRANSACTION_TAG_MAX_LENGTH);
+
+            // When we validate it
+            const error = getTagNameError(undefined, name);
+
+            // Then it is accepted
+            expect(error).toBeUndefined();
+        });
+
+        it('accepts a name with a colon when the escaped length is still within the limit', () => {
+            // Given 254 characters including one colon, which stores as 255 characters
+            const nameWithColon = `${'a'.repeat(CONST.API_TRANSACTION_TAG_MAX_LENGTH - 2)}:`;
+
+            // When we validate it
+            const error = getTagNameError(undefined, nameWithColon);
+
+            // Then it is accepted because the persisted name is not over the API max
+            expect(error).toBeUndefined();
         });
     });
 });

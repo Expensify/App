@@ -1,4 +1,5 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
+import {InlineTextEditCell} from '@components/EditableCell';
 import Icon from '@components/Icon';
 import {useSession} from '@components/OnyxListItemProvider';
 import Table from '@components/Table';
@@ -19,22 +20,31 @@ import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
 
 import type {WorkspaceExpensifyCardTableRowData} from '.';
 
+import WorkspaceExpensifyCardLimitCell from './WorkspaceExpensifyCardLimitCell';
+import WorkspaceExpensifyCardLimitTypeCell from './WorkspaceExpensifyCardLimitTypeCell';
+
 type WorkspaceExpensifyCardsTableRowProps = {
     item: WorkspaceExpensifyCardTableRowData;
     rowIndex: number;
     shouldUseNarrowTableLayout: boolean;
 
+    /** Policy used to determine which limit types can be assigned from the inline editor */
+    policy: OnyxEntry<Policy>;
+
     /** Whether the Export account column is shown, so the row must keep its cell in step with the column */
     shouldShowExportAccountColumn: boolean;
 };
 
-export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldUseNarrowTableLayout, shouldShowExportAccountColumn}: WorkspaceExpensifyCardsTableRowProps) {
+export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldUseNarrowTableLayout, policy, shouldShowExportAccountColumn}: WorkspaceExpensifyCardsTableRowProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FreezeCard']);
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
@@ -137,12 +147,15 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
                                 />
                             ) : (
-                                <TextWithTooltip
-                                    shouldShowTooltip
-                                    numberOfLines={1}
-                                    text={item.name}
-                                    style={styles.textLabelSupporting}
-                                />
+                                <View style={styles.editableCellFlushWithSibling}>
+                                    <InlineTextEditCell
+                                        value={item.name}
+                                        accessibilityLabel={translate('workspace.card.issueNewCard.cardName')}
+                                        canEdit={!!item.canEditName}
+                                        onSave={item.onRenameName}
+                                        displayTextStyle={[styles.textLabelSupporting, styles.lh16]}
+                                    />
+                                </View>
                             )}
                         </View>
                     </View>
@@ -162,13 +175,15 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
 
                     {!shouldUseNarrowTableLayout && (
                         <View
-                            style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsCenter]}
+                            style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsCenter, styles.editableCellColumn]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
-                            <TextWithTooltip
-                                shouldShowTooltip
-                                numberOfLines={1}
-                                text={limitTypeLabel}
+                            <WorkspaceExpensifyCardLimitTypeCell
+                                limitType={item.limitType}
+                                card={item.card}
+                                policy={policy}
+                                canEdit={!!item.canEditLimitType}
+                                onSave={item.onChangeLimitType}
                             />
                         </View>
                     )}
@@ -218,13 +233,16 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                             shouldUseNarrowTableLayout ? styles.alignItemsEnd : styles.flex1,
                             shouldUseNarrowTableLayout ? styles.justifyContentStart : styles.alignItemsCenter,
                             shouldUseNarrowTableLayout ? undefined : styles.justifyContentEnd,
+                            !shouldUseNarrowTableLayout && styles.editableCellColumn,
                         ]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
-                        <TextWithTooltip
-                            shouldShowTooltip
-                            numberOfLines={1}
-                            text={formattedLimit}
+                        <WorkspaceExpensifyCardLimitCell
+                            limit={item.limit}
+                            currency={item.currency}
+                            displayText={formattedLimit}
+                            canEdit={!!item.canEditLimit}
+                            onSave={item.onChangeLimit}
                         />
                         {shouldUseNarrowTableLayout && (
                             <Text
@@ -238,7 +256,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
 
                     {!shouldUseNarrowTableLayout && (
                         <View
-                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.editableCellHeader]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
                             <TextWithTooltip
