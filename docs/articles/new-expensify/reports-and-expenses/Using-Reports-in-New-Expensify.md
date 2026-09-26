@@ -1,7 +1,7 @@
 ---
 title: Using Spend in New Expensify
 description: Learn how to use Spend in New Expensify to search, filter, customize columns, and save searches for expenses, invoices, trips, and chats.
-keywords: [Spend, New Expensify, report filters, search commands, custom columns, saved searches, share saved search, My expenses saved search, default saved search, group expenses, invoices, expenses, chats, trips, reimbursement tracking, view expenses, customize report view, reporting table columns, Tag GL code, Category GL code, Paid by column, Paid by filter, who paid a report, Edit columns, Display menu]
+keywords: [Spend, New Expensify, report filters, search commands, custom columns, saved searches, share saved search, My expenses saved search, default saved search, group expenses, invoices, expenses, chats, trips, reimbursement tracking, view expenses, customize report view, reporting table columns, Tag GL code, Category GL code, Paid by column, Paid by filter, who paid a report, Edit columns, Display menu, Vendor column, vendor matching]
 ---
 
 <div id="new-expensify" markdown="1">
@@ -82,9 +82,12 @@ You can choose from a wide range of columns, including:
 - **Tax code** – The tax code applied to the expense
 - **Category GL code** – The general ledger (GL) code from the expense's category
 - **Tag GL code** – The general ledger (GL) code from the expense's tag
+- **Vendor** – The vendor assigned to a non-reimbursable company card expense before it exports to your accounting integration
 - **Custom field 1** – The Custom field 1 value set for the report submitter
 - **Custom field 2** – The Custom field 2 value set for the report submitter
 - **International reimbursement IDs** – The reference IDs for international reimbursements on the report
+
+The **Vendor** column is offered only while at least one of your workspaces has vendor matching active, which requires a QuickBooks Online or Sage Intacct connection that exports non-reimbursable company card expenses to a card account. If vendor matching stops on every workspace, the **Vendor** column is removed from the table, the **Edit columns** list, and the **Current view** CSV export, and your other saved columns stay as they are. Learn more about [managing vendor matching for QuickBooks Online](/articles/new-expensify/connections/quickbooks-online/Manage-Vendor-Matching-for-QuickBooks-Online).
 
 To view the full list of available columns, click **Display** in the **Spend** tab, then select **Edit columns**.
 
