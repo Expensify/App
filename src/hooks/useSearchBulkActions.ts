@@ -74,6 +74,7 @@ import {
     isSelfDM,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, getFilterFromQuery, isDefaultExpensesQuery, queryHasViolationFilter, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
@@ -361,6 +362,14 @@ function getAllMatchingExportQueryAndExclusions(
 
     const exportQueryJSON = buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters}));
     return exportQueryJSON ? {queryJSON: exportQueryJSON, excludedTransactionIDList} : undefined;
+}
+
+type CSVExportQueryJSON = Omit<SearchQueryJSON, 'columns'> & {columns: SearchColumnType[]; searchKey: SearchKey | undefined};
+
+const NON_EXPORTABLE_COLUMNS = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.ACTION]);
+
+function getExportableColumns(columns: SearchColumnType[]): SearchColumnType[] {
+    return columns.filter((column) => !NON_EXPORTABLE_COLUMNS.has(column));
 }
 
 function getAllMatchingReportQuery(queryJSON: SearchQueryJSON, excludedTransactions: SelectedTransactions): SearchQueryJSON | undefined {
@@ -1040,6 +1049,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         (isBasicExport: boolean, queryJSONToExport: SearchQueryJSON | undefined, exactMatchFilterKeys?: ReadonlySet<SearchFilterKey>) => {
             const groupBy = getValidGroupBy(queryJSON?.groupBy);
             let columnsToExport: SearchColumnType[];
+            let groupColumnsToExport: SearchColumnType[] = [];
 
             if (groupBy) {
                 const expensePermittedColumns: string[] = Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
@@ -1048,11 +1058,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 );
 
                 columnsToExport = [CONST.SEARCH.TABLE_COLUMNS.TYPE, ...(expenseColumns.length > 0 ? expenseColumns : Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE))];
-                // Grouped export skips getColumnsToShow(), so inject Violations when the query asks for it
+                // The expense columns are picked by hand here, so inject Violations when the query asks for it
                 // (e.g. Violations by submitter, which has groupBy but no saved columns).
                 if (queryHasViolationFilter(queryJSON)) {
                     insertColumnBeforeTotalAmount(columnsToExport, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
                 }
+
+                groupColumnsToExport = getColumnsToShow({
+                    currentAccountID: accountID,
+                    data: exportSearchData ?? {},
+                    visibleColumns,
+                    type: exportSearchType,
+                    groupBy,
+                });
             } else {
                 columnsToExport = getColumnsToShow({
                     currentAccountID: accountID,
@@ -1068,16 +1086,27 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 });
             }
 
+            const exportableColumns = getExportableColumns(columnsToExport);
+            const exportableGroupColumns = getExportableColumns(groupColumnsToExport);
+
             const exportColumnLabels: Partial<Record<SearchColumnType, string>> = {};
-            for (const column of columnsToExport) {
+            for (const column of [...exportableColumns, ...exportableGroupColumns]) {
                 exportColumnLabels[column] = translate(getSearchColumnTranslationKey(column, exportSearchType));
             }
 
             // searchKey changes what the backend query matches (e.g. reconciliation includes Expensify Card cash back),
             // so the export must send it exactly as search() does or the exported set differs from the viewed set.
-            const jsonQuery = queryJSONToExport
-                ? serializeQueryJSONForBackend({...queryJSONToExport, columns: columnsToExport, searchKey: currentSearchKey}, exactMatchFilterKeys)
-                : (JSON.stringify(queryJSONToExport) ?? '');
+            const queryToExport: CSVExportQueryJSON | undefined = queryJSONToExport
+                ? {
+                      ...queryJSONToExport,
+                      columns: exportableColumns,
+                      // Only a grouped search has group rows, and the serializer leaves out an undefined key,
+                      // so an ungrouped export sends the same payload it always did.
+                      groupColumns: groupBy ? exportableGroupColumns : undefined,
+                      searchKey: currentSearchKey,
+                  }
+                : undefined;
+            const jsonQuery = queryToExport ? serializeQueryJSONForBackend(queryToExport, exactMatchFilterKeys) : (JSON.stringify(queryJSONToExport) ?? '');
 
             return {
                 jsonQuery,

@@ -8,11 +8,13 @@ import useSearchBulkActions from '@hooks/useSearchBulkActions';
 import {markAsManuallyExported} from '@libs/actions/Report';
 import {exportSearchItemsToCSV, exportToIntegrationOnSearch, getExportTemplates} from '@libs/actions/Search';
 import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryActionUtils';
+import type * as SearchUIUtilsModule from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type CONSTType from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportActions, SearchResults} from '@src/types/onyx';
+import type {SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
 
 import Onyx from 'react-native-onyx';
 
@@ -198,13 +200,17 @@ jest.mock('@hooks/useUndeleteTransactions', () => ({
 }));
 
 jest.mock('@libs/SearchUIUtils', () => {
+    const {getColumnsToShow} = jest.requireActual<typeof SearchUIUtilsModule>('@libs/SearchUIUtils');
+    const actualCONSTForSearchUIUtils = jest.requireActual<{default: typeof CONSTType}>('@src/CONST').default;
     return {
         shouldShowDeleteOption: () => false,
         getSelectedGroupFilterEntry: jest.fn(),
+        isGroupEntry: (key: string) => key.startsWith(actualCONSTForSearchUIUtils.SEARCH.GROUP_PREFIX),
         navigateToSearchRHP: jest.fn(),
-        getValidGroupBy: jest.fn((groupBy?: string) => groupBy),
+        // The real validator, so the `groupBy === GROUP_BY.CARD` comparison is exercised against it rather than an identity stub.
+        getValidGroupBy: jest.fn(jest.requireActual<{getValidGroupBy: (groupBy?: string) => string | undefined}>('@libs/SearchUIUtils').getValidGroupBy),
         getSearchColumnTranslationKey: jest.fn((column: string) => column),
-        getColumnsToShow: jest.fn(() => []),
+        getColumnsToShow,
         insertColumnBeforeTotalAmount: (columns: string[], columnId: string) => {
             if (columns.includes(columnId)) {
                 return;
@@ -304,6 +310,19 @@ const groupedExpenseQueryJSON: SearchQueryJSON = {
     inputQuery: 'type:expense groupBy:category',
     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
     groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+};
+
+const ungroupedExpenseQueryJSON: SearchQueryJSON = {
+    ...expenseReportQueryJSON,
+    inputQuery: 'type:expense status:all',
+    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+};
+
+const groupedWithdrawalQueryJSON: SearchQueryJSON = {
+    ...groupedExpenseQueryJSON,
+    inputQuery: `type:expense groupBy:${CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID}`,
+    groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+    sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN,
 };
 
 const groupedSubmittedViolationQueryJSON: SearchQueryJSON = {
@@ -410,6 +429,39 @@ function makeSearchResults(reports: Report[], reportActionsByReportID: Record<st
             offset: 0,
             sortBy: 'date',
             sortOrder: 'desc',
+            hasMoreResults: false,
+            hasResults: true,
+            isLoading: false,
+            count: 1,
+            total: 100,
+            currency: 'USD',
+        },
+        data,
+    };
+}
+
+/** A Bank reconciliation snapshot holding a single settlement group. */
+function makeWithdrawalGroupSearchResults(group: Partial<SearchWithdrawalIDGroup> = {}): SearchResults {
+    const data: SearchResults['data'] = {};
+    data[`${CONST.SEARCH.GROUP_PREFIX}1`] = {
+        entryID: 1,
+        accountNumber: '1234',
+        bankName: CONST.BANK_NAMES.CHASE,
+        debitPosted: '2026-01-01',
+        state: 8,
+        count: 1,
+        total: 100,
+        currency: 'USD',
+        ...group,
+    };
+
+    return {
+        search: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            hash: 0,
+            offset: 0,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             hasMoreResults: false,
             hasResults: true,
             isLoading: false,
@@ -1333,14 +1385,15 @@ describe('useSearchBulkActions - export options', () => {
         });
 
         const expectedColumns: string[] = [CONST.SEARCH.TABLE_COLUMNS.TYPE, ...Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE)];
+        const expectedGroupColumns: string[] = CONST.SEARCH.GROUP_DEFAULT_COLUMNS.CATEGORY;
         const {isBasicExport, query, columnLabels} = getLastCSVExportParameters();
         expect(isBasicExport).toBe(false);
         expect(expectedColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.FROM);
-        expect(query).toEqual(expect.objectContaining({columns: expectedColumns}));
+        expect(query).toEqual(expect.objectContaining({columns: expectedColumns, groupColumns: expectedGroupColumns}));
 
         // translate and the column translation key are both mocked as the identity here, so every column
         // carries a label of its own name - what matters is that a label is sent for each one.
-        expect(columnLabels).toEqual(Object.fromEntries(expectedColumns.map((column) => [column, column])));
+        expect(columnLabels).toEqual(Object.fromEntries([...expectedColumns, ...expectedGroupColumns].map((column) => [column, column])));
     });
 
     it('exports Violations on a grouped search that filters by submitted-violation even without saved columns', async () => {
@@ -1362,10 +1415,11 @@ describe('useSearchBulkActions - export options', () => {
         const violationsIndex = expectedColumns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
         expectedColumns.splice(violationsIndex, 0, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
 
+        const expectedGroupColumns: string[] = CONST.SEARCH.GROUP_DEFAULT_COLUMNS.FROM.filter((column) => column !== CONST.SEARCH.TABLE_COLUMNS.AVATAR);
         const {isBasicExport, query, columnLabels} = getLastCSVExportParameters();
         expect(isBasicExport).toBe(false);
-        expect(query).toEqual(expect.objectContaining({columns: expectedColumns}));
-        expect(columnLabels).toEqual(Object.fromEntries(expectedColumns.map((column) => [column, column])));
+        expect(query).toEqual(expect.objectContaining({columns: expectedColumns, groupColumns: expectedGroupColumns}));
+        expect(columnLabels).toEqual(Object.fromEntries([...expectedColumns, ...expectedGroupColumns].map((column) => [column, column])));
     });
 
     it('exports Violations on a grouped submitted-violation search even when saved columns omit it', async () => {
@@ -1396,6 +1450,192 @@ describe('useSearchBulkActions - export options', () => {
                     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
                     CONST.SEARCH.TABLE_COLUMNS.FROM,
                     CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
+                ],
+            }),
+        );
+    });
+
+    it('exports the group columns configured in the view, leaving out the ones it hides', async () => {
+        await Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {
+            columns: [CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.MERCHANT],
+        });
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+        });
+
+        getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+
+        await waitFor(() => {
+            expect(exportSearchItemsToCSV).toHaveBeenCalled();
+        });
+
+        // The group total is left out of the view, so it is left out of the export too, and the avatar is an icon
+        // with no CSV value.
+        const {query} = getLastCSVExportParameters();
+        expect(query).toEqual(
+            expect.objectContaining({
+                groupColumns: [CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES],
+            }),
+        );
+    });
+
+    it('exports the column the search is grouped by even when the saved columns were configured elsewhere', async () => {
+        // Given saved columns from another grouped view: both belong to the category view too, but neither is its category column
+        await Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {
+            columns: [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL],
+        });
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        // When the category-grouped view is exported
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+        });
+
+        getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+
+        await waitFor(() => {
+            expect(exportSearchItemsToCSV).toHaveBeenCalled();
+        });
+
+        // Then the category column leads the group row, the same way the view prepends it
+        const {query} = getLastCSVExportParameters();
+        expect(query).toEqual(
+            expect.objectContaining({
+                groupColumns: [CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL],
+            }),
+        );
+    });
+
+    it('leaves the conversion amounts out of a Bank reconciliation export when no settlement converted currencies', async () => {
+        // Given a Bank reconciliation search whose only settlement holds no converted amounts, so the view hides those columns
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockCurrentSearchResults = makeWithdrawalGroupSearchResults();
+
+        // When the grouped view is exported
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedWithdrawalQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+        });
+
+        getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+
+        await waitFor(() => {
+            expect(exportSearchItemsToCSV).toHaveBeenCalled();
+        });
+
+        // Then the CSV skips them too, instead of shipping two columns that are empty on every row
+        const {query} = getLastCSVExportParameters();
+        expect(query).toEqual(
+            expect.objectContaining({
+                groupColumns: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WITHDRAWAL_ID.filter(
+                    (column) =>
+                        column !== CONST.SEARCH.TABLE_COLUMNS.AVATAR &&
+                        column !== CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED &&
+                        column !== CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED,
+                ),
+            }),
+        );
+    });
+
+    it('exports the conversion amount a Bank reconciliation settlement reports', async () => {
+        // Given a settlement that converted currencies when the company was debited
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockCurrentSearchResults = makeWithdrawalGroupSearchResults({debitedAmount: 9000, debitedCurrency: 'EUR'});
+
+        // When the grouped view is exported
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedWithdrawalQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+        });
+
+        getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+
+        await waitFor(() => {
+            expect(exportSearchItemsToCSV).toHaveBeenCalled();
+        });
+
+        // Then the debited column comes along, and only the column no settlement reports is left out
+        const {query} = getLastCSVExportParameters();
+        expect(query).toEqual(
+            expect.objectContaining({
+                groupColumns: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WITHDRAWAL_ID.filter(
+                    (column) => column !== CONST.SEARCH.TABLE_COLUMNS.AVATAR && column !== CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED,
+                ),
+            }),
+        );
+    });
+
+    it('leaves out a conversion amount column that the view only keeps to hold the sort', async () => {
+        // Given a Bank reconciliation search sorted by Amount debited, where no settlement converted currencies:
+        // the view keeps that column so the sort can still be changed, even though every cell in it is empty
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockCurrentSearchResults = makeWithdrawalGroupSearchResults();
+
+        // When the grouped view is exported
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: {...groupedWithdrawalQueryJSON, sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED}}), {
+            wrapper: OnyxListItemProvider,
+        });
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+        });
+
+        getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+
+        await waitFor(() => {
+            expect(exportSearchItemsToCSV).toHaveBeenCalled();
+        });
+
+        // Then the CSV leaves it out, because a spreadsheet has no sort to keep
+        const {query} = getLastCSVExportParameters();
+        expect(query).toEqual(
+            expect.objectContaining({
+                groupColumns: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WITHDRAWAL_ID.filter(
+                    (column) =>
+                        column !== CONST.SEARCH.TABLE_COLUMNS.AVATAR &&
+                        column !== CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED &&
+                        column !== CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED,
+                ),
+            }),
+        );
+    });
+
+    it('sends no group columns for an ungrouped export, and no columns a CSV cannot show', async () => {
+        // Given an ungrouped search, which has no group rows at all
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        // When it is exported
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: ungroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+        });
+
+        getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+
+        await waitFor(() => {
+            expect(exportSearchItemsToCSV).toHaveBeenCalled();
+        });
+
+        // Then the payload carries no group columns, and the avatar the view shows is left out as it has no CSV value
+        const {query} = getLastCSVExportParameters();
+        expect(query).not.toHaveProperty('groupColumns');
+        expect(query).toEqual(
+            expect.objectContaining({
+                columns: [
+                    CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
+                    CONST.SEARCH.TABLE_COLUMNS.TYPE,
+                    CONST.SEARCH.TABLE_COLUMNS.DATE,
+                    CONST.SEARCH.TABLE_COLUMNS.STATUS,
+                    CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
                 ],
             }),
         );
