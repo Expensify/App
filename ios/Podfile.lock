@@ -3028,7 +3028,12 @@ PODS:
     - ReactNativeDependencies
     - Turf
     - Yoga
-  - RNNitroSQLite (9.6.0):
+  - RNNitroSQLite (9.8.2):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
     - hermes-engine
     - NitroModules
     - RCTRequired
@@ -4106,7 +4111,7 @@ SPEC CHECKSUMS:
   RNLiveMarkdown: e1379ad7c01172909900127aff8108582c605200
   RNLocalize: 82e7aa2857ce5dcd9e2a0c04f8c34c2ed50821df
   rnmapbox-maps: 54eb40428a4fd89f484a492fc7186bc1c1eea9ce
-  RNNitroSQLite: e354c4a31133050e6bbde1c136b8ac4857830236
+  RNNitroSQLite: c986393b7cb0e5e4587d0c9f7108e56ee8db9627
   RNPermissions: 32bd3b977f28442af0900b102f4458f0f9f9b77c
   RNReactNativeHapticFeedback: 6c8677db48f62a635e6a2065f5d2bd02498d7a73
   RNReanimated: f093c30aa11e45a8044dcc19417f44cffa1c4e1d
