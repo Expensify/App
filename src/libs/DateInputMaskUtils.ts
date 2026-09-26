@@ -196,6 +196,24 @@ function typeDigitIntoOneSegment(name: DateSegmentName, typedSoFar: string, digi
 }
 
 /**
+ * Moves the day back to the last of its month when the month or year typed after it has made it impossible. The day
+ * the user was closest to is kept rather than cleared, so a date that cannot exist never reaches the field.
+ */
+function clampDayToMonth(segments: DateSegments): DateSegments {
+    if (!segments.day) {
+        return segments;
+    }
+
+    const {max} = getDayLimits(segments);
+
+    if (Number(segments.day) <= max) {
+        return segments;
+    }
+
+    return {...segments, day: String(max)};
+}
+
+/**
  * Adds one typed digit, following a carried digit into the following segments for as long as they keep handing one on.
  * `nextSegmentName` is where the caret belongs afterwards, and is undefined while the segment is unfinished.
  */
@@ -230,7 +248,7 @@ function typeDigitIntoSegments(
         currentDigit = result.carry;
     }
 
-    return {segments: filled, nextSegmentName};
+    return {segments: clampDayToMonth(filled), nextSegmentName};
 }
 
 /**

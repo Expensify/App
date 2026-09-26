@@ -82,9 +82,18 @@ describe('DateInputMaskUtils', () => {
             expect(typeDigitIntoSegments(segments('2026', '', '3'), 'day', '1')).toEqual({segments: segments('2026', '', '31'), nextSegmentName: undefined});
         });
 
-        it('keeps a day the newly typed month cannot have, leaving it to validation', () => {
-            // Given a day typed before the month that rules it out, which the day's own limits never see
-            expect(typeDigitIntoSegments(segments('2026', '1', '31'), 'month', '1').segments).toEqual(segments('2026', '11', '31'));
+        it('moves the day back when the month typed after it is too short', () => {
+            // Given the 31st typed before November, which ends on the 30th
+            expect(typeDigitIntoSegments(segments('2026', '1', '31'), 'month', '1').segments).toEqual(segments('2026', '11', '30'));
+
+            // Given the 31st typed before February, which the day's own limits never saw
+            expect(typeDigitIntoSegments(segments('2026', '0', '31'), 'month', '2').segments).toEqual(segments('2026', '02', '28'));
+        });
+
+        it('moves the day back when the year typed after it takes the leap day away', () => {
+            // Given February 29 typed before the year, which decides whether that day exists
+            expect(typeDigitIntoSegments(segments('202', '02', '29'), 'year', '6').segments).toEqual(segments('2026', '02', '28'));
+            expect(typeDigitIntoSegments(segments('202', '02', '29'), 'year', '4').segments).toEqual(segments('2024', '02', '29'));
         });
 
         it('has nothing to carry into past the day, so a rejected pair restarts it', () => {
