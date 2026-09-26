@@ -191,6 +191,8 @@ function ReportActionItem({
 
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const transactionsOnIOUReport = useReportTransactionsCollection(iouReport?.reportID);
+    const transactionsOnReportCollection = useReportTransactionsCollection(report?.reportID);
+    const transactionsOnReport = Object.values(transactionsOnReportCollection);
     const IOUOriginalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) ? getOriginalMessage(action) : undefined;
     const transactionID = isMoneyRequestAction(action) && IOUOriginalMessage?.IOUTransactionID;
     const isACHPaymentAction = IOUOriginalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && IOUOriginalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA;
@@ -268,6 +270,7 @@ function ReportActionItem({
                 reportID,
                 transactionThreadReport,
                 iouReport: report,
+                iouReportTransactions: transactionsOnReport,
                 chatReport,
                 isChatIOUReportArchived: undefined,
                 originalReportID,
