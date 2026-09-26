@@ -49,6 +49,9 @@ if (!copyMessageAction || !('onPress' in copyMessageAction)) {
 }
 type CopyMessagePayload = Parameters<typeof copyMessageAction.onPress>[1];
 
+const MENTIONED_REPORT_ID = '1';
+const REPORT_ID_TO_NAME = {[MENTIONED_REPORT_ID]: '#general'};
+
 const createPayload = (selection: string): CopyMessagePayload =>
     createMock<CopyMessagePayload>({
         reportAction: {
@@ -56,6 +59,7 @@ const createPayload = (selection: string): CopyMessagePayload =>
             message: [{html: selection}],
         },
         selection,
+        reportIDToName: REPORT_ID_TO_NAME,
         report: {},
         originalReport: {},
         getLocalDateFromDatetime: jest.fn(),
@@ -74,6 +78,7 @@ const createReportActionPayload = (reportAction: CopyMessagePayload['reportActio
     createMock<CopyMessagePayload>({
         reportAction,
         selection: '',
+        reportIDToName: REPORT_ID_TO_NAME,
         report: {},
         originalReport: {},
         getLocalDateFromDatetime: jest.fn(),
@@ -103,7 +108,7 @@ describe('ContextMenuActions copy message', () => {
 
         copyMessageAction.onPress(false, createPayload(selection));
 
-        expect(mockGetClipboardText).toHaveBeenCalledWith(selection);
+        expect(mockGetClipboardText).toHaveBeenCalledWith(selection, REPORT_ID_TO_NAME);
         expect(mockSetString).toHaveBeenCalledWith('Expensify');
         expect(mockSetHtml).not.toHaveBeenCalled();
     });
@@ -119,7 +124,7 @@ describe('ContextMenuActions copy message', () => {
 
         copyMessageAction.onPress(false, createPayload(selection));
 
-        expect(mockGetClipboardText).toHaveBeenCalledWith(selection);
+        expect(mockGetClipboardText).toHaveBeenCalledWith(selection, REPORT_ID_TO_NAME);
         expect(mockSetHtml).toHaveBeenCalledWith(selection, 'Expensify');
         expect(mockSetString).not.toHaveBeenCalled();
     });
@@ -155,7 +160,7 @@ describe('ContextMenuActions copy message', () => {
             ),
         );
 
-        expect(mockGetClipboardText).toHaveBeenCalledWith(expectedTranslationKey);
+        expect(mockGetClipboardText).toHaveBeenCalledWith(expectedTranslationKey, undefined);
         expect(mockSetString).toHaveBeenCalledWith('mocked clipboard text');
     });
 

@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -284,6 +285,8 @@ function ComposerWithSuggestions({
     });
 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+
+    const reportIDToName = useReportIDToNameMap();
 
     const commentRef = useRef(initialText);
 
@@ -611,7 +614,7 @@ function ComposerWithSuggestions({
                 webEvent.preventDefault();
                 if (lastReportAction) {
                     const message = Array.isArray(lastReportAction?.message) ? (lastReportAction?.message?.at(-1) ?? null) : (lastReportAction?.message ?? null);
-                    saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(message?.html ?? ''), isOffline);
+                    saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(message?.html ?? '', {reportIDToName}), isOffline);
                 }
             }
             // Flag emojis like "Wales" have several code points. Default backspace key action does not remove such flag emojis completely.
@@ -661,6 +664,7 @@ function ComposerWithSuggestions({
             lastReportAction,
             reportID,
             reportActions,
+            reportIDToName,
             updateComment,
             setCurrentEditMessageSelection,
             isOffline,

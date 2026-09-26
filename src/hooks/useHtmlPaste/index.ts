@@ -1,3 +1,5 @@
+import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
+
 import {isStandaloneURL, toMarkdownLink} from '@libs/MarkdownLinkHelpers';
 import Parser from '@libs/Parser';
 
@@ -42,6 +44,8 @@ const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: num
 };
 
 const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive = false, maxLength = CONST.MAX_COMMENT_LENGTH + 1) => {
+    const reportIDToName = useReportIDToNameMap();
+
     /**
      * Set pasted text to clipboard
      * @param {String} text
@@ -96,9 +100,9 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
      */
     const handlePastedHTML = useCallback(
         (html: string) => {
-            paste(Parser.htmlToMarkdown(html, {}));
+            paste(Parser.htmlToMarkdown(html, {reportIDToName}));
         },
-        [paste],
+        [paste, reportIDToName],
     );
 
     /**

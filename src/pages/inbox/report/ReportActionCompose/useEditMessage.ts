@@ -3,6 +3,7 @@ import type {ComposerRef} from '@components/Composer/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 
@@ -48,6 +49,7 @@ function useEditMessage({
     const [personalDetails] = useAllPersonalDetails();
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${actionOwnerReportID}`);
     const isOriginalReportArchived = useReportIsArchived(actionOwnerReportID);
+    const reportIDToName = useReportIDToNameMap();
 
     const {stopEditing, submitEdit} = useReportActionActiveEditActions();
 
@@ -98,7 +100,16 @@ function useEditMessage({
 
         submitEdit();
 
-        editReportComment(originalReport, reportAction, trimmedNewDraft, isOriginalReportArchived, email ?? '', personalDetails, Object.fromEntries(draftMessageVideoAttributeCache));
+        editReportComment(
+            originalReport,
+            reportAction,
+            trimmedNewDraft,
+            isOriginalReportArchived,
+            email ?? '',
+            personalDetails,
+            Object.fromEntries(draftMessageVideoAttributeCache),
+            reportIDToName,
+        );
         deleteDraft();
     }
 

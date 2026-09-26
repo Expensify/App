@@ -13,6 +13,8 @@ const mockedParser = jest.mocked(Parser);
 
 describe('getClipboardText', () => {
     const selection = '<a href="https://expensify.com">Expensify</a>';
+    const mentionedReportID = '1';
+    const reportIDToName = {[mentionedReportID]: '#general'};
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -28,7 +30,7 @@ describe('getClipboardText', () => {
         const result = getClipboardText(selection);
 
         expect(result).toBe('[Expensify](https://expensify.com)');
-        expect(mockedParser.htmlToMarkdown.mock.calls).toContainEqual([selection]);
+        expect(mockedParser.htmlToMarkdown.mock.calls).toContainEqual([selection, {reportIDToName: undefined}]);
     });
 
     it('returns the parser output without modification', () => {
@@ -38,6 +40,17 @@ describe('getClipboardText', () => {
         const result = getClipboardText('<b>test</b>');
 
         expect(result).toBe(expected);
-        expect(mockedParser.htmlToMarkdown.mock.calls).toContainEqual(['<b>test</b>']);
+        expect(mockedParser.htmlToMarkdown.mock.calls).toContainEqual(['<b>test</b>', {reportIDToName: undefined}]);
+    });
+
+    it('forwards the report name map so a report mention resolves instead of rendering as "#Hidden"', () => {
+        // Given a caller that resolved the names of the reports mentioned in the HTML
+        mockedParser.htmlToMarkdown.mockReturnValue('#general');
+
+        // When the clipboard text is produced
+        getClipboardText(selection, reportIDToName);
+
+        // Then the map reaches the parser, which is what turns `<mention-report reportID>` into the room name
+        expect(mockedParser.htmlToMarkdown.mock.calls).toContainEqual([selection, {reportIDToName}]);
     });
 });
