@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToBackendAmount, convertToFrontendAmountAsString, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {formatToParts} from '@libs/NumberFormatUtils';
 import {parseFloatAnyLocale, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getTransactionDisplayAmount, isInvoiceReport, shouldEnableNegative} from '@libs/ReportUtils';
+import {getTransactionDisplayAmount, isInvoiceReport, isSettled, shouldEnableNegative} from '@libs/ReportUtils';
 import {getCurrency as getTransactionCurrency, isExpenseUnreported, isFailedScanAmountPlaceholder, isScanning} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -50,7 +50,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
     const effectiveReport = report ?? transactionItem.report;
     const effectivePolicy = policy ?? transactionItem.policy;
     const amount = getTransactionDisplayAmount(transactionItem, effectiveReport, effectivePolicy);
-    const hasFailedScanAmountPlaceholder = isFailedScanAmountPlaceholder(transactionItem);
+    const hasFailedScanAmountPlaceholder = isFailedScanAmountPlaceholder(transactionItem, isSettled(effectiveReport));
     let amountToDisplay = convertToDisplayString(amount, currency);
     if (isScanning(transactionItem)) {
         amountToDisplay = translate('iou.receiptStatusTitle');

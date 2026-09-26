@@ -317,7 +317,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     let displayAmountText: TranslationPathOrText = isTransactionScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(amount, requestCurrency)};
     if (isFetchingWaypoints && !requestAmount) {
         displayAmountText = {translationPath: 'iou.fieldPending'};
-    } else if (isFailedScanAmountPlaceholder(transaction)) {
+    } else if (isFailedScanAmountPlaceholder(transaction, isMoneyRequestSettled)) {
         displayAmountText = {text: ''};
     }
 

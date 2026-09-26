@@ -10,7 +10,7 @@ function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boo
     return transaction.modifiedAmount !== undefined && transaction.modifiedAmount !== null && transaction.modifiedAmount !== '';
 }
 
-function isFailedScanAmountPlaceholder(transaction: OnyxEntry<Transaction>) {
+function isFailedScanAmountPlaceholder(transaction: OnyxEntry<Transaction>, isReportSettled = false) {
     // A failed Scan can temporarily become OPEN while another field is being edited. A newly submitted Scan
     // with manually entered fields is also OPEN, but the server does not persist the draft's isAmountSet flag.
     // Only treat OPEN as a placeholder while the amount is still unset in a draft or another field edit is pending.
@@ -23,6 +23,7 @@ function isFailedScanAmountPlaceholder(transaction: OnyxEntry<Transaction>) {
             !!transaction?.pendingFields?.created ||
             !!transaction?.pendingFields?.currency);
     return (
+        !isReportSettled &&
         transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN &&
         (transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED || isOpenWithUnconfirmedAmount) &&
         (transaction?.amount === 0 || transaction?.amount === undefined) &&

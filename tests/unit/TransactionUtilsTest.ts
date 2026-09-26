@@ -5858,6 +5858,17 @@ describe('isFailedScanAmountPlaceholder for zero-amount Scans', () => {
         expect(TransactionUtils.isFailedScanAmountPlaceholder(transaction)).toBe(true);
     });
 
+    it('shows the zero amount after the report is settled', () => {
+        // Given a failed Scan whose zero amount is still represented as a placeholder on the transaction
+        const transaction = generateTransaction({...openScan, receipt: {...openScan.receipt, state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED}});
+
+        // When the transaction is rendered from a settled report
+        const result = TransactionUtils.isFailedScanAmountPlaceholder(transaction, true);
+
+        // Then the zero accepted by the backend is no longer hidden as a missing amount
+        expect(result).toBe(false);
+    });
+
     it.each([
         ['merchant', {modifiedMerchant: 'Updated Merchant'}],
         ['created', {modifiedCreated: '2026-09-18'}],
