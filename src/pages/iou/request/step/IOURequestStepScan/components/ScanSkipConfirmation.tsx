@@ -116,7 +116,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const isLookingAroundUser = isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline);
 
     const [transactions] = useOptimisticDraftTransactions(transaction);
-    const linkedTrackedExpenseTransactionIDs = transactions.map((item) => getExistingTransactionID(item.linkedTrackedExpenseReportAction)).filter(Boolean) as string[];
+    const linkedTrackedExpenseTransactionIDs = transactions.map((item) => getExistingTransactionID(item.linkedTrackedExpenseReportAction)).filter((t): t is string => !!t);
     const linkedTrackedExpenseTransactionDrafts = linkedTrackedExpenseTransactionIDs.map((id) => allTransactionDrafts?.[id]).filter((draft): draft is Transaction => !!draft);
     const [linkedTrackedExpenseTransactions] = useTransactionsByID(linkedTrackedExpenseTransactionIDs);
     const {isMultiScanEnabled} = useMultiScanState();
