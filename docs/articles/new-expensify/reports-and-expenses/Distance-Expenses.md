@@ -1,7 +1,7 @@
 ---
 title: Distance Expenses
 description: Learn how to create a Distance expense using GPS tracking, map-based routes, manual entry, or odometer readings, and how the reimbursement rate is determined in New Expensify.
-keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, edit stop, trim trip, edit GPS trip, shorten GPS route, GPS slider, total distance, stop GPS trip, stop without moving, resume GPS trip, discard GPS trip, zero distance trip, same start and stop location, no edit icon, can't create expense]
+keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, edit stop, trim trip, edit GPS trip, shorten GPS route, GPS slider, total distance, change distance rate, edit distance rate, move distance expense, move expense to another workspace, rate not valid for this workspace, distance rate violation]
 internalScope: Audience is all members. Covers creating Distance expenses using GPS tracking, map-based routes, manual entry, and odometer readings, plus how reimbursement rates are applied. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
 ---
 
@@ -161,15 +161,21 @@ Yes! You can edit the expense before it is approved. When editing a map-based Di
 
 ## Can I update the Distance expense unit or rate?
 
-The distance unit and rate can only be updated by a Workspace Admin on the Workspace. It is not possible to adjust the distance rate or unit at the expense level.
+The distance unit is set by a Workspace Admin on the Workspace and can’t be changed at the expense level.
+
+The rate can be changed on an individual expense. Open the Distance expense, select the **Rate** field, and choose another rate from the Workspace. The distance, amount, and currency are recalculated to match the rate you select.
 
 If a Workspace has rates with effective dates and you manually select a rate that doesn't match the expense date, the expense shows a violation indicating the rate doesn't match the selected date. This is informational and does not block submission — selecting the rate that matches the expense date clears the violation.
 
 ## What happens if a Distance expense is moved to a different Workspace?
 
-When a Distance expense is moved to another Workspace, it keeps its original unit and rate.
+What happens depends on whether you move individual expenses or a whole report.
 
-If the rate isn’t valid in the new Workspace, the expense will show a “Rate not valid for this workspace” violation. Selecting a valid rate will update the expense.
+**If you move individual expenses to a report on another Workspace:** when the expense’s rate does not exist on the new Workspace, or is disabled there, the expense automatically switches to that Workspace’s default distance rate. The unit, distance, amount, and currency are recalculated to match. If the new Workspace has no enabled distance rates, the expense keeps its original rate and shows a “Rate not valid for this workspace” violation.
+
+**If you move a whole report to another Workspace:** the expenses keep their original unit and rate. If a rate isn’t valid in the new Workspace, the expense shows a “Rate not valid for this workspace” violation.
+
+In both cases, selecting a valid rate on the expense clears the violation and updates the expense. Open the expense and select the **Rate** field to choose a rate from the new Workspace.
 
 ## Do I need to keep the mobile app open during GPS tracking?
 
@@ -181,17 +187,7 @@ The GPS receipt shows a map of your actual route driven, along with the total di
 
 ## Can I edit a GPS trip after I stop tracking?
 
-Yes, as long as the trip is long enough to trim. After you tap **Stop**, tap the pencil **Edit** icon next to the distance counter to open the **Edit stop** screen. Drag the slider to move the end point back to an earlier stop along your recorded route — the map route and the **Total distance** value update live as you drag — then tap **Save**. The GPS screen then shows the trimmed distance and updated end location. To restore the full trip, open **Edit stop** again and drag the slider all the way to the right. Tapping **Resume** and **Stop** also resets any trim and shows the full trip again.
-
-The pencil **Edit** icon does not appear on a very short trip, such as one you stop without driving anywhere, because there is nothing to trim.
-
-## What happens if I start a GPS trip and tap **Stop** without moving?
-
-The trip stays on screen with a distance of 0.00, your current location shown under both **Start** and **Stop**, and the **Resume** and **Save** buttons available. Tap **Resume** to keep recording from where you are, or tap the trash icon next to the distance counter and confirm to discard the trip.
-
-A trip with a distance of 0.00 can't be turned into an expense. Tapping **Save** shows a **Can't create expense** message. Tap **Got it** to go back to the trip, then resume or discard it.
-
-If you tap **Stop** right after **Start**, before Expensify finds your location, no trip is kept and the **Start** button shows again.
+Yes. After you tap **Stop**, tap the pencil **Edit** icon next to the distance counter to open the **Edit stop** screen. Drag the slider to move the end point back to an earlier stop along your recorded route — the map route and the **Total distance** value update live as you drag — then tap **Save**. The GPS screen then shows the trimmed distance and updated end address. To restore the full trip, open **Edit stop** again and drag the slider all the way to the right. Tapping **Resume** and **Stop** also resets any trim and shows the full trip again.
 
 ## Can I use GPS tracking on web or desktop?
 

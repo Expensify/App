@@ -1,7 +1,7 @@
 ---
 title: Track Expenses
 description: Learn how to create and manage expenses in New Expensify without submitting them for reimbursement or approval.
-keywords: track expenses, create expense, scan receipt, enter mileage, expense chat, just track it, out-of-pocket, out of pocket, out-of-pocket expenses, reimbursable, send to someone, submit tracked expense
+keywords: track expenses, create expense, scan receipt, enter mileage, expense chat, just track it, out-of-pocket, out of pocket, out-of-pocket expenses, reimbursable, send to someone, submit tracked expense, edit a tracked expense, who can edit a tracked expense
 ---
 
 
@@ -47,9 +47,9 @@ Other ways to SmartScan receipts include:
 **On mobile:**
 1. Tap the green camera button.
 2. Select **Manual**.
-3. Enter the amount and currency, then tap **Next**.
-4. Choose yourself as the recipient under Personal.
-5. Add optional fields like category, tags, or description.
+3. Confirm yourself as the recipient under Personal.
+4. Enter the amount and select the currency.
+5. Add the merchant, date, and optional fields like category, tags, or description.
    - Members with a default workspace will see expense fields that mirror their workspace's rules.
    - Members without a default workspace will see the expense fields: Amount, Description, Merchant, Category, Date, Report.
 6. Tap **Create expense**.
@@ -57,12 +57,14 @@ Other ways to SmartScan receipts include:
 **On desktop:**
 1. Click the green add receipt button.
 2. Select **Manual**.
-3. Enter the amount and currency, then click **Next**.
-4. Choose yourself as the recipient under Personal.
-5. Add optional fields like category, tags, or description.
+3. Confirm yourself as the recipient under Personal.
+4. Enter the amount and select the currency.
+5. Add the merchant, date, and optional fields like category, tags, or description.
    - Members with a default workspace will see expense fields that mirror their workspace's rules.
    - Members without a default workspace will see the expense fields: Amount, Description, Merchant, Category, Date, Report.
 6. Click **Create expense**.
+
+**Note:** Amount and date are required. If you leave either one blank, Expensify shows **This field is required** on that field and the expense is not created.
 
 ---
 
@@ -107,6 +109,10 @@ The **Send to someone** option appears only while the expense is still tracked. 
 ## Can I edit an expense after tracking it?
 
 Yes! Open the expense from **Spend > Expenses** or your expense chat, then click into it to edit any field.
+
+## Can someone else edit an expense I tracked?
+
+No. Only you can edit a tracked expense. If you invite another member to the chat where the expense lives, they can open the expense and see it, but every field is read-only for them. That applies even if they are an admin of their own Workspace. [Learn who can edit expenses](/articles/new-expensify/reports-and-expenses/Edit-Expenses).
 
 ## Why can’t I find my expense?
 

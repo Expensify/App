@@ -12,7 +12,7 @@ Workspace admins can enable invoicing to send professional invoices and receive 
 # Enable Invoices
 
 1. From the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace Name] > More features**.
-2. Under the **Earn** section, turn on the **Invoice** toggle.
+2. Under the **Earn** section, turn on the **Invoices** toggle.
 
 ---
 
@@ -30,9 +30,11 @@ Workspace admins can enable invoicing to send professional invoices and receive 
 
 # Receive an Invoice Payment
 
-If you haven’t [connected a business bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account) yet, invoice payments will appear as an **Invoice balance** in your [Wallet](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Set-up-your-wallet). 
+If you haven’t connected a business bank account yet, invoice payments will appear as an **Invoice balance** in your Wallet. [Learn how to set up your wallet](/articles/new-expensify/wallet-and-payments/Set-up-your-wallet).
 
 Expensify will automatically transfer these funds once your bank account is connected.
+
+To connect the account that receives your invoice payments, go to the Workspace’s **Invoices** page and select **Add bank account** in the **Bank accounts** section. [Learn how to connect a business bank account for invoice payments](/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account#how-to-connect-a-business-bank-account-for-invoice-payments).
 
 ---
 

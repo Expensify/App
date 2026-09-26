@@ -1,7 +1,7 @@
 ---
 title: Using Spend in New Expensify
 description: Learn how to use Spend in New Expensify to search, filter, customize columns, and save searches for expenses, invoices, trips, and chats.
-keywords: [Spend, New Expensify, report filters, search commands, custom columns, saved searches, share saved search, My expenses saved search, default saved search, group expenses, invoices, expenses, chats, trips, reimbursement tracking, view expenses, customize report view, reporting table columns, Tag GL code, Category GL code, Paid by column, Paid by filter, who paid a report, Edit columns, Display menu]
+keywords: [Spend, New Expensify, report filters, search commands, custom columns, saved searches, share saved search, My expenses saved search, default saved search, group expenses, invoices, expenses, chats, trips, reimbursement tracking, view expenses, customize report view, reporting table columns, Tag GL code, Category GL code, Paid by column, Paid by filter, who paid a report, Edit columns, Display menu, Violations column, missing Violations column, Submitted violation, Approved violation, has:submitted-violation, has:approved-violation]
 ---
 
 <div id="new-expensify" markdown="1">
@@ -45,7 +45,7 @@ Filter reports by type, status, category, or date to find specific information.
    - **Status:** Outstanding, Paid
    - **From:** You, or someone else
    - **Paid by:** The member who paid the report. On the **Expense Report** type, this sits directly below **Paid status**. On the **Expense** type, it sits directly below **Paid**.
-6. Click **View Results** to see the filtered results.
+6. Click **View results** to see the filtered results.
 
 <!-- SCREENSHOT:
 Suggestion: The Spend tab on web with the Expense Report type selected and the Filters panel open, scrolled so that Paid status and Paid by are both visible, and with the Filters, Display, Save, and Create controls visible in the toolbar above the table.
@@ -85,8 +85,24 @@ You can choose from a wide range of columns, including:
 - **Custom field 1** – The Custom field 1 value set for the report submitter
 - **Custom field 2** – The Custom field 2 value set for the report submitter
 - **International reimbursement IDs** – The reference IDs for international reimbursements on the report
+- **Violations** – The violations on each expense. This column is only listed when you filter for violations
 
 To view the full list of available columns, click **Display** in the **Spend** tab, then select **Edit columns**.
+
+---
+
+## How to add the Violations column in Spend
+
+Expensify only returns violation data for expenses that match a violation filter, so the **Violations** column would stay empty on any other search. That's why it isn't listed in **Edit columns** by default. To add it:
+
+1. Go to the **Spend** tab on the left (web only).
+2. Click **Filters**.
+3. Under **Has**, select **Submitted violation**, **Approved violation**, or both.
+4. Click **View results**.
+
+The **Violations** column is then added to the table and listed in **Display** > **Edit columns**. While one of those filters is applied you can't deselect the column, because it's the point of the search. Removing both filters removes the column again, even if you saved it in your column layout.
+
+**Submitted violation** and **Approved violation** only appear under **Has** if you're a member of a workspace that has Rules enabled.
 
 ---
 

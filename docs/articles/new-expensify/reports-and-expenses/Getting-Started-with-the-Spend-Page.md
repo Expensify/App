@@ -1,7 +1,7 @@
 ---
 title: Getting Started with the Spend Page
 description: Learn how to use the Spend page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
-keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total, sort by amount, Amount column, sort amount column, negative amount, credit, refund, negative expense sorting, selected total, total spend negative]
+keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total, move to report, Auto report, company card expenses, multiple submitters, bulk move expenses]
 ---
 
 The Spend page in New Expensify gives you a full list of your reports and related expenses. From the Spend page you can explore, filter, and export your expense data.
@@ -57,14 +57,17 @@ Each row represents an expense and includes:
   - **Hold:** Use this when you need to temporarily pause the approval of an expense until all required information is provided.
   - **Delete:** To remove expenses from the expense report.
 
-**Note:** The bulk action menu appears after selecting at least one expense.
+**Note:** The bulk actions appear after you select at least one expense.
+
+- **On web:** They appear in a bar at the bottom of the list that shows how many rows you selected, for example **2 selected**. The bar shows the most common actions as buttons and puts the rest behind **More**, so select **More** if you don't see the action you want. The search box and filters stay visible while the bar is open. To clear your selection, select the close icon at the right of the bar or press the Escape key.
+- **On mobile:** Tap **Selected** to open the same list of actions.
 
 ## How to move expenses between reports
 
 **From the report table**
 
 1. Select the expense(s) using checkboxes.
-2. Click **Move to report** from the bulk action menu.
+2. Click **Move to report** from the bulk actions. On web, click **More** in the bar at the bottom of the list if you don't see it.
 3. In the right-hand panel, select from the following options:
    - Create report
    - An existing draft or submitted report
@@ -81,6 +84,25 @@ Each row represents an expense and includes:
    - Remove from report 
 4. The expense is moved. A system message records the move when you move an expense into a submitted report or select **Remove from report**. Moving an expense into a draft report does not add a system message.
 
+## How to move company card expenses that belong to more than one submitter
+
+When your selection includes company card expenses from two or more submitters, Expensify can't offer one person's reports as a destination for everyone else's expenses. Instead, **Move to report** offers a single option, **Auto report**, which files each expense for its own submitter.
+
+1. On the **Spend** page, select the expenses using the checkboxes.
+2. Click **Move to report** from the bulk action menu.
+3. In the right-hand panel, click **Auto report**.
+
+Each expense is added to its submitter's most recent draft report. If a submitter has no draft report, Expensify creates one for them. The right-hand panel closes and your selection clears.
+
+## What to know before using Auto report
+
+- **Auto report** appears only when your selection spans more than one submitter. When every expense belongs to the same submitter, you get the usual list of reports plus **Create report** instead.
+- Every expense in the selection must be a company card expense, including Expensify Card expenses. **Move to report** is hidden when the selection spans submitters and any expense isn't on a company card.
+- Per diem, manual distance, and odometer distance expenses can't be moved this way, because their rates and mileage rules depend on the destination workspace.
+- **Auto report** requires an internet connection. If you're offline, Expensify tells you that you can't take this action right now.
+- You can't choose the destination reports yourself. To move expenses into a specific report, select one submitter's expenses at a time.
+- If the move fails, an error appears on the affected expenses.
+
 ## How to add a new expense to the table
 - The expense appears in the table.  
 - Its row is briefly highlighted as new.  
@@ -96,8 +118,6 @@ The **Spend** page footer shows the **Total spend** for what you're viewing. Whe
 
 - **Total spend:** the combined amount, shown with a currency code. With nothing selected, this covers the whole search result; when you select rows, it covers just your selection.
 - **Expenses:** the number of expenses currently selected (shown when you've made a selection).
-
-Credits and refunds are negative amounts, so they reduce the **Total spend** instead of adding to it. If you select a $100 expense and a -$100 credit, the **Total spend** reads $0.00.
 
 The total is shown in your default currency until you choose a different one.
 
@@ -123,34 +143,6 @@ The currency picker can't be opened in these cases:
 
 - You're offline, because converting the total requires a refresh from Expensify.
 - The totals are still loading.
-
----
-
-## How to sort the Amount column on the Spend page
-
-On a wide screen:
-
-1. On the **Spend** page, select **Expenses**.
-2. Click the **Amount** column header to sort from largest to smallest.
-3. Click the **Amount** column header again to reverse the order.
-
-On mobile, or in a narrow browser window, the column headers aren't shown, so sort from the **Display** menu instead:
-
-1. On the **Spend** page, select **Expenses**.
-2. Tap the **Display** icon.
-3. Tap **Sort by**, select **Amount**, then tap **Apply**.
-4. To change the direction, tap the **Display** icon again, tap **Sort by**, tap **Sort order**, select **Descending** (largest to smallest) or **Ascending** (smallest to largest), then tap **Apply**.
-
-The **Amount** column is only sortable when your results are shown as a table. When you group your results, this column reads **Total** instead of **Amount**.
-
-## How negative amounts sort in the Amount column on the Spend page
-
-The **Amount** column sorts by the signed value each row displays, not by its size. Because credits and refunds are negative amounts:
-
-- Sorting from largest to smallest puts every negative amount below every positive amount, ordered -$1, -$2, -$3 going down.
-- Sorting from smallest to largest puts every negative amount above every positive amount.
-
-A -$4,000 credit therefore sorts below a $10 expense rather than next to a $4,000 expense.
 
 ---
 
@@ -233,6 +225,12 @@ Previews update **in real time** as expenses are added or removed. Deleted repor
 
 ## Can someone comment on a report?
 Yes. When someone comments, a Comments section appears in the preview, and the layout adjusts to accommodate the discussion.
+
+## Why is Auto report the only option when I move expenses?
+Your selection includes company card expenses from more than one submitter. Any report Expensify listed would belong to a single submitter, so **Auto report** is offered instead. It adds each expense to its own submitter's most recent draft report, or creates a report for that submitter if they don't have one. To pick a destination report yourself, move one submitter's expenses at a time.
+
+## Why don't I see Move to report for my selection?
+When your selection spans more than one submitter, every expense must be a company card expense, and per diem, manual distance, and odometer distance expenses aren't supported. If any expense in the selection doesn't qualify, **Move to report** is hidden.
 
 ## Why can't I change the total spend currency?
 The currency picker is only disabled in two cases: when you're offline, or while the totals are still loading. Both happen because converting the total requires a refresh from Expensify. Reconnect or wait for the totals to finish loading to enable it.
