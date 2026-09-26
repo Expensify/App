@@ -1423,6 +1423,7 @@ function updateSplitTransactions({
             reportAction: currentReportAction,
             isChatReportArchived: undefined,
             currentUserAccountID: currentUserPersonalDetails.accountID,
+            transactionThread: allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportAction?.childReportID}`],
             transactionThreadReportActions: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportAction?.childReportID}`],
             shouldRemoveIOUTransaction: isReportArchived || undeletedTransaction?.transactionID === forceDeleteSplitTransactionID,
         });

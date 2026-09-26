@@ -669,7 +669,7 @@ type GetDeleteTrackExpenseInformationParams = {
     actionableWhisperReportActionID?: string;
     resolution?: string;
     shouldRemoveIOUTransaction?: boolean;
-    transactionThread?: OnyxEntry<OnyxTypes.Report>;
+    transactionThread: OnyxEntry<OnyxTypes.Report>;
 };
 
 function getDeleteTrackExpenseInformation({
@@ -1275,6 +1275,7 @@ const getConvertTrackedExpenseInformation = (
         currentUserAccountID,
         // isMovingTransactionFromTrackExpense is true, so the transaction thread is never deleted and these report actions are unused here.
         transactionThreadReportActions: undefined,
+        transactionThread: undefined,
         shouldDeleteTransactionFromOnyx: false,
         isMovingTransactionFromTrackExpense: true,
         actionableWhisperReportActionID,
@@ -3055,11 +3056,11 @@ function deleteTrackExpense({
         isSingleTransactionView,
     );
 
+    const allReports = getAllReports();
+    const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
+
     // STEP 1: Get all collections we're updating
     if (!isSelfDM(chatReport)) {
-        const allReports = getAllReports();
-        const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
-
         deleteMoneyRequest({
             transactionID,
             reportAction,
@@ -3089,6 +3090,7 @@ function deleteTrackExpense({
         isChatReportArchived,
         currentUserAccountID,
         transactionThreadReportActions,
+        transactionThread: transactionThreadReport,
         actionableWhisperReportActionID,
         resolution: CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
         shouldRemoveIOUTransaction: false,
