@@ -65,7 +65,7 @@ This message means the bank couldn't be reached right now, not that the card fee
 - No workspace admin, card admin, or member action is required.
 - Expensify retries automatically, and the message clears once the transaction imports and matches the receipt.
 
-Both members and workspace admins see this message on the expense and in the expense report header, whether the card is a company card or a personal card.
+Both members and workspace admins see this message on the expense and in the expense report header until the report is paid, whether the card is a company card or a personal card.
 
 If the same expense still shows the message after several days, check the card feed for a broken connection message and follow [Fix a Card Connection Error](/articles/new-expensify/connect-credit-cards/fix-card-connection-issues/Fix-a-Card-Connection-Error), or contact Concierge.
 
@@ -91,6 +91,8 @@ New card transactions stop importing while the connection needs attention.
 
 Receipt-scanned expenses may also show a broken connection violation while Expensify waits for the corresponding card transactions to import. Once the connection is restored and the transactions import, Expensify can match them with the receipts.
 
+Once an expense's report is paid, the broken connection violation no longer shows on that expense or in the report header.
+
 ---
 
 # FAQ
@@ -105,7 +107,7 @@ Once the connection is restored, Expensify resumes importing available transacti
 
 ## Why does my receipt show a broken connection violation?
 
-Expensify may be waiting for a card transaction to import so it can match the transaction with the receipt. The violation remains while the connection prevents that transaction from importing.
+Expensify may be waiting for a card transaction to import so it can match the transaction with the receipt. The violation remains while the connection prevents that transaction from importing, and stops showing once the expense's report is paid.
 
 ## Can I submit an expense before the connection is restored?
 

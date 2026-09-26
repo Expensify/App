@@ -110,6 +110,8 @@ When you have a broken personal card connection, Expensify adds a **broken conne
 
 To resolve the violation, fix the broken card connection by following the steps above. The violation is automatically removed from affected expenses once the connection is restored.
 
+Once an expense's report is paid, the violation no longer shows on that expense or in the report header.
+
 You can tap the hyperlinked text in the violation to go directly to the **Card details** page in **Wallet** where you can fix the connection.
 
 ---
@@ -126,7 +128,7 @@ This message means Expensify couldn't reach your bank right now, not that your c
 - No action is required from you.
 - Expensify retries automatically, and the message clears once the transaction imports and matches the receipt.
 
-Unlike a broken connection violation, this message always stays visible on the expense and in the expense report header, so you can see why the expense is being held.
+Unlike a broken connection violation, this message stays visible on the expense and in the expense report header until the report is paid, so you can see why the expense is being held.
 
 ---
 
@@ -156,6 +158,8 @@ The broken connection error is automatically removed when any of the following o
 - Logging into your bank successfully re-authenticates the connection.
 - Tapping Update card successfully refreshes the card.
 - Expensify's daily automatic card refresh succeeds.
+
+The error also stops showing on an expense once its report is paid.
 
 ## Why does my expense say “Can't auto-match receipt due to a temporary bank issue”?
 
