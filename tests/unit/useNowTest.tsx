@@ -120,16 +120,16 @@ describe('useNow', () => {
         // what a busy JS thread or a wake from background leaves behind
         jest.setSystemTime(new Date('2026-05-24T10:00:00Z'));
         resetNowStore();
-        const notified: string[] = [];
-        const unsubscribeFirst = subscribeToNow(() => notified.push('first'));
+        const notifications: string[] = [];
+        const unsubscribeFirst = subscribeToNow(() => notifications.push('first'));
         jest.setSystemTime(new Date('2026-05-24T10:01:00Z'));
 
         // When a second listener subscribes, which advances the clock because nothing else has
-        const unsubscribeSecond = subscribeToNow(() => notified.push('second'));
+        const unsubscribeSecond = subscribeToNow(() => notifications.push('second'));
 
         // Then both hear about it. Only React's own re-read after subscribing hides a listener left out here, and the
         // store cannot rely on that: the pending tick sees the same minute and notifies nobody
-        expect(notified).toEqual(['first', 'second']);
+        expect(notifications).toEqual(['first', 'second']);
         unsubscribeFirst();
         unsubscribeSecond();
     });
