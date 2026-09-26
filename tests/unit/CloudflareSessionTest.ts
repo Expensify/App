@@ -40,7 +40,9 @@ jest.mock('@libs/CloudflareAccess/OAuthClient', () => ({
     refreshTokens: jest.fn(),
 }));
 
-// Log ships its lines to the server, so a real warn enqueues an API request that flushes into a later test
+// CloudflareSession imports Log, whose native dependency is unavailable in the Jest environment. The session
+// behavior under test is platform-independent, so keep that native dependency out of this test.
+// Log also ships its lines to the server, so a real warn enqueues an API request that flushes into a later test
 jest.mock('@libs/Log', () => ({
     __esModule: true,
     default: {alert: jest.fn(), warn: jest.fn(), info: jest.fn(), hmmm: jest.fn()},
@@ -504,8 +506,9 @@ describe('builds without QA auth configured', () => {
         // When the actions module is imported
         const sessionActions = require<typeof SessionActionsModule>('@userActions/CloudflareSession');
 
-        // Then nothing subscribed to the QA session key, so apps without QA auth configured pay no cost for
-        // the feature. Importing the module pulls in unrelated modules that legitimately subscribe to their own keys
+        // Then nothing subscribed to the QA session key, so apps without QA auth configured pay no cost for the feature and
+        // importing the module pulls in unrelated modules that legitimately subscribe to their own keys,
+        // so the claim is specifically that nothing connected to the QA session key
         const connectedKeys = connectSpy.mock.calls.map(([connection]) => connection.key);
         expect(connectedKeys).not.toContain(ONYXKEYS.CLOUDFLARE_SESSION);
         expect(sessionActions.getCloudflareSession()).toBeNull();

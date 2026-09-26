@@ -1,3 +1,7 @@
+/**
+ * PKCE encoding pinned to the RFC 7636 Appendix B vector, the config security boundary
+ * (isQAServerRequest), and the OAuth client's request/response contract.
+ */
 import type * as AuthServerMetadataModule from '@libs/CloudflareAccess/AuthServerMetadata';
 import type * as ConfigModule from '@libs/CloudflareAccess/Config/index.ts';
 import type * as PKCEModule from '@libs/CloudflareAccess/generatePKCE';
@@ -323,6 +327,7 @@ describe('oAuthClient', () => {
         expect(request?.init.method).toBe('POST');
         expect(request?.init.credentials).toBe('omit');
         expect(request?.init.headers).toEqual([['Content-Type', 'application/x-www-form-urlencoded']]);
+        // A hung endpoint must not hold the cross-tab refresh lock forever
         expect(request?.init.signal).toBeInstanceOf(AbortSignal);
         expect(bodyParams(request?.init)).toEqual(
             Object.fromEntries([
@@ -355,7 +360,8 @@ describe('oAuthClient', () => {
 });
 
 describe('authServerMetadata', () => {
-    // The real Cloudflare response shape, captured from a live team
+    // The real Cloudflare response shape, captured from a live team. Built from entries because the
+    // protocol uses snake_case keys, which the naming-convention lint rule forbids as literal properties.
     const VALID_METADATA_ENTRIES: Array<[string, unknown]> = [
         ['issuer', 'https://team.cloudflareaccess.com'],
         ['authorization_endpoint', 'https://team.cloudflareaccess.com/cdn-cgi/access/oauth/authorization'],
