@@ -4,10 +4,12 @@ import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useOpenReport from '@hooks/useOpenReport';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
 import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
@@ -69,6 +71,9 @@ function AddPersonalBankAccountPage() {
     const kycWallRef = useContext(KYCWallContext);
 
     const shouldShowSuccess = fullPersonalBankAccount?.shouldShowSuccess ?? false;
+    const exitReportID = fullPersonalBankAccount?.exitReportID;
+    const [hasExitReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(exitReportID)}`, {selector: Boolean});
+    const openReport = useOpenReport();
 
     const exit = () => {
         const topmostFullScreenRoute = navigationRef.current?.getRootState()?.routes.findLast((rootRoute) => isFullScreenName(rootRoute.name));
@@ -88,12 +93,17 @@ function AddPersonalBankAccountPage() {
     };
 
     const exitFlow = (shouldContinue = false) => {
-        const exitReportID = fullPersonalBankAccount?.exitReportID;
         const onSuccessFallbackRoute = fullPersonalBankAccount?.onSuccessFallbackRoute ?? '';
 
-        if (exitReportID) {
-            Navigation.dismissModalWithReport({reportID: exitReportID});
-        } else if (shouldContinue && onSuccessFallbackRoute) {
+        // The report the flow was opened from (e.g. an expense waiting on the payee's bank account) holds server-owned fields
+        // like nextStep and isWaitingOnBankAccount that AddPersonalBankAccount doesn't update, so refetch it once the account is added.
+        // Navigation is intentionally left to exit(): the report may not be the one on screen, so navigating to it would be wrong.
+        // For the same reason don't mark it as read; this only refreshes its data.
+        if (exitReportID && shouldShowSuccess) {
+            openReport({reportID: exitReportID, hasReportActions: hasExitReportActions, shouldMarkAsRead: false});
+        }
+
+        if (shouldContinue && onSuccessFallbackRoute) {
             continueSetup(kycWallRef, onSuccessFallbackRoute);
         } else {
             exit();

@@ -11,6 +11,8 @@ import type {AddPersonalBankAccountNavigatorParamList, RightModalNavigatorParamL
 
 import AddPersonalBankAccountPage from '@pages/AddPersonalBankAccountPage';
 
+import {openReport} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,9 +46,14 @@ jest.mock('@userActions/PaymentMethods', () => ({
     continueSetup: jest.fn(),
 }));
 
+jest.mock('@userActions/Report', () => ({
+    openReport: jest.fn(),
+}));
+
 const closeRHPFlowSpy = jest.spyOn(Navigation, 'closeRHPFlow').mockImplementation(() => {});
 const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
 const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+const dismissModalWithReportSpy = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});
 
 type TestRootParamList = {
     [NAVIGATORS.TAB_NAVIGATOR]: NavigatorScreenParams<TabNavigatorParamList>;
@@ -158,5 +165,31 @@ describe('AddPersonalBankAccountPage', () => {
 
         expect(goBackSpy).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET);
         expect(closeRHPFlowSpy).not.toHaveBeenCalled();
+    });
+
+    it('fetches the exit report again and keeps the existing navigation once the bank account is added', async () => {
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID: '123', shouldShowSuccess: true});
+        });
+        await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
+
+        fireEvent.press(screen.getByTestId('confirmation-primary-button'));
+
+        expect(openReport).toHaveBeenCalledTimes(1);
+        expect(openReport).toHaveBeenCalledWith(expect.objectContaining({reportID: '123', shouldMarkAsRead: false}));
+        expect(closeRHPFlowSpy).toHaveBeenCalledTimes(1);
+        expect(dismissModalWithReportSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not refetch the exit report when the bank account was not added', async () => {
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID: '123'});
+        });
+        await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
+
+        fireEvent.press(screen.getByTestId('confirmation-primary-button'));
+
+        expect(openReport).not.toHaveBeenCalled();
+        expect(closeRHPFlowSpy).toHaveBeenCalledTimes(1);
     });
 });
