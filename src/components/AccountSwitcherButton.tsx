@@ -15,7 +15,7 @@ import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate'
 import {close} from '@libs/actions/Modal';
 import {getLatestError} from '@libs/ErrorUtils';
 import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
-import {sortAlphabetically} from '@libs/OptionsListUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import type {AnchorPosition} from '@styles/index';

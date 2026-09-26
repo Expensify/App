@@ -5,7 +5,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {sortAlphabetically} from '@libs/OptionsListUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
