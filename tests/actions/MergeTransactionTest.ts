@@ -77,6 +77,7 @@ type CrossReportMergeToSourceReportFixtures = {
     mergeTransaction: MergeTransactionType;
     mergeTransactionID: string;
     sourceExpenseReport: Report;
+    sourceTransactionThread: Report;
     targetReport: Report;
     sourceIOUAction: ReportAction;
     sourceIOUActionID: string;
@@ -179,6 +180,7 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
         mergeTransaction,
         mergeTransactionID,
         sourceExpenseReport,
+        sourceTransactionThread,
         targetReport,
         sourceIOUAction,
         sourceIOUActionID,
@@ -190,7 +192,8 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
 }
 
 function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSourceReportFixtures) {
-    const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetReport, sourceIOUAction, sourceExpenseReport} = fixtures;
+    const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetReport, sourceIOUAction, sourceExpenseReport, sourceTransactionThread} =
+        fixtures;
 
     mergeTransactionRequest({
         isVendorMatchingBetaEnabled: false,
@@ -217,7 +220,7 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
         sourceTransactionThreadReportActions: undefined,
         sourceIOUAction,
         sourceActionIOUReport: sourceExpenseReport,
-        sourceActionChatReport: undefined,
+        sourceActionChatReport: sourceTransactionThread,
         getCurrencyDecimals: getCurrencyDecimalsLocal,
         getCurrencySymbol: getCurrencySymbolLocal,
         rules: undefined,
@@ -344,7 +347,6 @@ describe('mergeTransactionRequest', () => {
             sourceIOUAction: undefined,
             sourceActionIOUReport: undefined,
             sourceActionChatReport: undefined,
-
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             rules: undefined,
@@ -582,7 +584,6 @@ describe('mergeTransactionRequest', () => {
             sourceIOUAction: undefined,
             sourceActionIOUReport: undefined,
             sourceActionChatReport: undefined,
-
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             rules: undefined,
@@ -743,7 +744,6 @@ describe('mergeTransactionRequest', () => {
             sourceIOUAction: undefined,
             sourceActionIOUReport: undefined,
             sourceActionChatReport: undefined,
-
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             rules: undefined,
@@ -859,7 +859,6 @@ describe('mergeTransactionRequest', () => {
             sourceIOUAction: undefined,
             sourceActionIOUReport: undefined,
             sourceActionChatReport: undefined,
-
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             rules: undefined,
@@ -1098,7 +1097,6 @@ describe('mergeTransactionRequest', () => {
                 sourceIOUAction: undefined,
                 sourceActionIOUReport: undefined,
                 sourceActionChatReport: undefined,
-
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
                 rules: undefined,
@@ -1472,7 +1470,6 @@ describe('mergeTransactionRequest', () => {
                 sourceIOUAction: undefined,
                 sourceActionIOUReport: undefined,
                 sourceActionChatReport: undefined,
-
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
                 rules: undefined,
@@ -1610,7 +1607,6 @@ describe('mergeTransactionRequest', () => {
                 sourceIOUAction: undefined,
                 sourceActionIOUReport: undefined,
                 sourceActionChatReport: undefined,
-
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
                 rules: undefined,
