@@ -44,6 +44,10 @@ function showErrorAlert(title: string, message: string) {
     Navigation.navigate(ROUTES.INBOX);
 }
 
+function isShareTempFile(file: unknown): file is ShareTempFile {
+    return typeof file === 'object' && file !== null && 'id' in file && typeof file.id === 'string' && 'content' in file && typeof file.content === 'string';
+}
+
 function ShareRootPage() {
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
 
@@ -99,16 +103,48 @@ function ShareRootPage() {
     }, [errorTitle, errorMessage]);
 
     const handleProcessFiles = useCallback(() => {
-        ShareActionHandler.processFiles((processedFiles) => {
-            const tempFile = Array.isArray(processedFiles) ? processedFiles.at(0) : (JSON.parse(processedFiles) as ShareTempFile);
+        ShareActionHandler.processFiles((processedFiles: unknown) => {
             if (errorTitle) {
                 return;
             }
-            if (!tempFile?.mimeType || !shareFileMimeTypes.includes(tempFile?.mimeType)) {
-                setErrorTitle(translate('attachmentPicker.wrongFileType'));
-                setErrorMessage(translate('attachmentPicker.notAllowedExtension'));
+
+            let tempFile: ShareTempFile | undefined;
+            if (Array.isArray(processedFiles)) {
+                const first: unknown = (processedFiles as unknown[]).at(0);
+                if (isShareTempFile(first)) {
+                    tempFile = first;
+                }
+            } else if (isShareTempFile(processedFiles)) {
+                tempFile = processedFiles;
+            } else if (typeof processedFiles === 'string' && processedFiles.trim().length > 0) {
+                try {
+                    const parsed: unknown = JSON.parse(processedFiles);
+                    if (isShareTempFile(parsed)) {
+                        tempFile = parsed;
+                    }
+                } catch (error) {
+                    Log.warn('[ShareRootPage] Failed to parse processedFiles', {error, processedFiles});
+                }
+            }
+            if (!tempFile) {
+                setErrorTitle(translate('attachmentPicker.attachmentError'));
+                setErrorMessage(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
                 return;
             }
+
+            const rawMimeType = tempFile.mimeType?.split(';')[0]?.trim()?.toLowerCase() ?? '';
+            const isValidMimeType =
+                !!rawMimeType &&
+                (shareFileMimeTypes.includes(rawMimeType) || shareFileMimeTypes.some((allowed) => allowed.endsWith('/*') && rawMimeType.startsWith(allowed.replace('/*', ''))));
+
+            if (!isValidMimeType) {
+                setErrorTitle(translate('attachmentPicker.wrongFileType'));
+                setErrorMessage(translate('attachmentPicker.notAllowedExtension'));
+                setIsFileReady(true);
+                return;
+            }
+
+            tempFile.mimeType = rawMimeType;
 
             const isImage = /image\/.*/.test(tempFile?.mimeType);
             if (tempFile?.mimeType && tempFile?.mimeType !== 'txt' && !isImage) {
