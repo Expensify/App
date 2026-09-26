@@ -77,6 +77,7 @@ type CrossReportMergeToSourceReportFixtures = {
     mergeTransaction: MergeTransactionType;
     mergeTransactionID: string;
     sourceExpenseReport: Report;
+    sourceTransactionThread: Report;
     targetReport: Report;
     sourceIOUAction: ReportAction;
     sourceIOUActionID: string;
@@ -179,6 +180,7 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
         mergeTransaction,
         mergeTransactionID,
         sourceExpenseReport,
+        sourceTransactionThread,
         targetReport,
         sourceIOUAction,
         sourceIOUActionID,
@@ -190,7 +192,8 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
 }
 
 function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSourceReportFixtures) {
-    const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetReport, sourceIOUAction} = fixtures;
+    const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetReport, sourceIOUAction, sourceExpenseReport, sourceTransactionThread} =
+        fixtures;
 
     mergeTransactionRequest({
         isVendorMatchingBetaEnabled: false,
@@ -216,6 +219,8 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
         isTrackIntentUser: false,
         sourceTransactionThreadReportActions: undefined,
         sourceIOUAction,
+        sourceActionIOUReport: sourceExpenseReport,
+        sourceActionChatReport: sourceTransactionThread,
         getCurrencyDecimals: getCurrencyDecimalsLocal,
         getCurrencySymbol: getCurrencySymbolLocal,
         rules: undefined,
@@ -340,6 +345,8 @@ describe('mergeTransactionRequest', () => {
             isTrackIntentUser: false,
             sourceTransactionThreadReportActions: undefined,
             sourceIOUAction: undefined,
+            sourceActionIOUReport: undefined,
+            sourceActionChatReport: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             rules: undefined,
@@ -465,6 +472,8 @@ describe('mergeTransactionRequest', () => {
             isTrackIntentUser: false,
             sourceTransactionThreadReportActions: undefined,
             sourceIOUAction: undefined,
+            sourceActionIOUReport: undefined,
+            sourceActionChatReport: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             rules: undefined,
@@ -573,6 +582,8 @@ describe('mergeTransactionRequest', () => {
             isTrackIntentUser: false,
             sourceTransactionThreadReportActions: undefined,
             sourceIOUAction: undefined,
+            sourceActionIOUReport: undefined,
+            sourceActionChatReport: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             rules: undefined,
@@ -731,6 +742,8 @@ describe('mergeTransactionRequest', () => {
             isTrackIntentUser: false,
             sourceTransactionThreadReportActions: undefined,
             sourceIOUAction: undefined,
+            sourceActionIOUReport: undefined,
+            sourceActionChatReport: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             rules: undefined,
@@ -844,6 +857,8 @@ describe('mergeTransactionRequest', () => {
             isTrackIntentUser: false,
             sourceTransactionThreadReportActions: undefined,
             sourceIOUAction: undefined,
+            sourceActionIOUReport: undefined,
+            sourceActionChatReport: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             rules: undefined,
@@ -1080,6 +1095,8 @@ describe('mergeTransactionRequest', () => {
                 isTrackIntentUser: false,
                 sourceTransactionThreadReportActions: undefined,
                 sourceIOUAction: undefined,
+                sourceActionIOUReport: undefined,
+                sourceActionChatReport: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
                 rules: undefined,
@@ -1273,7 +1290,7 @@ describe('mergeTransactionRequest', () => {
                 mergeTransaction,
                 targetTransaction,
                 sourceTransaction,
-                sourceIOUActionThreadReport: undefined,
+                sourceIOUActionThreadReport: thread,
                 targetTransactionThreadReport: {reportID: 'target-report-456'},
                 targetTransactionThreadParentReport: undefined,
                 reportPolicyTags: undefined,
@@ -1290,6 +1307,8 @@ describe('mergeTransactionRequest', () => {
                 isTrackIntentUser: false,
                 sourceTransactionThreadReportActions: undefined,
                 sourceIOUAction,
+                sourceActionIOUReport: sourceReport,
+                sourceActionChatReport: chatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
                 rules: undefined,
@@ -1432,7 +1451,7 @@ describe('mergeTransactionRequest', () => {
                 mergeTransaction,
                 targetTransaction,
                 sourceTransaction,
-                sourceIOUActionThreadReport: undefined,
+                sourceIOUActionThreadReport: thread,
                 targetTransactionThreadReport: {reportID: 'target-report-456'},
                 targetTransactionThreadParentReport: undefined,
                 reportPolicyTags: undefined,
@@ -1449,6 +1468,8 @@ describe('mergeTransactionRequest', () => {
                 isTrackIntentUser: false,
                 sourceTransactionThreadReportActions: undefined,
                 sourceIOUAction: undefined,
+                sourceActionIOUReport: undefined,
+                sourceActionChatReport: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
                 rules: undefined,
@@ -1584,6 +1605,8 @@ describe('mergeTransactionRequest', () => {
                 isTrackIntentUser: false,
                 sourceTransactionThreadReportActions,
                 sourceIOUAction: undefined,
+                sourceActionIOUReport: undefined,
+                sourceActionChatReport: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
                 rules: undefined,
@@ -1729,6 +1752,8 @@ describe('mergeTransactionRequest', () => {
                 isTrackIntentUser: false,
                 sourceTransactionThreadReportActions,
                 sourceIOUAction,
+                sourceActionIOUReport: sourceExpenseReport,
+                sourceActionChatReport: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
                 rules: undefined,
