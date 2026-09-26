@@ -7,7 +7,7 @@ internalScope: Audience is Workspace Admins on the Collect and Control plans. Co
 
 # Workspace Rules
 
-Workspace Rules let Workspace Admins enforce expense policies by setting requirements for receipts, spending limits, required fields, category behavior, and Expensify Card spend. These rules help ensure compliance and reduce manual review.
+Workspace rules let admins enforce expense policies by setting requirements for receipts, spending limits, required fields, category behavior, and Expensify Card spend. These rules help ensure compliance and reduce manual review.
 
 The **Rules** page is organized into tabs: **General**, **Card restrictions**, **Expense defaults**, **Field requirements**, **Flag for review**, and **Agents**.
 
@@ -15,33 +15,32 @@ If your requirements can't be handled with these rules alone, create an Agent Ru
 
 ---
 
-## Who can use Workspace Rules
+## Who can use Rules
 
-- Only **Workspace Admins** can enable, update, or disable Workspace Rules.
+- Only **Workspace Admins** can enable, update, or disable **Rules**.
 - Rules are available on the **Collect** and **Control** plans.
 - On the **Collect** plan, only **Require fields for all expenses** and **Billable expenses** on the **General** tab are available. Selecting any other rule or tab prompts you to upgrade to **Control**.
 
 ---
 
-## How to enable Workspace Rules
+## How to enable Rules on a workspace
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces**.
-2. Click your **workspace name**.
-3. Click **More features**.
-4. Under the **Manage** section, toggle on **Rules**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **More features**.
+3. Under the **Manage** section, toggle on **Rules**.
 
-**Rules** then appears in the left menu.
+Once enabled, **Rules** appears in the workspace menu.
 
 ---
 
 ## How to set basic rules on the General tab
 
-The **General** tab holds the **Basic rules** card, which applies to every expense on the workspace.
+The **General** tab holds **Basic rules**, which apply to every expense on the workspace.
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces**.
-2. Click your **workspace name**.
-3. Click **Rules**.
-4. Open the **General** tab and select the rule you want to configure.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **Rules**.
+3. Select the **General** tab.
+4. Choose the rule you want to configure.
 
 Available rules:
 
@@ -59,30 +58,25 @@ Available rules:
 
 **Cash expenses** and **Billable expenses** can also be set per merchant. [Learn how Merchant Rules work](/articles/new-expensify/workspaces/Workspace-Merchant-Rules).
 
-<!-- SCREENSHOT:
-Suggestion: The Rules page on the General tab, showing the tab bar and the full Basic rules card.
-Location: After the list of General tab rules.
-Purpose: Confirms which tab a member is on, since the rules that used to sit together on one Rules page are now split across six tabs.
--->
+![ The Rules page on the General tab, showing the tab bar and the full Basic rules card.]({{site.url}}/assets/images/image-name.png){:width="100%"}
 
 ---
 
 ## How to restrict Expensify Card spend on the Card restrictions tab
 
-The **Card restrictions** tab holds Expensify Card Spend rules, which approve or decline card transactions in real time based on currency, amount, merchant, and merchant type. If the [Expensify Card](/articles/new-expensify/expensify-card/Set-Up-and-Manage-the-Expensify-Card) isn't enabled for the workspace, the tab shows **Get the Expensify Card and control spend** instead, with a **Get the card** button.
+The **Card restrictions** tab holds Expensify Card Spend rules, which approve or decline card transactions in real time based on currency, amount, merchant, and merchant type.
 
 Every Expensify Card includes built-in protection that always declines charges for adult services, ATMs, gambling, and money transfers. Those default protections are listed under **Default** on this tab as the **All cards** rule and can't be edited or removed.
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces**.
-2. Click your **workspace name**.
-3. Click **Rules**.
-4. Open the **Card restrictions** tab.
-5. Click **Add spend rule**.
-6. Configure the rule and click **Save rule**.
+To set additional Expensify Card spend rules:
 
-To edit or delete an existing rule, click the rule under **Custom rules**, make your changes, and click **Save rule** or **Delete rule**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **Rules**.
+3. Select **Add rule**.
+4. Choose **Restrict card spend**.
+5. Configure the rule and click **Save rule**.
 
-[Learn how to create Expensify Card Spend rules](/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
+For more details on configuring card restriction rules, see [Expensify Card Spend Rules](/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
 
 ---
 
@@ -90,13 +84,12 @@ To edit or delete an existing rule, click the rule under **Custom rules**, make 
 
 The **Expense defaults** tab holds rules that fill in expense fields automatically, so members don't have to. Each rule matches on a merchant, a merchant type, or a category, and then updates fields such as the category, tag, description, or tax rate.
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces**.
-2. Click your **workspace name**.
-3. Click **Rules**.
-4. Open the **Expense defaults** tab.
-5. Click **Add rule**, then select **Apply expense defaults**.
-6. Select **Merchant** to update fields on expenses from a specific merchant, or **Category** to set a default tax rate for a specific category.
-7. Configure the rule and click **Save rule**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **Rules**.
+3. Select **Add rule**.
+4. Choose **Apply expense defaults**.
+5. Select **Merchant** to update fields on expenses from a specific merchant, or **Category** to set a default tax rate for a specific category.
+6. Configure the rule and select **Save rule**.
 
 A category default tax rate applies only to new expenses in that category. Expenses that already exist don't change.
 
@@ -110,12 +103,11 @@ Default categories based on the merchant's MCC (Merchant Category Code) also liv
 
 The **Field requirements** tab holds rules that require or waive specific expense fields for a category. Use **Require** to require a description, attendees, a receipt, or an itemized receipt on expenses in a given category. Use **Don't require** to waive a receipt or itemized receipt requirement that the **General** tab sets for everyone.
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces**.
-2. Click your **workspace name**.
-3. Click **Rules**.
-4. Open the **Field requirements** tab.
-5. Click **Create field requirement rule**.
-6. Configure the rule and click **Save rule**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **Rules**.
+3. Select **Field requirements**.
+4. Select **Create field requirement rule**.
+5. Configure the rule and select **Save rule**.
 
 ---
 
@@ -123,12 +115,11 @@ The **Field requirements** tab holds rules that require or waive specific expens
 
 The **Flag for review** tab holds rules that alert approvers when specific expenses need a closer look. Each rule flags expenses in a category when the individual expense amount, or the daily category total on a report, goes above the amount you set.
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces**.
-2. Click your **workspace name**.
-3. Click **Rules**.
-4. Open the **Flag for review** tab.
-5. Click **Create flag rule**.
-6. Configure the rule and click **Save rule**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **Rules**.
+3. Select **Flag for review**.
+4. Select **Create flag rule**.
+5. Configure the rule and select **Save rule**.
 
 ---
 
@@ -136,11 +127,10 @@ The **Flag for review** tab holds rules that alert approvers when specific expen
 
 The **Agents** tab holds Agent Rules, which are written in plain language and run automatically on your workspace.
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces**.
-2. Click your **workspace name**.
-3. Click **Rules**.
-4. Open the **Agents** tab.
-5. Click **Add AI rule**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **Rules**.
+3. Select **Agents**,
+4. Select **Add AI rule**.
 
 [Learn how to create Agent Rules](/articles/new-expensify/ai-agents/Create-Agent-Rules).
 
@@ -184,7 +174,7 @@ Rules that apply to a whole expense report are on the **Advanced** tab of the **
 
 ## What happens when an expense breaks a rule
 
-When an expense breaks a Workspace Rule or a category rule, the expense is flagged with a violation and the approver is prompted to manually review it before approval.
+When an expense breaks a workspace rule or a category rule, the expense is flagged with a violation and the approver is prompted to manually review it before approval.
 
 ![Expense showing violations]({{site.url}}/assets/images/ExpensifyHelp-FlagExpensesMissingItemizedReceipts_02.png){:width="100%"}
 
@@ -192,9 +182,9 @@ When an expense breaks a Workspace Rule or a category rule, the expense is flagg
 
 # FAQ
 
-## What happens if I turn Workspace Rules off?
+## What happens if I turn Rules off?
 
-Disabling Workspace Rules removes any active warnings or violations from draft or outstanding expenses that relied on those rules.
+Disabling Rules removes any active warnings or violations from draft or outstanding expenses that relied on those rules.
 
 ## Can I disable SmartScan for my workspace?
 
