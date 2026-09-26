@@ -2918,19 +2918,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         }
                         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
                         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-                        unholdRequest(
+                        unholdRequest({
                             transactionID,
-                            allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
-                            allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedTransactions[transactionID].reportAction?.childReportID}`],
-                            policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactions[transactionID].policyID}`],
+                            transactionReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
+                            report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedTransactions[transactionID].reportAction?.childReportID}`],
+                            policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactions[transactionID].policyID}`],
                             isOffline,
-                            currentUserLogin ?? '',
-                            accountID,
+                            currentUserLogin: currentUserLogin ?? '',
+                            currentUserAccountID: accountID,
                             transactionViolations,
                             isTrackIntentUser,
                             delegateAccountID,
                             rules,
-                        );
+                        });
                     }
                     clearSelectedTransactions();
                 },
