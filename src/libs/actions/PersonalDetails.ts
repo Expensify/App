@@ -680,6 +680,7 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
 }
 
 export {
+    buildOptimisticDisplayNameDetails,
     deleteAvatar,
     openPublicProfilePage,
     updateAddress,
@@ -697,3 +698,5 @@ export {
     clearPersonalDetailsErrors,
     buildSetPersonalDetailsAndShipExpensifyCardsParams,
 };
+
+export type {DisplayNamePersonalDetails};

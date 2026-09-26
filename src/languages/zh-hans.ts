@@ -2196,6 +2196,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: '显示名称',
         isShownOnProfile: '您的显示名称会显示在您的个人资料中。',
+        isShownOnMemberProfile: '显示名称会出现在该成员的个人资料中。保存后，只有该成员本人可以编辑。',
     },
     timezonePage: {
         timezone: '时区',
@@ -9109,6 +9110,8 @@ ${reportName}`,
             return `将“${categoryName}”类别的出席者更改为 ${newValue ? '必填' : '非必填'}（之前为 ${newValue ? '非必填' : '必填'}）`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? '已启用' : '已禁用'} 次提交`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `已将您的显示名称更新为 ${newName}（之前为“${oldName}”）。<a href="${editProfileURL}">在个人资料中编辑</a>`,
         changedOverLimitForwardsTo: ({
             member,
             approver,
