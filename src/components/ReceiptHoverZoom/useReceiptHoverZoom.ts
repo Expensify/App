@@ -1,6 +1,6 @@
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {View} from 'react-native';
 
 import {useEffect, useRef, useState} from 'react';
@@ -8,7 +8,7 @@ import {useEffect, useRef, useState} from 'react';
 type UseReceiptHoverZoomConfig = {
     isEnabled: boolean;
     scale: number;
-    hoverContainerRef?: RefObject<View | null>;
+    hoverContainerRef?: RefObject<ComponentRef<typeof View> | null>;
 };
 
 type UseReceiptHoverZoomResult = {
@@ -18,7 +18,7 @@ type UseReceiptHoverZoomResult = {
     isHovering: boolean;
 };
 
-function resolveHoverTarget(wrapper: HTMLDivElement | null, externalRef: RefObject<View | null> | undefined): HTMLElement | null {
+function resolveHoverTarget(wrapper: HTMLDivElement | null, externalRef: RefObject<ComponentRef<typeof View> | null> | undefined): HTMLElement | null {
     if (externalRef) {
         const external = externalRef.current as unknown as HTMLElement | null;
         if (external) {

@@ -221,6 +221,7 @@ function MergeProviderCard({card, policy, handleConnect, canWriteMoreFeatures, s
                                     description={row.description}
                                     title={row.title}
                                     icon={row.icon}
+                                    numberOfLinesTitle={row.numberOfLinesTitle}
                                     style={styles.sectionMenuItemTopDescription}
                                     shouldShowRightIcon={canWriteMoreFeatures}
                                     brickRoadIndicator={row.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
