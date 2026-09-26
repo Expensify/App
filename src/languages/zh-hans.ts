@@ -4718,6 +4718,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 title: 'ChatGPT',
                 subtitle: '由 OpenAI 提供',
             },
+            grok: {
+                title: 'Grok',
+                subtitle: '由 xAI 提供',
+            },
         },
         receiptPartners: {
             uber: {

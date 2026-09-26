@@ -4864,6 +4864,10 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'ChatGPT',
                 subtitle: 'da OpenAI',
             },
+            grok: {
+                title: 'Grok',
+                subtitle: 'da xAI',
+            },
         },
         receiptPartners: {
             uber: {

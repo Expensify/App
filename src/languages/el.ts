@@ -4976,6 +4976,10 @@ ${amount} για ${merchant} - ${date}`,
                 title: 'ChatGPT',
                 subtitle: 'από την OpenAI',
             },
+            grok: {
+                title: 'Grok',
+                subtitle: 'από την xAI',
+            },
         },
         receiptPartners: {
             uber: {
