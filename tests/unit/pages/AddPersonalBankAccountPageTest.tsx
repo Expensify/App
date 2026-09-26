@@ -11,17 +11,21 @@ import type {AddPersonalBankAccountNavigatorParamList, RightModalNavigatorParamL
 
 import AddPersonalBankAccountPage from '@pages/AddPersonalBankAccountPage';
 
+import {clearPersonalBankAccount, updatePersonalBankAccountCurrentPage} from '@userActions/BankAccounts';
+import type * as FormActions from '@userActions/FormActions';
+import {clearDraftValues} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import type {NavigatorScreenParams} from '@react-navigation/native';
+import type {ValueOf} from 'type-fest';
 
 import {PortalProvider} from '@gorhom/portal';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {NavigationContainer} from '@react-navigation/native';
+import * as ReactNavigation from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -38,6 +42,12 @@ jest.mock('react-native-plaid-link-sdk', () => ({
 jest.mock('@userActions/BankAccounts', () => ({
     addPersonalBankAccount: jest.fn(),
     clearPersonalBankAccount: jest.fn(),
+    updatePersonalBankAccountCurrentPage: jest.fn(),
+}));
+
+jest.mock('@userActions/FormActions', () => ({
+    ...jest.requireActual<typeof FormActions>('@userActions/FormActions'),
+    clearDraftValues: jest.fn(),
 }));
 
 jest.mock('@userActions/PaymentMethods', () => ({
@@ -47,15 +57,26 @@ jest.mock('@userActions/PaymentMethods', () => ({
 const closeRHPFlowSpy = jest.spyOn(Navigation, 'closeRHPFlow').mockImplementation(() => {});
 const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
 const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+let mockIsFocused = true;
+
+jest.mock('@react-navigation/native', () => {
+    const actualNavigation = jest.requireActual<typeof ReactNavigation>('@react-navigation/native');
+    return {
+        ...actualNavigation,
+        useIsFocused: () => mockIsFocused,
+    };
+});
 
 type TestRootParamList = {
-    [NAVIGATORS.TAB_NAVIGATOR]: NavigatorScreenParams<TabNavigatorParamList>;
-    [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
+    [NAVIGATORS.TAB_NAVIGATOR]: ReactNavigation.NavigatorScreenParams<TabNavigatorParamList>;
+    [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: ReactNavigation.NavigatorScreenParams<RightModalNavigatorParamList>;
 };
 
 const RootStack = createRootStackNavigator<TestRootParamList>();
 const TabNav = createBottomTabNavigator<TabNavigatorParamList>();
 const AddPersonalBankAccountStack = createPlatformStackNavigator<AddPersonalBankAccountNavigatorParamList>();
+let initialSubPage: ValueOf<typeof CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES> = CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.SUCCESS;
+let shouldUseInitialSubPage = true;
 
 const getEmptyComponent = () => jest.fn();
 
@@ -81,14 +102,14 @@ function TestTabNavigator() {
     );
 }
 
-/** Renders the real page on its success substep, so pressing the primary button runs the flow's exit logic. */
+/** Renders the real page on the selected subpage. */
 function TestRightModalNavigator() {
     return (
         <AddPersonalBankAccountStack.Navigator>
             <AddPersonalBankAccountStack.Screen
                 name={SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT}
                 component={AddPersonalBankAccountPage}
-                initialParams={{subPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.SUCCESS}}
+                initialParams={shouldUseInitialSubPage ? {subPage: initialSubPage} : undefined}
             />
         </AddPersonalBankAccountStack.Navigator>
     );
@@ -102,7 +123,7 @@ async function renderPageOverTab(focusedTabIndex: number) {
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <PortalProvider>
-                <NavigationContainer
+                <ReactNavigation.NavigationContainer
                     ref={navigationRef}
                     initialState={{
                         index: 1,
@@ -119,7 +140,7 @@ async function renderPageOverTab(focusedTabIndex: number) {
                             component={TestRightModalNavigator}
                         />
                     </RootStack.Navigator>
-                </NavigationContainer>
+                </ReactNavigation.NavigationContainer>
             </PortalProvider>
         </ComposeProviders>,
     );
@@ -134,6 +155,9 @@ describe('AddPersonalBankAccountPage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockIsFocused = true;
+        initialSubPage = CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.SUCCESS;
+        shouldUseInitialSubPage = true;
         await act(async () => {
             await Onyx.clear();
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
@@ -158,5 +182,164 @@ describe('AddPersonalBankAccountPage', () => {
 
         expect(goBackSpy).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET);
         expect(closeRHPFlowSpy).not.toHaveBeenCalled();
+    });
+
+    it('clears an abandoned Wallet draft before returning from the first US setup page', async () => {
+        initialSubPage = CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS;
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS,
+            });
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {
+                setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
+                routingNumber: '123456789',
+                accountNumber: '1234',
+            });
+        });
+
+        await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR));
+
+        fireEvent.press(screen.getByLabelText('Back'));
+
+        expect(clearDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
+        expect(clearPersonalBankAccount).toHaveBeenCalledWith();
+        expect(goBackSpy).toHaveBeenCalledWith();
+    });
+
+    it('updates the saved Wallet page when an earlier route becomes focused again', async () => {
+        initialSubPage = CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS;
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.LEGAL_NAME,
+            });
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {
+                setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
+                routingNumber: '123456789',
+                accountNumber: '1234',
+            });
+        });
+
+        await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR));
+        expect(updatePersonalBankAccountCurrentPage).toHaveBeenCalledWith(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS);
+
+        jest.mocked(updatePersonalBankAccountCurrentPage).mockClear();
+        mockIsFocused = false;
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {isLoading: false});
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(updatePersonalBankAccountCurrentPage).not.toHaveBeenCalled();
+
+        mockIsFocused = true;
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {isLoading: true});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(updatePersonalBankAccountCurrentPage).toHaveBeenCalledWith(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS);
+    });
+
+    it('resumes saved Plaid progress when Plaid stores the access token at the top level', async () => {
+        shouldUseInitialSubPage = false;
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PHONE_NUMBER,
+            });
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {
+                setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
+                selectedPlaidAccountID: 'plaid-account-1',
+                legalFirstName: 'Ada',
+                legalLastName: 'Lovelace',
+                addressStreet: '1 Main St',
+                addressCity: 'New York',
+                addressState: 'NY',
+                addressZipCode: '10001',
+                country: CONST.COUNTRY.US,
+            });
+            await Onyx.set(ONYXKEYS.PLAID_DATA, {
+                plaidAccessToken: 'access-token',
+                errors: {},
+                bankAccounts: [
+                    {
+                        accountNumber: '1234',
+                        addressName: 'Plaid checking',
+                        plaidAccountID: 'plaid-account-1',
+                        routingNumber: '123456789',
+                        mask: '1234',
+                        plaidAccessToken: '',
+                        bankName: 'Plaid Bank',
+                    },
+                ],
+            });
+        });
+
+        await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR));
+
+        expect(updatePersonalBankAccountCurrentPage).toHaveBeenCalledWith(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PHONE_NUMBER);
+    });
+
+    it('falls back to the Plaid connection page when saved Plaid progress has no access token', async () => {
+        shouldUseInitialSubPage = false;
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PHONE_NUMBER,
+            });
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {
+                setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
+                selectedPlaidAccountID: 'plaid-account-1',
+            });
+            await Onyx.set(ONYXKEYS.PLAID_DATA, {
+                plaidAccessToken: '',
+                errors: {},
+                bankAccounts: [
+                    {
+                        accountNumber: '1234',
+                        addressName: 'Plaid checking',
+                        plaidAccountID: 'plaid-account-1',
+                        routingNumber: '123456789',
+                        mask: '1234',
+                        plaidAccessToken: '',
+                        bankName: 'Plaid Bank',
+                    },
+                ],
+            });
+        });
+
+        await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR));
+
+        expect(updatePersonalBankAccountCurrentPage).toHaveBeenCalledWith(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PLAID_BANK_ACCOUNT);
+    });
+
+    it('does not resume a saved personal-information page that is skipped', async () => {
+        shouldUseInitialSubPage = false;
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {
+                legalFirstName: 'Ada',
+                legalLastName: 'Lovelace',
+            });
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.LEGAL_NAME,
+            });
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {
+                setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
+                routingNumber: '123456789',
+                accountNumber: '1234',
+                addressStreet: '1 Main St',
+                addressCity: 'New York',
+                addressState: 'NY',
+                addressZipCode: '10001',
+                country: CONST.COUNTRY.US,
+            });
+        });
+
+        await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR));
+
+        expect(updatePersonalBankAccountCurrentPage).not.toHaveBeenCalledWith(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.LEGAL_NAME);
+        expect(updatePersonalBankAccountCurrentPage).toHaveBeenCalledWith(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PHONE_NUMBER);
     });
 });

@@ -862,6 +862,9 @@ const CONST = {
             PLAID: 'plaid',
             NONE: '',
         },
+        SOURCE: {
+            WALLET: 'wallet',
+        },
         CONNECT_EXISTING_SOURCE: {
             CHANGE_BANK_ACCOUNT: 'changeBankAccount',
         },

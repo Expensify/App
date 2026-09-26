@@ -53,6 +53,10 @@ type CorpayFormField = {
 type CorpayFields = {
     bankCountry: string;
     bankCurrency: string;
+    /** Whether the fields were requested for a withdrawal account */
+    isWithdrawal?: boolean;
+    /** Whether the fields were requested for a business bank account */
+    isBusinessBankAccount?: boolean;
     /** Classification of the bank */
     classification: string;
     /** Destination country of the bank */

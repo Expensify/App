@@ -6,7 +6,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 
-import {fetchCorpayFields} from '@userActions/BankAccounts';
+import {clearInternationalBankAccount, clearPersonalBankAccountPreservingEntryContext, fetchCorpayFields} from '@userActions/BankAccounts';
+import {clearDraftValues} from '@userActions/FormActions';
 
 import CONST, {COUNTRIES_US_BANK_FLOW} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,24 +19,31 @@ import React, {useCallback, useMemo, useState} from 'react';
 
 function CountrySelection({isEditing, onNext, onMove, formValues, fieldsMap}: CustomSubPageProps) {
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const [selectedCountry, setSelectedCountry] = useState(formValues.bankCountry || '');
 
     const onCountrySelected = useCallback(() => {
         if (COUNTRIES_US_BANK_FLOW.includes(selectedCountry)) {
-            if (isUserValidated) {
-                Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT_ENTRY_POINT);
-            } else {
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
-            }
+            clearInternationalBankAccount().then(() => {
+                clearPersonalBankAccountPreservingEntryContext(personalBankAccount);
+                clearDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
+                if (isUserValidated) {
+                    Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT_ENTRY_POINT);
+                } else {
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+                }
+            });
             return;
         }
         if (!isEmptyObject(fieldsMap) && formValues.bankCountry === selectedCountry) {
             onNext();
             return;
         }
+        clearPersonalBankAccountPreservingEntryContext(personalBankAccount);
+        clearDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
         fetchCorpayFields(selectedCountry);
         onMove(CONST.CORPAY_FIELDS.INDEXES.MAPPING.BANK_ACCOUNT_DETAILS, false);
-    }, [fieldsMap, formValues.bankCountry, onMove, isUserValidated, onNext, selectedCountry]);
+    }, [fieldsMap, formValues.bankCountry, onMove, isUserValidated, onNext, personalBankAccount, selectedCountry]);
 
     const countries = useMemo(() => Object.keys(CONST.ALL_COUNTRIES).filter((countryISO) => !CONST.CORPAY_FIELDS.EXCLUDED_COUNTRIES.includes(countryISO)), []);
 

@@ -12,6 +12,7 @@ import ReimbursementAccountPage from '@pages/ReimbursementAccount/ReimbursementA
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy, ReimbursementAccount} from '@src/types/onyx';
 
@@ -59,15 +60,20 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 
 // Stub the terminal screens so the assertions are about which branch the page picked, not about their internals.
 let mockLoaderBackPress: (() => void) | undefined;
+let mockContinuePress: (() => void) | undefined;
 const mockEntryPoint = jest.fn(() => null);
 const mockLoadingIndicator = jest.fn((props: {onBackButtonPress: () => void}) => {
     mockLoaderBackPress = props.onBackButtonPress;
     return null;
 });
+const mockVerifiedBankAccountFlowEntryPoint = jest.fn((props: {onContinuePress: () => void}) => {
+    mockContinuePress = props.onContinuePress;
+    return mockEntryPoint();
+});
 
 jest.mock('@pages/ReimbursementAccount/VerifiedBankAccountFlowEntryPoint', () => ({
     __esModule: true,
-    default: () => mockEntryPoint(),
+    default: (props: {onContinuePress: () => void}) => mockVerifiedBankAccountFlowEntryPoint(props),
 }));
 
 jest.mock('@components/ReimbursementAccountLoadingIndicator', () => ({
@@ -135,6 +141,7 @@ const renderPage = async (params: RouteParams = {policyID: POLICY_ID}) => {
 
 const validationRoute = (backTo?: string) =>
     backTo ? `bank-account/new/us/validation?policyID=${POLICY_ID}&backTo=${encodeURIComponent(backTo)}` : `bank-account/new/us/validation?policyID=${POLICY_ID}`;
+const walletValidationRoute = `bank-account/new/us/validation?backTo=${encodeURIComponent(ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE)}`;
 
 /**
  * Asserts the page neither navigated into the validation step nor parked itself on the redirect loader, which is the
@@ -162,6 +169,7 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
     beforeEach(() => {
         mockIsFocused = true;
         mockLoaderBackPress = undefined;
+        mockContinuePress = undefined;
     });
 
     afterEach(async () => {
@@ -248,6 +256,87 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
             // Then only the account survives: the draft is wiped, so the stale amounts cannot be resubmitted
             expect(await getReimbursementAccount()).toEqual(PENDING_ACCOUNT);
             const draft = await getReimbursementAccountDraft();
+            expect(draft?.amount1).toBeUndefined();
+            expect(draft?.amount2).toBeUndefined();
+            expect(draft?.amount3).toBeUndefined();
+        });
+
+        it('clears Wallet validation values and account errors on dismissal while preserving resume fields', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+                    country: CONST.COUNTRY.US,
+                    currency: CONST.CURRENCY.USD,
+                    source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                    amount1: '1.11',
+                    amount2: '2.22',
+                    amount3: '3.33',
+                    companyName: 'Example company',
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+            await seedOnyx({
+                ...PENDING_ACCOUNT,
+                error: 'Validation failed',
+                errors: {amount1: 'Invalid amount'},
+            });
+            const {unmount} = await renderPage({bankAccountID: String(PENDING_ACCOUNT.achData?.bankAccountID), backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+
+            await act(async () => {
+                unmount();
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            expect(await getReimbursementAccount()).toEqual(CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
+            const draft = await getReimbursementAccountDraft();
+            expect(draft?.country).toBe(CONST.COUNTRY.US);
+            expect(draft?.currency).toBe(CONST.CURRENCY.USD);
+            expect(draft?.source).toBe(CONST.BANK_ACCOUNT.SOURCE.WALLET);
+            expect(draft?.bankAccountID).toBe(PENDING_ACCOUNT.achData?.bankAccountID);
+            expect(draft?.amount1).toBeUndefined();
+            expect(draft?.amount2).toBeUndefined();
+            expect(draft?.amount3).toBeUndefined();
+            expect(draft?.companyName).toBeUndefined();
+        });
+
+        it('preserves the account while a Wallet route navigates into validation', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+                    country: CONST.COUNTRY.US,
+                    currency: CONST.CURRENCY.USD,
+                    source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                    amount1: '1.11',
+                    amount2: '2.22',
+                    amount3: '3.33',
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+            await seedOnyx({...PENDING_ACCOUNT, achData: buildAchData({currentStep: CONST.BANK_ACCOUNT.STEP.VALIDATION})});
+            const {unmount} = await renderPage({bankAccountID: String(PENDING_ACCOUNT.achData?.bankAccountID), backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+            expect(mockEntryPoint).toHaveBeenCalled();
+
+            await act(async () => {
+                mockContinuePress?.();
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            await act(async () => {
+                unmount();
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(walletValidationRoute);
+            expect(await getReimbursementAccount()).toEqual(
+                expect.objectContaining({
+                    achData: expect.objectContaining({
+                        bankAccountID: PENDING_ACCOUNT.achData?.bankAccountID,
+                        subStep: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
+                    }),
+                }),
+            );
+            const draft = await getReimbursementAccountDraft();
+            expect(draft?.country).toBe(CONST.COUNTRY.US);
+            expect(draft?.currency).toBe(CONST.CURRENCY.USD);
+            expect(draft?.source).toBe(CONST.BANK_ACCOUNT.SOURCE.WALLET);
             expect(draft?.amount1).toBeUndefined();
             expect(draft?.amount2).toBeUndefined();
             expect(draft?.amount3).toBeUndefined();
