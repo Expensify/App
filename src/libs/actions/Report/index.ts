@@ -6159,14 +6159,14 @@ async function completeOnboarding({
         personalTrackGoal,
     };
 
-    // Side-effect requests are not queued or retried, so when offline we fall through to API.write
-    // to keep the optimistic data and replay the request once the user is back online
-    if (shouldWaitForRHPVariantInitialization && !isOfflineNetwork()) {
+    if (shouldWaitForRHPVariantInitialization) {
         // Wait for the workspace to be created before completing the guided setup
         await waitForWrites(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP);
 
-        // waitForWrites also resolves when the app goes offline with requests still queued,
-        // so check again and fall through to API.write if the connection dropped while waiting
+        // Side-effect requests are never queued or retried, so offline they fail immediately and their
+        // failureData rolls onboarding back. Fall through to API.write instead, which keeps the optimistic
+        // data and replays once we reconnect. Decided after the wait because waitForWrites itself resolves
+        // when the app goes offline with requests still queued.
         if (!isOfflineNetwork()) {
             // Pop onboarding nested stack after waiting so the modal doesn't rewind to step 1
             // during the wait. Must run before the API call so useLinking processes each step
