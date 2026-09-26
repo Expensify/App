@@ -1234,8 +1234,7 @@ function IOURequestStepConfirmationContent({
                             action={action}
                             isPerDiemRequest={isPerDiemRequest}
                             isTimeRequest={isTimeRequest}
-                            // An expense created from an expense report belongs on a workspace, so a P2P recipient must not be able to pull it off that report
-                            isWorkspacesOnly={isExpenseReport(report) || getIsWorkspacesOnlyForTransaction(transaction, requestType)}
+                            isWorkspacesOnly={getIsWorkspacesOnlyForTransaction(transaction, requestType)}
                             shouldExcludeP2P={(transaction?.amount ?? 0) < 0}
                             onParticipantsAdded={handleParticipantsAdded}
                             onFinish={closeParticipantPicker}
