@@ -627,14 +627,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Expensify wordt gestart',
         expired: 'Je sessie is verlopen.',
         signIn: 'Meld je opnieuw aan.',
-        notValid: 'Deze link kon niet worden gebruikt.',
-        sessionMismatch: 'De link die je hebt geopend is niet geldig voor je huidige sessie.',
-        switchAccount: {
-            title: 'Accounts wisselen?',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `Je bent aangemeld met ${currentEmail}. Deze aanmeldlink is voor ${newEmail}.`,
-            confirm: 'Wissel van account',
-            staySignedIn: 'Ingeschakeld blijven',
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {

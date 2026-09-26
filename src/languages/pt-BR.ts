@@ -626,14 +626,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Iniciando Expensify',
         expired: 'Sua sessão expirou.',
         signIn: 'Faça login novamente.',
-        notValid: 'Este link não pôde ser usado.',
-        sessionMismatch: 'O link que você abriu não é válido para a sua sessão atual.',
-        switchAccount: {
-            title: 'Mudar de conta?',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `Você está conectado em ${currentEmail}. Este link de acesso é para ${newEmail}.`,
-            confirm: 'Mudar de conta',
-            staySignedIn: 'Manter conexão',
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
