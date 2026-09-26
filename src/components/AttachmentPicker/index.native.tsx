@@ -1,3 +1,4 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
 import Popover from '@components/Popover';
 
@@ -11,7 +12,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {cleanFileName, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
+import {cleanFileName, isLabelledDng, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import processPickedAssetsSequentially from '@libs/fileDownload/processPickedAssets';
 import fileURIToPath from '@libs/fileURIToPath';
 import ReceiptStorage from '@libs/ReceiptStorage';
@@ -137,6 +138,59 @@ const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
             }),
     );
 };
+
+/**
+ * Transcodes document-picked DNG files (e.g. an iPhone ProRAW browsed to via "Choose file") to JPEG, the same
+ * way gallery picks are, so both entry points accept the same photos. Anything else is returned untouched: plain
+ * TIFFs are an accepted receipt format, and `.heic` documents keep the existing HEIC-through-validation flow.
+ *
+ * Files are converted one at a time (see `processPickedAssetsSequentially`) and failures are collected so a
+ * multi-selection produces at most one alert; a file that can't be decoded is dropped from the result, since the
+ * backend rejects DNG and it must never be uploaded unconverted.
+ */
+async function transcodeDngFiles(files: LocalCopy[], showGeneralAlert: (message?: string) => void, translate: LocaleContextProps['translate']): Promise<LocalCopy[]> {
+    if (!files.some((file) => isLabelledDng(file))) {
+        return files;
+    }
+
+    const failureMessages = new Set<string>();
+    const collectFailure = (message = translate('attachmentPicker.errorWhileSelectingAttachment')) => {
+        failureMessages.add(message);
+    };
+
+    const results: LocalCopy[] = [];
+    for (const file of files) {
+        if (!isLabelledDng(file)) {
+            results.push(file);
+            continue;
+        }
+
+        // eslint-disable-next-line no-await-in-loop -- converting one image at a time keeps a single decoded bitmap in memory, see processPickedAssetsSequentially
+        const convertedAssets = await processPickedAssetsSequentially(
+            [{uri: file.uri, fileName: file.name ?? undefined, type: file.type ?? undefined, fileSize: file.size ?? undefined}],
+            collectFailure,
+            translate,
+        );
+        const convertedAsset = convertedAssets?.at(0);
+        if (!convertedAsset?.uri) {
+            continue;
+        }
+
+        results.push({
+            name: convertedAsset.fileName ?? file.name,
+            uri: convertedAsset.uri,
+            // The JPEG's size differs from the DNG's and isn't reported by the transcode; `getDataForUpload` reads it from disk.
+            size: null,
+            type: convertedAsset.type ?? file.type,
+        });
+    }
+
+    if (failureMessages.size > 0) {
+        showGeneralAlert([...failureMessages].join('\n'));
+    }
+
+    return results;
+}
 
 /**
  * This component renders a function as a child and
@@ -272,7 +326,7 @@ function AttachmentPicker({
             destination: 'cachesDirectory',
         });
 
-        return pickedFiles.map((file) => {
+        const localFiles: LocalCopy[] = pickedFiles.map((file) => {
             const localCopy = localCopies.find((copy) => copy.sourceUri === file.uri);
 
             if (localCopy?.status !== 'success') {
@@ -286,7 +340,9 @@ function AttachmentPicker({
                 type: file.type,
             };
         });
-    }, [acceptedFileTypes, fileLimit, type]);
+
+        return transcodeDngFiles(localFiles, showGeneralAlert, translate);
+    }, [acceptedFileTypes, fileLimit, showGeneralAlert, translate, type]);
 
     const menuItemData: Item[] = useMemo(() => {
         const data: Item[] = [

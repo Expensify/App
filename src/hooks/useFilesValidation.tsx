@@ -282,7 +282,8 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                 continue;
             }
 
-            if (result.error === CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE) {
+            // HEIC and (on native) DNG are converted to JPEG before upload, see validateAttachmentFile
+            if (result.error === CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE || result.error === CONST.FILE_VALIDATION_ERRORS.DNG_IMAGE) {
                 filesToConvert.push(file);
                 continue;
             }
@@ -302,7 +303,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             const convertedFiles: FileObject[] = [];
 
             for (const file of filesToConvert) {
-                // Convert sequentially to avoid the native memory pressure caused by processing multiple HEIC images in parallel.
+                // Convert sequentially to avoid the native memory pressure caused by processing multiple HEIC/DNG images in parallel.
                 // eslint-disable-next-line no-await-in-loop
                 await new Promise<void>((resolve) => {
                     convertHeicImage(file, {
@@ -327,7 +328,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                             resolve();
                         },
                         onError: () => {
-                            Log.warn('HEIC conversion failed, blocking file', {fileName: file.name});
+                            Log.warn('Image conversion to JPEG failed, blocking file', {fileName: file.name});
                             collectedErrors.current.push({
                                 error: CONST.FILE_VALIDATION_ERRORS.HEIC_CONVERSION_FAILED,
                                 isValidatingMultipleFiles: validationState.isValidatingMultipleFiles,

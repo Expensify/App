@@ -417,140 +417,128 @@ function validateImageForCorruption(file: FileObject): Promise<{width: number; h
     });
 }
 
-/** Verify file format based on the magic bytes of the file - some formats might be identified by multiple signatures */
-function verifyFileFormat({fileUri, formatSignatures}: {fileUri: string; formatSignatures: readonly string[]}) {
-    const MAGIC_BYTES_NEEDED = 16;
+/** How many leading bytes of a file are needed to recognize every signature we check for (HEIC's 'ftyp' box at offset 4 is the furthest). */
+const MAGIC_BYTES_NEEDED = 16;
 
+/**
+ * Reads the first `MAGIC_BYTES_NEEDED` bytes of the file at `path` as base64.
+ *
+ * On iOS the header is sliced into a tiny temp file and that file is read. `readFile` has no length
+ * limit, so reading the source directly would pull the whole file into memory as base64, which for a
+ * 25-75 MB ProRAW DNG is a 100 MB string per picked photo. `readStream` is avoided on iOS because it
+ * crashed there (commit fd00aef11d4, "fix: crash on ios"). Read errors reject so callers can surface them.
+ */
+function readFileHeaderBase64IOS(path: string): Promise<string> {
+    const headerPath = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/file-header-${Date.now()}-${Math.random().toString(36).slice(2)}.bin`;
+    return ReactNativeBlobUtil.fs
+        .slice(path, headerPath, 0, MAGIC_BYTES_NEEDED)
+        .then(() => ReactNativeBlobUtil.fs.readFile(headerPath, 'base64'))
+        .then((data: unknown) => (typeof data === 'string' ? data : ''))
+        .finally(() => ReactNativeBlobUtil.fs.unlink(headerPath).catch(() => {}));
+}
+
+/**
+ * Android counterpart of `readFileHeaderBase64IOS`, streaming the file and stopping at the first chunk.
+ * Read errors reject, as on iOS, so a file whose format can't be verified is never uploaded unconverted.
+ */
+function readFileHeaderBase64Android(path: string): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+        let base64Data = '';
+        let isDone = false;
+
+        const finish = (data: string) => {
+            if (isDone) {
+                return;
+            }
+            isDone = true;
+            resolve(data);
+        };
+
+        const fail = (error: unknown) => {
+            if (isDone) {
+                return;
+            }
+            isDone = true;
+            reject(error instanceof Error ? error : new Error(String(error)));
+        };
+
+        ReactNativeBlobUtil.fs
+            .readStream(path, 'base64', 64, 0)
+            .then((stream: ReactNativeBlobUtilReadStream) => {
+                stream.onData((chunk: string | number[]) => {
+                    if (isDone) {
+                        return;
+                    }
+
+                    try {
+                        base64Data += Array.isArray(chunk) ? chunk.map((code) => String.fromCharCode(code)).join('') : chunk;
+
+                        const decodedByteCount = Math.floor((base64Data.length * 3) / 4);
+                        if (decodedByteCount >= MAGIC_BYTES_NEEDED) {
+                            finish(base64Data);
+                        }
+                    } catch (e) {
+                        fail(e);
+                    }
+                });
+
+                stream.onError(fail);
+                stream.onEnd(() => finish(base64Data));
+
+                stream.open();
+            })
+            .catch(fail);
+    });
+}
+
+/**
+ * Reads the first `MAGIC_BYTES_NEEDED` bytes of a file as a lowercase hex string, so a caller checking several
+ * formats reads the file once and matches each signature with `matchesFileSignature`.
+ *
+ * Resolves to an empty string when there is nothing to read (empty file or no URI). A failed read rejects on both platforms.
+ */
+function readFileHeaderHex(fileUri: string): Promise<string> {
+    if (!fileUri) {
+        return Promise.resolve('');
+    }
+
+    const cleanUri = fileURIToPath(fileUri);
+    const headerPromise = Platform.OS === 'ios' ? readFileHeaderBase64IOS(cleanUri) : readFileHeaderBase64Android(cleanUri);
+
+    return headerPromise.then((base64Data) => {
+        if (!base64Data) {
+            return '';
+        }
+
+        try {
+            return Array.from(atob(base64Data), (char) => char.charCodeAt(0).toString(16).padStart(2, '0')).join('');
+        } catch (e) {
+            return '';
+        }
+    });
+}
+
+/** Whether a file header read by `readFileHeaderHex` carries one of `formatSignatures` at byte `signatureOffset`. */
+function matchesFileSignature(headerHex: string, formatSignatures: readonly string[], signatureOffset: number): boolean {
+    if (!headerHex) {
+        return false;
+    }
+    const hexAtOffset = headerHex.slice(signatureOffset * 2);
+    return formatSignatures.some((signature) => hexAtOffset.startsWith(signature));
+}
+
+/**
+ * Verify file format based on the magic bytes of the file - some formats might be identified by multiple signatures.
+ *
+ * `signatureOffset` is the byte offset the signatures are expected at (`CONST.HEIC_SIGNATURE_OFFSET`, `CONST.TIFF_SIGNATURE_OFFSET`).
+ * To check one file against several formats, use `readFileHeaderHex` once and `matchesFileSignature` per format instead.
+ */
+function verifyFileFormat({fileUri, formatSignatures, signatureOffset}: {fileUri: string; formatSignatures: readonly string[]; signatureOffset: number}): Promise<boolean> {
     if (!fileUri || !formatSignatures || formatSignatures.length === 0) {
         return Promise.resolve(false);
     }
 
-    const cleanUri = fileURIToPath(fileUri);
-
-    if (Platform.OS === 'ios') {
-        return ReactNativeBlobUtil.fs.readFile(cleanUri, 'base64').then((fullBase64Data: string) => {
-            const base64CharsNeeded = Math.ceil((MAGIC_BYTES_NEEDED * 4) / 3);
-            const base64Data = fullBase64Data.substring(0, base64CharsNeeded);
-            if (!base64Data) {
-                return false;
-            }
-
-            try {
-                const binaryString = atob(base64Data);
-
-                const startOffset = 4;
-                const bytesToRead = 12;
-                const endOffset = startOffset + bytesToRead;
-
-                if (binaryString.length < endOffset) {
-                    return false;
-                }
-
-                const bytes = new Uint8Array(bytesToRead);
-                for (let i = 0; i < bytesToRead; i++) {
-                    bytes[i] = binaryString.charCodeAt(startOffset + i);
-                }
-
-                const hex = Array.from(bytes)
-                    .map((b) => b.toString(16).padStart(2, '0'))
-                    .join('');
-
-                const result = formatSignatures.some((signature) => hex.startsWith(signature));
-                return result;
-            } catch (e) {
-                return false;
-            }
-        });
-    }
-
-    return new Promise<boolean>((resolve) => {
-        ReactNativeBlobUtil.fs
-            .readStream(cleanUri, 'base64', 64, 0)
-            .then((stream: ReactNativeBlobUtilReadStream) => {
-                let base64Data = '';
-                let hasEnoughData = false;
-
-                const processData = () => {
-                    if (!base64Data) {
-                        resolve(false);
-                        return;
-                    }
-
-                    try {
-                        const binaryString = atob(base64Data);
-
-                        const startOffset = 4;
-                        const bytesToRead = 12;
-                        const endOffset = startOffset + bytesToRead;
-
-                        if (binaryString.length < endOffset) {
-                            resolve(false);
-                            return;
-                        }
-
-                        const bytes = new Uint8Array(bytesToRead);
-                        for (let i = 0; i < bytesToRead; i++) {
-                            bytes[i] = binaryString.charCodeAt(startOffset + i);
-                        }
-
-                        const hex = Array.from(bytes)
-                            .map((b) => b.toString(16).padStart(2, '0'))
-                            .join('');
-
-                        const result = formatSignatures.some((signature) => hex.startsWith(signature));
-                        resolve(result);
-                    } catch (e) {
-                        resolve(false);
-                    }
-                };
-
-                stream.onData((chunk: string | number[]) => {
-                    if (hasEnoughData) {
-                        return;
-                    }
-
-                    try {
-                        let chunkStr: string;
-                        if (Array.isArray(chunk)) {
-                            chunkStr = chunk.map((code) => String.fromCharCode(code)).join('');
-                        } else {
-                            chunkStr = chunk;
-                        }
-                        base64Data += chunkStr;
-
-                        const decodedByteCount = Math.floor((base64Data.length * 3) / 4);
-                        if (decodedByteCount >= MAGIC_BYTES_NEEDED) {
-                            hasEnoughData = true;
-                            processData();
-                        }
-                    } catch (e) {
-                        if (!hasEnoughData) {
-                            hasEnoughData = true;
-                            resolve(false);
-                        }
-                    }
-                });
-
-                stream.onError(() => {
-                    if (hasEnoughData) {
-                        return;
-                    }
-                    hasEnoughData = true;
-                    resolve(false);
-                });
-
-                stream.onEnd(() => {
-                    if (hasEnoughData) {
-                        return;
-                    }
-                    hasEnoughData = true;
-                    processData();
-                });
-
-                stream.open();
-            })
-            .catch(() => resolve(false));
-    });
+    return readFileHeaderHex(fileUri).then((headerHex) => matchesFileSignature(headerHex, formatSignatures, signatureOffset));
 }
 
 function isLocalFile(receiptUri?: string | number): boolean {
@@ -739,6 +727,35 @@ const hasHeicOrHeifExtension = (file: FileObject) => {
 };
 
 /**
+ * Whether a picked file is labelled as a TIFF or DNG (iPhone ProRAW, Android RAW) by MIME type or extension.
+ *
+ * Android's gallery picker keeps the real file name and resolves the MIME type from it, and the document picker does
+ * the same on both platforms, so for those the label is enough. iOS gallery picks arrive as `<uuid>.jpg` / `image/jpg`
+ * and never match here; they have to be recognized from `CONST.TIFF_SIGNATURES` instead.
+ *
+ * Use `isLabelledDng` to decide what to transcode: plain TIFFs are an accepted receipt format and are uploaded as-is.
+ */
+function isLabelledTiff({name, type}: {name?: string | null; type?: string | null}): boolean {
+    const mimeType = type?.toLowerCase();
+    if (mimeType && CONST.TIFF_MIME_TYPES.some((tiffMimeType) => tiffMimeType === mimeType)) {
+        return true;
+    }
+    const extension = splitExtensionFromFileName(name ?? '').fileExtension.toLowerCase();
+    return CONST.TIFF_EXTENSIONS.some((tiffExtension) => tiffExtension === extension);
+}
+
+/**
+ * Whether a file is a DNG (iPhone ProRAW / Android RAW) by MIME type or extension. Narrower than `isLabelledTiff`:
+ * plain TIFFs are an accepted receipt format, DNGs are not.
+ */
+function isLabelledDng({name, type}: {name?: string | null; type?: string | null}): boolean {
+    if (type?.toLowerCase() === CONST.DNG_MIME_TYPE) {
+        return true;
+    }
+    return splitExtensionFromFileName(name ?? '').fileExtension.toLowerCase() === CONST.DNG_EXTENSION;
+}
+
+/**
  * Normalizes a file-like object specifically for Android clipboard image pasting,
  * where limited file metadata is available (e.g., only a URI).
  * If the object is already a File or contains a size, it is returned as-is.
@@ -847,7 +864,7 @@ const getFileValidationErrorText = (
         case CONST.FILE_VALIDATION_ERRORS.HEIC_CONVERSION_FAILED:
             return {
                 title: translate('attachmentPicker.attachmentError'),
-                reason: translate('attachmentPicker.errorWhileConvertingHeic'),
+                reason: translate('attachmentPicker.errorWhileConvertingImage'),
             };
         case CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE:
             return {
@@ -979,6 +996,8 @@ export {
     getFileResolution,
     isHighResolutionImage,
     verifyFileFormat,
+    readFileHeaderHex,
+    matchesFileSignature,
     getImageDimensionsAfterResize,
     resizeImageIfNeeded,
     createFile,
@@ -988,6 +1007,8 @@ export {
     isValidReceiptExtension,
     getFileValidationErrorText,
     hasHeicOrHeifExtension,
+    isLabelledTiff,
+    isLabelledDng,
     canvasFallback,
     getFilesFromClipboardEvent,
     cleanFileObject,
