@@ -14,6 +14,8 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import openHomePage from '@libs/actions/HomePage';
+
 import variables from '@styles/variables';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,7 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ComponentRef} from 'react';
 
 import {PortalHost} from '@gorhom/portal';
-import {useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import ForYouSection from './ForYouSection';
@@ -41,13 +43,17 @@ function HomePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     useDocumentTitle(translate('common.home'));
-    const {isOffline} = useNetwork();
+    const {isOffline} = useNetwork({onReconnect: openHomePage});
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     // Offline the underlying commands never send, so the loading flags can stay true forever. Match useLoadingBarVisibility and hide the bar when offline.
     const isForYouLoading = !isOffline && !!(isLoadingApp || isLoadingReportData);
     const shouldShowHomeSkeleton = useAppLoadSkeletonVisibility();
     const receiptDropTargetRef = useRef<ComponentRef<typeof View>>(null);
+
+    useEffect(() => {
+        openHomePage();
+    }, []);
 
     // Owned here (above the narrow/wide layout branch) so the Concierge "+" menu survives the ForYouSection remount that
     // happens on breakpoint change, converting between anchored popover and bottom-docked modal instead of vanishing.
