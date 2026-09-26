@@ -66,7 +66,6 @@ type SearchPageNarrowProps = {
 
     isMobileSelectionModeEnabled: boolean;
     onSortPressedCallback: () => void;
-
     /** Overlay rendered above Search content during expense-creation flows (SearchStaticList or null). */
     searchOverlayContent: React.ReactNode;
     /** Callback for Search to signal that real content is ready and the overlay can be dismissed. */
