@@ -95,12 +95,15 @@ function AmountField({
     // blank) can't show a phantom required error under a field that is deliberately empty.
     const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && isConfirmationAmountMissing(transactionSlice, canEnterScanFieldsManually);
     const shouldShowAmountInvalidError = formError === 'common.error.invalidAmount';
+    const shouldShowAmountMissingError = shouldDisplayFieldError && amountIsMissing;
 
     let amountFieldErrorText = '';
     if (shouldShowAmountInvalidError) {
         amountFieldErrorText = translate('common.error.invalidAmount');
     } else if (shouldShowAmountRequiredError) {
         amountFieldErrorText = translate('common.error.fieldRequired');
+    } else if (shouldShowAmountMissingError) {
+        amountFieldErrorText = translate('common.error.enterAmount');
     }
 
     const effectiveCurrency = isDistanceRequest ? distanceRateCurrency : (iouCurrencyCode ?? CONST.CURRENCY.USD);
