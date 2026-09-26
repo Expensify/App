@@ -93,11 +93,12 @@ type ChartSkeletonProps = {
 
 function ChartSkeleton({view}: ChartSkeletonProps) {
     const theme = useTheme();
-    const {onLayout, containerWidth} = useContainerWidth();
+    const {ref, onLayout, containerWidth} = useContainerWidth();
     const {render, height} = PLACEHOLDER_BY_VIEW[view];
 
     return (
         <View
+            ref={ref}
             testID={CHART_SKELETON_TEST_ID}
             onLayout={onLayout}
         >

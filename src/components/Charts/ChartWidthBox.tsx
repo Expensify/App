@@ -13,10 +13,11 @@ type ChartWidthBoxProps = {
 /** On web the chart component mounts only once the chart engine has downloaded, so measuring here keeps the width across that mount. */
 function ChartWidthBox({children}: ChartWidthBoxProps) {
     const styles = useThemeStyles();
-    const {onLayout, containerWidth} = useContainerWidth();
+    const {ref, onLayout, containerWidth} = useContainerWidth();
 
     return (
         <View
+            ref={ref}
             style={styles.w100}
             onLayout={onLayout}
         >
