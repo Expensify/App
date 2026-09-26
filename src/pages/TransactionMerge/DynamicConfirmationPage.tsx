@@ -101,6 +101,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const sourceIOUReportID = isMoneyRequestAction(sourceIOUAction) ? sourceIOUAction?.reportID : undefined;
     const [sourceActionIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(sourceIOUReportID)}`);
     const [sourceActionChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(sourceActionIOUReport?.chatReportID)}`);
+
     // Build the merged transaction data for display
     const mergedTransactionData = buildMergedTransactionData(targetTransaction, mergeTransaction);
 
