@@ -844,6 +844,11 @@ const ONYXKEYS = {
 
     IS_LOADING_UNREPORTED_TRANSACTIONS: 'isLoadingUnreportedTransactions',
 
+    /** Map distance expenses from the last 90 days, deduped to one entry per unique route */
+    REUSABLE_DISTANCE_ROUTES: 'reusableDistanceRoutes',
+
+    IS_LOADING_REUSABLE_DISTANCE_ROUTES: 'isLoadingReusableDistanceRoutes',
+
     /** Stores information for InitiateBankAccountUnlock API call */
     INITIATING_BANK_ACCOUNT_UNLOCK: 'initiatingBankAccountUnlock',
 
@@ -1882,6 +1887,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW]: boolean | undefined;
     [ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS]: boolean | undefined;
     [ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS]: boolean | undefined;
+    [ONYXKEYS.REUSABLE_DISTANCE_ROUTES]: OnyxTypes.ReusableDistanceRoute[];
+    [ONYXKEYS.IS_LOADING_REUSABLE_DISTANCE_ROUTES]: boolean | undefined;
     [ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK]: OnyxTypes.InitiatingBankAccountUnlock;
     [ONYXKEYS.NVP_LAST_ECASH_IOS_LOGIN]: string;
     [ONYXKEYS.NVP_LAST_ECASH_ANDROID_LOGIN]: string;

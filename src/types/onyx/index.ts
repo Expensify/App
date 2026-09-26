@@ -174,6 +174,7 @@ import type ReportViolationName from './ReportViolationName';
 import type Request from './Request';
 import type {AnyRequest} from './Request';
 import type Response from './Response';
+import type ReusableDistanceRoute from './ReusableDistanceRoute';
 import type ReviewDuplicates from './ReviewDuplicates';
 import type Rule from './Rule';
 import type {SavedCSVColumnLayoutData, SavedCSVColumnLayoutList} from './SavedCSVColumnLayout';
@@ -339,6 +340,7 @@ export type {
     RecentlyUsedCategories,
     RecentlyUsedTags,
     ReimbursementAccount,
+    ReusableDistanceRoute,
     Report,
     Rule,
     ReportNameValuePairs,

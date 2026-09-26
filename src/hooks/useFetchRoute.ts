@@ -41,6 +41,7 @@ export default function useFetchRoute(
     const isCommuterExclusionPreviewStale = !!homeAndOfficeExclusionPolicyID && hasRoute && !hasRouteError && !DistanceRequestUtils.hasCommuterExclusionPreviewForPolicy(transaction, policy);
     const shouldFetchRoute =
         isMapDistanceRequest &&
+        !transaction?.isReusedRoute &&  // A draft seeded from a reused route already carries the server-computed distance, so routing must not run again.
         (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged || isCommuterExclusionPreviewStale) &&
         !isLoadingRoute &&
         Object.keys(validatedWaypoints).length > 1;
