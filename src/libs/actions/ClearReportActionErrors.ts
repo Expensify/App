@@ -22,14 +22,6 @@ Onyx.connectWithoutView({
     callback: (value) => (allReportActions = value),
 });
 
-let allReports: OnyxCollection<OnyxTypes.Report>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (value) => {
-        allReports = value;
-    },
-});
-
 function clearReportActionErrors(reportAction: ReportAction, originalReportID: string | undefined, keys?: string[]) {
     if (!reportAction?.reportActionID) {
         return;
@@ -118,7 +110,7 @@ function clearReportActionErrors(reportAction: ReportAction, originalReportID: s
 ignore: `undefined` means we want to check both parent and children report actions
 ignore: `parent` or `child` means we want to ignore checking parent or child report actions because they've been previously checked
  */
-function clearAllRelatedReportActionErrors(
+async function clearAllRelatedReportActionErrors(
     reportID: string | undefined,
     reportAction: ReportAction | null | undefined,
     originalReportID: string | undefined,
@@ -133,7 +125,7 @@ function clearAllRelatedReportActionErrors(
 
     clearReportActionErrors(reportAction, originalReportID, keys);
 
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const report = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     if (report?.parentReportID && report?.parentReportActionID && ignore !== 'parent') {
         const parentReportAction = getReportAction(report.parentReportID, report.parentReportActionID);
         const parentErrorKeys = Object.keys(parentReportAction?.errors ?? {}).filter((err) => errorKeys.includes(err));
