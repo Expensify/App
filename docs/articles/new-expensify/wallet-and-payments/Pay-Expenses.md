@@ -1,7 +1,7 @@
 ---
 title: How to Pay Expenses in New Expensify
 description: Learn how to pay personal or workspace expenses in New Expensify using connected bank accounts or your Wallet.
-keywords: [New Expensify, pay expenses, reimburse teammates, reimburse friends, personal payments, business payments, connected bank account, Wallet, pay report, who can pay a report, workspace admin pay report, payer, mark as paid]
+keywords: [New Expensify, pay expenses, reimburse teammates, reimburse friends, personal payments, business payments, connected bank account, Wallet, pay report, who can pay a report, workspace admin pay report, payer, mark as paid, when will I get paid, reimbursement expected date, payment arrival date, Waiting for payment to complete]
 ---
 
 Paying expenses in New Expensify is fast and easy—whether you're reimbursing a teammate through a Workspace or sending money to a friend personally. You can pay using a connected business bank account or your Wallet.
@@ -91,6 +91,16 @@ The payment is cancelled and the held funds are returned to you. Once the recipi
 For US-based ACH payments, if the payment is **under $100** and your total withdrawals in the past 24 hours are **under $10,000**, the payment will process in **one business day**.
 
 Otherwise, standard bank transfer times apply, and the recipient will receive their funds within **4–5 business days**.
+
+---
+
+## Where can I see when a reimbursement will arrive?
+
+Open the report and find the payment in the report history. For payments sent from a connected business bank account, the payment message ends with **Waiting for payment to complete by** and the expected date (for example, Jan 15, 2026).
+
+The expected date stays on the payment message, even after that date passes.
+
+**Note:** Reports marked as paid outside Expensify and payments sent from a Wallet don't show an expected date.
 
 ---
 
