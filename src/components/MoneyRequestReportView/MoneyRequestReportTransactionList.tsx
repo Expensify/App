@@ -15,6 +15,7 @@ import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {CAROUSEL_SOURCE} from '@libs/actions/TransactionThreadNavigation';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getMoneyRequestSpendBreakdown, getReportOfflinePendingActionAndErrors, isExpenseReport, isIOUReport} from '@libs/ReportUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
@@ -324,7 +325,7 @@ function MoneyRequestReportTransactionList({
         shouldGroupTransactions,
         isOffline,
     });
-    useMoneyRequestReportActiveTransactionIDs(visualOrderTransactionIDs);
+    useMoneyRequestReportActiveTransactionIDs(visualOrderTransactionIDs, report?.reportID);
 
     const groupSelectionState = useMemo(() => {
         const state = new Map<string, {isSelected: boolean; isIndeterminate: boolean; isDisabled: boolean; pendingAction?: PendingAction}>();
@@ -381,6 +382,9 @@ function MoneyRequestReportTransactionList({
                 report,
                 transaction: sortedTransactions.find((t) => t.transactionID === activeTransactionID),
                 siblingTransactionIDs: visualOrderTransactionIDs,
+                // Not `carouselSource`: this list unmounts behind the expense it just opened, and its teardown must
+                // not clear the carousel it seeded for that expense.
+                carouselSource: CAROUSEL_SOURCE.reportRow(report?.reportID),
             });
         },
         [navigateToTransactionThread, reportActions, sortedTransactions, report, visualOrderTransactionIDs],

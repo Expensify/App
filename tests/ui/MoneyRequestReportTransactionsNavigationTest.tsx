@@ -225,11 +225,10 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
         expect(createThreadSpy).not.toHaveBeenCalled();
     });
 
-    it('still builds the thread optimistically when offline, rather than leaving the arrow dead', async () => {
+    it('resolves the sibling offline rather than leaving the arrow dead', async () => {
         mockIsOffline.value = true;
         const openReportSpy = jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
-        const createThreadSpy = jest.spyOn(ReportActions, 'createTransactionThreadReport');
-        jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
+        const setParamsSpy = jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
 
         render(<MoneyRequestReportTransactionsNavigation currentTransactionID={FIRST_TRANSACTION_ID} />);
         await waitForBatchedUpdates();
@@ -241,9 +240,11 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
         }
         fireEvent.press(nextButton);
 
-        // Offline there is nothing to fetch, so the press must fall through instead of being staged.
+        // Offline there is nothing to fetch, so the press must fall through instead of being staged. Without a
+        // cached IOU action there is no thread to resolve either, so the sibling's own report is the target: a
+        // thread minted from a missing parent action could not be built at all.
         await waitFor(() => {
-            expect(createThreadSpy).toHaveBeenCalled();
+            expect(setParamsSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: IOU_REPORT_ID, anchorTransactionID: SECOND_TRANSACTION_ID}));
         });
         expect(openReportSpy).not.toHaveBeenCalled();
     });

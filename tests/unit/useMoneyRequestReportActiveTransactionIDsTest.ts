@@ -2,7 +2,7 @@ import {renderHook} from '@testing-library/react-native';
 
 import useMoneyRequestReportActiveTransactionIDs from '@components/MoneyRequestReportView/useMoneyRequestReportActiveTransactionIDs';
 
-import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {clearActiveTransactionIDsForSource, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {navigationRef} from '@libs/Navigation/Navigation';
 
 import SCREENS from '@src/SCREENS';
@@ -15,8 +15,9 @@ import createMock from '../utils/createMock';
 // Mock the TransactionThreadNavigation module
 jest.mock('@libs/actions/TransactionThreadNavigation', () => ({
     setActiveTransactionIDs: jest.fn(() => Promise.resolve()),
-    clearActiveTransactionIDs: jest.fn(() => Promise.resolve()),
-    getActiveTransactionIDs: jest.fn(() => ({ids: null, descriptors: null})),
+    clearActiveTransactionIDsForSource: jest.fn(() => Promise.resolve()),
+    getActiveTransactionIDs: jest.fn(() => ({ids: null, descriptors: null, source: null})),
+    CAROUSEL_SOURCE: {report: (reportID: string | undefined) => `report:${reportID}`},
 }));
 
 // Mock the navigation module
@@ -34,16 +35,19 @@ jest.mock('@react-navigation/native', () => ({
     useFocusEffect: jest.fn(),
 }));
 
+const REPORT_ID = 'reportA';
+const CAROUSEL_SOURCE_FOR_REPORT = `report:${REPORT_ID}`;
+
 describe('useMoneyRequestReportActiveTransactionIDs', () => {
     const mockSetActiveTransactionIDs = jest.mocked(setActiveTransactionIDs);
-    const mockClearActiveTransactionIDs = jest.mocked(clearActiveTransactionIDs);
+    const mockClearActiveTransactionIDsForSource = jest.mocked(clearActiveTransactionIDsForSource);
     const mockGetActiveTransactionIDs = jest.mocked(getActiveTransactionIDs);
     const mockFindFocusedRoute = jest.mocked(findFocusedRoute);
     const mockGetRootState = jest.spyOn(navigationRef, 'getRootState');
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockGetActiveTransactionIDs.mockReturnValue({ids: null, descriptors: null});
+        mockGetActiveTransactionIDs.mockReturnValue({ids: null, descriptors: null, source: null, snapshotHash: null});
         mockGetRootState.mockReturnValue(createMock<NonNullable<ReturnType<typeof navigationRef.getRootState>>>({}));
     });
 
@@ -54,10 +58,10 @@ describe('useMoneyRequestReportActiveTransactionIDs', () => {
         const transactionIDs = ['trans1', 'trans2', 'trans3'];
 
         // When the hook is rendered
-        renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs));
+        renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs, REPORT_ID));
 
-        // Then setActiveTransactionIDs should be called with the transaction IDs
-        expect(mockSetActiveTransactionIDs).toHaveBeenCalledWith(transactionIDs);
+        // Then setActiveTransactionIDs should be called with the transaction IDs, stamped with this report's source
+        expect(mockSetActiveTransactionIDs).toHaveBeenCalledWith(transactionIDs, {source: CAROUSEL_SOURCE_FOR_REPORT});
     });
 
     it('should NOT call setActiveTransactionIDs when focused route is NOT SEARCH_REPORT', () => {
@@ -67,7 +71,7 @@ describe('useMoneyRequestReportActiveTransactionIDs', () => {
         const transactionIDs = ['trans1', 'trans2'];
 
         // When the hook is rendered
-        renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs));
+        renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs, REPORT_ID));
 
         // Then setActiveTransactionIDs should NOT be called
         expect(mockSetActiveTransactionIDs).not.toHaveBeenCalled();
@@ -77,45 +81,62 @@ describe('useMoneyRequestReportActiveTransactionIDs', () => {
         // Given there is no focused route
         mockFindFocusedRoute.mockReturnValue(undefined);
 
-        const transactionIDs = ['trans1'];
+        const transactionIDs = ['trans1', 'trans2'];
 
         // When the hook is rendered
-        renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs));
+        renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs, REPORT_ID));
 
         // Then setActiveTransactionIDs should NOT be called
         expect(mockSetActiveTransactionIDs).not.toHaveBeenCalled();
     });
 
-    it('should call clearActiveTransactionIDs on unmount when route was SEARCH_REPORT', () => {
+    // A report with one expense (or none) has nothing to page between. Seeding it would clobber the broader carousel
+    // the user drilled in from, and leave the header rendering an empty expense carousel.
+    it.each([
+        ['a single transaction', ['trans1']],
+        ['no transactions', [] as string[]],
+    ])('should NOT seed the carousel for a report with %s', (_label, transactionIDs) => {
+        // Given the focused route is SEARCH_REPORT
+        mockFindFocusedRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, key: 'test-key'});
+
+        // When the hook is rendered for a report that has nothing to page between
+        renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs, REPORT_ID));
+
+        // Then nothing is written through
+        expect(mockSetActiveTransactionIDs).not.toHaveBeenCalled();
+    });
+
+    it('should release the carousel on unmount when route was SEARCH_REPORT', () => {
         // Given the focused route is SEARCH_REPORT
         mockFindFocusedRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, key: 'test-key'});
 
         const transactionIDs = ['trans1', 'trans2'];
 
         // When the hook is rendered and then unmounted
-        const {unmount} = renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs));
+        const {unmount} = renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs, REPORT_ID));
 
-        expect(mockClearActiveTransactionIDs).not.toHaveBeenCalled();
+        expect(mockClearActiveTransactionIDsForSource).not.toHaveBeenCalled();
 
         unmount();
 
-        // Then clearActiveTransactionIDs should be called
-        expect(mockClearActiveTransactionIDs).toHaveBeenCalledTimes(1);
+        // Then it should release only its own carousel, not whatever is active
+        expect(mockClearActiveTransactionIDsForSource).toHaveBeenCalledTimes(1);
+        expect(mockClearActiveTransactionIDsForSource).toHaveBeenCalledWith(CAROUSEL_SOURCE_FOR_REPORT);
     });
 
-    it('should NOT call clearActiveTransactionIDs on unmount when route was NOT SEARCH_REPORT', () => {
+    it('should NOT release the carousel on unmount when route was NOT SEARCH_REPORT', () => {
         // Given the focused route is NOT SEARCH_REPORT
         mockFindFocusedRoute.mockReturnValue({name: 'SomeOtherRoute', key: 'test-key'});
 
-        const transactionIDs = ['trans1'];
+        const transactionIDs = ['trans1', 'trans2'];
 
         // When the hook is rendered and then unmounted
-        const {unmount} = renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs));
+        const {unmount} = renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs, REPORT_ID));
 
         unmount();
 
-        // Then clearActiveTransactionIDs should NOT be called (since the effect returned early, no cleanup was registered)
-        expect(mockClearActiveTransactionIDs).not.toHaveBeenCalled();
+        // Then nothing was seeded, so nothing should be released
+        expect(mockClearActiveTransactionIDsForSource).not.toHaveBeenCalled();
     });
 
     it('should update active transaction IDs when the list changes', () => {
@@ -125,12 +146,12 @@ describe('useMoneyRequestReportActiveTransactionIDs', () => {
         const initialTransactionIDs = ['trans1', 'trans2'];
 
         // When the hook is rendered
-        const {rerender} = renderHook(({ids}) => useMoneyRequestReportActiveTransactionIDs(ids), {
+        const {rerender} = renderHook(({ids}) => useMoneyRequestReportActiveTransactionIDs(ids, REPORT_ID), {
             initialProps: {ids: initialTransactionIDs},
         });
 
         expect(mockSetActiveTransactionIDs).toHaveBeenCalledTimes(1);
-        expect(mockSetActiveTransactionIDs).toHaveBeenLastCalledWith(initialTransactionIDs);
+        expect(mockSetActiveTransactionIDs).toHaveBeenLastCalledWith(initialTransactionIDs, {source: CAROUSEL_SOURCE_FOR_REPORT});
 
         // When the transaction IDs change
         const newTransactionIDs = ['trans1', 'trans2', 'trans3'];
@@ -138,23 +159,28 @@ describe('useMoneyRequestReportActiveTransactionIDs', () => {
 
         // Then setActiveTransactionIDs should be called again with the new IDs
         expect(mockSetActiveTransactionIDs).toHaveBeenCalledTimes(2);
-        expect(mockSetActiveTransactionIDs).toHaveBeenLastCalledWith(newTransactionIDs);
+        expect(mockSetActiveTransactionIDs).toHaveBeenLastCalledWith(newTransactionIDs, {source: CAROUSEL_SOURCE_FOR_REPORT});
     });
 
-    it('should clear the previous seed before re-seeding when the rows change', () => {
+    /**
+     * Regression guard for https://github.com/Expensify/App/issues/99630: teardown used to be the seeding effect's
+     * own cleanup, so React ran it on every re-seed. Any run that then bailed out at a guard left the carousel
+     * cleared, and the arrows vanished after an action that changed the report's transactions (duplicating an
+     * expense, for instance).
+     */
+    it('should NOT release the carousel while re-seeding it', () => {
         // Given the focused route is SEARCH_REPORT and the hook seeded the carousel
         mockFindFocusedRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, key: 'test-key'});
-        const {rerender} = renderHook(({ids}) => useMoneyRequestReportActiveTransactionIDs(ids), {
+
+        const {rerender} = renderHook(({ids}) => useMoneyRequestReportActiveTransactionIDs(ids, REPORT_ID), {
             initialProps: {ids: ['trans1', 'trans2']},
         });
 
-        // When the rows change
-        rerender({ids: ['trans1']});
+        // When the rows change and the carousel is re-seeded
+        rerender({ids: ['trans1', 'trans2', 'trans3']});
 
-        // Then the old seed is cleared by the effect cleanup before the new one is written
-        expect(mockClearActiveTransactionIDs).toHaveBeenCalledTimes(1);
-        expect(mockClearActiveTransactionIDs.mock.invocationCallOrder.at(0)).toBeLessThan(mockSetActiveTransactionIDs.mock.invocationCallOrder.at(1) ?? 0);
-        expect(mockSetActiveTransactionIDs).toHaveBeenLastCalledWith(['trans1']);
+        // Then the carousel is never released in between, so the arrows stay on screen
+        expect(mockClearActiveTransactionIDsForSource).not.toHaveBeenCalled();
     });
 
     it('should NOT re-fire when array reference changes but content is the same', () => {
@@ -164,7 +190,7 @@ describe('useMoneyRequestReportActiveTransactionIDs', () => {
         const initialTransactionIDs = ['trans1', 'trans2'];
 
         // When the hook is rendered
-        const {rerender} = renderHook(({ids}) => useMoneyRequestReportActiveTransactionIDs(ids), {
+        const {rerender} = renderHook(({ids}) => useMoneyRequestReportActiveTransactionIDs(ids, REPORT_ID), {
             initialProps: {ids: initialTransactionIDs},
         });
 
@@ -177,7 +203,7 @@ describe('useMoneyRequestReportActiveTransactionIDs', () => {
         // Then the effect should NOT re-fire because the join(',') key hasn't changed.
         // This prevents overwriting IDs set by other callers (e.g. TransactionDuplicateReview.onPreviewPressed).
         expect(mockSetActiveTransactionIDs).toHaveBeenCalledTimes(1);
-        expect(mockClearActiveTransactionIDs).not.toHaveBeenCalled();
+        expect(mockClearActiveTransactionIDsForSource).not.toHaveBeenCalled();
     });
 
     it('should NOT take over a snapshot-backed carousel that already has sibling descriptors', () => {
@@ -186,63 +212,104 @@ describe('useMoneyRequestReportActiveTransactionIDs', () => {
         mockGetActiveTransactionIDs.mockReturnValue({
             ids: ['recentlyAdded1', 'recentlyAdded2'],
             descriptors: {recentlyAdded1: {reportID: 'r1', transaction: {...createRandomTransaction(1), transactionID: 'recentlyAdded1'}}},
+            source: 'home:recentlyAdded',
+            snapshotHash: null,
         });
 
         const transactionIDs = ['trans1', 'trans2', 'trans3'];
 
         // When the hook is rendered and then unmounted
-        const {unmount} = renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs));
+        const {unmount} = renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs, REPORT_ID));
 
         // Then it should neither overwrite nor clear the existing carousel context
         expect(mockSetActiveTransactionIDs).not.toHaveBeenCalled();
 
         unmount();
 
-        expect(mockClearActiveTransactionIDs).not.toHaveBeenCalled();
+        expect(mockClearActiveTransactionIDsForSource).not.toHaveBeenCalled();
     });
 
     it('should keep an active seed that covers the same rows in a different order', () => {
         // Given the focused route is SEARCH_REPORT and a report preview press seeded the same rows in carousel order
         mockFindFocusedRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, key: 'test-key'});
-        mockGetActiveTransactionIDs.mockReturnValue({ids: ['trans3', 'trans1', 'trans2'], descriptors: null});
+        mockGetActiveTransactionIDs.mockReturnValue({ids: ['trans3', 'trans1', 'trans2'], descriptors: null, source: null, snapshotHash: null});
 
         const transactionIDs = ['trans1', 'trans2', 'trans3'];
 
         // When the hook is rendered and then unmounted
-        const {unmount} = renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs));
+        const {unmount} = renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs, REPORT_ID));
 
         // Then it should neither overwrite the carousel order nor clear it
         expect(mockSetActiveTransactionIDs).not.toHaveBeenCalled();
 
         unmount();
 
-        expect(mockClearActiveTransactionIDs).not.toHaveBeenCalled();
+        expect(mockClearActiveTransactionIDsForSource).not.toHaveBeenCalled();
+    });
+
+    it('should re-seed a carousel it owns when the same rows are re-ordered', () => {
+        // Given the focused route is SEARCH_REPORT and this report owns a seed holding exactly these rows, in the
+        // order they were rendered before the user sorted a column
+        mockFindFocusedRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, key: 'test-key'});
+        mockGetActiveTransactionIDs.mockReturnValue({ids: ['trans1', 'trans2', 'trans3'], descriptors: null, source: CAROUSEL_SOURCE_FOR_REPORT, snapshotHash: null});
+
+        const sortedTransactionIDs = ['trans3', 'trans1', 'trans2'];
+
+        // When the rows come back in a different order
+        renderHook(() => useMoneyRequestReportActiveTransactionIDs(sortedTransactionIDs, REPORT_ID));
+
+        // Then the new order is written through: the arrows walk the rows the user is looking at, so a seed this
+        // list owns has to follow the rendered order rather than stay frozen at the order it was first seeded in
+        expect(mockSetActiveTransactionIDs).toHaveBeenCalledWith(sortedTransactionIDs, {source: CAROUSEL_SOURCE_FOR_REPORT});
+    });
+
+    it('should NOT take over a carousel it does not own with fewer than two rows', () => {
+        // Given the focused route is SEARCH_REPORT, a broader carousel is active, and this report has one row left
+        mockFindFocusedRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, key: 'test-key'});
+        mockGetActiveTransactionIDs.mockReturnValue({ids: ['spend1', 'spend2', 'spend3'], descriptors: null, source: 'search:1234', snapshotHash: 1234});
+
+        // When the hook is rendered
+        renderHook(() => useMoneyRequestReportActiveTransactionIDs(['trans1'], REPORT_ID));
+
+        // Then the broader carousel is left alone
+        expect(mockSetActiveTransactionIDs).not.toHaveBeenCalled();
+    });
+
+    it('should shrink a carousel it owns when the report drops below two rows', () => {
+        // Given the focused route is SEARCH_REPORT and this report owns a two-entry carousel
+        mockFindFocusedRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, key: 'test-key'});
+        mockGetActiveTransactionIDs.mockReturnValue({ids: ['trans1', 'trans2'], descriptors: null, source: CAROUSEL_SOURCE_FOR_REPORT, snapshotHash: null});
+
+        // When one of the expenses leaves the report (e.g. it was moved to another report)
+        renderHook(() => useMoneyRequestReportActiveTransactionIDs(['trans1'], REPORT_ID));
+
+        // Then the shorter list is written through, so the counter and arrows stop offering the expense that left
+        expect(mockSetActiveTransactionIDs).toHaveBeenCalledWith(['trans1'], {source: CAROUSEL_SOURCE_FOR_REPORT});
+    });
+
+    it('should NOT write an empty list over a carousel it owns', () => {
+        // Given the focused route is SEARCH_REPORT and this report owns the carousel
+        mockFindFocusedRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, key: 'test-key'});
+        mockGetActiveTransactionIDs.mockReturnValue({ids: ['trans1', 'trans2'], descriptors: null, source: CAROUSEL_SOURCE_FOR_REPORT, snapshotHash: null});
+
+        // When the report renders with no rows at all
+        renderHook(() => useMoneyRequestReportActiveTransactionIDs([], REPORT_ID));
+
+        // Then nothing is written: an empty list carries no information the header can act on
+        expect(mockSetActiveTransactionIDs).not.toHaveBeenCalled();
     });
 
     it('should re-seed when the active seed covers different rows', () => {
         // Given the focused route is SEARCH_REPORT and the active seed is missing one of the rows
         mockFindFocusedRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, key: 'test-key'});
-        mockGetActiveTransactionIDs.mockReturnValue({ids: ['trans2', 'trans1'], descriptors: null});
+        mockGetActiveTransactionIDs.mockReturnValue({ids: ['trans2', 'trans1'], descriptors: null, source: null, snapshotHash: null});
 
         const transactionIDs = ['trans1', 'trans2', 'trans3'];
 
         // When the hook is rendered
-        renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs));
+        renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs, REPORT_ID));
 
-        // Then setActiveTransactionIDs should be called with the visual order
-        expect(mockSetActiveTransactionIDs).toHaveBeenCalledWith(transactionIDs);
-    });
-
-    it('should handle empty transaction IDs array', () => {
-        // Given the focused route is SEARCH_REPORT
-        mockFindFocusedRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, key: 'test-key'});
-
-        const emptyTransactionIDs: string[] = [];
-
-        // When the hook is rendered with empty array
-        renderHook(() => useMoneyRequestReportActiveTransactionIDs(emptyTransactionIDs));
-
-        // Then setActiveTransactionIDs should be called with empty array
-        expect(mockSetActiveTransactionIDs).toHaveBeenCalledWith([]);
+        // Then setActiveTransactionIDs should be called with the visual order, stamped with this report's source
+        expect(mockSetActiveTransactionIDs).toHaveBeenCalledWith(transactionIDs, {source: CAROUSEL_SOURCE_FOR_REPORT});
     });
 });
