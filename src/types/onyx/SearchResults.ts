@@ -142,6 +142,9 @@ type SearchGroupBase = {
     /** Currency of total value */
     currency: string;
 
+    /** The group's share of `search.total` in percentage points */
+    percentOfTotal?: number;
+
     /** Set to `delete` while every expense in the group is being deleted, so the row can leave the list before the next Search response drops the group */
     pendingAction?: PendingAction;
 };
@@ -233,18 +236,9 @@ type SearchTagGroup = SearchGroupBase & {
 };
 
 /** Model of day grouped search result */
-type SearchDayGroup = {
+type SearchDayGroup = SearchGroupBase & {
     /** Date in YYYY-MM-DD format */
     day: string;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 };
 
 /** Model of month grouped search result */

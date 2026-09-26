@@ -2194,7 +2194,7 @@ function shouldShowBrokenConnectionViolation(report: OnyxEntry<Report>, policy: 
 }
 
 /**
- * Check if user should see broken connection violation warning based on selected transactions.
+ * Check if user should see broken connection violation warning based on selected transactions. RTER violations stop being actionable once the report is paid, so they are hidden on settled reports.
  */
 function shouldShowBrokenConnectionViolationForMultipleTransactions(
     transactions: Transaction[],
@@ -2221,7 +2221,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
                 return false;
             }
 
-            return shouldShowViolation(report, policy, violation.name, currentUserEmail, currentUserAccountID, true, transaction);
+            return shouldShowViolation(report, policy, violation.name, currentUserEmail, currentUserAccountID, false, transaction);
         });
     });
 

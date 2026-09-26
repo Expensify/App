@@ -13,9 +13,13 @@ import type * as ReactNavigation from '@react-navigation/native';
 const mockClearSelectedTransactions = jest.fn<void, [number | boolean | undefined, boolean | undefined]>();
 const mockOpenSearch = jest.fn<void, [unknown, number | undefined]>();
 const mockSearch = jest.fn<void, unknown[]>();
+const mockMarkPageRequestedSearch = jest.fn<void, unknown[]>();
+const mockClearPageRequestedSearch = jest.fn<void, []>();
 let mockSearchResults: SearchResults | undefined;
 let mockIsOffline = false;
 let mockLastFocusCallback: (() => void) | undefined;
+// Held so a test can blur the page, not only focus it.
+let mockFocusCleanups: Array<() => void> = [];
 // Mutable so a test can move a real effect dependency and force the effect to run again.
 let mockSearchKey: SearchKey | undefined;
 
@@ -24,12 +28,15 @@ jest.mock('@react-navigation/native', () => {
     return {
         ...actualNavigation,
         // Mirrors the real hook: the callback runs on focus and again whenever its identity changes.
-        useFocusEffect: (callback: () => void) => {
+        useFocusEffect: (callback: () => void | (() => void)) => {
             if (callback === mockLastFocusCallback) {
                 return;
             }
             mockLastFocusCallback = callback;
-            callback();
+            const cleanup = callback();
+            if (typeof cleanup === 'function') {
+                mockFocusCleanups.push(cleanup);
+            }
         },
     };
 });
@@ -37,6 +44,8 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('@libs/actions/Search', () => ({
     search: (...args: unknown[]) => mockSearch(...args),
     openSearch: (...args: [unknown, number | undefined]) => mockOpenSearch(...args),
+    markPageRequestedSearch: (...args: unknown[]) => mockMarkPageRequestedSearch(...args),
+    clearPageRequestedSearch: () => mockClearPageRequestedSearch(),
 }));
 
 jest.mock('@libs/actions/ReportNavigation', () => ({
@@ -77,6 +86,26 @@ function buildErroredSnapshot(hash: number): SearchResults {
     } as unknown as SearchResults;
 }
 
+/**
+ * Cached data with a request still in flight, as a reload during one leaves behind. With data simply
+ * loaded the effect returns earlier and never reaches the token guard.
+ */
+function buildLoadedButPendingSnapshot(hash: number): SearchResults {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    return {
+        search: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            hash,
+            isLoading: true,
+            offset: 0,
+            state: CONST.SEARCH.SNAPSHOT_STATE.LOADING,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+        },
+        data: {},
+    } as unknown as SearchResults;
+}
+
 /** The hashes openSearch() was asked to clear, ignoring the plain calls that only load bank account data. */
 function getClearedHashes() {
     return mockOpenSearch.mock.calls.map((call) => call[1]).filter((hash) => hash !== undefined);
@@ -91,6 +120,44 @@ describe('useSearchPageSetup', () => {
         mockSearchKey = undefined;
         mockIsOffline = false;
         mockLastFocusCallback = undefined;
+        mockMarkPageRequestedSearch.mockClear();
+        mockClearPageRequestedSearch.mockClear();
+        mockFocusCleanups = [];
+    });
+
+    it('claims the first page only when the page is the one requesting it', () => {
+        // Given a query with no snapshot yet, so this page owns the first request
+        renderHook(({queryJSON: currentQueryJSON}) => useSearchPageSetup(currentQueryJSON), {initialProps: {queryJSON}});
+
+        // Then it leaves a token, so the mount behind the skeleton does not repeat the request
+        expect(mockMarkPageRequestedSearch).toHaveBeenCalledTimes(1);
+        expect(mockMarkPageRequestedSearch).toHaveBeenCalledWith(queryJSON?.hash, false);
+    });
+
+    it('does not claim the first page when data is already on screen', () => {
+        // Given cached data with a request still in flight, so Search is mounted while the page restarts it
+        mockSearchResults = buildLoadedButPendingSnapshot(queryJSON?.hash ?? 0);
+
+        // When the page sets up
+        renderHook(({queryJSON: currentQueryJSON}) => useSearchPageSetup(currentQueryJSON), {initialProps: {queryJSON}});
+
+        // Then it requests the page but leaves no token, which would only silence the next revisit
+        expect(mockSearch).toHaveBeenCalledTimes(1);
+        expect(mockMarkPageRequestedSearch).not.toHaveBeenCalled();
+    });
+
+    it('drops the token when the page loses focus', () => {
+        // Given the page set up and claimed its first page
+        renderHook(({queryJSON: currentQueryJSON}) => useSearchPageSetup(currentQueryJSON), {initialProps: {queryJSON}});
+        expect(mockClearPageRequestedSearch).not.toHaveBeenCalled();
+
+        // When the user navigates away, which runs the focus effect's cleanup
+        for (const cleanup of mockFocusCleanups) {
+            cleanup();
+        }
+
+        // Then the claim is dropped, so a response landing while away cannot silence the refresh on return
+        expect(mockClearPageRequestedSearch).toHaveBeenCalledTimes(1);
     });
 
     it('leaves an error produced by this page alone', () => {
