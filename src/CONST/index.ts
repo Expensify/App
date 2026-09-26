@@ -9466,6 +9466,7 @@ const CONST = {
             TIME_FIELD: 'RequestConfirmationList-TimeField',
             SUBRATE_FIELD: 'RequestConfirmationList-SubrateField',
             SEND_FROM_FIELD: 'RequestConfirmationList-SendFromField',
+            ADD_RECEIPT_BUTTON: 'RequestConfirmationList-AddReceiptButton',
         },
         TRANSACTION_PREVIEW: {
             CARD: 'TransactionPreview-Card',

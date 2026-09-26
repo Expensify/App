@@ -4,7 +4,7 @@ import type {BaseSelectionListProps} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 
 import type {ReactElement, ReactNode} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
+import type {LayoutChangeEvent, ScrollViewProps} from 'react-native';
 
 type Section<TItem extends ListItem> = {
     title?: string;
@@ -44,6 +44,14 @@ type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListP
 
     /** Number of lines to show for title text when multiline is supported */
     titleNumberOfLines?: number;
+
+    /**
+     * Passed straight to the underlying list. Defaults to `always`, which a list whose own text input drives its
+     * rows needs: a row press has to land while that input still holds focus. A list whose rows are inputs of their
+     * own (the expense confirmation form) passes `handled` instead, so a tap that no row claims dismisses the
+     * keyboard the way a tap outside a field is expected to.
+     */
+    keyboardShouldPersistTaps?: ScrollViewProps['keyboardShouldPersistTaps'];
 };
 
 type MeasurableInput = unknown;
