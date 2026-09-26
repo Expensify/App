@@ -48,6 +48,7 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     findSelfDMReportID,
     generateReportID,
+    getChatReportFromMoneyRequestReport,
     getDefaultNotificationPreferenceForReport,
     getParsedComment,
     getReportOrDraftReport,
@@ -1739,7 +1740,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
 
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const currentChatReport = getChatReportFromMoneyRequestReport(report);
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
     const existingTransactionID = existingTransactionDraft?.transactionID;
@@ -2545,7 +2546,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         selectedRouteDistance,
     } = transactionData;
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const currentChatReport = getChatReportFromMoneyRequestReport(report);
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
 
