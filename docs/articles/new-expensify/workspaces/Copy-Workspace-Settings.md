@@ -57,7 +57,7 @@ Copy settings applies settings to workspaces you already have. Duplicating a wor
 
 ## Does copying settings copy invoice fields?
 
-Yes. When you select **Invoices** on the **Select settings** page, your invoice fields are copied along with the rest of the invoice settings. The **Invoices** row shows how many invoice fields will be copied, for example `1 invoice fields`. [Learn how to add invoice fields to a workspace](/articles/new-expensify/workspaces/Add-Invoice-Fields).
+Yes. When you select **Invoices** on the **Select settings** page, your invoice fields are copied along with the rest of the invoice settings. The **Invoices** row shows how many invoice fields will be copied, for example `1 invoice fields`.
 
 ## Why don't I see the Copy settings option?
 
