@@ -1,4 +1,4 @@
-import {clearSearchTagFiltersState, openSearchTagFiltersPage, setSearchTagFiltersPagination} from '@libs/actions/Search';
+import {openSearchTagFiltersPage, setSearchTagFiltersPagination} from '@libs/actions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -101,6 +101,8 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
         setIsLoadingMore(true);
         openSearchTagFiltersPage({searchQuery: currentQuery, cursor: currentCursor, limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE, policyIDs}, false, currentResults ?? [])
             .then(({hasMore: newHasMore, nextCursor: newCursor}) => {
+                stateRef.current.hasMore = newHasMore;
+                stateRef.current.nextCursor = newCursor;
                 setSearchTagFiltersPagination(newHasMore, newCursor, currentQuery);
             })
             // Failures are already logged by the network Logging middleware. Cancelled requests are expected when a newer search supersedes them.
@@ -116,6 +118,7 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     const searchTags = (query: string) => {
         if (isOffline) {
             // When offline, update the search query so TagSelector can filter cached results locally
+            stateRef.current.searchQuery = query;
             setSearchTagFiltersPagination(stateRef.current.hasMore, stateRef.current.nextCursor, query);
             return;
         }
@@ -125,6 +128,9 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
         // When the full empty-query dataset is already cached, filter locally instead of hitting the server on every keystroke.
         if (currentHasCompleteEmptyQueryCache) {
             setIsFilteringLocally(true);
+            stateRef.current.hasMore = false;
+            stateRef.current.nextCursor = '';
+            stateRef.current.searchQuery = query;
             setSearchTagFiltersPagination(false, '', query);
             setHasCompletedSearch(true);
             return;
@@ -134,6 +140,9 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
         const requestSeq = ++requestSeqRef.current;
 
         // Reset pagination state immediately so loadMore doesn't fire with stale query/cursor
+        stateRef.current.hasMore = false;
+        stateRef.current.nextCursor = '';
+        stateRef.current.searchQuery = query;
         setSearchTagFiltersPagination(false, '', query);
 
         // A new search cancels any in-flight request, so it owns the loading state from here on.
@@ -144,6 +153,9 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
 
         openSearchTagFiltersPage({searchQuery: query, cursor: '', limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE, policyIDs}, true)
             .then(({hasMore: newHasMore, nextCursor: newCursor}) => {
+                stateRef.current.hasMore = newHasMore;
+                stateRef.current.nextCursor = newCursor;
+                stateRef.current.searchQuery = query;
                 setSearchTagFiltersPagination(newHasMore, newCursor, query);
             })
             // Failures are already logged by the network Logging middleware. Cancelled requests are expected when a newer search supersedes them.
@@ -156,13 +168,6 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
                 setIsSearching(false);
             });
     };
-
-    // Clear persisted pagination and cached pages when the filter closes so a fresh open re-fetches with valid hasMore.
-    useEffect(() => {
-        return () => {
-            clearSearchTagFiltersState();
-        };
-    }, []);
 
     // Fetch the first page on mount, when the workspace scope changes, and on reconnect.
     // Skips the fetch while offline and re-fetches on reconnect, matching useLoadSearchCategoryData.
