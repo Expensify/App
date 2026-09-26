@@ -8,7 +8,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {GrowlAction, GrowlType} from '@libs/Growl';
+import type {GrowlAction, GrowlPosition, GrowlType} from '@libs/Growl';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -33,6 +33,7 @@ type GrowlNotificationContentProps = {
     type: GrowlType;
     duration: number;
     action?: GrowlAction;
+    position?: GrowlPosition;
 
     /** Identifies this growl instance; passed back through onDismissed so the parent can ignore stale dismissals. */
     nonce: number;
@@ -48,7 +49,7 @@ type GrowlIconTypes = Record<
     }
 >;
 
-function GrowlNotificationContent({bodyText, type, duration, action, nonce, onDismissed}: GrowlNotificationContentProps) {
+function GrowlNotificationContent({bodyText, type, duration, action, position, nonce, onDismissed}: GrowlNotificationContentProps) {
     // Normalized: 0 = fully offscreen for the current anchor, 1 = fully visible. The container
     // multiplies this against the live `inactiveY`, so the offscreen position stays correct
     // even when the responsive layout flips after the growl is dismissed.
@@ -63,7 +64,7 @@ function GrowlNotificationContent({bodyText, type, duration, action, nonce, onDi
     const icons = useMemoizedLazyExpensifyIcons(['Exclamation', 'Checkmark']);
 
     // Derived live so that resizing the window flips position + slide direction during display.
-    const useBottomPosition = !!action && !shouldUseNarrowLayout;
+    const useBottomPosition = (!!action || position === CONST.GROWL.POSITION.BOTTOM_RIGHT) && !shouldUseNarrowLayout;
     const inactiveY = useBottomPosition ? INACTIVE_OFFSET : INACTIVE_POSITION_Y;
 
     const types: GrowlIconTypes = {

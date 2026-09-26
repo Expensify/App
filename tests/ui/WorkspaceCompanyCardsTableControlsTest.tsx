@@ -2,15 +2,25 @@ import {render, screen} from '@testing-library/react-native';
 
 import WorkspaceCompanyCardsTableControls from '@components/Tables/WorkspaceCompanyCardsTable/WorkspaceCompanyCardsTableControls';
 
+import Navigation from '@libs/Navigation/Navigation';
+
+import ROUTES from '@src/ROUTES';
+
 import React from 'react';
+
+type MockDropdownOption = {
+    value: string;
+    onSelected: () => void;
+};
 
 type MockButtonProps = {
     customText: string;
     isDisabled?: boolean;
+    options: MockDropdownOption[];
 };
 
 const mockButtonProps: {current?: MockButtonProps} = {};
-let mockProcessedData: Array<{selected?: boolean; disabled?: boolean; isAssigned?: boolean}> = [];
+let mockProcessedData: Array<{selected?: boolean; disabled?: boolean; isAssigned?: boolean; assignedCard?: {cardID: number}}> = [];
 let mockShouldUseNarrowLayout = true;
 
 jest.mock('@components/ButtonWithDropdownMenu', () => {
@@ -82,18 +92,22 @@ jest.mock('@libs/actions/CompanyCards', () => ({unassignWorkspaceCompanyCard: je
 jest.mock('@libs/CardNavigationUtils', () => jest.fn());
 jest.mock('@libs/CardUtils', () => ({formatMaskedCardName: jest.fn()}));
 jest.mock('@libs/localFileDownload', () => jest.fn());
+jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
 
 function renderControls(isSelectionModeEnabled: boolean) {
-    return render(
+    const clearCardSelection = jest.fn();
+    const renderResult = render(
         <WorkspaceCompanyCardsTableControls
             policyID="policy123"
             domainOrWorkspaceAccountID={123}
             bankName={undefined}
+            feedName="oauth.chase.com#123"
             canWriteCompanyCards
-            clearCardSelection={jest.fn()}
+            clearCardSelection={clearCardSelection}
             isSelectionModeEnabled={isSelectionModeEnabled}
         />,
     );
+    return {clearCardSelection, ...renderResult};
 }
 
 describe('WorkspaceCompanyCardsTableControls narrow-layout selection mode', () => {
@@ -126,5 +140,21 @@ describe('WorkspaceCompanyCardsTableControls narrow-layout selection mode', () =
 
         expect(screen.queryByTestId('WorkspaceCompanyCardsBulkActions')).toBeNull();
         expect(screen.getByTestId('WorkspaceCompanyCardsFilterBar')).toBeTruthy();
+    });
+
+    it('opens the bulk transaction start date screen for the selected assigned cards', () => {
+        // Given two assigned cards are selected
+        mockProcessedData = [
+            {selected: true, disabled: false, isAssigned: true, assignedCard: {cardID: 123}},
+            {selected: true, disabled: false, isAssigned: true, assignedCard: {cardID: 456}},
+        ];
+        const {clearCardSelection} = renderControls(true);
+
+        // When the bulk transaction start date action is selected
+        mockButtonProps.current?.options.find((option) => option.value === 'editTransactionStartDate')?.onSelected();
+
+        // Then the editor opens with both card IDs and clears the table selection
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_BULK_EDIT_TRANSACTION_START_DATE.getRoute('policy123', 'oauth.chase.com#123', ['123', '456']));
+        expect(clearCardSelection).toHaveBeenCalledTimes(1);
     });
 });

@@ -6284,6 +6284,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             startDateDescription: 'Wähle dein Import-Startdatum. Wir synchronisieren alle Transaktionen ab diesem Datum.',
             editStartDateDescription:
                 'Wähle ein neues Startdatum für Transaktionen. Wir synchronisieren alle Transaktionen ab diesem Datum, mit Ausnahme derer, die wir bereits importiert haben.',
+            bulkEditStartDateDescription:
+                'Wähle ein Startdatum für Transaktionen für alle ausgewählten Karten. Wir synchronisieren Transaktionen ab diesem Datum, mit Ausnahme derer, die wir bereits importiert haben.',
+            bulkStartDateUpdated: 'Startdatum für Transaktionen aktualisiert',
             fromTheBeginning: 'Von Anfang an',
             customStartDate: 'Benutzerdefiniertes Startdatum',
             customCloseDate: 'Benutzerdefiniertes Abschlussdatum',
@@ -6619,6 +6622,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     `Wähle das ${integration}-Konto, in das Transaktionen exportiert werden sollen.${exportPageLink ? ` Wähle eine andere <a href="${exportPageLink}">Exportoption</a>, um die verfügbaren Konten zu ändern.` : ''}`,
                 lastUpdated: 'Zuletzt aktualisiert',
                 transactionStartDate: 'Transaktionsstartdatum',
+                bulkUpdateTransactionStartDate: 'Transaktionsstartdatum aktualisieren',
                 updateCard: 'Karte aktualisieren',
                 unassignCard: 'Karte zuweisen aufheben',
                 unassignCards: 'Kartenzuweisung aufheben',

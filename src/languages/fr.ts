@@ -6289,6 +6289,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             startDateDescription: 'Choisissez votre date de début d’importation. Nous synchroniserons toutes les transactions à partir de cette date.',
             editStartDateDescription:
                 'Choisissez une nouvelle date de début de transaction. Nous synchroniserons toutes les transactions à partir de cette date, en excluant celles que nous avons déjà importées.',
+            bulkEditStartDateDescription:
+                'Choisissez une date de début de transaction pour toutes les cartes sélectionnées. Nous synchroniserons les transactions à partir de cette date, en excluant celles que nous avons déjà importées.',
+            bulkStartDateUpdated: 'Date de début de transaction mise à jour',
             fromTheBeginning: 'Depuis le début',
             customStartDate: 'Date de début personnalisée',
             customCloseDate: 'Date de clôture personnalisée',
@@ -6636,6 +6639,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     `Choisissez le compte ${integration} vers lequel les transactions doivent être exportées.${exportPageLink ? ` Sélectionnez une autre <a href="${exportPageLink}">option d’exportation</a> pour modifier les comptes disponibles.` : ''}`,
                 lastUpdated: 'Dernière mise à jour',
                 transactionStartDate: 'Date de début de la transaction',
+                bulkUpdateTransactionStartDate: 'Mettre à jour la date de début de la transaction',
                 updateCard: 'Mettre à jour la carte',
                 unassignCard: 'Retirer l’assignation de la carte',
                 unassignCards: 'Retirer l’assignation des cartes',
