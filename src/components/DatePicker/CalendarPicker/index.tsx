@@ -71,24 +71,25 @@ type CalendarPickerProps = {
 };
 
 function getInitialCurrentDateView(value: Date | string, minDate: Date, maxDate: Date) {
-    let initialCurrentDateView: Date;
-    if (typeof value === 'string') {
-        if (!value) {
-            initialCurrentDateView = new Date();
-        } else {
-            initialCurrentDateView = parseISO(value);
-        }
-    } else {
-        initialCurrentDateView = new Date(value);
+    // A date the field actually holds is followed even when it sits outside the range, so reopening the calendar does
+    // not lose the year that was typed. Validation is what reports a date that cannot be picked.
+    if (value) {
+        return typeof value === 'string' ? parseISO(value) : new Date(value);
     }
 
-    if (maxDate < initialCurrentDateView) {
-        initialCurrentDateView = maxDate;
-    } else if (minDate > initialCurrentDateView) {
-        initialCurrentDateView = minDate;
+    // Without a date to follow the calendar starts from today, pulled into range so it still opens on a month that
+    // has days to select.
+    const today = new Date();
+
+    if (maxDate < today) {
+        return maxDate;
     }
 
-    return initialCurrentDateView;
+    if (minDate > today) {
+        return minDate;
+    }
+
+    return today;
 }
 
 // Keeps the day inside the target month, since setYear alone turns February 29 into March 1 on a non leap year
@@ -118,7 +119,9 @@ function CalendarPicker({
     const {translate, dateFnsLocale} = useLocalize();
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
     const monthPressableRef = useRef<ComponentRef<typeof View>>(null);
-    const [currentDateView, setCurrentDateView] = useState(() => getInitialCurrentDateView(value, minDate, maxDate));
+    // The popover unmounts its content, so the calendar starts over every time it is reopened. A view the field has
+    // already asserted is what it starts from, since a date still being typed has no committed value to fall back to.
+    const [currentDateView, setCurrentDateView] = useState(() => viewDate ?? getInitialCurrentDateView(value, minDate, maxDate));
     const [appliedViewDateVersion, setAppliedViewDateVersion] = useState(viewDateVersion);
     const [isYearPickerVisible, setIsYearPickerVisible] = useState(false);
     const [isMonthPickerVisible, setIsMonthPickerVisible] = useState(false);
