@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearFinancialForceErrorField, updateFinancialForceDefaultVendor} from '@libs/actions/connections/FinancialForce';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {settingsPendingAction} from '@libs/PolicyUtils';
+import {getCertiniaVendors, settingsPendingAction} from '@libs/PolicyUtils';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -30,9 +30,9 @@ function CertiniaDefaultVendorPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
-    const {config, data} = policy?.connections?.financialforce ?? {};
+    const config = policy?.connections?.financialforce?.config;
     const exportConfig = config?.export;
-    const vendors = data?.vendors ?? [];
+    const vendors = getCertiniaVendors(policy);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_DEFAULT_VENDOR.path);
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 

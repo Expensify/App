@@ -5,6 +5,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemList from '@components/MenuItemList';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import PopoverMenu from '@components/PopoverMenu';
@@ -507,9 +508,7 @@ function CopilotPage() {
                                     </>
                                 )}
                                 {isAgentAccount === false ? (
-                                    <MenuItem
-                                        title={translate('delegate.addCopilot')}
-                                        icon={icons.UserPlus}
+                                    <MenuItemSectionRoot
                                         sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.ADD_COPILOT}
                                         onPress={() => {
                                             if (isActingAsDelegate) {
@@ -526,9 +525,17 @@ function CopilotPage() {
                                             }
                                             Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE);
                                         }}
-                                        shouldShowRightIcon
-                                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                    />
+                                    >
+                                        <MenuItem.Row>
+                                            <MenuItem.Icon src={icons.UserPlus} />
+                                            <MenuItem.Content>
+                                                <MenuItem.Title>{translate('delegate.addCopilot')}</MenuItem.Title>
+                                            </MenuItem.Content>
+                                            <MenuItem.Trailing>
+                                                <MenuItem.Chevron />
+                                            </MenuItem.Trailing>
+                                        </MenuItem.Row>
+                                    </MenuItemSectionRoot>
                                 ) : null}
                             </Section>
                             <PopoverMenu
