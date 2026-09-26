@@ -2470,7 +2470,7 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredForAdminsHeader: 'Autenticación de dos factores requerida',
         twoFactorAuthIsRequiredForAdminsTitle: 'Por favor, habilita la autenticación de dos factores',
         twoFactorAuthIsRequiredXero: 'Tu conexión de contabilidad con Xero requiere el uso de autenticación de dos factores. Por favor, habilítala para seguir usando Expensify.',
-        twoFactorAuthIsRequiredCompany: 'Tu empresa requiere el uso de autenticación de dos factores. Por favor, habilítala para seguir usando Expensify.',
+        twoFactorAuthIsRequiredCompany: 'Tu empresa requiere autenticación de dos factores (2FA).',
         twoFactorAuthCannotDisable: 'No se puede desactivar la autenticación de dos factores (2FA)',
         twoFactorAuthRequired: 'La autenticación de dos factores (2FA) es obligatoria para tu conexión a Xero y no se puede desactivar.',
         replaceDevice: 'Reemplazar dispositivo',
@@ -2482,6 +2482,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: 'Escanea el código QR con tu nuevo dispositivo y luego introduce el código para completar la configuración.',
         downloadCodes: 'Descargar códigos',
         copyCodes: 'Copiar códigos',
+        enable2FA: 'Habilitar',
     },
     recoveryCodeForm: {
         error: {
@@ -11297,6 +11298,8 @@ ${reportName}`,
         notAllowedMessage: (accountOwnerEmail) =>
             `Como <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">copiloto</a> de ${accountOwnerEmail}, no tienes permiso para realizar esta acción. ¡Lo siento!`,
         copilotAccess: 'Acceso a Copilot',
+        leaveAccount: 'Abandonar cuenta',
+        leaveAccountConfirmationText: 'Volverás a tu propia cuenta. No cerrarás sesión por completo.',
     },
     debug: {
         debug: 'Depuración',

@@ -2462,7 +2462,7 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredForAdminsHeader: '需要启用双重身份验证',
         twoFactorAuthIsRequiredForAdminsTitle: '请启用双重身份验证',
         twoFactorAuthIsRequiredXero: '您的 Xero 会计连接需要启用双重身份验证。',
-        twoFactorAuthIsRequiredCompany: '您的公司要求使用双重身份验证。',
+        twoFactorAuthIsRequiredCompany: '您的公司要求使用双重身份验证（2FA）。',
         twoFactorAuthCannotDisable: '无法禁用双重验证',
         twoFactorAuthRequired: '您的 Xero 连接需要启用双重身份验证（2FA），且无法将其禁用。',
         replaceDevice: '更换设备',
@@ -2474,6 +2474,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: '使用新设备扫描二维码，然后输入代码完成设置。',
         downloadCodes: '下载代码',
         copyCodes: '复制代码',
+        enable2FA: '启用',
     },
     recoveryCodeForm: {
         error: {
@@ -10608,6 +10609,8 @@ ${reportName}`,
         removeCopilotAccessConfirmation: (delegatorName: string) => `您确定要移除对${delegatorName}的 Expensify 账户的副驾驶访问权限吗？此操作无法撤销。`,
         removeCopilotAccessConfirm: '移除访问权限',
         copilotAccess: 'Copilot 访问',
+        leaveAccount: '退出账户',
+        leaveAccountConfirmationText: '您将返回到您自己的账户。您不会完全登出。',
     },
     debug: {
         debug: '调试',

@@ -2546,7 +2546,7 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredForAdminsHeader: 'Tweefactorauthenticatie vereist',
         twoFactorAuthIsRequiredForAdminsTitle: 'Schakel tweestapsverificatie in',
         twoFactorAuthIsRequiredXero: 'Je Xero-boekhoudkoppeling vereist tweefactorauthenticatie.',
-        twoFactorAuthIsRequiredCompany: 'Je bedrijf vereist tweefactorauthenticatie.',
+        twoFactorAuthIsRequiredCompany: 'Je bedrijf vereist tweefactorauthenticatie (2FA).',
         twoFactorAuthCannotDisable: 'Kan 2FA niet uitschakelen',
         twoFactorAuthRequired: 'Tweestapsverificatie (2FA) is vereist voor je Xero-verbinding en kan niet worden uitgeschakeld.',
         replaceDevice: 'Apparaat vervangen',
@@ -2558,6 +2558,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: 'Scan de QR-code met je nieuwe apparaat en voer daarna de code in om de installatie te voltooien.',
         downloadCodes: 'Codes downloaden',
         copyCodes: 'Codes kopiëren',
+        enable2FA: 'Inschakelen',
     },
     recoveryCodeForm: {
         error: {
@@ -11019,6 +11020,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             `Weet je zeker dat je je copilot-toegang tot het Expensify-account van ${delegatorName} wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.`,
         removeCopilotAccessConfirm: 'Toegang verwijderen',
         copilotAccess: 'Copilot-toegang',
+        leaveAccount: 'Account verlaten',
+        leaveAccountConfirmationText: 'Je gaat terug naar je eigen account. Je wordt niet volledig uitgelogd.',
     },
     debug: {
         debug: 'Debug',
