@@ -223,6 +223,7 @@ type DeleteTrackExpenseParams = {
     transactionID: string | undefined;
     reportAction: OnyxTypes.ReportAction;
     iouReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
     chatIOUReport: OnyxEntry<OnyxTypes.Report>;
     transactions: OnyxCollection<OnyxTypes.Transaction>;
     violations: OnyxCollection<OnyxTypes.TransactionViolations>;
@@ -1192,7 +1193,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         if (reportPreviewAction) {
             reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, false, comment, optimisticTransaction);
         } else {
-            reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimals, comment, optimisticTransaction, undefined, undefined, delegateAccountID);
+            reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimals, delegateAccountID, comment, optimisticTransaction);
             // Generated ReportPreview action is a parent report action of the iou report.
             // We are setting the iou report's parentReportActionID to display subtitle correctly in IOU page when offline.
             iouReport.parentReportActionID = reportPreviewAction.reportActionID;
@@ -1795,6 +1796,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         moneyRequestReportID,
         existingTransactionID,
         optimisticTransactionID: requestMoneyInformation.optimisticTransactionID,
+        currentReportActionID: requestMoneyInformation.currentReportActionID,
+        existingTransactionThreadReportID: requestMoneyInformation.existingTransactionThreadReportID,
+        isTransactionAlreadyOnReport: requestMoneyInformation.isTransactionAlreadyOnReport,
         existingTransaction,
         retryParams,
         testDriveCommentReportActionID,
@@ -3024,6 +3028,7 @@ function deleteTrackExpense({
     transactionID,
     reportAction,
     iouReport,
+    iouReportTransactions,
     chatIOUReport,
     transactions,
     violations,
@@ -3065,6 +3070,7 @@ function deleteTrackExpense({
             transactionThreadReportActions,
             violations,
             iouReport,
+            iouReportTransactions,
             chatReport: chatIOUReport,
             isChatIOUReportArchived,
             isSingleTransactionView,
