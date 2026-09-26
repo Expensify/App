@@ -154,6 +154,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                 conciergeChat,
                 companyDomain: getEmailDomain(email),
                 workEmail: email,
+                currentUserAccountID: currentUserPersonalDetails.accountID,
                 delegateAccountID,
             });
 
@@ -175,6 +176,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     }, [
         conciergeChat,
         conciergeReportID,
+        currentUserPersonalDetails.accountID,
         delegateAccountID,
         domain,
         email,
