@@ -7,8 +7,7 @@ import {close} from '@libs/actions/Modal';
 import {getFooterConvertedAmounts} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, getFooterSelectionFromQuery, getQueryWithFooterSelection} from '@libs/SearchQueryUtils';
-import {isGroupEntry} from '@libs/SearchUIUtils';
-import {getReimbursable} from '@libs/TransactionUtils';
+import {doesTransactionMatchFooterTotal, isGroupEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,28 +61,6 @@ function getTransactionCount(transactionKeys: string[], transactions: SelectedTr
         }
         return count + 1;
     }, 0);
-}
-
-// Whether a selected row belongs in the total the footer is showing. Reimbursable is the product default, so only an
-// explicit `false` makes an expense non-reimbursable — read through `getReimbursable`, the same helper the row's own
-// Reimbursable column renders, so the breakdown and the column can never disagree about a row. Billable works the
-// other way round. A row with no transaction of its own (an empty report group) has no expense to classify, so it
-// counts towards no breakdown.
-function matchesFooterTotal(entry: SelectedTransactionInfo, totalType: SearchFooterTotal): boolean {
-    const transaction = entry.transaction;
-
-    switch (totalType) {
-        case CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE:
-            return !!transaction && getReimbursable(transaction);
-        case CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE:
-            return !!transaction && !getReimbursable(transaction);
-        case CONST.SEARCH.FOOTER_TOTAL.BILLABLE:
-            return !!transaction && transaction.billable === true;
-        case CONST.SEARCH.FOOTER_TOTAL.NON_BILLABLE:
-            return !!transaction && transaction.billable !== true;
-        default:
-            return true;
-    }
 }
 
 // The live default-currency figure a row contributes to the footer total (also what the footer falls back to before a
@@ -639,7 +616,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             } else {
                 total = selectedTransactionsKeys.reduce((acc, key) => {
                     const transaction = selectedTransactions[key];
-                    if (!matchesFooterTotal(transaction, footerTotalBreakdown)) {
+                    if (!doesTransactionMatchFooterTotal(transaction.transaction, footerTotalBreakdown)) {
                         return acc;
                     }
                     let convertedAmount;
@@ -657,7 +634,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             return {count: selectedExpenseCount, total, currency: shouldConvertSelectedTotal ? selectedCurrency : fallbackCurrency};
         }
 
-        const excludedKeysForTotal = excludedTransactionsKeys.filter((key) => matchesFooterTotal(excludedTransactions[key], footerTotalBreakdown));
+        const excludedKeysForTotal = excludedTransactionsKeys.filter((key) => doesTransactionMatchFooterTotal(excludedTransactions[key]?.transaction, footerTotalBreakdown));
         if (
             hasCustomFooterCurrency &&
             isSearchTotalFresh &&

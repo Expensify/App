@@ -226,6 +226,7 @@ import {
     getMCCForDisplay,
     getOriginalAmountForDisplay,
     getReceiptTypeTranslationKey,
+    getReimbursable,
     getReportOwnerAccountIDAsAttendee,
     getReportOwnerAsAttendee,
     getTag,
@@ -4656,6 +4657,27 @@ function isTransactionSearchType(type: string | undefined): boolean {
     return type === CONST.SEARCH.DATA_TYPES.EXPENSE || type === CONST.SEARCH.DATA_TYPES.INVOICE;
 }
 
+/**
+ * Whether an expense belongs in the total the Spend footer is showing. Reimbursable is the product default, so only
+ * an explicit `false` makes an expense non-reimbursable — read through `getReimbursable`, the same helper the row's
+ * own Reimbursable column renders. Billable works the other way round. Every consumer of a footer breakdown goes
+ * through this, so a snapshot total, a live to-do total and a selection subtotal classify a row identically.
+ */
+function doesTransactionMatchFooterTotal(transaction: OnyxEntry<Transaction>, totalType: SearchFooterTotal | undefined): boolean {
+    switch (totalType) {
+        case CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE:
+            return !!transaction && getReimbursable(transaction);
+        case CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE:
+            return !!transaction && !getReimbursable(transaction);
+        case CONST.SEARCH.FOOTER_TOTAL.BILLABLE:
+            return !!transaction && transaction.billable === true;
+        case CONST.SEARCH.FOOTER_TOTAL.NON_BILLABLE:
+            return !!transaction && transaction.billable !== true;
+        default:
+            return true;
+    }
+}
+
 function isTodoSearch(recentSearchHash: number, suggestedSearches: Record<string, SearchTypeMenuItem>) {
     const matchedSearchKey = Object.values(suggestedSearches).find((search) => search.recentSearchHash === recentSearchHash)?.key;
     return !!matchedSearchKey && TODO_SEARCH_KEYS.has(matchedSearchKey);
@@ -7250,6 +7272,7 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 }
 
 export {
+    doesTransactionMatchFooterTotal,
     getSearchBulkEditPolicyID,
     getSuggestedSearches,
     getSections,

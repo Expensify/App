@@ -686,7 +686,7 @@ function getFilters(queryJSON: SearchQueryJSON) {
 }
 
 function getFilterFromQuery(queryJSON: SearchQueryJSON | undefined, filterKey: SearchAdvancedFiltersKey): Filter {
-    const filters = queryJSON?.flatFilters.find((filter) => filter.key === filterKey)?.filters;
+    const filters = queryJSON?.flatFilters?.find((filter) => filter.key === filterKey)?.filters;
     const isNegated = filters?.at(0)?.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO;
     const value = filters?.map((filter) => filter.value.toString());
 
