@@ -58,7 +58,7 @@ function DualEntryCardProgramAccountSelectorPage({
     const dualentryData = policy?.connections?.dualEntry?.data;
     const creditCardAccountID = dualentryConfig?.export?.creditCardAccountID;
     const cardProgramsUsingCustomAccounts = dualentryConfig?.export?.cardProgramAccounts;
-    const cardProgramAccountID = (feedKey ? cardProgramsUsingCustomAccounts?.[feedKey] : undefined) ?? creditCardAccountID;
+    const cardProgramAccountID = feedKey ? cardProgramsUsingCustomAccounts?.[feedKey] : undefined;
     const hasActiveCards = feedKey && findMatchingCards(cardFeeds ?? {}, cardLists, feedKey).length > 0;
     const title = getCustomOrFormattedFeedName(translate, feedKey, cardFeed?.customFeedName, false);
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_CARD_PROGRAM_ACCOUNT.getRoute(policyID) : undefined;
@@ -97,10 +97,9 @@ function DualEntryCardProgramAccountSelectorPage({
 
     const selectCreditCardAccount = (item: AccountListItem) => {
         if (item.value !== cardProgramAccountID && policyID && feedKey) {
-            // Choosing the default account clears the custom account
-            const value = item.value === creditCardAccountID ? '' : item.value;
-            const oldValue = cardProgramAccountID === creditCardAccountID ? undefined : cardProgramAccountID;
-            updateDualEntryCardProgramAccount(policyID, feedKey, value, oldValue);
+            // The picked account is always stored explicitly, even when it matches the workspace
+            // default, because settlement sync requires a stored Expensify Card feed mapping
+            updateDualEntryCardProgramAccount(policyID, feedKey, item.value, cardProgramAccountID);
         }
         Navigation.goBack(backPath);
     };
