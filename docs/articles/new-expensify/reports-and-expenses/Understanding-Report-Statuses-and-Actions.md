@@ -40,7 +40,7 @@ The grey **More** button is always visible in the report header. Tap it to acces
 - Duplicate report
 - Download as CSV
 - Print
-- Change Workspace
+- Change workspace
 - Change approver
 - View details
 - Delete
@@ -84,7 +84,7 @@ If Expensify cannot detect a potential match between a SmartScanned receipt and 
 # Moving Expenses or Reports
 
 - **To move a single expense**: Open the expense, then update the **Report** field to select another Draft report.
-- **To move a report to another workspace**: Tap **More > Change Workspace**.
+- **To move a report to another workspace**: Tap **More > Change workspace**, tap the workspace you want, then tap **Save**. The report does not move until you tap **Save**.
 
 ---
 
@@ -104,13 +104,13 @@ If Expensify cannot detect a potential match between a SmartScanned receipt and 
 
 ## Invoices - As the Sender
 - Choose **Export** or **Mark as exported**.
-- **Delete** and **Change Workspace** are not available.
+- **Delete** and **Change workspace** are not available.
 
 ## IOUs - As the Receiver
-- You can **Pay**, **Reject**, **Change Workspace**, or **Download**.
+- You can **Pay**, **Reject**, **Change workspace**, or **Download**.
 
 ## IOUs - As the Sender
-- **Change Workspace** converts the IOU into a regular expense report on the selected workspace.
+- **Change workspace** converts the IOU into a regular expense report on the workspace you select and confirm with **Save**.
 
 ---
 
@@ -126,4 +126,4 @@ Yes—if the report is a **Draft** or is **Outstanding**. **Done** or **Paid** r
 Yes. Tap the report title or select **View Details** from the **More** menu.
 
 ## An employee sent an IOU before our company had a company workspace. How do we report their expenses on the workspace instead?
-The employee can move their IOU to the company workspace by selecting **More** > **Change Workspace**. This will convert the IOU into a regular expense report on the selected workspace.
+The employee can move their IOU to the company workspace by selecting **More** > **Change workspace**, selecting the workspace, then selecting **Save**. This will convert the IOU into a regular expense report on the selected workspace.
