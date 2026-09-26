@@ -717,7 +717,7 @@ function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, transaction
     const isFromExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE;
     const isUnreportedExpense = isExpenseUnreported(transaction);
     const isZeroAmountAllowed = isFromExpenseReport || isUnreportedExpense;
-    const isMissingAmount = (!isUnreportedExpense && isFailedScanAmountPlaceholder(transaction)) || (!isZeroAmountAllowed && isAmountMissing(transaction, false));
+    const isMissingAmount = isFailedScanAmountPlaceholder(transaction) || (!isZeroAmountAllowed && isAmountMissing(transaction, false));
 
     return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || isMissingAmount;
 }

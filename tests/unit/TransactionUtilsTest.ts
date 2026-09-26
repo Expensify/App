@@ -2242,19 +2242,38 @@ describe('TransactionUtils', () => {
             expect(result).toBe(false);
         });
 
-        it('does not flag a zero amount on an unreported expense whose receipt scan failed', () => {
-            // Given a $0 unreported expense whose receipt scan failed
+        it('flags an unresolved failed-scan zero amount on an unreported expense', () => {
+            // Given an unreported failed Scan whose zero amount is still the scanning placeholder
             const transaction = generateTransaction({
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 amount: 0,
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                 receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
             });
 
             // When we check whether its required fields are empty
             const result = TransactionUtils.areRequiredFieldsEmpty(transaction, undefined);
 
-            // Then the amount is still not treated as missing, because being unreported is the only condition for allowing $0
+            // Then the amount is treated as missing until the user explicitly confirms it
+            expect(result).toBe(true);
+        });
+
+        it('does not flag a confirmed failed-scan zero amount on an unreported expense', () => {
+            // Given an unreported failed Scan whose zero amount has been explicitly confirmed
+            const transaction = generateTransaction({
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: 0,
+                modifiedAmount: 0,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            });
+
+            // When we check whether its required fields are empty
+            const result = TransactionUtils.areRequiredFieldsEmpty(transaction, undefined);
+
+            // Then the confirmed zero remains valid in the Self DM
             expect(result).toBe(false);
         });
 
