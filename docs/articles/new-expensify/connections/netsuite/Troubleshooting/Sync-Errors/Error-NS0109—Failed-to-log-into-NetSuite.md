@@ -1,6 +1,6 @@
 ---
-title: NS0109 Sync Error in NetSuite Integration
-description: Learn what the NS0109 sync error means and how to refresh or update your NetSuite admin credentials to restore syncing.
+title: Error NS0109 - Failed to log into NetSuite
+description: Resolve the error "Failed to login to NetSuite. Please verify your admin credentials." by updating your NetSuite admin credentials and restore syncing.
 keywords: NS0109, NetSuite login failed, failed to login to NetSuite, NetSuite admin credentials, refresh NetSuite token, NetSuite sync error, NetSuite authentication error, Expensify NetSuite integration, Workspace Admin
 internalScope: Audience is Workspace Admins using the NetSuite integration. Covers resolving the NS0109 sync error caused by invalid or outdated NetSuite credentials. Does not cover full NetSuite integration setup or advanced NetSuite configuration.
 ---
