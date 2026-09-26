@@ -179,9 +179,48 @@ function getActivePoliciesWithExpenseChatAndTimeEnabled(policies: OnyxCollection
 
 /**
  * Checks if the current user is an admin of the policy.
+ *
+ * By default this answers "is the *viewing* user an admin?", because `getPolicyRole` short-circuits on the global
+ * `policy.role`. When `login` belongs to somebody other than the current user you must pass
+ * `shouldCheckGlobalPolicyRole = false`, otherwise the `login` argument is silently ignored.
  */
 const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, login?: string, shouldCheckGlobalPolicyRole = true): boolean =>
     getPolicyRole(policy, login, shouldCheckGlobalPolicyRole) === CONST.POLICY.ROLE.ADMIN;
+
+/**
+ * Checks if the given account is the owner (creator) of the policy.
+ *
+ * The account is whoever you pass in, not necessarily the current user — callers resolving another member's role rely
+ * on that.
+ */
+const isPolicyOwner = (policy: OnyxInputOrEntry<Pick<Policy, 'ownerAccountID'>>, accountID: number | undefined): boolean => !!accountID && policy?.ownerAccountID === accountID;
+
+/**
+ * Whether a room member's own policy role protects them from being removed from a policy expense chat.
+ *
+ * Only a member who was invited to the chat can be removed from it. Everybody else is there by virtue of the
+ * workspace configuration, so their membership is governed by that configuration and not by this screen — see the
+ * expense chat rules in `contributingGuides/philosophies/SECURITY.md`. That covers admins, the policy owner and
+ * approvers, who are auto-added to the chats of everybody who submits to them.
+ *
+ * Fails closed on a missing `login`: without one we cannot resolve the member's role, and offering removal for a
+ * member whose role is unknown could remove a workspace admin. Both the member list and the member details page must
+ * agree on this, so it lives here rather than being spelled out at each call site.
+ *
+ * The policy owner is checked by `accountID` rather than by role. `ownerAccountID` is a required top-level field, so
+ * unlike `employeeList` it resolves even when the employee roster has not loaded, and the owner is only protected
+ * incidentally by `role: admin` otherwise. Note the callers' `report.ownerAccountID` is the *report* owner — the
+ * employee whose expense chat it is — which is a different person from the policy owner.
+ *
+ * The approver check is policy-wide rather than walking this submitter's own approval chain, so an approver for a
+ * different submitter who was invited into this chat is protected too. That errs toward un-removable, which is the
+ * safe direction here.
+ *
+ * `accountID` is deliberately a required position rather than optional: omitting it silently drops the owner
+ * protection, so every caller must state it even when it is `undefined`.
+ */
+const isRoomMemberProtectedByPolicyRole = (policy: OnyxInputOrEntry<Policy>, login: string | undefined, accountID: number | undefined): boolean =>
+    isPolicyOwner(policy, accountID) || !login || isPolicyAdmin(policy, login, false) || isPolicyApprover(policy, login);
 
 const WRITE_ALL_POLICY_FEATURES = Object.fromEntries(Object.values(CONST.POLICY.POLICY_FEATURE).map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE])) as Record<
     PolicyFeature,
@@ -651,7 +690,13 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: stri
         return;
     }
 
-    return policy?.employeeList?.[currentUserLogin]?.role;
+    // `employeeList` is keyed by the canonical lowercase login, but a login read off personal details is not
+    // guaranteed to be lowercase, so fall back to a normalized lookup when the exact key misses. Both lookups are
+    // O(1), unlike a case-insensitive scan of every employee, which would run per participant on member lists.
+    // Pick the employee entry first and read `role` off whichever matched: `role` is optional, so falling back on the
+    // role itself would resolve one account's role from a different account's entry when the exact entry has no role.
+    const employeeList = policy?.employeeList;
+    return (employeeList?.[currentUserLogin] ?? employeeList?.[currentUserLogin.toLowerCase()])?.role;
 }
 
 /**
@@ -768,7 +813,7 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
 }
 
 /** Check if the passed employee is an approver in the policy's employeeList */
-function isPolicyApprover(policy: OnyxEntry<Policy>, employeeLogin: string) {
+function isPolicyApprover(policy: OnyxInputOrEntry<Policy>, employeeLogin: string) {
     if (policy?.approver === employeeLogin) {
         return true;
     }
@@ -873,12 +918,6 @@ const isAdminOfCardEnabledPolicy = (policy: OnyxInputOrEntry<Policy>, login?: st
 const isPolicyEmployee = (policyID: string | undefined, policy: OnyxEntry<Policy>): boolean => {
     return !!policyID && policyID === policy?.id;
 };
-
-/**
- * Checks if the current user is an owner (creator) of the policy.
- */
-const isPolicyOwner = (policy: OnyxInputOrEntry<Pick<Policy, 'ownerAccountID'>>, currentUserAccountID: number | undefined): boolean =>
-    !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID;
 
 /**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors if includeMemberWithErrors is false, and get the login email from the personalDetail object using the accountID.
@@ -3826,6 +3865,7 @@ export {
     isGroupPolicyByType,
     isPendingDeletePolicy,
     isPolicyAdmin,
+    isRoomMemberProtectedByPolicyRole,
     isPolicyUser,
     isPolicyAuditor,
     isAdminOfCardEnabledPolicy,
