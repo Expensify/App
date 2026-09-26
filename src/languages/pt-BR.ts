@@ -1193,6 +1193,7 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `Ops! Um campo obrigatório ("${fieldName}") não foi mapeado. Revise e tente novamente.`,
         singleFieldMultipleColumns: (fieldName: string) => `Ops! Você mapeou um único campo ("${fieldName}") para várias colunas. Revise e tente novamente.`,
         emptyMappedField: (fieldName: string) => `Ops! O campo ("${fieldName}") contém um ou mais valores vazios. Revise e tente novamente.`,
+        invalidApprovalLimit: 'Approval limits must be valid amounts for the workspace currency.',
         importSuccessfulTitle: 'Importação concluída',
         importCategoriesNoneAddedOrUpdated: 'Nenhuma categoria foi adicionada ou atualizada.',
         importCategoriesAdded: ({count}: {count: number}) => ({
