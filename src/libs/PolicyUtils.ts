@@ -26,6 +26,7 @@ import type {
     Account,
     ApprovalRule,
     ConnectionLastSync,
+    CommuterExclusions,
     ConnectionName,
     Connections,
     CustomUnit,
@@ -370,6 +371,17 @@ function getNumericValue(value: number | string, toLocaleDigit: (arg: string) =>
  */
 function getDistanceRateCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined {
     return Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+}
+
+/**
+ * Whether the workspace's members commute to an office, which is what gives them an ordinary commute to
+ * measure against their home address.
+ *
+ * Workspaces that turned the home and office method on before this setting existed have nothing stored and
+ * measured every member's commute, so a missing value reads as office-based.
+ */
+function hasOfficeWorkArrangement(commuterExclusions: CommuterExclusions | undefined): boolean {
+    return commuterExclusions?.isOfficeWorkArrangement ?? true;
 }
 
 /**
@@ -3884,6 +3896,7 @@ export {
     getSageIntacctBankAccounts,
     getSageIntacctExpenseAccounts,
     getDistanceRateCustomUnit,
+    hasOfficeWorkArrangement,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
     getDistanceRateCustomUnitRate,

@@ -7,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import openPrivatePersonalDetailsPage from '@libs/Navigation/helpers/openPrivatePersonalDetailsPage';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
+import {hasOfficeWorkArrangement} from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
@@ -14,7 +15,7 @@ import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBa
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
-import type {PrivatePersonalDetails, ReportAction} from '@src/types/onyx';
+import type {Policy, PrivatePersonalDetails, ReportAction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -24,14 +25,19 @@ type HomeAddressRequiredContentProps = {
 
 const hasHomeAddressSelector = (privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>) => !!getCurrentAddress(privatePersonalDetails)?.street?.trim();
 
+// A commute is only measured from a member's home when the workspace excludes commutes by home and office and
+// its members are office-based. A workspace that has not loaded yet counts as still measuring, so a slow read
+// never hides a prompt the member does need to act on.
+const isCommuteStillMeasuredSelector = (policy: OnyxEntry<Policy>) =>
+    !policy || (policy.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && hasOfficeWorkArrangement(policy.commuterExclusions));
+
 function HomeAddressRequiredContent({action}: HomeAddressRequiredContentProps) {
     const {translate} = useLocalize();
     const [hasHomeAddress] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {selector: hasHomeAddressSelector});
+    const [isCommuteStillMeasured] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getOriginalMessage(action)?.policyID}`, {selector: isCommuteStillMeasuredSelector});
 
-    // The prompt is resolved once the member saves a home address. Keep the CTA in sync with the local
-    // address state so it disappears immediately after the optimistic save, even before the server
-    // stamps the action as resolved.
-    const isResolved = !!getOriginalMessage(action)?.resolution || !!hasHomeAddress;
+    // The prompt is resolved once the member saves a home address.
+    const isResolved = !!getOriginalMessage(action)?.resolution || !!hasHomeAddress || !isCommuteStillMeasured;
 
     return (
         <ReportActionItemBasicMessage>

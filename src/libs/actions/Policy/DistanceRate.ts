@@ -9,6 +9,7 @@ import type {
     SetPolicyDistanceRatesEnabledParams,
     SetPolicyDistanceRatesUnitParams,
     SetPolicyRequireMapOrGPSParams,
+    SetPolicyWorkArrangementParams,
     SetWorkspaceDistanceAutoUpdateParams,
     UpdatePolicyDistanceRateParams,
     UpdatePolicyDistanceRateValueParams,
@@ -592,6 +593,54 @@ function setPolicyCommuterExclusions(
 }
 
 /**
+ * Set the workspace-wide default work arrangement, which only applies while the policy uses the
+ * "homeAndOffice" commuter exclusion method. `isOffice` is true when members commute to an office and
+ * false when they have no regular workplace.
+ *
+ * Callers should pass the policy's current value so the failure path can restore it.
+ */
+function setPolicyWorkArrangement(policyID: string, isOffice: boolean, previousIsOffice: boolean | undefined) {
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    commuterExclusions: {isOfficeWorkArrangement: isOffice},
+                    pendingFields: {commuterExclusions: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    errorFields: {commuterExclusions: null},
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    pendingFields: {commuterExclusions: null},
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    commuterExclusions: {isOfficeWorkArrangement: previousIsOffice ?? null},
+                    pendingFields: {commuterExclusions: null},
+                    errorFields: {commuterExclusions: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyWorkArrangementParams = {policyID, isOffice};
+    API.write(WRITE_COMMANDS.SET_POLICY_WORK_ARRANGEMENT, parameters, onyxData);
+}
+
+/**
  * Disable the commuter exclusion for a policy.
  * `DisablePolicyCommuterExclusions` command that removes the policy NVP entirely.
  */
@@ -859,6 +908,7 @@ export {
     updateDistanceTaxClaimableValue,
     updateDistanceTaxRate,
     setPolicyCommuterExclusions,
+    setPolicyWorkArrangement,
     disablePolicyCommuterExclusions,
     clearPolicyCommuterExclusionsErrors,
     setPolicyRequireMapOrGPS,

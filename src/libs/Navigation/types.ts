@@ -799,6 +799,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DISTANCE_RATES_COMMUTER_EXCLUSIONS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.DISTANCE_RATES_WORK_ARRANGEMENT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_SETUP]: {
         policyID: string;
         isIntuitEnterpriseSuite?: string;
