@@ -2672,6 +2672,44 @@ type BusinessCentralCodingFieldMappingsOfflineFeedbackKey = `${typeof CONST.BUSI
 type BusinessCentralCodingOfflineFeedbackKeys = keyof Omit<BusinessCentralCoding, 'fieldMappings'> | BusinessCentralCodingFieldMappingsOfflineFeedbackKey;
 
 /**
+ * Export configuration for Business Central.
+ */
+type BusinessCentralExport = {
+    /** Email of the workspace admin who exports reports to Business Central */
+    exporter: string;
+
+    /** Which date exported documents are dated with */
+    exportDate: ValueOf<typeof CONST.BUSINESS_CENTRAL_EXPORT_DATE>;
+
+    /** Business Central document reimbursable expenses export to */
+    reimbursable: ValueOf<typeof CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION>;
+
+    /** Business Central document non-reimbursable expenses export to */
+    nonReimbursable: ValueOf<typeof CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION>;
+
+    /** ID of the Business Central bank account reimbursable expenses export against */
+    reimbursableAccount: string;
+
+    /** ID of the Business Central bank account non-reimbursable expenses export against */
+    nonReimbursableAccount: string;
+
+    /** ID of the Business Central vendor company card expenses fall back to when no other vendor applies */
+    defaultVendorID: string;
+
+    /** Code of the Business Central payment method added to purchase invoices, empty when none is set */
+    paymentMethodCode: string;
+
+    /** Whether exported documents are only created or also posted in Business Central */
+    postingMode: ValueOf<typeof CONST.BUSINESS_CENTRAL_POSTING_MODE>;
+
+    /** Whether vendors and employees missing in Business Central are created on export */
+    autoCreateEntities: boolean;
+
+    /** Accounting method used during export */
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+};
+
+/**
  * Automatic synchronization settings for Business Central.
  */
 type BusinessCentralAutoSync = {
@@ -2702,6 +2740,9 @@ type BusinessCentralConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Coding settings */
         coding?: BusinessCentralCoding;
 
+        /** Export settings */
+        export?: BusinessCentralExport;
+
         /** Auto-sync settings */
         autoSync?: BusinessCentralAutoSync;
 
@@ -2711,7 +2752,7 @@ type BusinessCentralConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     },
-    'companyID' | 'enableNewCategories' | BusinessCentralCodingOfflineFeedbackKeys | keyof BusinessCentralAutoSync
+    'companyID' | 'enableNewCategories' | BusinessCentralCodingOfflineFeedbackKeys | keyof BusinessCentralExport | keyof BusinessCentralAutoSync
 >;
 
 /** Gusto connection data */
@@ -3831,5 +3872,6 @@ export type {
     CampfireExport,
     BusinessCentralCompany,
     BusinessCentralCoding,
+    BusinessCentralExport,
     BusinessCentralCodingOfflineFeedbackKeys,
 };

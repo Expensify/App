@@ -8710,6 +8710,51 @@ ${reportName}`,
             importDescription: 'Dynamics 365 Business Central からインポートするコーディング構成を選択してください。',
             items: 'アイテム',
             enableNewCategories: '新しくインポートされたカテゴリを有効にする',
+            exportDescription: 'Expensify のデータを Dynamics 365 Business Central にエクスポートする方法を設定します。',
+            exportDate: {
+                label: '取引日',
+                description: 'レポートを Dynamics 365 Business Central にエクスポートするときは、この日付を使用します。',
+                values: {
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: '最終支出日',
+                        description: 'レポートに記載されている最新の支出日。',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'エクスポート日',
+                        description: 'レポートが Dynamics 365 Business Central にエクスポートされた日付。',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: '提出日',
+                        description: 'レポートが承認のために提出された日付。',
+                    },
+                },
+            },
+            exportReimbursable: '返金対象経費の書き出し形式',
+            exportNonReimbursable: '会社カード経費のエクスポート形式',
+            exportDestination: {
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY]: '一般仕訳帳',
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE]: '購入請求書',
+            },
+            reimbursableAccount: {
+                label: '返金対象経費の口座',
+                description: '返金対象経費のエクスポート先を選択してください。',
+            },
+            defaultCompanyCardVendor: {
+                label: 'デフォルトの会社カードベンダー',
+                description: '自動的に一致しない経費に使用する、デフォルトの Dynamics 365 Business Central ベンダーを選択してください。',
+            },
+            companyCardAccount: {
+                label: '会社カード口座',
+                description: '会社カード取引のエクスポート先を選択してください。',
+            },
+            paymentMethod: {
+                label: '支払方法',
+                description: 'Dynamics 365 Business Central が銀行と照合できるよう、購入請求書の支払方法を選択してください。',
+            },
+            noBankAccountsFound: '銀行口座が見つかりません',
+            noBankAccountsFoundDescription: 'Dynamics 365 Business Central で銀行口座を追加し、接続を再度同期してください',
+            noPaymentMethodsFound: '支払方法が見つかりません',
+            noPaymentMethodsFoundDescription: 'Dynamics 365 Business Central で支払方法を追加し、接続を再度同期してください',
         },
     },
     getAssistancePage: {

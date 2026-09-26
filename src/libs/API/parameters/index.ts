@@ -94,6 +94,14 @@ export type {default as UpdateBusinessCentralEnableNewCategoriesParams} from './
 export type {default as UpdateBusinessCentralFieldMappingParams} from './UpdateBusinessCentralFieldMappingParams';
 export type {default as UpdateBusinessCentralSyncTaxRatesParams} from './UpdateBusinessCentralSyncTaxRatesParams';
 export type {default as UpdateBusinessCentralSyncItemsParams} from './UpdateBusinessCentralSyncItemsParams';
+export type {default as UpdateBusinessCentralExporterParams} from './UpdateBusinessCentralExporterParams';
+export type {default as UpdateBusinessCentralExportDateParams} from './UpdateBusinessCentralExportDateParams';
+export type {default as UpdateBusinessCentralReimbursableExpensesExportDestinationParams} from './UpdateBusinessCentralReimbursableExpensesExportDestinationParams';
+export type {default as UpdateBusinessCentralNonreimbursableExpensesExportDestinationParams} from './UpdateBusinessCentralNonreimbursableExpensesExportDestinationParams';
+export type {default as UpdateBusinessCentralReimbursableAccountParams} from './UpdateBusinessCentralReimbursableAccountParams';
+export type {default as UpdateBusinessCentralNonreimbursableAccountParams} from './UpdateBusinessCentralNonreimbursableAccountParams';
+export type {default as UpdateBusinessCentralDefaultVendorParams} from './UpdateBusinessCentralDefaultVendorParams';
+export type {default as UpdateBusinessCentralPaymentMethodParams} from './UpdateBusinessCentralPaymentMethodParams';
 export type {default as UpdateNetSuiteAccountingMethodParams} from './UpdateNetSuiteAccountingMethodParams';
 export type {default as UpdateQuickbooksOnlineAccountingMethodParams} from './UpdateQuickbooksOnlineAccountingMethodParams';
 export type {default as UpdateXeroAccountingMethodParams} from './UpdateXeroAccountingMethodParams';

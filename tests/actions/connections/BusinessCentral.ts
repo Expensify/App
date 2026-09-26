@@ -6,8 +6,16 @@ import {
     clearBusinessCentralErrorField,
     connectToBusinessCentral,
     updateBusinessCentralCompany,
+    updateBusinessCentralDefaultVendor,
     updateBusinessCentralEnableNewCategories,
+    updateBusinessCentralExportDate,
+    updateBusinessCentralExporter,
     updateBusinessCentralFieldMapping,
+    updateBusinessCentralNonReimbursableAccount,
+    updateBusinessCentralNonReimbursableExpensesExportDestination,
+    updateBusinessCentralPaymentMethod,
+    updateBusinessCentralReimbursableAccount,
+    updateBusinessCentralReimbursableExpensesExportDestination,
     updateBusinessCentralSyncItems,
     updateBusinessCentralSyncTaxRates,
 } from '@src/libs/actions/connections/BusinessCentral';
@@ -407,6 +415,164 @@ describe('actions/connections/BusinessCentral', () => {
                     },
                 ],
             });
+        });
+    });
+
+    describe('export settings', () => {
+        const exportCases = [
+            {
+                name: 'updateBusinessCentralExporter',
+                update: () => updateBusinessCentralExporter(MOCK_POLICY_ID, 'exporter@example.com', 'owner@example.com'),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_EXPORTER,
+                parameters: {email: 'exporter@example.com'},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.EXPORTER,
+                value: 'exporter@example.com',
+            },
+            {
+                name: 'updateBusinessCentralExportDate',
+                update: () => updateBusinessCentralExportDate(MOCK_POLICY_ID, CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_SUBMITTED, CONST.BUSINESS_CENTRAL_EXPORT_DATE.LAST_EXPENSE),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_EXPORT_DATE,
+                parameters: {value: CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_SUBMITTED},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.EXPORT_DATE,
+                value: CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_SUBMITTED,
+            },
+            {
+                name: 'updateBusinessCentralReimbursableExpensesExportDestination',
+                update: () =>
+                    updateBusinessCentralReimbursableExpensesExportDestination(
+                        MOCK_POLICY_ID,
+                        CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE,
+                        CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY,
+                    ),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
+                parameters: {value: CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.REIMBURSABLE,
+                value: CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE,
+            },
+            {
+                name: 'updateBusinessCentralNonReimbursableExpensesExportDestination',
+                update: () =>
+                    updateBusinessCentralNonReimbursableExpensesExportDestination(
+                        MOCK_POLICY_ID,
+                        CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY,
+                        CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE,
+                    ),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_NONREIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
+                parameters: {value: CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.NON_REIMBURSABLE,
+                value: CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY,
+            },
+            {
+                name: 'updateBusinessCentralReimbursableAccount',
+                update: () => updateBusinessCentralReimbursableAccount(MOCK_POLICY_ID, 'bank-2', 'bank-1'),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_REIMBURSABLE_ACCOUNT,
+                parameters: {value: 'bank-2'},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.REIMBURSABLE_ACCOUNT,
+                value: 'bank-2',
+            },
+            {
+                name: 'updateBusinessCentralNonReimbursableAccount',
+                update: () => updateBusinessCentralNonReimbursableAccount(MOCK_POLICY_ID, 'bank-2', 'bank-1'),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_NONREIMBURSABLE_ACCOUNT,
+                parameters: {value: 'bank-2'},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.NON_REIMBURSABLE_ACCOUNT,
+                value: 'bank-2',
+            },
+            {
+                name: 'updateBusinessCentralDefaultVendor',
+                update: () => updateBusinessCentralDefaultVendor(MOCK_POLICY_ID, 'vendor-2', 'vendor-1'),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_DEFAULT_VENDOR,
+                parameters: {vendorID: 'vendor-2'},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.DEFAULT_VENDOR_ID,
+                value: 'vendor-2',
+            },
+            {
+                name: 'updateBusinessCentralPaymentMethod',
+                update: () => updateBusinessCentralPaymentMethod(MOCK_POLICY_ID, 'BANK', 'CASH'),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_PAYMENT_METHOD,
+                parameters: {value: 'BANK'},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.PAYMENT_METHOD_CODE,
+                value: 'BANK',
+            },
+        ];
+
+        it.each(exportCases)('$name sends the request parameter the backend reads and optimistically updates the export config', ({update, command, parameters, settingName, value}) => {
+            // Given a connected policy
+            // When an admin changes an export setting
+            update();
+
+            // Then the command carries the parameter name Web-Expensify reads, and the export config shows the new value as pending so the row updates instantly
+            expect(writeSpy).toHaveBeenCalledWith(command, {policyID: MOCK_POLICY_ID, ...parameters}, expect.anything());
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                optimisticData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        export: {[settingName]: value},
+                                        pendingFields: {[settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                        errorFields: {[settingName]: null},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+                successData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {connections: {businessCentral: {config: {pendingFields: {[settingName]: null}}}}},
+                    },
+                ],
+            });
+        });
+
+        it('rolls an export setting back to the old value and sets an error on failure', () => {
+            // Given a policy whose default vendor is vendor-1
+            // When an admin picks vendor-2
+            updateBusinessCentralDefaultVendor(MOCK_POLICY_ID, 'vendor-2', 'vendor-1');
+
+            // Then on failure the export config goes back to vendor-1 and the row shows an error, so the admin sees the change was not saved
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                failureData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        export: {[CONST.BUSINESS_CENTRAL_CONFIG.DEFAULT_VENDOR_ID]: 'vendor-1'},
+                                        pendingFields: {[CONST.BUSINESS_CENTRAL_CONFIG.DEFAULT_VENDOR_ID]: null},
+                                        errorFields: {[CONST.BUSINESS_CENTRAL_CONFIG.DEFAULT_VENDOR_ID]: ANY_VALUE},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+        });
+
+        it('rolls back to no value when the setting was never saved', () => {
+            // Given a policy that has never had a reimbursable account set
+            // When an admin picks one
+            updateBusinessCentralReimbursableAccount(MOCK_POLICY_ID, 'bank-1');
+
+            // Then on failure the account is cleared again rather than left on the rejected value
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                failureData: [{key: POLICY_KEY, value: {connections: {businessCentral: {config: {export: {[CONST.BUSINESS_CENTRAL_CONFIG.REIMBURSABLE_ACCOUNT]: null}}}}}}],
+            });
+        });
+
+        it('clears the payment method with an empty code', () => {
+            // Given a policy with a payment method set
+            // When an admin picks None
+            updateBusinessCentralPaymentMethod(MOCK_POLICY_ID, '', 'BANK');
+
+            // Then an empty code is sent, which Web-Expensify accepts as clearing the payment method
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_PAYMENT_METHOD, {policyID: MOCK_POLICY_ID, value: ''}, expect.anything());
         });
     });
 });
