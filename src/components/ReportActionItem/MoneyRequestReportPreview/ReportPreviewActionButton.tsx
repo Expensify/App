@@ -24,6 +24,7 @@ function ReportPreviewActionButton() {
 
     const viewButton = (
         <Button
+            style={styles.flex1}
             onPress={openReportFromPreview}
             sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.VIEW_BUTTON}
         >
