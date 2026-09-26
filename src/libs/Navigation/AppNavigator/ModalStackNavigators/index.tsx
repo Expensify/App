@@ -192,6 +192,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
 }
 
 const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNavigatorParamList>({
+    [SCREENS.MONEY_REQUEST.CREATE_BILL]: () => require<ReactComponentModule>('../../../../pages/bills/CreateBillPage').default,
     [SCREENS.MONEY_REQUEST.START]: () => require<ReactComponentModule>('../../../../pages/iou/request/IOURequestRedirectToStartPage').default,
     [SCREENS.MONEY_REQUEST.CREATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/IOURequestStartPage').default,
     [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepConfirmation').default,

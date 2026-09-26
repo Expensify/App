@@ -338,6 +338,7 @@ const SCREENS = {
 
     MONEY_REQUEST: {
         CREATE: 'Money_Request_Create',
+        CREATE_BILL: 'Money_Request_Create_Bill',
         DYNAMIC_HOLD_REASON: 'Dynamic_Money_Request_Hold_Reason',
         REJECT: 'Money_Request_Reject_Reason',
         REPORT_REJECT: 'Money_Request_Report_Reject',

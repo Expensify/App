@@ -1817,6 +1817,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: {
                     screens: {
+                        [SCREENS.MONEY_REQUEST.CREATE_BILL]: ROUTES.CREATE_BILL,
                         [SCREENS.MONEY_REQUEST.START]: ROUTES.MONEY_REQUEST_START.route,
                         [SCREENS.MONEY_REQUEST.CREATE]: {
                             path: ROUTES.MONEY_REQUEST_CREATE.route,

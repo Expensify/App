@@ -400,6 +400,9 @@ const WRITE_COMMANDS = {
     DISMISS_VIOLATION: 'DismissViolation',
     SEND_INVOICE: 'SendInvoice',
     PAY_INVOICE: 'PayInvoice',
+    REIMBURSE_REPORT: 'ReimburseReport',
+    MARK_REIMBURSED: 'MarkReimbursed',
+    CREATE_BILL: 'Bill_Create',
     MARK_AS_CASH: 'MarkAsCash',
     MERGE_DUPLICATES: 'MergeDuplicates',
     RESOLVE_DUPLICATES: 'ResolveDuplicates',
@@ -1133,6 +1136,9 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DISMISS_VIOLATION]: Parameters.DismissViolationParams;
     [WRITE_COMMANDS.SEND_INVOICE]: Parameters.SendInvoiceParams;
     [WRITE_COMMANDS.PAY_INVOICE]: Parameters.PayInvoiceParams;
+    [WRITE_COMMANDS.REIMBURSE_REPORT]: Parameters.ReimburseReportParams;
+    [WRITE_COMMANDS.MARK_REIMBURSED]: Parameters.MarkReimbursedParams;
+    [WRITE_COMMANDS.CREATE_BILL]: Parameters.CreateBillParams;
     [WRITE_COMMANDS.MARK_AS_CASH]: Parameters.MarkAsCashParams;
     [WRITE_COMMANDS.DUPLICATE_POLICY]: Parameters.DuplicateWorkspaceParams;
     [WRITE_COMMANDS.COPY_POLICY_SETTINGS]: Parameters.CopyPolicySettingsParams;

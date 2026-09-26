@@ -326,7 +326,7 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined) {
     const shouldDisplayTaxFilter = shouldDisplayFilter(policyDerived?.hasAnyTaxRates ? 1 : 0, policyDerived?.areTaxEnabled ?? false);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length > 1);
 
-    let currentType = type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+    let currentType = type === CONST.SEARCH.DATA_TYPES.BILL ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : (type ?? CONST.SEARCH.DATA_TYPES.EXPENSE);
 
     if (!(currentType in typeFiltersKeys)) {
         currentType = CONST.SEARCH.DATA_TYPES.EXPENSE;
