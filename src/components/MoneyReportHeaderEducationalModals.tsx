@@ -56,6 +56,8 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const {iouTransactionID, requestParentReportAction} = useMoneyReportTransactionThread();
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
+    const [requestParentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(requestParentReportAction?.childReportID)}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -72,6 +74,8 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
             changeMoneyRequestHoldStatus(
                 requestParentReportAction,
                 transaction,
+                transactionReport,
+                requestParentReportActionChildReport,
                 isOffline,
                 currentUserLogin ?? '',
                 currentUserAccountID,
@@ -90,6 +94,8 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
                 changeMoneyRequestHoldStatus(
                     requestParentReportAction,
                     transaction,
+                    transactionReport,
+                    requestParentReportActionChildReport,
                     isOffline,
                     currentUserLogin ?? '',
                     currentUserAccountID,

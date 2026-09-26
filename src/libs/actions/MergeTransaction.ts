@@ -431,6 +431,8 @@ type MergeTransactionRequestParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     sourceIOUActionThreadReport: OnyxEntry<Report>;
+    sourceActionIOUReport: OnyxEntry<Report>;
+    sourceActionChatReport: OnyxEntry<Report>;
     rules: OnyxCollection<Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
 };
@@ -468,6 +470,8 @@ function mergeTransactionRequest({
     getCurrencyDecimals,
     getCurrencySymbol,
     sourceIOUActionThreadReport,
+    sourceActionIOUReport,
+    sourceActionChatReport,
     rules,
     isVendorMatchingBetaEnabled,
 }: MergeTransactionRequestParams) {
@@ -643,6 +647,8 @@ function mergeTransactionRequest({
                 shouldDeleteTransactionThread,
                 reportAction: sourceIOUAction,
                 currentUserAccountID: currentUserAccountIDParam,
+                iouReport: sourceActionIOUReport,
+                chatReport: sourceActionChatReport,
                 transactionThread: sourceIOUActionThreadReport,
                 transactionThreadReportActionsParam: sourceTransactionThreadReportActions,
             });

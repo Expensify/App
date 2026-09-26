@@ -496,18 +496,19 @@ describe('actions/IOU/Hold', () => {
                 })
                 .then(() => {
                     // When an expense is unhold
-                    unholdRequest(
-                        transaction.transactionID,
-                        transactionThread.reportID,
+                    unholdRequest({
+                        transactionID: transaction.transactionID,
+                        transactionReport: iouReport,
+                        report: transactionThread,
                         policy,
-                        false,
-                        RORY_EMAIL,
-                        RORY_ACCOUNT_ID,
-                        [{name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
-                        false,
-                        undefined,
-                        undefined,
-                    );
+                        isOffline: false,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        transactionViolations: [{name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
+                        rules: undefined,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -582,18 +583,19 @@ describe('actions/IOU/Hold', () => {
                 .then(() => {
                     mockFetch.fail();
                     mockFetch.resume();
-                    unholdRequest(
-                        transaction.transactionID,
-                        transactionThread.reportID,
+                    unholdRequest({
+                        transactionID: transaction.transactionID,
+                        transactionReport: iouReport,
+                        report: transactionThread,
                         policy,
-                        false,
-                        RORY_EMAIL,
-                        RORY_ACCOUNT_ID,
-                        [{name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
-                        false,
-                        undefined,
-                        undefined,
-                    );
+                        isOffline: false,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        transactionViolations: [{name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
+                        rules: undefined,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {

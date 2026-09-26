@@ -363,18 +363,21 @@ function useSelectedTransactionsActions({
                             continue;
                         }
                         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-                        unholdRequest(
+                        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+
+                        unholdRequest({
                             transactionID,
-                            action.childReportID,
+                            transactionReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
+                            report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action.childReportID}`],
                             policy,
                             isOffline,
-                            login ?? '',
+                            currentUserLogin: login ?? '',
                             currentUserAccountID,
                             transactionViolations,
                             isTrackIntentUser,
                             delegateAccountID,
                             rules,
-                        );
+                        });
                     }
                     clearSelectedTransactions(true);
                 },

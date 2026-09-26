@@ -32,6 +32,7 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
     const {moneyRequestReport, isOffline, reportActions, transactionThreadReportID, requestParentReportAction} = useTransactionThreadData(reportID, chatReportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
@@ -57,6 +58,8 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
                         changeMoneyRequestHoldStatus(
                             action,
                             linkedTransaction,
+                            allReports?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${linkedTransaction?.reportID}`],
+                            allReports?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`],
                             isOffline,
                             currentUserLogin ?? '',
                             currentUserAccountID,
@@ -79,6 +82,8 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
                 changeMoneyRequestHoldStatus(
                     moneyRequestAction,
                     linkedTransaction,
+                    allReports?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${linkedTransaction?.reportID}`],
+                    allReports?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestAction?.childReportID}`],
                     isOffline,
                     currentUserLogin ?? '',
                     currentUserAccountID,

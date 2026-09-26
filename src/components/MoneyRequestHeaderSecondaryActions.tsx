@@ -160,6 +160,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDFromAction}`);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
 
     // Collection Onyx subscriptions (isolated here to prevent parent header re-renders)
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -319,6 +320,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             changeMoneyRequestHoldStatus(
                 parentReportAction,
                 transaction,
+                transactionReport,
+                report,
                 isOffline,
                 currentUserLogin ?? '',
                 accountID,
@@ -337,6 +340,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 changeMoneyRequestHoldStatus(
                     parentReportAction,
                     transaction,
+                    transactionReport,
+                    report,
                     isOffline,
                     currentUserLogin ?? '',
                     accountID,
@@ -424,6 +429,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     changeMoneyRequestHoldStatus(
                         parentReportAction,
                         transaction,
+                        transactionReport,
+                        report,
                         isOffline,
                         currentUserLogin ?? '',
                         accountID,
@@ -456,6 +463,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 changeMoneyRequestHoldStatus(
                     parentReportAction,
                     transaction,
+                    transactionReport,
+                    report,
                     isOffline,
                     currentUserLogin ?? '',
                     accountID,

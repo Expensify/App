@@ -368,6 +368,8 @@ type ContextMenuActionPayload = {
     encryptedAuthToken: string;
     iouTransaction: OnyxEntry<Transaction>;
     iouTransactionViolations: OnyxEntry<TransactionViolations>;
+    iouTransactionReport: OnyxEntry<ReportType>;
+    moneyRequestActionChildReport: OnyxEntry<ReportType>;
     bankAccountList: OnyxEntry<BankAccountList>;
     isOffline: boolean;
     conciergeReportID: string | undefined;
@@ -699,6 +701,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                 moneyRequestAction,
                 iouTransaction,
                 iouTransactionViolations,
+                iouTransactionReport,
+                moneyRequestActionChildReport,
                 isDelegateAccessRestricted,
                 showDelegateNoAccessModal,
                 isOffline,
@@ -718,6 +722,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     changeMoneyRequestHoldStatus(
                         moneyRequestAction,
                         iouTransaction,
+                        iouTransactionReport,
+                        moneyRequestActionChildReport,
                         isOffline,
                         currentUserPersonalDetails?.login ?? '',
                         currentUserPersonalDetails.accountID,
@@ -734,6 +740,8 @@ const ContextMenuActions: ContextMenuAction[] = [
             changeMoneyRequestHoldStatus(
                 moneyRequestAction,
                 iouTransaction,
+                iouTransactionReport,
+                moneyRequestActionChildReport,
                 isOffline,
                 currentUserPersonalDetails?.login ?? '',
                 currentUserPersonalDetails.accountID,
@@ -763,6 +771,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                 moneyRequestAction,
                 iouTransaction,
                 iouTransactionViolations,
+                iouTransactionReport,
+                moneyRequestActionChildReport,
                 isDelegateAccessRestricted,
                 showDelegateNoAccessModal,
                 isOffline,
@@ -782,6 +792,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     changeMoneyRequestHoldStatus(
                         moneyRequestAction,
                         iouTransaction,
+                        iouTransactionReport,
+                        moneyRequestActionChildReport,
                         isOffline,
                         currentUserPersonalDetails?.login ?? '',
                         currentUserPersonalDetails.accountID,
@@ -798,6 +810,8 @@ const ContextMenuActions: ContextMenuAction[] = [
             changeMoneyRequestHoldStatus(
                 moneyRequestAction,
                 iouTransaction,
+                iouTransactionReport,
+                moneyRequestActionChildReport,
                 isOffline,
                 currentUserPersonalDetails?.login ?? '',
                 currentUserPersonalDetails.accountID,
