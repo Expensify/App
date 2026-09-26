@@ -585,12 +585,26 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
         ],
-        getRoute: (params: {action: IOUAction; iouType: IOUType; transactionID: string | undefined; reportID: string | undefined; isWorkspacesOnly?: boolean}) => {
-            const {action, iouType, transactionID, reportID, isWorkspacesOnly} = params;
+        getRoute: (params: {
+            action: IOUAction;
+            iouType: IOUType;
+            transactionID: string | undefined;
+            reportID: string | undefined;
+            isWorkspacesOnly?: boolean;
+            shouldExcludeWorkspaces?: boolean;
+        }) => {
+            const {action, iouType, transactionID, reportID, isWorkspacesOnly, shouldExcludeWorkspaces} = params;
             // `getUrlWithParams` drops falsy values, so the flag is only sent when it is on.
-            return getUrlWithParams('expense-participants', {action, iouType, transactionID, reportID, isWorkspacesOnly: isWorkspacesOnly ? 'true' : undefined});
+            return getUrlWithParams('expense-participants', {
+                action,
+                iouType,
+                transactionID,
+                reportID,
+                isWorkspacesOnly: isWorkspacesOnly ? 'true' : undefined,
+                shouldExcludeWorkspaces: shouldExcludeWorkspaces ? 'true' : undefined,
+            });
         },
-        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'isWorkspacesOnly'],
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'isWorkspacesOnly', 'shouldExcludeWorkspaces'],
     },
     MONEY_REQUEST_STEP_SCAN: {
         path: 'expense-scan',

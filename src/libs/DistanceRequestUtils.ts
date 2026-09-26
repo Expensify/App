@@ -773,6 +773,61 @@ function getCustomUnitRateID({
 }
 
 /**
+ * Returns the workspace rate to auto-select for a tracked expense moved onto that workspace:
+ * 1. A workspace rate with the same value and unit as the one the expense already uses
+ * 2. Best eligible rate for the expense date
+ * 3. Default rate fallback
+ * Returns undefined when the workspace has no rate to offer, so the caller can keep the current one.
+ */
+function getRateIDForMovedTrackExpense({
+    transaction,
+    policy,
+    policyForMovingExpenses,
+    policies,
+    expenseDate,
+    personalPolicyOutputCurrency,
+}: {
+    transaction: OnyxEntry<Transaction>;
+    policy: OnyxEntry<Policy>;
+    policyForMovingExpenses: OnyxEntry<Policy>;
+    policies: OnyxCollection<Policy>;
+    expenseDate: string | undefined;
+    personalPolicyOutputCurrency: string | undefined;
+}): string | undefined {
+    const mileageRates = getMileageRates(policy);
+    if (isEmptyObject(mileageRates)) {
+        return undefined;
+    }
+
+    // Read the expense's current rate through getRate, the same call the confirmation page uses, so the value is compared against the rate the user sees.
+    const currentRate = getRate({
+        transaction,
+        policy,
+        ...(policyForMovingExpenses && {policyForMovingExpenses}),
+        isMovingTransactionFromTrackExpense: true,
+        useTransactionDistanceUnit: false,
+        personalPolicyOutputCurrency,
+    });
+
+    // getRate only resolves a rate owned by the destination or the moving policy, so a rate left over from any other workspace is looked up by ID.
+    const resolvedRate = currentRate.rate !== undefined ? currentRate : getRateByCustomUnitRateIDAcrossPolicies({customUnitRateID: getRateID(transaction), policies});
+
+    if (resolvedRate?.rate !== undefined) {
+        const currentUnit = getDistanceUnit(transaction, resolvedRate);
+        const matchingRateID = Object.values(mileageRates).find((rate) => rate.rate === resolvedRate.rate && rate.unit === currentUnit)?.customUnitRateID;
+        if (matchingRateID) {
+            return matchingRateID;
+        }
+    }
+
+    if (!expenseDate) {
+        return getDefaultMileageRate(policy)?.customUnitRateID;
+    }
+
+    return getBestEligibleRateOrPolicyDefault(mileageRates, expenseDate, policy)?.customUnitRateID;
+}
+
+/**
  * Get taxable amount from a specific distance rate, taking into consideration the tax claimable amount configured for the distance rate
  */
 function getTaxableAmount(policy: OnyxEntry<Policy>, customUnitRateID: string, distance: number) {
@@ -997,6 +1052,7 @@ export default {
     getRoundedDistanceInUnits,
     getRateForP2P,
     getCustomUnitRateID,
+    getRateIDForMovedTrackExpense,
     convertToDistanceInMeters,
     getTaxableAmount,
     getDistanceUnit,
