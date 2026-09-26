@@ -25,15 +25,14 @@ To invite someone to your workspace:
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
 2. Click **Invite member**.
-3. Search for the user by name, email, or phone number, then select them from the list.
-4. Click **Next** to open **Confirm details**.
-5. (Optional) Click **Role** to change the default role (Member).
-6. (Optional) Add a **Message** to the invitation.
-7. Click **Invite**.
+3. Search for the member by name, email, or phone number.
+4. (Optional) Click **Role** to change the default role (Member).
+5. (Optional) Add a message to the invitation.
+6. Click **Invite**.
 
 **Tip:** You can also invite members under **Settings > Profile** by clicking **Share** to send the workspace’s URL or QR code.
 
-**Note:** Workspace admins and People admins can invite members. People admins can only invite users as **Members** or **Auditors** — they cannot invite admins or other scoped admin roles.
+**Note:** Workspace admins and People admins can invite members. People admins can only invite users as **Members** or **Auditors** — they cannot assign admin roles.
 
 ---
 
@@ -73,7 +72,7 @@ If someone no longer needs access to your workspace, you can remove them individ
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
 2. Click the member’s name.
-3. In the right-hand panel, click **Remove from Workspace**.
+3. In the right-hand panel, click **Remove from workspace**.
 4. Confirm by clicking **Remove**.
 
 ## Remove Multiple Members
@@ -105,7 +104,7 @@ To transfer ownership to another admin:
 
 1. Go to **Workspaces > Members**.
 2. Click the current **Owner** (identified with a tag).
-3. Click **Transfer Owner** in the right-hand panel.
+3. Click **Transfer owner** in the right-hand panel.
 4. Click **Continue** to confirm.
 
 After the transfer, the initiating user becomes the new **Owner**.
@@ -151,7 +150,7 @@ You must be a **Workspace admin**, and the email or phone number of the individu
 
 ## Can I invite multiple members to a workspace at the same time?
 
-Yes. Use the search tool during invite or import members using a spreadsheet (see the **Invite Multiple Members via Spreadsheet** section above.
+Yes. Use the search tool during invite or import members using a spreadsheet (see the **Invite Multiple Members via Spreadsheet** section above).
 
 ## Why am I prompted to upgrade when importing members from a spreadsheet?
 
