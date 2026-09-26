@@ -2600,8 +2600,7 @@ function createDraftInitialWorkspace({
     isAnnualSubscription = false,
 }: CreateDraftInitialWorkspaceParams) {
     const {customUnits, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
-    const shouldEnableWorkflowsByDefault =
-        !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+    const workflowSettings = getWorkflowSettingsForNewWorkspace({isSubmitWorkspace: type === CONST.POLICY.TYPE.SUBMIT, introSelectedChoice: introSelected?.choice});
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_DRAFTS>> = [
         {
@@ -2623,11 +2622,8 @@ function createDraftInitialWorkspace({
                 customUnits,
                 makeMeAdmin,
                 autoReporting: true,
-                autoReportingFrequency: shouldEnableWorkflowsByDefault ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                ...workflowSettings,
                 avatarURL: file?.uri ?? null,
-                harvesting: {
-                    enabled: !shouldEnableWorkflowsByDefault,
-                },
                 originalFileName: file?.name,
                 employeeList: {
                     [currentUserEmail]: {
@@ -2637,13 +2633,11 @@ function createDraftInitialWorkspace({
                         errors: {},
                     },
                 },
-                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 pendingFields: {
                     autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
-                areWorkflowsEnabled: shouldEnableWorkflowsByDefault,
                 defaultBillable: false,
                 defaultReimbursable: true,
                 disabledFields: {defaultBillable: true, reimbursable: false},
@@ -2690,6 +2684,43 @@ function getRoleForCallerOnNewPolicy(isSubmitWorkspace: boolean, makeMeAdmin: bo
     return CONST.POLICY.ROLE.ADMIN;
 }
 
+type NewWorkspaceWorkflowsOptions = {
+    /** If the workspace type is submit */
+    isSubmitWorkspace: boolean;
+
+    /** Explicit pick from the workspace creation feature map, when the flow offers one */
+    workflowsFeatureEnabled?: boolean;
+
+    /** The account level onboarding choice, which the server prefers over this creation's choice */
+    introSelectedChoice?: OnboardingPurpose;
+
+    /** The choice passed for this creation, only used when the account has no persisted choice */
+    engagementChoice?: OnboardingPurpose;
+};
+
+/** Onboarding choices the server ships the Workflows feature enabled for */
+function isWorkflowsOnboardingChoice(choice: OnboardingPurpose): boolean {
+    return choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || choice === CONST.ONBOARDING_CHOICES.EMPLOYER || choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+}
+
+/**
+ * Mirrors how the server resolves the Workflows feature for a new workspace: an explicit feature map pick wins,
+ * then submit workspaces, then the account's onboarding choice falling back to this creation's choice.
+ */
+function shouldEnableWorkflowsByDefaultForNewWorkspace({isSubmitWorkspace, workflowsFeatureEnabled, introSelectedChoice, engagementChoice}: NewWorkspaceWorkflowsOptions): boolean {
+    if (workflowsFeatureEnabled !== undefined) {
+        return workflowsFeatureEnabled;
+    }
+    if (isSubmitWorkspace) {
+        return true;
+    }
+    // The account's choice wins whenever it is set, otherwise we fall back to the choice made for this creation
+    if (introSelectedChoice) {
+        return isWorkflowsOnboardingChoice(introSelectedChoice);
+    }
+    return !engagementChoice || isWorkflowsOnboardingChoice(engagementChoice);
+}
+
 function getApprovalModeForNewWorkspace(
     isSubmitWorkspace: boolean,
     shouldEnableWorkflowsByDefault: boolean,
@@ -2702,6 +2733,28 @@ function getApprovalModeForNewWorkspace(
         return CONST.POLICY.APPROVAL_MODE.BASIC;
     }
     return CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+}
+
+/**
+ * The workflow related defaults a new workspace is created with. Delayed submission is not tied to the Workflows
+ * feature server side, so it is resolved separately: a workspace can come back with areWorkflowsEnabled false
+ * alongside an immediate autoReportingFrequency.
+ */
+function getWorkflowSettingsForNewWorkspace({isSubmitWorkspace, workflowsFeatureEnabled, introSelectedChoice, engagementChoice}: NewWorkspaceWorkflowsOptions) {
+    const areWorkflowsEnabled = shouldEnableWorkflowsByDefaultForNewWorkspace({isSubmitWorkspace, workflowsFeatureEnabled, introSelectedChoice, engagementChoice});
+    const shouldEnableDelayedSubmission =
+        isSubmitWorkspace ||
+        !engagementChoice ||
+        engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
+        engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
+        isTrackOnboardingChoice(engagementChoice);
+
+    return {
+        areWorkflowsEnabled,
+        autoReportingFrequency: shouldEnableDelayedSubmission ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+        approvalMode: getApprovalModeForNewWorkspace(isSubmitWorkspace, areWorkflowsEnabled, engagementChoice),
+        harvesting: {enabled: !shouldEnableDelayedSubmission},
+    };
 }
 
 /**
@@ -2801,12 +2854,12 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
     const optimisticMccGroupData = buildOptimisticMccGroup();
 
     const isSubmitWorkspace = type === CONST.POLICY.TYPE.SUBMIT;
-    const shouldEnableWorkflowsByDefault =
-        isSubmitWorkspace ||
-        !engagementChoice ||
-        engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
-        engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
-        isTrackOnboardingChoice(engagementChoice);
+    const workflowSettings = getWorkflowSettingsForNewWorkspace({
+        isSubmitWorkspace,
+        workflowsFeatureEnabled: featuresMap?.find((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED)?.enabled,
+        introSelectedChoice: introSelected?.choice,
+        engagementChoice,
+    });
     const shouldSetCreatedPolicyAsActive = !activePolicy?.id || activePolicy?.type === CONST.POLICY.TYPE.PERSONAL;
 
     // Determine workspace type based on selected features or user reported integration
@@ -2848,11 +2901,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 autoReporting: true,
                 approver: currentUserEmailParam,
-                autoReportingFrequency: shouldEnableWorkflowsByDefault ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                approvalMode: getApprovalModeForNewWorkspace(isSubmitWorkspace, shouldEnableWorkflowsByDefault, engagementChoice),
-                harvesting: {
-                    enabled: !shouldEnableWorkflowsByDefault,
-                },
+                ...workflowSettings,
                 reimbursementChoice:
                     isTrackOnboardingChoice(engagementChoice) || type === CONST.POLICY.TYPE.SUBMIT
                         ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO
@@ -2863,7 +2912,6 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 areCompanyCardsEnabled: !isSubmitWorkspace,
                 areTagsEnabled: isSubmitWorkspace,
                 areDistanceRatesEnabled,
-                areWorkflowsEnabled: shouldEnableWorkflowsByDefault,
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
                 areExpensifyCardsEnabled: false,
@@ -3360,15 +3408,7 @@ function createDraftWorkspace({
         currentUserEmail,
     );
 
-    const shouldEnableWorkflowsByDefault =
-        !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
-
-    let draftApprovalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE> = CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-    if (isSubmitWorkspace) {
-        draftApprovalMode = CONST.POLICY.APPROVAL_MODE.ADVANCED;
-    } else if (shouldEnableWorkflowsByDefault) {
-        draftApprovalMode = CONST.POLICY.APPROVAL_MODE.BASIC;
-    }
+    const workflowSettings = getWorkflowSettingsForNewWorkspace({isSubmitWorkspace, introSelectedChoice: introSelected?.choice});
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_DRAFTS | typeof ONYXKEYS.COLLECTION.REPORT_DRAFT | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT>> = [
         {
@@ -3385,15 +3425,9 @@ function createDraftWorkspace({
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 autoReporting: true,
                 approver: currentUserEmail,
-                autoReportingFrequency:
-                    shouldEnableWorkflowsByDefault || isSubmitWorkspace ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                harvesting: {
-                    enabled: !shouldEnableWorkflowsByDefault && !isSubmitWorkspace,
-                },
-                approvalMode: draftApprovalMode,
+                ...workflowSettings,
                 customUnits,
                 areCategoriesEnabled: true,
-                areWorkflowsEnabled: shouldEnableWorkflowsByDefault || isSubmitWorkspace,
                 areCompanyCardsEnabled: true,
                 areTagsEnabled: isSubmitWorkspace,
                 areDistanceRatesEnabled: isSubmitWorkspace,
