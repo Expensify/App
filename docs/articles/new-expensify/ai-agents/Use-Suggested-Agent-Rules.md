@@ -31,9 +31,9 @@ For guidance on writing clear, effective instructions, see [How to Write Agent R
 
 | Suggested Agent rule | What it does | Default instruction |
 | --- | --- | --- |
-| **Per-expense amount over a cap** | Rejects expenses that meet or exceed a specified amount. | Reject any single expense of $75 or more. |
-| **Per-expense amount within a flagged band** | Rejects expenses whose amount falls within a specified range. | Reject expenses with an amount between $500 and $1000 inclusive. |
-| **Report total over a cap** | Rejects reports whose total exceeds a specified amount. | Reject reports whose total is over $2,500. |
+| **Expense over limit** | Rejects expenses that meet or exceed a specified amount. | Reject any single expense of $75 or more. |
+| **Amount in flagged range** | Rejects expenses whose amount falls within a specified range. | Reject expenses with an amount between $500 and $1000 inclusive. |
+| **Report over limit** | Rejects reports whose total exceeds a specified amount. | Reject reports whose total is over $2,500. |
 
 ---
 
@@ -41,9 +41,9 @@ For guidance on writing clear, effective instructions, see [How to Write Agent R
 
 | Suggested Agent rule | What it does | Default instruction |
 | --- | --- | --- |
-| **Category is a specific value** | Only approves expenses assigned to one category. | Only approve expenses categorized as "Travel". Reject expenses in any other category. |
-| **Category is in an allowed set** | Only approves expenses assigned to approved categories. | Approve expenses categorized as "Travel" or "Meals & Entertainment". Reject expenses in any other category. |
-| **Category is empty** | Rejects expenses that don't have a category assigned. | Reject any expense that has no category assigned. Approve expenses that have a category. |
+| **Wrong category** | Only approves expenses assigned to one category. | Only approve expenses categorized as "Travel". Reject expenses in any other category. |
+| **Category not allowed** | Only approves expenses assigned to approved categories. | Approve expenses categorized as "Travel" or "Meals & Entertainment". Reject expenses in any other category. |
+| **Missing category** | Rejects expenses that don't have a category assigned. | Reject any expense that has no category assigned. Approve expenses that have a category. |
 
 ---
 
@@ -51,10 +51,10 @@ For guidance on writing clear, effective instructions, see [How to Write Agent R
 
 | Suggested Agent rule | What it does | Default instruction |
 | --- | --- | --- |
-| **Merchant is a specific vendor** | Only approves expenses from a specific merchant. | Only approve expenses from the vendor "Acme Corp". If an expense is from any other merchant, reject it with a brief one-sentence reason. |
-| **Merchant name contains a banned word** | Rejects expenses whose merchant name contains a specified word. | Reject any expense whose merchant name contains the word "casino" (in any capitalization). Approve all other expenses. |
-| **Merchant is on the allowed list** | Only approves expenses from approved vendors. | Approve expenses only from these approved vendors: Staples, Amazon, or Uber. Reject expenses from any merchant not on that list. |
-| **Merchant is on the blocked list** | Rejects expenses from blocked vendors. | Reject expenses from these blocked vendors: SketchyVendor Inc, BadActor LLC. Approve expenses from every other merchant. |
+| **Wrong merchant** | Only approves expenses from a specific merchant. | Only approve expenses from the vendor "Acme Corp". If an expense is from any other merchant, reject it with a brief one-sentence reason. |
+| **Banned word in merchant** | Rejects expenses whose merchant name contains a specified word. | Reject any expense whose merchant name contains the word "casino" (in any capitalization). Approve all other expenses. |
+| **Merchant not approved** | Only approves expenses from approved vendors. | Approve expenses only from these approved vendors: Staples, Amazon, or Uber. Reject expenses from any merchant not on that list. |
+| **Blocked merchant** | Rejects expenses from blocked vendors. | Reject expenses from these blocked vendors: SketchyVendor Inc, BadActor LLC. Approve expenses from every other merchant. |
 
 ---
 
@@ -62,9 +62,9 @@ For guidance on writing clear, effective instructions, see [How to Write Agent R
 
 | Suggested Agent rule | What it does | Default instruction |
 | --- | --- | --- |
-| **Currency is a specific value** | Only approves expenses submitted in one currency. | Only approve expenses submitted in US Dollars (USD). Reject expenses in any other currency. |
-| **Currency is in an allowed set** | Only approves expenses submitted in approved currencies. | Approve expenses in USD or GBP only. Reject expenses in any other currency. |
-| **Tax rate applied** | Rejects expenses that don't have a tax rate applied. | Reject expenses that have no tax rate applied. Approve expenses with a tax rate. |
+| **Wrong currency** | Only approves expenses submitted in one currency. | Only approve expenses submitted in US Dollars (USD). Reject expenses in any other currency. |
+| **Currency not allowed** | Only approves expenses submitted in approved currencies. | Approve expenses in USD or GBP only. Reject expenses in any other currency. |
+| **Missing tax rate** | Rejects expenses that don't have a tax rate applied. | Reject expenses that have no tax rate applied. Approve expenses with a tax rate. |
 
 ---
 
@@ -72,10 +72,11 @@ For guidance on writing clear, effective instructions, see [How to Write Agent R
 
 | Suggested Agent rule | What it does | Default instruction |
 | --- | --- | --- |
-| **Billable status** | Approves or rejects expenses based on whether they're billable. | Only approve non-billable expenses. Reject any expense marked as billable to a client. |
-| **Description is empty** | Rejects expenses that don't include a description. | Reject expenses that have no description. Approve expenses that include a description. |
-| **Tag is a specific value** | Only approves expenses tagged to a specific project. | Only approve expenses tagged to the project "Apollo". Reject expenses tagged to any other project. |
-| **Tag is empty** | Rejects expenses missing a required tag. | Reject expenses that are missing a project tag. Approve expenses that have a tag. |
+| **Billable expense** | Approves or rejects expenses based on whether they're billable. | Only approve non-billable expenses. Reject any expense marked as billable to a client. |
+| **Banned word in description** | Rejects expenses whose description contains a specified word. | Reject any expense whose description contains the word "personal". Approve all other expenses. |
+| **Missing description** | Rejects expenses that don't include a description. | Reject expenses that have no description. Approve expenses that include a description. |
+| **Wrong tag** | Only approves expenses tagged to a specific project. | Only approve expenses tagged to the project "Apollo". Reject expenses tagged to any other project. |
+| **Missing tag** | Rejects expenses missing a required tag. | Reject expenses that are missing a project tag. Approve expenses that have a tag. |
 
 ---
 
@@ -83,10 +84,10 @@ For guidance on writing clear, effective instructions, see [How to Write Agent R
 
 | Suggested Agent rule | What it does | Default instruction |
 | --- | --- | --- |
-| **Expense age over a threshold** | Rejects expenses older than a specified number of days. | Reject expenses whose transaction date is more than 14 days ago. Approve recent expenses. |
-| **Expense within the submission deadline** | Rejects expenses submitted outside your organization's submission window. | Our policy requires expenses to be submitted within 30 days of the transaction date. Reject expenses dated more than 30 days ago; approve the rest. |
+| **Expense too old** | Rejects expenses older than a specified number of days. | Reject expenses whose transaction date is more than 14 days ago. Approve recent expenses. |
+| **Past submission deadline** | Rejects expenses submitted outside your organization's submission window. | Our policy requires expenses to be submitted within 30 days of the transaction date. Reject expenses dated more than 30 days ago; approve the rest. |
 | **Weekend spending** | Rejects expenses dated on Saturday or Sunday. | Reject expenses dated on a weekend (Saturday or Sunday). Approve weekday expenses. |
-| **Within an event date window** | Only approves expenses that occurred during a specified date range. | We are only reimbursing expenses dated during our company offsite, October 7 through October 11, 2025. Reject expenses dated outside that window. |
+| **Outside event window** | Only approves expenses that occurred during a specified date range. | We are only reimbursing expenses dated during our company offsite, October 7 through October 11, 2025. Reject expenses dated outside that window. |
 
 ---
 
@@ -94,10 +95,10 @@ For guidance on writing clear, effective instructions, see [How to Write Agent R
 
 | Suggested Agent rule | What it does | Default instruction |
 | --- | --- | --- |
-| **Unusually large report (expense count)** | Rejects reports containing more than a specified number of expenses. | Reject reports that contain more than 5 expenses; they must be split into smaller reports. Approve reports with 5 or fewer expenses. |
-| **Report mixes billable and non-billable expenses** | Rejects reports that contain both billable and non-billable expenses. | A report must be either all billable or all non-billable. Reject reports that mix billable and non-billable expenses. |
-| **Report mixes expense categories** | Rejects reports containing expenses from multiple categories. | Every expense on a report must be in the same category. Reject reports whose expenses span different categories. |
-| **Report mixes expenses tagged to different projects** | Rejects reports containing expenses assigned to multiple projects. | Every expense on a report must be tagged to the same project. Reject reports mixing projects. |
+| **Too many expenses** | Rejects reports containing more than a specified number of expenses. | Reject reports that contain more than 5 expenses; they must be split into smaller reports. Approve reports with 5 or fewer expenses. |
+| **Mixed billable status** | Rejects reports that contain both billable and non-billable expenses. | A report must be either all billable or all non-billable. Reject reports that mix billable and non-billable expenses. |
+| **Mixed categories** | Rejects reports containing expenses from multiple categories. | Every expense on a report must be in the same category. Reject reports whose expenses span different categories. |
+| **Mixed projects** | Rejects reports containing expenses assigned to multiple projects. | Every expense on a report must be tagged to the same project. Reject reports mixing projects. |
 
 ---
 
@@ -105,19 +106,19 @@ For guidance on writing clear, effective instructions, see [How to Write Agent R
 
 | Suggested Agent rule | What it does | Default instruction |
 | --- | --- | --- |
-| **Alcohol detected on receipt** | Rejects receipts containing alcohol purchases. | Reject any expense whose receipt shows alcohol (beer, wine, or liquor), with a one-sentence comment naming the alcohol. Approve receipts with no alcohol. |
-| **Excessive tip percentage** | Rejects meal receipts whose tip exceeds a specified percentage. | Reject any meal expense whose receipt tip is more than 20% of the subtotal, noting the tip percentage. Approve tips of 20% or less. |
-| **Receipt does not match transaction** | Rejects expenses whose receipt total doesn't match the expense amount. | Reject an expense when the total shown on its receipt does not match the expense amount, noting the discrepancy. Approve when the receipt total matches the expense amount. |
-| **Gift card detected on receipt** | Rejects gift card purchases. | Reject expenses where the receipt is for a gift card purchase, noting that it is a gift card. Approve normal purchases. |
-| **Incorrect receipt type submitted** | Rejects non-itemized receipts. | Only approve expenses backed by an itemized receipt. If the receipt is just a credit-card payment slip with no itemized purchases, reject it and ask for an itemized receipt. |
-| **Receipt content does not match stated purpose** | Rejects expenses whose receipt doesn't match the stated purpose. | Reject an expense when the receipt contents clearly do not match the expense's stated purpose in its description, noting the mismatch. Approve when they are consistent. |
-| **Currency mismatch on receipt** | Rejects receipts whose currency differs from the expense currency. | The expense amounts are in US dollars. Reject an expense when its receipt is denominated in a different currency, noting the currency mismatch. Approve when the receipt is in US dollars. |
-| **Itemized split recommended (mixed items)** | Rejects mixed business and personal receipts. | When a single receipt mixes clearly business items with clearly personal items, reject it and ask the submitter to split out the personal items. Approve all-business receipts. |
-| **Receipt language mismatch** | Rejects non-English receipts. | Reject an expense when its receipt is not written in English, asking for an English-language receipt. Approve English receipts. |
-| **Receipt date vs expense date mismatch** | Rejects expenses whose receipt date differs from the expense date. | Reject an expense when the date printed on its receipt differs from the expense date, noting both dates. Approve when they match. |
-| **Suspected personal expense from receipt items** | Rejects receipts that appear to contain personal purchases. | Reject an expense whose receipt is clearly a personal, non-business purchase, noting why it looks personal. Approve plausible business expenses. |
-| **Receipt likely AI-generated** | Rejects receipts that appear fabricated or AI-generated. | Reject an expense whose receipt looks fake or AI-generated — garbled or nonsensical item names, a fabricated layout, or totals that do not add up — with a one-sentence comment saying why. Approve receipts that look like genuine printed receipts. |
-| **Handwritten receipt detected** | Rejects handwritten receipts. | Reject an expense whose receipt is handwritten rather than a printed/computer-generated receipt, and ask the submitter for a printed itemized receipt. Approve normal printed receipts. |
+| **Alcohol on receipt** | Rejects receipts containing alcohol purchases. | Reject any expense whose receipt shows alcohol (beer, wine, or liquor), with a one-sentence comment naming the alcohol. Approve receipts with no alcohol. |
+| **Excessive tip** | Rejects meal receipts whose tip exceeds a specified percentage. | Reject any meal expense whose receipt tip is more than 20% of the subtotal, noting the tip percentage. Approve tips of 20% or less. |
+| **Receipt total mismatch** | Rejects expenses whose receipt total doesn't match the expense amount. | Reject an expense when the total shown on its receipt does not match the expense amount, noting the discrepancy. Approve when the receipt total matches the expense amount. |
+| **Gift card purchase** | Rejects gift card purchases. | Reject expenses where the receipt is for a gift card purchase, noting that it is a gift card. Approve normal purchases. |
+| **Not an itemized receipt** | Rejects non-itemized receipts. | Only approve expenses backed by an itemized receipt. If the receipt is just a credit-card payment slip with no itemized purchases, reject it and ask for an itemized receipt. |
+| **Receipt purpose mismatch** | Rejects expenses whose receipt doesn't match the stated purpose. | Reject an expense when the receipt contents clearly do not match the expense's stated purpose in its description, noting the mismatch. Approve when they are consistent. |
+| **Receipt currency mismatch** | Rejects receipts whose currency differs from the expense currency. | The expense amounts are in US dollars. Reject an expense when its receipt is denominated in a different currency, noting the currency mismatch. Approve when the receipt is in US dollars. |
+| **Mixed business / personal items** | Rejects mixed business and personal receipts. | When a single receipt mixes clearly business items with clearly personal items, reject it and ask the submitter to split out the personal items. Approve all-business receipts. |
+| **Non-English receipt** | Rejects non-English receipts. | Reject an expense when its receipt is not written in English, asking for an English-language receipt. Approve English receipts. |
+| **Receipt date mismatch** | Rejects expenses whose receipt date differs from the expense date. | Reject an expense when the date printed on its receipt differs from the expense date, noting both dates. Approve when they match. |
+| **Suspected personal expense** | Rejects receipts that appear to contain personal purchases. | Reject an expense whose receipt is clearly a personal, non-business purchase, noting why it looks personal. Approve plausible business expenses. |
+| **Fake / AI-generated receipt** | Rejects receipts that appear fabricated or AI-generated. | Reject an expense whose receipt looks fake or AI-generated — garbled or nonsensical item names, a fabricated layout, or totals that do not add up — with a one-sentence comment saying why. Approve receipts that look like genuine printed receipts. |
+| **Handwritten receipt** | Rejects handwritten receipts. | Reject an expense whose receipt is handwritten rather than a printed/computer-generated receipt, and ask the submitter for a printed itemized receipt. Approve normal printed receipts. |
 
 ---
 
