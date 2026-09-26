@@ -2,11 +2,14 @@ import {act, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import TransactionPreviewContent from '@components/ReportActionItem/TransactionPreview/TransactionPreviewContent';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
+
+import type * as ReactNavigation from '@react-navigation/native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -23,6 +26,14 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
         didScreenTransitionEnd: true,
     }),
 }));
+
+jest.mock('@react-navigation/native', () => {
+    const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
+    return {
+        ...actualNavigation,
+        useRoute: () => ({key: 'report', name: 'Report', params: {}}),
+    };
+});
 
 // Expose the canEdit translation parameter in the rendered output so canEdit-dependent messages can be asserted.
 // The message must stay under CONST.REPORT_VIOLATIONS.RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW or the preview
@@ -56,6 +67,26 @@ const corporatePolicy = {
             email: currentUserEmail,
             role: CONST.POLICY.ROLE.USER,
             submitsTo: approverEmail,
+        },
+    },
+} as Policy;
+
+const distancePolicy = {
+    ...corporatePolicy,
+    customUnits: {
+        distance: {
+            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            customUnitID: 'distance',
+            rates: {
+                rate1: {
+                    customUnitRateID: 'rate1',
+                    currency: CONST.CURRENCY.USD,
+                    rate: 76,
+                },
+            },
+            attributes: {
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            },
         },
     },
 } as Policy;
@@ -94,6 +125,40 @@ const transaction = {
     comment: {},
 } as Transaction;
 
+const commuterDistanceTransaction = {
+    ...transaction,
+    amount: 415,
+    modifiedAmount: 415,
+    merchant: '5.46 mi @ $0.76 / mi',
+    modifiedMerchant: '5.46 mi @ $0.76 / mi',
+    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+    comment: {
+        customUnit: {
+            customUnitRateID: 'rate1',
+            quantity: 6.46,
+            reimbursableDistance: 5.46,
+            commuterExclusion: 1,
+            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+        },
+    },
+} as Transaction;
+
+const policyExpenseChat = {
+    reportID: 'policy_expense_chat_tpc_test',
+    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+    policyID,
+} as Report;
+
+const selfDMReportID = 'self_dm_tpc_test';
+const selfDMReport = {
+    reportID: selfDMReportID,
+    type: CONST.REPORT.TYPE.CHAT,
+    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+    participants: {
+        [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+    },
+} as Report;
+
 const smartscanFailedViolation: TransactionViolation = {
     name: CONST.VIOLATIONS.SMARTSCAN_FAILED,
     type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -105,19 +170,30 @@ const personalDetails: PersonalDetailsList = {
     [approverAccountID]: {accountID: approverAccountID, login: approverEmail, displayName: 'Approver'},
 };
 
-const renderTransactionPreviewContent = () =>
+const renderTransactionPreviewContent = ({
+    transactionToRender = transaction,
+    displayTransaction = transactionToRender,
+    chatReport,
+    violations = [smartscanFailedViolation],
+}: {
+    transactionToRender?: Transaction;
+    displayTransaction?: Transaction;
+    chatReport?: Report;
+    violations?: TransactionViolation[];
+} = {}) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider]}>
             <TransactionPreviewContent
                 action={moneyRequestAction}
                 isWhisper={false}
                 isHovered={false}
-                chatReport={undefined}
+                chatReport={chatReport}
                 personalDetails={personalDetails}
                 report={expenseReport}
                 policy={corporatePolicy}
-                transaction={transaction}
-                violations={[smartscanFailedViolation]}
+                transaction={transactionToRender}
+                displayTransaction={displayTransaction}
+                violations={violations}
                 transactionRawAmount={5000}
                 offlineWithFeedbackOnClose={() => {}}
                 containerStyles={[]}
@@ -129,6 +205,22 @@ const renderTransactionPreviewContent = () =>
                 reportPreviewAction={undefined}
                 navigateToReviewFields={() => {}}
                 routeName="Report"
+            />
+        </ComposeProviders>,
+    );
+
+const renderTransactionPreview = ({action = moneyRequestAction, chatReport = policyExpenseChat}: {action?: ReportAction; chatReport?: Report} = {}) =>
+    render(
+        <ComposeProviders components={[OnyxListItemProvider]}>
+            <TransactionPreview
+                action={action}
+                chatReport={chatReport}
+                reportID={chatReport.reportID}
+                iouReportID={chatReport.reportID}
+                transactionID={transactionID}
+                transactionPreviewWidth={303}
+                isBillSplit={false}
+                isTrackExpense
             />
         </ComposeProviders>,
     );
@@ -147,14 +239,17 @@ describe('TransactionPreviewContent', () => {
         });
     });
 
-    const seedOnyx = async (reportActions: Record<string, ReportAction>) => {
+    const seedOnyx = async (
+        reportActions: Record<string, ReportAction>,
+        {report = expenseReport, transactionToSeed = transaction}: {report?: Report; transactionToSeed?: Transaction} = {},
+    ) => {
         await act(async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, corporatePolicy);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`, reportActions);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, distancePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transactionToSeed);
         });
         await waitForBatchedUpdatesWithAct();
     };
@@ -186,5 +281,33 @@ describe('TransactionPreviewContent', () => {
         await waitFor(() => {
             expect(screen.getByText('smartscan#false')).toBeOnTheScreen();
         });
+    });
+
+    it('shows full-route values for a self-DM distance expense with commuter exclusion metadata', async () => {
+        // Given a removed distance expense whose stored values still include a commuter exclusion
+        const selfDMAction = {...moneyRequestAction, reportID: selfDMReportID};
+        const selfDMTransaction = {...commuterDistanceTransaction, reportID: selfDMReportID};
+        await seedOnyx({[selfDMAction.reportActionID]: selfDMAction}, {report: selfDMReport, transactionToSeed: selfDMTransaction});
+
+        // When the transaction preview derives the display context from the personal report policy
+        renderTransactionPreview({action: selfDMAction, chatReport: selfDMReport});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it renders the full-route merchant instead of the commuter-adjusted merchant
+        expect(screen.getByText(/6\.46 mi/)).toBeOnTheScreen();
+        expect(screen.queryByText('5.46 mi @ $0.76 / mi')).not.toBeOnTheScreen();
+    });
+
+    it('keeps commuter-adjusted values for a distance expense in a policy expense chat', async () => {
+        // Given a distance expense that still belongs to a policy expense chat
+        await seedOnyx({[moneyRequestAction.reportActionID]: moneyRequestAction}, {transactionToSeed: commuterDistanceTransaction});
+
+        // When the transaction preview derives the display context from the group policy
+        renderTransactionPreview();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it preserves the commuter-adjusted merchant instead of showing the full route
+        expect(screen.getByText('5.46 mi @ $0.76 / mi')).toBeOnTheScreen();
+        expect(screen.queryByText('6.46 mi @ $0.76 / mi')).not.toBeOnTheScreen();
     });
 });
