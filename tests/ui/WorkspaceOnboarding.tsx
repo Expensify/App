@@ -247,6 +247,7 @@ describe('OnboardingWorkspaces Page', () => {
 
     it('should close a completed join-workspace task when no workspaces are available', async () => {
         const dismissModalWithReport = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});
+        const getTopmostReportId = jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue('completed-task-report');
 
         await TestHelper.signInWithTestUser();
 
@@ -268,6 +269,7 @@ describe('OnboardingWorkspaces Page', () => {
         });
         expect(mockCreateJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('empty', expect.any(String), expect.any(String), undefined, undefined);
 
+        getTopmostReportId.mockRestore();
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
@@ -588,7 +590,7 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should return to the completed task thread', async () => {
+    it('should return to Concierge instead of the completed task thread after an empty lookup', async () => {
         const taskReportID = '456';
         const conciergeReportID = '123';
         const getTopmostReportId = jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(taskReportID);
@@ -615,7 +617,7 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(dismissModalWithReport).toHaveBeenCalledWith({reportID: taskReportID});
+            expect(dismissModalWithReport).toHaveBeenCalledWith({reportID: conciergeReportID});
         });
 
         getTopmostReportId.mockRestore();

@@ -284,12 +284,17 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             createJoinWorkspaceOnboardingContent('empty', companyDomain, session?.email ?? '', conciergeChat, delegateAccountID);
         }
         if (isConciergeTaskFlow) {
+            if (conciergeReportID) {
+                Navigation.dismissModalWithReport({reportID: conciergeReportID});
+                return;
+            }
             returnToOriginReport();
             return;
         }
         Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
     }, [
         conciergeChat,
+        conciergeReportID,
         delegateAccountID,
         accessiblePoliciesActionRequestID,
         isConciergeTaskFlow,
