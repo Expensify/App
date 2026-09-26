@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 
 import type {TupleToUnion} from 'type-fest';
 
-import {endOfMonth, isValid, parse} from 'date-fns';
+import {isValid, parse} from 'date-fns';
 
 const DATE_SEGMENT_NAMES = ['year', 'month', 'day'] as const;
 
@@ -217,9 +217,9 @@ function typeDigitIntoSegments(
  * the calendar should stay where it is. A month only counts once both its digits read as a real month, so the calendar
  * does not lurch to January while the user is still on the first digit.
  *
- * A month outside the allowed range is refused rather than clamped. Every year is out of range while it is being
- * typed, since 1985 passes through 1, 19 and 198, and clamping those would drag the calendar to the limit and back on
- * every keystroke. An unfinished year is therefore ignored, and a month typed before one lands in the year on screen.
+ * A year outside the allowed range is followed too, so the calendar keeps agreeing with the field while validation is
+ * what reports the problem. An unfinished one is ignored instead, since 1985 passes through 1, 19 and 198 on the way,
+ * so a month typed before a year lands in the year already on screen.
  */
 function getViewDateFromSegments(segments: DateSegments, fallbackDate: Date, minDate: Date, maxDate: Date): Date | undefined {
     const monthNumber = Number(segments.month);
@@ -232,12 +232,10 @@ function getViewDateFromSegments(segments: DateSegments, fallbackDate: Date, min
     }
 
     // The year on screen can sit outside the allowed range, since it starts at today even where only much older dates
-    // may be picked. Pulling it into range is what lets a month typed before a year land on a real month.
+    // may be picked. Pulling it into range keeps a year the user never typed from landing somewhere unselectable.
     const fallbackYear = Math.min(Math.max(fallbackDate.getFullYear(), minDate.getFullYear()), maxDate.getFullYear());
-    const viewDate = new Date(hasYear ? Number(segments.year) : fallbackYear, hasMonth ? monthNumber - 1 : fallbackDate.getMonth(), 1);
 
-    // A month holding no selectable day at all is not worth moving to
-    return endOfMonth(viewDate) < minDate || viewDate > maxDate ? undefined : viewDate;
+    return new Date(hasYear ? Number(segments.year) : fallbackYear, hasMonth ? monthNumber - 1 : fallbackDate.getMonth(), 1);
 }
 
 /** Drops the last digit of a segment. Returns undefined when there was nothing left to drop */

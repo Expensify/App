@@ -124,20 +124,6 @@ function CalendarPicker({
     const [isMonthPickerVisible, setIsMonthPickerVisible] = useState(false);
     const isFirstRender = useRef(true);
 
-    // Catching up with the caller here rather than in an effect keeps the view and the month matrix in step within a
-    // single render, so the calendar never paints the old month first. The date arrives already inside the allowed
-    // range, and is deliberately not clamped: clamping would show the limit's month instead of the typed one.
-    if (viewDate && viewDateVersion !== appliedViewDateVersion) {
-        setAppliedViewDateVersion(viewDateVersion);
-        setCurrentDateView(viewDate);
-    }
-
-    const currentMonthView = currentDateView.getMonth();
-    const currentYearView = currentDateView.getFullYear();
-    const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
-    const initialHeight = (calendarDaysMatrix?.length || CONST.MAX_CALENDAR_PICKER_ROWS) * CONST.CALENDAR_PICKER_DAY_HEIGHT;
-    const heightValue = useSharedValue(initialHeight);
-
     const minYear = CONST.CALENDAR_PICKER.MIN_YEAR;
     const maxYear = CONST.CALENDAR_PICKER.MAX_YEAR;
 
@@ -149,6 +135,23 @@ function CalendarPicker({
             isSelected: year === currentDateView.getFullYear(),
         })),
     );
+
+    // Catching up with the caller here rather than in an effect keeps the view and the month matrix in step within a
+    // single render, so the calendar never paints the old month first. The date is deliberately not clamped, so the
+    // calendar shows the year that was typed rather than the nearest one that could be picked.
+    if (viewDate && viewDateVersion !== appliedViewDateVersion) {
+        setAppliedViewDateVersion(viewDateVersion);
+        setCurrentDateView(viewDate);
+        // A year the list does not cover matches nothing, which is what leaves the year picker showing no selection
+        // rather than the one it happened to be on before the field moved it.
+        setYears((prevYears) => prevYears.map((item) => ({...item, isSelected: item.value === viewDate.getFullYear()})));
+    }
+
+    const currentMonthView = currentDateView.getMonth();
+    const currentYearView = currentDateView.getFullYear();
+    const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
+    const initialHeight = (calendarDaysMatrix?.length || CONST.MAX_CALENDAR_PICKER_ROWS) * CONST.CALENDAR_PICKER_DAY_HEIGHT;
+    const heightValue = useSharedValue(initialHeight);
 
     const onYearSelected = (year: number) => {
         const newCurrentDateView = setYearKeepingDay(new Date(currentDateView), year);

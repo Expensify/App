@@ -116,14 +116,17 @@ describe('DateInputMaskUtils', () => {
             expect(viewDateFor(segments('2030', '02', '28'))).toEqual(new Date(2030, 1, 1));
         });
 
-        it('stays put for a year outside the range rather than jumping to the limit', () => {
-            expect(viewDateFor(segments('1111', '01', '03'))).toBeUndefined();
-            expect(viewDateFor(segments('9999', '01', ''))).toBeUndefined();
+        it('follows a year outside the range, which validation is what reports', () => {
+            // Given a year nowhere near the dates the field accepts
+            // When the calendar is asked where to go
+            // Then it follows all the same, so it does not sit on a month that disagrees with what the field shows
+            expect(viewDateFor(segments('1111', '01', '03'))).toEqual(new Date(1111, 0, 1));
+            expect(viewDateFor(segments('9999', '01', ''))).toEqual(new Date(9999, 0, 1));
         });
 
-        it('moves to the month holding the limit itself, which still has days to select', () => {
+        it('follows a month at either limit, including one with no day left to select', () => {
             expect(viewDateFor(segments('1876', '09', ''))).toEqual(new Date(1876, 8, 1));
-            expect(viewDateFor(segments('1876', '08', ''))).toBeUndefined();
+            expect(viewDateFor(segments('1876', '08', ''))).toEqual(new Date(1876, 7, 1));
         });
     });
 
