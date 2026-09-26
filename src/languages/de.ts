@@ -9830,7 +9830,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
             },
             filterType: {label: 'Filtertyp', has: {positive: 'hat', negative: 'hat nicht'}, is: {positive: 'ist', negative: 'ist nicht'}},
-            merchant: {matchType: 'Übereinstimmungstyp', contains: 'Enthält', exactMatch: 'Gleich'},
+            merchant: {
+                matchType: 'Übereinstimmungstyp',
+                contains: (merchant?: string) => (merchant ? `Enthält "${merchant}"` : 'Enthält'),
+                equalTo: (merchant?: string) => (merchant ? `Gleich "${merchant}"` : 'Gleich'),
+            },
             created: 'Erstellt',
             createdDate: 'Erstellungsdatum',
             transactionStatus: {

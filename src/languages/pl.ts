@@ -9772,7 +9772,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Eksportuj',
             },
             filterType: {label: 'Typ filtra', has: {positive: 'ma', negative: 'nie ma'}, is: {positive: 'jest', negative: 'nie jest'}},
-            merchant: {matchType: 'Typ dopasowania', contains: 'Zawiera', exactMatch: 'Równe'},
+            merchant: {
+                matchType: 'Typ dopasowania',
+                contains: (merchant?: string) => (merchant ? `Zawiera "${merchant}"` : 'Zawiera'),
+                equalTo: (merchant?: string) => (merchant ? `Równe "${merchant}"` : 'Równe'),
+            },
             created: 'Utworzono',
             createdDate: 'Data utworzenia',
             transactionStatus: {

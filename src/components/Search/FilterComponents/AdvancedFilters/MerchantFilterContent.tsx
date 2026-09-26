@@ -43,11 +43,17 @@ type MerchantFilterContentProps = {
     /** The label used when the filter applies immediately. */
     buttonText?: string;
 
+    /** The Sentry label for the confirmation button. */
+    sentryLabel?: string;
+
     /** Whether the input should receive focus automatically. */
     autoFocus?: boolean;
 
     /** Additional styles for the filter content. */
     style?: StyleProp<ViewStyle>;
+
+    /** Additional styles for the confirmation button. */
+    buttonStyles?: StyleProp<ViewStyle>;
 
     /** Called with the updated Merchant filter form values. */
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
@@ -64,8 +70,10 @@ function MerchantFilterContent({
     merchantOperator: initialMerchantOperator,
     buttonSize,
     buttonText,
+    sentryLabel,
     autoFocus,
     style,
+    buttonStyles,
     onChange,
 }: MerchantFilterContentProps) {
     const {translate} = useLocalize();
@@ -105,7 +113,7 @@ function MerchantFilterContent({
         onChange({
             [FILTER_KEYS.MERCHANT]: isNegated ? undefined : value,
             [FILTER_KEYS.MERCHANT_NOT]: isNegated ? value : undefined,
-            [FILTER_KEYS.MERCHANT_OPERATOR]: isNegated ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO : merchantOperator,
+            [FILTER_KEYS.MERCHANT_OPERATOR]: isNegated ? undefined : merchantOperator,
         });
     };
 
@@ -128,10 +136,11 @@ function MerchantFilterContent({
                 </View>
             </NegatableFilter>
             <Button
-                style={[styles.ph5, styles.pb5]}
+                style={[styles.ph5, styles.pb5, buttonStyles]}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={buttonSize}
                 onPress={updateMerchantFilter}
+                sentryLabel={sentryLabel}
             >
                 <Button.KeyboardShortcut />
                 <Button.Text>{buttonText ?? translate('common.confirm')}</Button.Text>

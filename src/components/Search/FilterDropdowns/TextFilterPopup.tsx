@@ -33,18 +33,6 @@ function TextFilterPopup({baseFilterKey, values, label, updateFilterForm, closeO
     const [value, setValue] = useState(initialValue);
 
     const error = useTextFilterValidation(baseFilterKey, value);
-    const filterInput = (
-        <TextInput
-            placeholder={label}
-            value={value}
-            errorText={error}
-            hasError={!!error}
-            onChangeText={setValue}
-            accessibilityLabel={label}
-            role={CONST.ROLE.PRESENTATION}
-            containerStyles={[styles.ph5]}
-        />
-    );
 
     const applyChanges = () => {
         if (error) {
@@ -66,7 +54,16 @@ function TextFilterPopup({baseFilterKey, values, label, updateFilterForm, closeO
                 isNegated={isNegated}
                 onNegationChange={setIsNegated}
             >
-                {filterInput}
+                <TextInput
+                    placeholder={label}
+                    value={value}
+                    errorText={error}
+                    hasError={!!error}
+                    onChangeText={setValue}
+                    accessibilityLabel={label}
+                    role={CONST.ROLE.PRESENTATION}
+                    containerStyles={[styles.ph5]}
+                />
             </NegatableFilter>
         </BasePopup>
     );

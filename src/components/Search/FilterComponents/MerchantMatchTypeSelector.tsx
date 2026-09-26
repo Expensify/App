@@ -34,7 +34,7 @@ function MerchantMatchTypeSelector({value, onChange}: MerchantMatchTypeSelectorP
         },
         {
             keyForList: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-            text: translate('search.filters.merchant.exactMatch'),
+            text: translate('search.filters.merchant.equalTo'),
             isSelected: value === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
         },
     ];
