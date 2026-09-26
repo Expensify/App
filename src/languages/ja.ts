@@ -9652,6 +9652,11 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'エクスポート',
             },
             filterType: {label: 'フィルタータイプ', has: {positive: '持っています', negative: '持っていません'}, is: {positive: 'は', negative: 'ではありません'}},
+            merchant: {
+                matchType: 'マッチタイプ',
+                contains: (merchant?: string) => (merchant ? `"${merchant}"を含む` : '含む'),
+                equalTo: (merchant?: string) => (merchant ? `"${merchant}"に等しい` : '等しい'),
+            },
             created: '作成しました',
             createdDate: '作成日',
             transactionStatus: {

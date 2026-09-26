@@ -14290,6 +14290,21 @@ describe('SearchUIUtils', () => {
 
             expect(result).toBe(translateLocal('common.read'));
         });
+
+        test.each([
+            [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 'search.filters.merchant.equalTo'],
+            [CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, 'search.filters.merchant.contains'],
+            [undefined, 'search.filters.merchant.contains'],
+        ] as const)('includes the %s match type in a Merchant filter label', (merchantOperator, translationKey) => {
+            // Given a Merchant filter with an exact, contains, or missing operator
+            const form = {[FILTER_KEYS.MERCHANT]: 'I', [FILTER_KEYS.MERCHANT_OPERATOR]: merchantOperator};
+
+            // When the filter label is built
+            const result = SearchUIUtils.getDisplayValue(FILTER_KEYS.MERCHANT, form, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+
+            // Then the match type is part of the translated label, so a missing operator reads as contains
+            expect(result).toBe(translateLocal(translationKey, 'I'));
+        });
     });
 
     describe('filterValidHasValues', () => {
@@ -14847,6 +14862,14 @@ describe('hasFilterContentValuesChanged', () => {
             read: [{[SYNTAX_FILTER_KEYS.MERCHANT]: 'a'}, {[SYNTAX_FILTER_KEYS.MERCHANT]: 'b'}],
             // A text content offers no options, so the search type is nothing to it.
             ignored: [{[SYNTAX_FILTER_KEYS.MERCHANT]: 'a'}, {[SYNTAX_FILTER_KEYS.MERCHANT]: 'a', type: CONST.SEARCH.DATA_TYPES.INVOICE}],
+        },
+        {
+            kind: 'merchant, reading its match type',
+            filterKey: SYNTAX_FILTER_KEYS.MERCHANT,
+            read: [
+                {[SYNTAX_FILTER_KEYS.MERCHANT]: 'a', [FILTER_KEYS.MERCHANT_OPERATOR]: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS},
+                {[SYNTAX_FILTER_KEYS.MERCHANT]: 'a', [FILTER_KEYS.MERCHANT_OPERATOR]: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO},
+            ],
         },
         {
             kind: 'amount',

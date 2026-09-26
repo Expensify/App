@@ -73,6 +73,7 @@ function SearchColumnsPage() {
         const queryString = buildQueryStringFromFilterFormValues(updatedAdvancedFilters, {
             sortBy: currentQueryJSON?.sortBy,
             sortOrder: currentQueryJSON?.sortOrder,
+            flatFilters: currentQueryJSON?.flatFilters,
         });
 
         // Only the columns change, so it's still the same search - carry the key over rather than letting it be
