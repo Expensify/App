@@ -53,12 +53,14 @@ function renderContainer(
     {
         isEnabled = true,
         rowCount = 3,
+        hasHeaderRow = true,
         rendersBodyWhenEmpty = false,
         shouldUseDynamicColumns = false,
         onLayout,
     }: {
         isEnabled?: boolean;
         rowCount?: number;
+        hasHeaderRow?: boolean;
         rendersBodyWhenEmpty?: boolean;
         shouldUseDynamicColumns?: boolean;
         onLayout?: React.ComponentProps<typeof TableSemanticContainer>['onLayout'];
@@ -70,6 +72,7 @@ function renderContainer(
             title="Members"
             rowCount={rowCount}
             columnCount={4}
+            hasHeaderRow={hasHeaderRow}
             rendersBodyWhenEmpty={rendersBodyWhenEmpty}
             shouldUseDynamicColumns={shouldUseDynamicColumns}
             scrollWidth={undefined}
@@ -121,6 +124,12 @@ describe('TableSemanticContainer', () => {
         expect(within(table).getByTestId('stub-body')).toBeTruthy();
     });
 
+    it('leaves the header row out of aria-rowcount when the table has no column header', () => {
+        renderContainer([React.createElement(TableHeader, {key: 'h'}), React.createElement(TableBody, {key: 'b'})], {hasHeaderRow: false});
+
+        expect(screen.getByLabelText('Members').props['aria-rowcount']).toBe(3);
+    });
+
     it('keeps non-header/body children outside the table container', () => {
         const filterBar = React.createElement(View, {key: 'f', testID: 'filter-bar'});
         renderContainer([filterBar, React.createElement(TableHeader, {key: 'h'}), React.createElement(TableBody, {key: 'b'})]);
@@ -165,6 +174,7 @@ describe('TableSemanticContainer', () => {
                 title="Members"
                 rowCount={rowCount}
                 columnCount={4}
+                hasHeaderRow
                 rendersBodyWhenEmpty={false}
                 shouldUseDynamicColumns={false}
                 scrollWidth={undefined}

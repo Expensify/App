@@ -14,6 +14,8 @@ import type {ActiveSorting, SortOrder} from './middlewares/sorting';
 import type {TableHeaderProps} from './TableHeader';
 import type {SharedListProps, TableColumn, TableData, TableMethods, TableRow} from './types';
 
+import {COLUMN_HEADER_PLACEMENT} from './buildTableListData';
+
 /**
  * The shape of the Table context value.
  * This context is provided by the `<Table>` component and consumed by its sub-components.
@@ -72,6 +74,12 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
      * `undefined` means the columns keep their static tracks (fixed widths and equal `1fr` shares).
      */
     dynamicGridTemplateColumns: string[] | undefined;
+
+    /** The width the rows need when the columns don't fit, which makes the list scroll horizontally too. `undefined` means they fit. */
+    scrollWidth: number | undefined;
+
+    /** Measured width of the area the table lays out into. Content-sized columns only. `0` until the first layout. */
+    tableWidth: number;
 
     /** Filter configuration for dropdown filters. */
     filterConfig: FilterConfig<FilterKey> | undefined;
@@ -132,6 +140,8 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     originalDataLength: 0,
     columns: [],
     dynamicGridTemplateColumns: undefined,
+    scrollWidth: undefined,
+    tableWidth: 0,
     activeFilters: {},
     activeSorting: {
         columnKey: undefined,
@@ -148,7 +158,7 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     hasSearchString: false,
     tableListMetadata: {
         hasPageHeader: false,
-        shouldRenderStickyHeader: false,
+        columnHeaderPlacement: COLUMN_HEADER_PLACEMENT.NONE,
         syntheticRowsBeforeData: 0,
         stickyTableHeaderIndex: 0,
         listDataRowOffset: 0,

@@ -27,6 +27,9 @@ type TableSemanticContainerProps = {
     /** Number of columns, including the leading selection column when present. */
     columnCount: number;
 
+    /** Whether the table exposes a column-header row, which `aria-rowcount` has to count alongside the data rows. */
+    hasHeaderRow: boolean;
+
     /**
      * Whether `TableBody` still renders content while an inline-semantic table is empty (e.g. an empty-state or list
      * header is supplied). Its `role="rowgroup"` then needs the enclosing `role="table"` wrapper.
@@ -43,8 +46,9 @@ type TableSemanticContainerProps = {
     shouldUseDynamicColumns: boolean;
 
     /**
-     * The width the rows need when the columns are too wide to fit. Set only in that case, and it makes the header/body
-     * run scroll horizontally as one, so the header stays aligned with the rows it labels.
+     * The width the rows need when the columns don't fit, which scrolls the header/body run horizontally as one so the
+     * header stays aligned with its rows. Set only for tables whose filter bar isn't in the list. The others are
+     * scrolled by the list itself (see `TableBody`).
      */
     scrollWidth: number | undefined;
 
@@ -65,8 +69,23 @@ type TableSemanticContainerProps = {
  * (filter bar, empty states, …) outside the ARIA table. When neither layout handling nor semantics are needed, the
  * children render as-is to avoid an extra layout node. Header and body are contiguous in every table, so grouping the
  * consecutive run keeps a single table container while preserving child order.
+ *
+ * Columns that don't fit are scrolled here by wrapping that run in a horizontal scroller, which carries header and
+ * rows as one. Tables with an in-list filter bar can't use it, because the scroller would drag that bar sideways too,
+ * so their list takes the horizontal axis itself (see `TableBody`).
  */
-function TableSemanticContainer({isEnabled, title, rowCount, columnCount, rendersBodyWhenEmpty, shouldUseDynamicColumns, scrollWidth, onLayout, children}: TableSemanticContainerProps) {
+function TableSemanticContainer({
+    isEnabled,
+    title,
+    rowCount,
+    columnCount,
+    rendersBodyWhenEmpty,
+    shouldUseDynamicColumns,
+    hasHeaderRow,
+    scrollWidth,
+    onLayout,
+    children,
+}: TableSemanticContainerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -102,7 +121,7 @@ function TableSemanticContainer({isEnabled, title, rowCount, columnCount, render
                 // it doesn't. Either way the measured node keeps the table's own width rather than growing with the
                 // content, so measuring it can't feed back into the widths it produced.
                 onLayout={scrollWidth ? undefined : onLayout}
-                {...getTableContainerAccessibilityProps(isEnabled, title, rowCount, columnCount)}
+                {...getTableContainerAccessibilityProps(isEnabled, title, rowCount, columnCount, hasHeaderRow)}
             >
                 {rowGroup}
             </View>
