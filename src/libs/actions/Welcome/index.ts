@@ -126,6 +126,7 @@ function createJoinWorkspaceOnboardingContent(
     workEmail: string,
     conciergeChat: OnyxEntry<Report>,
     delegateAccountID: number | undefined,
+    shouldResumeAccountMerge = false,
 ) {
     const {joinWorkspaceMessages} = getOnboardingMessages();
     let onboardingMessage = joinWorkspaceMessages.joinWorkspace;
@@ -144,6 +145,7 @@ function createJoinWorkspaceOnboardingContent(
         companySize: undefined,
         companyDomain,
         workEmail,
+        shouldResumeAccountMerge,
         conciergeChat,
         delegateAccountID,
         isIncremental: true,
@@ -157,12 +159,13 @@ function createJoinWorkspaceOnboardingContent(
         (item) => item.type === 'task' && item.task === (contentType === 'joinWorkspace' ? CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE : CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL),
     );
     const taskReportID = task && 'taskReportID' in task ? task.taskReportID : undefined;
+    const commandData = onboardingData.guidedSetupData.map((item) => (contentType === 'empty' && item.type === 'message' ? {...item, reportComment: {html: item.reportComment}} : item));
 
     API.write(
         WRITE_COMMANDS.CREATE_JOIN_WORKSPACE_ONBOARDING_CONTENT,
         {
             event: contentType === 'empty' ? 'noJoinableWorkspacesMessage' : contentType,
-            data: JSON.stringify(onboardingData.guidedSetupData),
+            data: JSON.stringify(commandData),
         },
         {
             optimisticData: onboardingData.optimisticData,
