@@ -28,6 +28,7 @@ type TransactionFromCSV = {
     merchant: string;
     amount: number;
     category?: string;
+    tag?: string;
 };
 
 type ColumnIndexes = {
@@ -35,9 +36,10 @@ type ColumnIndexes = {
     merchant: number;
     amount: number;
     category: number;
+    tag: number;
 };
 
-type TransactionField = 'date' | 'merchant' | 'amount' | 'category';
+type TransactionField = 'date' | 'merchant' | 'amount' | 'category' | 'tag';
 
 /**
  * Type guard to check if a string is a valid transaction field
@@ -55,6 +57,7 @@ function getColumnIndexes(columns: Record<number, string> | undefined): ColumnIn
         merchant: -1,
         amount: -1,
         category: -1,
+        tag: -1,
     };
 
     if (columns) {
@@ -80,6 +83,7 @@ function buildColumnLayout(spreadsheet: ImportedSpreadsheet, cardName: string, c
         amount: false,
         merchant: false,
         category: false,
+        tag: false,
         type: false,
     };
     const names: SavedCSVColumnLayoutData['columnMapping']['names'] = {
@@ -87,6 +91,7 @@ function buildColumnLayout(spreadsheet: ImportedSpreadsheet, cardName: string, c
         amount: false,
         merchant: false,
         category: false,
+        tag: false,
         type: false,
     };
 
@@ -133,7 +138,7 @@ function buildTransactionListFromSpreadsheet(spreadsheet: ImportedSpreadsheet, s
     const {flipAmountSign = false} = settings;
 
     // Find the column indexes for each field
-    const {date: dateColumnIndex, merchant: merchantColumnIndex, amount: amountColumnIndex, category: categoryColumnIndex} = getColumnIndexes(columns);
+    const {date: dateColumnIndex, merchant: merchantColumnIndex, amount: amountColumnIndex, category: categoryColumnIndex, tag: tagColumnIndex} = getColumnIndexes(columns);
 
     const transactions: TransactionFromCSV[] = [];
     const startIndex = containsHeader ? 1 : 0;
@@ -151,6 +156,7 @@ function buildTransactionListFromSpreadsheet(spreadsheet: ImportedSpreadsheet, s
         const merchantValue = merchantColumnIndex >= 0 ? data.at(merchantColumnIndex)?.at(rowIndex) : undefined;
         const amountValue = amountColumnIndex >= 0 ? data.at(amountColumnIndex)?.at(rowIndex) : undefined;
         const categoryValue = categoryColumnIndex >= 0 ? data.at(categoryColumnIndex)?.at(rowIndex) : undefined;
+        const tagValue = tagColumnIndex >= 0 ? data.at(tagColumnIndex)?.at(rowIndex) : undefined;
 
         // Skip rows with missing required fields
         if (!dateValue || !amountValue) {
@@ -184,10 +190,26 @@ function buildTransactionListFromSpreadsheet(spreadsheet: ImportedSpreadsheet, s
             transaction.category = categoryValue;
         }
 
+        if (tagValue) {
+            transaction.tag = tagValue;
+        }
+
         transactions.push(transaction);
     }
 
     return transactions;
+}
+
+/**
+ * Checks whether any row that will be imported has a tag longer than the API accepts, so it can be flagged before import instead of failing on the server.
+ * Rows that buildTransactionListFromSpreadsheet skips (for example a footer or a row with an invalid date) are never sent, so their tags are not checked.
+ */
+function hasTagExceedingMaxLength(spreadsheet: ImportedSpreadsheet | undefined): boolean {
+    if (!spreadsheet || getColumnIndexes(spreadsheet.columns).tag < 0) {
+        return false;
+    }
+
+    return buildTransactionListFromSpreadsheet(spreadsheet, {}).some((transaction) => [...(transaction.tag ?? '')].length > CONST.API_TRANSACTION_TAG_MAX_LENGTH);
 }
 
 /**
@@ -235,6 +257,7 @@ function buildOptimisticTransactions(transactionList: TransactionFromCSV[], card
                 amount: csvTransaction.amount,
                 currency,
                 category: csvTransaction.category ?? '',
+                tag: csvTransaction.tag ?? '',
                 reimbursable: isReimbursable,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 comment: {
@@ -476,5 +499,5 @@ async function uploadOFXStatement(file: FileObject, settings: ImportTransactionS
     }
 }
 
-export {getColumnIndexes, buildColumnLayout, buildTransactionListFromSpreadsheet, getExistingCardImportSettings, uploadOFXStatement};
+export {getColumnIndexes, hasTagExceedingMaxLength, buildColumnLayout, buildTransactionListFromSpreadsheet, getExistingCardImportSettings, uploadOFXStatement};
 export default importTransactionsFromCSV;
