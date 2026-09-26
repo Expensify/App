@@ -34,6 +34,7 @@ import {
     getSearchPayOnyxData,
     getTotalFormattedAmount,
     isCurrencySupportWalletBulkPay,
+    queueBulkMarkAsExported,
     queueBulkPayReports,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
@@ -2226,7 +2227,28 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     .map((report) => report.reportID)
                     .filter((reportID): reportID is string => reportID !== undefined);
                 if (reportIDsToMark.length > 0) {
-                    const handleMarkAction = buildIntegrationHandleExportAction(reportIDsToMark, integration, integrationGroupSize, false, connectionNameFriendly);
+                    // Under "select all matching", the loaded page can only ever hold a subset of the full matching
+                    // set, so the partial-export and export-again modals below (built from page-scoped counts) do
+                    // not apply. Send the query instead of the loaded IDs, the same way bulk pay does, so the
+                    // backend resolves and marks every matching report on this connection, not just this page.
+                    const handleMarkAllMatchingAction = () => {
+                        if (!hash || !queryJSON) {
+                            return;
+                        }
+                        clearSelectedTransactions();
+                        queueBulkMarkAsExported(serializeQueryJSONForBackend(queryJSON), integration);
+                        playSound(SOUNDS.SUCCESS);
+                    };
+                    const handleMarkAction = areAllMatchingItemsSelected
+                        ? handleMarkAllMatchingAction
+                        : () =>
+                              buildIntegrationHandleExportAction(
+                                  reportIDsToMark,
+                                  integration,
+                                  integrationGroupSize,
+                                  false,
+                                  connectionNameFriendly,
+                              )(() => markAsManuallyExported(reportIDsToMark, integration, integrationPolicy));
                     exportOptions.push({
                         text: translate('workspace.common.markAsExported'),
                         value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
@@ -2234,7 +2256,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         // which screen readers can't announce. Append the integration name so assistive tech can distinguish them.
                         accessibilityLabel: `${translate('workspace.common.markAsExported')}, ${connectionNameFriendly}`,
                         icon: integrationIcon,
-                        onSelected: () => handleMarkAction(() => markAsManuallyExported(reportIDsToMark, integration, integrationPolicy)),
+                        onSelected: handleMarkAction,
                         shouldCloseModalOnSelect: true,
                         shouldCallAfterModalHide: true,
                         displayInDefaultIconColor: true,

@@ -2142,6 +2142,16 @@ function queueBulkPayReports(jsonQuery: string) {
     write(WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS, {jsonQuery});
 }
 
+/**
+ * Queues a manual bulk "Mark as exported" for every report matching the given search query on the given connection.
+ * The backend pages through all matches itself, so this covers reports beyond the currently loaded page(s) when
+ * "Select all" is checked in Search. connectionName scopes the resolved reports to a single accounting connection,
+ * since the button is per-integration and must never mix connections.
+ */
+function queueBulkMarkAsExported(jsonQuery: string, connectionName: ConnectionName) {
+    write(WRITE_COMMANDS.QUEUE_BULK_MARK_AS_EXPORTED, {jsonQuery, connectionName});
+}
+
 /** Export templates pre-grouped for the Export menus: each group is sorted alphabetically and rendered with a divider between groups */
 type ExportTemplateGroups = {
     /** Custom templates (custom integrations + account/policy in-app templates) */
@@ -2577,6 +2587,7 @@ export {
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     queueBulkPayReports,
+    queueBulkMarkAsExported,
     updateAdvancedFilters,
     setSearchContext,
     deleteSavedSearch,
