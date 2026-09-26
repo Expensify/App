@@ -1,6 +1,7 @@
 import {
     initMoneyRequest,
     resetDraftTransactionsCustomUnit,
+    setCustomUnitRateID,
     setMoneyRequestAmount,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
@@ -311,6 +312,80 @@ describe('actions/IOU', () => {
             const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${testTransaction.transactionID}`);
             expect(transaction?.comment?.customUnit?.customUnitRateID).toBe(customUnitRateID);
             expect(transaction?.comment?.customUnit?.defaultP2PRate).toBe(CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS);
+        });
+    });
+
+    describe('setCustomUnitRateID', () => {
+        const CUSTOM_UNIT_RATE_ID = 'customUnitRateID123';
+
+        function createPolicyWithKilometreRate(): Policy {
+            const policy = createRandomPolicy(1);
+            policy.customUnits = {
+                distanceUnitID: {
+                    customUnitID: 'distanceUnitID',
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    attributes: {
+                        unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    },
+                    rates: {
+                        [CUSTOM_UNIT_RATE_ID]: {
+                            customUnitRateID: CUSTOM_UNIT_RATE_ID,
+                            name: 'Kilometre rate',
+                            rate: 70,
+                            currency: CONST.CURRENCY.USD,
+                            enabled: true,
+                        },
+                    },
+                },
+            };
+            return policy;
+        }
+
+        function createDistanceDraft(iouRequestType?: Transaction['iouRequestType']): Transaction {
+            return {
+                transactionID: 'testTransaction123',
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                ...(iouRequestType && {iouRequestType}),
+                comment: {
+                    comment: 'Test transaction',
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                    },
+                },
+                created: DateUtils.getDBTime(),
+                merchant: 'Test Merchant',
+                reportID: 'testReport123',
+            };
+        }
+
+        it('converts distance quantity into the new rate unit', async () => {
+            const testTransaction = createDistanceDraft();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${testTransaction.transactionID}`, testTransaction);
+
+            setCustomUnitRateID(testTransaction.transactionID, CUSTOM_UNIT_RATE_ID, testTransaction, createPolicyWithKilometreRate(), false, CONST.CURRENCY.USD);
+            await waitForBatchedUpdates();
+
+            const transactionDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${testTransaction.transactionID}`);
+            expect(transactionDraft?.comment?.customUnit?.customUnitRateID).toBe(CUSTOM_UNIT_RATE_ID);
+            expect(transactionDraft?.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            // 10 miles to kilometers = 10 / 0.000621371 * 0.001 = 16.093444978925636
+            expect(transactionDraft?.comment?.customUnit?.quantity).toBe(16.093444978925636);
+        });
+
+        it('does not convert distance quantity for an odometer request', async () => {
+            const testTransaction = createDistanceDraft(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${testTransaction.transactionID}`, testTransaction);
+
+            setCustomUnitRateID(testTransaction.transactionID, CUSTOM_UNIT_RATE_ID, testTransaction, createPolicyWithKilometreRate(), false, CONST.CURRENCY.USD);
+            await waitForBatchedUpdates();
+
+            const transactionDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${testTransaction.transactionID}`);
+            expect(transactionDraft?.comment?.customUnit?.customUnitRateID).toBe(CUSTOM_UNIT_RATE_ID);
+            expect(transactionDraft?.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            // The quantity is the difference between the odometer readings, so it must stay untouched
+            expect(transactionDraft?.comment?.customUnit?.quantity).toBe(10);
         });
     });
 
