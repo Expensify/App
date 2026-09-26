@@ -101,6 +101,7 @@ For additional control:
   - Vendor Bills
   - Journal Entries
 - **Custom Form ID** – Use a specific NetSuite form instead of the default
+- **FX expense account** – Select the account where currency conversion (FX) fees are recorded. When your workspace's **Currency conversion fees** setting under **Workflows** is set so the company pays, a cross-border reimbursement exports an additional journal entry for the FX cost (debit the FX expense account, credit cash) alongside the bill payment. The journal entry memo reads "Foreign Exchange Fees for Expensify report [reportID]". This account must be mapped for the FX journal entry to export.
 
 3. Click the **three-dot icon** > **Sync Now** to apply changes
 

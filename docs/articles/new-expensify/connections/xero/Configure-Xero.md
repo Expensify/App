@@ -77,6 +77,7 @@ Advanced settings control sync frequency and automation.
 - **Xero bill payment account** – Required if **Sync reimbursed reports** is enabled.
 - **Xero invoice collections account** – Select the account where paid invoices appear.
 - **Sync Consolidated Travel Billing settlements** – If [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) is enabled, turn on this toggle to continuously reconcile settlements through Xero. When enabled, select a **Reconciliation account** to match your settlement account. Auto-sync must be enabled to use this setting.
+- **FX expense account** – Select the account where currency conversion (FX) fees are recorded. When your workspace's **Currency conversion fees** setting under **Workflows** is set so the company pays, a cross-border reimbursement exports an additional journal entry for the FX cost (debit the FX expense account, credit cash) alongside the bill payment. The journal entry memo reads "Foreign Exchange Fees for Expensify report [reportID]". This account must be mapped for the FX journal entry to export.
 
 ---
 
