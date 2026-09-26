@@ -1,6 +1,7 @@
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import type {AgentRule} from '@src/types/onyx/Policy';
+import type SuggestedAgentRule from '@src/types/onyx/SuggestedAgentRule';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -8,6 +9,13 @@ type AgentRulesCollection = Record<string, AgentRule> | undefined;
 
 type AgentRuleWithID = AgentRule & {
     ruleID: string;
+};
+
+type SuggestedAgentRuleSection = {
+    /** Empty for suggestions without a category */
+    category: string;
+
+    suggestions: SuggestedAgentRule[];
 };
 
 function getAgentRuleDisplayTitle(rule: AgentRule): string {
@@ -57,5 +65,19 @@ function isRuleBotEnforcingRulesOnAnyPolicy(accountID: number | undefined, polic
     return !!getRuleBotEnforcedPolicy(accountID, policies);
 }
 
-export {getAgentRuleDisplayTitle, getVisibleAgentRules, getRuleBotEnforcedPolicy, isRuleBotEnforcingRules, isRuleBotEnforcingRulesOnAnyPolicy};
+function groupSuggestedAgentRulesByCategory(suggestions: SuggestedAgentRule[]): SuggestedAgentRuleSection[] {
+    const suggestionsByCategory = new Map<string, SuggestedAgentRule[]>();
+    for (const suggestion of suggestions) {
+        const category = suggestion.category ?? '';
+        const categorySuggestions = suggestionsByCategory.get(category);
+        if (categorySuggestions) {
+            categorySuggestions.push(suggestion);
+        } else {
+            suggestionsByCategory.set(category, [suggestion]);
+        }
+    }
+    return Array.from(suggestionsByCategory, ([category, categorySuggestions]) => ({category, suggestions: categorySuggestions}));
+}
+
+export {getAgentRuleDisplayTitle, getVisibleAgentRules, getRuleBotEnforcedPolicy, groupSuggestedAgentRulesByCategory, isRuleBotEnforcingRules, isRuleBotEnforcingRulesOnAnyPolicy};
 export type {AgentRuleWithID};
