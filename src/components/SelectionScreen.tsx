@@ -2,6 +2,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+
 import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -144,6 +146,15 @@ function SelectionScreen<T = string>({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
 
+    // Pin the pre-selected option to the top of searchable lists so it's visible without scrolling for its whole open cycle.
+    // Gated on textInputOptions so only searchable selectors are reordered, and moveInitialSelectionToTop itself no-ops for
+    // lists under the item-limit threshold. These selectors commit-and-navigate on select, so the pre-selection never changes
+    // in place while the screen is open — no snapshot freeze is needed here.
+    const shouldPinInitialSelection = !!textInputOptions;
+    const orderedData = shouldPinInitialSelection
+        ? moveInitialSelectionToTop(data, initiallyFocusedOptionKey ? [initiallyFocusedOptionKey] : [], (item: SelectorType<T>) => item.keyForList)
+        : data;
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -167,7 +178,7 @@ function SelectionScreen<T = string>({
                     shouldDisableOpacity={!data.length}
                 >
                     <SelectionList
-                        data={data}
+                        data={orderedData}
                         ListItem={ListItem}
                         onSelectRow={onSelectRow}
                         showScrollIndicator
@@ -180,7 +191,9 @@ function SelectionScreen<T = string>({
                         listFooterContent={listFooterContent}
                         style={{listItemWrapperStyle}}
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
-                        shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
+                        shouldUpdateFocusedIndex={shouldPinInitialSelection || shouldUpdateFocusedIndex}
+                        shouldScrollToFocusedIndexOnMount={!shouldPinInitialSelection}
+                        disableMaintainingScrollPosition={shouldPinInitialSelection}
                         alternateNumberOfSupportedLines={2}
                         isRowMultilineSupported={isRowMultilineSupported}
                         addBottomSafeAreaPadding
