@@ -1,7 +1,7 @@
 ---
 title: Distance Expenses
 description: Learn how to create a Distance expense using GPS tracking, map-based routes, manual entry, or odometer readings, and how the reimbursement rate is determined in New Expensify.
-keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, edit stop, trim trip, edit GPS trip, shorten GPS route, GPS slider, total distance, stop GPS trip, stop without moving, resume GPS trip, discard GPS trip, zero distance trip, same start and stop location, no edit icon, can't create expense]
+keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, edit stop, trim trip, edit GPS trip, shorten GPS route, GPS slider, total distance, stop GPS trip, stop without moving, resume GPS trip, discard GPS trip, zero distance trip, same start and stop location, no edit icon, can't create expense, change distance rate, edit distance rate, move distance expense, move expense to another workspace, rate not valid for this workspace, distance rate violation]
 internalScope: Audience is all members. Covers creating Distance expenses using GPS tracking, map-based routes, manual entry, and odometer readings, plus how reimbursement rates are applied. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
 ---
 
@@ -161,15 +161,21 @@ Yes! You can edit the expense before it is approved. When editing a map-based Di
 
 ## Can I update the Distance expense unit or rate?
 
-The distance unit and rate can only be updated by a Workspace Admin on the Workspace. It is not possible to adjust the distance rate or unit at the expense level.
+The distance unit is set by a Workspace Admin on the Workspace and can’t be changed at the expense level.
+
+The rate can be changed on an individual expense. Open the Distance expense, select the **Rate** field, and choose another rate from the Workspace. The distance, amount, and currency are recalculated to match the rate you select.
 
 If a Workspace has rates with effective dates and you manually select a rate that doesn't match the expense date, the expense shows a violation indicating the rate doesn't match the selected date. This is informational and does not block submission — selecting the rate that matches the expense date clears the violation.
 
 ## What happens if a Distance expense is moved to a different Workspace?
 
-When a Distance expense is moved to another Workspace, it keeps its original unit and rate.
+What happens depends on whether you move individual expenses or a whole report.
 
-If the rate isn’t valid in the new Workspace, the expense will show a “Rate not valid for this workspace” violation. Selecting a valid rate will update the expense.
+**If you move individual expenses to a report on another Workspace:** when the expense’s rate does not exist on the new Workspace, or is disabled there, the expense automatically switches to that Workspace’s default distance rate. The unit, distance, amount, and currency are recalculated to match. If the new Workspace has no enabled distance rates, the expense keeps its original rate and shows a “Rate not valid for this workspace” violation.
+
+**If you move a whole report to another Workspace:** the expenses keep their original unit and rate. If a rate isn’t valid in the new Workspace, the expense shows a “Rate not valid for this workspace” violation.
+
+In both cases, selecting a valid rate on the expense clears the violation and updates the expense. Open the expense and select the **Rate** field to choose a rate from the new Workspace.
 
 ## Do I need to keep the mobile app open during GPS tracking?
 
