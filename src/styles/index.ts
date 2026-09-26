@@ -2183,6 +2183,10 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: 12,
         },
 
+        optionRowCompactMinHeight: {
+            minHeight: variables.optionRowHeightCompact,
+        },
+
         optionsListSectionHeader: {
             marginTop: 8,
             marginBottom: 4,
@@ -3305,6 +3309,14 @@ const staticStyles = (theme: ThemeColors) =>
 
         flipUpsideDown: {
             transform: [{rotate: '180deg'}],
+        },
+
+        // Use this instead of `flipUpsideDown` when the element being flipped has asymmetric horizontal padding.
+        // `rotate(180deg)` turns the whole box about its centre, so it mirrors that padding too and the content
+        // visibly slides sideways. Mirroring on the vertical axis leaves the box where it is, and looks identical
+        // for content that is already symmetric left-to-right (a caret, a chevron, a tooltip pointer).
+        flipUpsideDownInPlace: {
+            transform: [{scaleY: -1}],
         },
 
         navigationScreenCardStyle: {
