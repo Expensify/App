@@ -62,6 +62,8 @@ type NavigationRootProps = {
 
 let previousFullstoryPath: string | undefined;
 
+const JOIN_WORKSPACE_TASK_INITIAL_PATHS = [ROUTES.ONBOARDING_WORK_EMAIL.getRoute(), ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute(), ROUTES.ONBOARDING_WORKSPACES.getRoute()];
+
 function trackFullstoryPageView(state: NavigationState) {
     const currentPath = getPathFromState(state);
     const isTransitionRoute = currentPath.startsWith(`/${ROUTES.TRANSITION_BETWEEN_APPS}`);
@@ -152,6 +154,12 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const initialState = useMemo(() => {
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
+        const isOnboardingPath = path?.startsWith('onboarding/');
+        const isJoinWorkspaceTaskPath = path?.includes('isJoinWorkspaceTask=true') && JOIN_WORKSPACE_TASK_INITIAL_PATHS.some((route) => path.startsWith(route));
+        if (isOnboardingCompleted && isOnboardingPath && !isJoinWorkspaceTaskPath) {
+            return getAdaptedStateFromPath(ROUTES.HOME);
+        }
+
         if (path?.includes(DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path) && shouldOpenLastVisitedPath(lastVisitedPath) && isOnboardingCompleted && authenticated) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path, lastVisitedPath));

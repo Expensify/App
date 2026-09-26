@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -16,8 +17,9 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
 
 import {joinAccessiblePolicy} from '@userActions/Policy/Member';
-import {createWorkspace} from '@userActions/Policy/Policy';
+import {createWorkspace, getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
+import {createJoinWorkspaceOnboardingContent} from '@userActions/Welcome';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -35,8 +37,13 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockCreateWorkspace = jest.mocked(createWorkspace);
+const mockGetAccessiblePolicies = jest.mocked(getAccessiblePolicies);
 const mockCompleteOnboarding = jest.mocked(completeOnboarding);
 const mockJoinAccessiblePolicy = jest.mocked(joinAccessiblePolicy);
+const mockCreateJoinWorkspaceOnboardingContent = jest.mocked(createJoinWorkspaceOnboardingContent);
+
+// Matches the login TestHelper.signInWithTestUser signs in with, so the LOGINS entry keyed off it counts as validated.
+const VALIDATED_EMAIL = 'test@user.com';
 
 jest.mock('@userActions/Report', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -45,6 +52,16 @@ jest.mock('@userActions/Report', () => {
     return {
         ...actual,
         completeOnboarding: jest.fn(),
+    };
+});
+
+jest.mock('@userActions/Welcome', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@userActions/Welcome');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        createJoinWorkspaceOnboardingContent: jest.fn(),
     };
 });
 
@@ -58,6 +75,7 @@ jest.mock('@userActions/Policy/Policy', () => {
             policyID: 'test-policy-id',
             adminsChatReportID: 'test-admins-report-id',
         }),
+        getAccessiblePolicies: jest.fn(),
     };
 });
 
@@ -79,7 +97,7 @@ const navigate = jest.spyOn(Navigation, 'navigate');
 
 const renderOnboardingWorkspacesPage = (initialRouteName: typeof SCREENS.ONBOARDING.WORKSPACES, initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.WORKSPACES]) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
@@ -228,6 +246,387 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should close a completed join-workspace task when no workspaces are available', async () => {
+        const dismissModalWithReport = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});
+        const getTopmostReportId = jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue('completed-task-report');
+
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.set(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: false});
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, '123');
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: '', isJoinWorkspaceTask: 'true'});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(dismissModalWithReport).toHaveBeenCalledWith({reportID: '123'});
+        });
+        expect(mockCreateJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('empty', expect.any(String), expect.any(String), undefined, undefined);
+
+        getTopmostReportId.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should not treat a failed workspace lookup as an empty result', async () => {
+        const dismissModal = jest.spyOn(Navigation, 'dismissModal');
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE});
+            await Onyx.set(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: false, errors: {getAccessiblePolicies: 'error'}});
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: '', isJoinWorkspaceTask: 'true'});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockCreateJoinWorkspaceOnboardingContent).not.toHaveBeenCalled();
+        expect(dismissModal).not.toHaveBeenCalled();
+
+        dismissModal.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should request accessible policies once when an empty response finishes loading', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.set(ONYXKEYS.LOGINS, {
+                [`1_${VALIDATED_EMAIL}`]: {
+                    partnerID: CONST.PARTNER_ID.EXPENSIFY,
+                    partnerUserID: VALIDATED_EMAIL,
+                    validatedDate: '2026-09-12 00:00:00',
+                },
+            });
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {});
+            await Onyx.set(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: false});
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
+
+        await waitFor(() => {
+            expect(mockGetAccessiblePolicies).toHaveBeenCalledTimes(1);
+        });
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: true});
+            await Onyx.merge(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: false});
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockGetAccessiblePolicies).toHaveBeenCalledTimes(1);
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should handle an empty accessible-policies request started before navigation', async () => {
+        // Given the merge screen started a workspace lookup before navigating to the workspace list.
+        const dismissModalWithReport = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});
+        const requestID = 'merge-accessible-policies-request';
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.set(ONYXKEYS.LOGINS, {
+                [`1_${VALIDATED_EMAIL}`]: {
+                    partnerID: CONST.PARTNER_ID.EXPENSIFY,
+                    partnerUserID: VALIDATED_EMAIL,
+                    validatedDate: '2026-09-12 00:00:00',
+                },
+            });
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {});
+            await Onyx.set(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: true, requestID});
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, '123');
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: '', isJoinWorkspaceTask: 'true'});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockGetAccessiblePolicies).not.toHaveBeenCalled();
+
+        // When the adopted lookup finishes with no accessible policies.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: false, requestID});
+        });
+
+        // Then the empty-workspace content is created and the modal closes without a duplicate lookup.
+        await waitFor(() => {
+            expect(mockCreateJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('empty', expect.any(String), expect.any(String), undefined, undefined);
+            expect(dismissModalWithReport).toHaveBeenCalledWith({reportID: '123'});
+        });
+        expect(mockGetAccessiblePolicies).not.toHaveBeenCalled();
+
+        dismissModalWithReport.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should create a Join workspace task when a validation task opens a nonempty list', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE});
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {
+                policyID: {
+                    policyID: 'policyID',
+                    policyName: 'Workspace',
+                    policyOwner: 'owner@example.com',
+                    employeeCount: 1,
+                    hasPendingAccess: false,
+                    automaticJoiningEnabled: true,
+                    policyType: CONST.POLICY.TYPE.CORPORATE,
+                },
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {
+            backTo: ROUTES.REPORT_WITH_ID.getRoute('123'),
+            isJoinWorkspaceTask: 'true',
+            shouldCreateJoinWorkspaceTaskOnExit: 'true',
+        });
+
+        await waitFor(() => {
+            expect(mockCreateJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('joinWorkspace', expect.any(String), expect.any(String), undefined, undefined);
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should finish the marked Join Workspace flow when the merged account has a different persisted intent', async () => {
+        // Given a merge resumed from a Join Workspace task while the target account still persists a different intent.
+        const dismissModalWithReport = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND});
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {
+                policyID: {
+                    policyID: 'policyID',
+                    policyName: 'Workspace',
+                    policyOwner: 'owner@example.com',
+                    employeeCount: 1,
+                    hasPendingAccess: false,
+                    automaticJoiningEnabled: true,
+                    policyType: CONST.POLICY.TYPE.CORPORATE,
+                },
+            });
+        });
+
+        mockCreateJoinWorkspaceOnboardingContent.mockReturnValueOnce('join-task-report');
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {
+            backTo: ROUTES.REPORT_WITH_ID.getRoute('123'),
+            isJoinWorkspaceTask: 'true',
+            shouldCreateJoinWorkspaceTaskOnExit: 'true',
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user skips the workspace list after the merge.
+        fireEvent.press(screen.getByTestId('onboardingWorkSpaceSkipButton'));
+
+        // Then the Join Workspace task is created/opened instead of returning to the intent-selection loop.
+        await waitFor(() => {
+            expect(mockCreateJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('joinWorkspace', expect.any(String), expect.any(String), undefined, undefined);
+            expect(dismissModalWithReport).toHaveBeenCalledWith({reportID: 'join-task-report'});
+        });
+        expect(mockCompleteOnboarding).not.toHaveBeenCalled();
+
+        dismissModalWithReport.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should reopen the persisted Join Workspace task before its report loads after a merge', async () => {
+        const dismissModalWithReport = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {
+                choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                joinWorkspace: 'persisted-join-task',
+            });
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {
+                policyID: {
+                    policyID: 'policyID',
+                    policyName: 'Workspace',
+                    policyOwner: 'owner@example.com',
+                    employeeCount: 1,
+                    hasPendingAccess: false,
+                    automaticJoiningEnabled: true,
+                    policyType: CONST.POLICY.TYPE.CORPORATE,
+                },
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {
+            backTo: ROUTES.REPORT_WITH_ID.getRoute('123'),
+            isJoinWorkspaceTask: 'true',
+            shouldCreateJoinWorkspaceTaskOnExit: 'true',
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByTestId('onboardingWorkSpaceSkipButton'));
+
+        await waitFor(() => {
+            expect(dismissModalWithReport).toHaveBeenCalledWith({reportID: 'persisted-join-task'});
+        });
+        expect(mockCreateJoinWorkspaceOnboardingContent).not.toHaveBeenCalled();
+
+        dismissModalWithReport.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should create a Join workspace task when validation opens the workspace list before the onboarding update arrives', async () => {
+        const dismissModalWithReport = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {});
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, '123');
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {
+            backTo: ROUTES.REPORT_WITH_ID.getRoute('123'),
+            isJoinWorkspaceTask: 'true',
+            shouldCreateJoinWorkspaceTaskOnExit: 'true',
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        mockCreateJoinWorkspaceOnboardingContent.mockReturnValueOnce('456');
+        fireEvent.press(screen.getByTestId('onboardingWorkSpaceSkipButton'));
+
+        await waitFor(() => {
+            expect(mockCreateJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('joinWorkspace', expect.any(String), expect.any(String), undefined, undefined);
+        });
+        expect(dismissModalWithReport).toHaveBeenCalledWith({reportID: '456'});
+        expect(mockCompleteOnboarding).not.toHaveBeenCalled();
+
+        dismissModalWithReport.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should create a Join workspace task when closing the workspace list from a validation task', async () => {
+        const dismissModalWithReport = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE});
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {});
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, '123');
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {
+            backTo: ROUTES.REPORT_WITH_ID.getRoute('123'),
+            isJoinWorkspaceTask: 'true',
+            shouldCreateJoinWorkspaceTaskOnExit: 'true',
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        mockCreateJoinWorkspaceOnboardingContent.mockReturnValueOnce('456');
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.close')));
+
+        await waitFor(() => {
+            expect(mockCreateJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('joinWorkspace', expect.any(String), expect.any(String), undefined, undefined);
+        });
+        expect(dismissModalWithReport).toHaveBeenCalledWith({reportID: '456'});
+
+        dismissModalWithReport.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should return to Concierge when closing a direct workspace link', async () => {
+        const conciergeReportID = '123';
+        const dismissModalWithReport = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE});
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {isJoinWorkspaceTask: 'true'});
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.close')));
+
+        expect(dismissModalWithReport).toHaveBeenCalledWith({reportID: conciergeReportID});
+        expect(mockCreateJoinWorkspaceOnboardingContent).not.toHaveBeenCalledWith('joinWorkspace', expect.any(String), expect.any(String), undefined, undefined);
+
+        dismissModalWithReport.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should return to Concierge instead of the completed task thread after an empty lookup', async () => {
+        const taskReportID = '456';
+        const conciergeReportID = '123';
+        const getTopmostReportId = jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(taskReportID);
+        const dismissModalWithReport = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});
+
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.set(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: false});
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, {
+                reportID: taskReportID,
+                parentReportID: conciergeReportID,
+                type: CONST.REPORT.TYPE.TASK,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: '', isJoinWorkspaceTask: 'true'});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(dismissModalWithReport).toHaveBeenCalledWith({reportID: conciergeReportID});
+        });
+
+        getTopmostReportId.mockRestore();
+        dismissModalWithReport.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should create a Submit workspace when skip is pressed with EMPLOYER purpose', async () => {
         jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
         jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
@@ -321,13 +720,13 @@ describe('OnboardingWorkspaces Page', () => {
         fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.workspaceList.joinNow')));
 
         await waitFor(() => {
-            expect(mockJoinAccessiblePolicy).toHaveBeenCalledWith('submit-policy-id');
+            expect(mockJoinAccessiblePolicy.mock.calls.at(0)?.at(0)).toBe('submit-policy-id');
         });
 
         await waitFor(() => {
             expect(mockCompleteOnboarding).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                    engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
                 }),
             );
         });

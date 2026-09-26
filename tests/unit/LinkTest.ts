@@ -1,5 +1,6 @@
 import {canAnonymousUserAccessRoute, isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
@@ -56,6 +57,7 @@ jest.mock('@libs/ReportUtils', () => {
 const mockedGetIsNarrowLayout = jest.mocked(getIsNarrowLayout);
 const mockedNavigation = jest.mocked(Navigation);
 const mockedNavigationRef = jest.mocked(navigationRef);
+const mockedSwapBackgroundTabForRHPTarget = jest.mocked(swapBackgroundTabForRHPTarget);
 const mockedCanAnonymousUserAccessRoute = jest.mocked(canAnonymousUserAccessRoute);
 const mockedIsAnonymousUser = jest.mocked(isAnonymousUser);
 
@@ -348,6 +350,24 @@ describe('Link.openLink', () => {
                 'true',
             ),
         );
+    });
+
+    it('keeps the task RHP open when a join-workspace validation link is opened', () => {
+        mockedNavigationRef.getRootState.mockReturnValue(buildRootState({isRHPOpen: true}));
+
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/home/verify-account?isJoinWorkspaceTask=true`, environmentURL);
+
+        expect(Navigation.closeRHPFlow).not.toHaveBeenCalled();
+        expect(mockedSwapBackgroundTabForRHPTarget).not.toHaveBeenCalled();
+        expect(Navigation.navigate).toHaveBeenCalledWith('/home/verify-account?isJoinWorkspaceTask=true');
+    });
+
+    it('closes the RHP for ordinary onboarding links', () => {
+        mockedNavigationRef.getRootState.mockReturnValue(buildRootState({isRHPOpen: true}));
+
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/onboarding/work-email`, environmentURL);
+
+        expect(Navigation.closeRHPFlow).toHaveBeenCalled();
     });
 });
 
