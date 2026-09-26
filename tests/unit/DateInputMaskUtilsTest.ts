@@ -192,17 +192,53 @@ describe('DateInputMaskUtils', () => {
 
     describe('getSegmentsFromText', () => {
         it('fills the segments from a pasted date', () => {
-            expect(getSegmentsFromText('2026-09-18')).toEqual(segments('2026', '09', '18'));
-            expect(getSegmentsFromText('20260918')).toEqual(segments('2026', '09', '18'));
+            expect(getSegmentsFromText('2026-09-18', 'year', EMPTY)).toEqual(segments('2026', '09', '18'));
+            expect(getSegmentsFromText('20260918', 'year', EMPTY)).toEqual(segments('2026', '09', '18'));
         });
 
         it('stops once every segment is full', () => {
-            expect(getSegmentsFromText('20260918123')).toEqual(segments('2026', '09', '18'));
+            expect(getSegmentsFromText('20260918123', 'year', EMPTY)).toEqual(segments('2026', '09', '18'));
         });
 
         it('fills what it can from a partial date', () => {
-            expect(getSegmentsFromText('2026-09')).toEqual(segments('2026', '09', ''));
-            expect(getSegmentsFromText('')).toEqual(EMPTY);
+            expect(getSegmentsFromText('2026-09', 'year', EMPTY)).toEqual(segments('2026', '09', ''));
+            expect(getSegmentsFromText('', 'year', EMPTY)).toEqual(EMPTY);
+        });
+
+        it('starts at the pasted-into segment rather than at the year', () => {
+            // Given a year that is already filled in
+            // When a month is pasted into the month segment
+            // Then the year is left alone, rather than being overwritten by the pasted digits
+            expect(getSegmentsFromText('12', 'month', segments('1990', '', ''))).toEqual(segments('1990', '12', ''));
+        });
+
+        it('keeps the segments the pasted digits never reach', () => {
+            // Given a date that is filled in
+            // When a single digit is pasted into the year
+            // Then only the year is started over, because the paste never reached the month or the day
+            expect(getSegmentsFromText('1', 'year', segments('1990', '12', '04'))).toEqual(segments('1', '12', '04'));
+        });
+
+        it('replaces a segment the digits reach rather than extending it', () => {
+            // Given a full date, and a whole date pasted over it starting at the year
+            // When the digits carry through every segment
+            // Then each one holds only the pasted digits, rather than the old ones with the new appended
+            expect(getSegmentsFromText('2026-09-18', 'year', segments('1990', '12', '04'))).toEqual(segments('2026', '09', '18'));
+        });
+
+        it('returns the segments it was given when the text holds no digits', () => {
+            // Given text that is not a date at all, which is how a caller tells that nothing was pasted
+            const baseSegments = segments('1990', '12', '04');
+
+            expect(getSegmentsFromText('hello', 'year', baseSegments)).toBe(baseSegments);
+            expect(getSegmentsFromText('', 'month', baseSegments)).toBe(baseSegments);
+        });
+
+        it('carries a digit too big for its segment into the next one', () => {
+            // Given a month that cannot read as 13
+            // When the second digit overflows it
+            // Then the month keeps the first digit and the overflow lands in the day, rather than being dropped
+            expect(getSegmentsFromText('13', 'month', EMPTY)).toEqual(segments('', '01', '3'));
         });
     });
 

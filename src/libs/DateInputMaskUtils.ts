@@ -262,18 +262,36 @@ function getFirstUnfilledSegmentName(segments: DateSegments): DateSegmentName | 
     return DATE_SEGMENT_NAMES.find((name) => segments[name].length < getSegmentLength(name));
 }
 
-/** Fills the segments from arbitrary text, so pasting a date works without going through it a keystroke at a time */
-function getSegmentsFromText(text: string): DateSegments {
+/**
+ * Fills the segments from arbitrary text, so pasting a date works without going through it a keystroke at a time.
+ *
+ * The digits land in `startName` first and carry into the segments after it, so pasting a month leaves a year that is
+ * already there alone. A segment keeps what it held until the digits actually reach it, and is then replaced rather
+ * than extended. Text holding no digits at all returns `baseSegments` itself, so a caller can tell nothing was pasted.
+ */
+function getSegmentsFromText(text: string, startName: DateSegmentName, baseSegments: DateSegments): DateSegments {
     const digits = text.replaceAll(NON_DIGIT_REGEX, '');
-    let filled = EMPTY_SEGMENTS;
+    let filled = baseSegments;
+    let name = startName;
+    let shouldOverwrite = true;
 
     for (const digit of digits) {
-        const name = getFirstUnfilledSegmentName(filled);
-        if (!name) {
-            break;
+        const previousSegments = filled;
+        const result = typeDigitIntoSegments(previousSegments, name, digit, shouldOverwrite);
+        filled = result.segments;
+        shouldOverwrite = false;
+
+        if (!result.nextSegmentName) {
+            // The last segment is full and there is nowhere left to carry to, so the rest of the text is dropped
+            if (filled[name].length >= getSegmentLength(name)) {
+                break;
+            }
+            continue;
         }
 
-        filled = typeDigitIntoSegments(filled, name, digit).segments;
+        // A digit too big for its own segment is carried into the next one, which has then already been written
+        shouldOverwrite = filled[result.nextSegmentName] === previousSegments[result.nextSegmentName];
+        name = result.nextSegmentName;
     }
 
     return filled;

@@ -253,15 +253,20 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
     };
 
     // Every keystroke is prevented, so this only runs for text the user pasted in
-    const handleChangeText = (text: string) => {
-        const pastedSegments = getSegmentsFromText(text);
-        if (!hasAnySegment(pastedSegments)) {
+    const handleChangeText = (name: DateSegmentName, text: string) => {
+        // A paste over the whole date replaces it, while one into a single segment merges into what is already there
+        const baseSegments = isAllSelected ? EMPTY_SEGMENTS : segments;
+        const pastedSegments = getSegmentsFromText(text, name, baseSegments);
+
+        // Text with no digits in it leaves every segment as it was, so there is nothing to apply and nowhere to move
+        if (pastedSegments === baseSegments) {
             return;
         }
 
         setIsAllSelected(false);
         applySegments(pastedSegments);
-        enterSegment(LAST_SEGMENT_NAME);
+        // A paste that fills only part of the date leaves the user at the digits they still have to enter
+        enterSegment(getFirstUnfilledSegmentName(pastedSegments) ?? LAST_SEGMENT_NAME);
     };
 
     const handleSegmentFocus = () => {
@@ -336,7 +341,7 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
         getSegmentProps: (name: DateSegmentName) => ({
             value: getSegmentDisplay(displayedSegments, name),
             onKeyPress: (event: TextInputKeyPressEvent) => handleKeyPress(name, event),
-            onChangeText: handleChangeText,
+            onChangeText: (text: string) => handleChangeText(name, text),
             onFocus: handleSegmentFocus,
             onPressOut: () => setIsAllSelected(false),
         }),
