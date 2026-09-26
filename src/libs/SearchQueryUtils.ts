@@ -15,6 +15,8 @@ import type {
     SearchDateKey,
     SearchDatePreset,
     SearchFilterKey,
+    SearchFooterCount,
+    SearchFooterTotal,
     SearchQueryJSON,
     SearchQueryString,
     SearchWithdrawalType,
@@ -111,6 +113,22 @@ const VALID_IS_TYPES = new Set(Object.values(CONST.SEARCH.IS_VALUES));
 const VALID_WITHDRAWAL_TYPES = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
 const VALID_WITHDRAWAL_STATUSES = new Set<string>(Object.values(CONST.SEARCH.SETTLEMENT_STATUS));
 const VALID_PAID_STATUSES = new Set<string>(Object.values(CONST.SEARCH.PAID_STATUS));
+const VALID_FOOTER_COUNTS = new Set<string>(Object.values(CONST.SEARCH.FOOTER_COUNT));
+const VALID_FOOTER_TOTALS = new Set<string>(Object.values(CONST.SEARCH.FOOTER_TOTAL));
+const FOOTER_FILTER_KEYS = new Set<SearchFilterKey>([
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY,
+]);
+
+function isFooterCount(value: string): value is SearchFooterCount {
+    return VALID_FOOTER_COUNTS.has(value);
+}
+
+function isFooterTotal(value: string): value is SearchFooterTotal {
+    return VALID_FOOTER_TOTALS.has(value);
+}
+
 const VALID_GROUP_BYS = new Set<string>(Object.values(CONST.SEARCH.GROUP_BY));
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
@@ -668,11 +686,53 @@ function getFilters(queryJSON: SearchQueryJSON) {
 }
 
 function getFilterFromQuery(queryJSON: SearchQueryJSON | undefined, filterKey: SearchAdvancedFiltersKey): Filter {
-    const filters = queryJSON?.flatFilters.find((filter) => filter.key === filterKey)?.filters;
+    const filters = queryJSON?.flatFilters?.find((filter) => filter.key === filterKey)?.filters;
     const isNegated = filters?.at(0)?.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO;
     const value = filters?.map((filter) => filter.value.toString());
 
     return {value, isNegated};
+}
+
+/**
+ * The Spend footer's display selections, read off the query the footer is showing. A value the footer cannot render is
+ * dropped rather than displayed, so a hand-typed one behaves like no selection at all. The currency is upper-cased so
+ * `footerCurrency:eur` and `footerCurrency:EUR` are one selection rather than two.
+ */
+function getFooterSelectionFromQuery(queryJSON: SearchQueryJSON | undefined) {
+    const count = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT).value?.at(0);
+    const total = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL).value?.at(0);
+    const currency = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY).value?.at(0);
+
+    return {
+        footerCount: count && isFooterCount(count) ? count : undefined,
+        footerTotal: total && isFooterTotal(total) ? total : undefined,
+        footerCurrency: currency ? currency.toUpperCase() : undefined,
+    };
+}
+
+/**
+ * The query the Spend footer's selections produce, built from the query the footer is showing. Only `footerTotal`
+ * changes what the backend returns. The other two ride along so the selection is restored with the search.
+ */
+function getQueryWithFooterSelection(
+    queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>,
+    selection: {footerCount?: SearchFooterCount; footerTotal?: SearchFooterTotal; footerCurrency?: string},
+) {
+    const flatFilters = queryJSON.flatFilters.filter((filter) => !FOOTER_FILTER_KEYS.has(filter.key));
+    const nextSelection = {...getFooterSelectionFromQuery(queryJSON), ...selection};
+
+    for (const [key, value] of [
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT, nextSelection.footerCount],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL, nextSelection.footerTotal],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY, nextSelection.footerCurrency],
+    ] as const) {
+        if (!value) {
+            continue;
+        }
+        flatFilters.push({key, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value}]});
+    }
+
+    return buildSearchQueryString({...queryJSON, flatFilters});
 }
 
 /**
@@ -883,6 +943,13 @@ function getQueryHashes(query: SearchQueryJSON) {
             continue;
         }
 
+        // The Spend footer's selections ride along as filters but match no rows, so they must not make a query look
+        // like a different (or a less similar) search. `footerTotal` rejoins the primary hash below, after the recent
+        // and similar hashes are taken, because it does change the total the backend returns.
+        if (FOOTER_FILTER_KEYS.has(filterKey)) {
+            continue;
+        }
+
         if (!similarSearchIgnoredFilters.has(filterKey)) {
             filterSet.add(filterKey);
         }
@@ -908,9 +975,26 @@ function getQueryHashes(query: SearchQueryJSON) {
     if (query.limit !== undefined) {
         orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${query.limit}`;
     }
+
+    // The total the footer asks for changes the aggregate the backend answers with, so it is part of the primary
+    // hash — the snapshot key. It joins here, after the recent and similar hashes are taken, so switching the
+    // breakdown is still the same search in the recent list and still matches the same saved search.
+    const {footerTotal} = getFooterSelectionFromQuery(query);
+    if (footerTotal) {
+        orderedQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL}:${footerTotal}`;
+    }
+
     const primaryHash = hashText(orderedQuery, 2 ** 32);
 
     return {primaryHash, recentSearchHash, similarSearchHash};
+}
+
+/**
+ * The primary hash a query would have with the Spend footer's selections taken out. Two queries sharing it are the
+ * same search with a different footer selection, which is what lets a selection survive a footer-driven re-run.
+ */
+function getQueryHashWithoutFooterSelections(query: SearchQueryJSON | Readonly<SearchQueryJSON>): number {
+    return getQueryHashes({...query, flatFilters: query.flatFilters.filter((filter) => !FOOTER_FILTER_KEYS.has(filter.key))}).primaryHash;
 }
 
 function withExactMatchFilterKeys(queryJSON: Readonly<SearchQueryJSON>, exactMatchFilterKeys: SearchFilterKey[]): SearchQueryJSON {
@@ -1073,7 +1157,16 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON | Readonly<SearchQue
     return queryParts.join(' ');
 }
 
-const NON_FILTER_CHIP_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+// Filters that are not row filters, so they neither light up the Reset button nor get cleared by it. The Spend footer's
+// selections belong here for the same reason the group currency does: they change what the footer displays, not which
+// rows the search matches.
+const NON_FILTER_CHIP_KEYS = new Set<SearchFilterKey>([
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY,
+]);
 
 function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON | undefined) {
     const resetFilters = (defaultQueryJSON?.flatFilters ?? []).filter((filter) => !NON_FILTER_CHIP_KEYS.has(filter.key));
@@ -1184,7 +1277,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, groupBy, view, columns, limit, ...otherFilters} = supportedFilterValues;
+    const {type, groupBy, view, columns, limit, footerCount, footerTotal, footerCurrency, ...otherFilters} = supportedFilterValues;
     const filtersString: string[] = [];
 
     if (options?.sortBy) {
@@ -1217,6 +1310,20 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         if (filterValueArray.length) {
             filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${filterValueArray.map((value) => sanitizeSearchValue(value)).join(',')}`);
         }
+    }
+
+    // The Spend footer's display selections. They are filters as far as the query goes, because that is where the
+    // backend reads them, but they match no rows. Only `footerTotal` changes anything, by swapping the total returned.
+    if (footerCount) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT}:${sanitizeSearchValue(footerCount)}`);
+    }
+
+    if (footerTotal) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL}:${sanitizeSearchValue(footerTotal)}`);
+    }
+
+    if (footerCurrency) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY}:${sanitizeSearchValue(footerCurrency)}`);
     }
 
     const mappedFilters = Object.entries(otherFilters)
@@ -1944,6 +2051,19 @@ function buildFilterFormValuesFromQuery(
 
     if (queryJSON.limit !== undefined) {
         filtersForm[FILTER_KEYS.LIMIT] = queryJSON.limit.toString();
+    }
+
+    const footerSelection = getFooterSelectionFromQuery(queryJSON);
+    if (footerSelection.footerCount) {
+        filtersForm[FILTER_KEYS.FOOTER_COUNT] = footerSelection.footerCount;
+    }
+
+    if (footerSelection.footerTotal) {
+        filtersForm[FILTER_KEYS.FOOTER_TOTAL] = footerSelection.footerTotal;
+    }
+
+    if (footerSelection.footerCurrency) {
+        filtersForm[FILTER_KEYS.FOOTER_CURRENCY] = footerSelection.footerCurrency;
     }
 
     return filtersForm;
@@ -2932,6 +3052,9 @@ export {
     getRangeQueryValue,
     getQueryHashWithoutFilters,
     getQueryHashes,
+    getFooterSelectionFromQuery,
+    getQueryWithFooterSelection,
+    getQueryHashWithoutFooterSelections,
     hasFiltersChangedFromDefault,
     withExactMatchFilterKeys,
     isSearchDatePreset,

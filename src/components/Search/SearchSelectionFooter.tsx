@@ -3,8 +3,11 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 
+import {close} from '@libs/actions/Modal';
 import {getFooterConvertedAmounts} from '@libs/actions/Search';
-import {isGroupEntry} from '@libs/SearchUIUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {buildSearchQueryJSON, getFooterSelectionFromQuery, getQueryWithFooterSelection} from '@libs/SearchQueryUtils';
+import {doesTransactionMatchFooterTotal, isGroupEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,7 +18,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
-import type {SelectedTransactionInfo, SelectedTransactions} from './types';
+import type {SearchFooterCount, SearchFooterTotal, SelectedTransactionInfo, SelectedTransactions} from './types';
 
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionContext} from './SearchContext';
 import SearchPageFooter from './SearchPageFooter';
@@ -116,11 +119,22 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         selectedCurrency: undefined,
         defaultCurrency: undefined,
     });
+    const [footerTotalState, setFooterTotalState] = useState<{searchHash: number | undefined; selectedTotal: SearchFooterTotal | undefined}>({
+        searchHash: undefined,
+        selectedTotal: undefined,
+    });
+    // The hash the footer is waiting on after asking for a different total, which is the only search whose result
+    // changes the figure on display, stamped with the snapshot hash the request was made from. The stamp ends the wait
+    // on its own once the snapshot moves off it, so a later visit to that hash never skeletons the total again.
+    const [pendingTotal, setPendingTotal] = useState<{hash: number | undefined; fromHash: number | undefined}>();
+    const footerSelection = getFooterSelectionFromQuery(currentSearchQueryJSON);
     // Onyx delivers an optimistic source stamp asynchronously. Bridge that short gap locally so a render caused by
     // selection reconciliation cannot dispatch the same report conversion twice before the stamp is observed.
     const pendingReportConversionSources = useRef<Record<string, Record<string, number>>>({});
     const isCurrentFooterState = footerCurrencyState.searchHash === currentSearchHash;
-    const selectedCurrency = isCurrentFooterState ? footerCurrencyState.selectedCurrency : undefined;
+    // The query carries the currency across a reload and into a saved search, so it is what an untouched footer starts
+    // from. This session's own pick wins once made, since it also covers a Reset back to the default.
+    const selectedCurrency = (isCurrentFooterState ? footerCurrencyState.selectedCurrency : undefined) ?? footerSelection.footerCurrency;
     const defaultFooterCurrency = isCurrentFooterState ? footerCurrencyState.defaultCurrency : undefined;
 
     // The Auth command merges converted figures here (by transaction, report, group, and query hash, each nested
@@ -144,6 +158,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
 
     const metadata = searchResults?.search;
     const metadataCount = metadata?.count;
+    const metadataReportCount = metadata?.reportCount;
     const metadataCurrency = metadata?.currency;
     const metadataTotal = metadata?.total;
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
@@ -289,9 +304,44 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const areAllSelectedForFooter = areAllMatchingItemsSelected || (selectedTransactionsKeys.length > 0 && metadataCount !== undefined && selectedExpenseCount === metadataCount);
     const hasPartialSelection = selectedTransactionsKeys.length > 0 && !areAllSelectedForFooter;
 
+    // Both selectors stay available for whatever the footer is describing. A hand-picked selection is counted and summed
+    // from the selected rows themselves. Everything else (nothing selected, or a select-all with or without exclusions)
+    // is the server's figures, since a select-all covers rows that were never loaded and so cannot be counted here.
+    const defaultFooterCountType = isReportsSearch ? CONST.SEARCH.FOOTER_COUNT.REPORTS : CONST.SEARCH.FOOTER_COUNT.EXPENSES;
+
+    // A group row selected as a whole is out of scope for now, pending the backend returning breakdowns per group. It
+    // reaches the selection one of two ways: as a single group entry when its expenses are not loaded, or as those
+    // expenses each flagged `isSelectedViaGroup` when they are. The flag is cleared as soon as one of them is toggled
+    // off, so a part-deselected group counts as an individual selection again and keeps both selectors.
+    //
+    // Only a grouped search is affected. A Reports search carries the same flag, because a report row is a group row
+    // there, but a report is that search's natural unit and its expenses are exactly what the selection holds.
+    const hasGroupSelection =
+        isGroupedSearch &&
+        (selectedTransactionsKeys.some(isGroupEntry) ||
+            excludedTransactionsKeys.some(isGroupEntry) ||
+            selectedTransactionsKeys.some((key) => selectedTransactions[key]?.isSelectedViaGroup) ||
+            excludedTransactionsKeys.some((key) => excludedTransactions[key]?.isSelectedViaGroup));
+
+    // The other case with no answer to give: the whole-search report count comes from the server, and a search that
+    // returned none of it (a grouped search, or a to-do search counting live Onyx data) has nothing to switch to.
+    const shouldShowCountSelector = (isExpenseType || isReportsSearch) && !hasGroupSelection;
+    const footerCountType = shouldShowCountSelector ? (footerSelection.footerCount ?? defaultFooterCountType) : undefined;
+
+    // An empty result set has no total to break down, so it keeps the plain total spend with no selector.
+    const shouldShowTotalSelector = !hasGroupSelection && (!!metadataCount || selectedTransactionsKeys.length > 0);
+
     // Use the per-selection (client) total for a partial selection; nothing-selected and everything-selected both fall
     // to the whole-search grand total, which every search type now returns converted, keyed by the search hash.
     const shouldUseClientTotal = !metadataCount || hasPartialSelection;
+
+    // A total the client sums itself is chosen in local state, not in the query: the query's `footerTotal` is part of the
+    // search hash, so writing it would re-run the search and clear the very selection the footer is describing. The
+    // override lives only while the client is summing. Once the selection goes, the footer is back on the query's total.
+    const footerTotalOverride = hasPartialSelection && footerTotalState.searchHash === currentSearchHash ? footerTotalState.selectedTotal : undefined;
+    const footerTotalType = shouldShowTotalSelector ? (footerTotalOverride ?? footerSelection.footerTotal ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL) : undefined;
+    // No selector means no breakdown, which is the plain total, so the sums below never have to special-case it.
+    const footerTotalBreakdown = footerTotalType ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL;
     const firstSelectedTransactionKey = selectedTransactionsKeys.at(0);
     const firstSelectedTransaction = firstSelectedTransactionKey ? selectedTransactions[firstSelectedTransactionKey] : undefined;
     const selectedTransactionDefaultCurrency = firstSelectedTransaction?.groupCurrency ?? firstSelectedTransaction?.currency;
@@ -496,16 +546,49 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         transactionSourceByID,
     ]);
 
-    const handleFooterCurrencyChange = useCallback(
-        (currency: string) => {
-            setFooterCurrencyState({
-                searchHash: currentSearchHash,
-                selectedCurrency: currency,
-                defaultCurrency: effectiveDefaultCurrency,
-            });
-        },
-        [currentSearchHash, effectiveDefaultCurrency],
-    );
+    // Every selection is written into the query, so it is restored with the search (and saved with a saved search). The
+    // query is rebuilt from the one on display rather than through the advanced-filters form: this footer is a
+    // self-subscribing leaf that re-renders on every checkbox press, and the form route would subscribe it to the whole
+    // policy collection. useSearchFilterSync writes the form from the query, so the form still follows.
+    const applyFooterSelection = (selection: {footerCount?: SearchFooterCount; footerTotal?: SearchFooterTotal; footerCurrency?: string}) => {
+        if (!currentSearchQueryJSON) {
+            return;
+        }
+
+        const nextQuery = getQueryWithFooterSelection(currentSearchQueryJSON, selection);
+        close(() => {
+            Navigation.setParams({q: nextQuery, rawQuery: undefined});
+        });
+    };
+
+    const handleFooterCurrencyChange = (currency: string) => {
+        setFooterCurrencyState({
+            searchHash: currentSearchHash,
+            selectedCurrency: currency,
+            defaultCurrency: effectiveDefaultCurrency,
+        });
+        applyFooterSelection({footerCurrency: currency});
+    };
+
+    const handleFooterTotalChange = (nextTotalType: SearchFooterTotal) => {
+        // A hand-picked selection is summed from its own rows, so it shows the new breakdown straight away and waits
+        // on nothing. Every other case needs the figure from the backend, so the skeleton waits on the hash the query
+        // is moving to — `footerTotal` is part of the hash, since it changes the aggregate that comes back.
+        if (hasPartialSelection) {
+            setFooterTotalState({searchHash: currentSearchHash, selectedTotal: nextTotalType});
+        } else if (currentSearchQueryJSON) {
+            setPendingTotal({hash: buildSearchQueryJSON(getQueryWithFooterSelection(currentSearchQueryJSON, {footerTotal: nextTotalType}))?.hash, fromHash: metadata?.hash});
+        }
+
+        // Written in both cases, so the choice is saved against this search and restored on the next visit. The page
+        // is told first so the rows stay on screen while the new hash loads, and the selection rides it out:
+        // `useSearchPageSetup` keeps a selection across a query change that is only a footer selection.
+        applyFooterSelection({footerTotal: nextTotalType});
+    };
+
+    const handleFooterCountChange = (nextCountType: SearchFooterCount) => {
+        applyFooterSelection({footerCount: nextCountType});
+    };
 
     const footerData = useMemo(() => {
         if (!shouldAllowFooterTotals && selectedTransactionsKeys.length === 0) {
@@ -521,14 +604,23 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             // Reports sum each selected report's converted total; other searches sum per row — whole groups from the
             // groups cache, individual transactions from the transactions cache — falling back to the default per-row
             // amount until the conversion is ready, which keeps the footer on the default currency meanwhile.
+            //
+            // A report's converted total is a single figure with no breakdown inside it, so a breakdown has to be summed
+            // from the reports' own expenses instead. A Reports search converts by report, so those expenses have no
+            // converted figures of their own, so the breakdown stays in the default currency and is labelled as such.
+            const shouldConvertSelectedTotal = shouldUseConvertedSelectedTotal && !(isReportsSearch && footerTotalBreakdown !== CONST.SEARCH.FOOTER_TOTAL.TOTAL);
+
             let total;
-            if (shouldUseConvertedSelectedTotal && isReportsSearch && selectedCurrency) {
+            if (shouldConvertSelectedTotal && isReportsSearch && selectedCurrency) {
                 total = selectedReportIDs.reduce((acc, reportID) => acc - (convertedReports?.[reportID]?.[selectedCurrency] ?? 0), 0);
             } else {
                 total = selectedTransactionsKeys.reduce((acc, key) => {
                     const transaction = selectedTransactions[key];
+                    if (!doesTransactionMatchFooterTotal(transaction.transaction, footerTotalBreakdown)) {
+                        return acc;
+                    }
                     let convertedAmount;
-                    if (shouldUseConvertedSelectedTotal && selectedCurrency) {
+                    if (shouldConvertSelectedTotal && selectedCurrency) {
                         if (isGroupEntry(key)) {
                             convertedAmount = convertedGroups?.[key]?.[selectedCurrency];
                         } else if (transaction.transaction?.transactionID) {
@@ -539,9 +631,10 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
                 }, 0);
             }
 
-            return {count: selectedExpenseCount, total, currency: shouldUseConvertedSelectedTotal ? selectedCurrency : fallbackCurrency};
+            return {count: selectedExpenseCount, total, currency: shouldConvertSelectedTotal ? selectedCurrency : fallbackCurrency};
         }
 
+        const excludedKeysForTotal = excludedTransactionsKeys.filter((key) => doesTransactionMatchFooterTotal(excludedTransactions[key]?.transaction, footerTotalBreakdown));
         if (
             hasCustomFooterCurrency &&
             isSearchTotalFresh &&
@@ -553,7 +646,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             if (hasExcludedReports && selectedCurrency) {
                 excludedConvertedTotal = excludedReportIDs.reduce((total, reportID) => total - (convertedReports?.[reportID]?.[selectedCurrency] ?? 0), 0);
             } else if (hasExcludedExpenses) {
-                excludedConvertedTotal = excludedTransactionsKeys.reduce((total, key) => {
+                excludedConvertedTotal = excludedKeysForTotal.reduce((total, key) => {
                     const transaction = excludedTransactions[key];
                     const transactionID = transaction.transaction?.transactionID;
                     let convertedAmount;
@@ -572,7 +665,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             };
         }
 
-        const excludedTotal = hasExcludedExpenses || hasExcludedReports ? getTransactionTotal(Object.values(excludedTransactions)) : 0;
+        const excludedTotal = hasExcludedExpenses || hasExcludedReports ? getTransactionTotal(excludedKeysForTotal.map((key) => excludedTransactions[key])) : 0;
         return {
             count: metadataCount === undefined ? undefined : Math.max(metadataCount - excludedExpenseCount, 0),
             total: metadataTotal === undefined ? undefined : metadataTotal - excludedTotal,
@@ -606,25 +699,43 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         selectedTransactionsKeys,
         shouldAllowFooterTotals,
         shouldUseClientTotal,
+        footerTotalBreakdown,
     ]);
 
     if (!shouldShowFooter) {
         return null;
     }
 
-    // A partial selection shows a client-side subtotal that is ready immediately, so only show the search-loading
-    // skeleton when the footer is displaying the whole-search total. (Load-more requests also set metadata.isLoading
-    // but don't recalculate totals, so gate on offset 0.)
-    const isFooterTotalLoading = isFooterTotalConverting || (!hasPartialSelection && !!metadata?.isLoading && metadata?.offset === 0);
+    const isAwaitingFooterTotal =
+        pendingTotal?.hash !== undefined && pendingTotal.hash === currentSearchHash && metadata?.hash !== currentSearchHash && metadata?.hash === pendingTotal.fromHash;
 
+    // A partial selection shows a client-side subtotal that is ready immediately, so it never waits on a search.
+    const isFooterTotalLoading = isFooterTotalConverting || (!hasPartialSelection && (isAwaitingFooterTotal || (!!metadata?.isLoading && metadata?.offset === 0)));
+
+    // The reports a selection covers. The server's report count describes the whole search, so a selection needs its own:
+    // on a Reports search that is the selected reports, elsewhere the distinct reports the selected expenses sit on.
+    // An unreported expense sits on no report — it carries the unreported placeholder ID — so it adds none.
+    const selectedReportCount = isReportsSearch
+        ? selectedReports.length
+        : new Set(selectedTransactionsKeys.map((key) => selectedTransactions[key]?.reportID).filter((reportID) => !!reportID && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID)).size;
+
+    // The count follows whatever the footer is describing: the selection's own reports when rows were hand-picked, the
+    // server's report count otherwise. footerData.count already carries the expense side of both cases.
+    const footerReportCount = hasPartialSelection ? selectedReportCount : metadataReportCount;
+    const footerCount = footerCountType === CONST.SEARCH.FOOTER_COUNT.REPORTS ? footerReportCount : footerData.count;
     return (
         <SearchPageFooter
-            count={footerData.count}
+            count={footerCount}
+            countType={footerCountType}
+            defaultCountType={defaultFooterCountType}
             total={footerData.total}
+            totalType={footerTotalType}
             currency={footerData.currency}
             defaultCurrency={searchTargetCurrency}
             isTotalLoading={isFooterTotalLoading}
             onCurrencyChange={handleFooterCurrencyChange}
+            onCountChange={handleFooterCountChange}
+            onTotalChange={handleFooterTotalChange}
         />
     );
 }

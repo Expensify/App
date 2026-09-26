@@ -6,6 +6,8 @@ import type {
     SearchAmountFilterKeys,
     SearchCustomColumnIds,
     SearchDateFilterKeys,
+    SearchFooterCount,
+    SearchFooterTotal,
     SearchGroupBy,
     SearchTextFilterKeys,
     SearchPaidStatus,
@@ -264,6 +266,10 @@ const FILTER_KEYS = {
 
     COLUMNS: 'columns',
     LIMIT: 'limit',
+
+    FOOTER_COUNT: 'footerCount',
+    FOOTER_TOTAL: 'footerTotal',
+    FOOTER_CURRENCY: 'footerCurrency',
 } as const;
 
 const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
@@ -391,6 +397,9 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.ATTENDEE_NOT,
         FILTER_KEYS.COLUMNS,
         FILTER_KEYS.LIMIT,
+        FILTER_KEYS.FOOTER_COUNT,
+        FILTER_KEYS.FOOTER_TOTAL,
+        FILTER_KEYS.FOOTER_CURRENCY,
     ]),
     [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: new Set([
         FILTER_KEYS.TYPE,
@@ -477,6 +486,9 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.ORDER_DEAL_NUMBERS_NOT,
         FILTER_KEYS.REPORT_FIELD,
         FILTER_KEYS.COLUMNS,
+        FILTER_KEYS.FOOTER_COUNT,
+        FILTER_KEYS.FOOTER_TOTAL,
+        FILTER_KEYS.FOOTER_CURRENCY,
     ]),
     [CONST.SEARCH.DATA_TYPES.INVOICE]: new Set([
         FILTER_KEYS.TYPE,
@@ -918,6 +930,10 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.ATTENDEE_NOT]: string[];
         [FILTER_KEYS.REPORT_FIELD]: string;
         [FILTER_KEYS.LIMIT]: string;
+
+        [FILTER_KEYS.FOOTER_COUNT]: SearchFooterCount;
+        [FILTER_KEYS.FOOTER_TOTAL]: SearchFooterTotal;
+        [FILTER_KEYS.FOOTER_CURRENCY]: string;
     } & Record<ReportFieldTextKey, string> &
         Record<ReportFieldDateKey, string> &
         Record<ReportFieldNegatedKey, string>

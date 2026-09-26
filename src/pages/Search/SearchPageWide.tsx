@@ -20,7 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, getQueryHashWithoutFooterSelections} from '@libs/SearchQueryUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -144,7 +144,7 @@ function SearchPageWide({
                                 />
                                 <View style={styles.flex1}>
                                     <Animated.View
-                                        key={contentQueryJSON.hash}
+                                        key={getQueryHashWithoutFooterSelections(contentQueryJSON)}
                                         entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                                         style={StyleSheet.absoluteFill}
                                     >

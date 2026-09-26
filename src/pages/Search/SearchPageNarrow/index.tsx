@@ -28,7 +28,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, getQueryHashWithoutFooterSelections} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
@@ -333,7 +333,7 @@ function SearchPageNarrow({
                                         <Search
                                             searchResults={contentSearchResults}
                                             queryJSON={contentQueryJSON}
-                                            key={contentQueryJSON.hash}
+                                            key={getQueryHashWithoutFooterSelections(contentQueryJSON)}
                                             contentContainerStyle={contentContainerStyle}
                                             handleSearch={handleSearchAction}
                                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
@@ -357,7 +357,7 @@ function SearchPageNarrow({
                             {!useStaticRendering && (
                                 <>
                                     <Animated.View
-                                        key={contentQueryJSON.hash}
+                                        key={getQueryHashWithoutFooterSelections(contentQueryJSON)}
                                         entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                                         style={StyleSheet.absoluteFill}
                                     >

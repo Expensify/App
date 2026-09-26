@@ -41,6 +41,7 @@ import type {
     SearchDateFilterKeys,
     SearchDatePreset,
     SearchFilterKey,
+    SearchFooterTotal,
     SearchGroupBy,
     SearchPaidStatus,
     SearchQueryJSON,
@@ -225,6 +226,7 @@ import {
     getMCCForDisplay,
     getOriginalAmountForDisplay,
     getReceiptTypeTranslationKey,
+    getReimbursable,
     getReportOwnerAccountIDAsAttendee,
     getReportOwnerAsAttendee,
     getTag,
@@ -4655,6 +4657,27 @@ function isTransactionSearchType(type: string | undefined): boolean {
     return type === CONST.SEARCH.DATA_TYPES.EXPENSE || type === CONST.SEARCH.DATA_TYPES.INVOICE;
 }
 
+/**
+ * Whether an expense belongs in the total the Spend footer is showing. Reimbursable is the product default, so only
+ * an explicit `false` makes an expense non-reimbursable — read through `getReimbursable`, the same helper the row's
+ * own Reimbursable column renders. Billable works the other way round. Every consumer of a footer breakdown goes
+ * through this, so a snapshot total, a live to-do total and a selection subtotal classify a row identically.
+ */
+function doesTransactionMatchFooterTotal(transaction: OnyxEntry<OnyxTypes.Transaction>, totalType: SearchFooterTotal | undefined): boolean {
+    switch (totalType) {
+        case CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE:
+            return !!transaction && getReimbursable(transaction);
+        case CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE:
+            return !!transaction && !getReimbursable(transaction);
+        case CONST.SEARCH.FOOTER_TOTAL.BILLABLE:
+            return !!transaction && transaction.billable === true;
+        case CONST.SEARCH.FOOTER_TOTAL.NON_BILLABLE:
+            return !!transaction && transaction.billable !== true;
+        default:
+            return true;
+    }
+}
+
 function isTodoSearch(recentSearchHash: number, suggestedSearches: Record<string, SearchTypeMenuItem>) {
     const matchedSearchKey = Object.values(suggestedSearches).find((search) => search.recentSearchHash === recentSearchHash)?.key;
     return !!matchedSearchKey && TODO_SEARCH_KEYS.has(matchedSearchKey);
@@ -5281,6 +5304,22 @@ function getGroupBySections(translate: LocalizedTranslate): GroupBySection[] {
 
 function getViewOptions(translate: LocalizedTranslate) {
     return Object.values(CONST.SEARCH.VIEW).map<SingleSelectItem<SearchView>>((value) => ({text: translate(`search.view.${value}`), value}));
+}
+
+/**
+ * The options the Spend footer's total selector offers, in display order. `Total spend` is the default and always
+ * applies. The four aggregates are computed by the backend, so picking one re-runs the search.
+ */
+function getFooterTotalItems(translate: LocalizedTranslate) {
+    const labels: Record<SearchFooterTotal, string> = {
+        [CONST.SEARCH.FOOTER_TOTAL.TOTAL]: translate('common.spend'),
+        [CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE]: translate('common.reimbursable'),
+        [CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE]: translate('common.nonReimbursable'),
+        [CONST.SEARCH.FOOTER_TOTAL.BILLABLE]: translate('common.billable'),
+        [CONST.SEARCH.FOOTER_TOTAL.NON_BILLABLE]: translate('common.nonBillable'),
+    };
+
+    return Object.values(CONST.SEARCH.FOOTER_TOTAL).map<SingleSelectItem<SearchFooterTotal>>((value) => ({text: labels[value], value}));
 }
 
 function getCurrencyOptions(currencyList: OnyxTypes.CurrencyList, getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol']) {
@@ -7233,6 +7272,7 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 }
 
 export {
+    doesTransactionMatchFooterTotal,
     getSearchBulkEditPolicyID,
     getSuggestedSearches,
     getSections,
@@ -7285,6 +7325,7 @@ export {
     getSortOrderOptions,
     getGroupBySections,
     getViewOptions,
+    getFooterTotalItems,
     getCurrencyOptions,
     getFeedOptions,
     getWideAmountIndicators,

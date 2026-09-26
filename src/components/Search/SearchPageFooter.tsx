@@ -11,26 +11,41 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getFooterTotalItems} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 
+import type {LayoutChangeEvent} from 'react-native';
+
 import React, {useMemo, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 
 import type {SingleSelectItem} from './FilterComponents/SingleSelect';
 import type {ButtonComponentProps, FilterPopupButtonProps} from './FilterDropdowns/FilterPopupButton';
+import type {SearchFooterCount, SearchFooterTotal} from './types';
 
-import CurrencyPopup from './FilterDropdowns/CurrencyPopup';
 import FilterPopupButton from './FilterDropdowns/FilterPopupButton';
+import SearchFooterPopup from './FilterDropdowns/SearchFooterPopup';
 import SearchPageFooterSkeleton from './SearchPageFooterSkeleton';
 
 const noop = () => {};
 
 type SearchPageFooterProps = {
-    /** Number of expenses represented by the footer total */
+    /** Number of expenses or reports represented by the footer count */
     count: number | undefined;
+
+    /** Which count the footer is displaying. Undefined renders the count as static text with no selector, e.g. while
+     * the footer describes a selection rather than the whole search. */
+    countType: SearchFooterCount | undefined;
+
+    /** The count the count selector falls back to when it is reset */
+    defaultCountType: SearchFooterCount;
 
     /** Total amount to display in the footer */
     total: number | undefined;
+
+    /** Which total the footer is displaying. Undefined renders the plain total spend with no selector. */
+    totalType: SearchFooterTotal | undefined;
 
     /** Currency code for the displayed total */
     currency: string | undefined;
@@ -43,9 +58,27 @@ type SearchPageFooterProps = {
 
     /** Function to call when the footer currency changes */
     onCurrencyChange: (currency: string) => void;
+
+    /** Function to call when the displayed count changes */
+    onCountChange: (countType: SearchFooterCount) => void;
+
+    /** Function to call when the displayed total changes */
+    onTotalChange: (totalType: SearchFooterTotal) => void;
 };
 
-function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoading, onCurrencyChange}: SearchPageFooterProps) {
+function SearchPageFooter({
+    count,
+    countType,
+    defaultCountType,
+    total,
+    totalType,
+    currency,
+    defaultCurrency,
+    isTotalLoading,
+    onCurrencyChange,
+    onCountChange,
+    onTotalChange,
+}: SearchPageFooterProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -56,13 +89,23 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [isTotalButtonFocused, setIsTotalButtonFocused] = useState(false);
+    const [isFooterButtonFocused, setIsFooterButtonFocused] = useState(false);
+    // The height the real total last occupied, which is what the skeleton stands in at.
+    const [loadedTotalHeight, setLoadedTotalHeight] = useState<number | undefined>(undefined);
+
+    const handleTotalLayout = (event: LayoutChangeEvent) => {
+        const height = Math.round(event.nativeEvent.layout.height);
+        if (!height || height === loadedTotalHeight) {
+            return;
+        }
+        setLoadedTotalHeight(height);
+    };
 
     const valueTextStyle = useMemo(() => (isOffline ? [styles.textLabelSupporting, styles.labelStrong] : [styles.labelStrong]), [isOffline, styles]);
 
-    // The SearchList registers a global Enter shortcut that opens the focused expense. While the total button is focused,
-    // claim Enter at top priority without bubbling so Enter only opens the currency popover instead of also opening the expense.
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, noop, {isActive: isTotalButtonFocused, shouldBubble: false, shouldPreventDefault: false});
+    // The SearchList registers a global Enter shortcut that opens the focused expense. While the footer button is focused,
+    // claim Enter at top priority without bubbling so Enter only opens the footer's display menu instead of also opening the expense.
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, noop, {isActive: isFooterButtonFocused, shouldBubble: false, shouldPreventDefault: false});
 
     const handleCurrencyChange = (item: SingleSelectItem<string> | undefined) => {
         if (isOffline) {
@@ -77,38 +120,81 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
         onCurrencyChange(nextCurrency);
     };
 
-    const renderCurrencyPopup: FilterPopupButtonProps['PopoverComponent'] = ({closeOverlay, isExpanded}) => (
-        <CurrencyPopup
-            key={currency ?? defaultCurrency}
-            value={currency}
+    const renderFooterPopup: FilterPopupButtonProps['PopoverComponent'] = ({closeOverlay, isExpanded}) => (
+        <SearchFooterPopup
+            countType={countType}
+            defaultCountType={defaultCountType}
+            totalType={totalType}
+            isTotalLoading={isTotalLoading}
+            currency={currency}
+            defaultCurrency={defaultCurrency}
+            isExpanded={isExpanded}
             closeOverlay={closeOverlay}
-            onChange={handleCurrencyChange}
-            searchPlaceholder={translate('common.search')}
-            defaultValue={defaultCurrency}
-            shouldShowList={isExpanded}
-            shouldUseFixedPopoverHeight
+            onCountChange={onCountChange}
+            onTotalChange={onTotalChange}
+            onCurrencyChange={handleCurrencyChange}
         />
     );
 
-    const totalButton = (props: ButtonComponentProps) => (
+    const countLabel = translate(countType === CONST.SEARCH.FOOTER_COUNT.REPORTS ? 'common.reports' : 'common.expenses');
+
+    // The default reads as "Total spend" in the footer but as plain "Spend" inside the menu, where the row it sits in is
+    // already labelled Total.
+    const totalLabel =
+        totalType && totalType !== CONST.SEARCH.FOOTER_TOTAL.TOTAL ? getFooterTotalItems(translate).find((item) => item.value === totalType)?.text : translate('common.totalSpend');
+
+    const hasTotal = typeof total === 'number';
+    const totalDisplayValue = convertToDisplayString(total, currency);
+
+    // The whole footer is one control now, so its label has to carry both figures: the text inside a labelled button is
+    // not read out on its own.
+    const footerAccessibilityLabel = [`${countLabel}: ${count ?? ''}`, hasTotal ? `${totalLabel}: ${totalDisplayValue}` : undefined].filter(Boolean).join(', ');
+
+    // The whole content is the trigger, not just the total: every figure it shows is changed from the same menu.
+    // It stays pressable while the total reloads, since the count and currency rows in the menu need no request.
+    const footerButton = (props: ButtonComponentProps) => (
         <Button
             ref={props.ref}
-            accessibilityLabel={translate('common.totalSpend')}
-            innerStyles={[styles.bgTransparent, styles.gap1, styles.mnh0, styles.ph0, styles.pv0]}
+            accessibilityLabel={footerAccessibilityLabel}
+            innerStyles={[styles.bgTransparent, styles.mnh0, styles.ph0, styles.pv0]}
             contentContainerStyle={styles.gap1}
-            isDisabled={isOffline || isTotalLoading}
+            isDisabled={isOffline}
             size={CONST.BUTTON_SIZE.SMALL}
             hoverStyles={styles.bgTransparent}
             onPress={props.onPress}
-            onFocus={() => setIsTotalButtonFocused(true)}
-            onBlur={() => setIsTotalButtonFocused(false)}
+            onFocus={() => setIsFooterButtonFocused(true)}
+            onBlur={() => setIsFooterButtonFocused(false)}
         >
-            <Button.Text
-                style={valueTextStyle}
-                hoverStyle={styles.textSupporting}
-            >
-                {convertToDisplayString(total, currency)}
-            </Button.Text>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                    <Text style={[styles.textLabelSupporting, styles.pointerEventsNone]}>{`${countLabel}:`}</Text>
+                    {/* The count never loads: both counts come back on every search, so it holds still while the total reloads. */}
+                    <Text style={[valueTextStyle, styles.pointerEventsNone]}>{count}</Text>
+                </View>
+                {hasTotal && (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                        {/* Both labels stay rendered while the total reloads, so the footer keeps its height and nothing shifts. */}
+                        <Text style={[styles.textLabelSupporting, styles.pointerEventsNone]}>{`${totalLabel}:`}</Text>
+                        {isTotalLoading ? (
+                            <SearchPageFooterSkeleton height={loadedTotalHeight} />
+                        ) : (
+                            // Measured so the skeleton stands in at the same height. Anything else resizes the footer,
+                            // which shifts the count beside it as the row grows.
+                            <View
+                                testID="searchPageFooterTotal"
+                                onLayout={handleTotalLayout}
+                            >
+                                <Button.Text
+                                    style={valueTextStyle}
+                                    hoverStyle={styles.textSupporting}
+                                >
+                                    {totalDisplayValue}
+                                </Button.Text>
+                            </View>
+                        )}
+                    </View>
+                )}
+            </View>
             <Button.Icon
                 src={icons.DownArrow}
                 fill={theme.icon}
@@ -119,39 +205,16 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
 
     return (
         <View style={[styles.borderTop, styles.ph5, styles.pv3, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
-            <View
-                style={[
-                    shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd,
-                    styles.flexRow,
-                    styles.alignItemsCenter,
-                    styles.gap3,
-                    isTotalLoading && styles.opacity0,
-                ]}
-                pointerEvents={isTotalLoading ? 'none' : undefined}
-            >
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                    <Text style={styles.textLabelSupporting}>{`${translate('common.expenses')}:`}</Text>
-                    <Text style={valueTextStyle}>{count}</Text>
-                </View>
-                {typeof total === 'number' && (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                        <Text style={styles.textLabelSupporting}>{`${translate('common.totalSpend')}:`}</Text>
-                        <FilterPopupButton
-                            PopoverComponent={renderCurrencyPopup}
-                            renderButton={totalButton}
-                            popoverAnchorAlignment={{
-                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                            }}
-                        />
-                    </View>
-                )}
+            <View style={[shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd, styles.flexRow, styles.alignItemsCenter]}>
+                <FilterPopupButton
+                    PopoverComponent={renderFooterPopup}
+                    renderButton={footerButton}
+                    popoverAnchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    }}
+                />
             </View>
-            {isTotalLoading && (
-                <View style={[StyleSheet.absoluteFill, styles.flexRow, styles.alignItemsCenter, styles.ph5, shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd]}>
-                    <SearchPageFooterSkeleton />
-                </View>
-            )}
         </View>
     );
 }
