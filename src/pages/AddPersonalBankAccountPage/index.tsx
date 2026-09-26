@@ -84,6 +84,7 @@ function AddPersonalBankAccountPage() {
                 break;
             case SCREENS.HOME:
             case NAVIGATORS.REPORTS_SPLIT_NAVIGATOR:
+            case NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR:
                 Navigation.closeRHPFlow();
                 break;
             default:
