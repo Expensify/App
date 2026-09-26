@@ -41,7 +41,7 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
 
     const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const shouldDisplayNarrowVersion = shouldUseNarrowLayout || isMediumScreenWidth;
-    const {isWideRHPDisplayedOnWideLayout, isSuperWideRHPDisplayedOnWideLayout} = useResponsiveLayoutOnWideRHP();
+    const {isWideRHPDisplayedOnWideLayout, isSuperWideRHPDisplayedOnWideLayout, shouldUseNarrowLayout: shouldUseNarrowLayoutOnWideRHP} = useResponsiveLayoutOnWideRHP();
     const shouldDisplayNarrowMoreButton = isInLandscapeMode || !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -66,7 +66,9 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
 
     const narrowedPrimaryAction = narrowPrimaryAction(primaryAction);
 
-    if (hasSelectedTransactions && !isTransactionThread) {
+    // A wide layout acts on the selection through the bulk action bar floating over the list instead, which leaves the
+    // report's own actions in the header while a selection is being built up.
+    if (hasSelectedTransactions && !isTransactionThread && shouldUseNarrowLayoutOnWideRHP) {
         return (
             <View style={shouldDisplayNarrowMoreButton ? undefined : [styles.dFlex, styles.w100, styles.ph5, styles.pb3]}>
                 <MoneyReportHeaderSelectionDropdown
