@@ -21,6 +21,7 @@ import useNetwork from '@hooks/useNetwork';
 
 import {search} from '@libs/actions/Search';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import type {DisplayableExpensifyCards} from '@libs/CardUtils';
 import {getDisplayableExpensifyCards, getDisplayableThirdPartyCards} from '@libs/CardUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -97,7 +98,7 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
 
 jest.mock('@libs/CardUtils', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/CardUtils'),
-    getDisplayableExpensifyCards: jest.fn(() => []),
+    getDisplayableExpensifyCards: jest.fn(() => ({cards: [], cardIDsByShownCardID: {}})),
     getDisplayableThirdPartyCards: jest.fn(() => []),
 }));
 
@@ -250,9 +251,15 @@ function networkState(isOffline: boolean): ReturnType<typeof useNetwork> {
     return {isOffline};
 }
 
-/** Builds a `Card[]` payload for `getDisplayableExpensifyCards.mockReturnValue`. */
-function makeDisplayableCards(cards: Array<{cardID: number; lastFourPAN: string}>): Card[] {
-    return cards.map((card) => createMock<Card>(card));
+/** Builds a `DisplayableExpensifyCards` payload for `getDisplayableExpensifyCards.mockReturnValue`. */
+function makeDisplayableCards(cards: Array<{cardID: number; lastFourPAN: string; comboCardIDs?: number[]}>): DisplayableExpensifyCards {
+    return {
+        cards: cards.map(({cardID, lastFourPAN}) => createMock<Card>({cardID, lastFourPAN})),
+        cardIDsByShownCardID: cards.reduce<Record<number, number[]>>((acc, {cardID, comboCardIDs}) => {
+            acc[cardID] = comboCardIDs ?? [cardID];
+            return acc;
+        }, {}),
+    };
 }
 
 // Common beforeEach
@@ -266,8 +273,8 @@ beforeEach(() => {
 
     mockedBuildAwaitingApprovalQuery.mockReturnValue(APPROVAL_QUERY);
     mockedBuildRepaidLast30DaysQuery.mockReturnValue(PAYMENT_QUERY);
-    mockedBuildRecentCardTransactionsQuery.mockImplementation((_accountID: number, cardID: number) => {
-        switch (cardID) {
+    mockedBuildRecentCardTransactionsQuery.mockImplementation((_accountID: number, cardIDs: number[]) => {
+        switch (cardIDs.at(0)) {
             case CARD_ID_1:
                 return CARD_QUERY_1;
             case CARD_ID_2:
@@ -283,7 +290,7 @@ beforeEach(() => {
 
     mockedUseNetwork.mockReturnValue(networkState(false));
     mockedUseCurrentUserPersonalDetails.mockReturnValue({accountID: ACCOUNT_ID, login: `${ACCOUNT_ID}@test.com`} as CurrentUserPersonalDetails);
-    mockedGetDisplayableExpensifyCards.mockReturnValue([]);
+    mockedGetDisplayableExpensifyCards.mockReturnValue({cards: [], cardIDsByShownCardID: {}});
     mockedGetDisplayableThirdPartyCards.mockReturnValue([]);
     mockedIsPaidGroupPolicy.mockReturnValue(false);
 
@@ -392,7 +399,7 @@ describe('useYourSpendData — paymentRowState', () => {
 
 describe('useYourSpendData — cardRows', () => {
     it('returns an empty array when there are no displayable cards', () => {
-        mockedGetDisplayableExpensifyCards.mockReturnValue([]);
+        mockedGetDisplayableExpensifyCards.mockReturnValue({cards: [], cardIDsByShownCardID: {}});
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.cardRows).toEqual([]);
     });
@@ -478,6 +485,37 @@ describe('useYourSpendData — cardRows', () => {
             expect.objectContaining({cardID: CARD_ID_2, total: 700, currency: 'USD', query: CARD_QUERY_2}),
         ]);
     });
+
+    it('sums both halves of a combo card duo into the single row', () => {
+        mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1, comboCardIDs: [CARD_ID_1, CARD_ID_2]}]));
+        setupCardGroups([
+            {cardID: CARD_ID_1, count: 3, total: 1000, currency: 'USD'},
+            {cardID: CARD_ID_2, count: 2, total: 500, currency: 'USD'},
+        ]);
+
+        const {result} = renderHook(() => useYourSpendData());
+
+        expect(result.current.cardRows).toEqual([expect.objectContaining({cardID: CARD_ID_1, lastFour: CARD_LAST_FOUR_1, total: 1500, currency: 'USD', query: CARD_QUERY_1})]);
+    });
+
+    it('shows the combo card row when only the virtual half of the duo has spend', () => {
+        // The row is keyed by the physical card, so its own cardID has no group at all here.
+        mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1, comboCardIDs: [CARD_ID_1, CARD_ID_2]}]));
+        setupCardGroups([{cardID: CARD_ID_2, count: 2, total: 500, currency: 'USD'}]);
+
+        const {result} = renderHook(() => useYourSpendData());
+
+        expect(result.current.cardRows).toEqual([expect.objectContaining({cardID: CARD_ID_1, total: 500, currency: 'USD'})]);
+    });
+
+    it('excludes a combo card duo when neither half has a group', () => {
+        mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1, comboCardIDs: [CARD_ID_1, CARD_ID_2]}]));
+        setupCardGroups([]);
+
+        const {result} = renderHook(() => useYourSpendData());
+
+        expect(result.current.cardRows).toHaveLength(0);
+    });
 });
 
 // query builder integration
@@ -515,7 +553,13 @@ describe('useYourSpendData — query builder integration', () => {
     it('calls buildRecentCardTransactionsQuery with accountID and the card cardID', () => {
         mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1}]));
         renderHook(() => useYourSpendData());
-        expect(buildRecentCardTransactionsQuery).toHaveBeenCalledWith(ACCOUNT_ID, CARD_ID_1);
+        expect(buildRecentCardTransactionsQuery).toHaveBeenCalledWith(ACCOUNT_ID, [CARD_ID_1]);
+    });
+
+    it('calls buildRecentCardTransactionsQuery with both cardIDs of a combo card duo', () => {
+        mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1, comboCardIDs: [CARD_ID_1, CARD_ID_2]}]));
+        renderHook(() => useYourSpendData());
+        expect(buildRecentCardTransactionsQuery).toHaveBeenCalledWith(ACCOUNT_ID, [CARD_ID_1, CARD_ID_2]);
     });
 
     it('exposes awaitingApprovalQuery from the builder return value', () => {
@@ -576,7 +620,7 @@ describe('useYourSpendData — search dispatch', () => {
     it('fires no card search when the account has no displayable cards', () => {
         // Given an account with no displayable cards and no paid group workspace
         mockedIsPaidGroupPolicy.mockReturnValue(false);
-        mockedGetDisplayableExpensifyCards.mockReturnValue([]);
+        mockedGetDisplayableExpensifyCards.mockReturnValue({cards: [], cardIDsByShownCardID: {}});
         mockedGetDisplayableThirdPartyCards.mockReturnValue([]);
 
         // When Home renders focused and online

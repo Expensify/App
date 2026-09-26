@@ -2660,7 +2660,7 @@ describe('CardUtils', () => {
 
     describe('getDisplayableExpensifyCards', () => {
         it('should return empty array when cardList is undefined', () => {
-            const result = getDisplayableExpensifyCards(undefined);
+            const {cards: result} = getDisplayableExpensifyCards(undefined);
             expect(result).toEqual([]);
         });
 
@@ -2679,7 +2679,7 @@ describe('CardUtils', () => {
                     state: CONST.EXPENSIFY_CARD.STATE.CLOSED,
                 },
             };
-            const result = getDisplayableExpensifyCards(cardList);
+            const {cards: result} = getDisplayableExpensifyCards(cardList);
             expect(result).toEqual([]);
         });
 
@@ -2710,7 +2710,7 @@ describe('CardUtils', () => {
                     state: CONST.EXPENSIFY_CARD.STATE.CLOSED,
                 },
             };
-            const result = getDisplayableExpensifyCards(cardList);
+            const {cards: result} = getDisplayableExpensifyCards(cardList);
             expect(result).toHaveLength(1);
             expect(result.at(0)?.cardID).toBe(1);
         });
@@ -2742,7 +2742,7 @@ describe('CardUtils', () => {
                     state: CONST.EXPENSIFY_CARD.STATE.OPEN,
                 },
             };
-            const result = getDisplayableExpensifyCards(cardList);
+            const {cards: result} = getDisplayableExpensifyCards(cardList);
             expect(result).toHaveLength(1);
             expect(result.at(0)?.cardID).toBe(1);
         });
@@ -2762,7 +2762,7 @@ describe('CardUtils', () => {
                     state: CONST.EXPENSIFY_CARD.STATE.OPEN,
                 },
             };
-            const result = getDisplayableExpensifyCards(cardList);
+            const {cards: result} = getDisplayableExpensifyCards(cardList);
             expect(result).toEqual([]);
         });
 
@@ -2801,10 +2801,264 @@ describe('CardUtils', () => {
                     },
                 },
             });
-            const result = getDisplayableExpensifyCards(cardList);
+            const {cards: result} = getDisplayableExpensifyCards(cardList);
             expect(result).toHaveLength(1);
             expect(result.at(0)?.cardID).toBe(18468850); // Physical card comes first
             expect(result.at(0)?.nameValuePairs?.isVirtual).toBeFalsy();
+        });
+
+        it('should map a combo card to both halves of the duo', () => {
+            const cardList = createMock<CardList>({
+                1: {
+                    accountID: 10160771,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 18468850,
+                    cardName: 'Expensify Card',
+                    domainName: 'expensify.com',
+                    fraud: 'none',
+                    fundID: '767578',
+                    lastFourPAN: '7428',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    nameValuePairs: {
+                        isVirtual: false,
+                    },
+                },
+                2: {
+                    accountID: 10160771,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 18468851,
+                    cardName: 'Expensify Card',
+                    domainName: 'expensify.com',
+                    fraud: 'none',
+                    fundID: '767578',
+                    lastFourPAN: '4592',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    nameValuePairs: {
+                        isVirtual: true,
+                    },
+                },
+            });
+            const {cardIDsByShownCardID} = getDisplayableExpensifyCards(cardList);
+            expect(cardIDsByShownCardID).toEqual({18468850: [18468850, 18468851]});
+        });
+
+        it('should map a card that is not part of a combo duo to itself only', () => {
+            const cardList = createMock<CardList>({
+                1: {
+                    accountID: 10160771,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 18468850,
+                    cardName: 'Expensify Card',
+                    domainName: 'expensify.com',
+                    fraud: 'none',
+                    fundID: '767578',
+                    lastFourPAN: '7428',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    nameValuePairs: {
+                        isVirtual: false,
+                    },
+                },
+                2: {
+                    accountID: 10160771,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 18468852,
+                    cardName: 'Expensify Card',
+                    domainName: 'expensify.com',
+                    fraud: 'none',
+                    fundID: '767578',
+                    lastFourPAN: '1111',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    nameValuePairs: {
+                        isVirtual: true,
+                        issuedBy: 10160772,
+                    },
+                },
+            });
+            const {cardIDsByShownCardID} = getDisplayableExpensifyCards(cardList);
+            expect(cardIDsByShownCardID).toEqual({18468850: [18468850], 18468852: [18468852]});
+        });
+
+        it('maps a combo card to both halves regardless of the order the card list lists them in', () => {
+            const cardList = createMock<CardList>({
+                1: {
+                    accountID: 10160771,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 18468851,
+                    cardName: 'Expensify Card',
+                    domainName: 'expensify.com',
+                    fraud: 'none',
+                    fundID: '767578',
+                    lastFourPAN: '4592',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    nameValuePairs: {
+                        isVirtual: true,
+                    },
+                },
+                2: {
+                    accountID: 10160771,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 18468850,
+                    cardName: 'Expensify Card',
+                    domainName: 'expensify.com',
+                    fraud: 'none',
+                    fundID: '767578',
+                    lastFourPAN: '7428',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    nameValuePairs: {
+                        isVirtual: false,
+                    },
+                },
+            });
+            const {cards, cardIDsByShownCardID} = getDisplayableExpensifyCards(cardList);
+            expect(cards).toHaveLength(1);
+            expect(cards.at(0)?.cardID).toBe(18468850);
+            expect(cardIDsByShownCardID).toEqual({18468850: [18468850, 18468851]});
+        });
+
+        it('leaves a filtered-out half of the duo out of the mapping', () => {
+            const cardList = createMock<CardList>({
+                1: {
+                    accountID: 10160771,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 18468850,
+                    cardName: 'Expensify Card',
+                    domainName: 'expensify.com',
+                    fraud: 'none',
+                    fundID: '767578',
+                    lastFourPAN: '7428',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    nameValuePairs: {
+                        isVirtual: false,
+                    },
+                },
+                2: {
+                    accountID: 10160771,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 18468851,
+                    cardName: 'Expensify Card',
+                    domainName: 'expensify.com',
+                    fraud: 'none',
+                    fundID: '767578',
+                    lastFourPAN: '4592',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.CLOSED,
+                    nameValuePairs: {
+                        isVirtual: true,
+                    },
+                },
+            });
+            const {cardIDsByShownCardID} = getDisplayableExpensifyCards(cardList);
+            expect(cardIDsByShownCardID).toEqual({18468850: [18468850]});
+        });
+
+        it('keeps the duos of two domains apart', () => {
+            const cardList = createMock<CardList>({
+                1: {
+                    accountID: 10160771,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 1,
+                    cardName: 'Expensify Card',
+                    domainName: 'expensify.com',
+                    fraud: 'none',
+                    fundID: '767578',
+                    lastFourPAN: '7428',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    nameValuePairs: {
+                        isVirtual: false,
+                    },
+                },
+                2: {
+                    accountID: 10160771,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 2,
+                    cardName: 'Expensify Card',
+                    domainName: 'expensify.com',
+                    fraud: 'none',
+                    fundID: '767578',
+                    lastFourPAN: '4592',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    nameValuePairs: {
+                        isVirtual: true,
+                    },
+                },
+                3: {
+                    accountID: 10160771,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 3,
+                    cardName: 'Expensify Card',
+                    domainName: 'other.com',
+                    fraud: 'none',
+                    fundID: '767579',
+                    lastFourPAN: '1111',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    nameValuePairs: {
+                        isVirtual: false,
+                    },
+                },
+                4: {
+                    accountID: 10160771,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 4,
+                    cardName: 'Expensify Card',
+                    domainName: 'other.com',
+                    fraud: 'none',
+                    fundID: '767579',
+                    lastFourPAN: '2222',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    nameValuePairs: {
+                        isVirtual: true,
+                    },
+                },
+            });
+            const {cards, cardIDsByShownCardID} = getDisplayableExpensifyCards(cardList);
+            expect(cards).toHaveLength(2);
+            expect(cardIDsByShownCardID).toEqual({1: [1, 2], 3: [3, 4]});
+        });
+
+        it('maps a card without a domainName to itself only', () => {
+            const cardList = createMock<CardList>({
+                1: {
+                    accountID: 10160771,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 18468850,
+                    cardName: 'Expensify Card',
+                    domainName: '',
+                    fraud: 'none',
+                    fundID: '767578',
+                    lastFourPAN: '7428',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    nameValuePairs: {
+                        isVirtual: false,
+                    },
+                },
+            });
+            const {cardIDsByShownCardID} = getDisplayableExpensifyCards(cardList);
+            expect(cardIDsByShownCardID).toEqual({18468850: [18468850]});
         });
 
         it('should show admin-issued virtual cards separately', () => {
@@ -2843,7 +3097,7 @@ describe('CardUtils', () => {
                     },
                 },
             });
-            const result = getDisplayableExpensifyCards(cardList);
+            const {cards: result} = getDisplayableExpensifyCards(cardList);
             expect(result).toHaveLength(2); // Both cards shown (admin-issued virtual is not grouped)
         });
 
@@ -2883,7 +3137,7 @@ describe('CardUtils', () => {
                     },
                 },
             });
-            const result = getDisplayableExpensifyCards(cardList);
+            const {cards: result} = getDisplayableExpensifyCards(cardList);
             expect(result).toHaveLength(1);
             expect(result.at(0)?.cardID).toBe(18468850);
         });
@@ -2923,7 +3177,7 @@ describe('CardUtils', () => {
                     },
                 },
             });
-            const result = getDisplayableExpensifyCards(cardList);
+            const {cards: result} = getDisplayableExpensifyCards(cardList);
             expect(result).toHaveLength(2); // Cards from different domains shown separately
         });
 
@@ -2962,7 +3216,7 @@ describe('CardUtils', () => {
                     },
                 },
             });
-            const result = getDisplayableExpensifyCards(cardList);
+            const {cards: result} = getDisplayableExpensifyCards(cardList);
             expect(result).toHaveLength(1);
             expect(result.at(0)?.cardID).toBe(18468850); // Physical card comes first even if virtual was added first
         });
@@ -3003,7 +3257,7 @@ describe('CardUtils', () => {
                 },
             });
 
-            const result = getDisplayableExpensifyCards(cardList);
+            const {cards: result} = getDisplayableExpensifyCards(cardList);
             expect(result).toHaveLength(1);
             expect(result.at(0)?.cardID).toBe(2);
         });
@@ -3023,7 +3277,7 @@ describe('CardUtils', () => {
                     state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED,
                 },
             };
-            const result = getDisplayableExpensifyCards(cardList);
+            const {cards: result} = getDisplayableExpensifyCards(cardList);
             expect(result).toEqual([]);
         });
 
@@ -3042,7 +3296,7 @@ describe('CardUtils', () => {
                     state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED,
                 },
             };
-            const result = getDisplayableExpensifyCards(cardList);
+            const {cards: result} = getDisplayableExpensifyCards(cardList);
             expect(result).toEqual([]);
         });
 
@@ -3061,7 +3315,7 @@ describe('CardUtils', () => {
                     state: CONST.EXPENSIFY_CARD.STATE.OPEN,
                 },
             };
-            const result = getDisplayableExpensifyCards(cardList);
+            const {cards: result} = getDisplayableExpensifyCards(cardList);
             expect(result).toHaveLength(1);
             expect(result.at(0)?.cardID).toBe(1);
         });
@@ -3081,7 +3335,7 @@ describe('CardUtils', () => {
                     state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
                 },
             };
-            const result = getDisplayableExpensifyCards(cardList);
+            const {cards: result} = getDisplayableExpensifyCards(cardList);
             expect(result).toEqual([]);
         });
     });
