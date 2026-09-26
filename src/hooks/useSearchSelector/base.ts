@@ -343,8 +343,7 @@ function useSearchSelectorBase({
                         isTrackIntentUser,
                         ...appliedGetValidOptionsConfig,
                     },
-                    translate,
-                    formatPhoneNumber,
+                    {translate, formatPhoneNumber},
                     rules,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
@@ -383,8 +382,7 @@ function useSearchSelectorBase({
                         isTrackIntentUser,
                         ...appliedGetValidOptionsConfig,
                     },
-                    translate,
-                    formatPhoneNumber,
+                    {translate, formatPhoneNumber},
                     rules,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
@@ -421,8 +419,7 @@ function useSearchSelectorBase({
                         isTrackIntentUser,
                         ...appliedGetValidOptionsConfig,
                     },
-                    translate,
-                    formatPhoneNumber,
+                    {translate, formatPhoneNumber},
                     rules,
                 );
             default:

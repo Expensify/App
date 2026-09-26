@@ -1234,8 +1234,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             let results: Pick<Options, 'personalDetails' | 'recentReports'> = validOptions;
@@ -1278,8 +1277,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             let results: Pick<Options, 'personalDetails' | 'recentReports'> = validOptions;
@@ -1318,8 +1316,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1347,8 +1344,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1419,8 +1415,7 @@ describe('OptionsListUtils', () => {
                     personalDetails,
                     searchString,
                 },
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1462,8 +1457,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, excludeLogins: {[CONST.EMAIL.CONCIERGE]: true}, sortedActions: undefined},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1489,8 +1483,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 conciergeReportID,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1516,8 +1509,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, excludeLogins: {[CONST.EMAIL.CHRONOS]: true}, sortedActions: undefined},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1542,8 +1534,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, excludeLogins: {[CONST.EMAIL.RECEIPTS]: true}, sortedActions: undefined},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1597,8 +1588,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, includeMultipleParticipantReports: true, sortedActions: undefined},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             const adminRoomOption = results.recentReports.find((report) => report.reportID === '1455140530846319');
@@ -1652,8 +1642,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, includeMultipleParticipantReports: true, showRBR: true, sortedActions: undefined},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
@@ -1704,8 +1693,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, includeMultipleParticipantReports: true, showRBR: false, sortedActions: undefined},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(null);
@@ -1760,8 +1748,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, includeRecentReports: true, shouldUnreadBeBold: true, includeMultipleParticipantReports: true, sortedActions: undefined},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1794,8 +1781,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, personalDetails: customPersonalDetails, sortedActions: undefined},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1819,8 +1805,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, selectedOptions, includeSelectedOptions: true, sortedActions: undefined},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1844,8 +1829,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, maxElements: 1},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1862,8 +1846,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, maxElements: 100},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1929,8 +1912,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 config,
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             const {options: lazyResults} = getValidOptions(
@@ -1942,8 +1924,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 config,
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -1969,8 +1950,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 config,
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             const {options: lazyResults} = getValidOptions(
@@ -1982,8 +1962,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 config,
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -2051,8 +2030,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, searchString, includeP2P: true},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             const filteredOptions = filterAndOrderOptions(
@@ -2142,8 +2120,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 config,
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             const {options: lazyResults} = getValidOptions(
@@ -2155,8 +2132,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 config,
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -2194,8 +2170,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -2222,8 +2197,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     personalDetails: PERSONAL_DETAILS,
                 },
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -2257,8 +2231,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 config,
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             const {options: lazyResults} = getValidOptions(
@@ -2270,8 +2243,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 config,
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -2343,8 +2315,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 config,
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             const {options: cachedResults} = getValidOptions(
@@ -2356,8 +2327,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 config,
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             const {options: eagerResults} = getValidOptions(
@@ -2369,8 +2339,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 config,
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -2557,8 +2526,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 config,
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             const {options: lazyResults} = getValidOptions(
@@ -2570,8 +2538,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 config,
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -2816,8 +2783,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 config,
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             const {options: secondResults} = getValidOptions(
@@ -2829,8 +2795,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 config,
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             const secondBuilds = second.personalDetails.map(buildIdentity);
@@ -2957,8 +2922,7 @@ describe('OptionsListUtils', () => {
                     includeOwnedWorkspaceChats: true,
                     sortedActions: undefined,
                 },
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3006,8 +2970,7 @@ describe('OptionsListUtils', () => {
                     personalDetails: customPersonalDetails,
                     sortedActions: undefined,
                 },
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3039,8 +3002,7 @@ describe('OptionsListUtils', () => {
                     personalDetails: undefined,
                     sortedActions: undefined,
                 },
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3071,8 +3033,7 @@ describe('OptionsListUtils', () => {
                     personalDetails: {},
                     sortedActions: undefined,
                 },
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3103,8 +3064,7 @@ describe('OptionsListUtils', () => {
                     personalDetails: {},
                     sortedActions: undefined,
                 },
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3127,8 +3087,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             const reportLogins = new Set(results.recentReports.map((reportOption) => reportOption.login));
@@ -3152,8 +3111,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, excludeLogins: {'peterparker@expensify.com': true}, sortedActions: undefined},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3177,8 +3135,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3203,8 +3160,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, excludeLogins: {[CONST.EMAIL.CONCIERGE]: true}, sortedActions: undefined},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3230,8 +3186,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, excludeLogins: {[CONST.EMAIL.CHRONOS]: true}, sortedActions: undefined},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3257,8 +3212,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, excludeLogins: {[CONST.EMAIL.RECEIPTS]: true}, sortedActions: undefined},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3282,8 +3236,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, maxRecentReportElements: maxRecentReports, sortedActions: undefined},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3303,8 +3256,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             const {options: resultsWithLimit} = getValidOptions(
@@ -3316,8 +3268,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, maxRecentReportElements: 2, sortedActions: undefined},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3337,8 +3288,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             const {options: resultsWithLimit} = getValidOptions(
@@ -3350,8 +3300,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, maxRecentReportElements: 2, sortedActions: undefined},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3373,8 +3322,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, maxElements: maxTotalElements, maxRecentReportElements: maxRecentReports, sortedActions: undefined},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3428,8 +3376,7 @@ describe('OptionsListUtils', () => {
                     includeUserToInvite: false,
                     sortedActions: undefined,
                 },
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -3478,8 +3425,7 @@ describe('OptionsListUtils', () => {
                     includeUserToInvite: false,
                     sortedActions: undefined,
                 },
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -4025,8 +3971,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT, sortedActions: undefined},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value and excluded logins list
@@ -4243,8 +4188,7 @@ describe('OptionsListUtils', () => {
                     includeUserToInvite: false,
                     sortedActions: undefined,
                 },
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
@@ -4309,8 +4253,7 @@ describe('OptionsListUtils', () => {
                     includeUserToInvite: false,
                     sortedActions: undefined,
                 },
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we pass the returned options to filterAndOrderOptions with a search value that matches the group chat name
@@ -4375,8 +4318,7 @@ describe('OptionsListUtils', () => {
                     includeUserToInvite: false,
                     sortedActions: undefined,
                 },
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
@@ -4412,8 +4354,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that matches a personal detail with no existing report
@@ -4797,8 +4738,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
@@ -4837,8 +4777,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
@@ -4877,8 +4816,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
@@ -4916,8 +4854,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value without accent mark
@@ -4953,8 +4890,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
@@ -4995,8 +4931,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
@@ -5037,8 +4972,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
@@ -5079,8 +5013,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
@@ -5119,8 +5052,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, includeUserToInvite: true, sortedActions: undefined},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -5158,8 +5090,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, includeUserToInvite: true, sortedActions: undefined},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -5197,8 +5128,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details
@@ -5234,8 +5164,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that matches an email
@@ -5276,8 +5205,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
             // When we call filterAndOrderOptions with a search value that matches both reports and personal details and maxRecentReportsToShow param
@@ -6121,8 +6049,7 @@ describe('OptionsListUtils', () => {
                     personalDetails: PERSONAL_DETAILS,
                     sortedActions: {[ROOM_REPORT_ID]: [comment]},
                 },
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -7762,8 +7689,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -7783,8 +7709,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -7804,8 +7729,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -7841,8 +7765,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, isDefaultRoomsBetaEnabled: false, includeRecentReports: true, sortedActions: undefined},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -10062,8 +9985,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -10099,8 +10021,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -10135,8 +10056,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -10173,8 +10093,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -10195,8 +10114,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -10303,8 +10221,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -10325,8 +10242,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -11519,8 +11435,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, includeRecentReports: false, recentAttendees, maxRecentReportElements: 5, sortedActions: undefined},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -11539,8 +11454,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, includeRecentReports: false, recentAttendees, maxRecentReportElements: 5, searchString: 'john', sortedActions: undefined},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -11769,8 +11683,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, includeRecentReports: true, includeMultipleParticipantReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -11830,8 +11743,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, includeRecentReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -11888,8 +11800,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, includeRecentReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions: undefined},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -11972,8 +11883,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, includeRecentReports: true, includeMultipleParticipantReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -12049,8 +11959,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, includeRecentReports: true, sortedActions},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -12116,8 +12025,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, includeRecentReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -12235,8 +12143,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, includeRecentReports: true, includeMultipleParticipantReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -12298,8 +12205,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {dateFnsLocale: undefined, convertToDisplayString, includeRecentReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions: {[reportID]: [commentAction]}},
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 

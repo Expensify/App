@@ -187,8 +187,7 @@ describe('OptionsListUtils', () => {
             MOCK_CURRENT_USER_EMAIL,
             undefined,
             ValidOptionsConfig,
-            translateLocal,
-            formatPhoneNumber,
+            {translate: translateLocal, formatPhoneNumber},
             undefined,
         );
         await measureFunction(() => {
@@ -221,8 +220,7 @@ describe('OptionsListUtils', () => {
             MOCK_CURRENT_USER_EMAIL,
             undefined,
             ValidOptionsConfig,
-            translateLocal,
-            formatPhoneNumber,
+            {translate: translateLocal, formatPhoneNumber},
             undefined,
         );
         await measureFunction(() => {
@@ -274,8 +272,7 @@ describe('OptionsListUtils', () => {
                     includeUserToInvite: false,
                     sortedActions: undefined,
                 },
-                translateLocal,
-                formatPhoneNumber,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             ),
         );
@@ -442,8 +439,7 @@ describe('OptionsListUtils', () => {
             MOCK_CURRENT_USER_EMAIL,
             undefined,
             ValidOptionsConfig,
-            translateLocal,
-            formatPhoneNumber,
+            {translate: translateLocal, formatPhoneNumber},
             undefined,
         );
 
