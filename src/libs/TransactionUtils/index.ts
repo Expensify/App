@@ -3680,6 +3680,14 @@ function hasSubmissionBlockingViolations(
     return hasSubmissionBlockingViolationInList(violations);
 }
 
+/**
+ * Whether the expense has no settled value yet: SmartScan is still running, an Expensify Card charge is still pending,
+ * or the scan failed and left required fields empty.
+ */
+function isExpenseValueUnsettled(transaction: Transaction, report: OnyxEntry<Report>, isTransactionScanning: (transactionToCheck: OnyxEntry<Transaction>) => boolean = isScanning): boolean {
+    return isTransactionScanning(transaction) || (isExpensifyCardTransaction(transaction) && isPending(transaction)) || hasSmartScanFailedWithMissingFields([transaction], report);
+}
+
 function isTransactionSubmittable(
     transaction: Transaction,
     report: OnyxEntry<Report>,
@@ -3690,7 +3698,7 @@ function isTransactionSubmittable(
     policy: OnyxEntry<Policy>,
     isTransactionScanning: (transactionToCheck: OnyxEntry<Transaction>) => boolean = isScanning,
 ): boolean {
-    if (isTransactionScanning(transaction) || (isExpensifyCardTransaction(transaction) && isPending(transaction)) || hasSmartScanFailedWithMissingFields([transaction], report)) {
+    if (isExpenseValueUnsettled(transaction, report, isTransactionScanning)) {
         return false;
     }
 
@@ -3957,6 +3965,7 @@ export {
     isPerDiemRequest,
     isViolationDismissed,
     isPartialTransaction,
+    isExpenseValueUnsettled,
     isScanningTransaction,
     isScanning,
     isTransactionSubmittable,

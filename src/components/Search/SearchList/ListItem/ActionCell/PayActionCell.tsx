@@ -84,12 +84,12 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
     const {currency} = iouReport ?? {};
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
-        if (!type || !reportID || !hash || !amount) {
+        if (!type || !reportID || !hash || amount === undefined) {
             Log.info('[SearchPay] Dropping row pay: missing required data', false, {
                 hasPaymentType: !!type,
                 reportID,
                 hasHash: !!hash,
-                hasAmount: !!amount,
+                hasAmount: amount !== undefined,
             });
             return;
         }
