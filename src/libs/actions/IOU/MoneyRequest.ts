@@ -12,13 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import {getDistanceRateCustomUnit, isTaxTrackingEnabled, resolveCurrentTaxCode} from '@libs/PolicyUtils';
-import {
-    getReportOrDraftReport,
-    isInvoiceRoom,
-    isMoneyRequestReport as isMoneyRequestReportReportUtils,
-    isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
-    isSelfDM,
-} from '@libs/ReportUtils';
+import {getChatReportFromMoneyRequestReport, isInvoiceRoom, isPolicyExpenseChat as isPolicyExpenseChatReportUtil, isSelfDM} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {logReceiptSubmitted} from '@libs/telemetry/ReceiptObservability';
@@ -593,7 +587,7 @@ function setMoneyRequestParticipants(transactionID: string, participants: Partic
  */
 function getMoneyRequestParticipantsFromReport(report: OnyxEntry<Report>, currentUserAccountID?: number): Participant[] {
     // If the report is iou or expense report, we should get the chat report to set participant for request money
-    const chatReport = isMoneyRequestReportReportUtils(report) ? getReportOrDraftReport(report?.chatReportID) : report;
+    const chatReport = getChatReportFromMoneyRequestReport(report);
     const isSelfDMChat = !isEmptyObject(chatReport) && isSelfDM(chatReport);
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
     let participants: Participant[] = [];

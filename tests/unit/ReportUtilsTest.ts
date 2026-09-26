@@ -95,6 +95,7 @@ import {
     getBillableAndTaxTotal,
     getChatByParticipants,
     getChatListItemReportName,
+    getChatReportFromMoneyRequestReport,
     getChatRoomSubtitle,
     getChildReportNotificationPreference,
     getDefaultGroupAvatar,
@@ -4913,6 +4914,40 @@ describe('ReportUtils', () => {
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
                     expect(moneyRequestOptions.indexOf(CONST.IOU.TYPE.SUBMIT)).toBe(0);
                 });
+            });
+
+            it('it is an empty open expense report the user owns that has no link to its workspace chat', async () => {
+                // Given a paid group policy
+                const paidPolicy: Policy = {
+                    ...createRandomPolicy(97769),
+                    id: 'emptyExpenseReportWithoutChatPolicy',
+                    type: CONST.POLICY.TYPE.TEAM,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${paidPolicy.id}`, paidPolicy);
+
+                // And an empty open expense report the current user owns, as received from another session: its only participant is the owner and it
+                // carries neither parentReportID nor chatReportID, so its workspace chat can't be resolved from the report itself
+                const report: Report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    policyID: paidPolicy.id,
+                    ownerAccountID: currentUserAccountID,
+                    managerID: currentUserAccountID,
+                    participants: buildParticipantsFromAccountIDs([currentUserAccountID]),
+                    parentReportID: undefined,
+                    chatReportID: undefined,
+                };
+
+                // When getting the money request options with only the current user as a participant
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID], undefined);
+
+                // Then the user can still add an expense, matching the "Add expense" button rendered on the report, instead of hitting the Not here page
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${paidPolicy.id}`, null);
             });
 
             it('it is an IOU report in submitted state', () => {
@@ -10383,6 +10418,76 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
 
             expect(getPolicyExpenseChat(1, '1')?.reportID).toBe(policyExpenseChat.reportID);
+        });
+    });
+
+    describe('getChatReportFromMoneyRequestReport', () => {
+        const ownerAccountID = 97769;
+        const policyID = 'getChatReportFromMoneyRequestReportPolicy';
+        const policyExpenseChat: Report = {
+            ...createRandomReport(97769001, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+            type: CONST.REPORT.TYPE.CHAT,
+            ownerAccountID,
+            policyID,
+        };
+
+        beforeAll(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
+        });
+
+        afterAll(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, null);
+        });
+
+        it('should return the report itself when it is not a money request report', () => {
+            // Given a chat report, which is already the destination of any expense created from it
+            // When resolving its chat report
+            // Then the report itself is returned
+            expect(getChatReportFromMoneyRequestReport(policyExpenseChat)).toBe(policyExpenseChat);
+        });
+
+        it('should return the linked chat when the expense report has a chatReportID', () => {
+            // Given an expense report that carries its link to the workspace chat
+            const expenseReport: Report = {
+                ...createRandomReport(97769002, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: policyExpenseChat.reportID,
+            };
+
+            // When resolving its chat report
+            // Then the linked chat is returned
+            expect(getChatReportFromMoneyRequestReport(expenseReport)?.reportID).toBe(policyExpenseChat.reportID);
+        });
+
+        it("should fall back to the owner's policy expense chat when the expense report has no chatReportID", () => {
+            // Given an expense report received from another session, which arrives without chatReportID and parentReportID
+            const expenseReport: Report = {
+                ...createRandomReport(97769003, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: undefined,
+                parentReportID: undefined,
+                ownerAccountID,
+                policyID,
+            };
+
+            // When resolving its chat report
+            // Then its workspace chat is recovered from its own owner and policy, so the expense is not sent anywhere else
+            expect(getChatReportFromMoneyRequestReport(expenseReport)?.reportID).toBe(policyExpenseChat.reportID);
+        });
+
+        it('should return undefined when an IOU report has no chatReportID', () => {
+            // Given an IOU report without chatReportID, whose DM cannot be recovered from a policy
+            const iouReport: Report = {
+                ...createRandomReport(97769004, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                chatReportID: undefined,
+                ownerAccountID,
+                policyID,
+            };
+
+            // When resolving its chat report
+            // Then nothing is returned instead of guessing a workspace chat
+            expect(getChatReportFromMoneyRequestReport(iouReport)).toBeUndefined();
         });
     });
 

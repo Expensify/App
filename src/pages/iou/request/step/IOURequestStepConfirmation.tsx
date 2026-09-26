@@ -66,7 +66,15 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
-import {findSelfDMReportID, generateReportID, getChatByParticipants, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
+import {
+    findSelfDMReportID,
+    generateReportID,
+    getChatByParticipants,
+    getReportOrDraftReport,
+    isExpenseReport,
+    isMoneyRequestReport,
+    isPolicyExpenseChat as isPolicyExpenseChatUtils,
+} from '@libs/ReportUtils';
 import {cancelTracking, getPendingSubmitFollowUpAction, isTracking} from '@libs/telemetry/submitFollowUpAction';
 import {
     getRequestType,
@@ -1226,7 +1234,8 @@ function IOURequestStepConfirmationContent({
                             action={action}
                             isPerDiemRequest={isPerDiemRequest}
                             isTimeRequest={isTimeRequest}
-                            isWorkspacesOnly={getIsWorkspacesOnlyForTransaction(transaction, requestType)}
+                            // An expense created from an expense report belongs on a workspace, so a P2P recipient must not be able to pull it off that report
+                            isWorkspacesOnly={isExpenseReport(report) || getIsWorkspacesOnlyForTransaction(transaction, requestType)}
                             shouldExcludeP2P={(transaction?.amount ?? 0) < 0}
                             onParticipantsAdded={handleParticipantsAdded}
                             onFinish={closeParticipantPicker}
