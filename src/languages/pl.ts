@@ -5311,11 +5311,11 @@ ${amount} dla ${merchant} - ${date}`,
                         label: 'Data ostatniego wydatku',
                         description: 'Data najnowszego wydatku w raporcie.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Data eksportu',
                         description: 'Data wyeksportowania raportu do Sage Intacct.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Data wysłania',
                         description: 'Data przesłania raportu do zatwierdzenia.',
                     },

@@ -5394,11 +5394,11 @@ ${amount} για ${merchant} - ${date}`,
                         label: 'Ημερομηνία τελευταίας δαπάνης',
                         description: 'Ημερομηνία της πιο πρόσφατης δαπάνης στην αναφορά.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Ημερομηνία εξαγωγής',
                         description: 'Ημερομηνία εξαγωγής της αναφοράς στο Sage Intacct.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Ημερομηνία υποβολής',
                         description: 'Ημερομηνία υποβολής της αναφοράς για έγκριση.',
                     },

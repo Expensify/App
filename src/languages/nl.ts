@@ -5283,11 +5283,11 @@ ${amount} voor ${merchant} - ${date}`,
                         label: 'Datum van laatste uitgave',
                         description: 'Datum van de meest recente uitgave in het rapport.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Exportdatum',
                         description: 'Datum waarop het rapport is geëxporteerd naar Sage Intacct.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Ingediend op datum',
                         description: 'Datum waarop het rapport ter goedkeuring is ingediend.',
                     },
