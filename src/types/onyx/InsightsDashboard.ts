@@ -7,6 +7,9 @@ import type {Errors} from './OnyxCommon';
 /** Identifies a dashboard, paired with the query hash in the key an entry is stored under */
 type InsightsDashboardID = ValueOf<typeof CONST.INSIGHTS.DASHBOARD>;
 
+/** Identifies a dashboard to the backend, and keys the filters stored for it */
+type InsightsSearchKey = ValueOf<typeof CONST.INSIGHTS.SEARCH_KEY>;
+
 /** Key identifying a graph within a dashboard response */
 type InsightsGraphKey = ValueOf<typeof CONST.INSIGHTS.GRAPH>;
 
@@ -30,5 +33,5 @@ type InsightsDashboard = {
     errors?: Errors;
 };
 
-export type {InsightsDashboardID, InsightsGraphKey};
+export type {InsightsDashboardID, InsightsGraphKey, InsightsSearchKey};
 export default InsightsDashboard;
