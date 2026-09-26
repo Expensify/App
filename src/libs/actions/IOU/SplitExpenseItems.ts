@@ -78,13 +78,14 @@ function getDistanceMerchantFromDistance(
  *
  * When the field is not locked (the two "default" modes), the split keeps inheriting the parent's value.
  *
- * Managed-card transactions are always non-reimbursable and their reimbursable control is hidden in the split
- * editor, so they must stay `false` even under a locked "Always reimbursable" policy. Otherwise the split
- * would be submitted as reimbursable with no way for the user to correct it.
+ * Managed-card transactions always inherit the parent's value. The workspace "Always …" modes only apply to cash
+ * expenses, while a card expense's reimbursable value is set at import by the card feed's reimbursable preference.
+ * Their reimbursable control is hidden in the split editor, so the split must keep that stored value rather than
+ * the policy default or a hardcoded `false`.
  */
 function getSplitReimbursable(policy: OnyxEntry<OnyxTypes.Policy>, parentReimbursable: boolean | undefined, transaction: OnyxEntry<OnyxTypes.Transaction>): boolean | undefined {
     if (isManagedCardTransaction(transaction)) {
-        return false;
+        return parentReimbursable;
     }
     if (policy?.disabledFields?.reimbursable === true) {
         return policy.defaultReimbursable;
