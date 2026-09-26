@@ -2,6 +2,7 @@ import {act, render} from '@testing-library/react-native';
 
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 
+// eslint-disable-next-line no-restricted-imports -- type-only wildcard import used solely to type jest.requireActual below; isPaidGroupPolicy is not referenced
 import type * as PolicyUtilsModule from '@libs/PolicyUtils';
 
 import WorkspaceWorkflowsPayerPage from '@pages/workspace/workflows/WorkspaceWorkflowsPayerPage';
@@ -51,7 +52,12 @@ jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 jest.mock('@hooks/useConfirmModal', () => jest.fn(() => ({showConfirmModal: jest.fn(), closeModal: jest.fn()})));
 jest.mock('@hooks/usePressLoading', () => jest.fn(() => ({isLoading: false, startWithLoading: jest.fn()})));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({accountID: 1, login: 'owner@test.com'})));
-jest.mock('@hooks/usePersonalDetailByLogin', () => jest.fn(() => 'Display Name'));
+jest.mock('@hooks/usePersonalDetailByLogin', () => ({
+    __esModule: true,
+    default: jest.fn(() => 'Display Name'),
+    // employeePersonalDetails is only forwarded to the mocked getMemberAccountIDsForWorkspace, so the value is irrelevant.
+    usePersonalDetailsByLogins: jest.fn(() => ({})),
+}));
 jest.mock('@hooks/useLazyAsset', () => ({useMemoizedLazyExpensifyIcons: jest.fn(() => ({FallbackAvatar: 'FallbackAvatar'}))}));
 jest.mock('@libs/BankAccountUtils', () => ({isBankAccountPartiallySetup: jest.fn(() => false)}));
 jest.mock('@hooks/useLocalize', () =>
@@ -146,7 +152,7 @@ describe('WorkspaceWorkflowsPayerPage', () => {
     it('keeps the initial payer pinned in the top section while the live selection changes', () => {
         render(pageElement());
 
-        // Simulate the user picking a different admin; the frozen section placement must not jump.
+        // Simulate the user picking a different admin. The frozen section placement must not jump.
         act(() => {
             getListProps()?.onSelectRow({keyForList: '3', accountID: 3});
         });

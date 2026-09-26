@@ -104,7 +104,7 @@ describe('WorkspaceAutoReportingMonthlyOffsetPage', () => {
     it('keeps the originally pinned day at the top while the live selection changes', () => {
         render(pageElement(15));
 
-        // Simulate the user picking a different day; the frozen pin must not jump to it.
+        // Simulate the user picking a different day. The frozen pin must not jump to it.
         act(() => {
             getSelectionListProps()?.onSelectRow({value: '3', keyForList: '3', isNumber: true});
         });
