@@ -2,7 +2,7 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import useNow from '@hooks/useNow';
 
-import {resetForTests as resetNowStore} from '@libs/NowStore';
+import {resetForTests as resetNowStore, subscribe as subscribeToNow} from '@libs/NowStore';
 
 describe('useNow', () => {
     beforeEach(() => {
@@ -113,6 +113,25 @@ describe('useNow', () => {
         // Then its first render already shows 11:37, since a 97-minute-old clock on that first paint is what a user would see
         expect(rendered.at(0)?.toISOString()).toBe('2026-05-24T11:37:00.000Z');
         second.unmount();
+    });
+
+    it('notifies the subscriber it is adding about the transition subscribing consumed', () => {
+        // Given a listener already subscribed at 10:00, and a minute that passes before the pending tick fires, which is
+        // what a busy JS thread or a wake from background leaves behind
+        jest.setSystemTime(new Date('2026-05-24T10:00:00Z'));
+        resetNowStore();
+        const notified: string[] = [];
+        const unsubscribeFirst = subscribeToNow(() => notified.push('first'));
+        jest.setSystemTime(new Date('2026-05-24T10:01:00Z'));
+
+        // When a second listener subscribes, which advances the clock because nothing else has
+        const unsubscribeSecond = subscribeToNow(() => notified.push('second'));
+
+        // Then both hear about it. Only React's own re-read after subscribing hides a listener left out here, and the
+        // store cannot rely on that: the pending tick sees the same minute and notifies nobody
+        expect(notified).toEqual(['first', 'second']);
+        unsubscribeFirst();
+        unsubscribeSecond();
     });
 
     it('clears the pending timer when the last subscriber unmounts', () => {

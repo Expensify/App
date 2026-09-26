@@ -54,9 +54,8 @@ function tick() {
 }
 
 function subscribe(listener: () => void): () => void {
-    // Added first, because `advanceIfStale` consumes the minute transition and the pending tick then skips its own
-    // notify: everyone subscribed has to hear about it here, this listener included. React has already compared its
-    // snapshot by the time it calls this, so a listener notified after the comparison is the only one that re-reads.
+    // Added first: `advanceIfStale` consumes the minute transition and the pending tick then skips its own notify, so everyone subscribed hears about it here, this listener included.
+    // React re-reads the snapshot after subscribing, so `useNow` recovers either way; a listener that does not go through React would sit a minute behind until the next boundary.
     listeners.add(listener);
     if (advanceIfStale()) {
         for (const other of listeners) {
