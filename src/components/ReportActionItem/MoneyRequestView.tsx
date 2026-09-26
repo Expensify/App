@@ -1235,7 +1235,10 @@ function MoneyRequestView({
                     />
                 )}
                 {isCustomUnitOutOfPolicy && isPerDiemRequest && (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mh4, styles.mb2, styles.userSelectNone]}>
+                    <View
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mh4, styles.mb2, styles.userSelectNone]}
+                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                    >
                         <Icon
                             src={icons.DotIndicator}
                             fill={theme.danger}
@@ -1641,22 +1644,25 @@ function MoneyRequestView({
                                 accessible={false}
                                 aria-hidden
                                 style={styles.userSelectNone}
+                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             >
                                 {translate('common.billable')}
                             </Text>
                             {!!getErrorForField('billable') && (
-                                <ViolationMessages
-                                    violations={getViolationsForField('billable')}
-                                    containerStyle={[styles.mt1, styles.userSelectNone]}
-                                    textStyle={[styles.ph0]}
-                                    isLast
-                                    isMarkAsCash={isMarkAsCash}
-                                    canEdit={canEdit}
-                                    companyCardPageURL={companyCardPageURL}
-                                    connectionLink={connectionLink}
-                                    routeDistanceMeters={transaction?.comment?.customUnit?.routeDistanceMeters}
-                                    distanceUnit={transaction?.comment?.customUnit?.distanceUnit}
-                                />
+                                <View dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}>
+                                    <ViolationMessages
+                                        violations={getViolationsForField('billable')}
+                                        containerStyle={[styles.mt1, styles.userSelectNone]}
+                                        textStyle={[styles.ph0]}
+                                        isLast
+                                        isMarkAsCash={isMarkAsCash}
+                                        canEdit={canEdit}
+                                        companyCardPageURL={companyCardPageURL}
+                                        connectionLink={connectionLink}
+                                        routeDistanceMeters={transaction?.comment?.customUnit?.routeDistanceMeters}
+                                        distanceUnit={transaction?.comment?.customUnit?.distanceUnit}
+                                    />
+                                </View>
                             )}
                         </View>
                         <Switch

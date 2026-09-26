@@ -274,7 +274,10 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (
-            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+            <View
+                style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            >
                 <ReportSubmitToPopoverMeasurableAnchor wrapperStyle={styles.w100}>
                     <DeferredActionCell
                         action={item.action}

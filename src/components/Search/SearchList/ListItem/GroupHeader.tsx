@@ -329,7 +329,10 @@ function GroupHeader({
     };
 
     const subHeaderContent = (
-        <View style={[styles.flexColumn, styles.flex1]}>
+        <View
+            style={[styles.flexColumn, styles.flex1, styles.userSelectNone]}
+            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+        >
             <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8]}>
                 <SearchTableHeader
                     canSelectMultiple

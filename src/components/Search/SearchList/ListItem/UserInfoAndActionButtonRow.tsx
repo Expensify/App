@@ -68,8 +68,8 @@ function UserInfoAndActionButtonRow({
             )}
             {!!statusText && !!reportStatusColorStyle && (
                 <View
-                    style={shouldAllowStatusTextSelection ? styles.userSelectText : undefined}
-                    dataSet={shouldAllowStatusTextSelection ? COPYABLE_TEXT_DATA_SET : undefined}
+                    style={shouldAllowStatusTextSelection ? styles.userSelectText : styles.userSelectNone}
+                    dataSet={shouldAllowStatusTextSelection ? COPYABLE_TEXT_DATA_SET : {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 >
                     <StatusBadge
                         text={statusText}

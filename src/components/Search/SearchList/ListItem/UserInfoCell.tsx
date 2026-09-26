@@ -36,7 +36,10 @@ function UserInfoCell({avatar, accountID, displayName, avatarSize, containerStyl
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, containerStyle]}>
-            <View style={styles.userSelectNone}>
+            <View
+                style={styles.userSelectNone}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            >
                 <UserAvatar
                     imageStyles={styles.alignSelfCenter}
                     size={avatarSize ?? CONST.AVATAR_SIZE.XXX_SMALL}

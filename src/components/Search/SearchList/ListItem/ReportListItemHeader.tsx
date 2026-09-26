@@ -205,7 +205,10 @@ function HeaderFirstRow<TItem extends ListItem>({
                 )}
             </View>
             {isLargeScreenWidth && (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+                <View
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}
+                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                >
                     <ActionCell
                         action={reportItem.action}
                         onButtonPress={handleOnButtonPress}

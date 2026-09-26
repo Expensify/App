@@ -8,7 +8,7 @@ import Parser from '@libs/Parser';
 
 import CONST from '@src/CONST';
 
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewProps, ViewStyle} from 'react-native';
 
 import isEmpty from 'lodash/isEmpty';
 import React, {useContext, useMemo} from 'react';
@@ -35,6 +35,9 @@ type FormHelpMessageProps = {
     /** Message text style props */
     messageStyle?: StyleProp<TextStyle>;
 
+    /** Data attributes applied to the message container. */
+    dataSet?: ViewProps['dataSet'];
+
     /** Whether to show dot indicator */
     shouldShowRedDotIndicator?: boolean;
 
@@ -59,6 +62,7 @@ function FormHelpMessage({
     isError = true,
     style,
     messageStyle,
+    dataSet,
     shouldShowRedDotIndicator = true,
     shouldRenderMessageAsHTML = false,
     isInfo = false,
@@ -119,7 +123,10 @@ function FormHelpMessage({
     }
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, style]}>
+        <View
+            style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, style]}
+            dataSet={dataSet}
+        >
             {isError && shouldShowRedDotIndicator && (
                 <View
                     accessible

@@ -77,6 +77,8 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectab
     const receiptError = uniqueMessages.find(isReceiptError);
 
     const isTextSelectable = isSelectable ?? (!canUseTouchScreen() || !shouldUseNarrowLayout);
+    const selectionDataSet = isTextSelectable ? undefined : {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true};
+    const receiptSelectionDataSet = isSelectable === false ? selectionDataSet : undefined;
 
     const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
         if (isReceiptError(message)) {
@@ -159,14 +161,20 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectab
         );
         if (!isStackedLayout) {
             return (
-                <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, style]}>
+                <View
+                    style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, style]}
+                    dataSet={receiptSelectionDataSet}
+                >
                     {messageRow}
                     {buttonsRow}
                 </View>
             );
         }
         return (
-            <View style={style}>
+            <View
+                style={style}
+                dataSet={receiptSelectionDataSet}
+            >
                 {messageRow}
                 <View style={styles.mt3}>{buttonsRow}</View>
             </View>
@@ -174,7 +182,10 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectab
     }
 
     return (
-        <View style={[styles.dotIndicatorMessage, style]}>
+        <View
+            style={[styles.dotIndicatorMessage, style]}
+            dataSet={selectionDataSet}
+        >
             <View
                 style={styles.offlineFeedbackErrorDot}
                 accessible={isErrorMessage}

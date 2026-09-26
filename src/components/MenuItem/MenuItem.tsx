@@ -1249,6 +1249,7 @@ function MenuItem({
                                                 shouldShowRedDotIndicator={!!shouldShowRedDotIndicator}
                                                 message={errorText}
                                                 style={[styles.menuItemError, errorTextStyle]}
+                                                dataSet={isTitleSelectable ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : undefined}
                                                 shouldRenderMessageAsHTML={shouldRenderErrorAsHTML}
                                             />
                                         )}
@@ -1259,6 +1260,7 @@ function MenuItem({
                                                 message={hintText}
                                                 style={styles.menuItemError}
                                                 messageStyle={hintTextStyle}
+                                                dataSet={isTitleSelectable ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : undefined}
                                                 shouldRenderMessageAsHTML={shouldRenderHintAsHTML}
                                             />
                                         )}
