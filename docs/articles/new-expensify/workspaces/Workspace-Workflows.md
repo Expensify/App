@@ -1,6 +1,6 @@
 ---
 title: Workspace Workflows
-description: description: Configure your workspace submission, approval, and payment workflows to match your team's needs.
+description: Configure your workspace submission, approval, and payment workflows to match your team's needs.
 keywords: [New Expensify, workflows, approval workflows, delay submission, add approver, connect bank, workspace settings, submission frequency, authorized payer, mark as paid, payer, who can pay a report]
 internalScope: Audience is workspace admins, people admins and payment admins. Covers configuring approval, submission, and reimbursement workflows including choosing an authorized payer; does not cover connecting a bank account.
 ---
