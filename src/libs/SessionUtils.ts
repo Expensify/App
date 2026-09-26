@@ -25,9 +25,7 @@ function isLoggingInAsNewUser(transitionURL?: string, sessionEmail?: string): bo
 
     // If they do not match it might be due to encoding, so check the raw value
     // Capture the un-encoded text in the email param
-    const emailParamRegex = /[?&]email=([^&]*)/g;
-    const matches = emailParamRegex.exec(transitionURL ?? '');
-    const linkedEmail = matches?.[1] ?? null;
+    const linkedEmail = getEmailFromTransitionURL(transitionURL) ?? null;
 
     if (linkedEmail === sessionEmail) {
         return false;
@@ -64,6 +62,35 @@ function getDelegatorEmailFromURL(url?: string): string | undefined {
     const delegatorEmailParamRegex = /[?&]delegatorEmail=([^&]*)/g;
     const delegatorMatches = delegatorEmailParamRegex.exec(url ?? '');
     return delegatorMatches?.[1];
+}
+
+/**
+ * Looks for *email* param in given URL using regex
+ */
+function getEmailFromTransitionURL(url?: string): string | undefined {
+    if (!url) {
+        return undefined;
+    }
+
+    const [urlWithoutHash] = url.split('#', 2);
+    const queryIndex = urlWithoutHash.indexOf('?');
+    if (queryIndex === -1) {
+        return undefined;
+    }
+
+    const queryString = urlWithoutHash.slice(queryIndex + 1);
+    const match = queryString.match(/(?:^|&)email=([^&]*)/);
+    const email = match?.[1];
+
+    if (!email) {
+        return undefined;
+    }
+
+    try {
+        return decodeURIComponent(email);
+    } catch {
+        return email;
+    }
 }
 
 let loggedInDuringSession: boolean | undefined;
@@ -126,4 +153,13 @@ function isAgentEmail(email?: string): boolean {
     return AGENT_EMAIL_REGEX.test(email);
 }
 
-export {isLoggingInAsNewUser, didUserLogInDuringSession, resetDidUserLogInDuringSession, checkIfShouldUseNewPartnerName, getPartnerCredentials, isLoggingInAsDelegate, isAgentEmail};
+export {
+    isLoggingInAsNewUser,
+    didUserLogInDuringSession,
+    resetDidUserLogInDuringSession,
+    checkIfShouldUseNewPartnerName,
+    getPartnerCredentials,
+    isLoggingInAsDelegate,
+    isAgentEmail,
+    getEmailFromTransitionURL,
+};

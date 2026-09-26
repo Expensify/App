@@ -887,7 +887,7 @@ describe('Session', () => {
                 callback: (val) => (session = val),
             });
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true);
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', undefined, true);
             await waitForBatchedUpdates();
 
             expect(session?.signedInWithSAML).toBe(true);
@@ -900,7 +900,7 @@ describe('Session', () => {
                 callback: (val) => (session = val),
             });
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', false);
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', undefined, false);
             await waitForBatchedUpdates();
 
             expect(session?.signedInWithSAML).toBe(false);
@@ -913,7 +913,7 @@ describe('Session', () => {
             jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
             const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding');
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', undefined, true, '/search?q=status:outstanding');
             await waitForBatchedUpdates();
 
             expect(resetRootSpy).toHaveBeenCalledTimes(1);
@@ -929,7 +929,7 @@ describe('Session', () => {
             jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
             const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding');
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', undefined, true, '/search?q=status:outstanding');
             await waitForBatchedUpdates();
 
             expect(resetRootSpy).not.toHaveBeenCalled();
@@ -943,7 +943,7 @@ describe('Session', () => {
             jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
             const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding');
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', undefined, true, '/search?q=status:outstanding');
             await waitForBatchedUpdates();
 
             expect(resetRootSpy).not.toHaveBeenCalled();

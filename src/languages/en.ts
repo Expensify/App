@@ -673,6 +673,14 @@ const translations = {
         launching: 'Launching Expensify',
         expired: 'Your session has expired.',
         signIn: 'Please sign in again.',
+        notValid: 'Invalid link.',
+        sessionMismatch: "The link you clicked isn't valid for your current session.",
+        switchAccount: {
+            title: 'Switch accounts?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `You're signed in as ${currentEmail}. This action will sign you in as ${newEmail} instead.`,
+            confirm: 'Switch accounts',
+            staySignedIn: "Don't switch accounts",
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {

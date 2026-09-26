@@ -1,17 +1,22 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {useInitialURLState} from '@components/InitialURLContextProvider';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 
+import useConfirmModal from '@hooks/useConfirmModal';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import Log from '@libs/Log';
+import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
+import navigationRef from '@libs/Navigation/navigationRef';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getLastShortAuthToken} from '@libs/Network/NetworkStore';
-import {isLoggingInAsDelegate as isLoggingInAsDelegateSessionUtils, isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
+import {getEmailFromTransitionURL, isLoggingInAsDelegate as isLoggingInAsDelegateSessionUtils, isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
 
-import {isDelegateSession, signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
+import {isAnonymousUser, isDelegateSession, signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -20,7 +25,9 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
+
+import NotFoundPage from './ErrorPage/NotFoundPage';
 
 type LogOutPreviousUserPageProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
 
@@ -29,26 +36,85 @@ type LogOutPreviousUserPageProps = PlatformStackScreenProps<AuthScreensParamList
 //
 // This component should not do any other navigation as that handled in App.setUpPoliciesAndNavigate
 function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
-    const {initialURL} = useInitialURLState();
+    const {initialURL, isLoadingInitialURL} = useInitialURLState();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
     const isAccountLoading = account?.isLoading;
     const {authTokenType, shortLivedAuthToken = '', exitTo} = route?.params ?? {};
+    const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
+    const [hasCancelledSwitch, setHasCancelledSwitch] = useState(false);
 
     useEffect(() => {
+        if (!initialURL) {
+            return;
+        }
+
         const sessionEmail = session?.email;
-        const transitionURL = CONFIG.IS_HYBRID_APP ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
-        const isLoggingInAsNewUser = isLoggingInAsNewUserSessionUtils(transitionURL ?? undefined, sessionEmail);
+        const transitionURL = CONFIG.IS_HYBRID_APP ? `${CONST.DEEPLINK_BASE_URL}${initialURL}` : initialURL;
+        const isLoggingInAsNewUser = isLoggingInAsNewUserSessionUtils(transitionURL, sessionEmail);
         const isSupportalLogin = authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 
         if (isLoggingInAsNewUser) {
-            Log.info('[LogOutPreviousUserPage] Signing out for a transition to another user', false, {
-                isLinkNamingDelegator: isLoggingInAsDelegateSessionUtils(transitionURL ?? undefined),
-                isDelegateSession: isDelegateSession(session),
-                isSupportalLogin,
+            if (isSupportalLogin) {
+                Log.info('[LogOutPreviousUserPage] Signing out for a transition to another user', false, {
+                    isLinkNamingDelegator: isLoggingInAsDelegateSessionUtils(transitionURL ?? undefined),
+                    isDelegateSession: isDelegateSession(session),
+                    isSupportalLogin,
+                });
+                // We don't want to close react-native app in this particular case.
+                signOutAndRedirectToSignIn(false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+                return;
+            }
+
+            if (isAnonymousUser(session)) {
+                // We don't want to close react-native app in this particular case.
+                Navigation.isNavigationReady().then(() => {
+                    if (lastVisitedPath) {
+                        try {
+                            // Rebuilt like a cold start restore of this path, so the sign-in modal opens over the last public room instead of a blank loader.
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                            navigationRef.resetRoot({...getAdaptedStateFromPath(lastVisitedPath as Route), stale: true});
+                        } catch (error) {
+                            // A path saved by an older build may no longer exist.
+                            Log.warn('Unable to restore the last visited path for an anonymous user', {error});
+                            Navigation.goBack();
+                        }
+                    } else {
+                        // We must call goBack() to remove the /transition route from history
+                        Navigation.goBack();
+                    }
+                    Log.info('[LogOutPreviousUserPage] Signing out for a transition to another user', false, {
+                        isLinkNamingDelegator: isLoggingInAsDelegateSessionUtils(transitionURL ?? undefined),
+                        isDelegateSession: isDelegateSession(session),
+                        isSupportalLogin,
+                    });
+                    signOutAndRedirectToSignIn(false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+                });
+                return;
+            }
+
+            const linkEmail = getEmailFromTransitionURL(transitionURL);
+
+            showConfirmModal({
+                title: translate('deeplinkWrapper.switchAccount.title'),
+                prompt: translate('deeplinkWrapper.switchAccount.prompt', {newEmail: linkEmail ?? '', currentEmail: sessionEmail ?? ''}),
+                confirmText: translate('deeplinkWrapper.switchAccount.confirm'),
+                cancelText: translate('deeplinkWrapper.switchAccount.staySignedIn'),
+            }).then((result) => {
+                if (result.action !== ModalActions.CONFIRM) {
+                    setHasCancelledSwitch(true);
+                    return;
+                }
+                Log.info('[LogOutPreviousUserPage] Signing out for a transition to another user', false, {
+                    isLinkNamingDelegator: isLoggingInAsDelegateSessionUtils(transitionURL ?? undefined),
+                    isDelegateSession: isDelegateSession(session),
+                    isSupportalLogin,
+                });
+                // We don't want to close react-native app in this particular case.
+                signOutAndRedirectToSignIn(false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
             });
-            // We don't want to close react-native app in this particular case.
-            signOutAndRedirectToSignIn(false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
             return;
         }
 
@@ -66,7 +132,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
             });
             return;
         }
-        const isLoggingInAsDelegate = isLoggingInAsDelegateSessionUtils(transitionURL ?? undefined);
+        const isLoggingInAsDelegate = isLoggingInAsDelegateSessionUtils(transitionURL);
 
         if (isLoggingInAsDelegate) {
             return;
@@ -74,16 +140,36 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
 
         // Even if the user was already authenticated in NewDot, we need to reauthenticate them with shortLivedAuthToken,
         // because the old authToken stored in Onyx may be invalid.
-        signInWithShortLivedAuthToken(shortLivedAuthToken);
+        signInWithShortLivedAuthToken(shortLivedAuthToken, session?.authToken, false)
+            .then((response) => {
+                if (response?.type !== CONST.ERROR_TYPE.SESSION_MISMATCH) {
+                    return;
+                }
+                showConfirmModal({
+                    title: translate('deeplinkWrapper.notValid'),
+                    prompt: translate('deeplinkWrapper.sessionMismatch'),
+                    confirmText: translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                });
+            })
+            .catch((error) => Log.warn('Unable to sign in with shortLivedAuthToken', {error}));
 
         // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialURL]);
 
     useEffect(() => {
+        if (hasCancelledSwitch) {
+            Navigation.isNavigationReady().then(() => {
+                Navigation.goBack(ROUTES.HOME);
+            });
+            return;
+        }
+
         const sessionEmail = session?.email;
         const transitionURL = CONFIG.IS_HYBRID_APP ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
         const isLoggingInAsNewUser = isLoggingInAsNewUserSessionUtils(transitionURL ?? undefined, sessionEmail);
+
         // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
         // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
         // which is already called when AuthScreens mounts.
@@ -98,7 +184,14 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
             });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [initialURL, isAccountLoading]);
+    }, [initialURL, isAccountLoading, hasCancelledSwitch]);
+
+    // Linking.getInitialURL() only ever resolves the URL that launched the app.
+    // If it's still unset once it has settled, this mount came from tapping a link inside the app (e.g. a link in a message), which this page can't process.
+    // Show a not-found page instead of hanging here.
+    if (!isLoadingInitialURL && !initialURL) {
+        return <NotFoundPage />;
+    }
 
     return <FullScreenLoadingIndicator />;
 }

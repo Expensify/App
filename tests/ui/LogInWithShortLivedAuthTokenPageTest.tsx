@@ -71,14 +71,14 @@ describe('LogInWithShortLivedAuthTokenPage', () => {
         renderPage({shortLivedAuthToken: 'token', isSAML: true, shouldForceLogin: ''});
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding');
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, true, '/search?q=status:outstanding');
     });
 
     it('signs in with SAML without a landing page when nothing was kept', async () => {
         renderPage({shortLivedAuthToken: 'token', isSAML: true, shouldForceLogin: ''});
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, undefined);
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, true, undefined);
     });
 
     it('signs in with a SAML token while the account is still marked loading by a forced re-auth', async () => {
@@ -90,7 +90,7 @@ describe('LogInWithShortLivedAuthTokenPage', () => {
         renderPage({shortLivedAuthToken: 'token', isSAML: true, shouldForceLogin: ''});
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding');
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, true, '/search?q=status:outstanding');
     });
 
     it('waits for the account while it is loading for a non-SAML sign-in', async () => {
@@ -112,6 +112,6 @@ describe('LogInWithShortLivedAuthTokenPage', () => {
         renderPage({shortLivedAuthToken: 'token', shouldForceLogin: ''});
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', false, undefined);
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, false, undefined);
     });
 });

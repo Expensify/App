@@ -27,6 +27,7 @@ import handleSAMLLoginError from './handleSAMLLoginError';
 
 function SAMLSignInPage() {
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
     const [showNavigation, shouldShowNavigation] = useState(true);
     const [SAMLUrl, setSAMLUrl] = useState('');
@@ -106,7 +107,7 @@ function SAMLSignInPage() {
             // A forced re-auth leaves account.isLoading true until sign-in, so the token alone decides here.
             if (credentials?.login && shortLivedAuthToken) {
                 Log.info('SAMLSignInPage - Successfully received shortLivedAuthToken. Signing in...');
-                signInWithShortLivedAuthToken(shortLivedAuthToken, true, lastVisitedPath);
+                signInWithShortLivedAuthToken(shortLivedAuthToken, session?.authToken, true, lastVisitedPath);
                 return;
             }
 
@@ -123,7 +124,7 @@ function SAMLSignInPage() {
                 Navigation.navigate(ROUTES.HOME);
             });
         },
-        [credentials?.login, lastVisitedPath, translate],
+        [credentials?.login, lastVisitedPath, translate, session?.authToken],
     );
 
     useEffect(() => {
