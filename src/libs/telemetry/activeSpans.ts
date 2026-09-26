@@ -39,7 +39,9 @@ function startSpan(spanId: string, options: StartSpanOptions) {
         spanOptions: options,
         timestamp: Date.now(),
     });
-    const span = Sentry.startInactiveSpan(options);
+    // Sentry adopts the scope's active span when no parent is given, and a tap's idle span teardown force-ends live
+    // children. `forceTransaction` keeps the span out of that child list while preserving the trace link.
+    const span = Sentry.startInactiveSpan({...options, forceTransaction: options.forceTransaction ?? !options.parentSpan});
 
     const startTimeForLog = getPerformanceStartTimeForLog(options.startTime);
 

@@ -124,6 +124,7 @@ function init() {
                     parentSpan,
                     // A span with no parent is sent as its own transaction, one per recompute.
                     onlyIfParent: true,
+                    forceTransaction: false,
                     attributes: {derivedKey: key, triggeredKeys: [...triggeredKeys].join(','), [CONST.TELEMETRY.ATTRIBUTE_IS_STARTUP]: !!startupSpan},
                 });
 

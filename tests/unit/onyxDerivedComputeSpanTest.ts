@@ -106,6 +106,7 @@ describe('OnyxDerived compute span parenting', () => {
         expect(call).toBeDefined();
         expect(call?.parentSpan).toBeUndefined();
         expect(call?.onlyIfParent).toBe(true);
+        expect(call?.forceTransaction).toBe(false);
     });
 
     it('prefers the startup span over a send span', async () => {
@@ -126,5 +127,6 @@ describe('OnyxDerived compute span parenting', () => {
         const call = getComputeCallForDerivedKey(DERIVED_KEY);
         expect(call).toBeDefined();
         expect(call?.parentSpan).toBeUndefined();
+        expect(call?.forceTransaction).toBe(false);
     });
 });
