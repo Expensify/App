@@ -1297,7 +1297,9 @@ function setWorkspaceReimbursement({
         return account?.accountData?.policyIDs?.includes(policyID);
     });
 
-    if (oldBankAccountID !== undefined && String(bankAccountID) === oldBankAccountID) {
+    // A bank account can list the workspace in its policyIDs while the workspace itself points at another account,
+    // so the selection is only redundant when the workspace's own bank account is the selected one too.
+    if (oldBankAccountID !== undefined && String(bankAccountID) === oldBankAccountID && currentAchAccount?.bankAccountID === bankAccountID) {
         return;
     }
 
