@@ -5,6 +5,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import getCurrentPosition from '@libs/getCurrentPosition';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,6 +23,7 @@ import type {Report, Transaction} from '@src/types/onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import {check} from 'react-native-permissions';
 
 import type * as FileUtilsModule from '../../src/libs/fileDownload/FileUtils';
 
@@ -235,6 +237,35 @@ async function renderAndConfirm() {
     await waitForBatchedUpdatesWithAct();
     fireEvent.press(screen.getByTestId('mock-confirm-button'));
     await waitForBatchedUpdatesWithAct();
+}
+
+function mockPositionAnswer() {
+    jest.mocked(getCurrentPosition).mockImplementation(async (success) => {
+        success({
+            coords: {
+                latitude: 40.7128,
+                longitude: -74.006,
+                altitude: null,
+                accuracy: null,
+                altitudeAccuracy: null,
+                heading: null,
+                speed: null,
+            },
+            timestamp: 0,
+        });
+    });
+}
+
+function getUserLocationFromOnyx(): Promise<unknown> {
+    return new Promise((resolve) => {
+        const connection = Onyx.connect({
+            key: ONYXKEYS.USER_LOCATION,
+            callback: (val) => {
+                resolve(val);
+                Onyx.disconnect(connection);
+            },
+        });
+    });
 }
 
 function renderSubmitDetailsPage() {
@@ -566,6 +597,43 @@ describe('SubmitDetailsPage', () => {
         } finally {
             jest.useRealTimers();
         }
+    });
+
+    it('creates the shared expense with the position the share screen cached, without reading the device at submit', async () => {
+        // Given a shared receipt, location permission granted when the user confirms, and a position the share screen cached when it opened
+        mockPositionAnswer();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, null);
+        });
+        renderSubmitDetailsPage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(await getUserLocationFromOnyx()).toEqual({latitude: 40.7128, longitude: -74.006});
+
+        // When the user confirms the share
+        fireEvent.press(screen.getByTestId('mock-confirm-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the expense carries the cached position and confirming read the device no further
+        expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
+        expect(jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0].gpsPoint).toEqual({lat: 40.7128, long: -74.006});
+        expect(getCurrentPosition).toHaveBeenCalledTimes(1);
+    });
+
+    it('caches nothing and raises nothing when the permission check fails on open', async () => {
+        // Given a device whose location permission check fails outright
+        jest.mocked(check).mockRejectedValueOnce(new Error('permission check failed'));
+        const unhandledRejection = jest.fn();
+        process.on('unhandledRejection', unhandledRejection);
+
+        // When the share screen opens
+        renderSubmitDetailsPage();
+        await waitForBatchedUpdatesWithAct();
+        process.off('unhandledRejection', unhandledRejection);
+
+        // Then the screen cached no position, and the failed check never surfaced as an unhandled rejection
+        expect(await getUserLocationFromOnyx()).toBeUndefined();
+        expect(unhandledRejection).not.toHaveBeenCalled();
     });
 
     // Error #11 — narrow layout race: confirm fires before scheduleWhenIdle runs pre-insert setup.

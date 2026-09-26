@@ -21,7 +21,7 @@ import {completeTestDriveTask} from '@libs/actions/Task';
 import type {WriteReadyBarrier} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import getCurrentPosition from '@libs/getCurrentPosition';
+import getCurrentPositionWithinCap from '@libs/getCurrentPosition/getCurrentPositionWithinCap';
 import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {getExistingTransactionID, getReusableP2PReportID, isLookingAroundSearchRoutingActive, isSelfDMSoleDestination, resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
@@ -95,6 +95,7 @@ import {useEffect, useRef, useState} from 'react';
 
 function getCurrentPositionWithGeolocationSpan(onPosition: (gpsCoords?: {lat: number; long: number}) => void) {
     const parentSpan = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE);
+    parentSpan?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LOCATION_SOURCE, CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.WAITED);
     markSubmitExpenseEnd();
 
     startSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT, {
@@ -103,17 +104,11 @@ function getCurrentPositionWithGeolocationSpan(onPosition: (gpsCoords?: {lat: nu
         parentSpan,
     });
 
-    getCurrentPosition(
-        (successData) => {
-            onPosition({lat: successData.coords.latitude, long: successData.coords.longitude});
-            endSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT);
-        },
-        (errorData) => {
-            Log.info('[useExpenseSubmission] getCurrentPosition failed', false, errorData);
-            onPosition();
-            endSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT);
-        },
-    );
+    getCurrentPositionWithinCap((gpsCoords, source) => {
+        getSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LOCATION_SOURCE, source);
+        onPosition(gpsCoords);
+        endSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT);
+    });
 }
 
 type UseExpenseSubmissionParams = {
@@ -1025,6 +1020,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     }
 
     function createTransaction(locationPermissionGranted = false, shouldHandleNavigation = true, writeBarrier?: WriteReadyBarrier): boolean {
+        getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LOCATION_SOURCE, CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.NONE);
         if (blockDistanceRequestIfNeeded()) {
             return false;
         }
@@ -1275,6 +1271,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                 if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && !isSubmittingExpenseToDraftWorkspace && locationPermissionGranted) {
                     if (userLocation) {
+                        getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LOCATION_SOURCE, CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.CACHED);
                         trackExpense(shouldHandleNavigation, {
                             gpsPoint: {lat: userLocation.latitude, long: userLocation.longitude},
                             writeBarrier,
@@ -1307,6 +1304,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
             if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
                 if (userLocation) {
+                    getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LOCATION_SOURCE, CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.CACHED);
                     requestMoney(
                         shouldHandleNavigation,
                         {

@@ -260,7 +260,6 @@ function IOURequestStepConfirmationContent({
         isOdometerDistanceRequest,
     });
     const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
-    const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -1162,7 +1161,6 @@ function IOURequestStepConfirmationContent({
                             requestType={requestType}
                             canDismissFromSearch={canDismissFromSearch}
                             gpsRequired={!!gpsRequired}
-                            lastLocationPermissionPrompt={lastLocationPermissionPrompt}
                             isDistanceRequest={isDistanceRequest}
                             isMovingTransactionFromTrackExpense={isMovingTransactionFromTrackExpense}
                             isUnreported={isUnreported}

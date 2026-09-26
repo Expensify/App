@@ -1,11 +1,8 @@
-import LocationPermissionModal from '@components/LocationPermissionModal';
-
 import useOnyx from '@hooks/useOnyx';
 import type {AfterTransition} from '@hooks/usePreMountDestination';
 
 import {armTransitionBarrier} from '@libs/API';
 import type {WriteReadyBarrier} from '@libs/API';
-import DateUtils from '@libs/DateUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
@@ -23,7 +20,8 @@ import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQue
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
 
-import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest';
+import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
+
 import {IMMEDIATE, markBarrierAsImmediate} from '@userActions/IOU/resolveWriteBarrier';
 
 import type {IOUType} from '@src/CONST';
@@ -34,6 +32,7 @@ import ROUTES from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
 
 import React, {useEffect, useRef, useState} from 'react';
+import {RESULTS} from 'react-native-permissions';
 
 import type {SubmitHandler, SubmitNavigationSnapshot} from './getSubmitHandler';
 
@@ -86,9 +85,6 @@ type SubmitExpenseOrchestratorProps = {
     /** Whether the distance request requires GPS permission before submitting. */
     gpsRequired: boolean;
 
-    /** ISO timestamp of the last GPS permission prompt (for throttling re-prompts). */
-    lastLocationPermissionPrompt: string | undefined;
-
     /** True when the transaction is a distance (mileage) request. */
     isDistanceRequest: boolean;
 
@@ -125,14 +121,9 @@ type SubmitExpenseOrchestratorProps = {
 
 /**
  * Encapsulates the submit-expense navigation orchestration: telemetry lifecycle,
- * dismiss animation coordination, deferred writes, and the GPS permission flow.
+ * dismiss animation coordination and deferred writes.
  * Exposes `onConfirm` and `isConfirming` via a render prop so the parent only
  * needs to wire them to `MoneyRequestConfirmationList`.
- *
- * A render-prop component (rather than a hook) is used because this wrapper
- * needs to render `LocationPermissionModal` conditionally. A hook cannot own
- * JSX, so we'd need to return the modal element and have the caller place it
- * - which spreads the concern across two files again.
  *
  * The decision tree (which handler to invoke) is extracted into the pure
  * `getSubmitHandler()` function (see getSubmitHandler.ts) for isolated
@@ -149,7 +140,6 @@ function SubmitExpenseOrchestrator({
     requestType,
     canDismissFromSearch,
     gpsRequired,
-    lastLocationPermissionPrompt,
     isDistanceRequest,
     isMovingTransactionFromTrackExpense,
     isUnreported,
@@ -165,7 +155,6 @@ function SubmitExpenseOrchestrator({
     const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
     const [destinationReportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${destinationReportID}`);
     const [isConfirming, setIsConfirming] = useState(false);
-    const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const confirmingSafetyTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     useEffect(() => {
@@ -480,47 +469,14 @@ function SubmitExpenseOrchestrator({
     // memoizing every handler + all their captured props for no measurable gain.
     const onConfirm = () => {
         setIsConfirming(true);
-
-        if (gpsRequired) {
-            const shouldStartPermissionFlow =
-                !lastLocationPermissionPrompt ||
-                (DateUtils.isValidDateString(lastLocationPermissionPrompt) &&
-                    DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt)) > CONST.IOU.LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS);
-
-            if (shouldStartPermissionFlow) {
-                setStartLocationPermissionFlow(true);
-                return;
-            }
+        if (!gpsRequired) {
+            dispatchSubmitHandler();
+            return;
         }
-
-        dispatchSubmitHandler();
+        getLocationPermission().then((status) => dispatchSubmitHandler(status === RESULTS.GRANTED || status === RESULTS.LIMITED));
     };
 
-    return (
-        <>
-            {!!gpsRequired && (
-                <LocationPermissionModal
-                    startPermissionFlow={startLocationPermissionFlow}
-                    resetPermissionFlow={() => {
-                        setStartLocationPermissionFlow(false);
-                    }}
-                    onGrant={() => {
-                        dispatchSubmitHandler(true);
-                    }}
-                    onDeny={(wasUserInitiated) => {
-                        if (wasUserInitiated) {
-                            updateLastLocationPermissionPrompt();
-                        }
-                        dispatchSubmitHandler(false);
-                    }}
-                    onInitialGetLocationCompleted={() => {
-                        setIsConfirming(false);
-                    }}
-                />
-            )}
-            {children({onConfirm, isConfirming})}
-        </>
-    );
+    return <>{children({onConfirm, isConfirming})}</>;
 }
 
 export default SubmitExpenseOrchestrator;
