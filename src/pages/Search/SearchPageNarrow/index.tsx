@@ -67,8 +67,6 @@ type SearchPageNarrowProps = {
     isMobileSelectionModeEnabled: boolean;
     onSortPressedCallback: () => void;
 
-    /** Called when a footer selector re-runs the search, so the current results stay on screen while it loads */
-    onFooterDisplayChange: () => void;
     /** Overlay rendered above Search content during expense-creation flows (SearchStaticList or null). */
     searchOverlayContent: React.ReactNode;
     /** Callback for Search to signal that real content is ready and the overlay can be dismissed. */
@@ -88,7 +86,6 @@ function SearchPageNarrow({
     contentSearchResults,
     isMobileSelectionModeEnabled,
     onSortPressedCallback,
-    onFooterDisplayChange,
     searchOverlayContent,
     onSearchContentReady,
     hasFilterBars,
@@ -394,10 +391,7 @@ function SearchPageNarrow({
                                 </>
                             )}
                         </View>
-                        <SearchSelectionFooter
-                            searchResults={searchResults}
-                            onDisplayChange={onFooterDisplayChange}
-                        />
+                        <SearchSelectionFooter searchResults={searchResults} />
                     </View>
                 </ScreenWrapper>
             </ReceiptScanDropZone>

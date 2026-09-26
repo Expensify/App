@@ -76,9 +76,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const {resetVideoPlayerData} = usePlaybackActionsContext();
 
-    // A sort, or a footer total/currency change, re-runs the query under a new hash while matching the same rows. Keep
-    // the previous results on screen for those, so the list does not blank out on a change that cannot alter it.
-    const [isReloadingResults, setIsReloadingResults] = useState(false);
+    const [isSorting, setIsSorting] = useState(false);
 
     const isCurrentSearchResolved = isSearchDataLoaded(currentSearchResults, currentSearchQueryJSON);
     let searchResults: SearchResults | undefined;
@@ -86,7 +84,7 @@ function SearchPage({route}: SearchPageProps) {
         searchResults = {...currentSearchResults, data: {}};
     } else if (currentSearchResults?.data != null || currentSearchResults?.errors) {
         searchResults = currentSearchResults;
-    } else if (isReloadingResults) {
+    } else if (isSorting) {
         searchResults = lastNonEmptySearchResults;
     }
 
@@ -110,12 +108,12 @@ function SearchPage({route}: SearchPageProps) {
     const prevIsLoading = usePrevious(currentSearchResults?.isLoading);
 
     useEffect(() => {
-        if (!isReloadingResults || !prevIsLoading || currentSearchResults?.isLoading) {
+        if (!isSorting || !prevIsLoading || currentSearchResults?.isLoading) {
             return;
         }
 
-        setIsReloadingResults(false);
-    }, [currentSearchResults?.isLoading, isReloadingResults, prevIsLoading]);
+        setIsSorting(false);
+    }, [currentSearchResults?.isLoading, isSorting, prevIsLoading]);
 
     const [lastResolvedSearch, setLastResolvedSearch] = useState<{queryJSON: SearchQueryJSON; searchResults: SearchResults} | undefined>(undefined);
 
@@ -157,7 +155,9 @@ function SearchPage({route}: SearchPageProps) {
         }
     }, []);
 
-    const startResultsReload = () => setIsReloadingResults(true);
+    const onSortPressedCallback = useCallback(() => {
+        setIsSorting(true);
+    }, []);
 
     const overlayContentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(!!hasFilterBars) : undefined;
     const overlayEndSubmitSpans = useEndSubmitNavigationSpans();
@@ -182,8 +182,7 @@ function SearchPage({route}: SearchPageProps) {
                             contentQueryJSON={contentQueryJSON}
                             contentSearchResults={contentSearchResults}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                            onSortPressedCallback={startResultsReload}
-                            onFooterDisplayChange={startResultsReload}
+                            onSortPressedCallback={onSortPressedCallback}
                             searchOverlayContent={searchOverlayContent}
                             onSearchContentReady={onSearchContentReady}
                             hasFilterBars={hasFilterBars}
@@ -197,8 +196,7 @@ function SearchPage({route}: SearchPageProps) {
                             contentSearchResults={contentSearchResults}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             handleSearchAction={handleSearchAction}
-                            onSortPressedCallback={startResultsReload}
-                            onFooterDisplayChange={startResultsReload}
+                            onSortPressedCallback={onSortPressedCallback}
                             route={route}
                             searchOverlayContent={searchOverlayContent}
                             onSearchContentReady={onSearchContentReady}

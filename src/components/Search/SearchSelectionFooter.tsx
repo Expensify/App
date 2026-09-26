@@ -27,9 +27,6 @@ import SearchPageFooter from './SearchPageFooter';
 type SearchSelectionFooterProps = {
     /** The (sorting-aware) results the page is displaying; source of the footer's totals metadata. */
     searchResults: OnyxEntry<SearchResults>;
-
-    /** Called before a footer selector re-runs the search, so the page keeps the current results while it loads. */
-    onDisplayChange: () => void;
 };
 
 type FooterCurrencyState = {
@@ -131,7 +128,7 @@ function areAllSelectedReportsConverted(selectedReportIDs: string[], isReportFre
 
 // Self-subscribing footer leaf. Owns the `selectedTransactions` read so a checkbox press re-renders only this
 // footer — not SearchPage and the <Search> list it contains.
-function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelectionFooterProps) {
+function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected, selectedReports} = useSearchSelectionContext();
     const {currentSearchResults, shouldUseLiveData} = useSearchResultsContext();
     const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
@@ -576,20 +573,13 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
     // query is rebuilt from the one on display rather than through the advanced-filters form: this footer is a
     // self-subscribing leaf that re-renders on every checkbox press, and the form route would subscribe it to the whole
     // policy collection. useSearchFilterSync writes the form from the query, so the form still follows.
-    //
-    // `shouldReloadResults` says whether the backend's answer actually changes. Only `footerTotal` does, by swapping
-    // which aggregate comes back as the search total, so only that one enters the query hash and re-runs the search. The page
-    // is told first, so the rows stay on screen while it loads: the selection never changes which rows match.
-    const applyFooterSelection = (selection: {footerCount?: SearchFooterCount; footerTotal?: SearchFooterTotal; footerCurrency?: string}, shouldReloadResults = false) => {
+    const applyFooterSelection = (selection: {footerCount?: SearchFooterCount; footerTotal?: SearchFooterTotal; footerCurrency?: string}) => {
         if (!currentSearchQueryJSON) {
             return;
         }
 
         const nextQuery = getQueryWithFooterSelection(currentSearchQueryJSON, selection);
         close(() => {
-            if (shouldReloadResults) {
-                onDisplayChange();
-            }
             Navigation.setParams({q: nextQuery, rawQuery: undefined});
         });
     };
@@ -616,7 +606,7 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
         // Written in both cases, so the choice is saved against this search and restored on the next visit. The page
         // is told first so the rows stay on screen while the new hash loads, and the selection rides it out:
         // `useSearchPageSetup` keeps a selection across a query change that is only a footer selection.
-        applyFooterSelection({footerTotal: nextTotalType}, true);
+        applyFooterSelection({footerTotal: nextTotalType});
     };
 
     const handleFooterCountChange = (nextCountType: SearchFooterCount) => {

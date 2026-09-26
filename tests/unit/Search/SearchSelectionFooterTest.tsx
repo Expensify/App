@@ -25,7 +25,6 @@ jest.mock('@libs/actions/Search', () => ({
 }));
 
 const mockSetParams = jest.fn<void, [{q?: string; rawQuery?: string}]>();
-const mockOnDisplayChange = jest.fn();
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     // Called through a wrapper: the factory runs before the mock above is initialized.
@@ -208,12 +207,7 @@ describe('SearchSelectionFooter', () => {
         mockExcludedTransactions.current = {transaction1: buildSelectedTransaction(CONST.CURRENCY.USD)};
         mockAreAllMatchingItemsSelected.current = true;
 
-        render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(CONST.CURRENCY.USD, 172, 36000)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 172, 36000)} />);
         await waitForBatchedUpdates();
 
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 171, total: 35900, currency: CONST.CURRENCY.USD}));
@@ -229,12 +223,7 @@ describe('SearchSelectionFooter', () => {
         mockSelectedReports.current = [buildSelectedReport('report2', -100)];
         mockAreAllMatchingItemsSelected.current = true;
 
-        render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)} />);
         await waitForBatchedUpdates();
 
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 8, total: 35800, currency: CONST.CURRENCY.USD}));
@@ -246,12 +235,7 @@ describe('SearchSelectionFooter', () => {
         mockSelectedReports.current = [buildSelectedReport('report1', -100)];
         mockAreAllMatchingItemsSelected.current = true;
 
-        render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, undefined, true)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, undefined, true)} />);
         await waitForBatchedUpdates();
 
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 10, total: 36000, currency: CONST.CURRENCY.USD}));
@@ -266,23 +250,13 @@ describe('SearchSelectionFooter', () => {
         };
         mockSelectedReports.current = [buildSelectedReport('report1', -200)];
 
-        const {rerender} = render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
+        const {rerender} = render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)} />);
         await waitForBatchedUpdates();
 
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, count: 1, total: 200, currency: CONST.CURRENCY.USD}));
 
         setSearchQuery('type:expense-report footerCount:expenses');
-        rerender(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
+        rerender(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)} />);
         await waitForBatchedUpdates();
 
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.EXPENSES, count: 2, total: 200, currency: CONST.CURRENCY.USD}));
@@ -297,12 +271,7 @@ describe('SearchSelectionFooter', () => {
         mockSelectedReports.current = [buildSelectedReport('report2', -100)];
         mockAreAllMatchingItemsSelected.current = true;
         const searchResults = buildSearchResults(CONST.CURRENCY.USD, 2, 200, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
-        const {rerender} = render(
-            <SearchSelectionFooter
-                searchResults={searchResults}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
+        const {rerender} = render(<SearchSelectionFooter searchResults={searchResults} />);
         await waitForBatchedUpdates();
 
         await act(async () => {
@@ -313,12 +282,7 @@ describe('SearchSelectionFooter', () => {
         // Reconciliation can provide an equivalent selectedReports array before Onyx publishes the optimistic source
         // stamp. That render must not issue the same report conversion again.
         mockSelectedReports.current = [...mockSelectedReports.current];
-        rerender(
-            <SearchSelectionFooter
-                searchResults={searchResults}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
+        rerender(<SearchSelectionFooter searchResults={searchResults} />);
         await waitForBatchedUpdates();
 
         const reportConversionCalls = jest.mocked(getFooterConvertedAmounts).mock.calls.filter(([params]) => params.reportIDList === 'report1');
@@ -337,12 +301,7 @@ describe('SearchSelectionFooter', () => {
             transaction2: {...buildSelectedTransaction(CONST.CURRENCY.USD), displayAmount: -10000},
         };
 
-        render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(CONST.CURRENCY.USD, 5)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 5)} />);
         await waitForBatchedUpdates();
 
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 2, total: 0}));
@@ -354,12 +313,7 @@ describe('SearchSelectionFooter', () => {
             transaction2: {...buildSelectedTransaction(CONST.CURRENCY.USD), displayAmount: -4000},
         };
 
-        render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(CONST.CURRENCY.USD, 5)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 5)} />);
         await waitForBatchedUpdates();
 
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 2, total: 6000}));
@@ -371,12 +325,7 @@ describe('SearchSelectionFooter', () => {
         mockExcludedTransactions.current = {transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), displayAmount: -10000}};
         mockAreAllMatchingItemsSelected.current = true;
 
-        render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(CONST.CURRENCY.USD, 172, 36000)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 172, 36000)} />);
         await waitForBatchedUpdates();
 
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 171, total: 46000, currency: CONST.CURRENCY.USD}));
@@ -385,12 +334,7 @@ describe('SearchSelectionFooter', () => {
     it("offers the user's live payment currency as the Reset target when there is no active workspace", async () => {
         // A fresh no-workspace account: the active policy is the personal policy, and the only selected expense
         // happens to be in a different currency (JPY) from the live payment currency (GBP).
-        render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(undefined)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
+        render(<SearchSelectionFooter searchResults={buildSearchResults(undefined)} />);
         await waitForBatchedUpdates();
 
         // The footer's Reset/default currency follows the live payment currency (the personal policy's output
@@ -405,12 +349,7 @@ describe('SearchSelectionFooter', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE_POLICY_ID}`, {id: WORKSPACE_POLICY_ID, outputCurrency: CONST.CURRENCY.EUR});
         await waitForBatchedUpdates();
 
-        render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(CONST.CURRENCY.EUR)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.EUR)} />);
         await waitForBatchedUpdates();
 
         expect(mockCapturedFooterProps.current?.defaultCurrency).toBe(CONST.CURRENCY.EUR);
@@ -422,12 +361,7 @@ describe('SearchSelectionFooter', () => {
         mockSelectedTransactions.current = {[`${CONST.SEARCH.GROUP_PREFIX}category1`]: buildSelectedTransaction(SELECTED_EXPENSE_CURRENCY, 'INR', -100)};
 
         // A partial selection (1 of 2), so the footer uses the client-side selected total.
-        render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(undefined, 2)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
+        render(<SearchSelectionFooter searchResults={buildSearchResults(undefined, 2)} />);
         await waitForBatchedUpdates();
 
         // No picker choice yet, so nothing converts.
@@ -446,12 +380,7 @@ describe('SearchSelectionFooter', () => {
     it('does not convert when Reset selects the currency the figures are already denominated in', async () => {
         mockSelectedTransactions.current = {[`${CONST.SEARCH.GROUP_PREFIX}category1`]: buildSelectedTransaction(SELECTED_EXPENSE_CURRENCY, PAYMENT_CURRENCY, -100)};
 
-        render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(undefined, 2)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
+        render(<SearchSelectionFooter searchResults={buildSearchResults(undefined, 2)} />);
         await waitForBatchedUpdates();
 
         await act(async () => {
@@ -468,12 +397,7 @@ describe('SearchSelectionFooter', () => {
         it('defaults to the plain total spend and reads the aggregate the query selects', async () => {
             mockSelectedTransactions.current = {};
 
-            const {rerender} = render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            const {rerender} = render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)} />);
             await waitForBatchedUpdates();
 
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.TOTAL, total: 36000}));
@@ -482,12 +406,7 @@ describe('SearchSelectionFooter', () => {
             // The backend swaps the aggregate into `total` itself, so the footer just displays the total it was sent.
             const searchResults = buildSearchResults(CONST.CURRENCY.USD, 10, 12000);
 
-            rerender(
-                <SearchSelectionFooter
-                    searchResults={searchResults}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            rerender(<SearchSelectionFooter searchResults={searchResults} />);
             await waitForBatchedUpdates();
 
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE, total: 12000}));
@@ -497,12 +416,7 @@ describe('SearchSelectionFooter', () => {
             setSearchQuery('type:expense footerTotal:billable');
             mockSelectedTransactions.current = {};
 
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 4200)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 4200)} />);
             await waitForBatchedUpdates();
 
             expect(mockCapturedFooterProps.current?.total).toBe(4200);
@@ -511,12 +425,7 @@ describe('SearchSelectionFooter', () => {
         it('offers no total selector on an empty result set', async () => {
             mockSelectedTransactions.current = {};
 
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 0, 0)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 0, 0)} />);
             await waitForBatchedUpdates();
 
             expect(mockCapturedFooterProps.current?.totalType).toBeUndefined();
@@ -527,12 +436,7 @@ describe('SearchSelectionFooter', () => {
             mockSelectedTransactions.current = {};
             const beforeHash = mockSearchQueryContext.current.currentSearchQueryJSON?.hash;
 
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)} />);
             await waitForBatchedUpdates();
 
             await act(async () => {
@@ -548,8 +452,6 @@ describe('SearchSelectionFooter', () => {
             expect(nextQuery).toContain('footerTotal:reimbursable');
             // ...and the hash moves with it, since the backend answers a different aggregate for each breakdown.
             expect(buildSearchQueryJSON(nextQuery)?.hash).not.toBe(beforeHash);
-            // The page is told first, so the current rows stay on screen while the new snapshot loads.
-            expect(mockOnDisplayChange).toHaveBeenCalled();
         });
 
         it("skeletons the total after applying one while another search's results are still on screen, leaving the count alone", async () => {
@@ -557,12 +459,7 @@ describe('SearchSelectionFooter', () => {
             setSearchQuery('type:expense', 2);
             mockSelectedTransactions.current = {};
 
-            const {rerender} = render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 4)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            const {rerender} = render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 4)} />);
             await waitForBatchedUpdates();
 
             // Then nothing is waited on until the footer asks for something
@@ -576,12 +473,7 @@ describe('SearchSelectionFooter', () => {
             const nextQuery = mockSetParams.mock.calls.at(0)?.at(0)?.q ?? '';
             const nextHash = buildSearchQueryJSON(nextQuery)?.hash ?? 0;
             setSearchQuery(nextQuery, nextHash);
-            rerender(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 4)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            rerender(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 4)} />);
             await waitForBatchedUpdates();
 
             // Then the skeleton stands in for the figure it cannot describe yet, and the count holds its value
@@ -591,12 +483,7 @@ describe('SearchSelectionFooter', () => {
             // When this search's own results arrive
             const nextResults = buildSearchResults(CONST.CURRENCY.USD, 10, 12000, CONST.SEARCH.DATA_TYPES.EXPENSE, 4);
             nextResults.search.hash = nextHash;
-            rerender(
-                <SearchSelectionFooter
-                    searchResults={nextResults}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            rerender(<SearchSelectionFooter searchResults={nextResults} />);
             await waitForBatchedUpdates();
 
             // Then the skeleton gives way to the figure
@@ -608,12 +495,7 @@ describe('SearchSelectionFooter', () => {
             setSearchQuery('type:expense', 2);
             mockSelectedTransactions.current = {};
 
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 4)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 4)} />);
             await waitForBatchedUpdates();
 
             expect(mockCapturedFooterProps.current?.isTotalLoading).toBe(false);
@@ -632,12 +514,7 @@ describe('SearchSelectionFooter', () => {
 
         async function renderWithTotal(totalType: SearchFooterTotal) {
             setSearchQuery(`type:expense footerTotal:${totalType}`);
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000)} />);
             await waitForBatchedUpdates();
             return mockCapturedFooterProps.current;
         }
@@ -666,12 +543,7 @@ describe('SearchSelectionFooter', () => {
             setSearchQuery(`type:expense-report footerTotal:${CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE}`);
             mockSelectedTransactions.current = {reimbursable1: buildFlaggedTransaction(100, {reimbursable: true})};
 
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)} />);
             await waitForBatchedUpdates();
 
             await act(async () => {
@@ -686,12 +558,7 @@ describe('SearchSelectionFooter', () => {
 
         it('stores a total applied over a selection in the query too, so it is restored on the next visit', async () => {
             setSearchQuery('type:expense');
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000)} />);
             await waitForBatchedUpdates();
 
             await act(async () => {
@@ -703,7 +570,6 @@ describe('SearchSelectionFooter', () => {
             // moves is a footer-only change, which `useSearchPageSetup` keeps the selection across.
             const nextQuery = mockSetParams.mock.calls.at(0)?.at(0)?.q ?? '';
             expect(nextQuery).toContain('footerTotal:billable');
-            expect(mockOnDisplayChange).toHaveBeenCalled();
 
             // The breakdown applies right away all the same, summed from the selected rows: one of the three is billable.
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.BILLABLE, total: -100}));
@@ -734,12 +600,7 @@ describe('SearchSelectionFooter', () => {
             setSearchQuery('type:expense');
             mockSelectedTransactions.current = {};
 
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)} />);
             await waitForBatchedUpdates();
 
             await act(async () => {
@@ -751,19 +612,13 @@ describe('SearchSelectionFooter', () => {
             expect(getFooterConvertedAmounts).toHaveBeenCalledWith(expect.objectContaining({targetCurrency: CONST.CURRENCY.EUR}));
             // ...while the query carries the choice so it survives a reload, with no results reload of its own.
             expect(mockSetParams.mock.calls.at(0)?.at(0)?.q).toContain('footerCurrency:EUR');
-            expect(mockOnDisplayChange).not.toHaveBeenCalled();
         });
 
         it('starts from the currency the query carries, so a saved search reopens on it', async () => {
             setSearchQuery('type:expense footerCurrency:EUR');
             mockSelectedTransactions.current = {};
 
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)} />);
             await waitForBatchedUpdates();
 
             expect(getFooterConvertedAmounts).toHaveBeenCalledWith(expect.objectContaining({targetCurrency: CONST.CURRENCY.EUR}));
@@ -775,12 +630,7 @@ describe('SearchSelectionFooter', () => {
             setSearchQuery('type:expense-report');
             mockSelectedTransactions.current = {};
 
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 87)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 87)} />);
             await waitForBatchedUpdates();
 
             expect(mockCapturedFooterProps.current).toEqual(
@@ -791,12 +641,7 @@ describe('SearchSelectionFooter', () => {
         it('defaults an expense search to the expense count', async () => {
             mockSelectedTransactions.current = {};
 
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)} />);
             await waitForBatchedUpdates();
 
             expect(mockCapturedFooterProps.current).toEqual(
@@ -808,12 +653,7 @@ describe('SearchSelectionFooter', () => {
             setSearchQuery('type:expense-report footerCount:expenses');
             mockSelectedTransactions.current = {};
 
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 87)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 87)} />);
             await waitForBatchedUpdates();
 
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 1204, countType: CONST.SEARCH.FOOTER_COUNT.EXPENSES}));
@@ -825,12 +665,7 @@ describe('SearchSelectionFooter', () => {
             mockSelectedTransactions.current = {transaction1: buildSelectedTransaction(CONST.CURRENCY.USD)};
             mockAreAllMatchingItemsSelected.current = true;
 
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 87)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 87)} />);
             await waitForBatchedUpdates();
 
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 87, countType: CONST.SEARCH.FOOTER_COUNT.REPORTS}));
@@ -845,12 +680,7 @@ describe('SearchSelectionFooter', () => {
                 transaction3: {...buildSelectedTransaction(CONST.CURRENCY.USD), reportID: 'report2'},
             };
 
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)} />);
             await waitForBatchedUpdates();
 
             // The server's 87 describes the whole search, so the selection reports its own two.
@@ -866,12 +696,7 @@ describe('SearchSelectionFooter', () => {
                 transaction3: {...buildSelectedTransaction(CONST.CURRENCY.USD), reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
             };
 
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)} />);
             await waitForBatchedUpdates();
 
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, count: 1}));
@@ -884,12 +709,7 @@ describe('SearchSelectionFooter', () => {
                 transaction2: {...buildSelectedTransaction(CONST.CURRENCY.USD), reportID: 'report1'},
             };
 
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)} />);
             await waitForBatchedUpdates();
 
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.EXPENSES, count: 2}));
@@ -900,12 +720,7 @@ describe('SearchSelectionFooter', () => {
             mockSelectedTransactions.current = {};
 
             // A grouped search counts expenses only, so the server sends no report count to switch to.
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000)} />);
             await waitForBatchedUpdates();
 
             expect(mockCapturedFooterProps.current?.countType).toBeUndefined();
@@ -920,12 +735,7 @@ describe('SearchSelectionFooter', () => {
                 nonReimbursable1: buildFlaggedTransaction(300, {reimbursable: false}),
             };
 
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000)} />);
             await waitForBatchedUpdates();
 
             expect(mockCapturedFooterProps.current).toEqual(
@@ -942,12 +752,7 @@ describe('SearchSelectionFooter', () => {
                 transaction2: {...buildFlaggedTransaction(300, {reimbursable: false}), groupKey: 'report1', isSelectedViaGroup: true},
             };
 
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 87)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 87)} />);
             await waitForBatchedUpdates();
 
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, totalType: CONST.SEARCH.FOOTER_TOTAL.TOTAL, total: -400}));
@@ -957,12 +762,7 @@ describe('SearchSelectionFooter', () => {
             setSearchQuery('type:expense groupBy:category');
             mockSelectedTransactions.current = {[`${CONST.SEARCH.GROUP_PREFIX}category1`]: buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, -100)};
 
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)} />);
             await waitForBatchedUpdates();
 
             expect(mockCapturedFooterProps.current?.countType).toBeUndefined();
@@ -977,12 +777,7 @@ describe('SearchSelectionFooter', () => {
                 transaction2: {...buildFlaggedTransaction(300, {reimbursable: false}), groupKey: `${CONST.SEARCH.GROUP_PREFIX}category1`, isSelectedViaGroup: true},
             };
 
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)} />);
             await waitForBatchedUpdates();
 
             expect(mockCapturedFooterProps.current?.countType).toBeUndefined();
@@ -995,12 +790,7 @@ describe('SearchSelectionFooter', () => {
                 transaction1: {...buildFlaggedTransaction(100, {reimbursable: true}), groupKey: `${CONST.SEARCH.GROUP_PREFIX}category1`, isSelectedViaGroup: false},
             };
 
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)} />);
             await waitForBatchedUpdates();
 
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.EXPENSES, totalType: CONST.SEARCH.FOOTER_TOTAL.TOTAL}));
@@ -1012,12 +802,7 @@ describe('SearchSelectionFooter', () => {
             mockExcludedTransactions.current = {transaction1: buildSelectedTransaction(CONST.CURRENCY.USD)};
             mockAreAllMatchingItemsSelected.current = true;
 
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 172, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 172, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)} />);
             await waitForBatchedUpdates();
 
             // A select-all covers rows that were never loaded, so only the server can say how many reports they span.
@@ -1033,12 +818,7 @@ describe('SearchSelectionFooter', () => {
                 transaction3: {...buildSelectedTransaction(CONST.CURRENCY.USD), reportID: 'report2'},
             };
 
-            const {rerender} = render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            const {rerender} = render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)} />);
             await waitForBatchedUpdates();
 
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.EXPENSES, count: 3}));
@@ -1051,17 +831,10 @@ describe('SearchSelectionFooter', () => {
             // The query carries the choice, which is what makes it survive leaving and returning to the tab...
             const nextQuery = mockSetParams.mock.calls.at(0)?.at(0)?.q;
             expect(nextQuery).toContain('footerCount:reports');
-            // ...and the hash is unchanged, so the selected rows are not cleared.
-            expect(mockOnDisplayChange).not.toHaveBeenCalled();
 
             // Replaying the query the app would now be on: the footer counts the two reports those expenses sit on.
             setSearchQuery(nextQuery ?? '');
-            rerender(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            rerender(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)} />);
             await waitForBatchedUpdates();
 
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, count: 2}));
@@ -1072,12 +845,7 @@ describe('SearchSelectionFooter', () => {
             setSearchQuery('type:expense');
             mockSelectedTransactions.current = {};
 
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)} />);
             await waitForBatchedUpdates();
 
             await act(async () => {
@@ -1092,12 +860,7 @@ describe('SearchSelectionFooter', () => {
         it('offers no count selector when the search returned no report count', async () => {
             mockSelectedTransactions.current = {};
 
-            render(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE)} />);
             await waitForBatchedUpdates();
 
             expect(mockCapturedFooterProps.current?.countType).toBeUndefined();
