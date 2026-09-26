@@ -55,8 +55,7 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
             return;
         }
 
-        // Clear stale flow state on entry while preserving onSuccessFallbackRoute and exitReportID if they were set before entering this screen
-        // (e.g. from a pay/KYC flow, a deep link, or the "Add bank account" button on a queued reimbursement).
+        // Clear stale flow state on entry but keep onSuccessFallbackRoute and exitReportID if they were set before.
         // openPersonalBankAccountSetupView also resets state, but this handles direct navigation to this screen.
         const preservedData = {
             ...(onSuccessFallbackRoute ? {onSuccessFallbackRoute} : {}),

@@ -96,10 +96,8 @@ function AddPersonalBankAccountPage() {
     const exitFlow = (shouldContinue = false) => {
         const onSuccessFallbackRoute = fullPersonalBankAccount?.onSuccessFallbackRoute ?? '';
 
-        // The report the flow was opened from (e.g. an expense waiting on the payee's bank account) holds server-owned fields
-        // like nextStep and isWaitingOnBankAccount that AddPersonalBankAccount doesn't update, so refetch it once the account is added.
-        // Navigation is intentionally left to exit(): the report may not be the one on screen, so navigating to it would be wrong.
-        // For the same reason don't mark it as read; this only refreshes its data.
+        // Refresh the report the flow was opened from, since adding the account changes its server-owned fields.
+        // It may not be on screen, so don't navigate to it or mark it as read.
         if (exitReportID && shouldShowSuccess) {
             openReport({reportID: exitReportID, hasReportActions: hasExitReportActions, shouldMarkAsRead: false});
         }
