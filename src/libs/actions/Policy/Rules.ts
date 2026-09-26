@@ -5,22 +5,22 @@ import * as API from '@libs/API';
 import type {
     AddPolicyAgentRuleParams,
     DeletePolicyAgentRuleParams,
-    DeleteRuleParams,
     GetAgentRuleSuggestionsParams,
     ImportMerchantRulesSpreadsheetParams,
-    SetRuleParams,
     UpdatePolicyAgentRuleParams,
 } from '@libs/API/parameters';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
+import type SetPolicyCodingRuleParams from '@libs/API/parameters/SetPolicyCodingRuleParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {buildMerchantRule} from '@libs/ExpenseDefaultRuleUtils';
-import type {MerchantRuleFormValues} from '@libs/ExpenseDefaultRuleUtils';
+import {buildMerchantRule, isExpenseDefaultTaxValue} from '@libs/ExpenseDefaultRuleUtils';
+import type {BuiltMerchantRule, MerchantRuleFormValues} from '@libs/ExpenseDefaultRuleUtils';
 import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ExpenseDefaultAction} from '@src/types/onyx/ExpenseDefaultRules';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type Policy from '@src/types/onyx/Policy';
 import type {AgentRule, CodingRule, CodingRuleFilter} from '@src/types/onyx/Policy';
@@ -33,6 +33,69 @@ import Onyx from 'react-native-onyx';
 
 /** A coding rule parsed from an imported spreadsheet row, keyed by a client-generated ruleID */
 type ImportedMerchantRule = Omit<CodingRule, 'ruleID' | 'pendingAction' | 'errors'>;
+
+/**
+ * Builds the `codingRuleValue` sent to `SetPolicyCodingRule`. Writes go through the legacy command rather than
+ * `SetRule` because it dual-writes into both `policy.rules.codingRules` and the `rules_` collection, while
+ * `SetRule` only writes the new collection. Older clients read `codingRules`, so writing only the new collection
+ * would silently stop them seeing rules created or edited on a newer client. This whole path goes away once the
+ * minimum supported version reads the `rules_` collection.
+ *
+ * This reads the built rule rather than the form so the optimistic Onyx value and the saved rule share one
+ * definition of what an empty field is. Reading the form separately let a padded merchant, a whitespace-only
+ * description, or a tax selected before the rates loaded reach the server after the rule had already dropped it.
+ */
+function buildLegacyCodingRule(ruleValue: BuiltMerchantRule, ruleID: string, created: string): Partial<CodingRule> {
+    const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
+    const {ACTIONS: ACTION} = CONST.RULES;
+
+    const valuesByField = new Map<string, ExpenseDefaultAction['value']>();
+    for (const action of Object.values(ruleValue.actions)) {
+        if (action.name !== ACTION.SET) {
+            continue;
+        }
+        valuesByField.set(action.field, action.value);
+    }
+
+    const getStringValue = (field: string): string | undefined => {
+        const value = valuesByField.get(field);
+        return typeof value === 'string' ? value : undefined;
+    };
+    const getBooleanValue = (field: string): boolean | undefined => {
+        const value = valuesByField.get(field);
+        return typeof value === 'boolean' ? value : undefined;
+    };
+
+    const taxValue = valuesByField.get(FIELD.TAX);
+    const tax = isExpenseDefaultTaxValue(taxValue) ? taxValue : undefined;
+    const merchant = getStringValue(FIELD.MERCHANT);
+    const category = getStringValue(FIELD.CATEGORY);
+    const tag = getStringValue(FIELD.TAG);
+    const vendorID = getStringValue(FIELD.VENDOR_ID);
+    const comment = getStringValue(FIELD.COMMENT);
+    const reimbursable = getBooleanValue(FIELD.REIMBURSABLE);
+    const billable = getBooleanValue(FIELD.BILLABLE);
+
+    const {left, operator, right} = ruleValue.filters;
+
+    return {
+        ruleID,
+        filters: {
+            left,
+            operator,
+            right: typeof right === 'string' ? right : String(right),
+        },
+        ...(merchant && {merchant}),
+        ...(category && {category}),
+        ...(tag && {tag}),
+        ...(tax && {tax}),
+        ...(vendorID && {vendorID}),
+        ...(comment && {comment}),
+        ...(reimbursable !== undefined && {reimbursable}),
+        ...(billable !== undefined && {billable}),
+        created,
+    };
+}
 
 /**
  * Fetches every rule the user has access to. The response SETs the whole `rules_` collection.
@@ -184,17 +247,14 @@ function setMerchantRule(
         ],
     };
 
-    const parameters: SetRuleParams = {
-        scope: CONST.RULES.SCOPE.POLICY,
-        scopeID: policyID,
-        ruleID: targetRuleID,
-        priority: CONST.RULES.EXPENSE_DEFAULT.PRIORITY,
-        // FormData cannot carry an object, so the rule body goes over the wire as a string.
-        value: JSON.stringify(ruleValue),
+    const parameters: SetPolicyCodingRuleParams = {
+        policyID,
+        codingRuleID: targetRuleID,
+        codingRuleValue: JSON.stringify(buildLegacyCodingRule(ruleValue, targetRuleID, created)),
         shouldUpdateMatchingTransactions,
     };
 
-    API.write(WRITE_COMMANDS.SET_RULE, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
 }
 
 /**
@@ -292,9 +352,15 @@ function deleteMerchantRule(policyID: string, ruleID: string, rule: Rule | undef
         ],
     };
 
-    const parameters: DeleteRuleParams = {ruleID};
+    // An empty codingRuleValue tells SetPolicyCodingRule to delete rather than upsert the rule.
+    const parameters: SetPolicyCodingRuleParams = {
+        policyID,
+        codingRuleID: ruleID,
+        codingRuleValue: '',
+        shouldUpdateMatchingTransactions: false,
+    };
 
-    API.write(WRITE_COMMANDS.DELETE_RULE, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
 }
 
 function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: string) {

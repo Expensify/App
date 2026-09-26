@@ -222,8 +222,8 @@ function buildMerchantRuleActions(formValues: Partial<MerchantRuleFormValues>, p
 }
 
 /**
- * Builds the rules engine body for a merchant rule. It is what the `rules_` collection stores and what is sent
- * as the `value` param of `SetRule`.
+ * Builds the rules engine body for a merchant rule. It is what the `rules_` collection stores, and what the
+ * legacy `codingRuleValue` is derived from until writes move to `SetRule`.
  * Returns undefined when the form has nothing to match on or nothing to set, which the API rejects.
  */
 function buildMerchantRule(formValues: Partial<MerchantRuleFormValues>, policy: Policy | undefined): BuiltMerchantRule | undefined {
@@ -448,7 +448,7 @@ function canEditMerchantRule(rule: Rule | undefined, policyID: string | undefine
     return isPolicyScopedRule(rule, policyID) && isEditableMerchantRule(rule);
 }
 
-export type {MerchantRuleFormValues};
+export type {BuiltMerchantRule, MerchantRuleFormValues};
 export {
     buildCopiedExpenseDefaultRules,
     buildMerchantRule,
