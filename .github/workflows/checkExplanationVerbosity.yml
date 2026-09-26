@@ -1,0 +1,36 @@
+name: Check Explanation of Change verbosity
+
+on:
+  # We use pull_request_target here so that the GitHub token will have write access to post the suggestion comment.
+  # Warning: – when using the pull_request_target event, DO NOT checkout code from an untrusted branch: https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
+  pull_request_target:
+    types: [opened, edited, synchronize]
+    branches: [main]
+    paths-ignore: ['docs/articles/**/*.md', 'docs/redirects.csv', 'docs/assets/images/**']
+
+jobs:
+  checkExplanationVerbosity:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    if: |
+      github.actor != 'OSBotify'
+      && github.actor != 'imgbot[bot]'
+      && github.actor != 'MelvinBot'
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+
+      - name: checkExplanationVerbosity.ts
+        id: check
+        uses: ./.github/actions/javascript/checkExplanationVerbosity
+
+      # Soft suggestion only — never fails the check, just nudges the author.
+      - name: Suggest a more concise Explanation of Change
+        if: steps.check.outputs.SHOULD_COMMENT == 'true'
+        uses: ./.github/actions/javascript/postOrReplaceComment
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+          REPO: App
+          APP_PR_NUMBER: ${{ github.event.pull_request.number }}
+          COMMENT_PREFIX: ':writing_hand: Your **Explanation of Change**'
+          COMMENT_BODY: |
+            :writing_hand: Your **Explanation of Change** looks long relative to the size of this diff. This is just a suggestion, not a blocker — consider leading with **why** the change was made and a short summary of **what** changed, and moving deep rationale or investigation notes into a collapsed `<details>` block. See [PR_AUTHOR_REVIEWER_BEST_PRACTICES.md#explanation-of-change](https://github.com/Expensify/App/blob/main/contributingGuides/PR_AUTHOR_REVIEWER_BEST_PRACTICES.md#explanation-of-change).
