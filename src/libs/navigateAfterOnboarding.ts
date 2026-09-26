@@ -12,12 +12,14 @@ import Onyx from 'react-native-onyx';
 import {setDisableDismissOnEscape} from './actions/Modal';
 import SidePanelActions from './actions/SidePanel';
 import {setOnboardingRHPVariant} from './actions/Welcome';
+import Log from './Log';
 import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostSplitNavigator';
 import {dismissOnboardingModalBeforeExit} from './Navigation/helpers/OnboardingNavigationUtils';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport} from './ReportUtils';
 import {buildCannedSearchQuery} from './SearchQueryUtils';
+import {registerSessionCleanupCallback} from './SessionCleanup';
 
 let onboardingRHPVariant: OnyxEntry<OnboardingRHPVariant>;
 Onyx.connectWithoutView({
@@ -25,6 +27,34 @@ Onyx.connectWithoutView({
     callback: (value) => {
         onboardingRHPVariant = value;
     },
+});
+
+/** Parked by openReportFromDeepLink() while onboarding owns the screen. In memory rather than Onyx so a stale destination cannot replay after a reload or for the next account on the device. */
+let openDeepLinkAfterOnboarding: (() => boolean) | undefined;
+
+/** The callback returns whether it opened the route. Returning false lets the caller pick the default destination. */
+function setDeepLinkToOpenAfterOnboarding(callback: () => boolean) {
+    openDeepLinkAfterOnboarding = callback;
+}
+
+function consumeDeepLinkToOpenAfterOnboarding(): boolean {
+    if (!openDeepLinkAfterOnboarding) {
+        return false;
+    }
+
+    const openDeepLink = openDeepLinkAfterOnboarding;
+    openDeepLinkAfterOnboarding = undefined;
+    try {
+        return openDeepLink();
+    } catch (error) {
+        // The onboarding modal is already dismissed, so a failing replay must not take the default destination with it.
+        Log.alert('[navigateAfterOnboarding] Parked deep link failed to open', {error});
+        return false;
+    }
+}
+
+registerSessionCleanupCallback(() => {
+    openDeepLinkAfterOnboarding = undefined;
 });
 
 type NavigateAfterOnboardingOptions = {
@@ -85,6 +115,11 @@ function navigateAfterOnboarding(
     options?: NavigateAfterOnboardingOptions,
 ) {
     setDisableDismissOnEscape(false);
+
+    // A route the user asked for before signing up outranks every default below, including the Side Panel variant.
+    if (consumeDeepLinkToOpenAfterOnboarding()) {
+        return;
+    }
 
     // On mobile (small screen), Track workspace admins with the trackExpensesWithConcierge variant
     // should navigate directly to the Concierge DM (which contains onboarding tasks).
@@ -152,6 +187,10 @@ function navigateAfterOnboardingWithMicrotaskQueue(
 function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNarrowLayout = false) {
     setDisableDismissOnEscape(false);
 
+    if (consumeDeepLinkToOpenAfterOnboarding()) {
+        return;
+    }
+
     if (!policyID) {
         Navigation.navigate(ROUTES.HOME);
         return;
@@ -169,4 +208,4 @@ function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: s
     });
 }
 
-export {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue};
+export {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue, setDeepLinkToOpenAfterOnboarding, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue};
