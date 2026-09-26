@@ -27,13 +27,15 @@ If **Rules** is not enabled, [learn how to enable Workspace Rules](/articles/new
 Prepare a spreadsheet where each row is one rule. Include a column for the merchant to match and a column for each field you want the rule to update (for example, Tag).
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Workspaces > [workspace name]**.
-2. Click **Rules**, then open the **Expense defaults** tab.
-3. Click **More**, then select **Import merchant rules**.
-4. Upload your spreadsheet file.
+2. Select **Rules**.
+3. Select **More**, then choose **Import merchant rules**.
+4. Drag and drop your spreasheet into the window, or select **Choose file** to upload your spreadsheet.
 5. Map each column to a merchant rule field. Map the merchant column to **Merchant is** or **Merchant contains**, and map at least one field to update, such as **Updated merchant**, **Updated category**, **Updated tag**, or **Updated description**.
-6. Click **Import**.
+6. Select **Import**.
 
 You must map at least one **Merchant is** or **Merchant contains** column plus at least one field to update, or the import can't complete.
+
+![Insert alt text for accessibility here]({{site.url}}/assets/images/Rules_import-merchant-rules-mapping.png){:width="100%"}
 
 ---
 
