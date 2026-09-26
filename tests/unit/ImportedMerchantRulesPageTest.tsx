@@ -6,6 +6,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import * as Rules from '@libs/actions/Policy/Rules';
 import * as API from '@libs/API';
+import {toIndexMap} from '@libs/RuleUtils';
 
 import ImportedMerchantRulesPage, {
     buildImportedCategoryLookup,
@@ -17,7 +18,7 @@ import ImportedMerchantRulesPage, {
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheet, Policy, PolicyCategories} from '@src/types/onyx';
+import type {ImportedSpreadsheet, Policy, PolicyCategories, Rule} from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 
 import React from 'react';
@@ -340,7 +341,7 @@ describe('ImportedMerchantRulesPage', () => {
 
     describe('parseSpreadsheetRules', () => {
         it('builds a net-new rule from a mapped row', () => {
-            const result = parseSpreadsheetRules(buildSpreadsheet(), true, buildRulesEnabledControlPolicy(), undefined, true);
+            const result = parseSpreadsheetRules(buildSpreadsheet(), true, buildRulesEnabledControlPolicy(), undefined, {}, true);
 
             expect(Object.keys(result.rules)).toHaveLength(1);
             expect(Object.values(result.rules).at(0)).toMatchObject({
@@ -352,22 +353,40 @@ describe('ImportedMerchantRulesPage', () => {
             expect(result.invalidVendorNames.size).toBe(0);
         });
 
-        it('skips a row that duplicates an existing coding rule', () => {
+        it('skips a row that duplicates an existing merchant rule', () => {
             const policy = buildRulesEnabledControlPolicy();
-            policy.rules = {
-                codingRules: {
-                    existing: {filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'}, merchant: 'SBUX'},
-                },
+            const existingRule: Rule = {
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: policy.id,
+                triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
+                actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, value: 'SBUX'}]),
             };
 
-            const result = parseSpreadsheetRules(buildSpreadsheet(), true, policy, undefined, true);
+            const result = parseSpreadsheetRules(buildSpreadsheet(), true, policy, undefined, {[`${ONYXKEYS.COLLECTION.RULE}existing`]: existingRule}, true);
 
             expect(Object.keys(result.rules)).toHaveLength(0);
             expect(result.skippedDuplicateCount).toBe(1);
         });
 
+        it('does not treat a rule from another policy as a duplicate', () => {
+            const policy = buildRulesEnabledControlPolicy();
+            const otherPolicyRule: Rule = {
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: 'another-policy',
+                triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
+                actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, value: 'SBUX'}]),
+            };
+
+            const result = parseSpreadsheetRules(buildSpreadsheet(), true, policy, undefined, {[`${ONYXKEYS.COLLECTION.RULE}other`]: otherPolicyRule}, true);
+
+            expect(Object.keys(result.rules)).toHaveLength(1);
+            expect(result.skippedDuplicateCount).toBe(0);
+        });
+
         it('drops a row whose category cell does not match a workspace category', () => {
-            const result = parseSpreadsheetRules(buildInvalidCategorySpreadsheet(), true, buildRulesEnabledControlPolicy(), undefined, true);
+            const result = parseSpreadsheetRules(buildInvalidCategorySpreadsheet(), true, buildRulesEnabledControlPolicy(), undefined, {}, true);
 
             expect(Object.keys(result.rules)).toHaveLength(0);
             expect([...result.invalidCategoryNames]).toEqual(['nonexistent category']);
@@ -375,7 +394,7 @@ describe('ImportedMerchantRulesPage', () => {
 
         it('resolves a vendor cell to the matching vendor external ID', () => {
             const policy = buildQBOPolicyWithVendors([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]);
-            const result = parseSpreadsheetRules(buildVendorSpreadsheet('Acme Co'), true, policy, undefined, true);
+            const result = parseSpreadsheetRules(buildVendorSpreadsheet('Acme Co'), true, policy, undefined, {}, true);
 
             expect(Object.keys(result.rules)).toHaveLength(1);
             expect(Object.values(result.rules).at(0)).toMatchObject({vendorID: 'v-1'});
@@ -402,7 +421,7 @@ describe('ImportedMerchantRulesPage', () => {
                 isGLAdjacent: false,
             };
 
-            const result = parseSpreadsheetRules(spreadsheet, true, policy, undefined, true);
+            const result = parseSpreadsheetRules(spreadsheet, true, policy, undefined, {}, true);
 
             expect(Object.keys(result.rules)).toHaveLength(1);
             expect(Object.values(result.rules).at(0)).toMatchObject({merchant: 'SBUX'});
@@ -415,7 +434,7 @@ describe('ImportedMerchantRulesPage', () => {
                 {id: 'v-1', name: 'Duplicate Name', currency: 'USD'},
                 {id: 'v-2', name: 'Duplicate Name', currency: 'USD'},
             ]);
-            const result = parseSpreadsheetRules(buildVendorSpreadsheet('Duplicate Name'), true, policy, undefined, true);
+            const result = parseSpreadsheetRules(buildVendorSpreadsheet('Duplicate Name'), true, policy, undefined, {}, true);
 
             expect(Object.keys(result.rules)).toHaveLength(0);
             expect([...result.invalidVendorNames]).toEqual(['duplicate name']);
@@ -423,7 +442,7 @@ describe('ImportedMerchantRulesPage', () => {
 
         it('skips a row whose only action is an invalid vendor cell', () => {
             const policy = buildQBOPolicyWithVendors([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]);
-            const result = parseSpreadsheetRules(buildVendorSpreadsheet('Nonexistent Vendor'), true, policy, undefined, true);
+            const result = parseSpreadsheetRules(buildVendorSpreadsheet('Nonexistent Vendor'), true, policy, undefined, {}, true);
 
             expect(Object.keys(result.rules)).toHaveLength(0);
             expect([...result.invalidVendorNames]).toEqual(['nonexistent vendor']);
@@ -431,7 +450,7 @@ describe('ImportedMerchantRulesPage', () => {
 
         it('does not flag any vendor cell invalid while the vendor list has not loaded yet', () => {
             const policy = buildQBOPolicyWithVendors(undefined);
-            const result = parseSpreadsheetRules(buildVendorSpreadsheet('Acme Co'), true, policy, undefined, false);
+            const result = parseSpreadsheetRules(buildVendorSpreadsheet('Acme Co'), true, policy, undefined, {}, false);
 
             expect(result.invalidVendorNames.size).toBe(0);
             expect(Object.keys(result.rules)).toHaveLength(0);
@@ -456,7 +475,7 @@ describe('ImportedMerchantRulesPage', () => {
                 isGLAdjacent: false,
             };
 
-            const result = parseSpreadsheetRules(spreadsheet, true, buildRulesEnabledControlPolicy(), undefined, true);
+            const result = parseSpreadsheetRules(spreadsheet, true, buildRulesEnabledControlPolicy(), undefined, {}, true);
 
             expect(Object.values(result.rules).at(0)).toMatchObject({reimbursable: true, billable: false});
         });
