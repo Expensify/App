@@ -1,3 +1,5 @@
+import {clearIntlFormatterCaches} from '@libs/IntlFormatterCaches';
+
 import IntlStore from '@src/languages/IntlStore';
 
 import Onyx from 'react-native-onyx';
@@ -109,6 +111,25 @@ describe('localize', () => {
             expect(Localize.formatList(input)).toBe(expectedOutput);
             await IntlStore.load(CONST.LOCALES.ES);
             expect(Localize.formatList(input)).toBe(expectedOutputES);
+        });
+
+        it('keeps every item when the runtime has no Intl.ListFormat', async () => {
+            // Given a runtime whose Intl.ListFormat cannot be constructed, as on engines that never shipped it
+            await IntlStore.load(CONST.LOCALES.EN);
+            clearIntlFormatterCaches();
+            const throwingSpy = jest.spyOn(Intl, 'ListFormat').mockImplementation(() => {
+                throw new TypeError('Intl.ListFormat is not a constructor');
+            });
+
+            // When a list of names is formatted
+            const withoutListFormat = Localize.formatList(['rory', 'vit', 'ionatan']);
+
+            // Then every item survives, joined by commas, because losing the conjunction is cosmetic and losing items is not; the conjunction returns once the API is back
+            expect(withoutListFormat).toBe('rory, vit, ionatan');
+
+            throwingSpy.mockRestore();
+            clearIntlFormatterCaches();
+            expect(Localize.formatList(['rory', 'vit', 'ionatan'])).toBe('rory, vit, and ionatan');
         });
     });
 

@@ -31,11 +31,9 @@ type TimeModalPickerProps = {
 
 function TimeModalPicker({value, errorText, label, onInputChange = () => {}, ref}: TimeModalPickerProps) {
     const styles = useThemeStyles();
-    const {dateFnsLocale} = useLocalize();
+    const {preferredLocale} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
-    // The row shows a localized time, while `TimePicker` still reads `value` through `extractTime12Hour` — that one is
-    // the picker's English wire format, so rendering it here would put an AM/PM clock next to 24-hour times elsewhere.
-    const currentTime = value ? DateUtils.formatToLocalTime(value, dateFnsLocale) : undefined;
+    const currentTime = value ? DateUtils.formatToLocalTime(value, preferredLocale) : undefined;
 
     const hidePickerModal = () => {
         setIsPickerVisible(false);

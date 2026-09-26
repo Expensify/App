@@ -11,7 +11,6 @@ import DateUtils from '@libs/DateUtils';
 
 import CONST from '@src/CONST';
 
-import {format} from 'date-fns';
 import React from 'react';
 
 type DateCellProps = {
@@ -30,8 +29,8 @@ type DateCellProps = {
 
 function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseLocalTimeZone = false, canEdit, onSave}: DateCellProps) {
     const styles = useThemeStyles();
+    const {preferredLocale, getLocalDateFromDatetime} = useLocalize();
     const {isInNarrowPaneModal} = useResponsiveLayout();
-    const {getLocalDateFromDatetime, dateFnsLocale} = useLocalize();
     const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
         value: date,
@@ -40,15 +39,12 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseL
 
     let formattedDate: string;
     if (shouldUseLocalTimeZone && date) {
+        // Zone via the user's selected timezone (not runtime-local) so the day matches report history for viewers who set an explicit timezone.
         const localDate = getLocalDateFromDatetime(date);
         const isPastYear = localDate.getFullYear() !== getLocalDateFromDatetime().getFullYear();
-        formattedDate = format(localDate, isPastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT, {locale: dateFnsLocale});
+        formattedDate = isPastYear ? DateUtils.formatToMediumDate(localDate, preferredLocale) : DateUtils.formatToShortMonthDay(localDate, preferredLocale);
     } else {
-        formattedDate = DateUtils.formatWithUTCTimeZone(
-            date,
-            DateUtils.doesDateBelongToAPastYear(date) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-            dateFnsLocale,
-        );
+        formattedDate = DateUtils.formatTransactionListDate(date, preferredLocale);
     }
     const displayText = suffixText ? `${formattedDate} • ${suffixText}` : formattedDate;
 

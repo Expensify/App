@@ -47,7 +47,7 @@ describe('ReportNameUtils', () => {
         currentUserID = currentUserAccountID,
     ) =>
         computeReportNameOriginal({
-            dateFnsLocale: undefined,
+            preferredLocale: CONST.LOCALES.EN,
             convertToDisplayString,
             convertToDisplayStringWithoutCurrency,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -309,7 +309,7 @@ describe('ReportNameUtils', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: 'lagertha2@vikings.net', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
             const translateWithYouMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.you' ? 'You Marker' : translateLocal(path, ...parameters));
             const name = computeReportNameOriginal({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 convertToDisplayStringWithoutCurrency,
                 getCurrencySymbol: getCurrencySymbolLocal,
@@ -436,7 +436,7 @@ describe('ReportNameUtils', () => {
             });
 
             return computeReportNameOriginal({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 convertToDisplayStringWithoutCurrency,
                 getCurrencySymbol: getCurrencySymbolLocal,
@@ -772,7 +772,7 @@ describe('ReportNameUtils', () => {
             } satisfies OnyxCollection<PolicyTagLists>;
 
             const name = computeReportNameOriginal({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 convertToDisplayStringWithoutCurrency,
                 getCurrencySymbol: getCurrencySymbolLocal,
@@ -2459,7 +2459,7 @@ describe('ReportNameUtils', () => {
 
             // When the threaded conciergeReportID matches the report
             const nameWithMatchingID = computeReportNameOriginal({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 convertToDisplayStringWithoutCurrency,
                 getCurrencySymbol: getCurrencySymbolLocal,
@@ -2477,7 +2477,7 @@ describe('ReportNameUtils', () => {
 
             // And an identical report with a non-matching conciergeReportID keeps its regular name
             const nameWithDifferentID = computeReportNameOriginal({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 convertToDisplayStringWithoutCurrency,
                 getCurrencySymbol: getCurrencySymbolLocal,

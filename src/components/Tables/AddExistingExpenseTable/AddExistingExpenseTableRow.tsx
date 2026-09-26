@@ -25,7 +25,7 @@ type AddExistingExpenseTableRowProps = {
 
 function AddExistingExpenseTableRow({item, rowIndex, shouldUseNarrowTableLayout}: AddExistingExpenseTableRowProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {tableMethods, processedData} = useTableContext<UnreportedExpenseTableRowData>();
     const rowData = processedData.at(rowIndex);
     const isSelected = !!rowData?.selected;
@@ -36,7 +36,7 @@ function AddExistingExpenseTableRow({item, rowIndex, shouldUseNarrowTableLayout}
     const transactionPolicy = usePolicy(transactionReport?.policyID);
 
     // Merchant or description doubles as the row's accessible name, matching what the row visibly shows.
-    const accessibilityLabel = getMerchantName(item, translate) || getDescription(item);
+    const accessibilityLabel = getMerchantName(item, translate, preferredLocale) || getDescription(item);
 
     return (
         <Table.Row

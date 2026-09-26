@@ -53,7 +53,7 @@ type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps & Plat
 
 function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol, convertToDisplayString} = useCurrencyListActions();
     const theme = useTheme();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
@@ -89,7 +89,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
                 personalDetails,
                 report,
                 policy,
-                {translate, dateFnsLocale, convertToDisplayString},
+                {translate, preferredLocale, convertToDisplayString},
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 rules,
                 reportAttributesDerived,

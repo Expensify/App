@@ -2703,7 +2703,7 @@ describe('SearchUIUtils', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: submitterAccountID});
             // report1 has ownerAccountID: adminAccountID, so submitterAccountID is not the owner
             const [sections] = SearchUIUtils.getSections({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 data: searchResults.data,
                 currentAccountID: submitterAccountID,
@@ -2723,7 +2723,7 @@ describe('SearchUIUtils', () => {
         test('Should show `View` as primary action instead of `Submit` when the current user is not the report owner (report view)', async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: submitterAccountID});
             const [sections] = SearchUIUtils.getSections({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 data: searchResults.data,
                 currentAccountID: submitterAccountID,
@@ -2744,7 +2744,7 @@ describe('SearchUIUtils', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
             // report1 has ownerAccountID: adminAccountID, so adminAccountID is the owner
             const [sections] = SearchUIUtils.getSections({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 data: searchResults.data,
                 currentAccountID: adminAccountID,
@@ -2765,7 +2765,7 @@ describe('SearchUIUtils', () => {
     describe('Test getSections', () => {
         it('should return getReportActionsSections result when type is CHAT', () => {
             const [filteredReportActions, allReportActionsLength] = SearchUIUtils.getSections({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 type: CONST.SEARCH.DATA_TYPES.CHAT,
                 data: searchResults.data,
                 currentAccountID: 2074551,
@@ -2785,7 +2785,7 @@ describe('SearchUIUtils', () => {
         it('should return getTransactionsSections result when groupBy is undefined', () => {
             expect(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResults.data,
                     currentAccountID: adminAccountID,
@@ -2817,7 +2817,7 @@ describe('SearchUIUtils', () => {
 
             const result = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: testSearchResults.data,
                     currentAccountID: 2074551,
@@ -2858,7 +2858,7 @@ describe('SearchUIUtils', () => {
 
             const result = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: testSearchResults.data,
                     currentAccountID: 2074551,
@@ -2896,7 +2896,7 @@ describe('SearchUIUtils', () => {
 
             const result = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data,
                     currentAccountID: approverAccountID,
@@ -2949,7 +2949,7 @@ describe('SearchUIUtils', () => {
 
             const result = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data,
                     currentAccountID: adminAccountID,
@@ -2979,7 +2979,7 @@ describe('SearchUIUtils', () => {
             await waitForBatchedUpdates();
             expect(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: searchResults.data,
                     currentAccountID: adminAccountID,
@@ -3009,7 +3009,7 @@ describe('SearchUIUtils', () => {
 
             const result = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: localSearchResults,
                     currentAccountID: 2074551,
@@ -3039,7 +3039,7 @@ describe('SearchUIUtils', () => {
 
             const result = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: localSearchResults,
                     currentAccountID: 2074551,
@@ -3082,7 +3082,7 @@ describe('SearchUIUtils', () => {
             // Without onyxPersonalDetailsList, the report owner avatar is not found — not the custom URL
             const [resultWithoutOnyx] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: dataWithoutPersonalDetails,
                     currentAccountID: 2074551,
@@ -3103,7 +3103,7 @@ describe('SearchUIUtils', () => {
             // With onyxPersonalDetailsList, the custom avatar from Onyx fills the gap
             const [resultWithOnyx] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: dataWithoutPersonalDetails,
                     currentAccountID: 2074551,
@@ -3139,7 +3139,7 @@ describe('SearchUIUtils', () => {
             // API response provides its own avatar — should take precedence over Onyx
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: {
                         ...searchResults.data,
@@ -3198,7 +3198,7 @@ describe('SearchUIUtils', () => {
 
             const [resultWithoutOnyx] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: dataWithoutManager,
                     currentAccountID: 2074551,
@@ -3219,7 +3219,7 @@ describe('SearchUIUtils', () => {
 
             const [resultWithOnyx] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: dataWithoutManager,
                     currentAccountID: 2074551,
@@ -3259,7 +3259,7 @@ describe('SearchUIUtils', () => {
 
             const [resultWithoutOnyx] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: dataWithoutActor,
                     currentAccountID: 2074551,
@@ -3281,7 +3281,7 @@ describe('SearchUIUtils', () => {
 
             const [resultWithOnyx] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: dataWithoutActor,
                     currentAccountID: 2074551,
@@ -3318,7 +3318,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: {
                         ...searchResults.data,
@@ -3380,7 +3380,7 @@ describe('SearchUIUtils', () => {
             };
 
             const resultTransactionFirst = SearchUIUtils.getSections({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 data: testDataTransactionFirst,
                 currentAccountID: 2074551,
@@ -3394,7 +3394,7 @@ describe('SearchUIUtils', () => {
                 reportAttributesDerivedValue: {},
             })[0];
             const resultReportFirst = SearchUIUtils.getSections({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 data: testDataReportFirst,
                 currentAccountID: 2074551,
@@ -3421,7 +3421,7 @@ describe('SearchUIUtils', () => {
         it('should return getMemberSections result when type is EXPENSE and groupBy is from', () => {
             expect(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByFrom.data,
                     currentAccountID: 2074551,
@@ -3442,7 +3442,7 @@ describe('SearchUIUtils', () => {
             const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
 
             const [result] = SearchUIUtils.getSections({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 data: {...searchResultsGroupByFrom.data, personalDetailsList: {}},
                 currentAccountID: 2074551,
@@ -3471,7 +3471,7 @@ describe('SearchUIUtils', () => {
             const mockCardFeeds: OnyxCollection<OnyxTypes.CardFeeds> = {policy1: mockCardFeed};
             expect(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByCard.data,
                     currentAccountID: 2074551,
@@ -3567,7 +3567,7 @@ describe('SearchUIUtils', () => {
 
             const [sections] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data,
                     currentAccountID: adminAccountID,
@@ -3600,7 +3600,7 @@ describe('SearchUIUtils', () => {
         it('should return getWithdrawalIDSections result when type is EXPENSE and groupBy is withdrawal-id', () => {
             expect(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByWithdrawalID.data,
                     currentAccountID: 2074551,
@@ -3630,7 +3630,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: staleCacheData,
                     currentAccountID: 2074551,
@@ -3653,7 +3653,7 @@ describe('SearchUIUtils', () => {
         it('should return getCategorySections result when type is EXPENSE and groupBy is category', () => {
             expect(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByCategory.data,
                     currentAccountID: 2074551,
@@ -3689,7 +3689,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithEmptyCategory,
                     currentAccountID: 2074551,
@@ -3734,7 +3734,7 @@ describe('SearchUIUtils', () => {
             }
 
             const [sections] = SearchUIUtils.getSections({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 data: searchResultsGroupByDay.data,
                 currentAccountID: 2074551,
@@ -3797,7 +3797,7 @@ describe('SearchUIUtils', () => {
             // When the category sections are built
             const [sections] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByCategory.data,
                     currentAccountID: 2074551,
@@ -3844,7 +3844,7 @@ describe('SearchUIUtils', () => {
 
             // When the date-range sections are built
             const [sections] = SearchUIUtils.getSections({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 data: groupSearchResults.data,
                 currentAccountID: 2074551,
@@ -3931,7 +3931,7 @@ describe('SearchUIUtils', () => {
 
             expect(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByMonth.data,
                     currentAccountID: 2074551,
@@ -3969,7 +3969,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithDifferentMonths,
                     currentAccountID: 2074551,
@@ -3994,7 +3994,7 @@ describe('SearchUIUtils', () => {
         it('should calculate sortKey correctly for month groups', () => {
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByMonth.data,
                     currentAccountID: 2074551,
@@ -4082,7 +4082,7 @@ describe('SearchUIUtils', () => {
 
             expect(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByYear.data,
                     currentAccountID: 2074551,
@@ -4118,7 +4118,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithDifferentYears,
                     currentAccountID: 2074551,
@@ -4143,7 +4143,7 @@ describe('SearchUIUtils', () => {
         it('should calculate sortKey correctly for year groups', () => {
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByYear.data,
                     currentAccountID: 2074551,
@@ -4531,7 +4531,7 @@ describe('SearchUIUtils', () => {
 
             expect(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByQuarter.data,
                     currentAccountID: 2074551,
@@ -4569,7 +4569,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithDifferentQuarters,
                     currentAccountID: 2074551,
@@ -4594,7 +4594,7 @@ describe('SearchUIUtils', () => {
         it('should calculate sortKey correctly for quarter groups', () => {
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByQuarter.data,
                     currentAccountID: 2074551,
@@ -4664,7 +4664,7 @@ describe('SearchUIUtils', () => {
 
             expect(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByWeek.data,
                     currentAccountID: 2074551,
@@ -4700,7 +4700,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithDifferentWeeks,
                     currentAccountID: 2074551,
@@ -4745,7 +4745,7 @@ describe('SearchUIUtils', () => {
         it('should generate transactionsQueryJSON with valid hash for category sections', () => {
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByCategory.data,
                     currentAccountID: 2074551,
@@ -4811,7 +4811,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithUnicode,
                     currentAccountID: 2074551,
@@ -4859,7 +4859,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithSpecialChars,
                     currentAccountID: 2074551,
@@ -4896,7 +4896,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithLongNames,
                     currentAccountID: 2074551,
@@ -4938,7 +4938,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithHtmlEntities,
                     currentAccountID: 2074551,
@@ -4968,7 +4968,7 @@ describe('SearchUIUtils', () => {
         it('should return getMerchantSections result when type is EXPENSE and groupBy is merchant', () => {
             expect(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByMerchant.data,
                     currentAccountID: 2074551,
@@ -5005,7 +5005,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithEmptyMerchant,
                     currentAccountID: 2074551,
@@ -5041,7 +5041,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithEmptyMerchant,
                     currentAccountID: 2074551,
@@ -5096,7 +5096,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithDefaultMerchant,
                     currentAccountID: 2074551,
@@ -5150,7 +5150,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithPartialMerchant,
                     currentAccountID: 2074551,
@@ -5204,7 +5204,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithUnknownMerchant,
                     currentAccountID: 2074551,
@@ -5279,7 +5279,7 @@ describe('SearchUIUtils', () => {
         it('should generate transactionsQueryJSON with valid hash for merchant sections', () => {
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByMerchant.data,
                     currentAccountID: 2074551,
@@ -5346,7 +5346,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithUnicode,
                     currentAccountID: 2074551,
@@ -5395,7 +5395,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithSpecialChars,
                     currentAccountID: 2074551,
@@ -5422,7 +5422,7 @@ describe('SearchUIUtils', () => {
         it('should return getTagSections result when type is EXPENSE and groupBy is tag', () => {
             expect(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByTag.data,
                     currentAccountID: 2074551,
@@ -5454,7 +5454,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithEscapedTag,
                     currentAccountID: 2074551,
@@ -5496,7 +5496,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithEmptyTag,
                     currentAccountID: 2074551,
@@ -5531,7 +5531,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithUntagged,
                     currentAccountID: 2074551,
@@ -5587,7 +5587,7 @@ describe('SearchUIUtils', () => {
         it('should generate transactionsQueryJSON with valid hash for tag sections', () => {
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResultsGroupByTag.data,
                     currentAccountID: 2074551,
@@ -5667,7 +5667,7 @@ describe('SearchUIUtils', () => {
 
             const [result, count] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.TASK,
                     data: taskData,
                     currentAccountID: taskCreatorAccountID,
@@ -5740,7 +5740,7 @@ describe('SearchUIUtils', () => {
             });
 
             const [result] = SearchUIUtils.getSections({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 type: CONST.SEARCH.DATA_TYPES.TASK,
                 data: taskData,
                 currentAccountID: taskCreatorAccountID,
@@ -5784,7 +5784,7 @@ describe('SearchUIUtils', () => {
             const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
 
             const [result] = SearchUIUtils.getSections({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 type: CONST.SEARCH.DATA_TYPES.TASK,
                 data: taskData,
                 currentAccountID: 33333,
@@ -5809,7 +5809,7 @@ describe('SearchUIUtils', () => {
 
             const [result, count] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.TASK,
                     data: nonTaskData,
                     currentAccountID: 1,
@@ -5882,7 +5882,7 @@ describe('SearchUIUtils', () => {
 
             const [result, count] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.TASK,
                     data: multiTaskData,
                     currentAccountID: creatorID,
@@ -5942,7 +5942,7 @@ describe('SearchUIUtils', () => {
 
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.TASK,
                     data: taskDataWithHTML,
                     currentAccountID: creatorID,
@@ -6001,7 +6001,7 @@ describe('SearchUIUtils', () => {
 
             const [result, count] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.TASK,
                     data: mixedData,
                     currentAccountID: creatorID,
@@ -6062,7 +6062,7 @@ describe('SearchUIUtils', () => {
             // conciergeReportID is undefined, simulating the case where it hasn't been loaded from Onyx yet
             const [result, count] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.TASK,
                     data: taskData,
                     currentAccountID: creatorID,
@@ -6124,7 +6124,7 @@ describe('SearchUIUtils', () => {
             const getStaleTaskSections = (query: string) =>
                 getSectionsByType(
                     SearchUIUtils.getSections({
-                        dateFnsLocale: undefined,
+                        preferredLocale: CONST.LOCALES.EN,
                         type: CONST.SEARCH.DATA_TYPES.TASK,
                         data: staleTaskData,
                         currentAccountID: staleCreatorID,
@@ -6260,7 +6260,7 @@ describe('SearchUIUtils', () => {
             const getReopenedTaskSections = (query: string) =>
                 getSectionsByType(
                     SearchUIUtils.getSections({
-                        dateFnsLocale: undefined,
+                        preferredLocale: CONST.LOCALES.EN,
                         type: CONST.SEARCH.DATA_TYPES.TASK,
                         data: reopenedTaskData,
                         currentAccountID: reopenedCreatorID,
@@ -6344,7 +6344,7 @@ describe('SearchUIUtils', () => {
             function getComputedFields(data: typeof searchResults.data) {
                 const sections = getSectionsByType(
                     SearchUIUtils.getSections({
-                        dateFnsLocale: undefined,
+                        preferredLocale: CONST.LOCALES.EN,
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                         data,
                         currentAccountID: adminAccountID,
@@ -6464,7 +6464,7 @@ describe('SearchUIUtils', () => {
             function getAvatarFields(data: typeof searchResults.data) {
                 const sections = getSectionsByType(
                     SearchUIUtils.getSections({
-                        dateFnsLocale: undefined,
+                        preferredLocale: CONST.LOCALES.EN,
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                         data,
                         currentAccountID: adminAccountID,
@@ -6618,7 +6618,7 @@ describe('SearchUIUtils', () => {
             function callGetTransactionsSections(data: typeof searchResults.data, options: Record<string, unknown> = {}) {
                 return getSectionsByType(
                     SearchUIUtils.getSections({
-                        dateFnsLocale: undefined,
+                        preferredLocale: CONST.LOCALES.EN,
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         data,
                         currentAccountID: adminAccountID,
@@ -7053,7 +7053,7 @@ describe('SearchUIUtils', () => {
             function callGetReportSections(data: typeof searchResults.data, options: Record<string, unknown> = {}) {
                 return getSectionsByType(
                     SearchUIUtils.getSections({
-                        dateFnsLocale: undefined,
+                        preferredLocale: CONST.LOCALES.EN,
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                         data,
                         currentAccountID: adminAccountID,
@@ -8724,7 +8724,7 @@ describe('SearchUIUtils', () => {
             // This is where formattedTag gets populated
             const [sections] = getSectionsByType(
                 SearchUIUtils.getSections({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: dataWithEmptyTag,
                     currentAccountID: 2074551,
@@ -14524,7 +14524,7 @@ describe('SearchUIUtils', () => {
                 defaultKeys,
                 new Set(),
                 translateLocal,
-                undefined,
+                CONST.LOCALES.EN,
                 localeCompare,
                 convertToDisplayStringWithoutCurrency,
                 (filterKey, isDefault) => ({isDefault}),

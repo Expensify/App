@@ -12,6 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList} from '@src/types/onyx';
 import type ImportedSpreadsheet from '@src/types/onyx/ImportedSpreadsheet';
 import type {ImportFinalModal, ImportTransactionSettings} from '@src/types/onyx/ImportedSpreadsheet';
+import type Locale from '@src/types/onyx/Locale';
 import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayout';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -128,7 +129,7 @@ function buildColumnLayout(spreadsheet: ImportedSpreadsheet, cardName: string, c
 /**
  * Converts spreadsheet data to transaction objects based on column mapping
  */
-function buildTransactionListFromSpreadsheet(spreadsheet: ImportedSpreadsheet, settings: ImportTransactionSettings): TransactionFromCSV[] {
+function buildTransactionListFromSpreadsheet(spreadsheet: ImportedSpreadsheet, settings: ImportTransactionSettings, locale: Locale): TransactionFromCSV[] {
     const {data, columns, containsHeader = true} = spreadsheet;
     const {flipAmountSign = false} = settings;
 
@@ -158,7 +159,7 @@ function buildTransactionListFromSpreadsheet(spreadsheet: ImportedSpreadsheet, s
         }
 
         // Parse the date using our multi-format parser
-        const parsedDate = parseCSVDate(dateValue);
+        const parsedDate = parseCSVDate(dateValue, locale);
 
         // Skip rows with invalid dates
         if (!parsedDate) {
@@ -283,6 +284,7 @@ function getExistingCardImportSettings(card: Card | undefined, savedLayout: Save
  * Import transactions from a CSV spreadsheet
  * @param spreadsheet - The imported spreadsheet data
  * @param accountID - The current (importing) user's accountID, used as the cardholder for a new optimistic card
+ * @param locale - The uploader's language, which is the one a date cell's month name is written in
  * @param existingCardID - Optional cardID to add transactions to an existing card instead of creating a new one
  * @param previouslySavedLayout - Optional previous saved layout to restore on failure
  * @param existingCardSettings - Optional settings of the existing card, which take precedence over the settings collected during the import flow
@@ -290,6 +292,7 @@ function getExistingCardImportSettings(card: Card | undefined, savedLayout: Save
 async function importTransactionsFromCSV(
     spreadsheet: ImportedSpreadsheet,
     accountID: number,
+    locale: Locale,
     existingCardID?: number,
     previouslySavedLayout?: SavedCSVColumnLayoutData,
     existingCardSettings?: ImportTransactionSettings,
@@ -298,7 +301,7 @@ async function importTransactionsFromCSV(
     const {cardDisplayName = CONST.DEFAULT_IMPORTED_CARD_NAME, currency = CONST.CURRENCY.USD, isReimbursable = true, flipAmountSign = false} = settings;
 
     // Build transaction list from spreadsheet
-    const transactionList = buildTransactionListFromSpreadsheet(spreadsheet, settings);
+    const transactionList = buildTransactionListFromSpreadsheet(spreadsheet, settings, locale);
 
     if (transactionList.length === 0) {
         return {

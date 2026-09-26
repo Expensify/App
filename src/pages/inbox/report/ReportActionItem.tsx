@@ -212,7 +212,7 @@ function ReportActionItem({
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
-    const {translate, datetimeToCalendarTime, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, datetimeToCalendarTime, formatPhoneNumber, preferredLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const [actorDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: personalDetailsDisplayNameSelector(action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID, translate, formatPhoneNumber),
@@ -519,8 +519,8 @@ function ReportActionItem({
     const isEmpty = !shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses;
     const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction) && !isOnSearch;
 
-    const formattedTimestamp = datetimeToCalendarTime(action.created, false);
-    const plainMessage = getPaymentMessageWithExpectedDate(translate, dateFnsLocale, getReportActionText(action), paymentExpectedDate);
+    const formattedTimestamp = datetimeToCalendarTime(action.created);
+    const plainMessage = getPaymentMessageWithExpectedDate(translate, preferredLocale, getReportActionText(action), paymentExpectedDate);
     const accessibilityLabel = `${actorDisplayName ?? ''}, ${formattedTimestamp}, ${plainMessage}`;
 
     return (

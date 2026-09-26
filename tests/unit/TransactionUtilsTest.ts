@@ -46,6 +46,17 @@ function generateTransaction(values: Partial<Transaction> = {}): Transaction {
     return {...baseValues, ...values};
 }
 
+// The enUS range `computePerDiemExpenseMerchant` persists, so the fixtures exercise the same string the backend holds.
+const PER_DIEM_RANGE = 'Aug 19, 2025 - Aug 20, 2025';
+const PER_DIEM_MERCHANT = `Berlin, ${PER_DIEM_RANGE}`;
+
+function buildPerDiemTransaction(dates: {start: string; end: string} = {start: '2025-08-19 00:00:00', end: '2025-08-20 23:59:59'}): Transaction {
+    return {
+        ...generateTransaction({merchant: PER_DIEM_MERCHANT}),
+        comment: {customUnit: {name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL, attributes: {dates}}},
+    };
+}
+
 const CURRENT_USER_ID = 1;
 const CURRENT_USER_EMAIL = 'test@example.com';
 const OTHER_USER_EMAIL = 'other@example.com';
@@ -2278,22 +2289,22 @@ describe('TransactionUtils', () => {
 
         it('should return the merchant for a valid merchant', () => {
             const transaction = generateTransaction({merchant: 'Starbucks'});
-            expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('Starbucks');
+            expect(TransactionUtils.getMerchantName(transaction, translate, CONST.LOCALES.EN)).toBe('Starbucks');
         });
 
         it('should normalize the DEFAULT_MERCHANT ("Expense") placeholder value to an empty string', () => {
             const transaction = generateTransaction({merchant: CONST.TRANSACTION.DEFAULT_MERCHANT});
-            expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('');
+            expect(TransactionUtils.getMerchantName(transaction, translate, CONST.LOCALES.EN)).toBe('');
         });
 
         it('should normalize the PARTIAL_TRANSACTION_MERCHANT ("(none)") placeholder value to an empty string', () => {
             const transaction = generateTransaction({merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT});
-            expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('');
+            expect(TransactionUtils.getMerchantName(transaction, translate, CONST.LOCALES.EN)).toBe('');
         });
 
         it('should prefer modifiedMerchant over merchant', () => {
             const transaction = generateTransaction({merchant: 'Original', modifiedMerchant: 'Modified'});
-            expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('Modified');
+            expect(TransactionUtils.getMerchantName(transaction, translate, CONST.LOCALES.EN)).toBe('Modified');
         });
 
         it('should return the localized scanning label while a receipt is scanning', () => {
@@ -2301,7 +2312,7 @@ describe('TransactionUtils', () => {
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING, source: 'receipt.jpg'},
             });
-            expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('iou.receiptStatusTitle');
+            expect(TransactionUtils.getMerchantName(transaction, translate, CONST.LOCALES.EN)).toBe('iou.receiptStatusTitle');
         });
 
         it('should return an empty string for a receipt whose scan failed', () => {
@@ -2309,9 +2320,53 @@ describe('TransactionUtils', () => {
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED, source: 'receipt.jpg'},
             });
-            expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('');
+            expect(TransactionUtils.getMerchantName(transaction, translate, CONST.LOCALES.EN)).toBe('');
+        });
+
+        it('should rebuild a per diem merchant in the readers locale', () => {
+            // Given a per diem expense whose merchant is stored in English
+            // When its merchant name is read for a Spanish list row
+            const merchantName = TransactionUtils.getMerchantName(buildPerDiemTransaction(), translate, CONST.LOCALES.ES);
+
+            // Then the range reads in Spanish, because rows outside Search have no pre-rendered merchant
+            expect(merchantName).toBe('Berlin, 19 ago 2025 - 20 ago 2025');
+        });
+
+        it('should leave an already localized formattedMerchant alone rather than localizing it twice', () => {
+            // Given a Search row whose merchant Search already rendered for this reader
+            const formattedMerchant = 'San Francisco, California, USA, 19 ago 2025 - 20 ago 2025';
+            const transaction = {...buildPerDiemTransaction(), formattedMerchant};
+
+            // When its merchant name is read
+            const merchantName = TransactionUtils.getMerchantName(transaction, translate, CONST.LOCALES.ES);
+
+            // Then the rendered value wins over the stored merchant, so it is never localized twice
+            expect(merchantName).toBe(formattedMerchant);
         });
     });
+
+    describe('getMerchantOrDescription', () => {
+        it('returns the stored per diem merchant, because a persisted message must read the same for every viewer', () => {
+            // Given a per diem expense whose merchant is stored in English
+            // When the value used for persisted messages is read
+            const merchant = TransactionUtils.getMerchantOrDescription(buildPerDiemTransaction());
+
+            // Then it is the stored merchant, because a saved message must not follow one reader's language
+            expect(merchant).toBe(PER_DIEM_MERCHANT);
+        });
+
+        it('falls back to the description when the merchant is missing', () => {
+            // Given an expense with no merchant but a description
+            const transaction = generateTransaction({merchant: '', comment: {comment: 'Team lunch'}});
+
+            // When the value used for messages is read
+            const merchantOrDescription = TransactionUtils.getMerchantOrDescription(transaction);
+
+            // Then the description stands in, so the message still names the expense
+            expect(merchantOrDescription).toBe('Team lunch');
+        });
+    });
+
     describe('getTransactionPendingAction', () => {
         it.each([
             ['when pendingAction is null', null, null],

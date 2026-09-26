@@ -32,7 +32,7 @@ type PerDiemFieldsProps = {
 
 function PerDiemFields({perDiemCustomUnit, transaction, isReadOnly, didConfirm, transactionID, shouldDisplayFieldError, formError}: PerDiemFieldsProps) {
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid']);
 
     const subRates = getSubratesFields(perDiemCustomUnit, transaction);
@@ -114,7 +114,7 @@ function PerDiemFields({perDiemCustomUnit, transaction, isReadOnly, didConfirm, 
             />
             <View style={styles.dividerLine} />
             <MenuItemField
-                value={getTimeForDisplay(transaction, dateFnsLocale)}
+                value={getTimeForDisplay(transaction, preferredLocale)}
                 name={translate('iou.time')}
                 onPress={
                     !isReadOnly

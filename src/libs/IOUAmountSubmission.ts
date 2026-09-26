@@ -9,10 +9,10 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
+import type Locale from '@src/types/onyx/Locale';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
@@ -55,7 +55,7 @@ import shouldUseDefaultExpensePolicy from './shouldUseDefaultExpensePolicy';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt, isExpenseUnreported} from './TransactionUtils';
 
 type SubmitAmountArgs = {
-    dateFnsLocale: DateFnsLocale | undefined;
+    preferredLocale: Locale;
     report: OnyxEntry<OnyxTypes.Report>;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     splitDraftTransaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -260,7 +260,7 @@ function buildReportParticipants(args: SubmitAmountArgs) {
         allPersonalDetails,
         conciergeReportID,
         translate,
-        dateFnsLocale,
+        preferredLocale,
         convertToDisplayString,
         rules,
     } = args;
@@ -284,7 +284,7 @@ function buildReportParticipants(args: SubmitAmountArgs) {
                   currentUserAccountID: currentUserPersonalDetails.accountID,
                   localize: {
                       translate,
-                      dateFnsLocale,
+                      preferredLocale,
                       convertToDisplayString,
                   },
                   rules,

@@ -802,7 +802,7 @@ describe('OptionsListUtils', () => {
             allPolicies,
             {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 isSearching: true,
@@ -815,7 +815,7 @@ describe('OptionsListUtils', () => {
             MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CONCIERGE,
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             undefined,
-            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
+            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, preferredLocale: CONST.LOCALES.EN, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
             undefined,
         );
         OPTIONS_WITH_CHRONOS = createFilteredOptionList(
@@ -824,7 +824,7 @@ describe('OptionsListUtils', () => {
             MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHRONOS,
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             undefined,
-            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
+            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, preferredLocale: CONST.LOCALES.EN, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
             undefined,
         );
         OPTIONS_WITH_RECEIPTS = createFilteredOptionList(
@@ -833,7 +833,7 @@ describe('OptionsListUtils', () => {
             MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_RECEIPTS,
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             undefined,
-            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
+            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, preferredLocale: CONST.LOCALES.EN, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
             undefined,
         );
         OPTIONS_WITH_WORKSPACE_ROOM = createFilteredOptionList(
@@ -842,7 +842,7 @@ describe('OptionsListUtils', () => {
             MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_WORKSPACE_ROOM,
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             undefined,
-            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
+            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, preferredLocale: CONST.LOCALES.EN, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
             undefined,
         );
     });
@@ -869,7 +869,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with the default rooms beta enabled
             const {options: results} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -921,14 +921,14 @@ describe('OptionsListUtils', () => {
                 createMockReportAttributesDerived(memberWorkspaceChat, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID),
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 allPolicies,
-                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, preferredLocale: CONST.LOCALES.EN, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
 
             // When we call getSearchOptions
             const {options: results} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: optionsWithMemberWorkspaceChat,
@@ -953,7 +953,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with includeCurrentUser set to true
             const {options: results} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -990,7 +990,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with includeCurrentUser set to false (default behavior)
             const {options: results} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -1024,7 +1024,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with policyCollection
             const {options: results} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS_WITH_WORKSPACE_ROOM,
@@ -1058,7 +1058,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with empty policyCollection
             const {options: results} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -1091,7 +1091,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with undefined policyCollection
             const {options: results} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -1125,7 +1125,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with conciergeReportID
             const {options: results} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS_WITH_CONCIERGE,
@@ -1153,7 +1153,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with conciergeReportID set to undefined
             const {options: results} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS_WITH_CONCIERGE,
@@ -1183,7 +1183,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with a search query matching Concierge
             const {options: results} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS_WITH_CONCIERGE,
@@ -1222,7 +1222,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -1265,7 +1265,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -1304,7 +1304,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -1332,7 +1332,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -1380,7 +1380,7 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
@@ -1397,7 +1397,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     includeRecentReports: false,
                     personalDetails,
@@ -1419,7 +1419,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 personalDetails,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -1443,7 +1443,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, excludeLogins: {[CONST.EMAIL.CONCIERGE]: true}, sortedActions: undefined},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, excludeLogins: {[CONST.EMAIL.CONCIERGE]: true}, sortedActions: undefined},
                 translateLocal,
                 undefined,
             );
@@ -1469,7 +1469,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 conciergeReportID,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -1495,7 +1495,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, excludeLogins: {[CONST.EMAIL.CHRONOS]: true}, sortedActions: undefined},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, excludeLogins: {[CONST.EMAIL.CHRONOS]: true}, sortedActions: undefined},
                 translateLocal,
                 undefined,
             );
@@ -1520,7 +1520,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, excludeLogins: {[CONST.EMAIL.RECEIPTS]: true}, sortedActions: undefined},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, excludeLogins: {[CONST.EMAIL.RECEIPTS]: true}, sortedActions: undefined},
                 translateLocal,
                 undefined,
             );
@@ -1574,7 +1574,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, includeMultipleParticipantReports: true, sortedActions: undefined},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, includeMultipleParticipantReports: true, sortedActions: undefined},
                 translateLocal,
                 undefined,
             );
@@ -1628,7 +1628,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, includeMultipleParticipantReports: true, showRBR: true, sortedActions: undefined},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, includeMultipleParticipantReports: true, showRBR: true, sortedActions: undefined},
                 translateLocal,
                 undefined,
             );
@@ -1679,7 +1679,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, includeMultipleParticipantReports: true, showRBR: false, sortedActions: undefined},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, includeMultipleParticipantReports: true, showRBR: false, sortedActions: undefined},
                 translateLocal,
                 undefined,
             );
@@ -1734,7 +1734,14 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, includeRecentReports: true, shouldUnreadBeBold: true, includeMultipleParticipantReports: true, sortedActions: undefined},
+                {
+                    preferredLocale: CONST.LOCALES.EN,
+                    convertToDisplayString,
+                    includeRecentReports: true,
+                    shouldUnreadBeBold: true,
+                    includeMultipleParticipantReports: true,
+                    sortedActions: undefined,
+                },
                 translateLocal,
                 undefined,
             );
@@ -1767,7 +1774,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, personalDetails: customPersonalDetails, sortedActions: undefined},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, personalDetails: customPersonalDetails, sortedActions: undefined},
                 translateLocal,
                 undefined,
             );
@@ -1791,7 +1798,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, selectedOptions, includeSelectedOptions: true, sortedActions: undefined},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, selectedOptions, includeSelectedOptions: true, sortedActions: undefined},
                 translateLocal,
                 undefined,
             );
@@ -1815,7 +1822,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, maxElements: 1},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, maxElements: 1},
                 translateLocal,
                 undefined,
             );
@@ -1832,7 +1839,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, maxElements: 100},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, maxElements: 100},
                 translateLocal,
                 undefined,
             );
@@ -1862,7 +1869,7 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
@@ -1888,7 +1895,7 @@ describe('OptionsListUtils', () => {
             const {eagerList, lazyList} = buildOptionLists();
 
             // When both lists go through getValidOptions with a top-N cap that exercises the heap
-            const config = {dateFnsLocale: undefined, convertToDisplayString, maxElements: 3, personalDetails: PERSONAL_DETAILS};
+            const config = {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, maxElements: 3, personalDetails: PERSONAL_DETAILS};
             const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal, undefined);
             const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal, undefined);
 
@@ -1904,7 +1911,7 @@ describe('OptionsListUtils', () => {
             const {eagerList, lazyList} = buildOptionLists();
 
             // When both lists go through getValidOptions with a search string (contact filtering reads text/login/participantsList)
-            const config = {dateFnsLocale: undefined, convertToDisplayString, searchString: 'spider', personalDetails: PERSONAL_DETAILS};
+            const config = {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, searchString: 'spider', personalDetails: PERSONAL_DETAILS};
             const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal, undefined);
             const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal, undefined);
 
@@ -1971,7 +1978,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, searchString, includeP2P: true},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, searchString, includeP2P: true},
                 translateLocal,
                 undefined,
             );
@@ -1984,7 +1991,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -2051,7 +2058,7 @@ describe('OptionsListUtils', () => {
             const {eagerList, lazyList} = buildOptionLists();
 
             // When both lists go through getValidOptions with a custom exclusion (filter reads shell.login)
-            const config = {dateFnsLocale: undefined, convertToDisplayString, excludeLogins: {'peterparker@expensify.com': true}, personalDetails: PERSONAL_DETAILS};
+            const config = {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, excludeLogins: {'peterparker@expensify.com': true}, personalDetails: PERSONAL_DETAILS};
             const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal, undefined);
             const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal, undefined);
 
@@ -2070,7 +2077,7 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
@@ -2087,7 +2094,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -2111,7 +2118,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     personalDetails: PERSONAL_DETAILS,
                 },
@@ -2139,7 +2146,7 @@ describe('OptionsListUtils', () => {
 
             // When both lists go through getValidOptions with search + maxElements together
             // (filter selects matches, then the heap keeps only the top-N survivors to hydrate)
-            const config = {dateFnsLocale: undefined, convertToDisplayString, searchString: 'man', maxElements: 3, personalDetails: PERSONAL_DETAILS};
+            const config = {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, searchString: 'man', maxElements: 3, personalDetails: PERSONAL_DETAILS};
             const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal, undefined);
             const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal, undefined);
 
@@ -2161,7 +2168,7 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                 },
@@ -2175,7 +2182,7 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                 },
@@ -2199,7 +2206,7 @@ describe('OptionsListUtils', () => {
             }
 
             // When both the fresh and cached lazy lists go through getValidOptions
-            const config = {dateFnsLocale: undefined, convertToDisplayString, maxElements: 3, personalDetails: PERSONAL_DETAILS};
+            const config = {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, maxElements: 3, personalDetails: PERSONAL_DETAILS};
             const {options: firstResults} = getValidOptions(
                 firstLazyList,
                 allPolicies,
@@ -2236,7 +2243,7 @@ describe('OptionsListUtils', () => {
             const {maxRecentReports, includeP2P, deferContactsUntilSearch} = SEARCH_ROUTER_OPTIONS_CONFIG;
             const options = {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 maxRecentReports,
@@ -2281,7 +2288,7 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
@@ -2375,7 +2382,7 @@ describe('OptionsListUtils', () => {
             };
 
             // When both mixed lists are filtered for the device contact
-            const config = {dateFnsLocale: undefined, convertToDisplayString, searchString: 'Device Contact Jane', personalDetails: PERSONAL_DETAILS};
+            const config = {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, searchString: 'Device Contact Jane', personalDetails: PERSONAL_DETAILS};
             const {options: eagerResults} = getValidOptions(
                 eagerWithContacts,
                 allPolicies,
@@ -2465,7 +2472,7 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
@@ -2495,7 +2502,7 @@ describe('OptionsListUtils', () => {
             const expected: HydratedPersonalDetailOption = {
                 item: PARITY_PERSONAL_DETAIL,
                 ...createOption({
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     accountIDs: [PARITY_ACCOUNT_ID],
                     personalDetails: PARITY_PERSONAL_DETAILS,
@@ -2548,7 +2555,7 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: PARITY_REPORT_ID,
                     isSearching: true,
@@ -2565,7 +2572,7 @@ describe('OptionsListUtils', () => {
             // rather than the one it would build with conciergeReportID dropped
             const hydrated = hydrateContactOption(shell);
             const withConcierge = createOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 accountIDs: [PARITY_ACCOUNT_ID],
                 personalDetails: PARITY_PERSONAL_DETAILS,
@@ -2601,7 +2608,7 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                 },
@@ -2615,7 +2622,7 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                 },
@@ -2625,7 +2632,7 @@ describe('OptionsListUtils', () => {
             expect(second.personalDetails.length).toBe(first.personalDetails.length);
 
             // When both are run through getValidOptions (the first pass builds, the second must not)
-            const config = {dateFnsLocale: undefined, convertToDisplayString, personalDetails: PERSONAL_DETAILS};
+            const config = {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, personalDetails: PERSONAL_DETAILS};
             const firstBuilds = first.personalDetails.map(buildIdentity);
             const {options: firstResults} = getValidOptions(first, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal, undefined);
             const {options: secondResults} = getValidOptions(second, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal, undefined);
@@ -2655,7 +2662,7 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
@@ -2703,7 +2710,7 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
@@ -2743,7 +2750,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     includeRecentReports: true,
                     includeMultipleParticipantReports: true,
@@ -2789,7 +2796,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     includeRecentReports: true,
                     includeMultipleParticipantReports: true,
@@ -2821,7 +2828,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     includeRecentReports: true,
                     includeMultipleParticipantReports: true,
@@ -2852,7 +2859,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     includeRecentReports: true,
                     includeMultipleParticipantReports: true,
@@ -2883,7 +2890,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     includeRecentReports: true,
                     includeMultipleParticipantReports: true,
@@ -2915,7 +2922,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -2939,7 +2946,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, excludeLogins: {'peterparker@expensify.com': true}, sortedActions: undefined},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, excludeLogins: {'peterparker@expensify.com': true}, sortedActions: undefined},
                 translateLocal,
                 undefined,
             );
@@ -2963,7 +2970,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -2988,7 +2995,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, excludeLogins: {[CONST.EMAIL.CONCIERGE]: true}, sortedActions: undefined},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, excludeLogins: {[CONST.EMAIL.CONCIERGE]: true}, sortedActions: undefined},
                 translateLocal,
                 undefined,
             );
@@ -3014,7 +3021,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, excludeLogins: {[CONST.EMAIL.CHRONOS]: true}, sortedActions: undefined},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, excludeLogins: {[CONST.EMAIL.CHRONOS]: true}, sortedActions: undefined},
                 translateLocal,
                 undefined,
             );
@@ -3040,7 +3047,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, excludeLogins: {[CONST.EMAIL.RECEIPTS]: true}, sortedActions: undefined},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, excludeLogins: {[CONST.EMAIL.RECEIPTS]: true}, sortedActions: undefined},
                 translateLocal,
                 undefined,
             );
@@ -3064,7 +3071,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, maxRecentReportElements: maxRecentReports, sortedActions: undefined},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, maxRecentReportElements: maxRecentReports, sortedActions: undefined},
                 translateLocal,
                 undefined,
             );
@@ -3084,7 +3091,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -3096,7 +3103,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, maxRecentReportElements: 2, sortedActions: undefined},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, maxRecentReportElements: 2, sortedActions: undefined},
                 translateLocal,
                 undefined,
             );
@@ -3116,7 +3123,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -3128,7 +3135,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, maxRecentReportElements: 2, sortedActions: undefined},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, maxRecentReportElements: 2, sortedActions: undefined},
                 translateLocal,
                 undefined,
             );
@@ -3150,7 +3157,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, maxElements: maxTotalElements, maxRecentReportElements: maxRecentReports, sortedActions: undefined},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, maxElements: maxTotalElements, maxRecentReportElements: maxRecentReports, sortedActions: undefined},
                 translateLocal,
                 undefined,
             );
@@ -3189,7 +3196,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     isDefaultRoomsBetaEnabled: false,
                     includeMultipleParticipantReports: true,
@@ -3238,7 +3245,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     isDefaultRoomsBetaEnabled: false,
                     includeMultipleParticipantReports: true,
@@ -3289,7 +3296,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with the default rooms beta enabled
             const {options} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -3314,7 +3321,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -3331,7 +3338,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with the default rooms beta enabled
             const {options} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -3356,7 +3363,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     sortByReportTypeInSearch: true,
@@ -3381,7 +3388,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with the default rooms beta enabled
             const {options} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -3406,7 +3413,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -3433,7 +3440,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
@@ -3443,7 +3450,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with the default rooms beta enabled
             const {options} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS_WITH_ARCHIVED,
@@ -3468,7 +3475,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -3493,7 +3500,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
@@ -3503,7 +3510,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with the default rooms beta enabled
             const {options} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS_WITH_PERIODS,
@@ -3527,7 +3534,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS_WITH_PERIODS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     sortByReportTypeInSearch: true,
@@ -3547,7 +3554,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with the default rooms beta enabled
             const {options} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS_WITH_WORKSPACE_ROOM,
@@ -3571,7 +3578,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -3589,7 +3596,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options with the default rooms beta enabled
             const {options} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -3614,7 +3621,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -3637,13 +3644,13 @@ describe('OptionsListUtils', () => {
                 MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHAT_ROOM,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 undefined,
-                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, preferredLocale: CONST.LOCALES.EN, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
             // When we call getSearchOptions with the default rooms beta enabled
             const {options} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS_WITH_CHAT_ROOMS,
@@ -3667,7 +3674,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -3686,7 +3693,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const {options} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -3710,7 +3717,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -3730,7 +3737,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const {options} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -3755,7 +3762,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -3777,7 +3784,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT, sortedActions: undefined},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT, sortedActions: undefined},
                 translateLocal,
                 undefined,
             );
@@ -3791,7 +3798,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -3808,7 +3815,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const {options} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -3833,7 +3840,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -3850,7 +3857,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const {options} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -3875,7 +3882,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     maxRecentReportsToShow: 2,
@@ -3897,7 +3904,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     maxRecentReportsToShow: 0,
@@ -3914,7 +3921,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options with the default rooms beta enabled
             const {options} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -3939,7 +3946,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -3971,7 +3978,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     isDefaultRoomsBetaEnabled: false,
                     includeMultipleParticipantReports: true,
@@ -4000,7 +4007,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -4035,7 +4042,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     isDefaultRoomsBetaEnabled: false,
                     includeMultipleParticipantReports: true,
@@ -4064,7 +4071,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -4099,7 +4106,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     isDefaultRoomsBetaEnabled: false,
                     includeMultipleParticipantReports: true,
@@ -4128,7 +4135,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -4149,7 +4156,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -4163,7 +4170,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -4211,7 +4218,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
@@ -4222,7 +4229,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with a search query that matches a participant display name
             const {options} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS_WITH_GROUP_CHAT,
@@ -4277,7 +4284,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
@@ -4288,7 +4295,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with a search query that matches a participant login
             const {options} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS_WITH_GROUP_CHAT,
@@ -4343,7 +4350,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
@@ -4354,7 +4361,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with a search query that matches a participant name
             const {options} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS_WITH_GROUP_CHAT,
@@ -4409,7 +4416,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
@@ -4420,7 +4427,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with a search query that does not match any participant
             const {options} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS_WITH_GROUP_CHAT,
@@ -4468,14 +4475,14 @@ describe('OptionsListUtils', () => {
                 undefined,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 undefined,
-                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, preferredLocale: CONST.LOCALES.EN, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
 
             // When we call getSearchOptions with the default rooms beta enabled
             const {options} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS_WITH_GROUP_CHAT_NO_PARTICIPANTS,
@@ -4500,7 +4507,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -4522,7 +4529,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -4536,7 +4543,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -4560,7 +4567,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -4574,7 +4581,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -4598,7 +4605,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -4612,7 +4619,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -4635,7 +4642,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -4649,7 +4656,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -4670,7 +4677,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -4684,7 +4691,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -4710,7 +4717,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -4724,7 +4731,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -4750,7 +4757,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -4764,7 +4771,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -4790,7 +4797,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -4804,7 +4811,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -4828,7 +4835,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, includeUserToInvite: true, sortedActions: undefined},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, includeUserToInvite: true, sortedActions: undefined},
                 translateLocal,
                 undefined,
             );
@@ -4843,7 +4850,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     shouldAcceptName: false,
@@ -4865,7 +4872,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, includeUserToInvite: true, sortedActions: undefined},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, includeUserToInvite: true, sortedActions: undefined},
                 translateLocal,
                 undefined,
             );
@@ -4880,7 +4887,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     shouldAcceptName: true,
@@ -4902,7 +4909,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -4916,7 +4923,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -4937,7 +4944,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -4951,7 +4958,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     sortByReportTypeInSearch: true,
@@ -4977,7 +4984,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -4991,7 +4998,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     maxRecentReportsToShow: 5,
@@ -5014,7 +5021,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const {options} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -5038,7 +5045,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -5055,7 +5062,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const {options} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -5079,7 +5086,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -5105,7 +5112,7 @@ describe('OptionsListUtils', () => {
                         undefined,
                         {
                             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                            dateFnsLocale: undefined,
+                            preferredLocale: CONST.LOCALES.EN,
                             convertToDisplayString,
                             conciergeReportID: undefined,
                             isSearching: true,
@@ -5115,7 +5122,7 @@ describe('OptionsListUtils', () => {
                     // When we call getSearchOptions
                     const {options: results} = getSearchOptions({
                         rules: undefined,
-                        dateFnsLocale: undefined,
+                        preferredLocale: CONST.LOCALES.EN,
                         convertToDisplayString,
                         translate: translateLocal,
                         options: OPTIONS_WITH_PERIODS,
@@ -5137,7 +5144,7 @@ describe('OptionsListUtils', () => {
                         CURRENT_USER_EMAIL,
                         CURRENT_USER_ACCOUNT_ID,
                         PERSONAL_DETAILS_WITH_PERIODS,
-                        {dateFnsLocale: undefined, convertToDisplayString, sortByReportTypeInSearch: true, currentUserAccountID: CURRENT_USER_ACCOUNT_ID},
+                        {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, sortByReportTypeInSearch: true, currentUserAccountID: CURRENT_USER_ACCOUNT_ID},
                         undefined,
                     );
 
@@ -5157,7 +5164,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const {options} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -5182,7 +5189,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -5206,7 +5213,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
@@ -5217,7 +5224,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options with self dm and the default rooms beta enabled
             const {options} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS_WITH_SELF_DM,
@@ -5241,7 +5248,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -5256,7 +5263,7 @@ describe('OptionsListUtils', () => {
             const {options} = getSearchOptions({
                 rules: undefined,
                 translate: translateLocal,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
@@ -5280,7 +5287,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -5295,7 +5302,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -5360,7 +5367,7 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
@@ -5384,7 +5391,7 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
@@ -5481,7 +5488,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
@@ -5549,7 +5556,7 @@ describe('OptionsListUtils', () => {
         const buildConfig = (lastAction?: ReportAction, reportID: string = ROOM_REPORT_ID, overrides: Partial<AlternateTextConfig> = {}): AlternateTextConfig => ({
             isReportArchived: false,
             personalDetails: PERSONAL_DETAILS,
-            dateFnsLocale: undefined,
+            preferredLocale: CONST.LOCALES.EN,
             convertToDisplayString,
             conciergeReportID: undefined,
             translate: translateLocal,
@@ -5777,7 +5784,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
@@ -5794,7 +5801,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     showChatPreviewLine: true,
                     includeMultipleParticipantReports: true,
@@ -5833,7 +5840,7 @@ describe('OptionsListUtils', () => {
                 card: undefined,
                 lastAction: comment,
                 translate: translateLocal,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 convertToDisplayStringWithoutCurrency,
                 localeCompare,
@@ -5877,7 +5884,7 @@ describe('OptionsListUtils', () => {
                     card: undefined,
                     lastAction: action,
                     translate: translateLocal,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     convertToDisplayStringWithoutCurrency,
                     localeCompare,
@@ -5981,7 +5988,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
@@ -6009,7 +6016,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
@@ -6039,7 +6046,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
@@ -6074,7 +6081,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                 },
@@ -6106,7 +6113,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                 },
@@ -6140,7 +6147,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                 },
@@ -6180,7 +6187,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     maxRecentReports: 20,
@@ -6951,7 +6958,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             const result = createOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 accountIDs: [1, 2],
@@ -6993,7 +7000,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             const result = createOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -7026,7 +7033,7 @@ describe('OptionsListUtils', () => {
 
             // Should not throw when reports is undefined
             const result = createOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 accountIDs: [1, 2],
@@ -7185,7 +7192,7 @@ describe('OptionsListUtils', () => {
 
             // When we call getReportDisplayOption
             const result = getReportDisplayOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 report,
                 unknownUserDetails: undefined,
@@ -7217,7 +7224,7 @@ describe('OptionsListUtils', () => {
 
             // When we call getReportDisplayOption
             const result = getReportDisplayOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 report,
                 unknownUserDetails: undefined,
@@ -7251,7 +7258,7 @@ describe('OptionsListUtils', () => {
 
             // When we call getReportDisplayOption
             const result = getReportDisplayOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 report,
                 unknownUserDetails,
@@ -7284,7 +7291,7 @@ describe('OptionsListUtils', () => {
 
             // When we call getReportDisplayOption
             const result = getReportDisplayOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 report,
                 unknownUserDetails: undefined,
@@ -7325,7 +7332,7 @@ describe('OptionsListUtils', () => {
 
             // When we call getReportDisplayOption with custom personalDetails
             const result = getReportDisplayOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 report,
                 unknownUserDetails: undefined,
@@ -7354,7 +7361,7 @@ describe('OptionsListUtils', () => {
 
             // When we call getReportDisplayOption
             const result = getReportDisplayOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 report,
                 unknownUserDetails: undefined,
@@ -7378,7 +7385,7 @@ describe('OptionsListUtils', () => {
 
             // When we call getReportDisplayOption with undefined report
             const result = getReportDisplayOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 report: undefined,
                 unknownUserDetails: undefined,
@@ -7423,7 +7430,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -7443,7 +7450,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -7463,7 +7470,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -7499,7 +7506,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, isDefaultRoomsBetaEnabled: false, includeRecentReports: true, sortedActions: undefined},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, isDefaultRoomsBetaEnabled: false, includeRecentReports: true, sortedActions: undefined},
                 translateLocal,
                 undefined,
             );
@@ -7556,7 +7563,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -7598,7 +7605,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: ownerAccountID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -7663,7 +7670,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -7697,7 +7704,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: report,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -7749,7 +7756,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -7795,7 +7802,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -7848,7 +7855,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -7902,7 +7909,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: {},
                 reportDraft: draftReport,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -7932,7 +7939,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -7959,7 +7966,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: draftReport,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -7990,7 +7997,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8015,7 +8022,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             const option = getReportDisplayOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 report,
                 unknownUserDetails: undefined,
@@ -8050,7 +8057,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             const option = getReportDisplayOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 report,
                 unknownUserDetails: undefined,
@@ -8082,7 +8089,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             const option = getReportDisplayOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 report,
                 unknownUserDetails: undefined,
@@ -8118,7 +8125,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             const option = getReportDisplayOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 report,
                 unknownUserDetails: undefined,
@@ -8154,7 +8161,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             const option = getReportDisplayOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 report,
                 unknownUserDetails: undefined,
@@ -8197,7 +8204,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8229,7 +8236,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8262,7 +8269,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8309,7 +8316,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8382,7 +8389,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8418,7 +8425,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8451,7 +8458,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8512,7 +8519,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8545,7 +8552,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8575,7 +8582,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8623,7 +8630,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8654,7 +8661,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 rules: undefined,
             });
             const optionWithoutConcierge = getReportOption({
@@ -8666,7 +8673,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                localize: {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8731,7 +8738,7 @@ describe('OptionsListUtils', () => {
                 testPersonalDetails,
                 report,
                 undefined,
-                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -8767,7 +8774,7 @@ describe('OptionsListUtils', () => {
                 {},
                 report,
                 undefined,
-                {translate: translateWithMarker, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateWithMarker, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -8838,7 +8845,7 @@ describe('OptionsListUtils', () => {
                 testPersonalDetails,
                 report,
                 undefined,
-                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -8892,7 +8899,7 @@ describe('OptionsListUtils', () => {
                 {},
                 report,
                 undefined,
-                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -8946,7 +8953,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 report,
                 undefined,
-                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -9008,7 +9015,7 @@ describe('OptionsListUtils', () => {
                 {},
                 report,
                 undefined,
-                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -9020,7 +9027,7 @@ describe('OptionsListUtils', () => {
                 {},
                 report,
                 undefined,
-                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -9067,7 +9074,7 @@ describe('OptionsListUtils', () => {
                 testPersonalDetails,
                 report,
                 undefined,
-                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -9077,7 +9084,7 @@ describe('OptionsListUtils', () => {
                 testPersonalDetails,
                 report,
                 undefined,
-                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 9999,
                 undefined,
             );
@@ -9143,7 +9150,7 @@ describe('OptionsListUtils', () => {
                 testPersonalDetails,
                 report,
                 undefined,
-                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -9197,7 +9204,7 @@ describe('OptionsListUtils', () => {
                 {},
                 report,
                 undefined,
-                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -9299,7 +9306,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 translateLocal,
                 convertToDisplayString,
-                undefined,
+                CONST.LOCALES.EN,
                 undefined,
                 formatPersonalDetails,
                 true,
@@ -9336,7 +9343,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 translateLocal,
                 convertToDisplayString,
-                undefined,
+                CONST.LOCALES.EN,
                 undefined,
                 formatPersonalDetails,
                 true,
@@ -9388,7 +9395,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 translateLocal,
                 convertToDisplayString,
-                undefined,
+                CONST.LOCALES.EN,
                 undefined,
                 formatPersonalDetails,
                 true,
@@ -9433,7 +9440,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 translateLocal,
                 convertToDisplayString,
-                undefined,
+                CONST.LOCALES.EN,
                 undefined,
                 formatPersonalDetails,
                 false,
@@ -9475,7 +9482,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 translateLocal,
                 convertToDisplayString,
-                undefined,
+                CONST.LOCALES.EN,
                 undefined,
                 formatPersonalDetails,
                 true,
@@ -9517,7 +9524,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 translateLocal,
                 convertToDisplayString,
-                undefined,
+                CONST.LOCALES.EN,
                 undefined,
                 formatPersonalDetails,
                 true,
@@ -9543,7 +9550,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 translateLocal,
                 convertToDisplayString,
-                undefined,
+                CONST.LOCALES.EN,
                 undefined,
                 formatPersonalDetails,
                 true,
@@ -9596,7 +9603,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 translateLocal,
                 convertToDisplayString,
-                undefined,
+                CONST.LOCALES.EN,
                 undefined,
                 formatPersonalDetails,
                 true,
@@ -9615,7 +9622,7 @@ describe('OptionsListUtils', () => {
     describe('getUserToInviteOption', () => {
         it('should not return userToInvite for plain text name when shouldAcceptName is false', () => {
             const result = getUserToInviteOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 searchValue: 'Jeff Amazon',
@@ -9629,7 +9636,7 @@ describe('OptionsListUtils', () => {
 
         it('should return userToInvite for plain text name when shouldAcceptName is true', () => {
             const result = getUserToInviteOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 searchValue: 'Jeff Amazon',
@@ -9645,7 +9652,7 @@ describe('OptionsListUtils', () => {
 
         it('should return a valid invite option for a new email', () => {
             const result = getUserToInviteOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 searchValue: 'newuser@example.com',
@@ -9662,7 +9669,7 @@ describe('OptionsListUtils', () => {
 
         it('should return null when searchValue is empty', () => {
             const result = getUserToInviteOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 searchValue: '',
@@ -9677,7 +9684,7 @@ describe('OptionsListUtils', () => {
 
         it('should return null when searching for current user email', () => {
             const result = getUserToInviteOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 searchValue: CURRENT_USER_EMAIL,
@@ -9701,7 +9708,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -9715,7 +9722,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -9736,7 +9743,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -9750,7 +9757,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -9770,7 +9777,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -9784,7 +9791,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -9806,7 +9813,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -9827,7 +9834,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -9842,7 +9849,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
@@ -9859,7 +9866,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with reports in the config
             const {options} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -9883,7 +9890,7 @@ describe('OptionsListUtils', () => {
             const sortedActions = {};
             const {options} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -9905,7 +9912,7 @@ describe('OptionsListUtils', () => {
         it('getUserToInviteOption should use reports parameter correctly', () => {
             // Given a valid email search value and reports collection
             const result = getUserToInviteOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 searchValue: 'newuser@example.com',
@@ -9930,7 +9937,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -9951,7 +9958,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 translateLocal,
                 undefined,
             );
@@ -9995,7 +10002,7 @@ describe('OptionsListUtils', () => {
 
             // When we call createOption with the linked chat report
             const result = createOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 accountIDs: [1, 2],
@@ -10036,7 +10043,7 @@ describe('OptionsListUtils', () => {
 
             // When we call getReportDisplayOption with chat report
             const option = getReportDisplayOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 report,
                 unknownUserDetails: undefined,
@@ -10093,7 +10100,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 report,
                 undefined,
-                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -10122,7 +10129,7 @@ describe('OptionsListUtils', () => {
 
             // When the threaded conciergeReportID matches the report
             const conciergeOption = createOptionFromReport({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 report,
@@ -10137,7 +10144,7 @@ describe('OptionsListUtils', () => {
 
             // And an identical report with a non-matching conciergeReportID is not treated as Concierge
             const regularOption = createOptionFromReport({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 report,
@@ -10169,7 +10176,7 @@ describe('OptionsListUtils', () => {
             const sortedActions = {[report.reportID]: [reportAction]};
 
             const result = createOptionFromReport({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 report,
@@ -10204,7 +10211,7 @@ describe('OptionsListUtils', () => {
             const sortedActions = {[report.reportID]: [reportAction]};
 
             const result = createOptionFromReport({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 report,
@@ -10238,7 +10245,7 @@ describe('OptionsListUtils', () => {
             const sortedActions = {[report.reportID]: [reportAction]};
 
             const result = createOptionFromReport({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 report,
@@ -10272,7 +10279,7 @@ describe('OptionsListUtils', () => {
             const sortedActions = {[report.reportID]: [reportAction]};
 
             const result = createOptionFromReport({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 report,
@@ -10307,7 +10314,7 @@ describe('OptionsListUtils', () => {
 
             const config = {showPersonalDetails: true};
             const result = createOptionFromReport({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 report,
@@ -10347,7 +10354,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
 
             const roomOption = createOptionFromReport({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 report,
@@ -10359,7 +10366,7 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             const personalDetailsOption = createOptionFromReport({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 report,
@@ -10410,7 +10417,7 @@ describe('OptionsListUtils', () => {
                 await waitForBatchedUpdates();
 
                 return {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     report,
                     personalDetails: {...PERSONAL_DETAILS, [ownerAccountID]: {accountID: ownerAccountID, login: SUBMITTER_LOGIN, displayName: 'Submitter'}},
                     privateIsArchived: undefined,
@@ -10524,7 +10531,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     maxRecentReports: 2,
@@ -10547,7 +10554,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     maxRecentReports: 1,
@@ -10573,7 +10580,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     maxRecentReports: 1,
@@ -10596,7 +10603,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     maxRecentReports: 1,
@@ -10620,7 +10627,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     maxRecentReports: 0,
@@ -10640,7 +10647,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     maxRecentReports: 5,
@@ -10706,7 +10713,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     maxRecentReports: 3,
                     includeP2P: false,
@@ -10727,7 +10734,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     includeP2P: true,
@@ -10749,7 +10756,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     includeP2P: false,
@@ -10770,7 +10777,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                 },
@@ -10790,7 +10797,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                 },
@@ -10833,7 +10840,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     maxRecentReports: 10,
@@ -10853,7 +10860,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
@@ -10872,7 +10879,14 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {},
                 {},
-                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true, maxRecentReports: 2},
+                {
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    preferredLocale: CONST.LOCALES.EN,
+                    convertToDisplayString,
+                    conciergeReportID: undefined,
+                    isSearching: true,
+                    maxRecentReports: 2,
+                },
                 undefined,
             );
 
@@ -10889,7 +10903,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                 },
@@ -10912,7 +10926,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     deferContactsUntilSearch: true,
@@ -10933,7 +10947,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     deferContactsUntilSearch: true,
@@ -10954,7 +10968,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                 },
@@ -10974,7 +10988,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                 },
@@ -11001,7 +11015,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                 },
@@ -11015,7 +11029,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: '1',
                 },
@@ -11040,7 +11054,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                 },
@@ -11064,7 +11078,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                 },
@@ -11103,7 +11117,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, includeRecentReports: false, recentAttendees, maxRecentReportElements: 5, sortedActions: undefined},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, includeRecentReports: false, recentAttendees, maxRecentReportElements: 5, sortedActions: undefined},
                 translateLocal,
                 undefined,
             );
@@ -11122,7 +11136,15 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, includeRecentReports: false, recentAttendees, maxRecentReportElements: 5, searchString: 'john', sortedActions: undefined},
+                {
+                    preferredLocale: CONST.LOCALES.EN,
+                    convertToDisplayString,
+                    includeRecentReports: false,
+                    recentAttendees,
+                    maxRecentReportElements: 5,
+                    searchString: 'john',
+                    sortedActions: undefined,
+                },
                 translateLocal,
                 undefined,
             );
@@ -11142,7 +11164,7 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                 },
@@ -11172,7 +11194,7 @@ describe('OptionsListUtils', () => {
             const sortedActions = {[report.reportID]: [reportAction]};
 
             const result = createOptionFromReport({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 report,
@@ -11204,7 +11226,7 @@ describe('OptionsListUtils', () => {
             };
 
             const result = getReportDisplayOption({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 report,
                 unknownUserDetails: undefined,
@@ -11250,7 +11272,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 report,
                 POLICY,
-                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                {translate: translateLocal, preferredLocale: CONST.LOCALES.EN, convertToDisplayString},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -11269,7 +11291,7 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 translateLocal,
                 convertToDisplayString,
-                undefined,
+                CONST.LOCALES.EN,
                 undefined,
                 PERSONAL_DETAILS,
                 true,
@@ -11347,7 +11369,14 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, includeRecentReports: true, includeMultipleParticipantReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions},
+                {
+                    preferredLocale: CONST.LOCALES.EN,
+                    convertToDisplayString,
+                    includeRecentReports: true,
+                    includeMultipleParticipantReports: true,
+                    action: CONST.IOU.ACTION.CREATE,
+                    sortedActions,
+                },
                 translateLocal,
                 undefined,
             );
@@ -11407,7 +11436,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, includeRecentReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, includeRecentReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions},
                 translateLocal,
                 undefined,
             );
@@ -11464,7 +11493,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, includeRecentReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions: undefined},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, includeRecentReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions: undefined},
                 translateLocal,
                 undefined,
             );
@@ -11547,7 +11576,14 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, includeRecentReports: true, includeMultipleParticipantReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions},
+                {
+                    preferredLocale: CONST.LOCALES.EN,
+                    convertToDisplayString,
+                    includeRecentReports: true,
+                    includeMultipleParticipantReports: true,
+                    action: CONST.IOU.ACTION.CREATE,
+                    sortedActions,
+                },
                 translateLocal,
                 undefined,
             );
@@ -11623,7 +11659,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, includeRecentReports: true, sortedActions},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, includeRecentReports: true, sortedActions},
                 translateLocal,
                 undefined,
             );
@@ -11689,7 +11725,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, includeRecentReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, includeRecentReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions},
                 translateLocal,
                 undefined,
             );
@@ -11807,7 +11843,14 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, includeRecentReports: true, includeMultipleParticipantReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions},
+                {
+                    preferredLocale: CONST.LOCALES.EN,
+                    convertToDisplayString,
+                    includeRecentReports: true,
+                    includeMultipleParticipantReports: true,
+                    action: CONST.IOU.ACTION.CREATE,
+                    sortedActions,
+                },
                 translateLocal,
                 undefined,
             );
@@ -11869,7 +11912,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString, includeRecentReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions: {[reportID]: [commentAction]}},
+                {preferredLocale: CONST.LOCALES.EN, convertToDisplayString, includeRecentReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions: {[reportID]: [commentAction]}},
                 translateLocal,
                 undefined,
             );
@@ -11921,7 +11964,7 @@ describe('OptionsListUtils', () => {
 
             const {options: results} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: {reports: [inputOption], personalDetails: []},
@@ -11991,7 +12034,7 @@ describe('OptionsListUtils', () => {
 
             const {options: results} = getSearchOptions({
                 rules: undefined,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: {reports: [inputOption], personalDetails: []},
@@ -12040,7 +12083,7 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching,

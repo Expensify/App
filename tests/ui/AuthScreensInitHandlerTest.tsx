@@ -109,6 +109,7 @@ jest.mock('@userActions/User', () => ({
 jest.mock('@libs/telemetry/activeSpans', () => ({
     startSpan: jest.fn(),
     endSpan: jest.fn(),
+    cancelSpan: jest.fn(),
     getSpan: jest.fn(),
 }));
 

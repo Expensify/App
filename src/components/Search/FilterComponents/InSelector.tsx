@@ -49,7 +49,7 @@ function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): O
 }
 
 function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: InSelectorProps) {
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const {convertToDisplayString} = useCurrencyListActions();
     const personalDetails = usePersonalDetails();
@@ -89,7 +89,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
         const report = {
             ...getSelectedOptionData(
                 createOptionFromReport({
-                    dateFnsLocale,
+                    preferredLocale,
                     convertToDisplayString,
                     report: {...reportData, reportID: id},
                     personalDetails,
@@ -112,7 +112,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
             report,
             {},
             {
-                dateFnsLocale,
+                preferredLocale,
                 convertToDisplayString,
                 isReportArchived,
                 personalDetails,
@@ -139,7 +139,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
         isLoading || !ready || !options
             ? defaultListOptions
             : getSearchOptions({
-                  dateFnsLocale,
+                  preferredLocale,
                   convertToDisplayString,
                   options,
                   draftComments,
@@ -168,7 +168,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
         currentUserAccountID,
         personalDetails,
         {
-            dateFnsLocale,
+            preferredLocale,
             convertToDisplayString,
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,

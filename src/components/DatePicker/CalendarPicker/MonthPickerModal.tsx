@@ -31,10 +31,10 @@ type MonthPickerModalProps = {
 
 function MonthPickerModal({isVisible, currentMonth, onMonthChange, onClose, shouldEnableBackdropInNarrowPane = false}: MonthPickerModalProps) {
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const [searchText, setSearchText] = useState('');
     const resolvedCurrentMonth = currentMonth ?? new Date().getMonth();
-    const monthNames = DateUtils.getMonthNames(dateFnsLocale);
+    const monthNames = DateUtils.getMonthNames(preferredLocale);
 
     const allMonths = DateUtils.getFilteredMonthItems(monthNames, resolvedCurrentMonth);
 

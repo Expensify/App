@@ -35,7 +35,7 @@ type TransactionsImportedPageProps = PlatformStackScreenProps<SettingsNavigatorP
 
 function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
     const {cardID: existingCardID} = route.params ?? {};
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [savedColumnLayouts] = useOnyx(ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST);
     const [accountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
@@ -132,7 +132,7 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
         const previouslySavedLayout = cardIDNumber && savedColumnLayouts ? savedColumnLayouts[String(cardIDNumber)] : undefined;
         // Re-uploading a file to an existing card skips the settings step, so keep the configuration the card was imported with
         const existingCardSettings = cardIDNumber ? getExistingCardImportSettings(existingCard, previouslySavedLayout, customCardNames?.[String(cardIDNumber)]) : undefined;
-        const importFinalModal = await importTransactionsFromCSV(spreadsheet, accountID, cardIDNumber, previouslySavedLayout, existingCardSettings);
+        const importFinalModal = await importTransactionsFromCSV(spreadsheet, accountID, preferredLocale, cardIDNumber, previouslySavedLayout, existingCardSettings);
         const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
         if (!didShowImportFinalModal) {
             setIsImporting(false);

@@ -1,6 +1,7 @@
 import type IntlPolyfill from './types';
 
 import polyfillListFormat from './polyfillListFormat';
+import polyfillRelativeTimeFormat from './polyfillRelativeTimeFormat';
 
 /**
  * Polyfill the Intl API, always performed for native devices.
@@ -17,6 +18,8 @@ const intlPolyfill: IntlPolyfill = () => {
     require('@formatjs/intl-pluralrules/locale-data/en');
 
     polyfillListFormat();
+
+    polyfillRelativeTimeFormat();
 };
 
 export default intlPolyfill;

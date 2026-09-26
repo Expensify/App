@@ -700,29 +700,37 @@ const CONST = {
     DATE: {
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
         FNS_DATE_TIME_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss',
-        // `p` is date-fns' localized time: it resolves each locale's own clock convention rather than fixing the
-        // US 12-hour one. Ten of the eleven shipped locales use a 24-hour clock, so `h:mm a` was wrong for them
-        // and the translated AM/PM marker only made a wrong convention read as deliberate. Greek keeps its
-        // 12-hour clock and its own `μ.μ.` marker. `p` is a date-fns extension, and still needs `{locale}`.
-        LOCAL_TIME_FORMAT: 'p',
         YEAR_MONTH_FORMAT: 'yyyyMM',
-        // `LLLL` is the standalone month, not `MMMM`. Greek and Polish inflect the month name when it accompanies
-        // a day, so `stycznia` means "of January". A month shown on its own, like a picker list or a statement
-        // heading, needs the nominative `styczeń` instead. Both uses of this constant are a month standing alone.
-        MONTH_FORMAT: 'LLLL',
-        WEEKDAY_TIME_FORMAT: 'eeee',
-        MONTH_DAY_ABBR_FORMAT: 'MMM d',
-        SHORT_DATE_FORMAT: 'MM-dd',
-        MONTH_DAY_YEAR_ABBR_FORMAT: 'MMM d, yyyy',
-        MONTH_DAY_YEAR_FORMAT: 'MMMM d, yyyy',
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
-        LONG_DATE_FORMAT_WITH_WEEKDAY: 'eeee, MMMM d, yyyy',
-        LONG_DATE_FORMAT_WITH_WEEKDAY_WITHOUT_YEAR: 'eeee, MMMM d',
-        ORDINAL_DAY_OF_MONTH: 'do',
-        MONTH_DAY_YEAR_ORDINAL_FORMAT: 'MMMM do, yyyy',
         SECONDS_PER_DAY: 24 * 60 * 60,
         MONTH_DAYS,
+        ENGLISH_MONTH_NAMES: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+        ENGLISH_DAY_NAMES: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+        INTL_FORMATS: {
+            SHORT_TIME: {timeStyle: 'short'},
+            SHORT_DATE: {dateStyle: 'short'},
+            SHORT_DATE_PADDED: {year: 'numeric', month: '2-digit', day: '2-digit'},
+            MEDIUM_DATE: {dateStyle: 'medium'},
+            MEDIUM_DATE_TIME: {dateStyle: 'medium', timeStyle: 'short'},
+            LONG_DATE: {dateStyle: 'long'},
+            FULL_DATE: {dateStyle: 'full'},
+            LONG_WEEKDAY: {weekday: 'long'},
+            NARROW_WEEKDAY: {weekday: 'narrow'},
+            LONG_MONTH: {month: 'long'},
+            SHORT_MONTH: {month: 'short'},
+            LONG_MONTH_YEAR: {month: 'long', year: 'numeric'},
+            WEEKDAY_LONG_MONTH_DAY: {weekday: 'long', month: 'long', day: 'numeric'},
+            MONTH_DAY: {month: 'short', day: 'numeric'},
+            DAY_ONLY: {day: 'numeric'},
+            WEEKDAY_MONTH_DAY: {weekday: 'long', month: 'short', day: 'numeric'},
+            WEEKDAY_MONTH_DAY_YEAR: {weekday: 'long', month: 'short', day: 'numeric', year: 'numeric'},
+            WEEKDAY_LONG_MONTH_DAY_YEAR: {weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'},
+            MONTH_DAY_SHORT_TIME: {month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'},
+            SHORT_TIME_ZONE_NAME: {timeZoneName: 'short'},
+        },
+        // ICU 72+ emits U+202F before AM/PM and some Android builds draw it as a tofu box. Scoped to AM/PM so French and Slavic typography keeps its NNBSP around `:` and `%`.
+        INTL_NBSP_PATTERN: /[\u202f\u00a0](?=[AaPp][Mm])/g,
     },
     SMS: {
         DOMAIN: '@expensify.sms',

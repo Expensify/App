@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearCashbackToBillError, toggleCashbackToBill} from '@libs/actions/Card';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getCardProgramKey, getCardSettings, toMonthlySettlementDate} from '@libs/CardUtils';
+import {toLocaleDayOfMonth} from '@libs/LocaleDigitUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
@@ -32,7 +33,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import {format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -40,7 +40,7 @@ type WorkspaceCardSettingsPageProps = PlatformStackScreenProps<SettingsNavigator
 
 function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const policyID = route.params?.policyID;
     const defaultFundID = useDefaultFundID(policyID);
 
@@ -63,7 +63,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     // Nothing is shown when the settlement date can't be resolved to a real day — an empty hint beats a wrong settlement date.
     const monthlySettlementDateText =
         settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY && settlementDate
-            ? translate('workspace.expensifyCard.monthlySettlementDate', format(settlementDate, CONST.DATE.ORDINAL_DAY_OF_MONTH, {locale: dateFnsLocale}))
+            ? translate('workspace.expensifyCard.monthlySettlementDate', toLocaleDayOfMonth(preferredLocale, settlementDate.getDate()))
             : undefined;
 
     return (

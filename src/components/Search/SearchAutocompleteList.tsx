@@ -178,7 +178,7 @@ function SearchAutocompleteList({
     ref,
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
-    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber, preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
@@ -257,7 +257,7 @@ function SearchAutocompleteList({
             return defaultListOptions;
         }
         return getSearchOptions({
-            dateFnsLocale,
+            preferredLocale,
             convertToDisplayString,
             options: listOptions,
             draftComments,
@@ -300,7 +300,7 @@ function SearchAutocompleteList({
         conciergeReportID,
         isTrackIntentUser,
         translate,
-        dateFnsLocale,
+        preferredLocale,
         convertToDisplayString,
         rules,
     ]);

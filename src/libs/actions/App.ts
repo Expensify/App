@@ -19,6 +19,7 @@ import {cancelAllSpans, endSpan, getSpan, startSpan} from '@libs/telemetry/activ
 import {logReceiptQueueSnapshot} from '@libs/telemetry/ReceiptObservability';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import getPathFromState from '@src/libs/Navigation/helpers/getPathFromState';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -202,6 +203,9 @@ function getNonOptimisticPolicyIDs(policies: OnyxCollection<OnyxTypes.Policy>): 
 }
 
 function setLocale(locale: Locale, currentPreferredLocale: Locale | undefined) {
+    // Applying a locale is what loads it: the writes below are no-ops when the NVP already holds it, which is what a failed load leaves behind, and then nothing would ask again.
+    IntlStore.load(locale);
+
     if (locale === currentPreferredLocale) {
         return;
     }

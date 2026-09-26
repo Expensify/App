@@ -22,6 +22,7 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {getDisplayMerchant} from '@libs/PerDiemMerchantUtils';
 import {
     canSubmitPerDiemExpenseFromWorkspace,
     getCommaSeparatedTagNameWithSanitizedColons,
@@ -96,7 +97,6 @@ import type {
 } from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
@@ -1515,10 +1515,10 @@ function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
  * scanning, and normalizes the `DEFAULT_MERCHANT` ("Expense") and `PARTIAL_TRANSACTION_MERCHANT` ("(none)") placeholder
  * values to an empty string so they never leak into the UI.
  */
-function getMerchantName(transaction: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string): string {
+function getMerchantName(transaction: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string, locale: LocaleContextProps['preferredLocale']): string {
     const shouldShowMerchant = transaction.shouldShowMerchant ?? true;
 
-    let merchant = transaction?.formattedMerchant ?? getMerchant(transaction);
+    let merchant = transaction?.formattedMerchant ?? getDisplayMerchant(transaction, getMerchant(transaction), locale);
 
     if (isScanning(transaction) && shouldShowMerchant) {
         merchant = translate('iou.receiptStatusTitle');
@@ -1775,9 +1775,9 @@ function getCreated(transaction: OnyxInputOrEntry<Transaction>): string {
 /**
  * Return the created field from the transaction, return the modifiedCreated if present.
  */
-function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING, dateFnsLocale?: DateFnsLocale): string {
+function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFormat: MachineDateFormat = CONST.DATE.FNS_FORMAT_STRING): string {
     const created = getCreated(transaction);
-    return DateUtils.formatWithUTCTimeZone(created, dateFormat, dateFnsLocale);
+    return DateUtils.formatMachineDateWithUTCTimeZone(created, dateFormat);
 }
 
 /**

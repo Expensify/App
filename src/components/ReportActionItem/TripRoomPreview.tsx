@@ -120,7 +120,7 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
 
 function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomPreviewProps) {
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {anchor: contextMenuAnchorRef, shouldDisplayContextMenu = true, originalReportID} = useShowContextMenuState();
     const {checkIfContextMenuActive} = useShowContextMenuActions();
@@ -137,7 +137,12 @@ function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomP
     const reservationsData: ReservationData[] = getReservationsFromTripReport(chatReport, reportNameValuePairs, tripTransactions);
     const dateInfo =
         reportNameValuePairs?.tripData?.startDate && reportNameValuePairs?.tripData?.endDate
-            ? DateUtils.getFormattedDateRange(translate, dateFnsLocale, new Date(reportNameValuePairs.tripData.startDate), new Date(reportNameValuePairs.tripData.endDate))
+            ? DateUtils.getFormattedDateRange(
+                  translate,
+                  DateUtils.toLocalDate(reportNameValuePairs.tripData.startDate),
+                  DateUtils.toLocalDate(reportNameValuePairs.tripData.endDate),
+                  preferredLocale,
+              )
             : '';
     const reportCurrency = iouReportCurrency ?? chatReport?.currency;
 
