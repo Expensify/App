@@ -1,8 +1,9 @@
 import Log from '@libs/Log';
 import {config, normalizedConfigs, screensWithOnyxTabNavigator} from '@libs/Navigation/linkingConfig/config';
 import type {State} from '@libs/Navigation/types';
+import {hasKey} from '@libs/ObjectUtils';
 
-import type {Screen} from '@src/SCREENS';
+import type {NavigationState, PartialState} from '@react-navigation/native';
 
 import {getPathFromState as RNGetPathFromState} from '@react-navigation/native';
 
@@ -12,10 +13,6 @@ import joinPathSegments from './dynamicRoutesUtils/joinPathSegments';
 import splitPathAndQuery from './dynamicRoutesUtils/splitPathAndQuery';
 import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard';
 import {collapseRepeatedSlashes} from './normalizePath';
-
-function isScreen(name: string): name is Screen {
-    return name in normalizedConfigs;
-}
 
 /**
  * Resolves a single path segment: if it's a `:param` placeholder, replaces it
@@ -82,6 +79,9 @@ function buildSuffixFromPattern(pattern: string, params: Record<string, unknown>
  *
  * @private - Internal helper. Do not export or use outside this file.
  */
+function popFocusedRoute(state: NavigationState): NavigationState | undefined;
+function popFocusedRoute(state: PartialState<NavigationState>): PartialState<NavigationState> | undefined;
+function popFocusedRoute(state: State): State | undefined;
 function popFocusedRoute(state: State): State | undefined {
     const index = state.index ?? state.routes.length - 1;
     const focusedRoute = state.routes[index];
@@ -94,21 +94,34 @@ function popFocusedRoute(state: State): State | undefined {
     // the focused route has nested state - try to pop from deeper levels first,
     // unless it hosts an OnyxTabNavigator (treat it as a leaf).
     if (focusedRoute.state && focusedRoute.name && !screensWithOnyxTabNavigator.has(focusedRoute.name)) {
-        const nestedResult = popFocusedRoute(focusedRoute.state as State);
-
-        // A deeper route was successfully popped - rebuild the current level with the updated nested state.
-        if (nestedResult) {
-            const newRoutes = [...state.routes] as typeof state.routes;
-            // @ts-expect-error -- we're rebuilding a structurally identical route with updated nested state
-            newRoutes[index] = {...focusedRoute, state: nestedResult};
-            return {...state, routes: newRoutes, index} as State;
+        // Rebuild from the narrowed state to preserve full and partial route categories.
+        if (state.stale === false) {
+            const nestedResult = popFocusedRoute(focusedRoute.state);
+            const fullFocusedRoute = state.routes.at(index);
+            if (nestedResult && fullFocusedRoute) {
+                const newRoutes = [...state.routes];
+                newRoutes[index] = {...fullFocusedRoute, state: nestedResult};
+                return {...state, routes: newRoutes, index};
+            }
+        } else {
+            const partialFocusedRoute = state.routes.at(index);
+            const nestedResult = partialFocusedRoute?.state ? popFocusedRoute(partialFocusedRoute.state) : undefined;
+            if (nestedResult && partialFocusedRoute) {
+                const newRoutes = [...state.routes];
+                newRoutes[index] = {...partialFocusedRoute, state: nestedResult};
+                return {...state, routes: newRoutes, index};
+            }
         }
     }
 
     // remove the focused route itself if siblings remain.
     if (state.routes.length > 1) {
+        if (state.stale === false) {
+            const newRoutes = state.routes.filter((_, i) => i !== index);
+            return {...state, routes: newRoutes, index: newRoutes.length - 1};
+        }
         const newRoutes = state.routes.filter((_, i) => i !== index);
-        return {...state, routes: newRoutes, index: newRoutes.length - 1} as State;
+        return {...state, routes: newRoutes, index: newRoutes.length - 1};
     }
 
     // Only one route at this level and nothing deeper to pop — signal the parent to remove this level entirely.
@@ -127,13 +140,13 @@ function popFocusedRoute(state: State): State | undefined {
 function getPathFromStateWithDynamicRoute(state: State): string {
     const focusedRoute = findFocusedRouteWithOnyxTabGuard(state);
     const screenName = focusedRoute?.name ?? '';
-    const suffixPattern = normalizedConfigs[screenName as Screen]?.path;
+    const suffixPattern = hasKey(normalizedConfigs, screenName) ? normalizedConfigs[screenName]?.path : undefined;
 
     if (!suffixPattern) {
         return RNGetPathFromState(state, config);
     }
 
-    let actualSuffix = buildSuffixFromPattern(suffixPattern, focusedRoute?.params as Record<string, unknown> | undefined);
+    let actualSuffix = buildSuffixFromPattern(suffixPattern, focusedRoute?.params ? {...focusedRoute.params} : undefined);
 
     // If this dynamic screen hosts a tab navigator, append the focused tab's path segment.
     if (screensWithOnyxTabNavigator.has(screenName)) {
@@ -141,7 +154,7 @@ function getPathFromStateWithDynamicRoute(state: State): string {
         if (tabState) {
             const tabIndex = tabState.index ?? tabState.routes.length - 1;
             const focusedTab = tabState.routes[tabIndex];
-            const tabPath = focusedTab && isScreen(focusedTab.name) ? normalizedConfigs[focusedTab.name]?.path : undefined;
+            const tabPath = focusedTab && hasKey(normalizedConfigs, focusedTab.name) ? normalizedConfigs[focusedTab.name]?.path : undefined;
             if (tabPath) {
                 const [suffixPathOnly, suffixQueryOnly] = splitPathAndQuery(actualSuffix);
                 actualSuffix = `${suffixPathOnly}/${tabPath}${suffixQueryOnly ? `?${suffixQueryOnly}` : ''}`;
@@ -181,7 +194,7 @@ function getPathFromState(state: State): string {
     const focusedRoute = findFocusedRouteWithOnyxTabGuard(state);
     const screenName = focusedRoute?.name ?? '';
 
-    return isDynamicRouteScreen(screenName as Screen) ? getPathFromStateWithDynamicRoute(state) : RNGetPathFromState(state, config);
+    return hasKey(normalizedConfigs, screenName) && isDynamicRouteScreen(screenName) ? getPathFromStateWithDynamicRoute(state) : RNGetPathFromState(state, config);
 }
 
 export default getPathFromState;
