@@ -192,6 +192,12 @@ type Card = OnyxValueWithOfflineFeedback<{
         possibleFraud?: PossibleFraudData;
 
         /**
+         * ID of the workspace that this card's transactions auto report to.
+         * '0' means transactions are unreported; null means the employee default chain applies.
+         */
+        preferredPolicy?: string | null;
+
+        /**
          * Where this card would route if card's `preferredPolicy` were unset.
          * It describes the fallback, not the effective destination.
          */
