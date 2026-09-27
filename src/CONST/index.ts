@@ -6887,8 +6887,6 @@ const CONST = {
         HIDDEN_BORDER_BOTTOM_WIDTH: 0,
     },
 
-    MISSING_TRANSLATION: 'MISSING TRANSLATION',
-
     /**
      * The count of characters we'll allow the user to type after reaching SEARCH_MAX_LENGTH in an input.
      */
