@@ -412,6 +412,20 @@ type CardAssignmentData = {
 };
 
 /**
+ * Where a card would route if it had no preferred workspace set.
+ */
+type CardEmployeeDefaultWorkspace = {
+    policyID: string;
+    name: string;
+    autoReporting: boolean;
+
+    /**
+     * Whether the cardholder's domain security group enforces a restricted workspace.
+     */
+    isEnforcedByDomainGroup: boolean;
+};
+
+/**
  * Data for a frozen card
  */
 type FrozenCardData = {
@@ -437,4 +451,5 @@ export type {
     CardAssignmentData,
     UnassignedCard,
     PossibleFraudData,
+    CardEmployeeDefaultWorkspace,
 };
