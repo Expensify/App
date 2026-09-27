@@ -940,7 +940,8 @@ describe('getReportPreviewAction', () => {
         }
     });
 
-    it('canPay should return false for Expense report with zero total amount', async () => {
+    it('canPay should return PAY for an expense report with a zero total that is ready to be paid', async () => {
+        // Given a submitted $0 expense report on a workspace without approvals, so it's ready to be paid and can only be marked as paid
         const report = {
             ...createRandomReport(REPORT_ID, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -955,6 +956,7 @@ describe('getReportPreviewAction', () => {
         policy.role = CONST.POLICY.ROLE.ADMIN;
         policy.type = CONST.POLICY.TYPE.CORPORATE;
         policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+        policy.approvalMode = CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const transaction = createMock<Transaction>({
@@ -962,7 +964,9 @@ describe('getReportPreviewAction', () => {
         });
 
         await waitForBatchedUpdatesWithAct();
-        // Should not show PAY button for zero amount Expenses
+
+        // When the report preview action is computed
+        // Then PAY is shown so the report can be closed out by marking it as paid, matching Expensify Classic
         expect(
             getReportPreviewAction({
                 isReportArchived: false,
@@ -976,7 +980,7 @@ describe('getReportPreviewAction', () => {
                 ownerLogin: CURRENT_USER_EMAIL,
                 rules: undefined,
             }),
-        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
 
     it('canPay should return PAY for expense report with only non-reimbursable expenses when payments enabled', async () => {
