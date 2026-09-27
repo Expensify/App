@@ -1,7 +1,7 @@
 ---
 title: Use Search Operators to Filter and Analyze
 description: Learn how to use search operators, filters, and grouping to find, organize, and analyze expenses, chats, reports, and tasks in Expensify.
-keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter, custom field, international reimbursement IDs]
+keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter, custom field, international reimbursement IDs, transaction status filter, pending card expenses, posted card expenses]
 internalScope: Audience is all Expensify members. Covers search operator syntax for filtering, grouping, and chart views. Does not cover saved search management or Search page UI navigation.
 ---
 
@@ -80,6 +80,7 @@ You can use the following operators to filter expenses:
 | `billable:` | Filter by whether an expense is billable (`yes` or `no`) | `billable:no` |
 | `attendee:` | Filter by expense attendee using an email, phone number, display name, or `me` | `attendee:"Jason Mills"` |
 | `posted:` | Filter by the date a credit card expense was posted | `posted:last-statement` |
+| `transaction-status:` | Filter by whether a card expense is still `pending` or has `posted`. Accepts one value at a time, and only card expenses are returned. Available only when you have at least one card. | `transaction-status:pending` |
 | `bank-account:` | Filter by the settlement bank account an expense was reimbursed from. Start typing after the colon to choose an account, shown by bank name and last four digits. Available only when you have at least one bank account. | `bank-account:"Chase xx1234"` |
 
 **Example queries:**
