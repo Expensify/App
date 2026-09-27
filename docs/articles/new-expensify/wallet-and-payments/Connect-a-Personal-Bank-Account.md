@@ -1,13 +1,13 @@
 ---
 title: Connect a Personal Bank Account
 description: Learn how to connect your personal bank account to receive reimbursements in Expensify, including support for both US and international accounts.
-keywords: [New Expensify, bank account, personal bank account, reimbursements, wallet, US bank account, global reimbursements, manual bank connection, add bank account for reimbursement, reimbursement account setup, wallet, deposit account, direct deposit, update bank account, review badge, missing info]
+keywords: [New Expensify, bank account, personal bank account, reimbursements, wallet, US bank account, global reimbursements, manual bank connection, add bank account for reimbursement, reimbursement account setup, wallet, deposit account, direct deposit, update bank account, review badge, missing info, validate your account, security code, log into your bank, connect manually]
 internalScope: Audience is members receiving reimbursements. Covers connecting and updating personal bank accounts, does not cover business bank accounts or workspace-level payment settings.
 ---
 
 # Connect a Personal Bank Account
 
-You can add a personal bank account to receive reimbursements in over **190 countries**. All personal accounts are managed under **Account > Wallet > Bank Accounts**. The steps differ depending on whether you're connecting a **US** or **non-US** account.
+You can add a personal bank account to receive reimbursements in over **190 countries**. All personal accounts are managed under **Account > Wallet > Bank accounts**. The steps differ depending on whether you're connecting a **US** or **non-US** account.
 
 ---
 
@@ -20,10 +20,11 @@ For U.S. accounts, Expensify offers two ways to connect your bank account:
 
 To connect a U.S. bank account:
 
-1. Go to **Account > Wallet > Bank Accounts**.
-2. Click **Add Bank Account**.
-3. Select **United States** as your country.
-4. Choose one of the following:
+1. Go to **Account > Wallet > Bank accounts**.
+2. Click **Add bank account**.
+3. If your account is not validated yet, a **Validate your account** screen appears. Enter the security code sent to your email address to continue.
+4. On the **Where's your bank account located?** screen, select **United States**, then click **Next**.
+5. Choose one of the following:
    - **Log into your bank**:
      - Select your bank from the list.
      - Enter your online banking credentials and follow the prompts to complete setup. 
@@ -31,11 +32,13 @@ To connect a U.S. bank account:
      - Enter your routing number and account number,
      - Enter or update your name, address, and phone number to match your bank account details. 
      - Click **Confirm** to complete setup. 
-5. Your bank account will appear in the **Bank Accounts** section.
+6. Your bank account will appear in the **Bank accounts** section.
+
+Whether or not you had to validate your account, you always reach the same **Log into your bank** and **Connect manually** choice before entering any bank details.
 
 ![Click Add bank account on the Wallet page]({{site.url}}/assets/images/ExpensiHelp-DepositAccount-1.png){:width="100%"}
 
-![Select United States, tap Next, and then follow the Plaid prompts]({{site.url}}/assets/images/ExpensiHelp-DepositAccount-2.png){:width="100%"}
+![Select United States, tap Next, and then choose Log into your bank or Connect manually]({{site.url}}/assets/images/ExpensiHelp-DepositAccount-2.png){:width="100%"}
 
 ![After connecting with Plaid, your account is shown in the Bank accounts section]({{site.url}}/assets/images/ExpensiHelp-DepositAccount-3.png){:width="100%"}
 
@@ -47,7 +50,7 @@ If a bank account is missing required information (such as your legal name, addr
 
 To update your bank account information:
 
-1. Go to **Account > Wallet > Bank Accounts**.
+1. Go to **Account > Wallet > Bank accounts**.
 2. Tap the bank account row that displays the **Review** badge.
 3. Complete the steps that appear. You will only be prompted for information that is currently missing — steps where the bank account already has the data are skipped automatically.
 4. On the last step, tap the button to submit your changes.
@@ -62,6 +65,10 @@ Once updated, the **Review** badge will be removed from the bank account.
 ## Can I add more than one personal bank account?
 
 Yes. You can add multiple accounts, but only one can be selected as the default for reimbursements.
+
+## Why am I asked for a security code when I add a bank account?
+
+Your Expensify account must be validated before you can add a bank account. When it isn't, a **Validate your account** screen appears and Expensify emails you a security code. Enter the code to continue. After you enter it, you go on to the **Log into your bank** or **Connect manually** choice — you are not dropped into your bank's login.
 
 ## Why does my bank account show a "Review" badge?
 
