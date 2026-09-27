@@ -13,6 +13,7 @@ import type {
     RequestReplacementExpensifyCardParams,
     ResolveFraudAlertParams,
     RevealExpensifyCardDetailsParams,
+    SetCardPreferredPolicyParams,
     SetExpensifyCardRuleParams,
     SetPersonalCardReimbursableParams,
     StartIssueNewCardFlowParams,
@@ -45,6 +46,7 @@ import ROUTES from '@src/ROUTES';
 import type {SpendRuleForm} from '@src/types/form';
 import type {Card, CompanyCardFeedWithDomainID, PersonalDetailsList, Report, Transaction} from '@src/types/onyx';
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep, PossibleFraudData} from '@src/types/onyx/Card';
+import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {ExpensifyCardRule} from '@src/types/onyx/ExpensifyCardSettings';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -1124,6 +1126,20 @@ function updateExpensifyCardTitle(workspaceAccountID: number, cardID: number, ne
 
     API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_TITLE, parameters, {optimisticData, successData, failureData});
 }
+
+/**
+ * Sets, clears, or pins the card-level preferred workspace that this card's transactions report to.
+ * `newPreferredPolicyID` is `''` to clear the pin (the employee default chain applies), `'0'` for an
+ * explicit None, or a policyID to pin a specific workspace.
+ */
+function setCardPreferredPolicy(
+    domainOrWorkspaceAccountID: number,
+    bank: CardFeedWithNumber,
+    card: Card,
+    newPreferredPolicyID: string,
+    oldPreferredPolicyID: string | undefined,
+    currentUserAccountID: number,
+) {}
 
 function updateExpensifyCardLimitType(
     workspaceAccountID: number,
