@@ -1,3 +1,4 @@
+import CardPreferredWorkspaceSection from '@components/CardPreferredWorkspaceSection';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
@@ -311,6 +312,13 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.UNASSIGN_CARD}
                         />
                     )}
+                    <CardPreferredWorkspaceSection
+                        card={card}
+                        domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
+                        bank={bank}
+                        feedWithDomainID={feedName}
+                        canWrite={canWriteCompanyCards}
+                    />
                     {exportMenuItem?.shouldShowMenuItem ? (
                         <>
                             <View style={[styles.mh5, styles.pt3, styles.borderTop]}>
