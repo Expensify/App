@@ -35,11 +35,11 @@ import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {loginSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 
 import type {ActionHandledType} from './useHoldMenuSubmit';
@@ -55,6 +55,7 @@ import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
 import usePermissions from './usePermissions';
+import {usePersonalDetail} from './usePersonalDetails';
 import useReportIsArchived from './useReportIsArchived';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useStrictPolicyRules from './useStrictPolicyRules';
@@ -95,9 +96,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
-    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID),
-    });
+    const [submitterLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);

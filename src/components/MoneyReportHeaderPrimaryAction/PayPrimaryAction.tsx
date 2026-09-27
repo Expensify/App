@@ -62,7 +62,6 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -156,7 +155,6 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 paymentMethod,
                 activePolicy,
                 conciergeChat,
-                betas,
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', displayName, lastWorkspaceNumber, translate),
                 chatReportActions: getChatReportActions(payAsBusiness),
@@ -178,7 +176,6 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 activePolicy,
                 policy,
                 chatReportPolicy,
-                betas,
                 isSelfTourViewed,
                 userBillingGracePeriodEnds,
                 amountOwed,

@@ -165,6 +165,8 @@ import Hourglass from '@assets/images/simple-illustrations/simple-illustration__
 import HouseMoney from '@assets/images/simple-illustrations/simple-illustration__house-money.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
 import HouseWithMap from '@assets/images/simple-illustrations/simple-illustration__housewithmap.svg';
+import IceCreamNumberOne from '@assets/images/simple-illustrations/simple-illustration__ice-cream-number-1.svg';
+import IceCreamNumberTwo from '@assets/images/simple-illustrations/simple-illustration__ice-cream-number-2.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
 import LifeRing from '@assets/images/simple-illustrations/simple-illustration__lifering.svg';
 import Lightbulb from '@assets/images/simple-illustrations/simple-illustration__lightbulb.svg';
@@ -172,6 +174,7 @@ import LockClosed from '@assets/images/simple-illustrations/simple-illustration_
 import LockClosedOrange from '@assets/images/simple-illustrations/simple-illustration__lockclosed_orange.svg';
 import LockOpen from '@assets/images/simple-illustrations/simple-illustration__lockopen.svg';
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
+import MagnifyingGlassChart from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-chart.svg';
 import MagnifyingGlassMoney from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-money.svg';
 import MagnifyingGlassReceipt from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-receipt.svg';
 import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
@@ -358,6 +361,7 @@ const Illustrations = {
     HandCard,
     Hashtag,
     InvoiceBlue,
+    MagnifyingGlassChart,
     MagnifyingGlassMoney,
     MagnifyingGlassReceipt,
     MoneyReceipts,
@@ -432,6 +436,8 @@ const Illustrations = {
     House,
     HouseWithMap,
     HouseMoney,
+    IceCreamNumberOne,
+    IceCreamNumberTwo,
     LifeRing,
     Lightbulb,
     LockClosed,
