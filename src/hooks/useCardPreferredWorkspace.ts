@@ -134,7 +134,7 @@ function useCardPreferredWorkspace(card: Card | undefined): UseCardPreferredWork
         if (eligiblePolicyIDs.length > 0) {
             return {
                 state: CARD_PREFERRED_WORKSPACE_STATE.SUBMISSIONS_DISABLED,
-                title: translate('workspace.card.preferredWorkspace.noneEmployeeDefault'),
+                title: translate('workspace.card.preferredWorkspace.employeeDefault', translate('workspace.card.preferredWorkspace.none')),
                 helperText: translate('workspace.card.preferredWorkspace.submissionsDisabled', workspaceWorkflowsLink(employeeDefaultPolicyID)),
                 isInteractive: true,
                 cardPreferredPolicyID,
@@ -156,10 +156,9 @@ function useCardPreferredWorkspace(card: Card | undefined): UseCardPreferredWork
         };
     }
 
-    // Fall back to a bare "Employee default".
     return {
         state: CARD_PREFERRED_WORKSPACE_STATE.EMPLOYEE_DEFAULT_UNKNOWN,
-        title: eligiblePolicyIDs.length > 0 ? translate('workspace.card.preferredWorkspace.employeeDefaultUnknown') : translate('workspace.card.preferredWorkspace.none'),
+        title: translate('workspace.card.preferredWorkspace.employeeDefault', translate('workspace.card.preferredWorkspace.none')),
         helperText: undefined,
         isInteractive: eligiblePolicyIDs.length > 0,
         cardPreferredPolicyID,
