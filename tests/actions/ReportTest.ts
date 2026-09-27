@@ -10150,7 +10150,6 @@ describe('actions/Report', () => {
                 conciergeChat: undefined,
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
-                betas: undefined,
                 personalDetails: undefined,
                 iouReport: parentReport,
                 iouReportAction: reportAction,
@@ -10218,7 +10217,6 @@ describe('actions/Report', () => {
                 newReportObject,
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
-                betas: undefined,
                 hasReportActions: false,
             });
             await waitForNetworkPromises();
