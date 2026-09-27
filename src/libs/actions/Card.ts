@@ -1177,6 +1177,10 @@ function setCardPreferredPolicy(
         shouldUpdateCardList,
         bank,
     );
+
+    const parameters: SetCardPreferredPolicyParams = {cardID: card.cardID, preferredPolicyID: newPreferredPolicyID};
+
+    API.write(WRITE_COMMANDS.SET_CARD_PREFERRED_POLICY, parameters, {optimisticData, successData, failureData});
 }
 
 function updateExpensifyCardLimitType(
