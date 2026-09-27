@@ -22,9 +22,9 @@ import CONST from '@src/CONST';
 import type {ComponentRef} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 
-import {format, setYear} from 'date-fns';
+import {setYear} from 'date-fns';
 import debounce from 'lodash/debounce';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 
 import type {DateInputWithPickerProps} from './types';
@@ -298,13 +298,10 @@ function DatePicker({
         [autoFocus],
     );
 
-    const getValidDateForCalendar = useMemo(() => {
-        if (!selectedDate) {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            return defaultValue || format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
-        }
-        return selectedDate;
-    }, [selectedDate, defaultValue]);
+    // Standing today in for a field holding nothing would both mark today as the chosen day and send the calendar to a
+    // month it may have no business opening on. An empty value leaves it to work out where to start on its own.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const calendarValue = selectedDate || defaultValue || '';
 
     return (
         <>
@@ -365,7 +362,7 @@ function DatePicker({
                 inputID={inputID}
                 minDate={minDate}
                 maxDate={maxDate}
-                value={getValidDateForCalendar}
+                value={calendarValue}
                 onSelected={handleDateSelected}
                 isVisible={isModalVisible}
                 onClose={closeDatePicker}

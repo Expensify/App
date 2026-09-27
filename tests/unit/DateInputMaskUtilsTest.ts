@@ -1,4 +1,5 @@
 import {
+    clearSegmentsUpTo,
     getAdjacentSegmentName,
     getDateMaskParts,
     getFirstUnfilledSegmentName,
@@ -167,6 +168,23 @@ describe('DateInputMaskUtils', () => {
 
         it('reports that an empty segment had nothing to drop', () => {
             expect(removeLastDigit(EMPTY, 'year')).toBeUndefined();
+        });
+    });
+
+    describe('clearSegmentsUpTo', () => {
+        it('empties the segment and everything before it, leaving the rest alone', () => {
+            // Given the day, which is the last segment, so there is nothing after it to keep
+            expect(clearSegmentsUpTo(segments('2026', '09', '02'), 'day')).toEqual(EMPTY);
+
+            // Given the month, which leaves the day the user has already entered
+            expect(clearSegmentsUpTo(segments('2026', '09', '02'), 'month')).toEqual(segments('', '', '02'));
+
+            // Given the year, which is the first segment, so only it is emptied
+            expect(clearSegmentsUpTo(segments('2026', '09', '02'), 'year')).toEqual(segments('', '09', '02'));
+        });
+
+        it('leaves an already empty date empty', () => {
+            expect(clearSegmentsUpTo(EMPTY, 'day')).toEqual(EMPTY);
         });
     });
 

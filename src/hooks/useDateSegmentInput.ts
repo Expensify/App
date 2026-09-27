@@ -5,6 +5,7 @@
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 
 import {
+    clearSegmentsUpTo,
     DATE_SEGMENT_NAMES,
     EMPTY_SEGMENTS,
     getAdjacentSegmentName,
@@ -189,8 +190,16 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
     const handleKeyPress = (name: DateSegmentName, event: TextInputKeyPressEvent) => {
         const key = event.nativeEvent.key;
 
-        // A shortcut is the browser's to handle, apart from the one that selects a field the browser cannot select
+        // A shortcut is the browser's to handle, apart from the two it cannot apply across separate inputs
         if (event.nativeEvent.metaKey || event.nativeEvent.ctrlKey) {
+            if (key === CONST.KEYBOARD_SHORTCUTS.BACKSPACE.shortcutKey || key === DELETE_KEY) {
+                event.preventDefault();
+                setIsAllSelected(false);
+                applySegments(isAllSelected ? EMPTY_SEGMENTS : clearSegmentsUpTo(segments, name));
+                enterSegment(FIRST_SEGMENT_NAME);
+                return;
+            }
+
             if (key.toLowerCase() !== SELECT_ALL_KEY || !hasAnySegment(segments)) {
                 return;
             }
@@ -271,8 +280,19 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
 
         setIsAllSelected(false);
         applySegments(pastedSegments);
-        // A paste that fills only part of the date leaves the user at the digits they still have to enter
-        enterSegment(getFirstUnfilledSegmentName(pastedSegments) ?? LAST_SEGMENT_NAME);
+
+        const unfilledName = getFirstUnfilledSegmentName(pastedSegments);
+
+        // A paste that fills the date leaves the last segment ready to be started over
+        if (!unfilledName) {
+            enterSegment(LAST_SEGMENT_NAME);
+            return;
+        }
+
+        // A paste that fills only part of the date leaves the user at the digits they still have to enter. Those are
+        // the start of that segment, so the next digit has to extend them rather than replace them.
+        focusSegment(unfilledName);
+        setShouldOverwrite(false);
     };
 
     const handleSegmentFocus = () => {

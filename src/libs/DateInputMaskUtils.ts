@@ -277,6 +277,17 @@ function getViewDateFromSegments(segments: DateSegments, fallbackDate: Date, min
     return new Date(hasYear ? Number(segments.year) : fallbackYear, hasMonth ? monthNumber - 1 : fallbackDate.getMonth(), 1);
 }
 
+/** Empties a segment and every segment before it, which is what deleting to the start of the field leaves behind */
+function clearSegmentsUpTo(segments: DateSegments, name: DateSegmentName): DateSegments {
+    const cleared = {...segments};
+
+    for (const clearedName of DATE_SEGMENT_NAMES.slice(0, DATE_SEGMENT_NAMES.indexOf(name) + 1)) {
+        cleared[clearedName] = '';
+    }
+
+    return cleared;
+}
+
 /** Drops the last digit of a segment. Returns undefined when there was nothing left to drop */
 function removeLastDigit(segments: DateSegments, name: DateSegmentName): DateSegments | undefined {
     if (!segments[name]) {
@@ -363,6 +374,7 @@ function hasAnySegment(segments: DateSegments): boolean {
 
 export {
     DATE_SEGMENT_NAMES,
+    clearSegmentsUpTo,
     EMPTY_SEGMENTS,
     getAdjacentSegmentName,
     getDateMaskParts,
