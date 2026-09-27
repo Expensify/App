@@ -62,6 +62,44 @@ function DynamicCardPreferredWorkspacePage({route}: DynamicCardPreferredWorkspac
         ? card?.nameValuePairs?.cardTitle
         : (getCompanyCardCustomName(cardID, sharedCardCustomNames, customCardNames) ?? getDefaultCardName(cardholder?.displayName));
 
+    const {cardPreferredPolicyID, employeeDefaultPolicyName, cardholderEmail} = useCardPreferredWorkspace(card);
+
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const {data, shouldShowSearchInput} = useWorkspaceList({
+        policies,
+        currentUserLogin,
+        shouldShowPendingDeletePolicy: false,
+        selectedPolicyIDs: cardPreferredPolicyID ? [cardPreferredPolicyID] : undefined,
+        searchTerm,
+        localeCompare,
+        additionalFilter: (policy) => isEligibleForCardPreferredWorkspace(policy, cardholderEmail),
+    });
+
+    const noneOption: ListItem = {
+        text: translate('workspace.card.preferredWorkspace.none'),
+        keyForList: CONST.CARD_PREFERRED_POLICY.NONE,
+        isSelected: cardPreferredPolicyID === CONST.CARD_PREFERRED_POLICY.NONE,
+    };
+
+    const employeeDefaultOption: ListItem = {
+        text: employeeDefaultPolicyName
+            ? translate('workspace.card.preferredWorkspace.employeeDefaultOption', employeeDefaultPolicyName)
+            : translate('workspace.card.preferredWorkspace.employeeDefaultUnknown'),
+        keyForList: CONST.CARD_PREFERRED_POLICY.EMPLOYEE_DEFAULT_OPTION_KEY,
+        isSelected: !cardPreferredPolicyID,
+    };
+
+    // The None / Employee default sentinels never match a search term, so they're hidden while searching
+    // rather than sitting above an empty workspace list.
+    const sections: Array<Section<ListItem | WorkspaceListItemType>> = searchTerm
+        ? [{sectionIndex: 0, data}]
+        : [
+              {sectionIndex: 0, data: [noneOption, employeeDefaultOption]},
+              {sectionIndex: 1, customHeader: <View style={styles.dividerLine} />, data},
+          ];
+
     const featureName = isExpensifyCard(card) ? CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED : CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED;
     const policyFeature = isExpensifyCard(card) ? CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD : CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS;
 
@@ -84,6 +122,11 @@ function DynamicCardPreferredWorkspacePage({route}: DynamicCardPreferredWorkspac
                 <View style={[styles.mh5, styles.mb3, styles.renderHTML, styles.flexRow]}>
                     <RenderHTML html={translate('workspace.card.preferredWorkspace.selectDescription', CONST.WORKSPACE_SUBMISSION_FREQUENCY_HELP_URL)} />
                 </View>
+                <SelectionListWithSections
+                    sections={sections}
+                    ListItem={UserListItem}
+                    addBottomSafeAreaPadding
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
