@@ -102,6 +102,20 @@ function useCardPreferredWorkspace(card: Card | undefined): UseCardPreferredWork
             cardholderEmail,
         };
     }
+
+    // A pinned workspace that's no longer eligible falls through to the employee-default chain.
+    if (cardPreferredPolicyID && eligiblePolicyIDs.includes(cardPreferredPolicyID)) {
+        return {
+            state: CARD_PREFERRED_WORKSPACE_STATE.CUSTOM,
+            title: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${cardPreferredPolicyID}`]?.name ?? '',
+            helperText: undefined,
+            isInteractive: true,
+            cardPreferredPolicyID,
+            employeeDefaultPolicyID,
+            employeeDefaultPolicyName,
+            cardholderEmail,
+        };
+    }
 }
 
 export default useCardPreferredWorkspace;
