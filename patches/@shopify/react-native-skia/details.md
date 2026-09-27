@@ -119,6 +119,6 @@
     placeholder until the event reaches its container, then shows the chart and removes the placeholder.
     ```
 
-- Upstream PR/issue: 🛑 TODO. No upstream issue or PR exists yet; Skia has no public API reporting when a web canvas is first drawn, so one has to be proposed.
+- Upstream PR/issue: 🛑 TODO. No upstream issue or PR exists yet; Skia has no public API reporting when a web canvas is first drawn, still true on 2.13.0, so one has to be proposed. Without this patch, 2.13.0 still shows a blank frame between the placeholder and the drawn chart on web (verified manually).
 - E/App issue: 🛑 TODO
 - PR introducing patch: https://github.com/Expensify/App/pull/100610
