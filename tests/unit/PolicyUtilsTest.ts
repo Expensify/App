@@ -97,6 +97,7 @@ import {
     isRilletVendorMatchingActive,
     isTaxCodeCustomized,
     isXeroActiveMatchingSource,
+    isEligibleForCardPreferredWorkspace,
     isXeroVendorMatchingActive,
     shouldHideDynamicExternalWorkflowPeople,
     shouldShowPolicy,
@@ -6140,5 +6141,84 @@ describe('shouldHideDynamicExternalWorkflowPeople', () => {
     it('returns false when a stale flag is left on a policy that no longer uses a Dynamic External Workflow', () => {
         const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED, dynamicExternalWorkflowHidePeople: true};
         expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
+    });
+});
+
+describe('isEligibleForCardPreferredWorkspace', () => {
+    const cardholderEmail = 'cardholder@example.com';
+
+    const eligiblePolicy: Policy = {
+        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+        autoReporting: true,
+        pendingAction: null,
+        archivedDate: undefined,
+        owner: 'someone-else@example.com',
+        employeeList: {[cardholderEmail]: {email: cardholderEmail, role: CONST.POLICY.ROLE.ADMIN}},
+    };
+
+    it('is eligible when the cardholder is a member (via employeeList) of a paid group policy with auto-reporting on', () => {
+        expect(isEligibleForCardPreferredWorkspace(eligiblePolicy, cardholderEmail)).toBe(true);
+    });
+
+    it('is eligible when the cardholder is the policy owner, even without an employeeList entry', () => {
+        const policy: Policy = {...eligiblePolicy, owner: cardholderEmail, employeeList: {}};
+        expect(isEligibleForCardPreferredWorkspace(policy, cardholderEmail)).toBe(true);
+    });
+
+    it('is not eligible when the cardholder is not a member', () => {
+        const policy: Policy = {...eligiblePolicy, employeeList: {}};
+        expect(isEligibleForCardPreferredWorkspace(policy, cardholderEmail)).toBe(false);
+    });
+
+    it('is not eligible when autoReporting is off', () => {
+        const policy: Policy = {...eligiblePolicy, autoReporting: false};
+        expect(isEligibleForCardPreferredWorkspace(policy, cardholderEmail)).toBe(false);
+    });
+
+    it('is not eligible when autoReporting is undefined', () => {
+        const policy: Policy = {...eligiblePolicy, autoReporting: undefined};
+        expect(isEligibleForCardPreferredWorkspace(policy, cardholderEmail)).toBe(false);
+    });
+
+    it('is eligible with an INSTANT auto-reporting frequency, guarding against using isDelayedSubmissionEnabled instead', () => {
+        const policy: Policy = {...eligiblePolicy, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT};
+        expect(isEligibleForCardPreferredWorkspace(policy, cardholderEmail)).toBe(true);
+    });
+
+    it('is eligible with an IMMEDIATE frequency and harvesting disabled, guarding against using getCorrectedAutoReportingFrequency instead', () => {
+        const policy: Policy = {
+            ...eligiblePolicy,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+            harvesting: {enabled: false},
+        };
+        expect(isEligibleForCardPreferredWorkspace(policy, cardholderEmail)).toBe(true);
+    });
+
+    it('is not eligible for a personal (non-group) policy type', () => {
+        const policy: Policy = {...eligiblePolicy, type: CONST.POLICY.TYPE.PERSONAL};
+        expect(isEligibleForCardPreferredWorkspace(policy, cardholderEmail)).toBe(false);
+    });
+
+    it('is not eligible for a free Submit-plan policy, even though the cardholder is a member', () => {
+        const policy: Policy = {...eligiblePolicy, type: CONST.POLICY.TYPE.SUBMIT};
+        expect(isEligibleForCardPreferredWorkspace(policy, cardholderEmail)).toBe(false);
+    });
+
+    it('is not eligible when the policy is archived', () => {
+        const policy: Policy = {...eligiblePolicy, archivedDate: '2024-01-01'};
+        expect(isEligibleForCardPreferredWorkspace(policy, cardholderEmail)).toBe(false);
+    });
+
+    it('is not eligible when the policy is pending deletion', () => {
+        const policy: Policy = {...eligiblePolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+        expect(isEligibleForCardPreferredWorkspace(policy, cardholderEmail)).toBe(false);
+    });
+
+    it('is not eligible when the policy is undefined', () => {
+        expect(isEligibleForCardPreferredWorkspace(undefined, cardholderEmail)).toBe(false);
+    });
+
+    it('is not eligible when the cardholder email is undefined', () => {
+        expect(isEligibleForCardPreferredWorkspace(eligiblePolicy, undefined)).toBe(false);
     });
 });
