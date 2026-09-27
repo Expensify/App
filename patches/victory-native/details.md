@@ -12,7 +12,7 @@
 - E/App issue: https://github.com/Expensify/App/issues/91883
 - PR introducing patch: https://github.com/Expensify/App/pull/91659
 
-### [victory-native+41.21.0+003+canvas-props.patch](victory-native+41.21.0+003+canvas-props.patch)
+### [victory-native+41.21.0+002+canvas-props.patch](victory-native+41.21.0+002+canvas-props.patch)
 
 - Reason:
   
