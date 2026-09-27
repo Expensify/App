@@ -89,6 +89,19 @@ function useCardPreferredWorkspace(card: Card | undefined): UseCardPreferredWork
             cardholderEmail,
         };
     }
+
+    if (cardPreferredPolicyID === CONST.CARD_PREFERRED_POLICY.NONE) {
+        return {
+            state: CARD_PREFERRED_WORKSPACE_STATE.NONE,
+            title: translate('workspace.card.preferredWorkspace.none'),
+            helperText: undefined,
+            isInteractive: true,
+            cardPreferredPolicyID,
+            employeeDefaultPolicyID,
+            employeeDefaultPolicyName,
+            cardholderEmail,
+        };
+    }
 }
 
 export default useCardPreferredWorkspace;
