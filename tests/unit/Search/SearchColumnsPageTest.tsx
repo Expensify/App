@@ -42,9 +42,8 @@ jest.mock('@hooks/useOnyx', () => ({
     default: (key: string) => [onyxData[key]],
 }));
 
-let mockResultsContext: {currentSearchResults: SearchResults | undefined; displayedSearchResults: SearchResults | undefined; shouldUseLiveData: boolean} = {
+let mockResultsContext: {currentSearchResults: SearchResults | undefined; shouldUseLiveData: boolean} = {
     currentSearchResults: undefined,
-    displayedSearchResults: undefined,
     shouldUseLiveData: false,
 };
 let mockQueryContext: {currentSearchKey: string | undefined; currentSearchQueryJSON: SearchQueryJSON | undefined} = {
@@ -92,12 +91,6 @@ function buildSnapshot(withDescription: boolean): SearchResults {
     } as unknown as SearchResults;
 }
 
-/** A snapshot mid-sort: the search info is there but `data` has not been written yet. */
-function buildLoadingSnapshot(): SearchResults {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- fixture deliberately omits `data`
-    return {search: {...buildSnapshot(true).search, isLoading: true}} as unknown as SearchResults;
-}
-
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- fixture only carries the fields the picker reads
 const EXPENSE_QUERY_JSON = {
     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -124,14 +117,14 @@ describe('SearchColumnsPage seeding (Part A)', () => {
         for (const key of Object.keys(onyxData)) {
             delete onyxData[key];
         }
-        mockResultsContext = {currentSearchResults: undefined, displayedSearchResults: undefined, shouldUseLiveData: false};
+        mockResultsContext = {currentSearchResults: undefined,shouldUseLiveData: false};
         mockQueryContext = {currentSearchKey: undefined, currentSearchQueryJSON: EXPENSE_QUERY_JSON};
     });
 
     test('seeds the picker from the snapshot so a data-driven Description renders as checked', () => {
         // Given an expense snapshot whose only transaction has a description, and no saved column selection
         const snapshot = buildSnapshot(true);
-        mockResultsContext = {currentSearchResults: snapshot, displayedSearchResults: snapshot, shouldUseLiveData: false};
+        mockResultsContext = {currentSearchResults: snapshot, shouldUseLiveData: false};
 
         // When the picker renders
         render(<SearchColumnsPage />);
@@ -144,7 +137,7 @@ describe('SearchColumnsPage seeding (Part A)', () => {
     test('does not seed Description when no transaction has one', () => {
         // Given the same snapshot with the description removed
         const snapshot = buildSnapshot(false);
-        mockResultsContext = {currentSearchResults: snapshot, displayedSearchResults: snapshot, shouldUseLiveData: false};
+        mockResultsContext = {currentSearchResults: snapshot, shouldUseLiveData: false};
 
         // When the picker renders
         render(<SearchColumnsPage />);
@@ -153,27 +146,13 @@ describe('SearchColumnsPage seeding (Part A)', () => {
         expect(capturedProps.currentColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION);
     });
 
-    test('keeps seeding from the displayed snapshot while a sort is in flight', () => {
-        // Given a sort in flight: the raw `currentSearchResults` has lost its `data`, while
-        // `displayedSearchResults` still holds the previous non-empty snapshot the table is rendering
-        mockResultsContext = {currentSearchResults: buildLoadingSnapshot(), displayedSearchResults: buildSnapshot(true), shouldUseLiveData: false};
-
-        // When the picker renders
-        render(<SearchColumnsPage />);
-
-        // Then the seed still describes what is on screen. Reading the raw `currentSearchResults` here hit the
-        // `!data` guard, returned [], and silently fell back to the static defaults - the original bug.
-        expect(capturedProps.currentColumns).not.toEqual([]);
-        expect(capturedProps.currentColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION);
-    });
-
     test('an explicit saved selection wins over the snapshot seed', () => {
         // Given a saved selection equal to the built-in default set, which omits Description. This is the exact
         // fixed point that used to make unchecking Description a no-op.
         const savedColumns = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE);
         onyxData[ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM] = {type: CONST.SEARCH.DATA_TYPES.EXPENSE, columns: savedColumns};
         const snapshot = buildSnapshot(true);
-        mockResultsContext = {currentSearchResults: snapshot, displayedSearchResults: snapshot, shouldUseLiveData: false};
+        mockResultsContext = {currentSearchResults: snapshot, shouldUseLiveData: false};
 
         // When the picker renders
         render(<SearchColumnsPage />);
@@ -188,7 +167,7 @@ describe('SearchColumnsPage seeding (Part A)', () => {
         mockQueryContext = {currentSearchKey: undefined, currentSearchQueryJSON: buildGroupedQueryJSON(CONST.SEARCH.GROUP_BY.MERCHANT)};
         onyxData[ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM] = {type: CONST.SEARCH.DATA_TYPES.EXPENSE, groupBy: CONST.SEARCH.GROUP_BY.MERCHANT};
         const snapshot = buildSnapshot(true);
-        mockResultsContext = {currentSearchResults: snapshot, displayedSearchResults: snapshot, shouldUseLiveData: false};
+        mockResultsContext = {currentSearchResults: snapshot, shouldUseLiveData: false};
 
         // When the picker renders
         render(<SearchColumnsPage />);

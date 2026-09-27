@@ -260,7 +260,6 @@ describe('IOURequestStepReport', () => {
                             <SearchResultsContext
                                 value={{
                                     currentSearchResults: searchResults,
-                                    displayedSearchResults: searchResults,
                                     currentSearchTransactionsByReportID: new Map(),
                                     currentSearchViolations: {},
                                     shouldUseLiveData: false,
@@ -335,7 +334,6 @@ describe('IOURequestStepReport', () => {
                             <SearchResultsContext
                                 value={{
                                     currentSearchResults: searchResults,
-                                    displayedSearchResults: searchResults,
                                     currentSearchTransactionsByReportID: new Map(),
                                     currentSearchViolations: {},
                                     shouldUseLiveData: false,

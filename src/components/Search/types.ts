@@ -1,4 +1,4 @@
-import type {UnitPosition, UnitWithFallback} from '@components/Charts';
+import type {ChartDataPoint} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SelectionListStyle} from '@components/SelectionList/types';
 
@@ -211,14 +211,6 @@ type SearchQueryActionsValue = {
 
 type SearchResultsContextValue = {
     currentSearchResults: SearchResults | undefined;
-    /**
-     * The snapshot the table is actually rendering, which is not always `currentSearchResults`: it holds the
-     * previous non-empty snapshot while a sort is in flight and substitutes an empty `data` object once a
-     * search resolves with no results. Anything that has to agree with what is on screen (e.g. deriving the
-     * visible columns) must read this rather than `currentSearchResults`, or it will see no data across
-     * those two gaps and fall back to defaults while the table still shows the old rows.
-     */
-    displayedSearchResults: SearchResults | undefined;
     currentSearchTransactionsByReportID: Map<string, Transaction[]>;
     currentSearchViolations: OnyxCollection<TransactionViolation[]>;
     /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
@@ -232,8 +224,6 @@ type SearchResultsActionsValue = {
     setSortedReportIDs: (ids: ReadonlyArray<string | undefined>) => void;
     setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
-    /** Marks a sort as in flight so `displayedSearchResults` keeps the previous rows until the new snapshot lands. */
-    setIsSorting: (isSorting: boolean) => void;
 };
 
 type SearchSelectionContextValue = {
@@ -464,31 +454,14 @@ type GroupedItem =
     | TransactionYearGroupListItemType
     | TransactionQuarterGroupListItemType;
 
-type SearchChartProps = {
-    /** Grouped transaction data from search results */
-    data: GroupedItem[];
+type SearchChartDataRow = {
+    /** The point plotted on the chart */
+    point: ChartDataPoint;
 
-    /** Function to extract label from grouped item */
-    getLabel: (item: GroupedItem) => string;
+    /** The grouped search result the point was built from */
+    item: GroupedItem;
 
-    /** Function to extract the compact axis label from grouped item. When it returns undefined, `getLabel` is used. */
-    getShortLabel?: (item: GroupedItem) => string | undefined;
-
-    /** Function to build filter query from grouped item */
-    getFilterQuery: (item: GroupedItem) => string;
-
-    /** Callback when a chart item is pressed - receives the filter query to apply */
-    onItemPress?: (filterQuery: string) => void;
-
-    isLoading?: boolean;
-
-    /** Currency unit with font fallback support */
-    unit?: UnitWithFallback;
-
-    /** Position of currency symbol relative to value */
-    unitPosition?: UnitPosition;
-
-    /** Color every bar is drawn in. Only a bar chart reads it. */
+    /** Palette color the chart assigns this group */
     color?: string;
 };
 
@@ -558,6 +531,6 @@ export type {
     BankAccountMenuItem,
     SearchCustomColumnIds,
     GroupedItem,
-    SearchChartProps,
+    SearchChartDataRow,
     SearchFilterCommonProps,
 };
