@@ -15,6 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {canMemberWrite, isMemberInHomeAndOfficeWorkspace} from '@libs/PolicyUtils';
+import {getEffectiveWorkArrangement, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -57,7 +58,7 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
     const canAccessWorkArrangementPage = canWriteMembers && isWorkArrangementBetaEnabled && isMemberInHomeAndOfficeWorkspace(policy, memberLogin);
 
     // The member-level setting wins; otherwise fall back to the workspace default, then to no regular workspace.
-    const currentIsOffice = member?.hasOfficeWorkArrangement ?? policy?.commuterExclusions?.isOfficeWorkArrangement ?? false;
+    const currentIsOffice = getEffectiveWorkArrangement(member?.hasOfficeWorkArrangement, policy?.commuterExclusions?.isOfficeWorkArrangement);
 
     const navigateBackToDetails = () => {
         Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
@@ -74,14 +75,14 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
     const options: WorkArrangementOption[] = [
         {
             value: true,
-            text: translate('workspace.people.officeBased'),
+            text: getWorkArrangementLabel(translate, true),
             alternateText: translate('workspace.people.workArrangementPage.optionOfficeBasedHelp'),
             isSelected: currentIsOffice,
             keyForList: 'office-based',
         },
         {
             value: false,
-            text: translate('workspace.people.noRegularWorkspace'),
+            text: getWorkArrangementLabel(translate, false),
             alternateText: translate('workspace.people.workArrangementPage.optionNoRegularWorkspaceHelp'),
             isSelected: !currentIsOffice,
             keyForList: 'no-regular-workplace',

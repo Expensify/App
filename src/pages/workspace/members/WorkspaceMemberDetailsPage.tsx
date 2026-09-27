@@ -53,6 +53,7 @@ import {isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import {generateAccountID} from '@libs/UserUtils';
+import {getEffectiveWorkArrangement, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -139,6 +140,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const memberPersonalDetails = usePersonalDetailByLogin(memberLogin);
     const accountID = memberPersonalDetails?.accountID ?? routeAccountID;
     const member = policy?.employeeList?.[memberLogin];
+    const memberWorkArrangement = getEffectiveWorkArrangement(member?.hasOfficeWorkArrangement, policy?.commuterExclusions?.isOfficeWorkArrangement);
     const prevMember = usePrevious(member);
     const details = memberPersonalDetails ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
@@ -418,11 +420,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             {policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && isWorkArrangementBetaEnabled && (
                                 <MenuItemWithTopDescription
                                     disabled={!canWriteMembers}
-                                    title={translate(
-                                        (member?.hasOfficeWorkArrangement ?? policy?.commuterExclusions?.isOfficeWorkArrangement ?? false)
-                                            ? 'workspace.people.officeBased'
-                                            : 'workspace.people.noRegularWorkspace',
-                                    )}
+                                    title={getWorkArrangementLabel(translate, memberWorkArrangement)}
                                     interactive={canWriteMembers}
                                     description={translate('workspace.people.workArrangement')}
                                     shouldShowRightIcon={canWriteMembers}

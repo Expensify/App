@@ -75,6 +75,7 @@ import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowup
 import {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml} from './ReportActionMessageUtils';
 import {isActionOfType, isDynamicExternalWorkflowApproveFailedAction, isModifiedExpenseAction, isMoneyRequestAction} from './ReportActionTypeGuards';
 import StringUtils from './StringUtils';
+import {getWorkArrangementLabel} from './WorkArrangementUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
 import {getUnitTranslationKey, getWorkspaceAddressStreetLines} from './WorkspacesSettingsUtils';
 
@@ -4585,8 +4586,8 @@ function getUpdatedMemberWorkArrangementMessage(translate: LocalizedTranslate, r
         return getReportActionText(reportAction);
     }
 
-    const newArrangement = translate(newValue ? 'workspace.people.officeBased' : 'workspace.people.noRegularWorkspace');
-    const oldArrangement = translate(oldValue ? 'workspace.people.officeBased' : 'workspace.people.noRegularWorkspace');
+    const newArrangement = getWorkArrangementLabel(translate, newValue);
+    const oldArrangement = getWorkArrangementLabel(translate, oldValue);
 
     // Change logs without a named member describe the workspace default arrangement.
     const displayName = name ?? (email ? formatPhoneNumber(email) : '');

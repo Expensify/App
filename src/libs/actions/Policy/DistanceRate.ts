@@ -25,6 +25,7 @@ import {rand64} from '@libs/NumberUtils';
 import {buildOnyxDataForPolicyDistanceRateUpdates, getExpectedUnitForCurrency} from '@libs/PolicyDistanceRatesUtils';
 import {goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 import {getRoom} from '@libs/ReportUtils';
+import {getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -669,8 +670,7 @@ function setEmployeeWorkArrangement(
     }
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
-    const getWorkArrangementLabel = (isOfficeBased: boolean) => translate(isOfficeBased ? 'workspace.people.officeBased' : 'workspace.people.noRegularWorkspace');
-    const newLabel = getWorkArrangementLabel(isOffice);
+    const newLabel = getWorkArrangementLabel(translate, isOffice);
     const updates: WorkArrangementMemberUpdate[] = [];
     for (const accountID of employeeAccountIDList) {
         const personalDetail = personalDetails?.[accountID];
@@ -742,7 +742,7 @@ function setEmployeeWorkArrangement(
         const successReportActions: Record<string, Pick<ReportAction, 'pendingAction'>> = {};
         const failureReportActions: Record<string, null> = {};
         for (const update of updates) {
-            const previousLabel = getWorkArrangementLabel(update.previousHasOfficeWorkArrangement ?? false);
+            const previousLabel = getWorkArrangementLabel(translate, update.previousHasOfficeWorkArrangement ?? false);
             const text = translate('workspaceActions.updatedMemberWorkArrangement', update.name, newLabel, previousLabel);
             optimisticReportActions[update.optimisticReportActionID] = {
                 reportActionID: update.optimisticReportActionID,
