@@ -16,6 +16,7 @@ const {
     MILEAGE_RATE_AUTO_UPDATED,
     MARK_ALL_AS_READ,
     ACCOUNT_MOVED_TO_TOP_BAR,
+    CONNECTIONS_MOVED,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 type ProductTrainingTooltipName = Exclude<
@@ -113,6 +114,13 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: ACCOUNT_MOVED_TO_TOP_BAR,
         priority: 1700,
         shouldShow: () => true,
+    },
+    [CONNECTIONS_MOVED]: {
+        content: 'productTrainingTooltip.connectionsMoved',
+        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(CONNECTIONS_MOVED, isDismissedUsingCloseButton),
+        name: CONNECTIONS_MOVED,
+        priority: 1650,
+        shouldShow: ({isUserPolicyAdmin}) => isUserPolicyAdmin,
     },
 };
 

@@ -153,11 +153,11 @@ describe('AccountingContextProvider connect-confirmation prompt', () => {
 
         // Then the user is asked first, and the setup flow stays unmounted so it cannot start behind the prompt
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-        expect(getShowConfirmModalOption('title')).toBe(`workspace.accounting.connectTitle:${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksOnline}`);
+        expect(getShowConfirmModalOption('title')).toBe('workspace.accounting.alreadyConnectedTitle');
         expect(getShowConfirmModalOption('prompt')).toBe(`workspace.accounting.connectPrompt:${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksOnline}`);
-        expect(getShowConfirmModalOption('confirmText')).toBe('workspace.accounting.setup');
+        expect(getShowConfirmModalOption('confirmText')).toBe('workspace.accounting.replaceIntegration');
         expect(getShowConfirmModalOption('cancelText')).toBe('common.cancel');
-        expect(getShowConfirmModalOption('buttonVariant')).toBe(CONST.BUTTON_VARIANT.SUCCESS);
+        expect(getShowConfirmModalOption('buttonVariant')).toBe(CONST.BUTTON_VARIANT.DANGER);
         expect(screen.queryByTestId(SETUP_FLOW_TEST_ID)).not.toBeOnTheScreen();
     });
 
@@ -204,7 +204,7 @@ describe('AccountingContextProvider connect-confirmation prompt', () => {
         });
 
         // Then the prompt names the suite rather than QuickBooks Online, so the user recognises what they bought
-        expect(getShowConfirmModalOption('title')).toBe('workspace.accounting.connectTitle:workspace.accounting.intuitEnterpriseSuite');
+        expect(getShowConfirmModalOption('prompt')).toBe('workspace.accounting.connectPrompt:workspace.accounting.intuitEnterpriseSuite');
     });
 
     it('should disconnect the old connection and release the setup flow on confirm', async () => {

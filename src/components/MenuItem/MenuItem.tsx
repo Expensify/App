@@ -358,6 +358,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether the tooltip should hide on scroll */
         shouldHideOnScroll?: boolean;
 
+        /** Whether the tooltip should hide when the screen loses navigation focus */
+        shouldHideTooltipOnNavigate?: boolean;
+
         shouldShowLoadingSpinnerIcon?: boolean;
         shouldShowRadioButton?: boolean;
 
@@ -534,6 +537,7 @@ function MenuItem({
     shouldRenderTooltip = false,
     shouldDisplayEducationalTooltip,
     shouldHideOnScroll = false,
+    shouldHideTooltipOnNavigate = true,
     tooltipAnchorAlignment,
     tooltipWrapperStyle = {},
     tooltipShiftHorizontal = 0,
@@ -799,6 +803,7 @@ function MenuItem({
                 shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
                 onTooltipPress={onEducationTooltipPress}
                 shouldHideOnScroll={shouldHideOnScroll}
+                shouldHideOnNavigate={shouldHideTooltipOnNavigate}
             >
                 <View>
                     <Hoverable

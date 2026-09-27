@@ -4,8 +4,10 @@ import HighlightableMenuItem from '@components/HighlightableMenuItem';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -20,12 +22,15 @@ import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
+import {dismissProductTraining} from '@libs/actions/Welcome';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import WorkspaceCreationReveal from '@libs/Navigation/helpers/WorkspaceCreationReveal';
 import Navigation from '@libs/Navigation/Navigation';
@@ -68,6 +73,8 @@ function dismissError(policyID: string | undefined, pendingAction: PendingAction
 
 function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -186,6 +193,34 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         ...item,
         action: singleExecution(waitForNavigate(() => Navigation.navigate(item.getRoute()))),
     }));
+    const {shouldShowProductTrainingTooltip: shouldShowConnectionsTooltip, hideProductTrainingTooltip: hideConnectionsTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONNECTIONS_MOVED,
+        isWorkspacesTabFocused && !hasPolicyCreationError && workspaceMenuItems.some((item) => item.screenName === SCREENS.WORKSPACE.CONNECTIONS),
+    );
+    // Route the Connections tooltip was first shown on, so leaving that page counts as dismissing it
+    const connectionsTooltipRouteRef = useRef<string | undefined>(undefined);
+    useEffect(() => {
+        if (shouldShowConnectionsTooltip && !connectionsTooltipRouteRef.current) {
+            connectionsTooltipRouteRef.current = activeRoute;
+        }
+        const shownOnRoute = connectionsTooltipRouteRef.current;
+        if (!shownOnRoute || (shownOnRoute === activeRoute && isWorkspacesTabFocused)) {
+            return;
+        }
+        connectionsTooltipRouteRef.current = undefined;
+        dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONNECTIONS_MOVED);
+    }, [activeRoute, isWorkspacesTabFocused, shouldShowConnectionsTooltip]);
+    const renderConnectionsTooltip = () => (
+        <View
+            fsClass={CONST.FULLSTORY.CLASS.UNMASK}
+            style={[styles.pv2, styles.ph2]}
+        >
+            <Text style={styles.productTrainingTooltipText}>
+                <Text style={[styles.productTrainingTooltipText, styles.strong, StyleUtils.getColorStyle(theme.tooltipHighlightText)]}>{translate('common.new')}</Text>{' '}
+                {translate('productTrainingTooltip.connectionsMoved')}
+            </Text>
+        </View>
+    );
     // Close RHP if we land on a route that no longer exists in the menu
     const canAccessRoute = activeRoute && (workspaceMenuItems.some((item) => item.screenName === activeRoute) || activeRoute === SCREENS.WORKSPACE.INITIAL);
     useEffect(() => {
@@ -261,25 +296,43 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                 Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
                                 In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
                             */}
-                            {workspaceMenuItems.map((item) => (
-                                <HighlightableMenuItem
-                                    key={item.translationKey}
-                                    disabled={hasPolicyCreationError || (isExecuting && !(item.screenName && activeRoute?.startsWith(item.screenName)))}
-                                    interactive={!hasPolicyCreationError}
-                                    title={translate(item.translationKey)}
-                                    icon={item.icon}
-                                    onPress={item.action}
-                                    brickRoadIndicator={item.brickRoadIndicator}
-                                    wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
-                                    highlighted={!!item?.highlighted}
-                                    focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
-                                    role={CONST.ROLE.TAB}
-                                    badgeText={item.badgeText}
-                                    shouldIconUseAutoWidthStyle
-                                    sentryLabel={item.sentryLabel}
-                                    shouldGreyOutWhenDisabled={hasPolicyCreationError}
-                                />
-                            ))}
+                            {workspaceMenuItems.map((item) => {
+                                const isConnectionsItem = item.screenName === SCREENS.WORKSPACE.CONNECTIONS;
+                                const onPress = () => {
+                                    if (isConnectionsItem) {
+                                        connectionsTooltipRouteRef.current = undefined;
+                                        hideConnectionsTooltip();
+                                    }
+                                    item.action();
+                                };
+                                return (
+                                    <HighlightableMenuItem
+                                        key={item.translationKey}
+                                        disabled={hasPolicyCreationError || (isExecuting && !(item.screenName && activeRoute?.startsWith(item.screenName)))}
+                                        interactive={!hasPolicyCreationError}
+                                        title={translate(item.translationKey)}
+                                        icon={item.icon}
+                                        onPress={onPress}
+                                        brickRoadIndicator={item.brickRoadIndicator}
+                                        wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
+                                        highlighted={!!item?.highlighted}
+                                        focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
+                                        role={CONST.ROLE.TAB}
+                                        badgeText={item.badgeText}
+                                        shouldIconUseAutoWidthStyle
+                                        sentryLabel={item.sentryLabel}
+                                        shouldGreyOutWhenDisabled={hasPolicyCreationError}
+                                        shouldRenderTooltip={isConnectionsItem && shouldShowConnectionsTooltip}
+                                        renderTooltipContent={renderConnectionsTooltip}
+                                        tooltipWrapperStyle={styles.productTrainingTooltipWrapper}
+                                        tooltipAnchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                                        onEducationTooltipPress={onPress}
+                                        // The workspace menu is the sidebar, which isn't the navigation-focused screen on wide layouts.
+                                        shouldHideTooltipOnNavigate={false}
+                                        shouldHideOnScroll={shouldUseNarrowLayout}
+                                    />
+                                );
+                            })}
                         </View>
                     </OfflineWithFeedback>
                 </ScrollView>

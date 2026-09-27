@@ -174,11 +174,11 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 // `PolicyAccountingPage` re-fires whenever `startIntegrationFlow` is re-created). A stable id keeps the
                 // repeat call updating this prompt in place instead of stacking a second copy behind it.
                 id: ACCOUNTING_CONNECTION_CONFIRMATION_MODAL_ID,
-                title: translate('workspace.accounting.connectTitle', connectionName),
+                title: translate('workspace.accounting.alreadyConnectedTitle'),
                 prompt: translate('workspace.accounting.connectPrompt', connectionName),
-                confirmText: translate('workspace.accounting.setup'),
+                confirmText: translate('workspace.accounting.replaceIntegration'),
                 cancelText: translate('common.cancel'),
-                buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             }).then((result) => {
                 // A repeat call for the same id is handed back the promise the first call got, so every call's handler
                 // runs on a single user answer. Only the first one may act, or the disconnect would be requested twice.

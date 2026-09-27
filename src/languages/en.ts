@@ -7458,7 +7458,8 @@ const translations = {
             disconnect: 'Disconnect',
             reinstall: 'Reinstall connector',
             disconnectTitle: (connectionName = 'integration') => `Disconnect ${connectionName}`,
-            connectTitle: (connectionName: string) => `Connect ${connectionName}`,
+            alreadyConnectedTitle: 'You already got an active accounting integration',
+            replaceIntegration: 'Replace integration',
 
             syncError: (connectionName: string) => `Can't connect to ${connectionName}`,
             accounts: 'Chart of accounts',
@@ -11458,6 +11459,7 @@ const translations = {
         markAllAsRead: '<tooltip>Right-click to <strong>mark all as read</strong>.</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>Long-press to <strong>mark all as read</strong>.</tooltip>',
         accountMovedToTopBar: '<tooltip>Access your account and personal settings.</tooltip>',
+        connectionsMoved: 'All your connections in one place',
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',
