@@ -58,8 +58,10 @@ type UseCardPreferredWorkspaceResult = {
  */
 function useCardPreferredWorkspace(card: Card | undefined): UseCardPreferredWorkspaceResult {
     const {translate} = useLocalize();
+    const {environmentURL} = useEnvironment();
     const personalDetails = usePersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const cardholderEmail = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.login;
     const cardPreferredPolicyID = card?.nameValuePairs?.preferredPolicy ?? undefined;
@@ -67,6 +69,13 @@ function useCardPreferredWorkspace(card: Card | undefined): UseCardPreferredWork
     const employeeDefaultPolicy = card?.nameValuePairs?.employeeDefault ?? undefined;
     const employeeDefaultPolicyID = employeeDefaultPolicy?.policyID ? employeeDefaultPolicy.policyID : undefined;
     const employeeDefaultPolicyName = employeeDefaultPolicy?.name ? employeeDefaultPolicy.name : undefined;
+
+    const eligiblePolicyIDs = Object.values(policies ?? {})
+        .filter((policy) => !policy?.isJoinRequestPending && shouldShowPolicy(policy, false, session?.email) && isEligibleForCardPreferredWorkspace(policy, cardholderEmail))
+        .map((policy) => policy?.id)
+        .filter((id): id is string => !!id);
+
+    const workspaceWorkflowsLink = (targetPolicyID: string) => `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(targetPolicyID, CONST.TAB.WORKFLOWS.SUBMISSIONS)}`;
 
     if (employeeDefaultPolicy?.isEnforcedByDomainGroup) {
         return {
