@@ -38,8 +38,8 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
+import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {
-    canAccessPolicyBankAccount,
     getAccountIDForSubmitManagerEmail,
     getSubmitReportManagerAccountID,
     getValidConnectedIntegration,

@@ -5,9 +5,9 @@ import type {BankAccountList, Policy, Report, ReportAction, ReportMetadata, Repo
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {canAdminPayReport} from './PolicyPaymentUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
-    canAdminPayReport,
     getManagerAccountID,
     getSubmitToAccountID,
     getValidConnectedIntegration,

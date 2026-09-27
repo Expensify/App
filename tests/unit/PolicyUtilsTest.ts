@@ -5,9 +5,9 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {canAccessPolicyBankAccount, getAccessiblePolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {
     arePolicyRulesEnabled,
-    canAccessPolicyBankAccount,
     canEditWorkspaceSettings,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
@@ -16,7 +16,6 @@ import {
     canSendInvoiceFromWorkspace,
     evaluateApprovalWorkflowRule,
     findVendorByID,
-    getAccessiblePolicyBankAccount,
     getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,

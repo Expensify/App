@@ -2,6 +2,7 @@ import {hasSynchronizationErrorMessage, isConnectionInProgress, isConnectionUnve
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
 import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import {getConnectedHRProvider} from '@libs/merge/HRUtils';
+import type {PolicyPaymentAttribution} from '@libs/PolicyPaymentUtils';
 import {
     canSendInvoice,
     getActiveAdminWorkspaces,
@@ -19,7 +20,6 @@ import {
     isTimeTrackingEnabled,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
-import type {PolicyPaymentAttribution} from '@libs/PolicyUtils';
 import type {BillingRestrictionPolicy} from '@libs/SubscriptionUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 

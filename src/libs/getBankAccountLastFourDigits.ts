@@ -2,9 +2,9 @@ import type {BankAccount} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import type {PolicyPaymentAttribution} from './PolicyUtils';
+import type {PolicyPaymentAttribution} from './PolicyPaymentUtils';
 
-import {getAccessiblePolicyBankAccount, wasPaidWithPolicyBankAccount} from './PolicyUtils';
+import {getAccessiblePolicyBankAccount, wasPaidWithPolicyBankAccount} from './PolicyPaymentUtils';
 
 type GetBankAccountLastFourDigitsParams = {
     /** The account the payment action names, when the paying admin picked one. */

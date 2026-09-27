@@ -38,7 +38,8 @@ import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDy
 import {getCurrentUserEmail} from './Network/NetworkStore';
 import Parser from './Parser';
 import {getPersonalDetailsByID, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {getCleanedTagName, isPolicyAdmin, isPolicyFieldListEmpty, wasPaidWithPolicyBankAccount} from './PolicyUtils';
+import {wasPaidWithPolicyBankAccount} from './PolicyPaymentUtils';
+import {getCleanedTagName, isPolicyAdmin, isPolicyFieldListEmpty} from './PolicyUtils';
 import {
     getActionableCard3DSTransactionApprovalMessage,
     getActionableCardFraudAlertResolutionMessage,

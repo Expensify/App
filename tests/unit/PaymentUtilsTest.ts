@@ -4,7 +4,7 @@ import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePaymentType, getBusinessBankAccountOptions, selectPaymentType} from '@libs/PaymentUtils';
 import type {SelectPaymentTypeParams} from '@libs/PaymentUtils';
-import {wasPaidWithPolicyBankAccount} from '@libs/PolicyUtils';
+import {wasPaidWithPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import CONST from '@src/CONST';
