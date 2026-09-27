@@ -2923,6 +2923,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
                         unholdRequest(
                             transactionID,
+                            selectedTransactions[transactionID].transaction,
                             selectedTransactions[transactionID].reportAction?.childReportID,
                             policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactions[transactionID].policyID}`],
                             isOffline,

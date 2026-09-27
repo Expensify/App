@@ -12,6 +12,7 @@ import type {PersonalDetailsList, ReportAction} from '@src/types/onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import getOnyxValue from 'tests/utils/getOnyxValue';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -418,9 +419,12 @@ describe('BaseReportActionContextMenu hold/unhold action', () => {
             onPress({});
         });
 
+        const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+
         expect(mockUnholdRequest).toHaveBeenCalledTimes(1);
         expect(mockUnholdRequest).toHaveBeenCalledWith(
             transactionID,
+            transaction,
             childReportID,
             expect.objectContaining({id: policyID}),
             false,

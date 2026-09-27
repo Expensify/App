@@ -498,6 +498,7 @@ describe('actions/IOU/Hold', () => {
                     // When an expense is unhold
                     unholdRequest(
                         transaction.transactionID,
+                        transaction,
                         transactionThread.reportID,
                         policy,
                         false,
@@ -584,6 +585,7 @@ describe('actions/IOU/Hold', () => {
                     mockFetch.resume();
                     unholdRequest(
                         transaction.transactionID,
+                        transaction,
                         transactionThread.reportID,
                         policy,
                         false,
