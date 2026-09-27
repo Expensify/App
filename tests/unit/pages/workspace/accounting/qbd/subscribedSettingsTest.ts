@@ -3,11 +3,14 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {getAccountingIntegrationData} from '@pages/workspace/accounting/utils';
 
 import CONST from '@src/CONST';
+import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import type {Policy} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
+
+import createMock from '../../../../../utils/createMock';
 
 type NonReimbursableDestination = ValueOf<typeof CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE>;
 type AccountingMethod = ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
@@ -16,8 +19,8 @@ const POLICY_ID = 'policy123';
 
 const EXISTING_CONNECTIONS = {sageIntacct: false, qbd: true, certinia: false, rillet: false, dualEntry: false, campfire: false};
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-const mockTranslate = ((key: string) => key) as unknown as LocaleContextProps['translate'];
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- Translation parameters are required by the production callback signature; this stub intentionally returns only the key.
+const mockTranslate: LocaleContextProps['translate'] = <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string => path;
 
 function getIntegrationData({
     nonReimbursable,
@@ -28,7 +31,7 @@ function getIntegrationData({
     shouldAutoCreateVendor?: boolean;
     accountingMethod?: AccountingMethod;
 } = {}) {
-    const policy = {
+    const policy = createMock<Policy>({
         id: POLICY_ID,
         connections: {
             quickbooksDesktop: {
@@ -38,10 +41,9 @@ function getIntegrationData({
                 },
             },
         },
-    };
+    });
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    return getAccountingIntegrationData(CONST.POLICY.CONNECTIONS.NAME.QBD, POLICY_ID, mockTranslate, EXISTING_CONNECTIONS, policy as unknown as Policy);
+    return getAccountingIntegrationData(CONST.POLICY.CONNECTIONS.NAME.QBD, POLICY_ID, mockTranslate, EXISTING_CONNECTIONS, policy);
 }
 
 describe('QBD subscribed settings', () => {
