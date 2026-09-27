@@ -170,4 +170,3 @@ function useCardPreferredWorkspace(card: Card | undefined): UseCardPreferredWork
 
 export default useCardPreferredWorkspace;
 export {CARD_PREFERRED_WORKSPACE_STATE};
-export type {CardPreferredWorkspaceStateType, UseCardPreferredWorkspaceResult};
