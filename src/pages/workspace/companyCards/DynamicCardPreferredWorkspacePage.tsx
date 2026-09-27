@@ -67,7 +67,7 @@ function DynamicCardPreferredWorkspacePage({route}: DynamicCardPreferredWorkspac
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [searchTerm, setSearchTerm] = useState('');
 
-    const {data, shouldShowSearchInput} = useWorkspaceList({
+    const {data} = useWorkspaceList({
         policies,
         currentUserLogin,
         shouldShowPendingDeletePolicy: false,
@@ -100,6 +100,22 @@ function DynamicCardPreferredWorkspacePage({route}: DynamicCardPreferredWorkspac
               {sectionIndex: 1, customHeader: <View style={styles.dividerLine} />, data},
           ];
 
+    const initiallyFocusedItemKey =
+        cardPreferredPolicyID === CONST.CARD_PREFERRED_POLICY.NONE ? CONST.CARD_PREFERRED_POLICY.NONE : (cardPreferredPolicyID ?? CONST.CARD_PREFERRED_POLICY.EMPLOYEE_DEFAULT_OPTION_KEY);
+
+    const onSelectRow = (item: ListItem) => {
+        const newPreferredPolicyID =
+            item.keyForList === CONST.CARD_PREFERRED_POLICY.EMPLOYEE_DEFAULT_OPTION_KEY
+                ? CONST.CARD_PREFERRED_POLICY.EMPLOYEE_DEFAULT
+                : (item.keyForList ?? CONST.CARD_PREFERRED_POLICY.EMPLOYEE_DEFAULT);
+        const oldPreferredPolicyID = cardPreferredPolicyID ?? CONST.CARD_PREFERRED_POLICY.EMPLOYEE_DEFAULT;
+
+        if (card && newPreferredPolicyID !== oldPreferredPolicyID) {
+            setCardPreferredPolicy(domainOrWorkspaceAccountID, bank, card, newPreferredPolicyID, cardPreferredPolicyID, currentUserAccountID);
+        }
+        goBack();
+    };
+
     const featureName = isExpensifyCard(card) ? CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED : CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED;
     const policyFeature = isExpensifyCard(card) ? CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD : CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS;
 
@@ -125,6 +141,9 @@ function DynamicCardPreferredWorkspacePage({route}: DynamicCardPreferredWorkspac
                 <SelectionListWithSections
                     sections={sections}
                     ListItem={UserListItem}
+                    onSelectRow={onSelectRow}
+                    initiallyFocusedItemKey={initiallyFocusedItemKey}
+                    shouldSingleExecuteRowSelect
                     addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
