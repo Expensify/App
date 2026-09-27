@@ -1522,6 +1522,8 @@ const CONST = {
     TRAVEL_BILLING_HELP_URL: 'https://help.expensify.com/articles/travel/consolidated-travel-billing/Enable-Consolidated-Travel-Billing-in-a-Workspace',
     REGISTER_FOR_WEBINAR_URL: 'https://events.zoom.us/eo/Aif1I8qCi1GZ7KnLnd1vwGPmeukSRoPjFpyFAZ2udQWn0-B86e1Z~AggLXsr32QYFjq8BlYLZ5I06Dg',
     UNLOCK_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Unlock-a-Business-Bank-Account',
+    CARD_PREFERRED_WORKSPACE_HELP_URL: 'https://help.expensify.com/articles/new-expensify/domains/Create-and-Manage-Domain-Groups#what-preferred-workspace-does',
+    WORKSPACE_SUBMISSION_FREQUENCY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Workflows#how-to-set-a-submission-frequency',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
     STORYLANE: {
