@@ -81,6 +81,10 @@ function DateSegmentsInput({
     // The field's input style stretches across the row, which would spread the segments apart
     const sizedToContent = [styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.wAuto];
 
+    // The mask letters and the separators between them read as placeholder text rather than as the entered date. The
+    // field always hands down a theme color, though the prop's type also allows a platform color that has no string.
+    const maskColorStyle = StyleUtils.getColorStyle(typeof placeholderTextColor === 'string' ? placeholderTextColor : theme.placeholderText);
+
     return (
         <View
             style={[styles.flexRow, styles.flex1]}
@@ -159,13 +163,13 @@ function DateSegmentsInput({
                                         aria-hidden
                                     >
                                         <Text style={styles.opacity0}>{segmentProps.value}</Text>
-                                        <Text style={{color: placeholderTextColor}}>{remainder}</Text>
+                                        <Text style={maskColorStyle}>{remainder}</Text>
                                     </Text>
                                 )}
                             </View>
                             {!!part.separator && (
                                 <Text
-                                    style={[style, styles.ph0, styles.pointerEventsNone, sizedToContent, isAnyMaskShowing && {color: placeholderTextColor}]}
+                                    style={[style, styles.ph0, styles.pointerEventsNone, sizedToContent, isAnyMaskShowing && maskColorStyle]}
                                     accessible={false}
                                     accessibilityElementsHidden
                                     importantForAccessibility="no"
