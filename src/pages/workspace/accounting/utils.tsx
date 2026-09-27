@@ -93,6 +93,7 @@ function getAccountingIntegrationData(
 ): AccountingIntegration | undefined {
     const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
+    const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     // An explicit QBO or IES selection must take precedence over the existing connection identity.
     const shouldUseIntuitEnterpriseSuite = isIntuitEnterpriseSuiteOverride ?? isIntuitEnterpriseSuiteConnection(policy);
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
@@ -406,21 +407,27 @@ function getAccountingIntegrationData(
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED,
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE,
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_ACCOUNT,
-                    CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR,
-                    CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR,
+                    // Matching the Export page, which only counts these while company cards export as a vendor bill,
+                    // or a failed save leaves a dot on a row the app can no longer reach
+                    ...(qbdConfig?.export?.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL
+                        ? [
+                              CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR,
+                              ...(qbdConfig?.shouldAutoCreateVendor ? [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR] : []),
+                          ]
+                        : []),
                 ],
                 subscribedAdvancedSettings: [
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR,
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC,
                     // Only where the Advanced page shows the row, or a failed save would leave a dot nothing can clear
-                    ...(isQBDExportingOnPayment(policy?.connections?.quickbooksDesktop?.config) ? [CONST.QUICKBOOKS_DESKTOP_CONFIG.FX_EXPENSE_ACCOUNT] : []),
+                    ...(isQBDExportingOnPayment(qbdConfig) ? [CONST.QUICKBOOKS_DESKTOP_CONFIG.FX_EXPENSE_ACCOUNT] : []),
                 ],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.quickbooksDesktop.alias,
                     backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForQBD(),
                 },
-                pendingFields: policy?.connections?.quickbooksDesktop?.config?.pendingFields,
-                errorFields: policy?.connections?.quickbooksDesktop?.config?.errorFields,
+                pendingFields: qbdConfig?.pendingFields,
+                errorFields: qbdConfig?.errorFields,
             };
         case CONST.POLICY.CONNECTIONS.NAME.CERTINIA: {
             const certiniaConnection = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA];
