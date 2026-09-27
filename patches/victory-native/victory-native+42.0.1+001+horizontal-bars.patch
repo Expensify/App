@@ -51,7 +51,7 @@ index f188ddc..526c5a7 100644
  
    // Handle bar size change
 diff --git a/node_modules/victory-native/src/cartesian/hooks/useBarGroupPaths.ts b/node_modules/victory-native/src/cartesian/hooks/useBarGroupPaths.ts
-index fafab1a..b2c4329 100644
+index fafab1a..07da62f 100644
 --- a/node_modules/victory-native/src/cartesian/hooks/useBarGroupPaths.ts
 +++ b/node_modules/victory-native/src/cartesian/hooks/useBarGroupPaths.ts
 @@ -17,10 +17,11 @@ export const useBarGroupPaths = (
@@ -93,6 +93,15 @@ index fafab1a..b2c4329 100644
          });
          if (!rect) return;
  
+@@ -54,7 +59,7 @@ export const useBarGroupPaths = (
+             rect.y,
+             rect.width,
+             rect.height,
+-            roundedCorners,
++            isHorizontal ? {topLeft: roundedCorners.bottomLeft, topRight: roundedCorners.topLeft, bottomLeft: roundedCorners.bottomRight, bottomRight: roundedCorners.topRight} : roundedCorners,
+             Number(point.yValue),
+           );
+           builder.addRRect(nonUniformRoundedRect);
 @@ -66,7 +71,7 @@ export const useBarGroupPaths = (
        });
        return builder.build();
