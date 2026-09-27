@@ -5,6 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
+import createRandomTransaction from 'tests/utils/collections/transaction';
 
 import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -28,11 +29,12 @@ describe('clearErrorWithOriginalTransactionError', () => {
     });
 
     it("clears both the child's and the hidden container original's errors", async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${ORIGINAL_ID}`, {transactionID: ORIGINAL_ID, reportID: CONST.REPORT.SPLIT_REPORT_ID, errors: {[ERROR_KEY]: 'original error'}});
+        const originalTransaction: Transaction = {...createRandomTransaction(1), transactionID: ORIGINAL_ID, reportID: CONST.REPORT.SPLIT_REPORT_ID, errors: {[ERROR_KEY]: 'original error'}};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${ORIGINAL_ID}`, originalTransaction);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${CHILD_ID}`, buildChild());
         await waitForBatchedUpdates();
 
-        clearErrorWithOriginalTransactionError(CHILD_ID);
+        clearErrorWithOriginalTransactionError(CHILD_ID, originalTransaction);
         await waitForBatchedUpdates();
 
         const child = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${CHILD_ID}`);
@@ -42,11 +44,12 @@ describe('clearErrorWithOriginalTransactionError', () => {
     });
 
     it('does not clear the original when it is no longer a split container (e.g. restored after a failed creation)', async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${ORIGINAL_ID}`, {transactionID: ORIGINAL_ID, reportID: '987654', errors: {[ERROR_KEY]: 'original error'}});
+        const originalTransaction: Transaction = {...createRandomTransaction(1), transactionID: ORIGINAL_ID, reportID: '987654', errors: {[ERROR_KEY]: 'original error'}};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${ORIGINAL_ID}`, originalTransaction);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${CHILD_ID}`, buildChild());
         await waitForBatchedUpdates();
 
-        clearErrorWithOriginalTransactionError(CHILD_ID);
+        clearErrorWithOriginalTransactionError(CHILD_ID, originalTransaction);
         await waitForBatchedUpdates();
 
         const child = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${CHILD_ID}`);
@@ -59,7 +62,7 @@ describe('clearErrorWithOriginalTransactionError', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${CHILD_ID}`, {transactionID: CHILD_ID, reportID: '987654', errors: {[ERROR_KEY]: 'some error'}});
         await waitForBatchedUpdates();
 
-        clearErrorWithOriginalTransactionError(CHILD_ID);
+        clearErrorWithOriginalTransactionError(CHILD_ID, undefined);
         await waitForBatchedUpdates();
 
         const child = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${CHILD_ID}`);

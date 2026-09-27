@@ -77,6 +77,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
 import {getReimbursedExpectedDateSelector} from '@src/selectors/ReportAction';
+import {originalTransactionIDSelector} from '@src/selectors/Transaction';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
@@ -207,6 +208,9 @@ function ReportActionItem({
 
     const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {selector: getLinkedTransactionRouteError});
 
+    const [originalTransactionID] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {selector: originalTransactionIDSelector});
+    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+
     const {editingMessage, editingReportAction} = useReportActionActiveEdit();
 
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
@@ -285,7 +289,7 @@ function ReportActionItem({
             navigation.setParams({reportActionID: ''});
         }
         if (transactionIDToDismiss) {
-            clearErrorWithOriginalTransactionError(transactionIDToDismiss);
+            clearErrorWithOriginalTransactionError(transactionIDToDismiss, originalTransaction);
         }
         clearAllRelatedReportActionErrors(reportID, action, originalReportID, isOffline);
     };
