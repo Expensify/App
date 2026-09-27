@@ -112,7 +112,6 @@ describe('localize', () => {
             // [description, environment, expectedResult]
             ['should return key string for missing key when user is in production environment', {isProduction: true, isStaging: false}, 'missing.translation.key'],
             ['should return key string for missing key when user is in staging environment', {isProduction: false, isStaging: true}, 'missing.translation.key'],
-            ['should return key string for missing key when user has no email in production environment', {isProduction: true, isStaging: false}, 'missing.translation.key'],
         ])('%s', async (description, environmentConfig, expectedResult) => {
             await testMissingTranslationBehavior(environmentConfig, expectedResult);
         });
