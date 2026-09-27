@@ -117,7 +117,7 @@ describe('SearchColumnsPage seeding (Part A)', () => {
         for (const key of Object.keys(onyxData)) {
             delete onyxData[key];
         }
-        mockResultsContext = {currentSearchResults: undefined,shouldUseLiveData: false};
+        mockResultsContext = {currentSearchResults: undefined, shouldUseLiveData: false};
         mockQueryContext = {currentSearchKey: undefined, currentSearchQueryJSON: EXPENSE_QUERY_JSON};
     });
 
