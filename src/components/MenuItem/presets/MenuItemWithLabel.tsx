@@ -1,6 +1,6 @@
 import type {MenuItemRootProps} from '@components/MenuItem/layout/MenuItemRoot';
 import MenuItemRoot from '@components/MenuItem/layout/MenuItemRoot';
-import Text from '@components/Text';
+import MenuItemLabel from '@components/MenuItem/leaves/content/MenuItemLabel';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -24,7 +24,7 @@ function MenuItemWithLabel({label, onPress, isDisabled = false, sentryLabel, tes
     return (
         <View>
             <View style={[styles.ph5, styles.pv1, isDisabled && styles.opacitySemiTransparent]}>
-                <Text style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre]}>{label}</Text>
+                <MenuItemLabel>{label}</MenuItemLabel>
             </View>
             <MenuItemRoot
                 onPress={onPress ? callFunctionIfActionIsAllowed(onPress) : undefined}

@@ -18,7 +18,7 @@ import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 
 /**
- * Monitors WebView SSL certificates against pinned intermediate SPKI hashes. Android WebView does
+ * Monitors WebView SSL certificates against pinned ROOT CA SPKI hashes. Android WebView does
  * not expose a TLS authentication-challenge delegate like iOS WKWebView, so this class validates
  * the certificate returned by [WebView.getCertificate] after page load. It is invoked from a patch
  * applied to react-native-webview's [RNCWebViewClient.onPageFinished] via reflection (the library
@@ -81,10 +81,11 @@ object WebViewCertificateMonitor {
      * Validates the SSL certificate of the loaded page against pinned SPKI hashes. Called from the
      * react-native-webview patch via reflection.
      *
-     * WebView pins are intermediate-only. [WebView.getCertificate] exposes only the leaf, which is
-     * used solely to rebuild the chain via [X509TrustManagerExtensions.checkServerTrusted]. A pin is
-     * satisfied if any intermediate or root in the rebuilt chain matches the pin set. When chain
-     * reconstruction fails, validation is skipped rather than reported as a mismatch.
+     * The pins are ROOT CA SPKIs, and [WebView.getCertificate] exposes only the leaf, so the leaf is
+     * used solely to rebuild the full chain (up to its trust-anchor ROOT) via
+     * [X509TrustManagerExtensions.checkServerTrusted]. A pin is satisfied if any intermediate or
+     * root in the rebuilt chain matches the pin set. When chain reconstruction fails, validation is
+     * skipped rather than reported as a mismatch.
      */
     @JvmStatic
     fun validateCertificate(webView: WebView, url: String) {

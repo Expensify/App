@@ -15,14 +15,18 @@ type ExpensifyCardSettingsBase = {
     /** The total amount of cash back earned thus far */
     earnedCashback?: number;
 
-    /** The date of the last settlement */
-    monthlySettlementDate?: Date;
+    /**
+     * The day of the month Expensify Cards settle on (1-31), when the workspace settles monthly. Never a `Date` — it
+     * cannot be handed to `new Date()`, which reads a small number as milliseconds since the epoch. Use
+     * `toMonthlySettlementDate` to turn it into a date for display.
+     */
+    monthlySettlementDate?: number;
 
     /** Whether monthly option should appear in the settlement frequency settings */
     isMonthlySettlementAllowed?: boolean;
 
-    /** The previous monthly settlement date, used for reverting failed updates */
-    previousMonthlySettlementDate?: Date;
+    /** The previous monthly settlement day of the month, used for reverting failed updates */
+    previousMonthlySettlementDate?: number;
 
     /** The bank account chosen for the card settlement */
     paymentBankAccountID?: number;
@@ -48,7 +52,6 @@ type ExpensifyCardSettingsBase = {
     /** Policy IDs linked to this Expensify Card feed (when present, drives feed grouping in the admin selector) */
     linkedPolicyIDs?: string[];
 
-    /** The Marqeta business token */
     marqetaBusinessToken?: number;
 
     /** Name of the domain card was issued for */

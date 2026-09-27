@@ -4,7 +4,6 @@ type PDFThumbnailProps = {
     /** Source URL for the preview PDF */
     previewSourceURL: string;
 
-    /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;
 
     /** Whether the PDF thumbnail can be loaded */

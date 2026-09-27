@@ -87,6 +87,11 @@ const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, poli
             if (policy?.id && existingTabNavStateKey) {
                 const focusedWorkspaceSplitRouteName = lastWorkspacesTabNavigatorRoute.state ? findFocusedRoute(lastWorkspacesTabNavigatorRoute.state)?.name : undefined;
                 const isOnWorkspaceInitial = focusedWorkspaceSplitRouteName === SCREENS.WORKSPACE.INITIAL;
+                // On narrow layouts, navigating with the bottom tab bar must always land on a page that still
+                // displays that tab bar. Workspace sub-pages (Travel, Members, Workflows, Accounting, ...) hide
+                // it, so restoring one here would switch the tab and hide the tab bar in a single action.
+                // Intentionally reset the workspace split back to WorkspaceInitialPage instead of restoring the
+                // last visited sub-page.
                 if (shouldUseNarrowLayout && !isOnWorkspaceInitial) {
                     if (lastWorkspacesTabNavigatorRoute.state?.key) {
                         // Live state: pop the workspace split to WorkspaceInitialPage while the tab is

@@ -20,7 +20,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 
 import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
-import {startSplitBill} from '@libs/actions/IOU/Split';
+import {resolveOptimisticSplitChatReportID, startSplitBill} from '@libs/actions/IOU/Split';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {calculateDefaultReimbursable, getExistingTransactionID, isLookingAroundSearchRoutingActive, isSelfDMSoleDestination} from '@libs/IOUUtils';
@@ -85,7 +85,8 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const isArchived = useReportIsArchived(report?.reportID);
     const selfDMReport = useSelfDMReport();
     const reportAttributesDerived = useReportAttributes();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const delegateAccountID = useDelegateAccountID();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
@@ -95,11 +96,11 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
@@ -116,24 +117,26 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const {isMultiScanEnabled} = useMultiScanState();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {disableMultiScan} = useMultiScanActions();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
 
-    const participants = getMoneyRequestParticipantOptions(
-        currentUserPersonalDetails.accountID,
+    const participants = getMoneyRequestParticipantOptions({
+        currentUserAccountID: currentUserPersonalDetails.accountID,
         report,
         policy,
         personalDetails,
         conciergeReportID,
-        isArchived,
+        privateIsArchived: isArchived,
+        rules,
         reportAttributesDerived,
         reportDraft,
         translate,
+        convertToDisplayString,
         dateFnsLocale,
-    );
+    });
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
     // Whether this expense's sole destination is the current user's self-DM. Forwarded to the cleanup helpers so the
@@ -225,6 +228,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             splitReceipt.source = firstReceiptFile.source;
             splitReceipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
 
+            const {optimisticSplitChatReportID, chatReportID: splitChatReportID} = resolveOptimisticSplitChatReportID(reportID, participants, currentUserPersonalDetails.accountID);
             const splitBaseParams = {
                 participants,
                 currentUserLogin: currentUserPersonalDetails.login ?? '',
@@ -252,8 +256,8 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                     startSplitBill({
                         getCurrencyDecimals,
                         ...splitBaseParams,
-                        shouldHandleNavigation: overrides.shouldHandleNavigation,
-                        shouldDeferForSearch: false,
+                        optimisticSplitChatReportID,
+                        isFirstSplitInBatch: true,
                     });
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                         report,
@@ -262,7 +266,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                         transactionID: getExistingTransactionID(linkedTrackedExpenseReportAction) ?? lastOptimisticTransactionID,
                         isFromGlobalCreate,
                         backToReport,
-                        optimisticChatReportID: chatReportID,
+                        optimisticChatReportID: splitChatReportID,
                         linkedTrackedExpenseReportAction,
                         isLookingAroundUser,
                         isSelfDMDestination,
@@ -294,6 +298,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         });
 
         const baseParams = {
+            isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             transactions,
             iouType,
@@ -315,16 +320,17 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             reimbursable: defaultReimbursable,
             isSelfTourViewed,
             allTransactionDrafts,
-            betas,
             personalDetails,
             recentWaypoints,
             optimisticTransactionIDs,
             optimisticChatReportID,
             currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+            isDraftChatReport: !!reportDraft,
             isTrackIntentUser,
             delegateAccountID,
             conciergeChat,
             formatPhoneNumber,
+            rules,
         };
 
         const scanDestinationReportID = iouType === CONST.IOU.TYPE.TRACK ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID;

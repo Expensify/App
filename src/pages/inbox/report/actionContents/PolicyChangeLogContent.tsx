@@ -13,6 +13,7 @@ import {
     getAddedBudgetMessage,
     getAddedCardFeedMessage,
     getAddedConnectionMessage,
+    getApprovalLimitUpdateMessage,
     getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
@@ -29,6 +30,7 @@ import {
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
     getMccGroupCategoryMessage,
+    getOverLimitForwardsToUpdateMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultReimbursableMessage,
@@ -174,6 +176,10 @@ const POLICY_CHANGE_LOG_RESOLVERS: Record<string, ResolverFn> = {
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_APPROVER]: (translate, action) => getDefaultApproverUpdateMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_SUBMITS_TO]: (translate, action) => getSubmitsToUpdateMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO]: (translate, action) => getForwardsToUpdateMessage(translate, action),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO]: (translate, action, policy, convertToDisplayString) =>
+        getOverLimitForwardsToUpdateMessage(translate, action, convertToDisplayString),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT]: (translate, action, policy, convertToDisplayString) =>
+        getApprovalLimitUpdateMessage(translate, action, convertToDisplayString),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED]: (translate, action) => getAutoPayApprovedReportsEnabledMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT]: (translate, action, policy, convertToDisplayString) =>
         getAutoReimbursementMessage(translate, action, convertToDisplayString),

@@ -25,9 +25,6 @@ const personalDetailsListSelector = (accountIDs: Array<number | undefined> | und
 
 const personalDetailsLoginSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginByAccountID(accountID, personalDetailsList);
 
-const avatarStyleColorSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
-    accountID ? personalDetailsList?.[accountID]?.avatarStyle?.color : undefined;
-
 const personalDetailsLoginsSelector = (accountIDs: number[] | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginsByAccountIDs(accountIDs, personalDetailsList);
 
 const personalDetailsDisplayNameSelector =
@@ -94,10 +91,33 @@ const isOptimisticPersonalDetailSelector =
         return isPersonalDetailOptimistic(personalDetailsList[accountID]);
     };
 
+/**
+ * Returns only the personal details that were created optimistically. The optimistic set is tiny compared to the whole
+ * personal details list, so subscribers using it don't re-render every time an unrelated (server-backed) detail changes.
+ */
+const optimisticPersonalDetailsSelector = (personalDetailsList: OnyxEntry<PersonalDetailsList>): PersonalDetailsList => {
+    const optimisticPersonalDetails: PersonalDetailsList = {};
+    for (const [accountID, personalDetail] of Object.entries(personalDetailsList ?? {})) {
+        if (!personalDetail?.isOptimisticPersonalDetail) {
+            continue;
+        }
+        optimisticPersonalDetails[accountID] = personalDetail;
+    }
+    return optimisticPersonalDetails;
+};
+
 const newAccountIDsAndLoginsSelector = (invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
     getNewAccountIDsAndLogins(invitedEmailsToAccountIDs, personalDetailsList);
 
 const displayNameSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.displayName;
+
+const accountIDSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.accountID;
+
+const loginSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.login;
+
+const avatarStyleColorSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.avatarStyle?.color;
+
+const doesPersonalDetailExist = (personalDetails: PersonalDetails | undefined) => !!personalDetails;
 
 export {
     avatarStyleColorSelector,
@@ -111,7 +131,12 @@ export {
     doesPersonalDetailExistSelector,
     accountIDToLoginSelector,
     isOptimisticPersonalDetailSelector,
+    optimisticPersonalDetailsSelector,
     createDisplayDetailsByAccountIDsSelector,
     newAccountIDsAndLoginsSelector,
     displayNameSelector,
+    accountIDSelector,
+    loginSelector,
+    doesPersonalDetailExist,
+    isPersonalDetailOptimistic,
 };

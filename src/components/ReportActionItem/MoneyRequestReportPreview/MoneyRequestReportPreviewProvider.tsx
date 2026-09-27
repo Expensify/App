@@ -1,5 +1,3 @@
-import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
-
 import useOnyx from '@hooks/useOnyx';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
@@ -47,6 +45,7 @@ import {
     ReportPreviewTransactionViolationsContext,
     ReportPreviewUIStateContext,
 } from './MoneyRequestReportPreviewContext';
+import resolvePressOrigin from './resolvePressOrigin';
 import usePreviewMessageAnimation from './usePreviewMessageAnimation';
 import useReportPreviewActionDecision from './useReportPreviewActionDecision';
 import useReportPreviewCarousel from './useReportPreviewCarousel';
@@ -68,6 +67,8 @@ type MoneyRequestReportPreviewProviderProps = ChildrenProps & {
     onPaymentOptionsShow?: () => void;
     onPaymentOptionsHide?: () => void;
     renderTransactionItem: ListRenderItem<Transaction>;
+    onOrderedTransactionsChange?: (orderedTransactions: Transaction[]) => void;
+    onCancelPendingPress?: () => void;
     currentWidth: number;
     reportPreviewStyles: MoneyRequestReportPreviewStyleType;
     newTransactionIDs?: Set<string>;
@@ -96,6 +97,8 @@ function MoneyRequestReportPreviewProvider({
     onPaymentOptionsShow,
     onPaymentOptionsHide,
     renderTransactionItem,
+    onOrderedTransactionsChange,
+    onCancelPendingPress,
     currentWidth,
     reportPreviewStyles,
     newTransactionIDs,
@@ -110,7 +113,6 @@ function MoneyRequestReportPreviewProvider({
         return pending?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT && (pending?.reportID === chatReportID || pending?.reportID === iouReportID);
     });
     const [holdMenu, setHoldMenu] = useState<{
-        requestType: ActionHandledType;
         paymentType: PaymentMethodType | undefined;
         canPay: boolean;
         methodID: number | undefined;
@@ -202,12 +204,23 @@ function MoneyRequestReportPreviewProvider({
         currentWidth,
         newTransactionIDs,
         renderTransactionItem,
+        onOrderedTransactionsChange,
     });
 
     const openReportFromPreview = useCallback(() => {
         if (!iouReportID) {
             return;
         }
+        const routeAtPress = Navigation.getActiveRoute();
+        onCancelPendingPress?.();
+
+        // "View" pressed inside the cascade window lands on a report a card press already opened, so there is
+        // nothing left to push; pushing it again would nest the report under itself.
+        const {wasPressedFromReport, backTo} = resolvePressOrigin(routeAtPress, isSmallScreenWidth ? `r/${iouReportID}` : `e/${iouReportID}`);
+        if (wasPressedFromReport) {
+            return;
+        }
+
         startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${iouReportID}`, {
             name: 'MoneyRequestReportPreviewContent',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
@@ -215,22 +228,15 @@ function MoneyRequestReportPreviewProvider({
         // Small screens navigate to full report view since super wide RHP
         // is not available on narrow layouts and would break the navigation logic.
         if (isSmallScreenWidth) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo));
         } else {
-            Navigation.navigate(
-                ROUTES.EXPENSE_REPORT_RHP.getRoute({
-                    reportID: iouReportID,
-                    backTo: Navigation.getActiveRoute(),
-                }),
-            );
+            Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo}));
         }
-    }, [iouReportID, isSmallScreenWidth]);
+    }, [iouReportID, isSmallScreenWidth, onCancelPendingPress]);
 
-    const onHoldMenuOpen = useCallback((requestType: string, paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => {
-        if (requestType !== CONST.IOU.REPORT_ACTION_TYPE.PAY && requestType !== CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-            return;
-        }
-        setHoldMenu({requestType, paymentType, canPay: !!canPay, methodID});
+    // Only the pay flow opens this menu; approve surfaces its partial/full choice in the approve dropdown instead.
+    const onHoldMenuOpen = useCallback((paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => {
+        setHoldMenu({paymentType, canPay: !!canPay, methodID});
     }, []);
     const onHoldMenuClose = useCallback(() => setHoldMenu(null), []);
 

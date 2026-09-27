@@ -3,6 +3,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isReportPreviewAction} from '@libs/ReportActionsUtils';
 import {getReportLastVisibleActionCreated, shouldReportAlignToTop} from '@libs/ReportUtils';
@@ -20,8 +21,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {ViewableItemsChanged} from '@src/types/utils/ReactNativeCompat';
 
-import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
@@ -49,7 +51,6 @@ type UseReportActionsScrollParams = {
     /** The transaction thread report associated with the current report, if any */
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
 
-    /** The report's parentReportAction */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** Sorted actions that should be visible to the user */
@@ -73,7 +74,7 @@ type UseReportActionsScrollParams = {
     /** The report action ID the unread marker is anchored to, if any */
     unreadMarkerReportActionID: string | null;
 
-    /** The index of the unread report action in the sorted visible actions list (-1 if none) */
+    /** The index of the unread report action in the rendered actions list (-1 if none) */
     unreadMarkerReportActionIndex: number;
 
     /** Whether the report has newer actions to load */
@@ -99,7 +100,7 @@ type UseReportActionsScrollResult = {
     trackVerticalScrolling: (event: NativeSyntheticEvent<NativeScrollEvent> | undefined) => void;
 
     /** Viewability handler that drives the floating counter and badge visibility */
-    onViewableItemsChanged: (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => void;
+    onViewableItemsChanged: ViewableItemsChanged;
 
     /** Whether the floating "new messages" counter is visible */
     isFloatingMessageCounterVisible: boolean;
@@ -107,10 +108,9 @@ type UseReportActionsScrollResult = {
     /** Whether the action badge target is above the viewport */
     isActionBadgeAboveViewport: boolean;
 
-    /** Scrolls to the newest action and marks the report as read */
+    /** Scrolls to the unread marker when available, otherwise to the newest action, and marks the report as read when appropriate */
     scrollToBottomAndMarkReportAsRead: () => void;
 
-    /** Scrolls to the action badge target */
     scrollToActionBadgeTarget: () => void;
 
     /** Completes a live-tail scroll-to-bottom once the list has laid out; call on every list layout */
@@ -167,7 +167,6 @@ function useReportActionsScroll({
     const backTo = route?.params?.backTo;
     const {isOffline} = useNetworkWithOfflineStatus();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
@@ -185,6 +184,13 @@ function useReportActionsScroll({
 
     const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
 
+    // A report opened from the "X Replies" link should land on the latest message, which is the opposite of the
+    // align-to-top mount that money-request and invoice reports normally get. Multi-expense reports get this from
+    // MoneyRequestReportActionsList. A report holding a single expense renders this list instead, so it has to honor
+    // the same route param. The value is latched on mount because clearing the param below must not flip the list
+    // back to the top while the user is reading.
+    const [shouldScrollToLatestOnOpen] = useState(() => route?.params?.[REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST] === 'true');
+
     // When the report is aligned to the top, only the linked action should drive the initial scroll position and the unread marker must be ignored.
     // Otherwise, prefer the linked action and fall back to the unread marker.
     let initialScrollKey = linkedReportActionID;
@@ -197,7 +203,7 @@ function useReportActionsScroll({
         initialScrollKey = undefined;
     }
 
-    const shouldFocusToTopOnMount = shouldBeAlignedToTop && !initialScrollKey;
+    const shouldFocusToTopOnMount = shouldBeAlignedToTop && !initialScrollKey && !shouldScrollToLatestOnOpen;
     const shouldMaintainVisibleContentPosition = hasScrolledOverThreshold || shouldFocusToTopOnMount;
     const [shouldAutoscrollToBottom, setShouldAutoscrollToBottom] = useState(shouldFocusToTopOnMount);
     const [shouldDisablePillTracking, setShouldDisablePillTracking] = useState(!!initialScrollKey);
@@ -230,7 +236,8 @@ function useReportActionsScroll({
         conciergeChat,
         reportID,
         introSelected,
-        betas,
+        isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+        hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
         isOffline,
         reportScrollManager,
         setIsFloatingMessageCounterVisible,
@@ -300,6 +307,16 @@ function useReportActionsScroll({
         return () => handle?.cancel();
     }, []);
 
+    // Clear the shouldScrollToLatest route param once the mount scroll above has consumed it, so a later remount of
+    // this report doesn't pull the user down again. MoneyRequestReportActionsList clears it the same way for the
+    // multi-expense view.
+    useEffect(() => {
+        if (!shouldScrollToLatestOnOpen) {
+            return;
+        }
+        Navigation.setParams({[REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST]: undefined});
+    }, [shouldScrollToLatestOnOpen]);
+
     // Fixes Safari-specific issue where the whisper option is not highlighted correctly on hover after adding new transaction.
     // https://github.com/Expensify/App/issues/54520
     useEffect(() => {
@@ -350,6 +367,14 @@ function useReportActionsScroll({
     const scrollToBottomAndMarkReportAsRead = () => {
         setIsFloatingMessageCounterVisible(false);
 
+        if (unreadMarkerReportActionIndex >= 0) {
+            reportScrollManager.scrollToIndex(unreadMarkerReportActionIndex);
+            if (hasNewestReportAction) {
+                markNewestActionAsRead();
+            }
+            return;
+        }
+
         if (!hasNewestReportAction) {
             if (!Navigation.getReportRHPActiveRoute()) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, backTo));
@@ -358,7 +383,6 @@ function useReportActionsScroll({
                 reportID,
                 introSelected,
                 conciergeChat,
-                betas,
                 hasReportActions: true,
                 currentUserAccountID,
                 isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,

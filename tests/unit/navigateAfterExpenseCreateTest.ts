@@ -114,7 +114,7 @@ describe('navigateAfterExpenseCreate', () => {
 
         // forceReplace is deliberately false here: it makes linkTo dispatch a REPLACE against TAB_NAVIGATOR, and because
         // SEARCH.ROOT is a tab root that REPLACE is a no-op, which left these users stuck on the tab they submitted from.
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}), {forceReplace: false});
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense', searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}), {forceReplace: false});
         expect(Navigation.dismissModalWithReport).not.toHaveBeenCalled();
     });
 
@@ -133,7 +133,7 @@ describe('navigateAfterExpenseCreate', () => {
             isSelfDMDestination: false,
         });
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}), {forceReplace: true});
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense', searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}), {forceReplace: true});
     });
 
     it('should NOT route a LOOKING_AROUND user to search when the destination is a real report (not the self-DM)', () => {
@@ -151,7 +151,7 @@ describe('navigateAfterExpenseCreate', () => {
             isSelfDMDestination: false,
         });
 
-        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}), {forceReplace: true});
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense', searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}), {forceReplace: true});
     });
 
     it('should dismiss to report when transactionID is missing', () => {
@@ -175,7 +175,7 @@ describe('navigateAfterExpenseCreate', () => {
         });
 
         expect(mockSetPendingSubmitFollowUpAction).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}), {forceReplace: true});
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense', searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}), {forceReplace: true});
     });
 
     it('should reveal route before dismissing modal on wide layout when from global create', () => {
@@ -188,7 +188,7 @@ describe('navigateAfterExpenseCreate', () => {
             hasMultipleTransactions: false,
         });
 
-        expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}));
+        expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense', searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     });
 
     it('should use invoice data type when isInvoice is true', () => {

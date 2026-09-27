@@ -1,4 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
@@ -10,6 +12,7 @@ import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils
 
 import Navigation from '@navigation/Navigation';
 
+import TravelBillingContinuousReconciliationSection from '@pages/workspace/accounting/common/TravelBillingContinuousReconciliationSection';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -23,7 +26,7 @@ import React, {useMemo} from 'react';
 
 type NetSuiteSectionType = {
     title?: string;
-    description?: string;
+    description: string;
     onPress: () => void;
     subscribedSettings: string[];
     pendingAction?: PendingAction;
@@ -100,15 +103,21 @@ function NetSuiteTravelBillingConfigurationPage({policy}: WithPolicyConnectionsP
                     key={section.subscribedSettings.at(0)}
                     errorRowStyles={[styles.ph5]}
                 >
-                    <MenuItemWithTopDescription
-                        title={section.title}
-                        description={section.description}
+                    <MenuItemField
+                        name={section.description}
                         onPress={section.onPress}
-                        shouldShowRightIcon
-                        brickRoadIndicator={section.brickRoadIndicator}
-                    />
+                        value={section.title}
+                    >
+                        {!!section.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={section.brickRoadIndicator} />}
+                    </MenuItemField>
                 </OfflineWithFeedback>
             ))}
+            <TravelBillingContinuousReconciliationSection
+                policy={policy}
+                connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
+                isAutoSyncEnabled={!!policy?.connections?.netsuite?.config?.autoSync?.enabled}
+                isPayableAccountSet={!!config?.travelInvoicingPayableAccountID}
+            />
         </ConnectionLayout>
     );
 }

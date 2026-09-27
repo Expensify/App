@@ -43,6 +43,9 @@ function DeferredAutocompleteList(props: SearchAutocompleteListProps) {
                 shouldStyleAsTable
                 onLayout={markLayoutComplete}
                 speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+                // At this speed the shimmer's first sweep starts 750ms in, and the list replaces this placeholder
+                // well before that, so it paints flat either way.
+                shouldAnimate={false}
             />
         );
     }
