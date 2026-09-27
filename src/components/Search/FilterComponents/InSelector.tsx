@@ -100,6 +100,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                     conciergeReportID,
                     reportAttributesDerived,
                     isTrackIntentUser,
+                    currentUserAccountID,
                 }),
             ),
             isSelected,
@@ -120,6 +121,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                 policyTags: reportPolicyTags,
                 conciergeReportID,
                 isTrackIntentUser,
+                currentUserAccountID,
                 rules,
             },
         );
@@ -170,6 +172,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
             convertToDisplayString,
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            currentUserAccountID,
         },
         rules,
     );

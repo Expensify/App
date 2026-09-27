@@ -27,6 +27,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorPosition} from '@src/styles';
 
 import {useIsFocused} from '@react-navigation/native';
+import type {ComponentRef} from 'react';
+
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
@@ -74,7 +76,7 @@ function BulkActionBarContent<TValueType>({
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'DownArrow', 'UpArrow']);
     const {calculatePopoverPosition} = usePopoverPosition();
 
-    const moreAnchorRef = useRef<View | null>(null);
+    const moreAnchorRef = useRef<ComponentRef<typeof View> | null>(null);
     const [isMoreMenuVisible, setIsMoreMenuVisible] = useState(false);
     const [moreMenuAnchorPosition, setMoreMenuAnchorPosition] = useState<AnchorPosition | null>(defaultPopoverAnchorPosition);
 

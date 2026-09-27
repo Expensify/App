@@ -6,6 +6,8 @@ import useWindowDimensionsForAutoCompleteSuggestions from '@hooks/useWindowDimen
 
 import variables from '@styles/variables';
 
+import type {ComponentRef} from 'react';
+
 import {Portal} from '@gorhom/portal';
 import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -28,7 +30,7 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
     const StyleUtils = useStyleUtils();
     const {height: windowHeight} = useWindowDimensionsForAutoCompleteSuggestions();
     const {keyboardHeight} = useKeyboardState();
-    const hostFrameRef = useRef<View>(null);
+    const hostFrameRef = useRef<ComponentRef<typeof View>>(null);
 
     const [hostBottomInset, setHostBottomInset] = useState<number | null>(null);
 
