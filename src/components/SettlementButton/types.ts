@@ -47,31 +47,23 @@ type SettlementButtonProps = WithSentryLabel & {
     /** The IOU/Expense report we are paying */
     iouReport?: OnyxEntry<Report>;
 
-    /** Should we show the payment options? */
     shouldHidePaymentOptions?: boolean;
 
     /** The policyID of the report we are paying */
     policyID: string | undefined;
 
-    /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
-
-    /** Additional styles to add to the component wrapper */
     wrapperStyle?: StyleProp<ViewStyle>;
-
-    /** Additional styles to add to the component when it's disabled */
     disabledStyle?: StyleProp<ViewStyle>;
 
     /** Total money amount in form <currency><amount> */
     formattedAmount?: string;
 
-    /** The size of the button */
     size?: ValueOf<typeof CONST.BUTTON_SIZE>;
 
     /** Route for the Add Debit Card screen for a given navigation stack */
     addDebitCardRoute?: Route;
 
-    /** Whether the button should be disabled */
     isDisabled?: boolean;
 
     /** Whether the button should stay visually normal even when disabled. */
@@ -86,7 +78,6 @@ type SettlementButtonProps = WithSentryLabel & {
     /** The anchor alignment of the popover menu for KYC wall popover */
     kycWallAnchorAlignment?: AnchorAlignment;
 
-    /** Whether the personal bank account option should be shown */
     shouldShowPersonalBankAccountOption?: boolean;
 
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
@@ -95,10 +86,7 @@ type SettlementButtonProps = WithSentryLabel & {
     /** Whether to use keyboard shortcuts for confirmation or not */
     useKeyboardShortcuts?: boolean;
 
-    /** Whether we only show pay elsewhere button */
     onlyShowPayElsewhere?: boolean;
-
-    /** Whether to use short form for the button */
     shouldUseShortForm?: boolean;
 
     /** Whether we the report has only held expenses */

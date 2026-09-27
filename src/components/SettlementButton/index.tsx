@@ -12,6 +12,7 @@ import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useHasOwnedPaidPolicy from '@hooks/useHasOwnedPaidPolicy';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -25,10 +26,10 @@ import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 import {createWorkspace, generateDefaultWorkspaceName, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
-import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import {isBankAccountPartiallySetup, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
-import {getAccessiblePolicyBankAccount, isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
+import {isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     doesReportBelongToWorkspace,
@@ -106,7 +107,7 @@ function SettlementButton({
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
-    const {accountID, email = ''} = useCurrentUserPersonalDetails();
+    const {accountID, email = '', displayName} = useCurrentUserPersonalDetails();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
@@ -122,7 +123,6 @@ function SettlementButton({
     const paymentMethods = useSettlementButtonPaymentMethods(hasActivatedWallet, translate);
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
@@ -137,6 +137,7 @@ function SettlementButton({
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
     const activePolicy = usePolicy(activePolicyID);
     const activeAdminPolicies = useActiveAdminPolicies();
+    const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
     const reportID = iouReport?.reportID;
     const personalPolicy = usePolicy(personalPolicyID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -148,19 +149,17 @@ function SettlementButton({
     const hasSinglePolicy = !isExpenseReport && activeAdminPolicies.length === 1;
     const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
     const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles, translate);
-    // Only show the workspace account when it is present in the current user's bankAccountList.
-    // The normal ShareBankAccountAndUpdatePolicyReimburser flow creates a payer-owned copy
-    // and updates the policy to use it, but we've observed accounts where the payer doesn't have
-    // access to the workspace account for some reason.
-    const policyBankAccount = getAccessiblePolicyBankAccount(policy, bankAccountList);
-    const canUsePolicyBankAccount = !!policyBankAccount;
     const hasIntentToPay =
         ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) ||
-            (canUsePolicyBankAccount && (policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN || policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED))) &&
+            policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN ||
+            policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) &&
         !lastPaymentMethod;
     const {isBetaEnabled} = usePermissions();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    // eslint-disable-next-line rulesdir/no-default-id-values
+    const [unlockRequestedAt] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${policy?.achAccount?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [initiatingBankAccountUnlock] = useOnyx(ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -186,26 +185,30 @@ function SettlementButton({
     // interrupted by account validation resumes, since the validation gate skipped them.
     const checkForPostValidationBlockers = () => {
         if (isBankAccountLocked) {
-            showConfirmModal({
-                title: translate('bankAccount.lockedBankAccount'),
-                prompt: (
-                    <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML html={translate('bankAccount.youCantPayThis')} />
-                    </View>
-                ),
-                confirmText: translate('bankAccount.unlockBankAccount'),
-                cancelText: translate('common.cancel'),
-                shouldDisableConfirmButtonWhenOffline: true,
-            }).then(({action}) => {
-                if (action !== ModalActions.CONFIRM) {
-                    return;
-                }
-                if (policy?.achAccount?.bankAccountID === undefined) {
-                    return;
-                }
-                pressLockedBankAccount(policy?.achAccount?.bankAccountID, translate, conciergeReportID, delegateAccountID);
-                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
-            });
+            if (unlockRequestedAt) {
+                showUnlockAlreadyRequestedModal(showConfirmModal, translate);
+            } else {
+                showConfirmModal({
+                    title: translate('bankAccount.lockedBankAccount'),
+                    prompt: (
+                        <View style={[styles.renderHTML, styles.flexRow]}>
+                            <RenderHTML html={translate('bankAccount.youCantPayThis')} />
+                        </View>
+                    ),
+                    confirmText: translate('bankAccount.unlockBankAccount'),
+                    cancelText: translate('common.cancel'),
+                    shouldDisableConfirmButtonWhenOffline: true,
+                }).then(({action}) => {
+                    if (action !== ModalActions.CONFIRM) {
+                        return;
+                    }
+                    if (policy?.achAccount?.bankAccountID === undefined) {
+                        return;
+                    }
+                    pressLockedBankAccount(policy?.achAccount?.bankAccountID, translate, conciergeReportID, delegateAccountID, initiatingBankAccountUnlock);
+                    navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed});
+                });
+            }
             return true;
         }
 
@@ -405,10 +408,11 @@ function SettlementButton({
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: email,
                     currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
-                    betas,
                     isSelfTourViewed,
                     hasActiveAdminPolicies: !!activeAdminPolicies.length,
-                    policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                    hasOwnedPaidPolicy,
+                    policyName: generateDefaultWorkspaceName(email, displayName, lastWorkspaceNumber, translate),
+                    delegateAccountID,
                 }).policyID;
             };
 

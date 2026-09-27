@@ -23,6 +23,7 @@ You might see spend analysis messages that:
 - Call out large or unusual purchases
 - Surface trends across categories, merchants, or members
 - Identify concentrated areas of spend  
+- Surface policy violation patterns, such as which members repeatedly submit expenses that break workspace rules
 - Ask questions to help clarify or validate patterns  
 
 These spend analysis insights are generated automatically using your workspace data. The format, frequency, and content of these messages may change over time as we continue improving how Concierge analyzes and presents information.

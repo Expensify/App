@@ -11,8 +11,8 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
 import {sortIconsByName} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -38,13 +38,11 @@ type ReportActionAvatarsProps = {
     /** How to order the avatars before rendering them. Only applies to a horizontal stack, where every avatar sits in an equivalent slot */
     sort?: SortingOptions | SortingOptions[];
 
-    /** Report ID for the report action avatars */
     reportID?: string;
 
     /** Report data for the report action avatars. When provided, this will be used as a fallback if the snapshot is undefined */
     report?: OnyxEntry<Report>;
 
-    /** Action for the report action avatars */
     action?: OnyxEntry<ReportAction>;
 
     /** Policy ID for the workspace avatar */
@@ -53,31 +51,24 @@ type ReportActionAvatarsProps = {
     /** Policy data for the workspace avatar. When provided, this will be used as a fallback if the snapshot is undefined */
     policy?: OnyxEntry<Policy>;
 
-    /** Single avatar container styles */
     singleAvatarContainerStyle?: StyleProp<ViewStyle>;
 
     /** Account IDs to display avatars for, it overrides the reportID and action props */
     accountIDs?: number[];
 
-    /** Set the size of avatars */
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
-    /** Style for Second Avatar */
-    secondaryAvatarContainerStyle?: StyleProp<ViewStyle>;
+    subscriptAvatarContainerStyle?: StyleProp<ViewStyle>;
 
     /** Whether avatars are displayed within a reportAction */
     isInReportAction?: boolean;
 
-    /** Whether to show the subscript avatar without margin */
-    noRightMarginOnSubscriptContainer?: boolean;
-
-    /** Border color for the subscript avatar */
-    subscriptAvatarBorderColor?: ColorValue;
+    /** Color of the row surface behind the avatar. Affects secondary avatar so it blends into the row. */
+    backdropColor?: ColorValue;
 
     /** Subscript card feed to display instead of the second avatar */
     subscriptCardFeed?: CardFeed;
 
-    /** Size of the subscript card feed icon */
     subscriptCardFeedIconSize?: {width: number; height: number};
 
     /** Display name used as a fallback for avatar tooltip */
@@ -113,11 +104,10 @@ function ReportActionAvatars({
     horizontalStacking,
     sort: sortAvatars,
     singleAvatarContainerStyle,
-    subscriptAvatarBorderColor,
-    noRightMarginOnSubscriptContainer = false,
+    backdropColor,
+    subscriptAvatarContainerStyle,
     subscriptCardFeed,
     subscriptCardFeedIconSize,
-    secondaryAvatarContainerStyle,
     isInReportAction = false,
     fallbackDisplayName,
     invitedEmailsToAccountIDs,
@@ -127,7 +117,6 @@ function ReportActionAvatars({
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
     const allPersonalDetails = usePersonalDetails();
     const {localeCompare} = useLocalize();
-    const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
     const reportID =
@@ -148,7 +137,7 @@ function ReportActionAvatars({
     const {
         avatarType: notPreciseAvatarType,
         avatars: unsortedIcons,
-        details: {delegateAccountID},
+        details: {delegateAccountID, shouldUseConciergeAvatar},
         source,
     } = useReportActionAvatars({
         report,
@@ -199,16 +188,20 @@ function ReportActionAvatars({
         return null;
     }
 
-    const delegateAccountIDFromAction = source.action?.delegateAccountID;
-    const singleAvatar: AvatarIcon = delegateAccountIDFromAction
-        ? {
-              ...primaryAvatar,
-              copilot: {
-                  accountID: delegateAccountIDFromAction,
-                  actedForAccountID: delegateAccountID,
-              },
-          }
-        : primaryAvatar;
+    // Read the copilot through `getDelegateAccountIDFromReportAction` rather than off the action: the server stamps
+    // `delegateAccountID` on every action a copilot's request creates, including Concierge-authored ones, and the
+    // accessor suppresses it there so Concierge never renders as "<copilot> (as copilot for Concierge)".
+    const delegateAccountIDFromAction = shouldUseConciergeAvatar ? undefined : getDelegateAccountIDFromReportAction(source.action);
+    const singleAvatar: AvatarIcon =
+        delegateAccountID && delegateAccountIDFromAction
+            ? {
+                  ...primaryAvatar,
+                  copilot: {
+                      accountID: delegateAccountIDFromAction,
+                      actedForAccountID: delegateAccountID,
+                  },
+              }
+            : primaryAvatar;
 
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT_CARD_FEED && subscriptCardFeed) {
         return (
@@ -217,8 +210,8 @@ function ReportActionAvatars({
                 cardFeed={subscriptCardFeed}
                 cardFeedIconSize={subscriptCardFeedIconSize}
                 size={size}
-                containerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : {}}
-                subscriptAvatarBorderColor={subscriptAvatarBorderColor}
+                containerStyle={subscriptAvatarContainerStyle}
+                backdropColor={backdropColor}
                 fallbackDisplayName={fallbackDisplayName}
             />
         );
@@ -230,8 +223,8 @@ function ReportActionAvatars({
                 primaryAvatar={primaryAvatar}
                 secondaryAvatar={secondaryAvatar}
                 size={size}
-                containerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : {}}
-                subscriptAvatarBorderColor={subscriptAvatarBorderColor}
+                containerStyle={subscriptAvatarContainerStyle}
+                backdropColor={backdropColor}
                 fallbackDisplayName={fallbackDisplayName}
             />
         );
@@ -256,7 +249,7 @@ function ReportActionAvatars({
                 size={size}
                 icons={icons}
                 isInReportAction={isInReportAction}
-                secondaryAvatarContainerStyle={secondaryAvatarContainerStyle}
+                backdropColor={backdropColor}
                 isHovered={isHovered}
                 fallbackDisplayName={fallbackDisplayName}
             />

@@ -1,7 +1,7 @@
-import type {ButtonProps} from '@components/ButtonComposed';
-import ButtonIcon from '@components/ButtonComposed/primitives/ButtonIcon';
-import ButtonKeyboardShortcut from '@components/ButtonComposed/primitives/ButtonKeyboardShortcut';
-import ButtonText from '@components/ButtonComposed/primitives/ButtonText';
+import type {ButtonProps} from '@components/Button';
+import ButtonIcon from '@components/Button/primitives/ButtonIcon';
+import ButtonKeyboardShortcut from '@components/Button/primitives/ButtonKeyboardShortcut';
+import ButtonText from '@components/Button/primitives/ButtonText';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function CardSectionButtonBase(_props: ButtonProps) {

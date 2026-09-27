@@ -13,6 +13,9 @@ type ChartDataPoint = {
     /** Total amount (pre-formatted, e.g., dollars not cents) */
     total: number;
 
+    /** The point's signed share of total spend, in percentage points */
+    percentOfTotal?: number;
+
     /** Query string for navigation when data point is clicked (optional) */
     onClickQuery?: string;
 };
@@ -27,10 +30,7 @@ type UnitWithFallback = {value: string; fallback: string};
 type UnitPosition = 'left' | 'right';
 
 type ChartProps = {
-    /** Data points to display */
     data: ChartDataPoint[];
-
-    /** Whether data is loading */
     isLoading?: boolean;
 };
 
@@ -52,7 +52,7 @@ type PieSlice = {
     /** Hex color assigned based on sorted rank */
     color: string;
 
-    /** Percentage of the total pie this slice represents */
+    /** Percentage of the drawn donut this slice represents */
     percentage: number;
 
     /** Starting angle in degrees (0 = 3 o'clock) */

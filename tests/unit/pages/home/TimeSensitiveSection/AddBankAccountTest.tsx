@@ -3,9 +3,9 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import {openPersonalBankAccountSetupView} from '@src/libs/actions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
+import HomeTaskGroup from '@src/pages/home/HomeTaskGroup';
 import useTimeSensitiveAddBankAccount from '@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddBankAccount';
 import useTimeSensitiveAddPaymentCard from '@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddPaymentCard';
-import TimeSensitiveGroup from '@src/pages/home/TimeSensitiveSection/TimeSensitiveGroup';
 import useTimeSensitiveItems from '@src/pages/home/TimeSensitiveSection/useTimeSensitiveItems';
 
 import type * as NativeNavigation from '@react-navigation/native';
@@ -68,9 +68,13 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({login: '
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLayout: false})));
 
-// Renders the "Time sensitive" group the way the Home "For you" card now does (hook + presentational group).
 function TimeSensitiveSection() {
-    return <TimeSensitiveGroup items={useTimeSensitiveItems()} />;
+    return (
+        <HomeTaskGroup
+            title="homePage.timeSensitiveSection.title"
+            rows={useTimeSensitiveItems()}
+        />
+    );
 }
 
 const renderTimeSensitiveSection = () =>

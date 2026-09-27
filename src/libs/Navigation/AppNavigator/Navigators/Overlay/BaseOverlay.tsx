@@ -14,21 +14,23 @@ import React from 'react';
 import {Animated, View} from 'react-native';
 
 type BaseOverlayProps = {
-    /* Callback to close the modal */
+    /** Callback to close the modal */
     onPress?: () => void;
 
-    /* Override the progress from useCardAnimation. Necessary for the secondary overlay */
+    /** Override the progress from useCardAnimation. Necessary for the secondary overlay */
     progress?: OverlayStylesParams;
 
-    /* Overlay position from the left edge of the container */
+    /** Overlay position from the left edge of the container */
     positionLeftValue?: number | Animated.Value | Animated.AnimatedAddition<number>;
 
-    /* Overlay position from the right edge of the container */
+    /** Overlay position from the right edge of the container */
     positionRightValue?: number | Animated.Value | Animated.AnimatedAddition<number>;
 };
 
+const defaultPositionLeftValue = -2 * variables.sideBarWidth;
+
 // The default value of positionLeftValue is equal to -2 * variables.sideBarWidth, because we need to stretch the overlay to cover the sidebar and the translate animation distance.
-function BaseOverlay({onPress, progress, positionLeftValue = -2 * variables.sideBarWidth, positionRightValue = 0}: BaseOverlayProps) {
+function BaseOverlay({onPress, progress, positionLeftValue = defaultPositionLeftValue, positionRightValue = 0}: BaseOverlayProps) {
     const styles = useThemeStyles();
     const {current} = useCardAnimation();
     const {translate} = useLocalize();

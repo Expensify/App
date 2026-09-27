@@ -14,12 +14,17 @@ import usePermissions from '@hooks/usePermissions';
 import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isAnyHRReadOnlyWorkflowMode} from '@libs/merge/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberWrite, goBackFromInvalidPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
-import {convertApprovalWorkflowRulesToWorkflows, convertPolicyEmployeesToApprovalWorkflows, filterRulesForPolicy, getApprovalWorkflowRulesForPolicy} from '@libs/WorkflowUtils';
+import {canMemberWrite, goBackFromInvalidPolicy, isPendingDeletePolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
+import {
+    convertApprovalWorkflowRulesToWorkflows,
+    convertPolicyEmployeesToApprovalWorkflows,
+    filterRulesForPolicy,
+    getApprovalWorkflowRulesForPolicy,
+    isApprovalWorkflowLockedByIntegration,
+} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -43,6 +48,7 @@ import type Rule from '@src/types/onyx/Rule';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -66,7 +72,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const [initialApprovalWorkflow, setInitialApprovalWorkflow] = useState<ApprovalWorkflow | undefined>();
-    const formRef = useRef<ScrollView>(null);
+    const formRef = useRef<ComponentRef<typeof ScrollView>>(null);
     const {showConfirmModal} = useConfirmModal();
     const isDeleting = useRef(false);
     const {isLoading, startWithLoading} = usePressLoading();
@@ -158,7 +164,12 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const canWriteApprovals = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
 
     const shouldShowNotFoundView =
-        (isEmptyObject(policy) && !isLoadingReportData) || !canWriteApprovals || isPendingDeletePolicy(policy) || !currentApprovalWorkflow || isAnyHRReadOnlyWorkflowMode(policy);
+        (isEmptyObject(policy) && !isLoadingReportData) ||
+        !canWriteApprovals ||
+        isPendingDeletePolicy(policy) ||
+        !currentApprovalWorkflow ||
+        isApprovalWorkflowLockedByIntegration(policy) ||
+        shouldHideDynamicExternalWorkflowPeople(policy);
 
     // Set the initial approval workflow when the page is loaded
     useEffect(() => {

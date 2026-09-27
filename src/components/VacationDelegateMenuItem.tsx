@@ -13,12 +13,11 @@ import React from 'react';
 
 import UserAvatar from './Avatar/UserAvatar';
 import MenuItem from './MenuItem';
-import MenuItemEmptyField from './MenuItem/presets/MenuItemEmptyField';
+import MenuItemField from './MenuItem/presets/MenuItemField';
 import MenuItemWithLabel from './MenuItem/presets/MenuItemWithLabel';
 import OfflineWithFeedback from './OfflineWithFeedback';
 
 type VacationDelegateSectionProps = {
-    /** Currently selected vacation delegate (if any) */
     vacationDelegate?: BaseVacationDelegate;
 
     /** Errors related to setting the vacation delegate */
@@ -58,6 +57,7 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
             errorRowStyles={styles.mh5}
             onClose={onCloseError}
             style={hasVacationDelegate && styles.mt4}
+            shouldHideOnDelete={false}
         >
             {hasVacationDelegate ? (
                 <MenuItemWithLabel
@@ -81,8 +81,8 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
                     </MenuItem.Row>
                 </MenuItemWithLabel>
             ) : (
-                <MenuItemEmptyField
-                    description={translate('common.vacationDelegate')}
+                <MenuItemField
+                    name={translate('common.vacationDelegate')}
                     onPress={onPress}
                 />
             )}

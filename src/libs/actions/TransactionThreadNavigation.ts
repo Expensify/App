@@ -52,11 +52,14 @@ function areDescriptorMapsEqual(a: Record<string, TransactionThreadNavigationDes
 function setActiveTransactionIDs(ids: string[], siblingDescriptorsByTransactionID?: Record<string, TransactionThreadNavigationDescriptor>) {
     const nextDescriptors = siblingDescriptorsByTransactionID ?? null;
     const sameIDs = lastSetIDs?.length === ids.length && lastSetIDs.every((id, i) => id === ids.at(i));
-    if (sameIDs && areDescriptorMapsEqual(lastSetDescriptors, nextDescriptors)) {
-        return Promise.resolve();
-    }
+    const isUnchanged = sameIDs && areDescriptorMapsEqual(lastSetDescriptors, nextDescriptors);
+    // Track the newest array even when the write is skipped: callers compare this reference by identity to tell
+    // "my seed is still active" from "someone re-seeded after me", and a stale one makes a newer seed look older.
     lastSetIDs = ids;
     lastSetDescriptors = nextDescriptors;
+    if (isUnchanged) {
+        return Promise.resolve();
+    }
     return Promise.all([Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, ids), Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS, nextDescriptors)]);
 }
 
