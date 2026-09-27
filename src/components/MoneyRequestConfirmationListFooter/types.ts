@@ -27,19 +27,13 @@ type MoneyRequestConfirmationListFooterProps = {
     /** Pre-formatted amount values */
     amountDisplay: AmountDisplay;
 
-    /** Per-field "required" flags */
     requiredFlags: RequiredFlags;
 
     /** Caller-supplied visibility decisions */
     visibilityFlags: VisibilityFlags;
 
-    /** Error state */
     errorState: ErrorState;
-
-    /** Toggle handlers */
     toggleHandlers?: ToggleHandlers;
-
-    /** Receipt-related options */
     receiptOptions: ReceiptOptions;
 
     /** Show-more state for the compact layout */
@@ -60,13 +54,4 @@ type ManualFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptS
 
 type InvoiceFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptStitchError' | 'isCompactMode' | 'compactControls' | 'distanceData'>;
 
-export type {
-    MoneyRequestConfirmationListFooterProps,
-    TimeFooterProps,
-    PerDiemFooterProps,
-    DistanceFooterProps,
-    DistanceOdometerFooterProps,
-    ScanFooterProps,
-    ManualFooterProps,
-    InvoiceFooterProps,
-};
+export type {TimeFooterProps, PerDiemFooterProps, DistanceFooterProps, DistanceOdometerFooterProps, ScanFooterProps, ManualFooterProps, InvoiceFooterProps};

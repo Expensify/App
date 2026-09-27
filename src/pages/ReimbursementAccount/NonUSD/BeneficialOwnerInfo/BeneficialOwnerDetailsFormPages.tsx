@@ -57,7 +57,6 @@ type BeneficialOwnerDetailsFormPagesProps = {
     /** Array of step names for the progress indicator */
     stepNames?: readonly string[];
 
-    /** ID of current policy */
     policyID?: string;
 
     /** Callback triggered after the last form page is completed */

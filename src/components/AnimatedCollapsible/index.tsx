@@ -19,7 +19,6 @@ import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming}
 import {scheduleOnRN} from 'react-native-worklets';
 
 type AnimatedCollapsibleProps = WithSentryLabel & {
-    /** Whether the component is expanded */
     isExpanded: boolean;
 
     /** Element that is inside the collapsible area */
@@ -43,7 +42,6 @@ type AnimatedCollapsibleProps = WithSentryLabel & {
     /** Style for the content container */
     contentStyle?: StyleProp<ViewStyle>;
 
-    /** Style for the toggle button */
     expandButtonStyle?: StyleProp<ViewStyle>;
 
     /** Whether the toggle button is disabled */
@@ -52,10 +50,7 @@ type AnimatedCollapsibleProps = WithSentryLabel & {
     /** Callback for when the toggle button is pressed */
     onPress: () => void;
 
-    /** Whether to show the toggle button */
     shouldShowToggleButton?: boolean;
-
-    /** Style for the border bottom */
     borderBottomStyle?: StyleProp<ViewStyle>;
 };
 

@@ -32,20 +32,19 @@ const ROWS_PER_TABLE_CARD = CONST.HOME.SECTION_VISIBLE_LIMIT;
 
 const CARD_TEST_ID = 'homePageSkeletonCard';
 
-// Two widths alternating down the card, so stacked rows read as separate rows rather than one block.
 const TWO_BAR_ROW_BAR_WIDTHS = [140, 110] as const;
 
 type SkeletonRowArgs = {
-    /** Index of the row inside its card */
     itemIndex: number;
-
-    /** Measured width of the card's row area */
-    width: number;
-
     horizontalPadding: number;
     rowHeight: number;
     iconTextGap: number;
     textLineGap: number;
+};
+
+type TrailingSkeletonRowArgs = SkeletonRowArgs & {
+    /** Measured width of the card's row area, which the trailing bars are right-aligned against */
+    width: number;
 };
 
 function getStackedBarOffsets(rowHeight: number, textLineGap: number) {
@@ -81,7 +80,7 @@ function renderIconTwoBarRow({itemIndex, horizontalPadding, rowHeight, iconTextG
     );
 }
 
-function renderIconTwoBarWithTrailingRow(args: SkeletonRowArgs) {
+function renderIconTwoBarWithTrailingRow(args: TrailingSkeletonRowArgs) {
     const {width, horizontalPadding, rowHeight, textLineGap} = args;
     const {upperBarY, lowerBarY} = getStackedBarOffsets(rowHeight, textLineGap);
 
@@ -102,12 +101,11 @@ function renderIconTwoBarWithTrailingRow(args: SkeletonRowArgs) {
     );
 }
 
-type HomePageSkeletonCardShellProps = {
-    /** What the card draws inside its container */
+type HomePageSkeletonCardProps = {
     children: React.ReactNode;
 };
 
-function HomePageSkeletonCardShell({children}: HomePageSkeletonCardShellProps) {
+function HomePageSkeletonCard({children}: HomePageSkeletonCardProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -128,60 +126,61 @@ function HomePageSkeletonCardShell({children}: HomePageSkeletonCardShellProps) {
     );
 }
 
-type HomePageSkeletonCardProps = {
-    numRows: number;
+function HomePageSkeletonListCard() {
+    const styles = useThemeStyles();
+    const {iconTextGap, rowHeight, horizontalPadding} = useWidgetSkeletonRowGeometry();
+    const textLineGap = styles.gap1.gap;
 
-    /** Draws the skeleton shapes for a single row from the geometry measured off the card */
-    renderRow: (args: SkeletonRowArgs) => React.ReactNode;
+    return (
+        <HomePageSkeletonCard>
+            <ItemListSkeletonView
+                shouldAnimate
+                fixedNumItems={ROWS_PER_LIST_CARD}
+                itemViewHeight={rowHeight}
+                itemViewStyle={styles.mr0}
+                renderSkeletonItem={({itemIndex}) => renderIconTwoBarRow({itemIndex, horizontalPadding, rowHeight, iconTextGap, textLineGap})}
+            />
+        </HomePageSkeletonCard>
+    );
+}
 
-    /** Whether each row gets a bottom border, matching cards whose real rows are separated */
-    shouldShowSeparators?: boolean;
-};
-
-function HomePageSkeletonCard({numRows, renderRow, shouldShowSeparators = false}: HomePageSkeletonCardProps) {
+function HomePageSkeletonTableCard() {
     const styles = useThemeStyles();
     const {onLayout, containerWidth} = useContainerWidth();
     const {iconTextGap, rowHeight, horizontalPadding} = useWidgetSkeletonRowGeometry();
     const textLineGap = styles.gap1.gap;
 
     return (
-        <HomePageSkeletonCardShell>
+        <HomePageSkeletonCard>
             <ItemListSkeletonView
                 shouldAnimate
-                fixedNumItems={numRows}
+                fixedNumItems={ROWS_PER_TABLE_CARD}
                 itemViewHeight={rowHeight}
-                // The default `mr5` on each row would shrink the SVG below the card width and pull the
-                // right-aligned bars inward.
+                // The default `mr5` on each row would shrink the SVG below the card width and pull the right-aligned bars inward.
                 itemViewStyle={styles.mr0}
-                itemContainerStyle={shouldShowSeparators ? styles.borderBottom : undefined}
-                renderSkeletonItem={({itemIndex}) => renderRow({itemIndex, width: containerWidth, horizontalPadding, rowHeight, iconTextGap, textLineGap})}
+                // The rows this stands in for are separated.
+                itemContainerStyle={styles.borderBottom}
+                renderSkeletonItem={({itemIndex}) => renderIconTwoBarWithTrailingRow({itemIndex, width: containerWidth, horizontalPadding, rowHeight, iconTextGap, textLineGap})}
                 onLayout={onLayout}
             />
-        </HomePageSkeletonCardShell>
+        </HomePageSkeletonCard>
     );
 }
 
 // The line shape is drawn because the default Home insight is a line chart.
 function HomePageSkeletonChartCard() {
     return (
-        <HomePageSkeletonCardShell>
+        <HomePageSkeletonCard>
             <ChartSkeleton view={CONST.SEARCH.VIEW.LINE} />
-        </HomePageSkeletonCardShell>
+        </HomePageSkeletonCard>
     );
 }
 
 function HomePageSkeletonRowCards() {
     return (
         <>
-            <HomePageSkeletonCard
-                numRows={ROWS_PER_LIST_CARD}
-                renderRow={renderIconTwoBarRow}
-            />
-            <HomePageSkeletonCard
-                numRows={ROWS_PER_TABLE_CARD}
-                renderRow={renderIconTwoBarWithTrailingRow}
-                shouldShowSeparators
-            />
+            <HomePageSkeletonListCard />
+            <HomePageSkeletonTableCard />
         </>
     );
 }

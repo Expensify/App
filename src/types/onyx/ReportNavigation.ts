@@ -1,7 +1,6 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 
-import type {SearchKey} from '@libs/SearchUIUtils';
-
+import type {SearchKey} from '@libs/SearchKeyUtils';
 /**
  * Represents the parameters from the previous search invocation.
  * This is used to persist search arguments between navigations within reports,
@@ -21,9 +20,6 @@ type LastSearchParams = {
      */
     hasMoreResults?: boolean;
 
-    /**
-     * The full query JSON object that was used in the last search.
-     */
     queryJSON?: Readonly<SearchQueryJSON>;
     /**
      * The current offset used in pagination for fetching the previous set of results.

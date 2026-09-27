@@ -13,9 +13,32 @@ import getEnvironment from './Environment/getEnvironment';
 
 // To avoid rebuilding native apps, native apps use production config for both staging and prod
 // We use the async environment check because it works on all platforms
-let activeServer: ValueOf<typeof CONST.SERVER> = CONST.SERVER.PRODUCTION;
+let envName: ValueOf<typeof CONST.ENVIRONMENT> = CONST.ENVIRONMENT.PRODUCTION;
+let storedServer: ValueOf<typeof CONST.SERVER> | undefined;
+let hasReadStoredServer = false;
 
-function resolveActiveServer(value: ValueOf<typeof CONST.SERVER> | undefined, envName: ValueOf<typeof CONST.ENVIRONMENT>): ValueOf<typeof CONST.SERVER> {
+// Stored verbatim, so the preference and the environment can arrive in either order. Onyx calls back even for
+// an empty key, so the flag means the preference has been read, not that one was set. Since it isn't connected
+// to a UI anywhere, it's OK to use connectWithoutView()
+Onyx.connectWithoutView({
+    key: ONYXKEYS.ACTIVE_SERVER,
+    callback: (value) => {
+        storedServer = value;
+        hasReadStoredServer = true;
+    },
+});
+
+getEnvironment().then((value) => {
+    envName = value;
+});
+
+/**
+ * Which server requests are sent to.
+ *
+ * Derived on demand rather than cached, so that a preference stored before the environment resolved is still
+ * applied once it does.
+ */
+function resolveActiveServer(): ValueOf<typeof CONST.SERVER> {
     // Selecting QA with no QA root leaves getApiRoot returning an empty string, and getCommandURL turns
     // that into a relative `api/Command?` the browser resolves against the app's own origin
     const isQAConfigured = !!CONFIG.EXPENSIFY.QA_API_ROOT;
@@ -26,31 +49,24 @@ function resolveActiveServer(value: ValueOf<typeof CONST.SERVER> | undefined, en
         return CONST.SERVER.QA;
     }
 
-    if (envName === CONST.ENVIRONMENT.PRODUCTION) {
+    // A stored 'qa' outlives the config that produced it: clearing QA_EXPENSIFY_URL hides the switch and
+    // turns the QA gate off, but leaves the old Onyx value behind. A production bundle is the same case,
+    // since it has no QA host to reach whatever is stored
+    const isQASelectable = isQAConfigured && envName !== CONST.ENVIRONMENT.PRODUCTION;
+    const server = storedServer === CONST.SERVER.QA && !isQASelectable ? undefined : storedServer;
+
+    if (CONFIG.IS_USING_LOCAL_WEB && server !== CONST.SERVER.QA) {
         return CONST.SERVER.PRODUCTION;
     }
 
-    // A stored 'qa' outlives the config that produced it: clearing QA_EXPENSIFY_URL hides the switch and
-    // turns the QA gate off, but leaves the old Onyx value behind
-    const storedServer = value === CONST.SERVER.QA && !isQAConfigured ? undefined : value;
-
-    if (CONFIG.IS_USING_LOCAL_WEB && storedServer !== CONST.SERVER.QA) {
+    // An unread preference looks the same as an unset one, and defaulting to staging would ignore an opt-out
+    if (!hasReadStoredServer) {
         return CONST.SERVER.PRODUCTION;
     }
 
     const defaultServer = envName === CONST.ENVIRONMENT.STAGING || envName === CONST.ENVIRONMENT.ADHOC ? CONST.SERVER.STAGING : CONST.SERVER.PRODUCTION;
-    return storedServer ?? defaultServer;
+    return server ?? defaultServer;
 }
-
-getEnvironment().then((envName) => {
-    // Since this isn't connected to a UI anywhere, it's OK to use connectWithoutView()
-    Onyx.connectWithoutView({
-        key: ONYXKEYS.ACTIVE_SERVER,
-        callback: (value) => {
-            activeServer = resolveActiveServer(value, envName);
-        },
-    });
-});
 
 /**
  * Get the currently used API endpoint, unless forceProduction is set to true
@@ -58,7 +74,7 @@ getEnvironment().then((envName) => {
  */
 function getApiRoot<TKey extends OnyxKey = never>(request?: Partial<Pick<Request<TKey>, 'shouldUseSecure' | 'shouldSkipWebProxy' | 'command'>>, forceProduction = false): string {
     const shouldUseSecure = request?.shouldUseSecure ?? false;
-    const server = forceProduction ? CONST.SERVER.PRODUCTION : activeServer;
+    const server = forceProduction ? CONST.SERVER.PRODUCTION : resolveActiveServer();
 
     if (server === CONST.SERVER.QA) {
         // No web-proxy branch: Cloudflare Access answers the preflight and matches the bearer against the
@@ -95,11 +111,11 @@ function getCommandURL<TKey extends OnyxKey>(request: Request<TKey>): string {
 }
 
 function isQAServerActive(): boolean {
-    return activeServer === CONST.SERVER.QA;
+    return resolveActiveServer() === CONST.SERVER.QA;
 }
 
 function getActiveServer(): ValueOf<typeof CONST.SERVER> {
-    return activeServer;
+    return resolveActiveServer();
 }
 
 export {getActiveServer, getApiRoot, getCommandURL, isQAServerActive};

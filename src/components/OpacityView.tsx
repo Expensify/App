@@ -9,10 +9,7 @@ import React from 'react';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 type OpacityViewProps = {
-    /** Should we dim the view */
     shouldDim: boolean;
-
-    /** Content to render */
     children: React.ReactNode;
 
     /**

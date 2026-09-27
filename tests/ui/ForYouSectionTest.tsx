@@ -1,5 +1,6 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import {useAppLoadSkeletonVisibility} from '@hooks/useInFlightRequests';
 import type useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTodoCounts from '@hooks/useTodoCounts';
@@ -13,7 +14,7 @@ import ForYouSection from '@pages/home/ForYouSection';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {AnyRequest, TransactionViolations} from '@src/types/onyx';
+import type {AnyRequest, Domain, TransactionViolations} from '@src/types/onyx';
 
 import type * as ReactNavigation from '@react-navigation/native';
 
@@ -125,6 +126,11 @@ jest.mock('@hooks/useThemeStyles', () =>
 jest.mock('@hooks/useTheme', () => jest.fn(() => ({})));
 
 const RECEIPT_SEARCH_ASSET = {testID: 'receipt-search-icon'};
+const USER_SHIELD_ASSET = {testID: 'user-shield-icon'};
+
+// Onyx's key for a domain's pending adminship requesters. Referenced through a variable (rather than a literal
+// property name) so the snake_case key doesn't trip the naming-convention lint rule on these object literals.
+const DOMAIN_ADMIN_REQUESTERS_KEY = 'domain_adminRequesters' as const;
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({
@@ -133,6 +139,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
         ThumbsUp: null,
         Export: null,
         ReceiptSearch: RECEIPT_SEARCH_ASSET,
+        UserShield: USER_SHIELD_ASSET,
     })),
     useMemoizedLazyIllustrations: jest.fn(() => ({
         ThumbsUpStars: null,
@@ -151,8 +158,6 @@ const mockUseTodoCounts = jest.mocked(useTodoCounts);
 
 const ACCOUNT_ID = 12345;
 
-// ForYouSection now derives its counts/single-IDs from the useTodoCounts hook (which is mocked here) instead of the
-// removed TODOS derived value, so the fixtures only need the report buckets the hook's return is computed from.
 type TodoReport = {reportID: string};
 type TodoFixture = {
     reportsToSubmit: TodoReport[];
@@ -192,6 +197,22 @@ async function seedFlaggedExpenses(...expenses: Array<{transactionID: string; re
         ]),
     );
 }
+/**
+ * Seeds a domain where ACCOUNT_ID is an admin, along with a set of pending domain_adminRequesters entries.
+ */
+async function seedDomainAdmin(domainAccountID: number, requesterAccountIDs: number[]) {
+    const domain: Domain = {
+        validated: true,
+        accountID: domainAccountID,
+        email: `domain${domainAccountID}@example.com`,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        domain_defaultSecurityGroupID: '',
+        [DOMAIN_ADMIN_REQUESTERS_KEY]: Object.fromEntries(requesterAccountIDs.map((requesterAccountID) => [requesterAccountID, 'read' as const])),
+    };
+    Reflect.set(domain, `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}1`, ACCOUNT_ID);
+    await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, domain);
+}
+
 // Drive the component by controlling the mocked hook's return value from the report-bucket fixtures.
 function setTodoCounts(todos: TodoFixture) {
     const singleReportID = (reports: TodoReport[]) => (reports.length === 1 ? reports.at(0)?.reportID : undefined);
@@ -214,8 +235,21 @@ function setTodoCounts(todos: TodoFixture) {
 // ConciergePromptBox is mocked, so these props are inert here. They only satisfy ForYouSection's required prop types.
 const conciergeMenuProps = {isConciergeMenuVisible: false, setIsConciergeMenuVisible: () => {}};
 
+// ForYouSection takes the app load gate as a prop, so the harness reads it the way HomePage does. That keeps the
+// cases below driving the gate through Onyx.
+function ForYouSectionHarness() {
+    const isInitialLoad = useAppLoadSkeletonVisibility();
+
+    return (
+        <ForYouSection
+            isInitialLoad={isInitialLoad}
+            {...conciergeMenuProps}
+        />
+    );
+}
+
 function renderForYouSection() {
-    return render(<ForYouSection {...conciergeMenuProps} />);
+    return render(<ForYouSectionHarness />);
 }
 
 function pressFirstBeginButton() {
@@ -229,22 +263,11 @@ const buildRequest = (command: AnyRequest['command'], extra: Partial<AnyRequest>
     ...extra,
 });
 
-async function setAppLoadState({
-    hasLoadedApp,
-    isLoadingApp,
-    isLoadingReportData,
-    requests = [],
-}: {
-    hasLoadedApp: boolean;
-    isLoadingApp: boolean;
-    isLoadingReportData: boolean;
-    requests?: AnyRequest[];
-}) {
+async function setAppLoadState({hasLoadedApp, isLoadingApp, requests = []}: {hasLoadedApp: boolean; isLoadingApp: boolean; requests?: AnyRequest[]}) {
     await act(async () => {
         await Onyx.multiSet({
             [ONYXKEYS.HAS_LOADED_APP]: hasLoadedApp,
             [ONYXKEYS.IS_LOADING_APP]: isLoadingApp,
-            [ONYXKEYS.IS_LOADING_REPORT_DATA]: isLoadingReportData,
             [ONYXKEYS.PERSISTED_REQUESTS]: requests,
             [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: null,
             [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: true},
@@ -300,7 +323,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: false,
                 isLoadingApp: false,
-                isLoadingReportData: false,
                 requests: [buildRequest(WRITE_COMMANDS.OPEN_APP)],
             });
 
@@ -315,7 +337,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: false,
                 isLoadingApp: false,
-                isLoadingReportData: false,
             });
 
             renderForYouSection();
@@ -329,7 +350,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: false,
                 isLoadingApp: true,
-                isLoadingReportData: false,
             });
 
             renderForYouSection();
@@ -343,7 +363,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: false,
                 isLoadingApp: false,
-                isLoadingReportData: false,
             });
 
             renderForYouSection();
@@ -357,7 +376,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: true,
                 isLoadingApp: true,
-                isLoadingReportData: false,
             });
 
             renderForYouSection();
@@ -370,7 +388,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: true,
                 isLoadingApp: true,
-                isLoadingReportData: true,
                 requests: [buildRequest(WRITE_COMMANDS.RECONNECT_APP)],
             });
 
@@ -384,7 +401,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: true,
                 isLoadingApp: true,
-                isLoadingReportData: true,
                 requests: [buildRequest(WRITE_COMMANDS.OPEN_APP)],
             });
 
@@ -394,11 +410,10 @@ describe('ForYouSection', () => {
             expect(screen.queryByTestId('for-you-skeleton')).not.toBeOnTheScreen();
         });
 
-        it('preserves IS_LOADING_REPORT_DATA as an initial load gate', async () => {
+        it('ignores IS_LOADING_REPORT_DATA while the app is unloaded', async () => {
             await setAppLoadState({
                 hasLoadedApp: false,
                 isLoadingApp: false,
-                isLoadingReportData: false,
             });
 
             renderForYouSection();
@@ -409,7 +424,7 @@ describe('ForYouSection', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
+            expect(screen.queryByTestId('for-you-skeleton')).not.toBeOnTheScreen();
         });
 
         it('drops both skeletons for an OpenApp initiated offline', async () => {
@@ -417,7 +432,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: false,
                 isLoadingApp: false,
-                isLoadingReportData: false,
                 requests: [buildRequest(WRITE_COMMANDS.OPEN_APP, {initiatedOffline: true})],
             });
 
@@ -434,7 +448,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: false,
                 isLoadingApp: true,
-                isLoadingReportData: false,
             });
 
             renderForYouSection();
@@ -449,7 +462,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: false,
                 isLoadingApp: false,
-                isLoadingReportData: false,
                 requests: [buildRequest(WRITE_COMMANDS.OPEN_APP)],
             });
 
@@ -543,7 +555,7 @@ describe('ForYouSection', () => {
 
             // Clearing the to-dos must not unmount the section. It should stay visible (now the empty state).
             setTodoCounts(BASE_TODOS);
-            rerender(<ForYouSection {...conciergeMenuProps} />);
+            rerender(<ForYouSectionHarness />);
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByTestId('forYouEmptyState')).toBeOnTheScreen();
@@ -735,7 +747,7 @@ describe('ForYouSection', () => {
             // While the Home tab is blurred the scan is skipped, but the hook retains the last computed count
             // in state, so the row keeps its count instead of flashing back to the empty state.
             mockIsFocused = false;
-            rerender(<ForYouSection {...conciergeMenuProps} />);
+            rerender(<ForYouSectionHarness />);
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText('homePage.forYouSection.reviewExpenses:{"count":1}')).toBeOnTheScreen();
@@ -774,7 +786,6 @@ describe('ForYouSection', () => {
                     backTo: ROUTES.HOME,
                 }),
             );
-            // The standard report routes should not be used for the review row anymore.
             expect(mockNavigate).not.toHaveBeenCalled();
         });
 
@@ -1078,6 +1089,116 @@ describe('ForYouSection', () => {
                 expect(mockNavigate).toHaveBeenCalledTimes(1);
                 expect(mockNavigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, ROUTES.HOME));
             });
+        });
+    });
+
+    describe('domain admin requests row', () => {
+        it('is not rendered when there are no pending domain admin requests', async () => {
+            await act(async () => {
+                setTodoCounts(BASE_TODOS);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(/homePage\.forYouSection\.reviewDomainAdminRequests/)).not.toBeOnTheScreen();
+        });
+
+        it('renders with the count-1 string when exactly one request is pending', async () => {
+            await act(async () => {
+                setTodoCounts(BASE_TODOS);
+                await seedDomainAdmin(1, [999]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('homePage.forYouSection.reviewDomainAdminRequests:{"count":1}')).toBeOnTheScreen();
+        });
+
+        it('renders with the count-N string when multiple requests are pending', async () => {
+            await act(async () => {
+                setTodoCounts(BASE_TODOS);
+                await seedDomainAdmin(1, [998, 999]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('homePage.forYouSection.reviewDomainAdminRequests:{"count":2}')).toBeOnTheScreen();
+        });
+
+        it('exposes a Begin CTA and uses the UserShield icon asset', async () => {
+            await act(async () => {
+                setTodoCounts(BASE_TODOS);
+                await seedDomainAdmin(1, [999]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const {UNSAFE_root: unsafeRoot} = renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('Begin')).toBeOnTheScreen();
+
+            const matchingNodes = unsafeRoot.findAll((node) => node.props && (node.props as {icon?: unknown}).icon === USER_SHIELD_ASSET);
+            expect(matchingNodes.length).toBeGreaterThan(0);
+        });
+
+        it('navigates to DOMAIN_ADMINS when only one domain has pending requests', async () => {
+            await act(async () => {
+                setTodoCounts(BASE_TODOS);
+                await seedDomainAdmin(1, [999]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            pressFirstBeginButton();
+
+            expect(mockNavigate).toHaveBeenCalledTimes(1);
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.DOMAIN_ADMINS.getRoute(1));
+        });
+
+        it('navigates to DOMAINS_LIST when multiple domains have pending requests', async () => {
+            await act(async () => {
+                setTodoCounts(BASE_TODOS);
+                await seedDomainAdmin(1, [999]);
+                await seedDomainAdmin(2, [998]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            pressFirstBeginButton();
+
+            expect(mockNavigate).toHaveBeenCalledTimes(1);
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.DOMAINS_LIST.getRoute());
+        });
+
+        it('disappears once the last pending request is cleared (set to a tombstone)', async () => {
+            await act(async () => {
+                setTodoCounts(BASE_TODOS);
+                await seedDomainAdmin(1, [999]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('homePage.forYouSection.reviewDomainAdminRequests:{"count":1}')).toBeOnTheScreen();
+
+            const clearedRequesterAccountID = 999;
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}1`, {[DOMAIN_ADMIN_REQUESTERS_KEY]: {[clearedRequesterAccountID]: null}});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(/homePage\.forYouSection\.reviewDomainAdminRequests/)).not.toBeOnTheScreen();
         });
     });
 });

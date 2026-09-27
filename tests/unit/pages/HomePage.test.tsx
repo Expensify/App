@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return -- Jest factory mocks use CommonJS require() which returns untyped modules; typing each mock precisely is not practical here */
 import {act, render, renderHook, screen, within} from '@testing-library/react-native';
 
-import {useIsOnlineAppLoadPending} from '@hooks/useInFlightRequests';
+import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
@@ -15,6 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyRequest} from '@src/types/onyx';
 
+import {PortalProvider} from '@gorhom/portal';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -73,9 +74,20 @@ jest.mock('@components/Navigation/TopBar', () => {
     }
     return MockTopBar;
 });
+
+jest.mock('@gorhom/portal', () => {
+    const ReactModule = require('react');
+    const {View: RNView} = require('react-native');
+    return {
+        ...jest.requireActual('@gorhom/portal'),
+        PortalHost: ({name}: {name: string}) => ReactModule.createElement(RNView, {testID: `portal-host-${name}`}),
+    };
+});
+
 jest.mock('@components/ReceiptScanDropZone', () => {
-    function MockReceiptScanDropZone() {
-        return null;
+    // The drop zone wraps the page content, so the mock has to keep rendering its children.
+    function MockReceiptScanDropZone({children}: {children: React.ReactNode}) {
+        return children;
     }
     return MockReceiptScanDropZone;
 });
@@ -138,7 +150,6 @@ jest.mock('@pages/home/UpcomingTravelSection', () => mockSection('UpcomingTravel
 jest.mock('@pages/home/RecentlyAddedSection', () => mockSection('RecentlyAddedSection'), {virtual: true});
 jest.mock('@pages/home/YourSpendSection', () => mockSection('YourSpendSection'));
 jest.mock('@pages/home/InsightsSection', () => mockSection('InsightsSection'));
-jest.mock('@pages/home/DiscoverSection', () => mockSection('DiscoverSection'));
 
 const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 const mockUseNetwork = jest.mocked(useNetwork);
@@ -177,7 +188,7 @@ function setIsOffline(isOffline: boolean) {
 async function resetAppLoadLatch() {
     await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
     await waitForBatchedUpdates();
-    const {unmount} = renderHook(() => useIsOnlineAppLoadPending());
+    const {unmount} = renderHook(() => useIsAppLoadPending());
     await act(async () => {
         await waitForBatchedUpdates();
     });
@@ -186,9 +197,11 @@ async function resetAppLoadLatch() {
 
 const renderHomePage = () =>
     render(
-        <OnyxListItemProvider>
-            <HomePage />
-        </OnyxListItemProvider>,
+        <PortalProvider>
+            <OnyxListItemProvider>
+                <HomePage />
+            </OnyxListItemProvider>
+        </PortalProvider>,
     );
 
 // Either skeleton group answers "is the wall up": both render in every state the gate covers.
@@ -247,6 +260,23 @@ describe('HomePage', () => {
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
         await waitForBatchedUpdates();
         await resetAppLoadLatch();
+    });
+
+    describe('suggestion portal host', () => {
+        it.each([
+            ['narrow', setNarrowLayout],
+            ['wide', setWideLayout],
+        ])('renders the suggestions host on %s layout', async (_label, setLayout) => {
+            // Given a layout
+            setLayout();
+            await waitForBatchedUpdates();
+
+            // When the Home page renders
+            renderHomePage();
+
+            // Then the suggestions portal host is on the page
+            expect(screen.getByTestId('portal-host-suggestions')).toBeOnTheScreen();
+        });
     });
 
     // Offline, OpenApp/OpenReport never send, so IS_LOADING_APP / IS_LOADING_REPORT_DATA can stay true forever and the
@@ -343,7 +373,6 @@ describe('HomePage', () => {
                 'section-YourSpendSection',
                 'section-RecentlyAddedSection',
                 'section-InsightsSection',
-                'section-DiscoverSection',
             ]);
         });
 
@@ -367,7 +396,7 @@ describe('HomePage', () => {
 
     // Recently added moves into the right column directly below Your spend on wide layout (PRD-98653 R1/R2).
     describe('wide layout column placement', () => {
-        it('renders Discover and Recently added in the right column, not the left', async () => {
+        it('renders Recently added in the right column, not the left', async () => {
             setWideLayout();
             await waitForBatchedUpdates();
 
@@ -376,8 +405,6 @@ describe('HomePage', () => {
             const leftColumn = screen.getByTestId(LEFT_COLUMN_TEST_ID);
             const rightColumn = screen.getByTestId(RIGHT_COLUMN_TEST_ID);
 
-            expect(within(rightColumn).getByTestId('section-DiscoverSection')).toBeOnTheScreen();
-            expect(within(leftColumn).queryByTestId('section-DiscoverSection')).not.toBeOnTheScreen();
             expect(within(rightColumn).getByTestId('section-RecentlyAddedSection')).toBeOnTheScreen();
             expect(within(leftColumn).queryByTestId('section-RecentlyAddedSection')).not.toBeOnTheScreen();
         });

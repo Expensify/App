@@ -7,10 +7,7 @@ type AnchorForAttachmentsOnlyProps = {
     /** Filename for attachments. */
     displayName?: string;
 
-    /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;
-
-    /** Whether the attachment is deleted */
     isDeleted?: boolean;
 };
 
