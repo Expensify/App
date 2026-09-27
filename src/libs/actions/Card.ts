@@ -1145,7 +1145,39 @@ function setCardPreferredPolicy(
     newPreferredPolicyID: string,
     oldPreferredPolicyID: string | undefined,
     currentUserAccountID: number,
-) {}
+) {
+    const shouldUpdateCardList = card.accountID === currentUserAccountID;
+
+    const optimisticData = buildCardListUpdates(
+        domainOrWorkspaceAccountID,
+        card.cardID,
+        {
+            nameValuePairs: {
+                preferredPolicy: newPreferredPolicyID === CONST.CARD_PREFERRED_POLICY.EMPLOYEE_DEFAULT ? null : newPreferredPolicyID,
+                pendingFields: {preferredPolicy: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                errorFields: {preferredPolicy: null},
+            },
+        },
+        shouldUpdateCardList,
+        bank,
+    );
+
+    const successData = buildCardListUpdates(domainOrWorkspaceAccountID, card.cardID, {nameValuePairs: {pendingFields: {preferredPolicy: null}}}, shouldUpdateCardList, bank);
+
+    const failureData = buildCardListUpdates(
+        domainOrWorkspaceAccountID,
+        card.cardID,
+        {
+            nameValuePairs: {
+                preferredPolicy: oldPreferredPolicyID ?? null,
+                pendingFields: {preferredPolicy: null},
+                errorFields: {preferredPolicy: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            },
+        },
+        shouldUpdateCardList,
+        bank,
+    );
+}
 
 function updateExpensifyCardLimitType(
     workspaceAccountID: number,
