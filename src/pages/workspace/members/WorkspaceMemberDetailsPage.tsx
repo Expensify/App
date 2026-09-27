@@ -426,6 +426,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     shouldShowRightIcon={canWriteMembers}
                                     shouldGreyOutWhenDisabled={false}
                                     shouldUseDefaultCursorWhenDisabled
+                                    pressableTestID="member-work-arrangement-menu-item"
                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_WORK_ARRANGEMENT.getRoute(policyID, accountID))}
                                 />
                             )}
