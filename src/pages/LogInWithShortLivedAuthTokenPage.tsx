@@ -28,7 +28,7 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [lastVisitedPath, lastVisitedPathMetadata] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
-    const isLoadingSignInData = isLoadingOnyxValue(lastVisitedPathMetadata, credentialsMetadata);
+    const isLoadingSignInData = isLoadingOnyxValue(lastVisitedPathMetadata, ...(isSAML ? [credentialsMetadata] : []));
 
     useEffect(() => {
         // Only a forced SAML re-auth keeps a last visited path, so it has to be read (along with the credentials
