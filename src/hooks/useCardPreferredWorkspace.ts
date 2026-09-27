@@ -155,6 +155,18 @@ function useCardPreferredWorkspace(card: Card | undefined): UseCardPreferredWork
             cardholderEmail,
         };
     }
+
+    // Fall back to a bare "Employee default".
+    return {
+        state: CARD_PREFERRED_WORKSPACE_STATE.EMPLOYEE_DEFAULT_UNKNOWN,
+        title: eligiblePolicyIDs.length > 0 ? translate('workspace.card.preferredWorkspace.employeeDefaultUnknown') : translate('workspace.card.preferredWorkspace.none'),
+        helperText: undefined,
+        isInteractive: eligiblePolicyIDs.length > 0,
+        cardPreferredPolicyID,
+        employeeDefaultPolicyID,
+        employeeDefaultPolicyName,
+        cardholderEmail,
+    };
 }
 
 export default useCardPreferredWorkspace;
