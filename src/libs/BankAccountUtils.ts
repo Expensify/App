@@ -1,3 +1,7 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
+import type useConfirmModal from '@hooks/useConfirmModal';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -350,6 +354,15 @@ function getRequiredKYBDocuments(externalApiResponses: KYBVerificationResponses)
     return requiredDocuments;
 }
 
+function showUnlockAlreadyRequestedModal(showConfirmModal: ReturnType<typeof useConfirmModal>['showConfirmModal'], translate: LocaleContextProps['translate']) {
+    showConfirmModal({
+        title: translate('bankAccount.unlockAlreadyRequestedTitle'),
+        prompt: translate('bankAccount.unlockAlreadyRequestedDescription'),
+        confirmText: translate('common.buttonConfirm'),
+        shouldShowCancelButton: false,
+    });
+}
+
 export {
     getBankAccountSearchLabel,
     isFilterableBankAccount,
@@ -371,6 +384,7 @@ export {
     doesPolicyHaveValidationFailedBankAccount,
     isPersonalBankAccountMissingInfo,
     getCompletedStepsForBankAccount,
+    showUnlockAlreadyRequestedModal,
     PERSONAL_INFO_STEP,
 };
 export type {BankAccountConnectionStatus, KYBVerificationResponses};
