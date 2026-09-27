@@ -1,36 +1,44 @@
+import usePrevious from '@hooks/usePrevious';
+
 import {setMoneyRequestTaxAmount, setMoneyRequestTaxRateValues} from '@libs/actions/IOU/MoneyRequest';
 
 import {useEffect} from 'react';
 
+import type useDistanceRequestState from './hooks/useDistanceRequestState';
+
+import {useConfirmationData} from './ConfirmationDataContext';
+import useTaxAmount from './hooks/useTaxAmount';
+
 type TaxControllerProps = {
-    transactionID: string | undefined;
-    policyID: string | undefined;
-    isReadOnly: boolean;
-    shouldShowTax: boolean;
-    isMovingTransactionFromTrackExpense: boolean;
-    defaultTaxCode: string;
-    defaultTaxValue: string | null;
-    shouldKeepCurrentTaxSelection: boolean;
-    taxAmountInSmallestCurrencyUnits: number;
-    transactionTaxAmount: number | undefined;
+    /**
+     * Only the distance surface passes this. `useTaxAmount` computes the taxable amount from the route rather than
+     * from the stored transaction amount inside distance branches.
+     */
+    distanceState?: Pick<ReturnType<typeof useDistanceRequestState>, 'distance' | 'unit'>;
 };
 
 /**
  * Side-effect-only component that syncs tax rate defaults
  * and tax amount when the transaction or policy changes.
  */
-function TaxController({
-    transactionID,
-    policyID,
-    isReadOnly,
-    shouldShowTax,
-    isMovingTransactionFromTrackExpense,
-    defaultTaxCode,
-    defaultTaxValue,
-    shouldKeepCurrentTaxSelection,
-    taxAmountInSmallestCurrencyUnits,
-    transactionTaxAmount,
-}: TaxControllerProps) {
+function TaxController({distanceState}: TaxControllerProps) {
+    const {transactionID, policyID, isReadOnly, shouldShowTax, isMovingTransactionFromTrackExpense, transaction, policy, policyForMovingExpenses, customUnitRateID} = useConfirmationData();
+    const transactionTaxAmount = transaction?.taxAmount;
+
+    const previousTransactionCurrency = usePrevious(transaction?.currency);
+
+    const {defaultTaxCode, defaultTaxValue, shouldKeepCurrentTaxSelection, taxAmountInSmallestCurrencyUnits} = useTaxAmount({
+        transaction,
+        policy,
+        policyForMovingExpenses,
+        isDistanceRequest: !!distanceState,
+        isMovingTransactionFromTrackExpense,
+        customUnitRateID,
+        distance: distanceState?.distance ?? 0,
+        distanceUnit: distanceState?.unit,
+        previousTransactionCurrency,
+    });
+
     useEffect(() => {
         if (!transactionID || isReadOnly || !shouldShowTax || isMovingTransactionFromTrackExpense) {
             return;

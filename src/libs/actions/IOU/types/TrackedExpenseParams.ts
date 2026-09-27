@@ -1,3 +1,5 @@
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import type {CreateWorkspaceParams} from '@libs/API/parameters';
 
 import type {BuildPolicyDataKeys, CurrentUser} from '@userActions/Policy/Policy';
@@ -75,6 +77,7 @@ type TrackedExpenseParams = {
     isDistanceRequest?: boolean;
     currentUser: CurrentUser;
     reportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
+    personalDetailsByLogins?: PersonalDetailsByLogin;
 };
 
 export type {TrackedExpenseParams, TrackedExpensePolicyParams, TrackedExpenseTransactionParams, TrackedExpenseReportInformation, BuildOnyxDataForTrackExpenseKeys};

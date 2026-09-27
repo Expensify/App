@@ -5,13 +5,14 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-function AmountFilterContentPageWrapper({baseFilterKey, value, onChange}: AmountFilterContentWrapperProps) {
+function AmountFilterContentPageWrapper({baseFilterKey, buttonText, value, onChange}: AmountFilterContentWrapperProps) {
     return (
         <AmountFilterContent
             baseFilterKey={baseFilterKey}
             value={value}
             buttonSize={CONST.BUTTON_SIZE.LARGE}
             autoFocus
+            buttonText={buttonText}
             onChange={onChange}
         />
     );
