@@ -2087,6 +2087,7 @@ export {
     freezeCard,
     unfreezeCard,
     updateExpensifyCardTitle,
+    setCardPreferredPolicy,
     updateSettlementAccount,
     startIssueNewCardFlow,
     configureExpensifyCardsForPolicy,
