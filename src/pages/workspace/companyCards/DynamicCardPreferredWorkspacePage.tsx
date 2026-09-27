@@ -67,7 +67,7 @@ function DynamicCardPreferredWorkspacePage({route}: DynamicCardPreferredWorkspac
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [searchTerm, setSearchTerm] = useState('');
 
-    const {data} = useWorkspaceList({
+    const {data, shouldShowSearchInput} = useWorkspaceList({
         policies,
         currentUserLogin,
         shouldShowPendingDeletePolicy: false,
@@ -142,6 +142,12 @@ function DynamicCardPreferredWorkspacePage({route}: DynamicCardPreferredWorkspac
                     sections={sections}
                     ListItem={UserListItem}
                     onSelectRow={onSelectRow}
+                    shouldShowTextInput={shouldShowSearchInput}
+                    textInputOptions={{
+                        label: translate('common.search'),
+                        value: searchTerm,
+                        onChangeText: setSearchTerm,
+                    }}
                     initiallyFocusedItemKey={initiallyFocusedItemKey}
                     shouldSingleExecuteRowSelect
                     addBottomSafeAreaPadding
