@@ -9663,6 +9663,7 @@ const CONST = {
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceCompanyCards-BulkActionsDropdown',
                 CARD_NAME: 'WorkspaceCompanyCards-CardName',
                 CARD_EXPORT: 'WorkspaceCompanyCards-CardExport',
+                CARD_PREFERRED_WORKSPACE: 'WorkspaceCompanyCards-CardPreferredWorkspace',
                 UNASSIGN_CARD: 'WorkspaceCompanyCards-UnassignCard',
                 TRANSACTION_START_DATE: 'WorkspaceCompanyCards-TransactionStartDate',
             },
