@@ -88,7 +88,6 @@ import {createFile, splitExtensionFromFileName} from '@libs/fileDownload/FileUti
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getWorkspaceCreatedAnalyticsEvent from '@libs/getWorkspaceCreatedAnalyticsEvent';
 import GoogleTagManager from '@libs/GoogleTagManager';
-import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
