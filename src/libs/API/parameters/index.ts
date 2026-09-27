@@ -519,6 +519,7 @@ export type {default as AssignCompanyCardParams} from './AssignCompanyCardParams
 export type {default as UnassignCardParams} from './UnassignCardParams';
 export type {default as SyncCardParams} from './SyncCardParams';
 export type {default as UpdateCompanyCardNameParams} from './UpdateCompanyCardNameParams';
+export type {default as SetCardPreferredPolicyParams} from './SetCardPreferredPolicyParams';
 export type {default as UpdateCardTransactionStartDateParams} from './UpdateCardTransactionStartDateParams';
 export type {default as SetPersonalCardReimbursableParams} from './SetPersonalCardReimbursableParams';
 export type {default as SetCompanyCardExportAccountParams} from './SetCompanyCardExportAccountParams';
