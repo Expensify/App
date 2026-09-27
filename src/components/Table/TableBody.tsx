@@ -5,6 +5,7 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useScrollEnabled from '@hooks/useScrollEnabled';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ListRenderItemInfo, ViewToken} from '@shopify/flash-list';
@@ -97,6 +98,7 @@ function doesBodyRenderWhenEmpty(listProps: {ListEmptyComponent?: unknown; ListH
  */
 function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ...props}: TableBodyListProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const scrollEnabled = useScrollEnabled();
     const [isListLoaded, setIsListLoaded] = useState(false);
     const [hasActivatedStickyHeader, setHasActivatedStickyHeader] = useState(false);
@@ -344,7 +346,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                     return headerElement;
                 }
 
-                return <View style={{paddingRight: scrollbarWidth}}>{headerElement}</View>;
+                return <View style={StyleUtils.getPaddingRight(scrollbarWidth)}>{headerElement}</View>;
             }
             case 'data':
             default: {
