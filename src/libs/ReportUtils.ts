@@ -105,7 +105,6 @@ import type {AvatarSource} from './UserAvatarUtils';
 
 import {isIntuitEnterpriseSuiteConnection} from './AccountingUtils';
 import {getBankAccountFromID} from './actions/BankAccounts';
-import {getAllTransactions} from './actions/IOU';
 import {unholdRequest} from './actions/IOU/Hold';
 import {canApproveIOU, canIOUBePaid, canSubmitReport, getBadgeFromIOUReport, getIOUReportActionWithBadge} from './actions/IOU/ReportWorkflow';
 import hasCreditBankAccount from './actions/ReimbursementAccount/hasCreditBankAccount';
@@ -5744,7 +5743,7 @@ const changeMoneyRequestHoldStatus = (
         if (reportAction.childReportID) {
             unholdRequest(
                 transactionID,
-                getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`],
+                iouTransaction,
                 reportAction.childReportID,
                 policy,
                 isOffline,
