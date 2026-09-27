@@ -5172,7 +5172,17 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // Put the expense on hold
         if (originalTransactionID && transactionThreadReportID) {
             const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
-            putOnHold(originalTransactionID, originalTransaction, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined, {
+            putOnHold({
+                transactionID: originalTransactionID,
+                transaction: originalTransaction,
+                comment: 'Test hold reason',
+                initialReportID: transactionThreadReportID,
+                isOffline: false,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
                 rules: undefined,
                 ancestors: [],
             });
@@ -6119,7 +6129,17 @@ describe('updateSplitTransactions', () => {
         const ancestors = getAncestors(transactionThreadReport, allReports, {}, allReportActions);
         const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
 
-        putOnHold(originalTransactionID, originalTransaction, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined, {
+        putOnHold({
+            transactionID: originalTransactionID,
+            transaction: originalTransaction,
+            comment: 'Test hold reason',
+            initialReportID: transactionThreadReportID,
+            isOffline: false,
+            currentUserLogin: RORY_EMAIL,
+            currentUserAccountID: RORY_ACCOUNT_ID,
+            transactionViolations: undefined,
+            isTrackIntentUser: false,
+            delegateAccountID: undefined,
             rules: undefined,
             ancestors,
         });
@@ -6299,7 +6319,17 @@ describe('updateSplitTransactions', () => {
         const ancestors2 = getAncestors(split1ThreadReport, allReports2, {}, allReportActions2);
         const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`);
 
-        putOnHold(splitTransactionID1, originalTransaction, 'Test hold reason', split1ThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined, {
+        putOnHold({
+            transactionID: splitTransactionID1,
+            transaction: originalTransaction,
+            comment: 'Test hold reason',
+            initialReportID: split1ThreadReportID,
+            isOffline: false,
+            currentUserLogin: RORY_EMAIL,
+            currentUserAccountID: RORY_ACCOUNT_ID,
+            transactionViolations: undefined,
+            isTrackIntentUser: false,
+            delegateAccountID: undefined,
             rules: undefined,
             ancestors: ancestors2,
         });

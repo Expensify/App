@@ -126,7 +126,17 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
                     // When an expense is put on hold
-                    putOnHold(transaction.transactionID, transaction, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined, {
+                    putOnHold({
+                        transactionID: transaction.transactionID,
+                        transaction,
+                        comment,
+                        initialReportID: transactionThread.reportID,
+                        isOffline: false,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        transactionViolations: undefined,
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
                         rules: undefined,
                     });
                     return waitForBatchedUpdates();
@@ -190,7 +200,19 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
                     // When an expense is put on hold without existing transaction thread (undefined initialReportID)
-                    putOnHold(transaction.transactionID, transaction, comment, undefined, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined, {rules: undefined});
+                    putOnHold({
+                        transactionID: transaction.transactionID,
+                        transaction,
+                        comment,
+                        initialReportID: undefined,
+                        isOffline: false,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        transactionViolations: undefined,
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
+                        rules: undefined,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -270,19 +292,19 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
                     // When multiple transactions are put on hold
-                    putTransactionsOnHold(
-                        [transaction1.transactionID, transaction2.transactionID],
+                    putTransactionsOnHold({
+                        transactionsID: [transaction1.transactionID, transaction2.transactionID],
                         comment,
-                        iouReport.reportID,
-                        false,
-                        RORY_EMAIL,
-                        RORY_ACCOUNT_ID,
-                        undefined,
-                        [transaction1, transaction2],
-                        false,
-                        undefined,
-                        {rules: undefined},
-                    );
+                        reportID: iouReport.reportID,
+                        isOffline: false,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        allTransactionViolations: undefined,
+                        allTransactions: [transaction1, transaction2],
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
+                        rules: undefined,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -376,19 +398,19 @@ describe('actions/IOU/Hold', () => {
                 .then(() => {
                     jest.mocked(Navigation.setNavigationActionToMicrotaskQueue).mockClear();
                     // When transactions are put on hold while offline (isOffline: true)
-                    putTransactionsOnHold(
-                        [transaction1.transactionID, transaction2.transactionID],
+                    putTransactionsOnHold({
+                        transactionsID: [transaction1.transactionID, transaction2.transactionID],
                         comment,
-                        iouReport.reportID,
-                        true,
-                        RORY_EMAIL,
-                        RORY_ACCOUNT_ID,
-                        undefined,
-                        [transaction1, transaction2],
-                        false,
-                        undefined,
-                        {rules: undefined},
-                    );
+                        reportID: iouReport.reportID,
+                        isOffline: true,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        allTransactionViolations: undefined,
+                        allTransactions: [transaction1, transaction2],
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
+                        rules: undefined,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -434,7 +456,17 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
                     jest.mocked(Navigation.setNavigationActionToMicrotaskQueue).mockClear();
-                    putOnHold(transaction.transactionID, transaction, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined, {
+                    putOnHold({
+                        transactionID: transaction.transactionID,
+                        transaction,
+                        comment,
+                        initialReportID: transactionThread.reportID,
+                        isOffline: false,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        transactionViolations: undefined,
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
                         rules: undefined,
                     });
                     return waitForBatchedUpdates();
@@ -444,7 +476,17 @@ describe('actions/IOU/Hold', () => {
                     expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
 
                     jest.mocked(Navigation.setNavigationActionToMicrotaskQueue).mockClear();
-                    putOnHold(transaction.transactionID, transaction, comment, transactionThread.reportID, true, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined, {
+                    putOnHold({
+                        transactionID: transaction.transactionID,
+                        transaction,
+                        comment,
+                        initialReportID: transactionThread.reportID,
+                        isOffline: true,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        transactionViolations: undefined,
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
                         rules: undefined,
                     });
                     return waitForBatchedUpdates();
@@ -499,7 +541,17 @@ describe('actions/IOU/Hold', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction.transactionID, transaction, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined, {
+                    putOnHold({
+                        transactionID: transaction.transactionID,
+                        transaction,
+                        comment,
+                        initialReportID: transactionThread.reportID,
+                        isOffline: false,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        transactionViolations: undefined,
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
                         rules: undefined,
                     });
                     return waitForBatchedUpdates();
@@ -586,7 +638,17 @@ describe('actions/IOU/Hold', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction.transactionID, transaction, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined, {
+                    putOnHold({
+                        transactionID: transaction.transactionID,
+                        transaction,
+                        comment,
+                        initialReportID: transactionThread.reportID,
+                        isOffline: false,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        transactionViolations: undefined,
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
                         rules: undefined,
                     });
                     return waitForBatchedUpdates();

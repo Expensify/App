@@ -68,38 +68,40 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 return;
             }
             if (isBulkHold) {
-                putTransactionsOnHold(
-                    selectedTransactionIDs,
+                putTransactionsOnHold({
+                    transactionsID: selectedTransactionIDs,
                     comment,
                     reportID,
                     isOffline,
-                    currentUserLogin ?? '',
+                    currentUserLogin: currentUserLogin ?? '',
                     currentUserAccountID,
-                    selectedTransactionViolations,
-                    selectedTransactionsOnyx,
+                    allTransactionViolations: selectedTransactionViolations,
+                    allTransactions: selectedTransactionsOnyx,
                     isTrackIntentUser,
                     delegateAccountID,
-                    {rules, ancestors},
-                );
+                    rules,
+                    ancestors,
+                });
                 clearSelectedTransactions(true);
             } else {
                 const transactionIDs = Object.keys(selectedTransactions);
                 for (const transactionID of transactionIDs) {
                     const transactionThreadReportID = selectedTransactions[transactionID].reportAction?.childReportID;
                     const transactionViolations = selectedTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-                    putOnHold(
+                    putOnHold({
                         transactionID,
-                        selectedTransactions[transactionID].transaction,
+                        transaction: selectedTransactions[transactionID].transaction,
                         comment,
-                        transactionThreadReportID,
+                        initialReportID: transactionThreadReportID,
                         isOffline,
-                        currentUserLogin ?? '',
+                        currentUserLogin: currentUserLogin ?? '',
                         currentUserAccountID,
                         transactionViolations,
                         isTrackIntentUser,
                         delegateAccountID,
-                        {rules, ancestors},
-                    );
+                        rules,
+                        ancestors,
+                    });
                 }
                 clearSelectedTransactions();
             }
