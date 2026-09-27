@@ -1,8 +1,9 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -75,10 +76,11 @@ function ScheduleCallConfirmationPage() {
     let dateTimeString = '';
     if (scheduleCallDraft?.timeSlot && scheduleCallDraft.date) {
         const dateString = DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT, {locale: dateFnsLocale});
-        const timeString = `${DateUtils.formatTimeInTimeZoneWithPeriod(translate, scheduleCallDraft?.timeSlot, userTimezone)} - ${DateUtils.formatTimeInTimeZoneWithPeriod(
-            translate,
+        const timeString = `${DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft?.timeSlot, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})} - ${DateUtils.formatInTimeZoneWithFallback(
             addMinutes(scheduleCallDraft?.timeSlot, 30),
             userTimezone,
+            CONST.DATE.LOCAL_TIME_FORMAT,
+            {locale: dateFnsLocale},
         )}`;
 
         const timezoneString = DateUtils.getZoneAbbreviation(new Date(scheduleCallDraft?.timeSlot), userTimezone);
@@ -137,10 +139,9 @@ function ScheduleCallConfirmationPage() {
                             Navigation.goBack(ROUTES.SCHEDULE_CALL_BOOK.getRoute(route?.params?.reportID));
                         }}
                     />
-                    <MenuItemWithTopDescription
-                        title={translate('scheduledCall.confirmation.minutes')}
-                        description={translate('scheduledCall.confirmation.meetingLength')}
-                        interactive={false}
+                    <MenuItemField
+                        name={translate('scheduledCall.confirmation.meetingLength')}
+                        value={translate('scheduledCall.confirmation.minutes')}
                     />
                 </ScrollView>
                 <FixedFooter>

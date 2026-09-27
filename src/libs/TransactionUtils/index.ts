@@ -1,3 +1,6 @@
+/* eslint-disable max-lines */
+// TransactionUtils aggregates the shared transaction helpers, so its length grows with the number of utilities it collects rather than with any one
+// of them. Splitting it is a repo-wide refactor, so the rule is suppressed here the same way it is in ReportUtils, ReportActionsUtils and SearchUIUtils.
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
@@ -97,7 +100,7 @@ import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {format, isValid, parse} from 'date-fns';
+import {differenceInCalendarDays, format, isValid, parse, parseISO} from 'date-fns';
 import {SafeString, Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import lodashDeepClone from 'lodash/cloneDeep';
@@ -118,6 +121,9 @@ type TransactionParams = {
     created?: string;
     merchant?: string;
     receipt?: OnyxEntry<Receipt>;
+
+    /** Receipt scan state for the optimistic transaction. Falls back to `receipt.state` when not set. */
+    receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     category?: string;
     tag?: string;
     taxCode?: string;
@@ -283,6 +289,31 @@ function isScanRequest(transaction: OnyxEntry<Pick<Transaction, 'iouRequestType'
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
 }
 
+/** The fields a Scan confirmation lets the user fill in behind "Show more", plus the type that tells it is a scan. */
+type ManuallyEnteredScanFields = Pick<Transaction, 'iouRequestType' | 'isAmountSet' | 'isMerchantSet' | 'isCreatedSet'>;
+
+/**
+ * The Scan confirmation's amount / merchant / date are all-or-nothing: leave all three blank to let SmartScan read
+ * them, or fill all three in to submit as a manual expense whose receipt is never scanned over.
+ */
+function hasAllManuallyEnteredScanFields(transaction: OnyxEntry<ManuallyEnteredScanFields>): boolean {
+    return isScanRequest(transaction) && !!transaction?.isAmountSet && !!transaction?.isMerchantSet && !!transaction?.isCreatedSet;
+}
+
+/** Whether the user filled in at least one of those three fields, which is what turns the scan into a manual expense. */
+function hasAnyManuallyEnteredScanField(transaction: OnyxEntry<ManuallyEnteredScanFields>): boolean {
+    return isScanRequest(transaction) && (!!transaction?.isAmountSet || !!transaction?.isMerchantSet || !!transaction?.isCreatedSet);
+}
+
+/**
+ * Whether the user started filling the three fields in but stopped short, which blocks confirmation.
+ * `canEnterScanFieldsManually` says whether the surface offers those fields at all, since splits, moved tracked
+ * expenses and test receipts carry the same flags without ever having shown them.
+ */
+function isPartiallyEnteredScanExpense(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false): boolean {
+    return canEnterScanFieldsManually && hasAnyManuallyEnteredScanField(transaction) && !hasAllManuallyEnteredScanFields(transaction);
+}
+
 function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
     if (transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM) {
         return true;
@@ -426,8 +457,7 @@ function isScanningTransaction(transaction: OnyxEntry<Transaction>): boolean {
  * Optimistically generate a transaction.
  *
  * @param amount – in cents
- * @param [existingTransactionID] When creating a distance expense, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have
- * it's transactionID match what was already generated.
+ * @param [existingTransactionID] Reuse this ID when a distance expense already created an empty transaction.
  */
 function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): Transaction {
     const {originalTransactionID = '', existingTransactionID, existingTransaction, policy, transactionParams, isDemoTransactionParam} = params;
@@ -443,6 +473,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         created = '',
         merchant = '',
         receipt,
+        receiptState,
         // Prevent RBR flip and transaction jump: initialize category to 'Uncategorized' instead of
         // empty string so optimistic missing category violation isn't added then removed during backend sync
         category = CONST.SEARCH.CATEGORY_DEFAULT_VALUE,
@@ -522,11 +553,13 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
             lodashSet(commentJSON, 'customUnit', customUnit);
         } else {
             const routeDistanceMeters = routes?.route0?.distance ?? existingTransaction?.routes?.route0?.distance;
-            lodashSet(commentJSON, 'customUnit', existingTransaction?.comment?.customUnit ?? {});
+            lodashSet(commentJSON, 'customUnit', {...existingTransaction?.comment?.customUnit});
             // Set the distance unit, which comes from the policy distance unit or the P2P rate data
             lodashSet(commentJSON, 'customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy}));
             lodashSet(commentJSON, 'customUnit.quantity', distance);
-            lodashSet(commentJSON, 'customUnit.customUnitRateID', customUnitRateID);
+            if (customUnitRateID) {
+                lodashSet(commentJSON, 'customUnit.customUnitRateID', customUnitRateID);
+            }
             lodashSet(commentJSON, 'customUnit.name', existingTransaction?.comment?.customUnit?.name ?? CONST.CUSTOM_UNITS.NAME_DISTANCE);
             if (typeof routeDistanceMeters === 'number') {
                 lodashSet(commentJSON, 'customUnit.routeDistanceMeters', routeDistanceMeters);
@@ -561,7 +594,13 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         created: created || DateUtils.getDBTime(),
         pendingAction,
         receipt: receipt?.source
-            ? {source: receipt.source, filename: receipt?.name ?? filename, state: receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY, isTestDriveReceipt: receipt.isTestDriveReceipt}
+            ? {
+                  source: receipt.source,
+                  filename: receipt?.name ?? filename,
+                  state: receiptState ?? receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY,
+                  isTestDriveReceipt: receipt.isTestDriveReceipt,
+                  pageCount: receipt.pageCount,
+              }
             : undefined,
         hasEReceipt: existingTransaction?.hasEReceipt,
         category,
@@ -689,7 +728,10 @@ function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
 
 function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, transactionReport: OnyxEntry<Report>): boolean {
     const isFromExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE;
-    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || (!isFromExpenseReport && getAmount(transaction) === 0);
+    // A zero amount is a deliberate, valid choice for an unreported expense, so it isn't a missing field there. It is never
+    // a missing field on an expense report either, where only the merchant is checked.
+    const isZeroAmountAllowed = isFromExpenseReport || isExpenseUnreported(transaction);
+    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || (!isZeroAmountAllowed && getAmount(transaction) === 0);
 }
 
 function getClearedPendingFields(transactionChanges: TransactionChanges) {
@@ -875,11 +917,17 @@ function getUpdatedTransaction({
                       policy,
                       storedCustomUnit: transaction?.comment?.customUnit,
                       personalPolicyOutputCurrency,
+                      hasTripChanged: waypointsActuallyChanged,
                   })
                 : undefined;
 
             if (commuterExclusionTransactionData) {
                 lodashSet(updatedTransaction, 'comment.customUnit', commuterExclusionTransactionData.customUnit);
+            } else if (waypointsActuallyChanged) {
+                // The exclusion described the trip being replaced, so it goes with it rather than showing a deduction that no longer applies.
+                lodashSet(updatedTransaction, 'comment.customUnit.commuterExclusion', null);
+                lodashSet(updatedTransaction, 'comment.customUnit.reimbursableDistance', null);
+                lodashSet(updatedTransaction, 'comment.customUnit.commuterExclusionMethod', null);
             }
 
             const amount = commuterExclusionTransactionData?.modifiedAmount ?? DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
@@ -920,6 +968,20 @@ function getUpdatedTransaction({
         shouldStopSmartscan = true;
 
         const existingDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
+        const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
+        const quantity = transaction?.comment?.customUnit?.quantity;
+        const hasCommuterExclusion = hasAppliedCommuterExclusion(transaction);
+        // For transactions with an applied commuter exclusion, `quantity` is the route distance rounded
+        // to 2dp, so it differs from the exact conversion by at most 0.005. A gap larger than this rounding
+        // tolerance means the user manually edited the distance, so we must convert their quantity instead.
+        const ROUNDING_TOLERANCE = 0.01;
+        const isDistanceManuallyEdited =
+            hasCommuterExclusion &&
+            typeof routeDistanceMeters === 'number' &&
+            typeof quantity === 'number' &&
+            !!existingDistanceUnit &&
+            Math.abs(quantity - DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, existingDistanceUnit)) > ROUNDING_TOLERANCE;
+        const shouldUseExactRouteDistance = hasCommuterExclusion && typeof routeDistanceMeters === 'number' && !isDistanceManuallyEdited;
 
         // Get the new distance unit from the rate's unit
         const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy});
@@ -929,7 +991,9 @@ function getUpdatedTransaction({
         // Skip conversion for odometer transactions — odometer readings are physical car readings and should be retained as-is.
         if (existingDistanceUnit && newDistanceUnit !== existingDistanceUnit && !isOdometerDistanceRequest(transaction)) {
             const conversionFactor = existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
-            const distance = roundToTwoDecimalPlaces((transaction?.comment?.customUnit?.quantity ?? 0) * conversionFactor);
+            const distance = roundToTwoDecimalPlaces(
+                shouldUseExactRouteDistance ? DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, newDistanceUnit) : (quantity ?? 0) * conversionFactor,
+            );
             lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
         }
 
@@ -952,7 +1016,10 @@ function getUpdatedTransaction({
                         const fallbackConversionFactor =
                             newDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
                         const currentQuantity = updatedTransaction?.comment?.customUnit?.quantity ?? 0;
-                        lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(currentQuantity * fallbackConversionFactor));
+                        const distance = shouldUseExactRouteDistance
+                            ? DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, rateFromAnyPolicy.unit)
+                            : currentQuantity * fallbackConversionFactor;
+                        lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(distance));
                     }
                 }
             }
@@ -1920,7 +1987,7 @@ function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): bool
 /**
  * Check if category is being analyzed (manual request creation or auto-categorization grace period)
  */
-function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>): boolean {
+function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>, report: OnyxEntry<Report>): boolean {
     if (!transaction) {
         return false;
     }
@@ -1941,7 +2008,7 @@ function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>): boolean {
     }
 
     // Invoice expense is not auto-categorized
-    if (isInvoiceReport(transaction.reportID)) {
+    if (isInvoiceReport(report)) {
         return false;
     }
 
@@ -2127,7 +2194,7 @@ function shouldShowBrokenConnectionViolation(report: OnyxEntry<Report>, policy: 
 }
 
 /**
- * Check if user should see broken connection violation warning based on selected transactions.
+ * Check if user should see broken connection violation warning based on selected transactions. RTER violations stop being actionable once the report is paid, so they are hidden on settled reports.
  */
 function shouldShowBrokenConnectionViolationForMultipleTransactions(
     transactions: Transaction[],
@@ -2154,7 +2221,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
                 return false;
             }
 
-            return shouldShowViolation(report, policy, violation.name, currentUserEmail, currentUserAccountID, true, transaction);
+            return shouldShowViolation(report, policy, violation.name, currentUserEmail, currentUserAccountID, false, transaction);
         });
     });
 
@@ -2255,7 +2322,11 @@ function shouldShowViolation(
         return isAttendeeTrackingEnabledForPolicy(policy);
     }
 
-    if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY && isCategoryBeingAnalyzed(transaction)) {
+    if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY && isCategoryBeingAnalyzed(transaction, iouReport)) {
+        return false;
+    }
+
+    if (violationName === CONST.VIOLATIONS.DUPLICATED_TRANSACTION && isIOUReport(iouReport)) {
         return false;
     }
 
@@ -2319,7 +2390,8 @@ function hasPendingUI(transaction: OnyxEntry<Transaction>, transactionViolations
 }
 
 /**
- * Check if the transaction has a defined route
+ * Check if the transaction has a defined route.
+ * Unlike getDistanceInMeters this ignores `routeDistanceMeters`: an earlier fetch's distance does not make the current route resolved.
  */
 function hasRoute(transaction: OnyxEntry<Transaction>, isDistanceRequestType?: boolean): boolean {
     return !!transaction?.routes?.route0?.geometry?.coordinates || (!!isDistanceRequestType && transaction?.comment?.customUnit?.quantity !== undefined);
@@ -2421,7 +2493,7 @@ function isDuplicate(
     policy: OnyxEntry<Policy>,
     transactionViolation: OnyxEntry<TransactionViolations>,
 ): boolean {
-    if (!transaction) {
+    if (!transaction || !shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.DUPLICATED_TRANSACTION, currentUserEmail, currentUserAccountID, true, transaction)) {
         return false;
     }
 
@@ -2531,6 +2603,7 @@ function hasViolation(
         (violation) =>
             violation.type === CONST.VIOLATION_TYPES.VIOLATION &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
+            (violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION || !isIOUReport(iouReport)) &&
             !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy),
     );
 }
@@ -2542,10 +2615,8 @@ function hasDuplicateTransactions(
     ownerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     allTransactionViolations: OnyxCollection<TransactionViolation[]>,
+    reportTransactions: Transaction[],
 ): boolean {
-    const transactionsByIouReportID = getReportTransactions(iouReport?.reportID);
-    const reportTransactions = transactionsByIouReportID;
-
     return (
         reportTransactions.length > 0 &&
         reportTransactions.some((transaction) =>
@@ -2647,6 +2718,29 @@ function isCustomUnitRateIDForP2P(transaction: OnyxInputOrEntry<Transaction>): b
 
 function hasReservationList(transaction: Transaction | undefined | null): boolean {
     return !!transaction?.receipt?.reservationList && transaction?.receipt?.reservationList.length > 0;
+}
+
+/**
+ * Returns the number of nights covered by a SmartScanned reservation receipt, or 0 when the
+ * transaction has no usable reservation range.
+ */
+function getReservationNights(transaction: OnyxEntry<Transaction>): number {
+    const startDate = transaction?.receipt?.hotelReservationStartDate;
+    const endDate = transaction?.receipt?.hotelReservationEndDate;
+    if (!startDate || !endDate) {
+        return 0;
+    }
+
+    // The dates are calendar days with no time component, so they are parsed as local dates and compared by calendar
+    // day. Anchoring them to UTC instead would let a DST shift within the stay swallow or invent a night.
+    const start = parseISO(startDate);
+    const end = parseISO(endDate);
+    if (!isValid(start) || !isValid(end)) {
+        return 0;
+    }
+
+    const nights = differenceInCalendarDays(end, start);
+    return nights > 0 ? nights : 0;
 }
 
 /**
@@ -3773,6 +3867,9 @@ export {
     getTagArrayFromName,
     getTagForDisplay,
     getTransactionViolations,
+    hasAllManuallyEnteredScanFields,
+    hasAnyManuallyEnteredScanField,
+    isPartiallyEnteredScanExpense,
     hasReceipt,
     hasUploadedReceipt,
     hasEReceipt,
@@ -3908,4 +4005,7 @@ export {
     isDeletedTransaction,
     getDistanceRequestType,
     isUnreportedManagedCardTransaction,
+    getReservationNights,
 };
+
+export type {ManuallyEnteredScanFields};

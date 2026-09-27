@@ -3,7 +3,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import variables from '@styles/variables';
+import {fontScale} from '@styles/typography';
 
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -31,7 +31,7 @@ function SAMLLoadingIndicator() {
                 <View style={[styles.mt2, styles.mh2, styles.textAlignCenter]}>
                     <Text
                         style={[styles.textAlignCenter]}
-                        fontSize={variables.fontSizeNormal}
+                        fontSize={fontScale.text}
                     >
                         {translate('samlSignIn.oneMoment')}
                     </Text>

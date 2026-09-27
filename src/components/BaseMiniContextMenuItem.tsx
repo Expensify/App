@@ -26,9 +26,6 @@ type BaseMiniContextMenuItemProps = WithSentryLabel & {
      */
     tooltipText: string;
 
-    /**
-     * Callback to fire on press
-     */
     onPress: () => void;
 
     /**
@@ -45,9 +42,6 @@ type BaseMiniContextMenuItemProps = WithSentryLabel & {
      */
     shouldPreventDefaultFocusOnPress?: boolean;
 
-    /**
-     * Reference to the outer element
-     */
     ref?: PressableRef;
 };
 

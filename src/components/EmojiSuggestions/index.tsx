@@ -8,7 +8,6 @@ import React from 'react';
 import EmojiSuggestionItem from './EmojiSuggestionItem';
 
 type EmojiSuggestionsProps = {
-    /** The index of the highlighted emoji */
     highlightedEmojiIndex?: number;
 
     /** Array of suggested emoji */
@@ -26,13 +25,11 @@ type EmojiSuggestionsProps = {
      * 2.5 items. When this value is true, the height can be up to 5 items.  */
     isEmojiPickerLarge: boolean;
 
-    /** Stores user's preferred skin tone */
     preferredSkinToneIndex: number;
 
     /** Measures the parent container's position and dimensions. Also add cursor coordinates */
     measureParentContainerAndReportCursor: (callback: MeasureParentContainerAndCursorCallback) => void;
 
-    /** Reset the emoji suggestions */
     resetSuggestions: () => void;
 };
 

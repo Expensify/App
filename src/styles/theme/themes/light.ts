@@ -48,7 +48,7 @@ const lightTheme = {
     receiptPlaceholderPlus: colors.productLight100,
 
     // Additional keys
-    overlay: colors.productLight400,
+    overlay: colors.productLight300,
     inverse: colors.productLight900,
     shadow: '0px 4px 12px 0px rgba(2,18,4,0.06)',
     componentBG: colors.productLight100,
@@ -87,6 +87,7 @@ const lightTheme = {
     imageCropBackgroundColor: colors.productLight700,
     fallbackIconColor: colors.green700,
     reactionActiveBackground: colors.green100,
+    selectedOptionBG: colors.green100,
     reactionActiveText: colors.green600,
     badgeDefaultBG: colors.productLight400,
     badgeSuccessBG: colors.green200,

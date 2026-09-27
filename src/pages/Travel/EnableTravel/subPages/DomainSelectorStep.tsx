@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
 import TravelDomainListItem from '@components/SelectionList/ListItem/TravelDomainListItem';
 import type {ListItem} from '@components/SelectionList/types';

@@ -19,16 +19,17 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {downloadMembersCSV} from '@libs/actions/Policy/Member';
 import {openPolicyWorkflowsPage} from '@libs/actions/Policy/Policy';
 import Tab from '@libs/actions/Tab';
-import {isAnyHRReadOnlyWorkflowMode} from '@libs/merge/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {canMemberRead, isGroupPolicy as isGroupPolicyUtil, isSubmitPolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
+import {isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ExpenseReportRulesSection from '@pages/workspace/rules/ExpenseReportRulesSection';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 
 import {getPaymentMethods} from '@userActions/PaymentMethods';
@@ -40,7 +41,7 @@ import type SCREENS from '@src/SCREENS';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import WorkflowsApprovalsTab from './tabs/WorkflowsApprovalsTab';
@@ -111,18 +112,29 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
     const persistedTab = WORKFLOWS_TABS_BY_KEY.get(lastSelectedTab ?? '') ?? WORKFLOWS_TAB.SUBMISSIONS;
     const requestedTab = routeTab ?? persistedTab;
 
+    const hasPersistedRouteTabRef = useRef(false);
+
     useEffect(() => {
         if (!routeTab) {
+            hasPersistedRouteTabRef.current = false;
             return;
         }
 
         // Persist the deep-linked tab first so reopening this page lands on it again.
         if (persistedTab !== routeTab) {
             Tab.setSelectedTab(CONST.TAB.WORKFLOWS_TAB_TYPE, routeTab);
+            hasPersistedRouteTabRef.current = true;
             return;
         }
 
         // Onyx now holds the tab, so drop the param — `goBack` compares params, and a leftover one stops child flows returning here with the plain route from popping.
+        // Only clear the param this mount handed over: on a repeat visit Onyx already matches, so clearing it straight from mount
+        // rewrites the route while the navigation is still in flight and drops us out of the split navigator.
+        if (!hasPersistedRouteTabRef.current) {
+            return;
+        }
+
+        hasPersistedRouteTabRef.current = false;
         Navigation.setParams({tab: undefined});
     }, [routeTab, persistedTab]);
 
@@ -233,7 +245,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
     // A Dynamic External Workflow with "Hide People Table Columns" keeps the approval workflows out of the customer's
     // hands entirely, so the importer that would edit them is blocked too.
     const shouldHideApprovalWorkflows = shouldHideDynamicExternalWorkflowPeople(policy);
-    const shouldBlockApprovalWorkflowEditing = isAnyHRReadOnlyWorkflowMode(policy) || shouldHideApprovalWorkflows;
+    const shouldBlockApprovalWorkflowEditing = isApprovalWorkflowLockedByIntegration(policy) || shouldHideApprovalWorkflows;
 
     const approvalSecondaryActions: Array<DropdownOption<ValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [];
     // Importing modifies the workflows, so only offer it when editing is allowed.
@@ -323,4 +335,4 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
     );
 }
 
-export default WorkspaceWorkflowsPageRevamp;
+export default withPolicy(WorkspaceWorkflowsPageRevamp);

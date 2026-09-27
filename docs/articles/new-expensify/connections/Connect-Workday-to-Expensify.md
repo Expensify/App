@@ -103,7 +103,7 @@ To refresh the sync manually:
 3. In the left menu, click **HR**.
 4. Click **Workday**.
 5. Select the three dots **(⋮)**, then click **Sync now**.
-6. Wait for the sync to complete. The sync results will display a summary of any changes.
+6. Stay on the page and wait for the sync to complete. The **Workday sync complete** screen then opens with the **Added**, **Removed**, and **Skipped** employee counts.
 
 Manual syncs are limited to two per day. If you've reached the limit, you'll see **You've reached your sync limit for the day**.
 
@@ -130,7 +130,7 @@ No. Workday syncs all employees to a single Expensify workspace. You must choose
 
 ## Why were some employees skipped during sync?
 
-Employees may be skipped if they do not have a work email address in Workday, or if they are not active employees. The sync results panel will provide specific reasons for each skipped employee.
+Employees may be skipped if they do not have a work email address in Workday, or if they are not active employees. On the **Workday sync complete** screen, click **Skipped** to see each skipped employee and the reason they were skipped.
 
 ## Will my employees receive a notification when synced?
 

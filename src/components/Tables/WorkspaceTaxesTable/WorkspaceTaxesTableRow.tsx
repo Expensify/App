@@ -20,7 +20,16 @@ import {View} from 'react-native';
 
 type WorkspaceTaxTableRowData = TableData & {
     name: string;
-    alternateText: string;
+
+    /** The rate's value, rendered in its own column on wide layouts and folded into the name's supporting text on narrow layouts */
+    taxRateValue: string;
+
+    /** The rate's tax code, empty when the workspace has no code for it */
+    taxCode: string;
+
+    /** The "Workspace currency default" / "Foreign currency default" indicator, empty when the rate is not a default */
+    defaultLabel: string;
+
     enabled: boolean;
     isLocked: boolean;
     isSwitchDisabled?: boolean;
@@ -36,14 +45,14 @@ type WorkspaceTaxesTableRowProps = {
     /** Data about the tax rate */
     item: WorkspaceTaxTableRowData;
 
-    /** The index of the row relative to all other rows */
     rowIndex: number;
-
-    /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
+
+    /** Whether the workspace has tax codes worth a column. Narrow and medium layouts hide it regardless. */
+    shouldShowTaxCodeColumn: boolean;
 };
 
-function WorkspaceTaxesTableRow({item, rowIndex, shouldUseNarrowTableLayout}: WorkspaceTaxesTableRowProps) {
+function WorkspaceTaxesTableRow({item, rowIndex, shouldUseNarrowTableLayout, shouldShowTaxCodeColumn}: WorkspaceTaxesTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -53,7 +62,24 @@ function WorkspaceTaxesTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
 
     const isDeleting = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const enabledStatusLabel = item.enabled ? translate('common.enabled') : translate('common.disabled');
-    const accessibilityLabel = [item.name, item.alternateText, enabledStatusLabel].filter(Boolean).join(', ');
+
+    // Narrow and medium layouts collapse the columns into a card that has nowhere to put the code, so the label must
+    // not announce a value the row never renders.
+    const shouldShowTaxCodeCell = !shouldUseNarrowTableLayout && shouldShowTaxCodeColumn;
+
+    // On wide layouts the rate value moves into its own column, so the name only carries the default indicator. On
+    // narrow layouts the columns collapse, so the rate value and default indicator share the name's supporting line.
+    const nameSupportingText = shouldUseNarrowTableLayout ? [item.taxRateValue, item.defaultLabel].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `) : item.defaultLabel;
+
+    const accessibilityLabel = [
+        item.name,
+        nameSupportingText,
+        !shouldUseNarrowTableLayout && item.taxRateValue ? `${translate('workspace.taxes.taxRate')}: ${item.taxRateValue}` : null,
+        shouldShowTaxCodeCell && item.taxCode ? `${translate('workspace.taxes.taxCode')}: ${item.taxCode}` : null,
+        enabledStatusLabel,
+    ]
+        .filter(Boolean)
+        .join(', ');
 
     return (
         <Table.Row
@@ -82,16 +108,44 @@ function WorkspaceTaxesTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
                                 text={item.name}
                                 style={styles.optionDisplayName}
                             />
-                            {!!item.alternateText && (
+                            {!!nameSupportingText && (
                                 <TextWithTooltip
                                     shouldShowTooltip
                                     numberOfLines={1}
-                                    text={item.alternateText}
+                                    text={nameSupportingText}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                                 />
                             )}
                         </View>
                     </View>
+
+                    {!shouldUseNarrowTableLayout && (
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                numberOfLines={1}
+                                text={item.taxRateValue}
+                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                            />
+                        </View>
+                    )}
+
+                    {shouldShowTaxCodeCell && (
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                numberOfLines={1}
+                                text={item.taxCode}
+                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                            />
+                        </View>
+                    )}
 
                     <View
                         style={[styles.justifyContentCenter, styles.alignItemsEnd]}

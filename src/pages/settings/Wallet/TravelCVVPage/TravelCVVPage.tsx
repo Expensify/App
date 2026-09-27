@@ -1,5 +1,6 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -129,14 +130,13 @@ function TravelCVVPage() {
         );
     } else if (!cvv && !isSignedInAsDelegate) {
         actionButton = (
-            <Button
+            <ButtonDisabledWhenOffline
                 onPress={handleRevealDetailsPress}
-                isDisabled={isOffline}
                 style={[styles.mt10, styles.alignSelfCenter]}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
             >
                 <Button.Text>{translate('cardPage.cardDetails.revealDetails')}</Button.Text>
-            </Button>
+            </ButtonDisabledWhenOffline>
         );
     }
 

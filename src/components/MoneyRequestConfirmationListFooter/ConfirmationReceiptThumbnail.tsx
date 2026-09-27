@@ -1,4 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import Badge from '@components/Badge';
 import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import ReceiptImage from '@components/ReceiptImage';
@@ -16,7 +17,7 @@ import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type ConfirmationReceiptThumbnailProps = {
@@ -65,6 +66,9 @@ type ConfirmationReceiptThumbnailProps = {
     /** Stable image source captured for non-flashing display (from useReceiptThumbnailSource) */
     effectiveReceiptSource: ReceiptSource;
 
+    /** Page count of the receipt, used to show a "Page 1 of N" badge on multi-page PDFs */
+    receiptPageCount: number;
+
     /** Whether the active transaction is an odometer-driven distance request */
     isOdometerDistanceRequest: boolean;
 
@@ -74,7 +78,6 @@ type ConfirmationReceiptThumbnailProps = {
     /** Compact-mode container style (undefined when not in compact mode) */
     compactReceiptContainerStyle: StyleProp<ViewStyle> | undefined;
 
-    /** Callback for PDF load errors */
     onPDFLoadError?: () => void;
 
     /** Callback when the PDF requests a password */
@@ -106,6 +109,7 @@ function ConfirmationReceiptThumbnail({
     receiptThumbnail,
     resolvedReceiptImage,
     effectiveReceiptSource,
+    receiptPageCount,
     isOdometerDistanceRequest,
     isDistanceRequest,
     compactReceiptContainerStyle,
@@ -117,10 +121,17 @@ function ConfirmationReceiptThumbnail({
 }: ConfirmationReceiptThumbnailProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [isReceiptLoaded, setIsReceiptLoaded] = useState(false);
+
+    // Stitching replaces the receipt, so drop the loaded flag or the badge sits on the spinner.
+    if (isLoadingReceipt && isReceiptLoaded) {
+        setIsReceiptLoaded(false);
+    }
 
     const receiptContainerStyle = isCompactMode && compactReceiptContainerStyle ? compactReceiptContainerStyle : styles.expenseViewImageSmall;
     const receiptThumbnailStyle = [styles.h100, styles.flex1];
     const isPDF = isLocalFile && Str.isPDF(receiptFilename);
+    const shouldShowReceiptPageCount = receiptPageCount > 1 && Str.isPDF(receiptFilename) && !isLoadingReceipt && isReceiptLoaded;
 
     const navigateToReceipt = () => {
         if (!transactionID) {
@@ -154,7 +165,10 @@ function ConfirmationReceiptThumbnail({
                             style={styles.h100}
                             onLoadError={onPDFLoadError}
                             onPassword={onPDFPassword}
-                            onLoadSuccess={onPDFLoadSuccess}
+                            onLoadSuccess={() => {
+                                setIsReceiptLoaded(true);
+                                onPDFLoadSuccess?.();
+                            }}
                         />
                     </PressableWithoutFocus>
                 ) : (
@@ -175,11 +189,20 @@ function ConfirmationReceiptThumbnail({
                             shouldUseThumbnailImage
                             shouldUseInitialObjectPosition={isDistanceRequest}
                             shouldUseFullHeight={isCompactMode}
-                            onLoad={onReceiptLoad}
+                            onLoad={(event) => {
+                                setIsReceiptLoaded(true);
+                                onReceiptLoad(event);
+                            }}
                             resizeMode={isOdometerDistanceRequest ? 'contain' : undefined}
                         />
                     </PressableWithoutFocus>
                 ))}
+            {shouldShowReceiptPageCount && (
+                <Badge
+                    text={translate('receipt.pageCount', {pageCount: receiptPageCount})}
+                    badgeStyles={[styles.receiptPageCountBadge, styles.pointerEventsNone]}
+                />
+            )}
         </View>
     );
 }

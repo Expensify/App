@@ -15,7 +15,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import {convertToDisplayString, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const CURRENT_USER_LOGIN = 'test@example.com';
@@ -99,6 +99,7 @@ function getAlternateText({
         translate: translateLocal,
         dateFnsLocale: undefined,
         convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
         localeCompare,
         isReportArchived,
         lastActionReport,
@@ -111,6 +112,7 @@ function getAlternateText({
         currentUserLogin: CURRENT_USER_LOGIN,
         isTrackIntentUser,
         formatPhoneNumber,
+        rules: undefined,
     });
     return result?.alternateText;
 }
@@ -176,6 +178,8 @@ const SIMPLE_CHAIN_ACTIONS: Array<ReportAction['actionName']> = [
     CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_APPROVER,
     CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_SUBMITS_TO,
     CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT,
     CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME,
     CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE,
     CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSER,
