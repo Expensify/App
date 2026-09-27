@@ -77,7 +77,7 @@ type CrossReportMergeToSourceReportFixtures = {
     mergeTransaction: MergeTransactionType;
     mergeTransactionID: string;
     sourceExpenseReport: Report;
-    sourceTransactionThread: Report;
+    sourceChatReport: Report;
     targetReport: Report;
     sourceIOUAction: ReportAction;
     sourceIOUActionID: string;
@@ -97,9 +97,12 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
         category: 'Original Category',
         reportID: 'target-report-456',
     };
+    const sourceChatReport = {...createRandomReport(5, undefined), reportID: 'source-chatreport-123'};
+
     const sourceExpenseReport = {
         ...createExpenseReport(1),
         reportID: 'source-report-123',
+        chatReportID: sourceChatReport.reportID,
     };
     const targetReport = {
         ...createExpenseReport(1),
@@ -167,20 +170,20 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
     await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
     await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}`, sourceExpenseReport);
+    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceChatReport.reportID}`, sourceChatReport);
     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceExpenseReport.reportID}`, {[sourceIOUAction.reportActionID]: sourceIOUAction});
     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceTransactionThread.reportID}`, sourceTransactionThread);
     await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, mergeTransaction);
     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`, targetReport);
     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReport.reportID}`, {[targetIOUAction.reportActionID]: targetIOUAction});
     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThread.reportID}`, targetTransactionThread);
-
     return {
         targetTransaction,
         sourceTransaction,
         mergeTransaction,
         mergeTransactionID,
         sourceExpenseReport,
-        sourceTransactionThread,
+        sourceChatReport,
         targetReport,
         sourceIOUAction,
         sourceIOUActionID,
@@ -192,8 +195,7 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
 }
 
 function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSourceReportFixtures) {
-    const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetReport, sourceIOUAction, sourceExpenseReport, sourceTransactionThread} =
-        fixtures;
+    const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetReport, sourceIOUAction, sourceExpenseReport, sourceChatReport} = fixtures;
 
     mergeTransactionRequest({
         isVendorMatchingBetaEnabled: false,
@@ -220,7 +222,7 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
         sourceTransactionThreadReportActions: undefined,
         sourceIOUAction,
         sourceActionIOUReport: sourceExpenseReport,
-        sourceActionChatReport: sourceTransactionThread,
+        sourceActionChatReport: sourceChatReport,
         getCurrencyDecimals: getCurrencyDecimalsLocal,
         getCurrencySymbol: getCurrencySymbolLocal,
         rules: undefined,
