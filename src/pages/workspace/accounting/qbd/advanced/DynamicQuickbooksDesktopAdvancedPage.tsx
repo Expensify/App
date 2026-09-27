@@ -1,5 +1,7 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -59,24 +61,18 @@ function DynamicQuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsPro
             onBackButtonPress={() => Navigation.goBack(backPath)}
         >
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC, CONST.QUICKBOOKS_CONFIG.ACCOUNTING_METHOD], qbdConfig?.pendingFields)}>
-                <MenuItemWithTopDescription
-                    title={qbdConfig?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled')}
-                    description={translate('workspace.accounting.autoSync')}
-                    shouldShowRightIcon
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_AUTO_SYNC.getRoute(policyID))}
-                    brickRoadIndicator={
-                        areSettingsInErrorFields([CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC, CONST.QUICKBOOKS_DESKTOP_CONFIG.ACCOUNTING_METHOD], qbdConfig?.errorFields)
-                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                            : undefined
-                    }
-                    hintText={(() => {
-                        if (!qbdConfig?.autoSync?.enabled) {
-                            return undefined;
-                        }
-                        return translate(`workspace.qbd.accountingMethods.alternateText.${accountingMethod}` as TranslationPaths);
-                    })()}
-                />
+                <MenuItemSectionRoot onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_AUTO_SYNC.getRoute(policyID))}>
+                    <MenuItemField.Row
+                        name={translate('workspace.accounting.autoSync')}
+                        value={qbdConfig?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled')}
+                    >
+                        {areSettingsInErrorFields([CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC, CONST.QUICKBOOKS_DESKTOP_CONFIG.ACCOUNTING_METHOD], qbdConfig?.errorFields) && (
+                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                        )}
+                        <MenuItem.Chevron />
+                    </MenuItemField.Row>
+                    {!!qbdConfig?.autoSync?.enabled && <MenuItem.HelpText message={translate(`workspace.qbd.accountingMethods.alternateText.${accountingMethod}` as TranslationPaths)} />}
+                </MenuItemSectionRoot>
             </OfflineWithFeedback>
             {qbdToggleSettingItems.map((item) => (
                 <ToggleSettingOptionRow

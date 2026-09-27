@@ -5,8 +5,8 @@
  * imports keep working), extended with the compound sub-components following the
  * composition-over-configuration pattern.
  *
- * The row's accessibility label is derived from the text leaves, announced top line first and followed by the
- * hints trailing leaves register.
+ * The row's accessibility label is derived from the text leaves, top line first, followed by the facts
+ * trailing leaves register. Gesture hints go to `accessibilityHint` instead, which native reads apart.
  *
  * @example Simple navigation row
  * ```tsx
@@ -39,8 +39,12 @@ import MenuItemFieldValue from './leaves/content/MenuItemFieldValue';
 import MenuItemLabel from './leaves/content/MenuItemLabel';
 import MenuItemTitle from './leaves/content/MenuItemTitle';
 import MenuItemIcon from './leaves/leading/MenuItemIcon';
+import MenuItemHelpText from './leaves/MenuItemHelpText';
+import MenuItemBrickRoadIndicator from './leaves/trailing/icons/MenuItemBrickRoadIndicator';
 import MenuItemChevron from './leaves/trailing/icons/MenuItemChevron';
 import MenuItemNewWindowIcon from './leaves/trailing/icons/MenuItemNewWindowIcon';
+import MenuItemCopy from './leaves/trailing/MenuItemCopy';
+import MenuItemExternalLink from './leaves/trailing/MenuItemExternalLink';
 import MenuItemRightLabel from './leaves/trailing/MenuItemRightLabel';
 import LegacyMenuItem from './MenuItem';
 
@@ -57,9 +61,13 @@ const MenuItem = Object.assign(LegacyMenuItem, {
     FieldName: MenuItemFieldName,
     FieldNamePlaceholder: MenuItemFieldNamePlaceholder,
     FieldValue: MenuItemFieldValue,
+    BrickRoadIndicator: MenuItemBrickRoadIndicator,
     Chevron: MenuItemChevron,
     NewWindowIcon: MenuItemNewWindowIcon,
     RightLabel: MenuItemRightLabel,
+    Copy: MenuItemCopy,
+    ExternalLink: MenuItemExternalLink,
+    HelpText: MenuItemHelpText,
 });
 
 export default MenuItem;

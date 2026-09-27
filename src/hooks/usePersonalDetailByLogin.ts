@@ -23,6 +23,17 @@ function haveSameDetails(first: PersonalDetailsByLogin, second: PersonalDetailsB
 }
 
 /**
+ * Returns a getter for the whole map of personal details keyed by login.
+ *
+ * Unlike the hooks below it does not subscribe to anything, so its consumers never re-render when personal
+ * details change. Because of that the getter may only be called from an event handler or another imperative
+ * context, never during render, where reading the store has to go through `useSyncExternalStore` to stay in sync.
+ */
+function useGetPersonalDetailsByLogin(): () => PersonalDetailsByLogin {
+    return useContext(PersonalDetailsByLoginContext).getSnapshot;
+}
+
+/**
  * Returns the personal details of a single login, or `undefined` when there are none for it.
  *
  * Pass a `selector` to narrow the personal details down to the part the consumer needs, so that it only
@@ -82,4 +93,4 @@ function usePersonalDetailsByLogins<TReturn>(logins: Array<string | undefined>, 
 }
 
 export default usePersonalDetailByLogin;
-export {usePersonalDetailsByLogins};
+export {useGetPersonalDetailsByLogin, usePersonalDetailsByLogins};

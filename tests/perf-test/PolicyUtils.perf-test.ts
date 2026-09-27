@@ -25,7 +25,7 @@ describe('PolicyUtils', () => {
                 () => createRandomPolicyEmployeeList(),
             );
 
-            await measureFunction(() => getMemberAccountIDsForWorkspace(policyEmployeeList));
+            await measureFunction(() => getMemberAccountIDsForWorkspace(policyEmployeeList, undefined));
         });
 
         test('500 policy members with errors and personal details', async () => {
@@ -37,7 +37,7 @@ describe('PolicyUtils', () => {
                 }),
             );
 
-            await measureFunction(() => getMemberAccountIDsForWorkspace(policyEmployeeList));
+            await measureFunction(() => getMemberAccountIDsForWorkspace(policyEmployeeList, undefined));
         });
     });
 

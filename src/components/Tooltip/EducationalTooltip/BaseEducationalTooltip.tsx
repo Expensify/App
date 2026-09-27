@@ -1,6 +1,7 @@
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type {EducationalTooltipProps, GenericTooltipState} from '@components/Tooltip/types';
 
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useIsResizing from '@hooks/useIsResizing';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 
@@ -8,7 +9,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {LayoutRectangle, NativeMethods, NativeSyntheticEvent} from 'react-native';
+import type {HostInstance, LayoutRectangle, NativeSyntheticEvent} from 'react-native';
 
 import {NavigationContext, useIsFocused} from '@react-navigation/native';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
@@ -33,7 +34,7 @@ function BaseEducationalTooltip({
 }: EducationalTooltipProps) {
     const shouldShowTooltip = shouldDisplayTooltip ?? shouldRender;
     const genericTooltipStateRef = useRef<GenericTooltipState | undefined>(undefined);
-    const tooltipElementRef = useRef<Readonly<NativeMethods> | undefined>(undefined);
+    const tooltipElementRef = useRef<Readonly<HostInstance> | undefined>(undefined);
 
     const [shouldMeasure, setShouldMeasure] = useState(false);
     const show = useRef<(() => void) | undefined>(undefined);
@@ -42,6 +43,7 @@ function BaseEducationalTooltip({
     const navigator = useContext(NavigationContext);
     const isFocused = useIsFocused();
     const insets = useSafeAreaInsets();
+    const {contentHeaderHeight} = useContentHeaderHeight();
 
     const isResizing = useIsResizing();
 
@@ -73,7 +75,7 @@ function BaseEducationalTooltip({
             // twice and read anything near the right edge as overflowing, hiding the tooltip in landscape.
             const right = left + elementWidth;
             // Calculate the available space at the top, considering the header height and offset
-            const availableHeightForTop = top - (variables.contentHeaderHeight - offset);
+            const availableHeightForTop = top - (contentHeaderHeight - offset);
 
             // Calculate the total height available after accounting for the bottom tab and offset
             const availableHeightForBottom = dimensions.height - (bottom + variables.bottomTabHeight - offset);
@@ -89,7 +91,7 @@ function BaseEducationalTooltip({
                 showTooltip();
             }
         });
-    }, [insets.top, insets.bottom, insets.left, shouldShowTooltip, shouldSuppressTooltip]);
+    }, [contentHeaderHeight, insets.top, insets.bottom, insets.left, shouldShowTooltip, shouldSuppressTooltip]);
 
     useEffect(() => {
         if (!genericTooltipStateRef.current || !shouldRender) {
