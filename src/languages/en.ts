@@ -7325,9 +7325,8 @@ const translations = {
                 none: 'None',
                 unknownWorkspace: 'Unknown workspace',
                 employeeDefault: (workspaceName: string) => `${workspaceName} (Employee default)`,
-                noneEmployeeDefault: 'None (Employee default)',
                 employeeDefaultOption: (workspaceName: string) => `Employee default (${workspaceName})`,
-                employeeDefaultOptionUnknown: 'Employee default',
+                employeeDefaultUnknown: 'Employee default',
                 submissionsDisabled: (workflowsSubmissionsLink: string) => `<a href="${workflowsSubmissionsLink}">Submissions</a> must be enabled to configure this setting.`,
                 domainGroupEnforced: (domainGroupSettingsLink: string) => `The preferred workspace is enforced via <a href="${domainGroupSettingsLink}">domain group settings</a>.`,
                 selectDescription: (submissionsHelpLink: string) =>
