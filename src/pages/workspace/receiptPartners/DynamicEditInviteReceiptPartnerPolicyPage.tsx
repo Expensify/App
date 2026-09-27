@@ -322,7 +322,7 @@ function DynamicEditInviteReceiptPartnerPolicyPage({route}: DynamicEditInviteRec
 
                                 // Determine header message for search results
                                 const searchValue = debouncedSearchTerm.trim().toLowerCase();
-                                let currentHeaderMessage = getHeaderMessage(members.length !== 0, false, searchValue, countryCode, false);
+                                let currentHeaderMessage = getHeaderMessage(translate, members.length !== 0, false, searchValue, countryCode, false);
 
                                 if (filteredMembers.length === 0 && searchValue) {
                                     currentHeaderMessage = translate('common.noResultsFound');

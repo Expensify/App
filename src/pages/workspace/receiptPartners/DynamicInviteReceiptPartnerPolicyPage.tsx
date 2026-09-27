@@ -153,7 +153,7 @@ function DynamicInviteReceiptPartnerPolicyPage({route}: DynamicInviteReceiptPart
     };
 
     const searchValue = debouncedSearchTerm.trim().toLowerCase();
-    const headerMessage = getHeaderMessage(allMembersWithState.length !== 0, false, searchValue, countryCode, false);
+    const headerMessage = getHeaderMessage(translate, allMembersWithState.length !== 0, false, searchValue, countryCode, false);
 
     const handleConfirm = () => {
         if (selectedOptions.length === 0) {

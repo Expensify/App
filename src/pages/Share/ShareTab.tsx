@@ -132,7 +132,7 @@ function ShareTab() {
         canShowSeveralIndicators: true,
     }));
 
-    const header = getHeaderMessage(styledRecentReports.length !== 0, false, textInputValue.trim(), countryCode, false);
+    const header = getHeaderMessage(translate, styledRecentReports.length !== 0, false, textInputValue.trim(), countryCode, false);
 
     const onSelectRow = (item: OptionData) => {
         let reportID = item?.reportID ?? CONST.DEFAULT_NUMBER_ID;
