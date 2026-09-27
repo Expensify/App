@@ -26,9 +26,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorPosition} from '@src/styles';
 
-import {useIsFocused} from '@react-navigation/native';
 import type {ComponentRef} from 'react';
 
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
