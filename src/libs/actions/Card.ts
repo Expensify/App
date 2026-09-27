@@ -855,8 +855,14 @@ function clearIssueNewCardError(policyID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {errors: null});
 }
 
-function buildCardListUpdates(workspaceAccountID: number, cardID: number, cardUpdateData: CardListUpdateData, shouldUpdateCardList: boolean): CardOnyxUpdate[] {
-    const workspaceKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}` as `${typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${string}`;
+function buildCardListUpdates(
+    workspaceAccountID: number,
+    cardID: number,
+    cardUpdateData: CardListUpdateData,
+    shouldUpdateCardList: boolean,
+    bank: CardFeedWithNumber = CONST.EXPENSIFY_CARD.BANK,
+): CardOnyxUpdate[] {
+    const workspaceKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bank}` as `${typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${string}`;
     const updates: CardOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
