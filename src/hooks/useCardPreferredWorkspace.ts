@@ -56,7 +56,31 @@ type UseCardPreferredWorkspaceResult = {
  * Cards without a custom preferred policy pin are marked as "Employee default" and follow this resolution chain:
  * Domain group > Card-level > Card feed > Individual default workspace.
  */
-function useCardPreferredWorkspace(card: Card | undefined): UseCardPreferredWorkspaceResult {}
+function useCardPreferredWorkspace(card: Card | undefined): UseCardPreferredWorkspaceResult {
+    const {translate} = useLocalize();
+    const personalDetails = usePersonalDetails();
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+
+    const cardholderEmail = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.login;
+    const cardPreferredPolicyID = card?.nameValuePairs?.preferredPolicy ?? undefined;
+
+    const employeeDefaultPolicy = card?.nameValuePairs?.employeeDefault ?? undefined;
+    const employeeDefaultPolicyID = employeeDefaultPolicy?.policyID ? employeeDefaultPolicy.policyID : undefined;
+    const employeeDefaultPolicyName = employeeDefaultPolicy?.name ? employeeDefaultPolicy.name : undefined;
+
+    if (employeeDefaultPolicy?.isEnforcedByDomainGroup) {
+        return {
+            state: CARD_PREFERRED_WORKSPACE_STATE.DOMAIN_GROUP_LOCK,
+            title: employeeDefaultPolicyName ?? translate('workspace.card.preferredWorkspace.unknownWorkspace'),
+            helperText: translate('workspace.card.preferredWorkspace.domainGroupEnforced', CONST.CARD_PREFERRED_WORKSPACE_HELP_URL),
+            isInteractive: false,
+            cardPreferredPolicyID,
+            employeeDefaultPolicyID,
+            employeeDefaultPolicyName,
+            cardholderEmail,
+        };
+    }
+}
 
 export default useCardPreferredWorkspace;
 export {CARD_PREFERRED_WORKSPACE_STATE};
