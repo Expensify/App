@@ -12,6 +12,7 @@
 - E/App issue: https://github.com/Expensify/App/issues/91883
 - PR introducing patch: https://github.com/Expensify/App/pull/91659
 
+// s77rt TODO verify if patch is needed, if not remove canvasProps prop
 ### [victory-native+41.21.0+002+canvas-props.patch](victory-native+41.21.0+002+canvas-props.patch)
 
 - Reason:
