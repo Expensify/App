@@ -130,6 +130,30 @@ function useCardPreferredWorkspace(card: Card | undefined): UseCardPreferredWork
                 cardholderEmail,
             };
         }
+
+        if (eligiblePolicyIDs.length > 0) {
+            return {
+                state: CARD_PREFERRED_WORKSPACE_STATE.SUBMISSIONS_DISABLED,
+                title: translate('workspace.card.preferredWorkspace.noneEmployeeDefault'),
+                helperText: translate('workspace.card.preferredWorkspace.submissionsDisabled', workspaceWorkflowsLink(employeeDefaultPolicyID)),
+                isInteractive: true,
+                cardPreferredPolicyID,
+                employeeDefaultPolicyID,
+                employeeDefaultPolicyName,
+                cardholderEmail,
+            };
+        }
+
+        return {
+            state: CARD_PREFERRED_WORKSPACE_STATE.SUBMISSIONS_DISABLED_LOCKED,
+            title: translate('workspace.card.preferredWorkspace.none'),
+            helperText: translate('workspace.card.preferredWorkspace.submissionsDisabled', workspaceWorkflowsLink(employeeDefaultPolicyID)),
+            isInteractive: false,
+            cardPreferredPolicyID,
+            employeeDefaultPolicyID,
+            employeeDefaultPolicyName,
+            cardholderEmail,
+        };
     }
 }
 
