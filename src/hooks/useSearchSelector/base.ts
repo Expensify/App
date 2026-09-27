@@ -525,7 +525,7 @@ function useSearchSelectorBase({
     };
 
     const selectedOptionsForDisplay = selectedOptions.filter((option) => {
-        const personalDetailSearchTerms = getPersonalDetailSearchTerms(option, currentUserAccountID);
+        const personalDetailSearchTerms = getPersonalDetailSearchTerms(option, currentUserAccountID, translate);
         return (
             !!option.text?.toLowerCase().includes(computedSearchTerm) ||
             !!option.login?.toLowerCase().includes(computedSearchTerm) ||
