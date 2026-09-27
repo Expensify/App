@@ -12,6 +12,7 @@ import usePolicy from '@hooks/usePolicy';
 
 import {importPolicyMembers, setImportedSpreadsheetMemberData} from '@libs/actions/Policy/Member';
 import Tab from '@libs/actions/Tab';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -27,6 +28,24 @@ import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useCallback, useState} from 'react';
+
+/**
+ * The spreadsheet holds the approval limit as a display amount (e.g. "200.00" or "$1,000"), but the backend stores it in cents,
+ * so it has to be converted the same way the manual approval limit page does.
+ * Blank cells are kept as an empty string, and cells that are not a valid amount are dropped so we never send NaN.
+ */
+function parseCsvApprovalLimit(raw: string | undefined): string | undefined {
+    const trimmed = (raw ?? '').trim();
+    if (!trimmed) {
+        return '';
+    }
+    const amountString = trimmed.replaceAll(',', '').replaceAll(/^[^\d.]+|[^\d.]+$/g, '');
+    const amount = Number(amountString);
+    if (!amountString || !Number.isFinite(amount) || amount < 0) {
+        return undefined;
+    }
+    return String(convertToBackendAmount(amount));
+}
 
 type ImportedMembersPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED | typeof SCREENS.WORKSPACE.WORKFLOWS_IMPORTED>;
 
@@ -195,7 +214,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             }
             const customField1 = membersCustomField1Column !== -1 ? (membersCustomField1?.[containsHeader ? index + 1 : index] ?? '') : undefined;
             const customField2 = membersCustomField2Column !== -1 ? (membersCustomField2?.[containsHeader ? index + 1 : index] ?? '') : undefined;
-            const approvalLimit = membersApprovalLimitColumn !== -1 ? (membersApprovalLimit?.[containsHeader ? index + 1 : index] ?? '') : undefined;
+            const approvalLimit = membersApprovalLimitColumn !== -1 ? parseCsvApprovalLimit(membersApprovalLimit?.[containsHeader ? index + 1 : index]) : undefined;
             const overLimitForwardsTo = membersOverLimitForwardsToColumn !== -1 ? (membersOverLimitForwardsTo?.[containsHeader ? index + 1 : index] ?? '') : undefined;
 
             return {
