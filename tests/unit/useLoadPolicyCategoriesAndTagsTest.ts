@@ -17,8 +17,8 @@ import Onyx from 'react-native-onyx';
 
 const POLICY_ID = 'A1B2C3';
 
-const mockGetPolicyCategories = jest.fn();
-const mockOpenPolicyTagsPage = jest.fn();
+const mockGetPolicyCategories = jest.fn<void, [string]>();
+const mockOpenPolicyTagsPage = jest.fn<void, [string]>();
 
 jest.mock('@libs/actions/Policy/Category', () => {
     const actual = jest.requireActual<typeof PolicyCategory>('@libs/actions/Policy/Category');
