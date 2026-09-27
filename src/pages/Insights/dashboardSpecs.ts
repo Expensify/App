@@ -2,7 +2,7 @@
 
 import type {ChartView, SearchGroupBy} from '@components/Search/types';
 
-import {isPolicyEligibleForTopSpenders} from '@libs/SearchUIUtils';
+import {isPolicyEligibleForTopCategories, isPolicyEligibleForTopSpenders} from '@libs/SearchUIUtils';
 
 import colors from '@styles/theme/colors';
 
@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {InsightsDashboardID, InsightsGraphKey, Policy} from '@src/types/onyx';
 
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 type InsightsChartSpec = {
@@ -80,10 +81,18 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
+                isPolicyEligible: isPolicyEligibleForTopCategories,
             },
         ],
     },
 };
 
+/** Returns the charts that at least one workspace in scope is eligible for. No selected workspaces means every workspace is in scope. */
+function getVisibleCharts(charts: InsightsChartSpec[], policies: OnyxCollection<Policy>, policyIDs: string[], login: string | undefined): InsightsChartSpec[] {
+    const policiesInScope = Object.values(policies ?? {}).filter((policy): policy is Policy => !!policy && (policyIDs.length === 0 || policyIDs.includes(policy.id)));
+    return charts.filter(({isPolicyEligible}) => !isPolicyEligible || policiesInScope.some((policy) => isPolicyEligible(policy, login)));
+}
+
+export {getVisibleCharts};
 export type {InsightsChartSpec};
 export default INSIGHTS_DASHBOARD_SPECS;
