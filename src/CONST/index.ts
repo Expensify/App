@@ -5539,6 +5539,9 @@ const CONST = {
 
         /** Employee default chain applies */
         EMPLOYEE_DEFAULT: '',
+
+        /** keyForList for the "Employee default" row in the picker */
+        EMPLOYEE_DEFAULT_OPTION_KEY: 'employeeDefault',
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
