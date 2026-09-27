@@ -28,7 +28,7 @@ import MonthPickerModal from './MonthPickerModal';
 import YearPickerModal from './YearPickerModal';
 
 type CalendarPickerProps = {
-    /** An initial value of date string */
+    /** The date the calendar opens on and marks as chosen. Empty for a field that holds no date yet */
     value?: Date | string;
 
     /** A minimum date (oldest) allowed to select */
@@ -99,7 +99,7 @@ function setYearKeepingDay(date: Date, year: number) {
 }
 
 function CalendarPicker({
-    value = new Date(),
+    value = '',
     minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
     maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
     onSelected,
