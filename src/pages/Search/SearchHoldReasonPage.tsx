@@ -86,6 +86,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                     const transactionViolations = selectedTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
                     putOnHold(
                         transactionID,
+                        selectedTransactions[transactionID].transaction,
                         comment,
                         transactionThreadReportID,
                         isOffline,

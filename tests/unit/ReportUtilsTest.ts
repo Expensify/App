@@ -5818,10 +5818,22 @@ describe('ReportUtils', () => {
                 canUnholdRequest: false,
             });
 
-            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID, false, currentUserEmail, currentUserAccountID, undefined, false, undefined, {
-                rules: undefined,
-                ancestors: [],
-            });
+            putOnHold(
+                expenseTransaction.transactionID,
+                expenseTransaction,
+                'hold',
+                transactionThreadReport.reportID,
+                false,
+                currentUserEmail,
+                currentUserAccountID,
+                undefined,
+                false,
+                undefined,
+                {
+                    rules: undefined,
+                    ancestors: [],
+                },
+            );
             await waitForBatchedUpdates();
 
             const expenseReportUpdated = await new Promise<OnyxEntry<Report>>((resolve) => {

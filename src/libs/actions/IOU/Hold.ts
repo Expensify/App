@@ -56,6 +56,7 @@ type PutOnHoldOptions = {
  */
 function putOnHold(
     transactionID: string,
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
     comment: string,
     initialReportID: string | undefined,
     isOffline: boolean,
@@ -66,7 +67,6 @@ function putOnHold(
     delegateAccountID: number | undefined,
     {rules, ancestors = []}: PutOnHoldOptions,
 ) {
-    const allTransactions = getAllTransactions();
     const allReports = getAllReports();
 
     const currentTime = DateUtils.getDBTime();
@@ -75,7 +75,6 @@ function putOnHold(
     const createdReportActionComment = buildOptimisticHoldReportActionComment(comment, delegateAccountID, DateUtils.addMillisecondsFromDateTime(currentTime, 1));
     const newViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true};
     const updatedViolations = [...(transactionViolations ?? []), newViolation];
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
     const iouAction = getIOUActionForReportID(transaction?.reportID, transactionID);
     let transactionThreadReport: OnyxTypes.Report;
