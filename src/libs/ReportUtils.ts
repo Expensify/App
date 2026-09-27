@@ -5741,10 +5741,10 @@ const changeMoneyRequestHoldStatus = (
 
     if (isOnHold) {
         if (reportAction.childReportID) {
-            unholdRequest(
+            unholdRequest({
                 transactionID,
-                iouTransaction,
-                reportAction.childReportID,
+                transaction: iouTransaction,
+                reportID: reportAction.childReportID,
                 policy,
                 isOffline,
                 currentUserLogin,
@@ -5753,7 +5753,7 @@ const changeMoneyRequestHoldStatus = (
                 isTrackIntentUser,
                 delegateAccountID,
                 rules,
-            );
+            });
         } else {
             Log.warn('Missing reportAction.childReportID during money request unhold');
         }

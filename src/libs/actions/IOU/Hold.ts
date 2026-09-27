@@ -376,19 +376,31 @@ function putTransactionsOnHold(
 /**
  * Remove expense from HOLD
  */
-function unholdRequest(
-    transactionID: string,
-    transaction: OnyxEntry<OnyxTypes.Transaction>,
-    reportID: string,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    isOffline: boolean,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
-    isTrackIntentUser: boolean | undefined,
-    delegateAccountID: number | undefined,
-    rules: OnyxCollection<OnyxTypes.Rule>,
-) {
+function unholdRequest({
+    transactionID,
+    transaction,
+    reportID,
+    policy,
+    isOffline,
+    currentUserLogin,
+    currentUserAccountID,
+    transactionViolations,
+    isTrackIntentUser,
+    delegateAccountID,
+    rules,
+}: {
+    transactionID: string;
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    reportID: string;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    isOffline: boolean;
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>;
+    isTrackIntentUser: boolean | undefined;
+    delegateAccountID: number | undefined;
+    rules: OnyxCollection<OnyxTypes.Rule>;
+}) {
     const allReports = getAllReports();
 
     const createdReportAction = buildOptimisticUnHoldReportAction(delegateAccountID);
