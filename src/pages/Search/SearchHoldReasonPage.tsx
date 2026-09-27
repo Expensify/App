@@ -9,6 +9,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useTransactionsByID from '@hooks/useTransactionsByID';
 
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {putOnHold, putTransactionsOnHold} from '@libs/actions/IOU/Hold';
@@ -47,6 +48,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
 
     const relevantTransactionIDs = useMemo(() => (isBulkHold ? selectedTransactionIDs : Object.keys(selectedTransactions)), [isBulkHold, selectedTransactionIDs, selectedTransactions]);
     const [selectedTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(relevantTransactionIDs)});
+    const [selectedTransactionsOnyx] = useTransactionsByID(selectedTransactionIDs);
     const {isOffline} = useNetwork();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
         selector: isTrackIntentUserSelector,
@@ -74,6 +76,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                     currentUserLogin ?? '',
                     currentUserAccountID,
                     selectedTransactionViolations,
+                    selectedTransactionsOnyx,
                     isTrackIntentUser,
                     delegateAccountID,
                     {rules, ancestors},
@@ -110,15 +113,16 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             selectedTransactionIDs,
             reportID,
             isOffline,
-            ancestors,
-            clearSelectedTransactions,
-            selectedTransactions,
             currentUserLogin,
             currentUserAccountID,
             selectedTransactionViolations,
+            selectedTransactionsOnyx,
             isTrackIntentUser,
             delegateAccountID,
             rules,
+            ancestors,
+            clearSelectedTransactions,
+            selectedTransactions,
         ],
     );
 

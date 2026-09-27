@@ -361,6 +361,7 @@ function putTransactionsOnHold(
     currentUserLogin: string,
     currentUserAccountID: number,
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
+    allTransactions: OnyxTypes.Transaction[],
     isTrackIntentUser: boolean | undefined,
     delegateAccountID: number | undefined,
     {rules, ancestors = []}: PutOnHoldOptions,
@@ -368,7 +369,11 @@ function putTransactionsOnHold(
     for (const transactionID of transactionsID) {
         const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-        putOnHold(transactionID, comment, childReportID, isOffline, currentUserLogin, currentUserAccountID, transactionViolations, isTrackIntentUser, delegateAccountID, {rules, ancestors});
+        const transaction = allTransactions?.find((t) => t.transactionID === transactionID);
+        putOnHold(transactionID, transaction, comment, childReportID, isOffline, currentUserLogin, currentUserAccountID, transactionViolations, isTrackIntentUser, delegateAccountID, {
+            rules,
+            ancestors,
+        });
     }
 }
 
