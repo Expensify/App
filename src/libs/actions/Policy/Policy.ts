@@ -2483,12 +2483,12 @@ function clearDuplicateWorkspace() {
     Onyx.set(ONYXKEYS.DUPLICATE_WORKSPACE, {});
 }
 
-function getDisplayNameForWorkspace(email: string, userDisplayName: string | undefined) {
+function getDisplayNameForWorkspace(email: string, userDisplayName: string | undefined, localeTranslate: LocalizedTranslate) {
     const emailParts = email.split('@');
     const domain = emailParts.at(1) ?? '';
     const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
     if (isSMSDomain) {
-        return translateLocal('workspace.new.myGroupWorkspace', {});
+        return localeTranslate('workspace.new.myGroupWorkspace', {});
     }
 
     if (!PUBLIC_DOMAINS_SET.has(domain.toLowerCase())) {
@@ -2519,7 +2519,7 @@ function generateDefaultWorkspaceName(email: string, displayName: string | undef
         return localeTranslate('workspace.new.myGroupWorkspace', {workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
     }
 
-    const displayNameForWorkspace = getDisplayNameForWorkspace(email, displayName);
+    const displayNameForWorkspace = getDisplayNameForWorkspace(email, displayName, localeTranslate);
 
     return localeTranslate('workspace.new.workspaceName', displayNameForWorkspace, lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined);
 }
