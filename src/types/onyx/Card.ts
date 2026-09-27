@@ -192,6 +192,12 @@ type Card = OnyxValueWithOfflineFeedback<{
         possibleFraud?: PossibleFraudData;
 
         /**
+         * Where this card would route if card's `preferredPolicy` were unset.
+         * It describes the fallback, not the effective destination.
+         */
+        employeeDefault?: CardEmployeeDefaultWorkspace | null;
+
+        /**
          * Set while a digital wallet addition the cardholder verified over the phone is waiting for them to confirm or
          * deny it. Undefined once there is nothing to confirm.
          */
