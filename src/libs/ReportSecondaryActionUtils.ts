@@ -17,9 +17,10 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
-import {canAdminPayReport, wasPaidWithPolicyBankAccount} from './PolicyPaymentUtils';
+import {wasPaidWithPolicyBankAccount} from './PolicyPaymentUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
+    canAdminPayReport,
     canMemberWrite,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,

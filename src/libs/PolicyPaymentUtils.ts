@@ -1,26 +1,8 @@
-import CONST from '@src/CONST';
-import type {BankAccount, BankAccountList, OnyxInputOrEntry, Policy} from '@src/types/onyx';
+import type {BankAccount, BankAccountList, Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {getKnownAccountIDByLogin} from './PersonalDetailsUtils';
-import {canMemberWrite, isGroupPolicy} from './PolicyUtils';
-
-/**
- * Whether an admin/payments admin who isn't the designated workspace payer can still pay reports on the policy.
- * Unlike `isPolicyPayer`/`isPayer`, this must not drive active prompting (badges, GBRs, next steps, pay to-dos).
- * Those stay payer-only.
- */
-function canAdminPayReport(policy: OnyxInputOrEntry<Policy>, currentUserLogin: string): boolean {
-    if (!isGroupPolicy(policy)) {
-        return false;
-    }
-
-    const isReimbursementConfigured =
-        policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
-
-    return isReimbursementConfigured && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
-}
 
 /**
  * The policy fields that identify the workspace bank account and who pays from it. Components that only attribute a
@@ -71,6 +53,6 @@ function wasPaidWithPolicyBankAccount(policy: OnyxEntry<PolicyPaymentAttribution
     return !!payerAccountID && reimburserAccountID === payerAccountID;
 }
 
-export {canAdminPayReport, canAccessPolicyBankAccount, getAccessiblePolicyBankAccount, wasPaidWithPolicyBankAccount};
+export {canAccessPolicyBankAccount, getAccessiblePolicyBankAccount, wasPaidWithPolicyBankAccount};
 
 export type {PolicyPaymentAttribution};
