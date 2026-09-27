@@ -702,12 +702,13 @@ function setEmployeeWorkArrangement(
     const created = DateUtils.getDBTime();
     const employeeListOptimisticUpdate: Record<string, Pick<PolicyEmployee, 'hasOfficeWorkArrangement' | 'pendingAction'>> = {};
     const employeeListSuccessUpdate: Record<string, Pick<PolicyEmployee, 'pendingAction'>> = {};
-    const employeeListFailureUpdate: Record<string, PolicyEmployee> = {};
+    const employeeListFailureUpdate: Record<string, NullishDeep<PolicyEmployee>> = {};
     for (const update of updates) {
         employeeListOptimisticUpdate[update.email] = {hasOfficeWorkArrangement: isOffice, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
         employeeListSuccessUpdate[update.email] = {pendingAction: null};
         employeeListFailureUpdate[update.email] = {
             ...(policy?.employeeList?.[update.email] ?? {}),
+            hasOfficeWorkArrangement: update.previousHasOfficeWorkArrangement ?? null,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
         };

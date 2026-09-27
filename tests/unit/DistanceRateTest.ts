@@ -553,6 +553,7 @@ describe('DistanceRate', () => {
                     employeeList: {
                         [member1Email]: {
                             email: member1Email,
+                            hasOfficeWorkArrangement: null,
                             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
                     },
@@ -563,6 +564,26 @@ describe('DistanceRate', () => {
             const failureMember =
                 typeof failureEmployeeList === 'object' && failureEmployeeList !== null && member1Email in failureEmployeeList ? failureEmployeeList[member1Email] : undefined;
             expect(typeof failureMember === 'object' && failureMember !== null && 'errors' in failureMember && failureMember.errors).toBeTruthy();
+
+            const failureArrangementPatch =
+                typeof failureMember === 'object' && failureMember !== null && 'hasOfficeWorkArrangement' in failureMember ? failureMember.hasOfficeWorkArrangement : undefined;
+            expect(failureArrangementPatch).toBeNull();
+            if (failureArrangementPatch !== null) {
+                throw new Error('Expected the failure update to clear the unset work arrangement');
+            }
+
+            // Given Onyx contains the optimistic value,
+            // When applying the failure patch's explicit null,
+            // Then the member-level override is removed so the workspace default applies again.
+            const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policy.id}` as const;
+            await Onyx.merge(policyKey, {employeeList: {[member1Email]: {hasOfficeWorkArrangement: true}}});
+            await waitForBatchedUpdates();
+            expect((await getPolicyFromOnyx(policy.id)).employeeList?.[member1Email]?.hasOfficeWorkArrangement).toBe(true);
+
+            await Onyx.merge(policyKey, {employeeList: {[member1Email]: {hasOfficeWorkArrangement: failureArrangementPatch}}});
+            await waitForBatchedUpdates();
+            expect((await getPolicyFromOnyx(policy.id)).employeeList?.[member1Email]?.hasOfficeWorkArrangement).toBeUndefined();
+
             expect(onyxData?.failureData?.[1]).toMatchObject({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`,
