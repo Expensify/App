@@ -5531,6 +5531,13 @@ const CONST = {
             NVP_CAMPFIRE_EXPORT_ACCOUNT_POLICY_ID: 'campfire_export_account_policy_id',
         },
     },
+    CARD_PREFERRED_POLICY: {
+        /** No auto-reporting for this card */
+        NONE: '0',
+
+        /** Employee default chain applies */
+        EMPLOYEE_DEFAULT: '',
+    },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
         LARGE_SCREEN: 8,
