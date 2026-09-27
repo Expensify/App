@@ -2689,6 +2689,9 @@ const translations: TranslationDeepObject<typeof en> = {
         setDefaultSuccess: 'Standaardbetaalmethode ingesteld!',
         deleteAccount: 'Account verwijderen',
         deleteConfirmation: 'Weet je zeker dat je deze account wilt verwijderen?',
+        editNickname: 'Bijnaam bewerken',
+        nickname: 'Bijnaam',
+        editNicknameInstruction: 'Geef de bankrekening een bijnaam die hem onderscheidt van andere.',
         deleteCard: 'Kaart verwijderen',
         deleteCardConfirmation:
             'Alle niet-ingediende kaarttransacties, inclusief die op open rapporten, worden verwijderd. Weet je zeker dat je deze kaart wilt verwijderen? Je kunt deze actie niet ongedaan maken.',

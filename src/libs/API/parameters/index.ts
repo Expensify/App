@@ -100,6 +100,7 @@ export type {default as UpdateXeroAccountingMethodParams} from './UpdateXeroAcco
 export type {default as UpdateSageIntacctAccountingMethodParams} from './UpdateSageIntacctAccountingMethodParams';
 export type {default as UpdateQuickbooksDesktopAccountingMethodParams} from './UpdateQuickbooksDesktopAccountingMethodParams';
 export type {default as ShareBankAccountParams} from './ShareBankAccountParams';
+export type {default as UpdateBankAccountParams} from './UpdateBankAccountParams';
 export type {default as RemovePolicyReceiptPartnersConnectionParams} from './RemovePolicyReceiptPartnersConnectionParams';
 export type {default as SyncPolicyToQuickbooksDesktopParams} from './SyncPolicyToQuickbooksDesktopParams';
 export type {default as DeleteContactMethodParams} from './DeleteContactMethodParams';

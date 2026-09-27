@@ -2687,6 +2687,9 @@ const translations: TranslationDeepObject<typeof en> = {
         setDefaultSuccess: 'Metodo di pagamento predefinito impostato!',
         deleteAccount: 'Elimina account',
         deleteConfirmation: 'Sei sicuro di voler eliminare questo account?',
+        editNickname: 'Modifica soprannome',
+        nickname: 'Soprannome',
+        editNicknameInstruction: 'Assegna al conto bancario un soprannome che lo distingua dagli altri.',
         deleteCard: 'Elimina carta',
         deleteCardConfirmation:
             'Tutte le transazioni con carta non inviate, incluse quelle nei report aperti, verranno rimosse. Sei sicuro di voler eliminare questa carta? Non puoi annullare questa azione.',
