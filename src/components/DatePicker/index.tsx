@@ -1,3 +1,4 @@
+import FormContext from '@components/Form/FormContext';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
@@ -12,7 +13,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {isNumeric} from '@libs/ValidationUtils';
+import {getDateRangeError, isNumeric} from '@libs/ValidationUtils';
 
 import {setDraftValues} from '@userActions/FormActions';
 
@@ -23,7 +24,7 @@ import type {TextInputKeyPressEvent} from 'react-native';
 
 import {format, setYear} from 'date-fns';
 import debounce from 'lodash/debounce';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 
 import type {DateInputWithPickerProps} from './types';
@@ -60,6 +61,7 @@ function DatePicker({
     const styles = useThemeStyles();
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
+    const {setInputValidationError} = useContext(FormContext);
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const announcementMessage = label ? `${label}, ${translate('common.calendarOpened')}` : translate('common.calendarOpened');
@@ -77,9 +79,17 @@ function DatePicker({
     const shouldAllowTyping = !canUseTouchScreen();
     const dateMask = translate('common.dateFormat');
 
+    // A date the calendar could never have offered is one nothing downstream expects, and typing is what makes those
+    // reachable. Returns an empty string when the date is fine, which is how the form reads "no error".
+    const getRangeError = (date: string) => (date ? getDateRangeError(translate, date, minDate, maxDate) : '');
+
     // Updates the field without ending the selection, so the calendar stays open for whatever the user does next
     const commitDate = (newDate: string) => {
         setSelectedDate(newDate);
+
+        // The form validates from inside onInputChange, which runs before this render's effects, so the error has to
+        // be recorded here as well for it to clear in the same keystroke that fixes the date.
+        setInputValidationError(inputID, getRangeError(newDate));
 
         // A date being typed reads as empty until it is finished. Marking the field touched then would show a
         // required error over a date the user is part way through.
@@ -244,13 +254,21 @@ function DatePicker({
 
     // Digits that do not add up to a date read as no date at all, so a form with no rule about this field would accept
     // the entry in silence.
-    const invalidEntryError = segmentInput.hasInvalidEntry ? translate('common.error.dateInvalid') : undefined;
+    const ownError = segmentInput.hasInvalidEntry ? translate('common.error.dateInvalid') : getRangeError(selectedDate);
     // Nullish coalescing would keep an empty errorText, which is a form reporting no error rather than an empty one
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const dateErrorText = errorText || invalidEntryError;
+    const dateErrorText = errorText || ownError;
+
+    useEffect(() => {
+        setInputValidationError(inputID, ownError);
+
+        // A field that is gone has nothing left to report, so its error must not outlive it and block the form
+        return () => setInputValidationError(inputID, '');
+    }, [inputID, ownError, setInputValidationError]);
 
     const handleClear = () => {
         onTouched?.();
+        setInputValidationError(inputID, '');
         onInputChange?.('');
         setSelectedDate('');
         segmentInput.onClear();
