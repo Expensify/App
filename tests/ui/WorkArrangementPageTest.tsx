@@ -10,6 +10,7 @@ import WorkArrangementPage from '@pages/workspace/members/WorkArrangementPage';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {PersonalDetailsList, Policy} from '@src/types/onyx';
 
 import type React from 'react';
 import type {PropsWithChildren} from 'react';
@@ -41,6 +42,8 @@ type MockSelectionListProps = {
     onSelectRow?: (item: MockWorkArrangementOption) => void;
 };
 
+type WorkArrangementPageTestProps = React.ComponentProps<typeof WorkArrangementPage> & {policy: Policy; personalDetails: PersonalDetailsList};
+
 describe('WorkArrangementPage', () => {
     const policyID = 'policy123';
     const accountID = 12345;
@@ -61,12 +64,15 @@ describe('WorkArrangementPage', () => {
     });
 
     const renderPage = () => {
-        const props = createMock<React.ComponentProps<typeof WorkArrangementPage>>({
-            policy,
+        const props = createMock<WorkArrangementPageTestProps>({
+            policy: createMock<Policy>(policy),
             personalDetails,
             route: {params: {policyID, accountID: String(accountID)}},
         });
-        return render(<WorkArrangementPage {...props} />);
+        // The HOC mock exposes the wrapped screen directly, which accepts the policy prop that the production HOC normally injects.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the test HOC mock returns the unwrapped component with its injected policy props restored
+        const UnwrappedWorkArrangementPage = WorkArrangementPage as React.ComponentType<WorkArrangementPageTestProps>;
+        return render(<UnwrappedWorkArrangementPage {...props} />);
     };
 
     it('does nothing when the selected arrangement is already active', () => {

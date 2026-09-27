@@ -9411,9 +9411,9 @@ ${reportName}`,
                 : `cambió el flujo de aprobación para ${member} para dejar de reenviar informes por encima de ${previousLimit}`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `cambió el flujo de aprobación para ${member} para reenviar los informes superiores a ${limit} (previamente ${previousLimit})`,
-        updatedMemberWorkArrangement: (displayName: string, newArrangement: string, oldArrangement: string) =>
+        updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
             `cambió el acuerdo de trabajo de ${displayName} a ${newArrangement} (previamente ${oldArrangement})`,
-        updatedDefaultWorkArrangement: (newArrangement: string, oldArrangement: string) =>
+        updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `cambió la modalidad de trabajo predeterminada a ${newArrangement} (previamente ${oldArrangement})`,
     },
     roomMembersPage: {

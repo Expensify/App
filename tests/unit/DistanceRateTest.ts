@@ -24,7 +24,11 @@ const translate: LocalizedTranslate = (phrase, ...parameters) => {
         return 'Remote or mobile';
     }
     if (phrase === 'workspaceActions.updatedMemberWorkArrangement') {
-        return `changed ${String(parameters[0])}'s work arrangement to ${String(parameters[1])} (previously ${String(parameters[2])})`;
+        const arrangement = parameters[0];
+        if (typeof arrangement === 'object' && arrangement !== null && 'displayName' in arrangement && 'newArrangement' in arrangement && 'oldArrangement' in arrangement) {
+            return `changed ${String(arrangement.displayName)}'s work arrangement to ${String(arrangement.newArrangement)} (previously ${String(arrangement.oldArrangement)})`;
+        }
+        return String(phrase);
     }
     return String(phrase);
 };
@@ -472,12 +476,11 @@ describe('DistanceRate', () => {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 message: [
                     {
-                        text: translate(
-                            'workspaceActions.updatedMemberWorkArrangement',
-                            'Member One',
-                            translate('workspace.people.officeBased'),
-                            translate('workspace.people.noRegularWorkspace'),
-                        ),
+                        text: translate('workspaceActions.updatedMemberWorkArrangement', {
+                            displayName: 'Member One',
+                            newArrangement: translate('workspace.people.officeBased'),
+                            oldArrangement: translate('workspace.people.noRegularWorkspace'),
+                        }),
                     },
                 ],
                 originalMessage: {accountID: member1AccountID, email: member1Email, name: 'Member One', newValue: true, oldValue: false},

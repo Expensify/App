@@ -9478,9 +9478,10 @@ const translations = {
                 `changed fixed distance exclusion to ${formattedNewDistance} per claim (previously ${formattedOldDistance})`,
             disabled: 'disabled exclude commutes for distance rates',
         },
-        updatedMemberWorkArrangement: (displayName: string, newArrangement: string, oldArrangement: string) =>
+        updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
             `changed ${displayName}'s work arrangement to ${newArrangement} (previously ${oldArrangement})`,
-        updatedDefaultWorkArrangement: (newArrangement: string, oldArrangement: string) => `changed the default work arrangement to ${newArrangement} (previously ${oldArrangement})`,
+        updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
+            `changed the default work arrangement to ${newArrangement} (previously ${oldArrangement})`,
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `changed reimbursement method to "${newReimbursementChoice}" (previously "${oldReimbursementChoice}")`,
 

@@ -9582,9 +9582,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 : `hat den Genehmigungs-Workflow für ${member} so geändert, dass Berichte über ${previousLimit} nicht mehr weitergeleitet werden`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `hat den Genehmigungsworkflow für ${member} geändert, um Berichte über ${limit} weiterzuleiten (zuvor ${previousLimit})`,
-        updatedMemberWorkArrangement: (displayName: string, newArrangement: string, oldArrangement: string) =>
+        updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
             `hat die Arbeitsregelung von ${displayName} auf ${newArrangement} geändert (zuvor ${oldArrangement})`,
-        updatedDefaultWorkArrangement: (newArrangement: string, oldArrangement: string) => `hat die standardmäßige Arbeitsregelung in ${newArrangement} geändert (zuvor ${oldArrangement})`,
+        updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
+            `hat die standardmäßige Arbeitsregelung in ${newArrangement} geändert (zuvor ${oldArrangement})`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',

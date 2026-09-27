@@ -744,7 +744,7 @@ function setEmployeeWorkArrangement(
         const failureReportActions: Record<string, null> = {};
         for (const update of updates) {
             const previousLabel = getWorkArrangementLabel(translate, update.previousHasOfficeWorkArrangement ?? false);
-            const text = translate('workspaceActions.updatedMemberWorkArrangement', update.name, newLabel, previousLabel);
+            const text = translate('workspaceActions.updatedMemberWorkArrangement', {displayName: update.name, newArrangement: newLabel, oldArrangement: previousLabel});
             optimisticReportActions[update.optimisticReportActionID] = {
                 reportActionID: update.optimisticReportActionID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT,

@@ -9516,9 +9516,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 : `zmienił(a) proces akceptacji dla ${member}, żeby przestać przekazywać raporty powyżej ${previousLimit}`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `zmienił obieg akceptacji dla ${member}, aby przekazywać raporty powyżej ${limit} (wcześniej ${previousLimit})`,
-        updatedMemberWorkArrangement: (displayName: string, newArrangement: string, oldArrangement: string) =>
+        updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
             `zmienił(a) tryb pracy użytkownika ${displayName} na ${newArrangement} (wcześniej ${oldArrangement})`,
-        updatedDefaultWorkArrangement: (newArrangement: string, oldArrangement: string) => `zmienił domyślny tryb pracy na ${newArrangement} (wcześniej ${oldArrangement})`,
+        updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
+            `zmienił domyślny tryb pracy na ${newArrangement} (wcześniej ${oldArrangement})`,
     },
     roomMembersPage: {
         memberNotFound: 'Nie znaleziono członka.',

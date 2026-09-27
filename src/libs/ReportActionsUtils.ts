@@ -4576,7 +4576,7 @@ function getUpdatedCommuterExclusionsMessage(translate: LocalizedTranslate, repo
     return getReportActionText(reportAction);
 }
 
-function getUpdatedMemberWorkArrangementMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
+function getUpdatedMemberWorkArrangementMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
     if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT)) {
         return getReportActionText(reportAction);
     }
@@ -4592,9 +4592,9 @@ function getUpdatedMemberWorkArrangementMessage(translate: LocalizedTranslate, r
     // Change logs without a named member describe the workspace default arrangement.
     const displayName = name ?? (email ? formatPhoneNumber(email) : '');
     if (!displayName) {
-        return translate('workspaceActions.updatedDefaultWorkArrangement', newArrangement, oldArrangement);
+        return translate('workspaceActions.updatedDefaultWorkArrangement', {newArrangement, oldArrangement});
     }
-    return translate('workspaceActions.updatedMemberWorkArrangement', displayName, newArrangement, oldArrangement);
+    return translate('workspaceActions.updatedMemberWorkArrangement', {displayName, newArrangement, oldArrangement});
 }
 
 function getUpdatedProhibitedExpensesMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {

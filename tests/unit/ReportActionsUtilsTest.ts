@@ -4525,12 +4525,11 @@ describe('ReportActionsUtils', () => {
             const action = buildAction({name: 'Member One', newValue: true, oldValue: false});
 
             expect(getUpdatedMemberWorkArrangementMessage(translateLocal, action)).toBe(
-                translateLocal(
-                    'workspaceActions.updatedMemberWorkArrangement',
-                    'Member One',
-                    translateLocal('workspace.people.officeBased'),
-                    translateLocal('workspace.people.noRegularWorkspace'),
-                ),
+                translateLocal('workspaceActions.updatedMemberWorkArrangement', {
+                    displayName: 'Member One',
+                    newArrangement: translateLocal('workspace.people.officeBased'),
+                    oldArrangement: translateLocal('workspace.people.noRegularWorkspace'),
+                }),
             );
         });
 
@@ -4539,12 +4538,11 @@ describe('ReportActionsUtils', () => {
             const action = buildAction({email, newValue: true, oldValue: false});
 
             expect(getUpdatedMemberWorkArrangementMessage(translateLocal, action)).toBe(
-                translateLocal(
-                    'workspaceActions.updatedMemberWorkArrangement',
-                    formatPhoneNumber(email),
-                    translateLocal('workspace.people.officeBased'),
-                    translateLocal('workspace.people.noRegularWorkspace'),
-                ),
+                translateLocal('workspaceActions.updatedMemberWorkArrangement', {
+                    displayName: formatPhoneNumber(email),
+                    newArrangement: translateLocal('workspace.people.officeBased'),
+                    oldArrangement: translateLocal('workspace.people.noRegularWorkspace'),
+                }),
             );
         });
 
@@ -4552,7 +4550,10 @@ describe('ReportActionsUtils', () => {
             const action = buildAction({name: '', newValue: true, oldValue: false});
 
             expect(getUpdatedMemberWorkArrangementMessage(translateLocal, action)).toBe(
-                translateLocal('workspaceActions.updatedDefaultWorkArrangement', translateLocal('workspace.people.officeBased'), translateLocal('workspace.people.noRegularWorkspace')),
+                translateLocal('workspaceActions.updatedDefaultWorkArrangement', {
+                    newArrangement: translateLocal('workspace.people.officeBased'),
+                    oldArrangement: translateLocal('workspace.people.noRegularWorkspace'),
+                }),
             );
         });
     });

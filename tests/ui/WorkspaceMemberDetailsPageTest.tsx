@@ -150,7 +150,7 @@ describe('WorkspaceMemberDetailsPage', () => {
         const typedPolicy = createMock<Policy>(policy);
         const employeeList = {
             ...typedPolicy.employeeList,
-            [invitedEmail]: {...typedPolicy.employeeList[invitedEmail], ...(memberArrangement !== undefined ? {hasOfficeWorkArrangement: memberArrangement} : {})},
+            [invitedEmail]: {...typedPolicy.employeeList?.[invitedEmail], ...(memberArrangement !== undefined ? {hasOfficeWorkArrangement: memberArrangement} : {})},
         };
         const workArrangementPolicy = createMock<Policy>({...typedPolicy, commuterExclusions: {method, isOfficeWorkArrangement}, employeeList});
         await act(async () => {

@@ -9147,9 +9147,10 @@ ${reportName}`,
                 : `已更改 ${member} 的审批流程，停止转发超过 ${previousLimit} 的报销报告`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `已将 ${member} 的审批流程更改为：转交超过 ${limit} 的报销单（之前为 ${previousLimit}）`,
-        updatedMemberWorkArrangement: (displayName: string, newArrangement: string, oldArrangement: string) =>
+        updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
             `已将 ${displayName} 的工作安排更改为 ${newArrangement}（之前为 ${oldArrangement}）`,
-        updatedDefaultWorkArrangement: (newArrangement: string, oldArrangement: string) => `已将默认工作安排更改为 ${newArrangement}（之前为 ${oldArrangement}）`,
+        updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
+            `已将默认工作安排更改为 ${newArrangement}（之前为 ${oldArrangement}）`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
