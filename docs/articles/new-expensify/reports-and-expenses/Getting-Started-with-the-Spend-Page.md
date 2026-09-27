@@ -2,6 +2,7 @@
 title: Getting Started with the Spend Page
 description: Learn how to use the Spend page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
 keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total, sort by amount, Amount column, sort amount column, negative amount, credit, refund, negative expense sorting, selected total, total spend negative, Tag filter, filter by tag, search tags, tag list, missing tags in filter, No tag, tags not showing in filter, tag filter offline]
+internalScope: Audience is all members using the Spend page. Covers viewing, filtering, and exporting expenses and reports. Does not cover creating or managing tags.
 ---
 
 The Spend page in New Expensify gives you a full list of your reports and related expenses. From the Spend page you can explore, filter, and export your expense data.
@@ -206,11 +207,11 @@ If you select a **Workspace** filter first, the **Tag** filter only lists tags f
 
 ## How the Tag filter behaves offline
 
-While you are offline, the **Tag** filter shows the tags that were already loaded plus the tags synced from your workspaces. New tags do not load when you scroll, and the search box only matches the tags already on your device. Reconnect to load the full list again.
+While you are offline, the **Tag** filter shows the tags that are already available in cache. New tags do not load when you scroll, and the search box only matches the tags already on your device. Reconnect to load the full list again.
 
 ## Why the Tag filter appears when you have no tags yet
 
-The **Tag** filter appears whenever at least one of your workspaces has tags enabled, even before any tags are created. If the filter is missing, enable tags on the workspace. [Learn how to create and manage expense tags](/articles/new-expensify/workspaces/Create-and-manage-expense-tags).
+The **Tag** filter appears when **Type** is set to **Expense**, **Invoice**, or **Trip** and at least one of your workspaces has tags enabled, even before any tags are created. It does not appear for other types. If the filter is missing, check the **Type** filter first, then enable tags on the workspace. [Learn how to create and manage expense tags](/articles/new-expensify/workspaces/Create-and-manage-expense-tags).
 
 ## How to export from the Spend page
 
