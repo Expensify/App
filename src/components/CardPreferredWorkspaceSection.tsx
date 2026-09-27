@@ -64,6 +64,7 @@ function CardPreferredWorkspaceSection({card, domainOrWorkspaceAccountID, bank, 
                     shouldParseHelperText={!!helperText}
                     shouldShowRightIcon={canWrite && isInteractive}
                     interactive={canWrite && isInteractive}
+                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CARD_PREFERRED_WORKSPACE.getRoute(feedWithDomainID, String(card?.cardID))))}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.CARD_PREFERRED_WORKSPACE}
                 />
             </OfflineWithFeedback>
