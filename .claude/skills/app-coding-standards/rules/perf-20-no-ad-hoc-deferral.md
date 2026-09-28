@@ -12,7 +12,7 @@ Work that runs during a navigation, modal or keyboard transition competes with t
 - `usePreMountDestination` to mount the screen an RHP flow ends on while the RHP is still open
 - `<NavigationDeferredMount>` to mount a subtree after tracked transitions settle
 - `API.writeWhenReady` to apply an optimistic write after tracked transitions settle
-- the `afterTransition` callback option on `Navigation` methods and `KeyboardUtils.dismiss`, or `TransitionTracker.runAfterTransitions`, for one-off imperative work
+- the `afterTransition` callback option on `Navigation` methods and `KeyboardUtils.dismiss`, `Navigation.runAfterTransition` / `Navigation.runAfterUpcomingTransition`, or `TransitionTracker.runAfterTransitions`, for one-off imperative work
 
 `TransitionTracker.runAfterTransitions({callback})` runs the callback synchronously when no transition is active. When it is called before the transition starts (for example, right after a navigation call), pass `waitForUpcomingTransition` so it waits for that transition, with a timeout if none starts. These primitives normally wait for tracked transitions to settle, with a fallback timeout if none starts. Two of them can also release earlier:
 
@@ -23,7 +23,7 @@ Inline timing (a guessed `setTimeout`, `requestAnimationFrame` calls, state flag
 
 ### Incorrect
 
-The names below (`SOME_COMMAND`, `hasPendingWrite`, `flushPendingWrite`, `SecondaryActions`, `doFollowUpWork`, `ActionsSkeleton`) are placeholders, not real App symbols.
+The names below (`SOME_COMMAND`, `pendingWrite.ts`, `setPendingWrite`, `hasPendingWrite`, `flushPendingWrite`, `clearPendingWrite`, `SomeScreenHeader`, `SecondaryActions`, `doFollowUpWork`, `ActionsSkeleton`) are placeholders, not real App symbols.
 
 ```tsx
 // Pattern 1: timer or frame callback right after a navigation call
@@ -70,7 +70,7 @@ useFocusEffect(
 
 ```tsx
 // Pattern 3: a hand-rolled "ready" flag that gates rendering
-function MoneyReportHeader() {
+function SomeScreenHeader() {
     // Render the actions only after the navigation animation, they are expensive
     const [isReady, setIsReady] = useState(false);
     useEffect(() => {
@@ -119,18 +119,19 @@ Navigation.dismissModalWithReport({reportID}, undefined, {
 Flag these patterns in added or changed lines:
 
 1. **Timer or frame after a navigation call.** In the same function body, `setTimeout` or `requestAnimationFrame` is called on a line after one of these calls, and the evidence of intent is visible. The timer must run on the same pass through the function as the navigation call: a guard clause between them (`if (!shouldWrite) { return; }`) or a timer inside an `if` block after the navigation call is fine, but a timer in the other branch of an `if`/`else` from the navigation call, or an `await` between the navigation call and the timer, is not pattern 1. The navigation calls are:
-    - `Navigation.navigate`, `Navigation.goBack`, `Navigation.dismissModal`, `Navigation.dismissModalWithReport`, `Navigation.dismissToPreviousRHP`, `Navigation.dismissToSuperWideRHP`, `Navigation.revealRouteBeforeDismissingModal`
+    - `Navigation.navigate`, `Navigation.goBack`, `Navigation.dismissModal`, `Navigation.dismissModalWithReport`, `Navigation.dismissToPreviousRHP`, `Navigation.dismissToSuperWideRHP`, `Navigation.navigateBackToLastSuperWideRHPScreen`, `Navigation.revealRouteBeforeDismissingModal`
     - `KeyboardUtils.dismiss`
 
     Nested `requestAnimationFrame` calls count. Suggest the `afterTransition` option of that navigation call. It goes in a different argument per method:
-    - first argument: `dismissModal({afterTransition})`, `dismissToPreviousRHP({afterTransition})`, `dismissToSuperWideRHP({afterTransition})`, `KeyboardUtils.dismiss({afterTransition})`
+    - first argument: `dismissModal({afterTransition})`, `dismissToPreviousRHP({afterTransition})`, `dismissToSuperWideRHP({afterTransition})`, `navigateBackToLastSuperWideRHPScreen({afterTransition})`, `KeyboardUtils.dismiss({afterTransition})`
     - second argument: `navigate(route, {afterTransition})`, `goBack(backToRoute, {afterTransition})`, `revealRouteBeforeDismissingModal(route, {afterTransition})`
     - third argument: `dismissModalWithReport(reportParams, undefined, {afterTransition})`
 
     Tell the author the fix must keep the old behavior:
     - the navigation call still runs in the same cases as before, and the delayed work keeps the same guards. A guard that sat between the navigation call and the timer must not start skipping the navigation
     - if the timer was cleared somewhere (for example on unmount), keep that with a cancelled flag checked inside the callback, because `afterTransition` has no cancel handle
-    - some of the `Navigation` methods above can return early on some paths without calling `afterTransition` (for example `goBack` at the root of the stack, or `dismissToPreviousRHP` when there is nothing to dismiss), while the old timer always ran. If the work must still run on those paths, it needs its own path
+    - some of the `Navigation` methods above can return early on some paths without calling `afterTransition`, while the old timer always ran. For example: `goBack` at the root of the stack, or when it falls back to resetting to the app root; `revealRouteBeforeDismissingModal` when navigation is not ready; `dismissToPreviousRHP` when there is nothing to dismiss. If the work must still run on those paths, it needs its own path
+    - the timing can change. `KeyboardUtils.dismiss` runs `afterTransition` synchronously when the keyboard is already hidden, so the work runs before the next line instead of later. When no transition starts, `afterTransition` waits up to `CONST.MAX_TRANSITION_START_WAIT_MS` (1000 ms), which can be later than the old timer
 
     Do not flag pattern 1 when the delay is a UI duration that doesn't depend on a transition, such as a tooltip hover delay or how long a toast stays on screen. A tooltip or toast delayed to wait for a navigation, modal or keyboard transition is not exempt. If the purpose is unclear, do not flag.
 
@@ -161,7 +162,7 @@ Flag these patterns in added or changed lines:
 
 **DO NOT flag if:**
 
-- The delayed work being reviewed is itself scheduled with the `afterTransition` option, `API.writeWhenReady`, or `TransitionTracker.runAfterTransitions`. A separate timer in the same function is still checked on its own. This covers patterns 1 and 2 only: pattern 3 still applies to a ready flag set inside `runAfterTransitions`. The body of an `afterTransition` callback is still checked, so a new navigation call followed by a timer inside it is pattern 1.
+- The delayed work being reviewed is itself scheduled with the `afterTransition` option, `API.writeWhenReady`, `Navigation.runAfterTransition`, `Navigation.runAfterUpcomingTransition`, or `TransitionTracker.runAfterTransitions`. A separate timer in the same function is still checked on its own. This covers patterns 1 and 2 only: pattern 3 still applies to a ready flag set inside `runAfterTransitions`. The body of an `afterTransition` callback is still checked, so a new navigation call followed by a timer inside it is pattern 1.
 - The code is inside one of these files, which implement the primitives: `src/libs/Navigation/TransitionTracker.ts`, `src/libs/Navigation/Navigation.ts`, `src/libs/API/writeWhenReady.ts`, `src/components/NavigationDeferredMount.tsx`, `src/hooks/usePreMountDestination/`
 - The file is under `tests/` or its name ends in `.test.ts`, `.test.tsx`, `Test.ts` or `Test.tsx`
 

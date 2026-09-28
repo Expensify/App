@@ -11,7 +11,7 @@ The App has a small set of primitives for this, all built on the same "transitio
 | Dismissing an RHP should show a fullscreen screen other than the one currently behind it (e.g. submit from Home lands on Spend), and that screen is known when the RHP mounts | `usePreMountDestination` | [NAVIGATION.md](NAVIGATION.md#pre-mounting-a-destination-behind-an-rhp), [PERF-18](../.claude/skills/app-coding-standards/rules/perf-18-use-pre-mount-destination.md) |
 | A heavy subtree on a freshly navigated screen is not needed for first paint (dropdowns, secondary actions, heavy `useOnyx` consumers) | `<NavigationDeferredMount>` | [PERFORMANCE.md](PERFORMANCE.md#rendering-of-unnecessary-or-duplicated-child-components), [`NavigationDeferredMount.tsx`](../src/components/NavigationDeferredMount.tsx) |
 | An API write whose optimistic data would re-render screens while a transition is still running | `API.writeWhenReady` with a transition barrier | [Deferring writes](#deferring-writes) below |
-| One-off imperative work after a navigation, modal or keyboard transition (focus, scroll, a follow-up navigation) | `afterTransition` / `waitForTransition` on `Navigation`, or `TransitionTracker.runAfterTransitions` | [INTERACTION_MANAGER.md](INTERACTION_MANAGER.md#when-to-use-runaftertransitions-directly) |
+| One-off imperative work after a navigation, modal or keyboard transition (focus, scroll, a follow-up navigation) | `afterTransition` on `Navigation` methods and `KeyboardUtils.dismiss`, `waitForTransition` on `Navigation`, or `TransitionTracker.runAfterTransitions` | [INTERACTION_MANAGER.md](INTERACTION_MANAGER.md#when-to-use-runaftertransitions-directly) |
 
 The first two decide **what mounts when**. The last two decide **when work runs**. A single flow often combines them: the submit-expense flow pre-mounts the destination, reveals it, and only then applies the optimistic write through a barrier (see `SubmitExpenseOrchestrator.tsx`).
 
@@ -23,16 +23,16 @@ The first two decide **what mounts when**. The last two decide **when work runs*
 // Default barrier: waits for an in-flight navigation to end, or for the next transition of any kind to start and end.
 API.writeWhenReady(WRITE_COMMANDS.SOME_COMMAND, params, onyxData);
 
-// Only a screen transition releases the write, so a stray keyboard or modal animation can't release it early.
+// Only the start of a screen transition (or the ~1 s start timeout) releases the wait, so a keyboard or modal animation can't release it early.
 API.writeWhenReady(WRITE_COMMANDS.SOME_COMMAND, params, onyxData, API.createTransitionBarrier('navigation'));
 ```
 
-If the write is built right after the navigation starts, the default barrier is enough. If it is built at an unknown time relative to the navigation (after an `await`, a GPS lookup, or deep inside an action), a barrier attached that late can miss the transition and wait for one that never starts. Arm the barrier with `API.armTransitionBarrier()` when the navigation is triggered, and pass it once the write exists. One armed barrier can gate several writes from the same interaction. Call `cancel()` if the write never happens.
+If the write is built right after the navigation starts, the default barrier is enough. If it is built at an unknown time relative to the navigation (after an `await`, a GPS lookup, or deep inside an action), a barrier attached that late can miss the transition. It then waits for the next one, which can be an unrelated keyboard or modal animation, or gives up after the start timeout (about 1 s). Arm the barrier with `API.armTransitionBarrier()` when the navigation is triggered, and pass it once the write exists. One armed barrier can gate several writes from the same interaction. Call `cancel()` if the write never happens.
 
 ```ts
 const armed = API.armTransitionBarrier();
 Navigation.dismissModal();
-const location = await getCurrentLocation(); // may finish before or after the dismiss transition ends
+const location = await getCurrentLocation(); // placeholder: may finish before or after the dismiss transition ends
 API.writeWhenReady(WRITE_COMMANDS.SOME_COMMAND, {...params, location}, onyxData, armed.barrier);
 ```
 
@@ -42,8 +42,8 @@ A barrier is any `(signal: AbortSignal) => PromiseLike<unknown>`, so a flow can 
 
 - **The write is conditional.** A barrier decides _when_ the write happens, never _whether_. A rejected barrier still releases the write. Decide whether to write before calling it.
 - **The write needs a `conflictResolver`.** A deferred request is not in the sequential queue until it executes, so conflict resolution can't see it.
-- **Order matters across calls.** Two `writeWhenReady` calls can run in either order, because each waits on its own barrier.
-- **The barrier waits on a READ, without `{shouldClaimReadGate: false}`.** READs wait for pending deferred writes by default, so the READ waits for the write and the write waits for the READ until the safety timeout. Never let a barrier wait on a READ without passing that option.
+- **Order matters across calls.** Two `writeWhenReady` calls can run in either order, because each waits on its own barrier. A plain `API.write` called after a `writeWhenReady` reaches the queue first, because `API.write` doesn't wait.
+- **The barrier waits on a READ, without `{shouldClaimReadGate: false}`.** READs wait for pending deferred writes by default, so the READ waits for the write and the write waits for the READ until the safety timeout. Never let a barrier wait on a READ without passing that option (in the options object, the fifth argument of `writeWhenReady`).
 - **Losing the write would be hard to recover from.** Pending writes are flushed when the app goes inactive or to the background, but a hard kill or crash loses them. Only defer writes the user can simply redo.
 
 ## Rejected alternatives
