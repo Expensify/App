@@ -49,6 +49,7 @@ import {
     isActionOfType,
     isDeletedParentAction as isDeletedParentActionUtils,
     isDeletedReportPreviewWithError,
+    getVisibleReportActionErrors,
     isMessageDeleted,
     isMoneyRequestAction,
     isPendingRemove,
@@ -412,7 +413,7 @@ function ReportActionItem({
 
     const isContextMenuDisabled = hasDraft || (hasActionErrors && !hasOnlyReceiptErrors) || !shouldDisplayContextMenuValue;
 
-    const latestActionErrors = getLatestErrorMessageField(action as OnyxDataWithErrors);
+    const latestActionErrors = getLatestErrorMessageField({...action, errors: getVisibleReportActionErrors(action)} as OnyxDataWithErrors);
 
     // Once the previewed expense is deleted there is nothing left to retry, so say what happened instead of the
     // generic "try again later" copy PayMoneyRequest's failureData wrote.

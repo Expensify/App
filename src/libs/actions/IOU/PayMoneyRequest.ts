@@ -406,7 +406,9 @@ function getPayMoneyRequestParams({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', 0),
+                    // Shares its key with the copy mirrored onto the chat's report preview below, so that dismissing
+                    // either one clears both — `clearAllRelatedReportActionErrors` only follows matching keys.
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY),
                 },
             },
         },
@@ -436,8 +438,9 @@ function getPayMoneyRequestParams({
                 [optimisticReportPreviewAction.reportActionID]: {
                     created: optimisticReportPreviewAction.created,
                     // The error above lands on the pay action inside the expense report, which the payer cannot reach
-                    // once that report is deleted. Mirror it here so they always have a dismissible RBR in the chat.
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
+                    // once that report is deleted. Mirror it here so they still have a dismissible RBR in the chat.
+                    // Only surfaced once the preview itself is deleted, see getVisibleReportActionErrors.
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY),
                 },
             },
         });

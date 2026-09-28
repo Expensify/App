@@ -46,7 +46,7 @@ function getAuthenticateErrorMessage<TKey extends OnyxKey>(response: Response<TK
  * Creates an error object with a timestamp (in microseconds) as the key and the translated error message as the value.
  * @param error - The translation key for the error message.
  */
-function getMicroSecondOnyxErrorWithTranslationKey(error: TranslationPaths, errorKey?: number): Errors {
+function getMicroSecondOnyxErrorWithTranslationKey(error: TranslationPaths, errorKey?: number | string): Errors {
     return {[errorKey ?? DateUtils.getMicroseconds()]: translateLocal(error)};
 }
 

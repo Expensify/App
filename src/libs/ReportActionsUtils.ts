@@ -39,7 +39,7 @@ import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, PolicyChangeLogCopyReportActionNames, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
-import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
@@ -1271,11 +1271,25 @@ function isResolvedConciergeDescriptionOptions(reportAction: OnyxEntry<ReportAct
 }
 
 /**
- * A deleted report preview stays visible while it carries an error: that error is the payer's only feedback when a
- * delete races the payment they queued. See https://github.com/Expensify/App/issues/100676.
+ * A deleted report preview stays visible while it carries a payment failure: that error is the payer's only feedback
+ * when a delete races the payment they queued. See https://github.com/Expensify/App/issues/100676.
  */
 function isDeletedReportPreviewWithError(reportAction: OnyxEntry<ReportAction>): boolean {
-    return isReportPreviewAction(reportAction) && isDeletedAction(reportAction) && !isEmptyValueObject(reportAction?.errors);
+    return isReportPreviewAction(reportAction) && isDeletedAction(reportAction) && !!reportAction?.errors?.[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY];
+}
+
+/**
+ * The errors a consumer should act on. A payment failure is mirrored onto the chat's report preview so the payer
+ * keeps a dismissible RBR once the expense report is deleted, but while that report still exists the error belongs
+ * on the pay action inside it, so drop it here rather than red-dotting the chat twice.
+ */
+function getVisibleReportActionErrors(reportAction: OnyxEntry<ReportAction>): ReportAction['errors'] {
+    const errors = reportAction?.errors ?? {};
+    if (!isReportPreviewAction(reportAction) || isDeletedAction(reportAction) || !(CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY in errors)) {
+        return errors;
+    }
+    const {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: payFailure, ...rest} = errors;
+    return rest;
 }
 
 /**
@@ -5286,6 +5300,7 @@ export {
     isDeletedAction,
     isDeletedParentAction,
     isDeletedReportPreviewWithError,
+    getVisibleReportActionErrors,
     isMemberChangeAction,
     isLeavePolicyAction,
     isExportIntegrationAction,
