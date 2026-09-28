@@ -7,13 +7,13 @@ const oxcReactCompilerConfig = require('./oxcReactCompilerConfig');
 
 const babelTransformer = babelJest.createTransformer();
 
+let oxcPipeline;
 /**
  * esbuild and oxc-transform-react are native modules, loaded once per worker. Requiring them lazily
  * keeps a run that never takes the OXC path from paying for them at all.
  *
  * @returns {{esbuild: typeof import('esbuild'), transformSync: Function, oxcVersion: string}}
  */
-let oxcPipeline;
 function getOxcPipeline() {
     if (!oxcPipeline) {
         oxcPipeline = {
@@ -44,8 +44,11 @@ const ESBUILD_HELPERS = [
     {
         marker: 'var __export',
         pattern: /var (__export\d*) = \(target, all\) => \{\s*for \(var (\w+) in all\)\s*(__defProp\d*)\(target, \2, \{ get: all\[\2\], enumerable: true \}\);\s*\};/,
-        replace: (_match, exportName, _loopVar, defProp) =>
-            `var ${exportName} = (target, all) => {\n  for (const key of Object.keys(all))\n    ${defProp}(target, key, {get: () => {try {return all[key]();} catch (e) {if (e instanceof ReferenceError) {return undefined;} throw e;}}, enumerable: true});\n};`,
+        // Keep this to 4 lines, like esbuild's helper: patching runs after the source map is made.
+        replace: (_match, exportName, _loopVar, defProp) => `var ${exportName} = (target, all) => {
+  for (const key of Object.keys(all))
+    ${defProp}(target, key, {get: () => {try {return all[key]();} catch (e) {if (e instanceof ReferenceError) {return undefined;} throw e;}}, enumerable: true});
+};`,
     },
 ];
 
