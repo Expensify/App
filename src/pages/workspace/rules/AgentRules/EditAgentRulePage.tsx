@@ -113,7 +113,7 @@ function EditAgentRulePage({
             >
                 <CollapsibleHeaderOnKeyboard>
                     <HeaderWithBackButtonAndTitle title={translate('workspace.rules.agentRules.editRuleTitle')}>
-                        {!!deleteIconButtonProps && <HeaderIconButton {...deleteIconButtonProps} />}
+                        {!!deleteIconButtonProps && <Header.IconButton {...deleteIconButtonProps} />}
                     </HeaderWithBackButtonAndTitle>
                 </CollapsibleHeaderOnKeyboard>
                 <FormProvider
