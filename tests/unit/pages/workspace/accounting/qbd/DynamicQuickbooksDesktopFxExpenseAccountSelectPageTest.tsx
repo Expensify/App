@@ -2,29 +2,34 @@ import {act, render} from '@testing-library/react-native';
 
 import SelectionScreen from '@components/SelectionScreen';
 
+import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useSelectionListSearch from '@hooks/useSelectionListSearch';
 
-import {updateFinancialForceFxExpenseAccount} from '@libs/actions/connections/FinancialForce';
+import {updateQuickbooksDesktopFxExpenseAccount} from '@libs/actions/connections/QuickbooksDesktop';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 
 import type {ComponentType} from 'react';
+import type {ValueOf} from 'type-fest';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
 
 import createMock from '../../../../../utils/createMock';
 
 jest.mock('@pages/workspace/withPolicyConnections', () => (Component: ComponentType) => Component);
 
-const CertiniaFxExpenseAccountSelectPage = require<{default: ComponentType<{policy: Policy}>}>('@pages/workspace/accounting/certinia/advanced/CertiniaFxExpenseAccountSelectPage').default;
+const DynamicQuickbooksDesktopFxExpenseAccountSelectPage = require<{
+    default: ComponentType<{policy: Policy}>;
+}>('@pages/workspace/accounting/qbd/advanced/DynamicQuickbooksDesktopFxExpenseAccountSelectPage').default;
 
 jest.mock('@components/SelectionScreen', () => jest.fn(() => null));
 
 jest.mock('@hooks/useCanConfigureCurrencyConversionFees', () => ({
     __esModule: true,
-    default: () => true,
+    default: jest.fn(() => true),
 }));
 
 jest.mock('@hooks/useDynamicBackPath', () => ({
@@ -56,9 +61,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     default: {goBack: jest.fn()},
 }));
 
-jest.mock('@libs/actions/connections/FinancialForce', () => ({
-    clearFinancialForceErrorField: jest.fn(),
-    updateFinancialForceFxExpenseAccount: jest.fn(),
+jest.mock('@libs/actions/connections/QuickbooksDesktop', () => ({
+    updateQuickbooksDesktopFxExpenseAccount: jest.fn(),
 }));
 
 jest.mock('@expensify/react-native-hybrid-app', () => ({
@@ -69,24 +73,21 @@ jest.mock('@expensify/react-native-hybrid-app', () => ({
 const TRAVEL_ACCOUNT = {id: 'a1', name: 'Travel'};
 
 function buildPolicy({
-    hasPSAOnly,
-    hasPSA,
     fxExpenseAccount,
     expenseAccounts = [],
+    accountingMethod,
 }: {
-    hasPSAOnly?: boolean;
-    hasPSA?: boolean;
     fxExpenseAccount?: string;
     expenseAccounts?: Array<{id: string; name: string}>;
+    accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 } = {}): Policy {
     return createMock<Policy>({
         id: '1',
         connections: {
-            financialforce: {
+            quickbooksDesktop: {
                 config: {
-                    hasPSAOnly,
-                    hasPSA,
                     fxExpenseAccount,
+                    export: {accountingMethod},
                 },
                 data: {expenseAccounts},
             },
@@ -95,7 +96,7 @@ function buildPolicy({
 }
 
 function renderPicker(config: Parameters<typeof buildPolicy>[0] = {}) {
-    render(<CertiniaFxExpenseAccountSelectPage policy={buildPolicy(config)} />);
+    render(<DynamicQuickbooksDesktopFxExpenseAccountSelectPage policy={buildPolicy(config)} />);
     return getSelectionScreenProps();
 }
 
@@ -107,42 +108,36 @@ function getSelectionScreenProps() {
     return selectionScreenProps;
 }
 
-describe('CertiniaFxExpenseAccountSelectPage', () => {
+describe('DynamicQuickbooksDesktopFxExpenseAccountSelectPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    it('blocks PSA-only connections so the picker cannot be reached by deep link', () => {
-        // Given: a PSA-only Certinia connection, with the currency conversion cost settings otherwise available.
-        // When: the FX expense account picker is opened.
-        const selectionScreenProps = renderPicker({hasPSAOnly: true, hasPSA: true});
+    it('blocks the picker when out-of-pocket expenses export before they are paid', () => {
+        // Given a workspace exporting on accrual, where the bill leaves at approval and the conversion cost is not
+        // known yet, so the Advanced page hides the row
+        // When the picker is opened by deep link anyway
+        const selectionScreenProps = renderPicker({expenseAccounts: [TRAVEL_ACCOUNT], accountingMethod: COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL});
 
-        // Then: the picker is blocked. The Advanced page already hides the row for PSA-only.
+        // Then it is blocked, since an account set here could never reach the export
         expect(selectionScreenProps.shouldBeBlocked).toBe(true);
     });
 
-    it('does not block FFA connections', () => {
-        // Given: an FFA Certinia connection.
-        // When: the FX expense account picker is opened.
-        const selectionScreenProps = renderPicker({hasPSAOnly: false});
+    it('blocks the picker when the workspace cannot configure currency conversion fees', () => {
+        // Given a workspace that cannot configure currency conversion fees, so the Advanced page hides the row
+        jest.mocked(useCanConfigureCurrencyConversionFees).mockReturnValueOnce(false);
 
-        // Then: the picker is shown.
-        expect(selectionScreenProps.shouldBeBlocked).toBe(false);
-    });
+        // When the picker is opened anyway, as a deep link can still reach it
+        const selectionScreenProps = renderPicker({expenseAccounts: [TRAVEL_ACCOUNT]});
 
-    it('does not block mixed FFA and PSA connections', () => {
-        // Given: a mixed FFA/PSA connection (hasPSA is true, but it is not PSA-only).
-        // When: the FX expense account picker is opened.
-        const selectionScreenProps = renderPicker({hasPSAOnly: false, hasPSA: true});
-
-        // Then: the picker is shown, matching the Advanced page row.
-        expect(selectionScreenProps.shouldBeBlocked).toBe(false);
+        // Then it is blocked rather than letting the account be set from a route the workspace should not reach
+        expect(selectionScreenProps.shouldBeBlocked).toBe(true);
     });
 
     it('puts None at the top, selected, when no account is saved', () => {
-        // Given: an FFA connection with synced General Ledger Accounts and no saved fee account.
+        // Given: a QuickBooks Desktop connection with synced expense accounts and no saved fee account.
         // When: the picker is opened.
-        const selectionScreenProps = renderPicker({hasPSAOnly: false, expenseAccounts: [TRAVEL_ACCOUNT]});
+        const selectionScreenProps = renderPicker({expenseAccounts: [TRAVEL_ACCOUNT]});
 
         // Then: None is the first row and is selected, so the Advanced page row stays empty.
         const noneOption = selectionScreenProps.data.at(0);
@@ -162,7 +157,7 @@ describe('CertiniaFxExpenseAccountSelectPage', () => {
     it('selects the saved account instead of None', () => {
         // Given: a fee account is already saved.
         // When: the picker is opened.
-        const selectionScreenProps = renderPicker({hasPSAOnly: false, fxExpenseAccount: TRAVEL_ACCOUNT.id, expenseAccounts: [TRAVEL_ACCOUNT]});
+        const selectionScreenProps = renderPicker({fxExpenseAccount: TRAVEL_ACCOUNT.id, expenseAccounts: [TRAVEL_ACCOUNT]});
 
         // Then: that account is selected and None is not.
         expect(selectionScreenProps.data.at(0)).toEqual(expect.objectContaining({keyForList: CONST.SEARCH.NONE_OPTION_KEY, isSelected: false}));
@@ -171,9 +166,9 @@ describe('CertiniaFxExpenseAccountSelectPage', () => {
     });
 
     it('does not prepend None when there are no accounts to pick from', () => {
-        // Given: an FFA connection that has not synced any General Ledger Accounts.
+        // Given: a connection that has not synced any expense accounts.
         // When: the picker is opened.
-        const selectionScreenProps = renderPicker({hasPSAOnly: false, expenseAccounts: []});
+        const selectionScreenProps = renderPicker({expenseAccounts: []});
 
         // Then: the list stays empty so SelectionScreen can show the empty-state BlockingView.
         expect(selectionScreenProps.data).toEqual([]);
@@ -188,10 +183,10 @@ describe('CertiniaFxExpenseAccountSelectPage', () => {
             textInputOptions: {label: undefined, value: 'zzzz', onChangeText: jest.fn(), headerMessage: undefined},
         }));
 
-        // When: the picker is opened with a chart of accounts.
-        const selectionScreenProps = renderPicker({hasPSAOnly: false, expenseAccounts: [TRAVEL_ACCOUNT]});
+        // When: the picker is opened with expense accounts.
+        const selectionScreenProps = renderPicker({expenseAccounts: [TRAVEL_ACCOUNT]});
 
-        // Then: the list is empty and the chart-of-accounts empty view stays hidden.
+        // Then: the list is empty and the empty-accounts view stays hidden.
         expect(selectionScreenProps.data).toEqual([]);
         expect(selectionScreenProps.shouldShowListEmptyContent).toBe(false);
         expect(selectionScreenProps.confirmButtonOptions?.showButton).toBe(true);
@@ -199,7 +194,7 @@ describe('CertiniaFxExpenseAccountSelectPage', () => {
 
     it('does not persist until Save is pressed', () => {
         // Given: the picker is open with unsaved None selected.
-        renderPicker({hasPSAOnly: false, expenseAccounts: [TRAVEL_ACCOUNT]});
+        renderPicker({expenseAccounts: [TRAVEL_ACCOUNT]});
 
         // When: an account is tapped.
         act(() => {
@@ -207,14 +202,14 @@ describe('CertiniaFxExpenseAccountSelectPage', () => {
         });
 
         // Then: nothing is written and we stay on the picker.
-        expect(updateFinancialForceFxExpenseAccount).not.toHaveBeenCalled();
+        expect(updateQuickbooksDesktopFxExpenseAccount).not.toHaveBeenCalled();
         expect(Navigation.goBack).not.toHaveBeenCalled();
         expect(getSelectionScreenProps().confirmButtonOptions?.isDisabled).toBe(false);
     });
 
     it('saves the selected account when Save is pressed', () => {
         // Given: an account has been tapped but not saved.
-        renderPicker({hasPSAOnly: false, expenseAccounts: [TRAVEL_ACCOUNT]});
+        renderPicker({expenseAccounts: [TRAVEL_ACCOUNT]});
         act(() => {
             getSelectionScreenProps().onSelectRow({value: TRAVEL_ACCOUNT.id, text: TRAVEL_ACCOUNT.name, keyForList: TRAVEL_ACCOUNT.id, isSelected: false});
         });
@@ -225,13 +220,13 @@ describe('CertiniaFxExpenseAccountSelectPage', () => {
         });
 
         // Then: the account is written and we return to Advanced.
-        expect(updateFinancialForceFxExpenseAccount).toHaveBeenCalledWith('1', TRAVEL_ACCOUNT.id, null);
+        expect(updateQuickbooksDesktopFxExpenseAccount).toHaveBeenCalledWith('1', TRAVEL_ACCOUNT.id, undefined);
         expect(Navigation.goBack).toHaveBeenCalled();
     });
 
     it('clears the saved account when None is saved', () => {
         // Given: a fee account is already saved.
-        renderPicker({hasPSAOnly: false, fxExpenseAccount: TRAVEL_ACCOUNT.id, expenseAccounts: [TRAVEL_ACCOUNT]});
+        renderPicker({fxExpenseAccount: TRAVEL_ACCOUNT.id, expenseAccounts: [TRAVEL_ACCOUNT]});
 
         // When: None is selected and Save is pressed.
         act(() => {
@@ -241,8 +236,8 @@ describe('CertiniaFxExpenseAccountSelectPage', () => {
             getSelectionScreenProps().confirmButtonOptions?.onConfirm?.();
         });
 
-        // Then: the setting is cleared so the cost stays off the invoice.
-        expect(updateFinancialForceFxExpenseAccount).toHaveBeenCalledWith('1', '', TRAVEL_ACCOUNT.id);
+        // Then: the setting is cleared so the cost stays off the export.
+        expect(updateQuickbooksDesktopFxExpenseAccount).toHaveBeenCalledWith('1', '', TRAVEL_ACCOUNT.id);
         expect(Navigation.goBack).toHaveBeenCalled();
     });
 });
