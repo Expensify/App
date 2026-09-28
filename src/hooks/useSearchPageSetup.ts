@@ -2,7 +2,7 @@ import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionAction
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
-import {clearPageRequestedSearch, isSearchRequestInFlight, markPageRequestedSearch, openSearch, search} from '@libs/actions/Search';
+import {clearPageRequestedSearch, markPageRequestedSearch, openSearch, search} from '@libs/actions/Search';
 import {hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
 
@@ -64,9 +64,6 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     // Hashes this page requested, so an error can be traced to the attempt that produced it.
     const requestedHashesRef = useRef<Set<number>>(new Set());
 
-    // The last query this page sent with shouldSaveRecentSearch.
-    const flaggedHashRef = useRef<number | undefined>(undefined);
-
     // Clear selected transactions when navigating to a different search query
     function clearOnHashChange() {
         if (hash === undefined) {
@@ -96,17 +93,13 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         }
 
         // A pending initial request may be stale after reload and can be restarted through request deduplication.
-        // Pagination must not restart page one. Once this visit has sent the query flagged, a live first-page request
-        // (select-all totals, a refresh) is programmatic: re-sending it flagged would only queue a duplicate request,
-        // which flashes the footer's loading skeleton after the totals have already arrived.
-        const isLiveRequestAlreadyFlagged = flaggedHashRef.current === hash && isSearchRequestInFlight(hash);
-        if (isSnapshotDataLoaded && (!isInitialSearchPending || isLiveRequestAlreadyFlagged)) {
+        // Pagination must not restart page one.
+        if (isSnapshotDataLoaded && !isInitialSearchPending) {
             return;
         }
 
         const shouldSkipWaitForWrites = hasPendingSearchWrite();
         requestedHashesRef.current.add(hash);
-        flaggedHashRef.current = hash;
         // Claim this query's first page so Search does not request it again when it mounts behind the skeleton.
         // With data loaded Search is already mounted, so a token set here would never be read and would skip the next revisit.
         if (!isSnapshotDataLoaded) {
