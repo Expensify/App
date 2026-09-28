@@ -3602,6 +3602,10 @@ function getEligibleTransactionsToAdd({
 }
 
 function willFieldBeAutomaticallyFilled(transaction: OnyxEntry<Transaction>, fieldType: 'amount' | 'merchant' | 'date' | 'category'): boolean {
+    if (fieldType === 'category' && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
+        return true;
+    }
+
     if (!transaction?.receipt) {
         return false;
     }
