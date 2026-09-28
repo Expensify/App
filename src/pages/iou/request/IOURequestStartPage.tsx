@@ -60,7 +60,6 @@ type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS
 // Tab indices for IOURequestStartPage
 const PER_DIEM_TAB_INDEX = 2;
 
-// Vertical space the tab bar keeps below the header, so the collapsing header does not hand it out twice.
 const TAB_NAVIGATOR_HEIGHT_LANDSCAPE = variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding;
 
 function IOURequestStartPage({
