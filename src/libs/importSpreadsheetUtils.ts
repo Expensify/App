@@ -152,6 +152,8 @@ function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
 
         case 'updatedtag':
         case 'newtag':
+        case 'label':
+        case 'labels':
             attribute = CONST.CSV_IMPORT_COLUMNS.TAG;
             break;
 
