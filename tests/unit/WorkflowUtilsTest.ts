@@ -13,9 +13,11 @@ import {
     filterRulesForPolicy,
     getApprovalLimitDescription,
     getOpenConnectedToPolicyBusinessBankAccounts,
+    getApprovalWorkflowSource,
     getOverLimitForwardsToDisplayName,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
+    isApprovalWorkflowLockedByIntegration,
     mergeWorkflowMembersWithAvailableMembers,
     reconcileApprovalWorkflowRulesForCreate,
     reconcileApprovalWorkflowRulesForEdit,
@@ -23,6 +25,7 @@ import {
     reconcileApprovalWorkflowRulesForRemove,
     updateWorkflowDataOnApproverRemoval,
 } from '@src/libs/WorkflowUtils';
+import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
@@ -32,6 +35,8 @@ import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
+
+import type {ValueOf} from 'type-fest';
 
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
@@ -2165,6 +2170,93 @@ describe('WorkflowUtils', () => {
         it('returns an empty collection when there is no policy or no rules', () => {
             expect(filterRulesForPolicy({rules_1: ruleForPolicy('policy1')}, undefined)).toEqual({});
             expect(filterRulesForPolicy(undefined, 'policy1')).toEqual({});
+        });
+    });
+
+    describe('approval workflows owned by a connected integration', () => {
+        const POLICY_ID = 'ats-policy';
+
+        function buildPolicyWithConnectedATS(approvalMode: ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null): Policy {
+            return createMock<Policy>({
+                id: POLICY_ID,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: {
+                        config: {
+                            integration: 'greenhouse',
+                            approvalMode,
+                            approverField: CONST.MERGE.ATS_APPROVER_FIELD.RECRUITER,
+                            finalApprover: 'recruiter@example.com',
+                            filters: null,
+                        },
+                    },
+                },
+            });
+        }
+
+        describe('isApprovalWorkflowLockedByIntegration', () => {
+            it.each([CONST.MERGE.APPROVAL_MODE.BASIC, CONST.MERGE.APPROVAL_MODE.ADVANCED])('locks the workflows when the ATS is in %s mode', (approvalMode) => {
+                expect(isApprovalWorkflowLockedByIntegration(buildPolicyWithConnectedATS(approvalMode))).toBe(true);
+            });
+
+            it('leaves the workflows editable when the ATS is in custom mode', () => {
+                expect(isApprovalWorkflowLockedByIntegration(buildPolicyWithConnectedATS(CONST.MERGE.APPROVAL_MODE.CUSTOM))).toBe(false);
+            });
+
+            it('leaves the workflows editable when the ATS has no approval mode set yet', () => {
+                expect(isApprovalWorkflowLockedByIntegration(buildPolicyWithConnectedATS(null))).toBe(false);
+            });
+
+            // Disconnecting the ATS drops the lock; the workflow it produced stays in place for the admin to edit.
+            it('leaves the workflows editable once the ATS is disconnected', () => {
+                expect(isApprovalWorkflowLockedByIntegration(createMock<Policy>({id: POLICY_ID, connections: {}}))).toBe(false);
+            });
+
+            it('locks the workflows when an ATS in basic mode is connected alongside an HR provider in custom mode', () => {
+                const policy = createMock<Policy>({
+                    id: POLICY_ID,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {integration: 'workday', approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM, groups: []}},
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: {config: {integration: 'greenhouse', approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC, filters: null}},
+                    },
+                });
+
+                expect(isApprovalWorkflowLockedByIntegration(policy)).toBe(true);
+            });
+        });
+
+        describe('getApprovalWorkflowSource', () => {
+            it.each([CONST.MERGE.APPROVAL_MODE.BASIC, CONST.MERGE.APPROVAL_MODE.ADVANCED])(
+                'names the connected ATS provider and links to the recruiting settings in %s mode',
+                (approvalMode) => {
+                    expect(getApprovalWorkflowSource(buildPolicyWithConnectedATS(approvalMode), POLICY_ID)).toEqual({
+                        providerName: 'Greenhouse',
+                        settingsRoute: ROUTES.WORKSPACE_RECRUITING.getRoute(POLICY_ID),
+                    });
+                },
+            );
+
+            it('has no source in custom mode, because the admin owns the workflow', () => {
+                expect(getApprovalWorkflowSource(buildPolicyWithConnectedATS(CONST.MERGE.APPROVAL_MODE.CUSTOM), POLICY_ID)).toBeUndefined();
+            });
+
+            it('has no source when nothing is connected', () => {
+                expect(getApprovalWorkflowSource(createMock<Policy>({id: POLICY_ID, connections: {}}), POLICY_ID)).toBeUndefined();
+            });
+
+            it('prefers a connected HR provider over the ATS', () => {
+                const policy = createMock<Policy>({
+                    id: POLICY_ID,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {integration: 'workday', approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM, groups: []}},
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: {config: {integration: 'greenhouse', approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC, filters: null}},
+                    },
+                });
+
+                expect(getApprovalWorkflowSource(policy, POLICY_ID)).toEqual({
+                    providerName: 'Workday',
+                    settingsRoute: ROUTES.WORKSPACE_HR.getRoute(POLICY_ID),
+                });
+            });
         });
     });
 });
