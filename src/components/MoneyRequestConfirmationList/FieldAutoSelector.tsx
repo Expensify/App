@@ -4,42 +4,17 @@ import {setMoneyRequestCategory, setMoneyRequestTag} from '@libs/actions/IOU/Mon
 import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
 import {getTag} from '@libs/TransactionUtils';
 
-import type {Policy, PolicyCategories, PolicyTagLists, Transaction} from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
-
 import {useEffect} from 'react';
 
-type FieldAutoSelectorProps = {
-    transactionID: string | undefined;
-    transaction: OnyxEntry<Transaction>;
-    policyCategories: OnyxEntry<PolicyCategories>;
-    policyTagLists: Array<ValueOf<PolicyTagLists>>;
-    policyTags: OnyxEntry<PolicyTagLists>;
-    policy: OnyxEntry<Policy>;
-    shouldShowCategories: boolean;
-    isCategoryRequired: boolean;
-    iouCategory: string | undefined;
-    isMovingTransactionFromTrackExpense: boolean;
-};
+import {useConfirmationData} from './ConfirmationDataContext';
 
 /**
  * Side-effect-only component that auto-selects the only enabled category
  * and required single tags when the confirmation list mounts.
  */
-function FieldAutoSelector({
-    transactionID,
-    transaction,
-    policyCategories,
-    policyTagLists,
-    policyTags,
-    policy,
-    shouldShowCategories,
-    isCategoryRequired,
-    iouCategory,
-    isMovingTransactionFromTrackExpense,
-}: FieldAutoSelectorProps) {
+function FieldAutoSelector() {
+    const {transactionID, transaction, policyCategories, policyTagLists, policyTags, policy, shouldShowCategories, isCategoryRequired, iouCategory, isMovingTransactionFromTrackExpense} =
+        useConfirmationData();
     const {getCurrencyDecimals} = useCurrencyListActions();
     // Auto select the category if there is only one enabled category and it is required
     useEffect(() => {
