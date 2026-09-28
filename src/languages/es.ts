@@ -11831,5 +11831,13 @@ ${reportName}`,
             description: `<muted-text>Crea agentes personalizados para revisar, aprobar y asignar gastos según las reglas que configures. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Más información</a>.</muted-text>`,
         },
     },
+    earlyRenewal: {
+        confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renueva tu suscripción por un período de 12 meses, desde ${startDate} hasta ${endDate}.`,
+        adminTitle: 'Pide a la persona responsable de la facturación que renueve antes de tiempo',
+        adminSubtitle: 'Revisa un mensaje para la persona responsable de facturación sobre la oferta de Renovación Anticipada 2027.',
+        adminCTA: 'Aviso',
+        draftMessage: ({billingOwnerEmail, subscriptionURL}: {billingOwnerEmail: string; subscriptionURL: string}) =>
+            `Hola, @${billingOwnerEmail}. ¿Puedes revisar la oferta de renovación anticipada 2027 de Expensify? Consulta tu [página de suscripción](${subscriptionURL}) para ver los detalles.`,
+    },
 };
 export default translations;

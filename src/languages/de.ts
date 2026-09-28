@@ -11558,5 +11558,14 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             description: `<muted-text>Erstellen Sie benutzerdefinierte Agenten, die Ausgaben anhand Ihrer Regeln prüfen, genehmigen und weiterleiten. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Mehr erfahren</a>.</muted-text>`,
         },
     },
+    earlyRenewal: {
+        confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) =>
+            `Verlängern Sie Ihr Abonnement für einen Zeitraum von 12 Monaten, von ${startDate} bis ${endDate}.`,
+        adminTitle: 'Bitten Sie Ihre abrechnungsverantwortliche Person, frühzeitig zu verlängern',
+        adminSubtitle: 'Überprüfen Sie eine Nachricht an Ihre Rechnungsinhaber:in zum Angebot zur vorzeitigen Verlängerung 2027.',
+        adminCTA: 'Stupser',
+        draftMessage: ({billingOwnerEmail, subscriptionURL}: {billingOwnerEmail: string; subscriptionURL: string}) =>
+            `Hallo @${billingOwnerEmail}! Können Sie sich das Angebot von Expensify zur vorzeitigen Verlängerung 2027 ansehen? Details finden Sie auf Ihrer [Abonnementseite](${subscriptionURL}).`,
+    },
 };
 export default translations;

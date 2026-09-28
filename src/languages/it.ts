@@ -11512,5 +11512,13 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             description: `<muted-text>Crea agenti personalizzati per verificare, approvare e instradare le spese in base alle regole che imposti. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Scopri di più</a>.</muted-text>`,
         },
     },
+    earlyRenewal: {
+        confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Rinnova il tuo abbonamento per un periodo di 12 mesi, dal ${startDate} al ${endDate}.`,
+        adminTitle: 'Chiedi al tuo responsabile di fatturazione di rinnovare in anticipo',
+        adminSubtitle: 'Rivedi un messaggio per il tuo responsabile di fatturazione sull’offerta di Rinnovo Anticipato 2027.',
+        adminCTA: 'Promemoria',
+        draftMessage: ({billingOwnerEmail, subscriptionURL}: {billingOwnerEmail: string; subscriptionURL: string}) =>
+            `Ehi @${billingOwnerEmail}! Puoi esaminare l’offerta di rinnovo anticipato 2027 di Expensify? Consulta la tua [pagina dell’abbonamento](${subscriptionURL}) per i dettagli.`,
+    },
 };
 export default translations;

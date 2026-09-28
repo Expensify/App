@@ -11468,5 +11468,13 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             description: `<muted-text>Crie agentes personalizados para revisar, aprovar e direcionar despesas com base nas regras que você definir. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Saiba mais</a>.</muted-text>`,
         },
     },
+    earlyRenewal: {
+        confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renove sua assinatura por um período de 12 meses, de ${startDate} a ${endDate}.`,
+        adminTitle: 'Peça ao responsável de cobrança para renovar antecipadamente',
+        adminSubtitle: 'Revise uma mensagem para seu responsável de cobrança sobre a oferta de Renovação Antecipada 2027.',
+        adminCTA: 'Lembrete',
+        draftMessage: ({billingOwnerEmail, subscriptionURL}: {billingOwnerEmail: string; subscriptionURL: string}) =>
+            `Ei, @${billingOwnerEmail}! Você pode revisar a oferta de Renovação Antecipada 2027 da Expensify? Veja os detalhes na sua [página de assinatura](${subscriptionURL}).`,
+    },
 };
 export default translations;
