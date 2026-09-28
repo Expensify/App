@@ -10,12 +10,11 @@ type HeaderTitleProps = {
     subtitle?: string;
     subTitleLink?: string;
     titleStyles?: StyleProp<TextStyle>;
-
     /** Whether to use the taller headline style bar with the larger title font. */
-    shouldUseHeadlineHeader?: boolean;
+    isHeadline?: boolean;
 };
 
-function HeaderTitle({title, subtitle = '', titleStyles, subTitleLink = '', shouldUseHeadlineHeader = false}: HeaderTitleProps) {
+function HeaderTitle({title, subtitle = '', titleStyles, subTitleLink = '', isHeadline = false}: HeaderTitleProps) {
     const styles = useThemeStyles();
     const {shouldSkipFocusAfterTransition} = useHeaderContext();
 
@@ -27,7 +26,7 @@ function HeaderTitle({title, subtitle = '', titleStyles, subTitleLink = '', shou
             {!!title && (
                 <HeaderTitleComponent.Text
                     numberOfLines={1}
-                    style={[shouldUseHeadlineHeader && styles.textHeadlineH2, titleStyles]}
+                    style={[isHeadline && styles.textHeadlineH2, titleStyles]}
                 >
                     {title}
                 </HeaderTitleComponent.Text>
