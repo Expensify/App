@@ -5,7 +5,7 @@ import type {DynamicFormField} from '@src/types/onyx';
 
 import type {ReactNode} from 'react';
 
-/** The current answers of a dynamic form, keyed by field key; the shape FormProvider hands to its children */
+/** The current answers of a dynamic form, keyed by field key. This is the shape FormProvider hands to its children. */
 type DynamicFormValues = Record<string, unknown>;
 
 type DynamicFieldContext = {

@@ -16,7 +16,7 @@ import {View} from 'react-native';
 type InlineSelectionListAdapterProps = {
     items: Array<{value: string; label: string}>;
 
-    /** Whether several options can be selected; the value is then a list of keys */
+    /** Whether several options can be selected. The value is then a list of keys. */
     canSelectMultiple?: boolean;
 
     /** Selected option key or keys supplied by the FormProvider */

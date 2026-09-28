@@ -14,7 +14,7 @@ type DynamicFormShellProps = {
     testID: string;
     headerTitle: string;
 
-    /** Page names in order; the step indicator appears once there are enough of them */
+    /** Page names in order. The step indicator appears once there are enough of them. */
     stepNames: string[];
 
     stepIndex: number;

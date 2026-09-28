@@ -8,7 +8,7 @@ const YES = 'yes';
 const NO = 'no';
 
 type YesNoAdapterProps = {
-    /** Answer supplied by the FormProvider; the empty string is the unanswered state */
+    /** Answer supplied by the FormProvider. The empty string is the unanswered state. */
     value?: boolean | '';
 
     /** Callback to update the answer in the FormProvider */

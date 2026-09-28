@@ -1,4 +1,4 @@
-/** Maps AddressSearch's address parts onto `<fieldKey>.<part>` draft keys; the street line is the field's own value */
+/** Maps AddressSearch's address parts onto `<fieldKey>.<part>` draft keys. The street line is the field's own value. */
 function addressAdapter(fieldKey: string): Record<string, string> {
     return {
         street: fieldKey,

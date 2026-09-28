@@ -66,14 +66,14 @@ type ListFieldAdapterProps = {
     /** Renders the item's fields inside the editor form */
     renderFields: (fields: DynamicFormField[], values: DynamicFormValues) => ReactNode;
 
-    /** Opens the flow's editor page for an item; without it the editor is a modal on this page */
+    /** Opens the flow's editor page for an item. Without it, the editor is a modal on this page. */
     onOpenEditor?: (itemID?: string) => void;
 };
 
 const SUMMARY_DESCRIPTION_LIMIT = 2;
 const SUMMARY_SKIPPED_TYPES = new Set<DynamicFormField['type']>(['date', 'address', 'country', 'file']);
 
-/** The leading run of text answers names the row, as first and last name do; up to two short remaining answers describe it */
+/** The leading run of text answers names the row, as first and last name do. Up to two short remaining answers describe it. */
 function summarizeItem(item: DynamicFormListItem, itemFields: DynamicFormField[], translate: LocalizedTranslate): {title: string; description: string} {
     const shownFields = itemFields.filter((field) => !field.sensitive && formatDynamicFieldValue(field, item, translate) !== '');
     const firstTextIndex = shownFields.findIndex((field) => field.type === 'text');

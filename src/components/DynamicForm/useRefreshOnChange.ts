@@ -14,7 +14,7 @@ const REFRESH_DEBOUNCE_MS = 300;
 type UseRefreshOnChangeParams = {
     fields: DynamicFormField[];
 
-    /** Current answers; the draft for `formID` */
+    /** Current answers, meaning the draft for `formID` */
     values: DynamicFormValues;
 
     /** Re-fetches the schema with the current answers */

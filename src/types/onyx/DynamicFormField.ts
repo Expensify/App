@@ -1,6 +1,6 @@
 import type {TranslationPaths} from '@src/languages/types';
 
-/** The closed set of input kinds every schema-driven form renders through; the DynamicForm registry is exhaustive over it */
+/** The closed set of input kinds every schema-driven form renders through. The DynamicForm registry is exhaustive over it. */
 type DynamicFormFieldType =
     | 'text'
     | 'number'
@@ -26,25 +26,25 @@ type DynamicFormFieldOption = {
     /** Value submitted to the server */
     key: string;
 
-    /** The schema author's wording; shown when no labelKey */
+    /** The schema author's wording. Shown when no labelKey. */
     label?: string;
 
-    /** Our translation; required for App-owned schemas, added by the server for keys it recognizes */
+    /** Our translation. Required for App-owned schemas, added by the server for keys it recognizes. */
     labelKey?: TranslationPaths;
 };
 
-/** A named check from ValidationUtils that a regex cannot express; each applies to one type */
+/** A named check from ValidationUtils that a regex cannot express. Each applies to one type. */
 type DynamicFormFieldRule = 'legalName' | 'dateOfBirth' | 'zipCode';
 
 /** One field of a schema-driven form, as the server emits it or as an App-owned schema declares it */
 type DynamicFormField = {
-    /** Unique key within the form; also the Onyx draft key */
+    /** Unique key within the form. Also the Onyx draft key. */
     key: string;
 
-    /** The schema author's wording; shown when no labelKey */
+    /** The schema author's wording. Shown when no labelKey. */
     label?: string;
 
-    /** Our translation; required for App-owned schemas, added by the server for keys it recognizes */
+    /** Our translation. Required for App-owned schemas, added by the server for keys it recognizes. */
     labelKey?: TranslationPaths;
 
     /** Supporting text shown with the field, such as which documents are accepted */
@@ -52,16 +52,16 @@ type DynamicFormField = {
 
     descriptionKey?: TranslationPaths;
 
-    /** Section identity; pages are built from it and it is the page title unless `groupLabelKey` is set */
+    /** Section identity. Pages are built from it and it is the page title unless `groupLabelKey` is set. */
     group: string;
 
-    /** Our translation of the page title; required for App-owned schemas */
+    /** Our translation of the page title. Required for App-owned schemas. */
     groupLabelKey?: TranslationPaths;
 
-    /** Sub-heading within the page; consecutive fields sharing it render under one bold title */
+    /** Sub-heading within the page. Consecutive fields sharing it render under one bold title. */
     section?: string;
 
-    /** Our translation of the section title; required for App-owned schemas */
+    /** Our translation of the section title. Required for App-owned schemas. */
     sectionLabelKey?: TranslationPaths;
 
     type: DynamicFormFieldType;
@@ -85,7 +85,7 @@ type DynamicFormField = {
 
     regex?: string;
 
-    /** legalName for text, dateOfBirth for date, zipCode for address; ignored on other types */
+    /** LegalName for text, dateOfBirth for date, zipCode for address. Ignored on other types. */
     rule?: DynamicFormFieldRule;
 
     minLength?: number;
@@ -109,13 +109,13 @@ type DynamicFormField = {
     /** A text field that grows with its content, for descriptions */
     multiline?: boolean;
 
-    /** Shown as a plain row with its prefilled value; never edited or validated */
+    /** Shown as a plain row with its prefilled value. Never edited or validated. */
     readonly?: boolean;
 
     /** Never written to the form draft, for SSNs and account numbers */
     sensitive?: boolean;
 
-    /** Amount only: the sibling key that holds the chosen currency; without it the currency is fixed */
+    /** Amount only: the sibling key that holds the chosen currency. Without it the currency is fixed. */
     currencyKey?: string;
 
     /** List only: the fields of one repeated item */
@@ -136,7 +136,7 @@ type DynamicFormField = {
     maxItems?: number;
 };
 
-/** One entry of a list field; `id` is generated on the device for row keys */
+/** One entry of a list field. `id` is generated on the device for row keys. */
 type DynamicFormListItem = Record<string, unknown> & {id: string};
 
 export type {DynamicFormField, DynamicFormFieldOption, DynamicFormFieldType, DynamicFormKeyboard, DynamicFormListItem};

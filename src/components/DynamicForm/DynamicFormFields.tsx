@@ -28,7 +28,7 @@ type DynamicFormFieldsProps = {
 
     shouldSaveDraft?: boolean;
 
-    /** Opens the flow's editor page for a list item; without it lists edit items in a modal */
+    /** Opens the flow's editor page for a list item. Without it, lists edit items in a modal. */
     onOpenListItemEditor?: (fieldKey: string, itemID?: string) => void;
 };
 

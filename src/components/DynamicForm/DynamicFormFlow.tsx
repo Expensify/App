@@ -44,7 +44,7 @@ type DynamicFormFlowProps = {
     headerTitle: string;
     testID: string;
 
-    /** Route for a page slug; the flow passes `edit` when returning from the confirmation page */
+    /** Route for a page slug. The flow passes `edit` when returning from the confirmation page. */
     buildRoute: (pageName: string, action?: 'edit') => Route;
 
     /** Receives every answer in the draft once the confirmation page is confirmed */
@@ -65,7 +65,7 @@ type DynamicFormFlowProps = {
     /** How the pages present: `auto` shows a step indicator at three or more pages, `stepper` always, `pages` never */
     layout?: DynamicFormLayout;
 
-    /** Whether a confirmation page follows the last group; by default only forms with more than five pages get one */
+    /** Whether a confirmation page follows the last group. By default only forms with more than five pages get one. */
     hasConfirmation?: boolean;
 
     /** Called with a page and its answers before the flow moves on, for flows that persist each page to the API */
