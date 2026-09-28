@@ -156,6 +156,6 @@
     Untransformed canvases keep the previous ratio, so nothing else changes.
     ```
 
-- Upstream PR/issue:
+- Upstream PR/issue: https://github.com/Shopify/react-native-skia/issues/4084, fix in https://github.com/Shopify/react-native-skia/pull/4085. Drop this patch once a Skia release containing that PR is consumed.
 - E/App issue: https://github.com/Expensify/App/issues/95221
-- PR introducing patch:
+- PR introducing patch: https://github.com/Expensify/App/pull/101291
