@@ -43,7 +43,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {
-    Beta,
     GpsDraftDetails,
     IntroSelected,
     LastSelectedDistanceRates,
@@ -95,7 +94,6 @@ type CreateTransactionParams = {
     reimbursable?: boolean;
     allTransactionDrafts: OnyxCollection<Transaction>;
     isSelfTourViewed: boolean;
-    betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     optimisticTransactionIDs: string[];
@@ -147,7 +145,6 @@ function createTransaction({
     reimbursable = true,
     allTransactionDrafts,
     isSelfTourViewed,
-    betas,
     personalDetails,
     recentWaypoints,
     optimisticTransactionIDs,
@@ -216,7 +213,6 @@ function createTransaction({
                 conciergeChat,
                 quickAction,
                 recentWaypoints,
-                betas,
                 isSelfTourViewed,
                 optimisticChatReportID,
                 optimisticTransactionID,
