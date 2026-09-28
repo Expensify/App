@@ -13,9 +13,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {initGpsDraft, resumeGpsTrip as resumeGpsTripUtil} from '@libs/actions/GPSDraftDetails';
 import {isTripStopped as isTripStoppedUtil, stopGpsTrip as stopGpsTripUtil} from '@libs/GPSDraftDetailsUtils';
 
-import BackgroundLocationPermissionsFlow from '@pages/iou/request/step/IOURequestStepDistanceGPS/BackgroundLocationPermissionsFlow';
 import {BACKGROUND_LOCATION_TASK_OPTIONS, BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {startGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
+import useBackgroundLocationPermissionsFlow from '@pages/iou/request/step/IOURequestStepDistanceGPS/useBackgroundLocationPermissionsFlow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,7 +23,7 @@ import type {GPSPoint} from '@src/types/onyx/GpsDraftDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 
 import {hasServicesEnabledAsync, startLocationUpdatesAsync} from 'expo-location';
-import React, {useState} from 'react';
+import React from 'react';
 import {Linking, View} from 'react-native';
 
 import GPSTooltip from './GPSTooltip';
@@ -50,7 +50,6 @@ type ButtonsProps = {
 };
 
 function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowPermissionsError, reportID, unit, gpsPoints}: ButtonsProps) {
-    const [startPermissionsFlow, setStartPermissionsFlow] = useState(false);
     const {isOffline} = useNetwork();
     const session = useSession();
     const {showConfirmModal} = useConfirmModal();
@@ -108,19 +107,6 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
         });
     };
 
-    const checkSettingsAndPermissions = async () => {
-        setShouldShowStartError(false);
-
-        const hasLocationServicesEnabled = await hasServicesEnabledAsync();
-
-        if (!hasLocationServicesEnabled) {
-            showDisabledServicesModal();
-            return;
-        }
-
-        setStartPermissionsFlow(true);
-    };
-
     // Returns true if location tracking was successfully initialized, false otherwise
     const initLocationTracking = async (): Promise<boolean> => {
         try {
@@ -155,6 +141,26 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
         startGpsTripNotification(translate, reportID, unit, gpsDraftDetails?.distanceInMeters);
     };
 
+    const startPermissionsFlow = useBackgroundLocationPermissionsFlow({
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises -- the flow starts the trip without awaiting it
+        onGrant: isTripStopped ? resumeGpsTrip : startGpsTrip,
+        onDeny: showLocationRequiredModal,
+        onError: () => setShouldShowPermissionsError(true),
+    });
+
+    const checkSettingsAndPermissions = async () => {
+        setShouldShowStartError(false);
+
+        const hasLocationServicesEnabled = await hasServicesEnabledAsync();
+
+        if (!hasLocationServicesEnabled) {
+            showDisabledServicesModal();
+            return;
+        }
+
+        startPermissionsFlow();
+    };
+
     const stopGpsTrip = () => {
         stopGpsTripUtil(isOffline, gpsPoints);
     };
@@ -168,56 +174,43 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
         navigateToNextStep();
     };
 
-    return (
-        <>
-            {isTripStopped ? (
-                <View style={[styles.gap2, styles.flexRow]}>
-                    <Button
-                        onPress={checkSettingsAndPermissions}
-                        size={CONST.BUTTON_SIZE.LARGE}
-                        style={[styles.flex1]}
-                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_DISCARD_BUTTON}
-                    >
-                        <Button.KeyboardShortcut allowBubble />
-                        <Button.Text>{translate('gps.resume')}</Button.Text>
-                    </Button>
-                    <Button
-                        onPress={saveGpsTrip}
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        size={CONST.BUTTON_SIZE.LARGE}
-                        style={[styles.flex1]}
-                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_NEXT_BUTTON}
-                    >
-                        <Button.KeyboardShortcut allowBubble />
-                        <Button.Text>{translate('gps.save')}</Button.Text>
-                    </Button>
-                </View>
-            ) : (
-                <GPSTooltip>
-                    <View>
-                        <Button
-                            onPress={gpsDraftDetails?.isTracking ? stopGpsTrip : checkSettingsAndPermissions}
-                            variant={gpsDraftDetails?.isTracking ? undefined : CONST.BUTTON_VARIANT.SUCCESS}
-                            size={CONST.BUTTON_SIZE.LARGE}
-                            style={[styles.w100, styles.flexShrink0]}
-                            sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_START_STOP_BUTTON}
-                        >
-                            <Button.KeyboardShortcut allowBubble />
-                            <Button.Text>{gpsDraftDetails?.isTracking ? translate('gps.stop') : translate('gps.start')}</Button.Text>
-                        </Button>
-                    </View>
-                </GPSTooltip>
-            )}
-
-            <BackgroundLocationPermissionsFlow
-                onError={() => setShouldShowPermissionsError(true)}
-                startPermissionsFlow={startPermissionsFlow}
-                setStartPermissionsFlow={setStartPermissionsFlow}
-                // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                onGrant={isTripStopped ? resumeGpsTrip : startGpsTrip}
-                onDeny={showLocationRequiredModal}
-            />
-        </>
+    return isTripStopped ? (
+        <View style={[styles.gap2, styles.flexRow]}>
+            <Button
+                onPress={checkSettingsAndPermissions}
+                size={CONST.BUTTON_SIZE.LARGE}
+                style={[styles.flex1]}
+                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_DISCARD_BUTTON}
+            >
+                <Button.KeyboardShortcut allowBubble />
+                <Button.Text>{translate('gps.resume')}</Button.Text>
+            </Button>
+            <Button
+                onPress={saveGpsTrip}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
+                style={[styles.flex1]}
+                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_NEXT_BUTTON}
+            >
+                <Button.KeyboardShortcut allowBubble />
+                <Button.Text>{translate('gps.save')}</Button.Text>
+            </Button>
+        </View>
+    ) : (
+        <GPSTooltip>
+            <View>
+                <Button
+                    onPress={gpsDraftDetails?.isTracking ? stopGpsTrip : checkSettingsAndPermissions}
+                    variant={gpsDraftDetails?.isTracking ? undefined : CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                    style={[styles.w100, styles.flexShrink0]}
+                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_START_STOP_BUTTON}
+                >
+                    <Button.KeyboardShortcut allowBubble />
+                    <Button.Text>{gpsDraftDetails?.isTracking ? translate('gps.stop') : translate('gps.start')}</Button.Text>
+                </Button>
+            </View>
+        </GPSTooltip>
     );
 }
 
