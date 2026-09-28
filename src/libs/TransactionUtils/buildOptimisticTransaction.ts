@@ -20,7 +20,9 @@ import lodashSet from 'lodash/set';
 import {isManualDistanceRequest, isOdometerDistanceRequest} from './index';
 
 type TransactionParams = {
+    /** Amount of the transaction, in cents */
     amount: number;
+
     modifiedAmount?: number;
     modifiedMerchant?: string;
     currency: string;
@@ -66,7 +68,10 @@ type TransactionParams = {
 
 type BuildOptimisticTransactionParams = {
     originalTransactionID?: string;
+
+    /** Reuse this ID when a distance expense already created an empty transaction */
     existingTransactionID?: string;
+
     existingTransaction?: OnyxEntry<Transaction>;
     policy?: OnyxEntry<Policy>;
     transactionParams: TransactionParams;
@@ -75,9 +80,6 @@ type BuildOptimisticTransactionParams = {
 
 /**
  * Optimistically generate a transaction.
- *
- * @param amount – in cents
- * @param [existingTransactionID] Reuse this ID when a distance expense already created an empty transaction.
  */
 function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): Transaction {
     const {originalTransactionID = '', existingTransactionID, existingTransaction, policy, transactionParams, isDemoTransactionParam} = params;
