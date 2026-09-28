@@ -176,7 +176,7 @@ If the upload fails (for example, due to a lost network connection), an error ap
 
 **In the native mobile app (iOS and Android):** You'll see the message "Upload failed. Try again or save for later." with two options:
 
-- **Try again** — resends the same expense and receipt. When the upload succeeds, the error goes away. This does not create a duplicate expense.
+- **Try again** — sends the same expense and receipt again. When the upload succeeds, the error goes away. This does not create a duplicate expense.
 - **Save** — downloads the receipt image to your device so you don't lose it.
 
 **On web and mobile web:** You'll see the message "Upload failed. Save your receipt to keep it." Click **Save** to download the receipt image to your device. You can then re-create the expense and attach the saved receipt.
