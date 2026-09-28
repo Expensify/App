@@ -112,7 +112,7 @@ function ReportFetchHandler() {
     const isAnonymousUser = useIsAnonymousUser();
     const prevIsAnonymousUser = useRef(false);
     const hasCreatedLegacyThreadRef = useRef(false);
-    const hasCreatedOneTransactionThreadRef = useRef(false);
+    const createdOneTransactionThreadForRef = useRef<string | undefined>(undefined);
     const didSubscribeToReportLeavingEvents = useRef(false);
     const joinedSecureLinkReportIDRef = useRef<string | undefined>(undefined);
 
@@ -384,7 +384,7 @@ function ReportFetchHandler() {
 
     useEffect(() => {
         if (
-            hasCreatedOneTransactionThreadRef.current ||
+            createdOneTransactionThreadForRef.current === reportID ||
             transactionThreadReportID !== CONST.FAKE_REPORT_ID ||
             transactionThreadReport?.reportID ||
             (!reportLoadingState.hasOnceLoadedReportActions && !reportMetadata?.isOptimisticReport && !isOffline)
@@ -392,11 +392,11 @@ function ReportFetchHandler() {
             return;
         }
 
-        // A failed create rolls the thread back, which puts this ID back to FAKE_REPORT_ID. Without the ref we would
+        // A failed create rolls the thread back, which puts this ID back to FAKE_REPORT_ID. Without this we would
         // rebuild it straight away and keep looping for as long as the server keeps failing.
-        hasCreatedOneTransactionThreadRef.current = true;
+        createdOneTransactionThreadForRef.current = reportID;
         createOneTransactionThread();
-    }, [reportLoadingState.hasOnceLoadedReportActions, reportMetadata?.isOptimisticReport, transactionThreadReport?.reportID, transactionThreadReportID, isOffline]);
+    }, [reportLoadingState.hasOnceLoadedReportActions, reportMetadata?.isOptimisticReport, transactionThreadReport?.reportID, transactionThreadReportID, isOffline, reportID]);
 
     const hasHeldPublicRoomJoin = useRef(false);
 
@@ -598,7 +598,6 @@ function ReportFetchHandler() {
 
     useEffect(() => {
         hasCreatedLegacyThreadRef.current = false;
-        hasCreatedOneTransactionThreadRef.current = false;
     }, [reportID]);
 
     // When opening IOU report for single transaction, we will create IOU action and transaction thread
