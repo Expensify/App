@@ -16,6 +16,7 @@ import type {DynamicFormField} from '@src/types/onyx';
 import type {DynamicFormValues} from './types';
 
 import {getFieldOptions} from './getFieldOptions';
+import isAnswerRecord from './isAnswerRecord';
 import isCountryCode from './isCountryCode';
 import isFieldVisible from './isFieldVisible';
 
@@ -26,7 +27,7 @@ const PERCENT_MAX = 100;
 
 const CHOICE_TYPES = new Set<DynamicFormField['type']>(['select', 'multiselect', 'radio', 'countryMultiselect']);
 
-/** A boolean alone on its page is a Yes/No question, so No is an answer; among other fields it is a consent box that must be ticked */
+/** A boolean alone on its page is a Yes/No question, so No is an answer. Among other fields it is a consent box that must be ticked. */
 function isAnswered(value: unknown, isAloneOnPage: boolean): boolean {
     if (Array.isArray(value)) {
         return value.length > 0;
@@ -47,10 +48,6 @@ function hasStaleOption(field: DynamicFormField, value: unknown, values: Dynamic
     const allowed = new Set(getFieldOptions(field, values).map((option) => option.key));
     const chosen: unknown[] = Array.isArray(value) ? value : [value];
     return chosen.some((key) => typeof key === 'string' && key !== '' && !allowed.has(key));
-}
-
-function isAnswerRecord(item: unknown): item is DynamicFormValues {
-    return typeof item === 'object' && item !== null && !Array.isArray(item);
 }
 
 function getListErrors(field: DynamicFormField, value: unknown, translate: LocalizedTranslate): string[] {
@@ -109,8 +106,16 @@ function getFieldErrors(field: DynamicFormField, values: DynamicFormValues, tran
             messages.push(translate('dynamicForm.error.outOfRange', {min: PERCENT_MIN, max: PERCENT_MAX}));
         }
     }
-    if (field.regex && !new RegExp(field.regex).test(value)) {
-        messages.push(translate('dynamicForm.error.invalidFormat', {example: field.example}));
+    if (field.regex) {
+        let regex: RegExp | undefined;
+        try {
+            regex = new RegExp(field.regex);
+        } catch {
+            regex = undefined;
+        }
+        if (regex && !regex.test(value)) {
+            messages.push(translate('dynamicForm.error.invalidFormat', {example: field.example}));
+        }
     }
     if (field.minLength !== undefined && value.length < field.minLength) {
         messages.push(translate('dynamicForm.error.tooShort', {minLength: field.minLength}));

@@ -25,7 +25,7 @@ type PushRowModalProps = {
 
     selectedOptions: string[];
 
-    /** Called with the row's key; the parent commits it or toggles it in its pending selection */
+    /** Called with the row's key. The parent commits it or toggles it in its pending selection. */
     onOptionChange: (option: string) => void;
 
     /** Called by the Save button when `canSelectMultiple` */
@@ -52,17 +52,13 @@ function PushRowModal({isVisible, canSelectMultiple = false, selectedOptions, on
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const initialSelectedValues = useInitialSelection(selectedOptions, {isVisible});
 
-    const options = useMemo(
-        () =>
-            Object.entries(optionsList).map(([key, value]) => ({
-                value: key,
-                text: value,
-                keyForList: key,
-                isSelected: selectedOptions.includes(key),
-                searchValue: StringUtils.sanitizeString(value),
-            })),
-        [optionsList, selectedOptions],
-    );
+    const options = Object.entries(optionsList).map(([key, value]) => ({
+        value: key,
+        text: value,
+        keyForList: key,
+        isSelected: selectedOptions.includes(key),
+        searchValue: StringUtils.sanitizeString(value),
+    }));
 
     const orderedOptions = moveInitialSelectionToTop(options, initialSelectedValues);
 

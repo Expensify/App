@@ -544,7 +544,15 @@ function optimizeAvatarSource(source?: AvatarSource): AvatarSource | undefined {
     return findLocalAvatarForURL(source) ?? source;
 }
 
+/** Letter avatar for a free-text name, such as a list row title, seeded by the name so the colour is stable */
+function getLetterAvatarURLForName(name: string): string | undefined {
+    const [firstName = '', ...otherNames] = name.trim().split(/\s+/);
+    const colorSeed = [...name].reduce((sum, character) => sum + character.charCodeAt(0), 0);
+    return getLetterAvatarURL(colorSeed, firstName, otherNames.at(-1) ?? '', '') || undefined;
+}
+
 export {
+    getLetterAvatarURLForName,
     buildUserIcon,
     getAccountIDFromAvatarID,
     getAvatar,

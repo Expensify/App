@@ -25,7 +25,7 @@ type AmountWithCurrencyAdapterProps = {
     currencyKey: string;
 };
 
-/** An amount whose currency the user can change; the currency lands on a sibling form key so the schema can name it */
+/** An amount whose currency the user can change. The currency lands on a sibling form key so the schema can name it. */
 function AmountWithCurrencyAdapter({value, onInputChange = () => {}, errorText, label, currency, currencyKey}: AmountWithCurrencyAdapterProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();

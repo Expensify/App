@@ -1,3 +1,4 @@
+// Storybook has no Reanimated runtime, so the plain Animated.Value stands in for the card progress
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 

@@ -23,7 +23,7 @@ type CountryPickerProps = {
     /** Form Error description */
     errorText?: string;
 
-    /** Row description; the generic Country label when omitted */
+    /** Row description. Falls back to the generic Country label when omitted. */
     label?: string;
 };
 

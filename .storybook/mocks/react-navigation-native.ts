@@ -15,7 +15,7 @@ const staticNavigation = {
     addListener: () => noop,
 };
 
-/** Inside a StoryRouterProvider the route comes from the story's stack; elsewhere no story mounts a navigator */
+/** Inside a StoryRouterProvider the route comes from the story's stack. Elsewhere no story mounts a navigator. */
 function useRoute() {
     const router = useStoryRouter();
     return router ? {...staticRoute, params: router.current} : staticRoute;
