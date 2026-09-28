@@ -191,6 +191,7 @@ function GroupHeader({
 
     const animatedHighlightStyle = useRowHighlightAnimation({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        highlightKey: item?.groupKeyForList,
         isSelected: isItemSelected,
         shouldApplyOtherStyles: false,
     });

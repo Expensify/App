@@ -11,13 +11,13 @@ jest.mock('@hooks/useAnimatedHighlightStyle', () => jest.fn(() => animatedHighli
 
 const mockUseAnimatedHighlightStyle = jest.mocked(useAnimatedHighlightStyle);
 
-type HookParams = Parameters<typeof useListItemHighlight>[0];
+type HookParams = Partial<Parameters<typeof useListItemHighlight>[0]>;
 
 function renderHighlightHook(params?: HookParams) {
     const {result} = renderHook(() => ({
         styles: useThemeStyles(),
         theme: useTheme(),
-        highlight: useListItemHighlight(params),
+        highlight: useListItemHighlight({highlightKey: undefined, ...params}),
     }));
     return result.current;
 }
@@ -39,6 +39,7 @@ describe('useListItemHighlight', () => {
             highlightColor: theme.messageHighlightBG,
             backgroundColor: theme.highlightBG,
             shouldApplyOtherStyles: true,
+            highlightKey: undefined,
         });
     });
 

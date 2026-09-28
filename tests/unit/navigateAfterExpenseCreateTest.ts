@@ -77,6 +77,7 @@ describe('navigateAfterExpenseCreate', () => {
             transactionID: 'txn-1',
             isFromGlobalCreate: false,
             hasMultipleTransactions: false,
+            shouldFlagNewTransactionForChatPreview: false,
         });
 
         expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: 'report-123'});
@@ -91,6 +92,7 @@ describe('navigateAfterExpenseCreate', () => {
             transactionID: 'txn-1',
             isFromGlobalCreate: true,
             hasMultipleTransactions: false,
+            shouldFlagNewTransactionForChatPreview: false,
         });
 
         expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: 'report-123'});
@@ -108,6 +110,7 @@ describe('navigateAfterExpenseCreate', () => {
             transactionID: 'txn-1',
             isFromGlobalCreate: true,
             hasMultipleTransactions: false,
+            shouldFlagNewTransactionForChatPreview: false,
             isLookingAroundUser: true,
             isSelfDMDestination: true,
         });
@@ -129,6 +132,7 @@ describe('navigateAfterExpenseCreate', () => {
             transactionID: 'txn-1',
             isFromGlobalCreate: true,
             hasMultipleTransactions: false,
+            shouldFlagNewTransactionForChatPreview: false,
             isLookingAroundUser: false,
             isSelfDMDestination: false,
         });
@@ -147,6 +151,7 @@ describe('navigateAfterExpenseCreate', () => {
             transactionID: 'txn-1',
             isFromGlobalCreate: true,
             hasMultipleTransactions: false,
+            shouldFlagNewTransactionForChatPreview: false,
             isLookingAroundUser: true,
             isSelfDMDestination: false,
         });
@@ -159,6 +164,7 @@ describe('navigateAfterExpenseCreate', () => {
             activeReportID: 'report-123',
             isFromGlobalCreate: true,
             hasMultipleTransactions: false,
+            shouldFlagNewTransactionForChatPreview: false,
         });
 
         expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: 'report-123'});
@@ -172,6 +178,7 @@ describe('navigateAfterExpenseCreate', () => {
             transactionID: 'txn-1',
             isFromGlobalCreate: true,
             hasMultipleTransactions: false,
+            shouldFlagNewTransactionForChatPreview: false,
         });
 
         expect(mockSetPendingSubmitFollowUpAction).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
@@ -186,6 +193,7 @@ describe('navigateAfterExpenseCreate', () => {
             transactionID: 'txn-1',
             isFromGlobalCreate: true,
             hasMultipleTransactions: false,
+            shouldFlagNewTransactionForChatPreview: false,
         });
 
         expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense', searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
@@ -200,6 +208,7 @@ describe('navigateAfterExpenseCreate', () => {
             isFromGlobalCreate: true,
             isInvoice: true,
             hasMultipleTransactions: false,
+            shouldFlagNewTransactionForChatPreview: false,
         });
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:invoice'}), {forceReplace: true});
@@ -214,6 +223,7 @@ describe('navigateAfterExpenseCreate', () => {
             transactionID: 'txn-1',
             isFromGlobalCreate: true,
             hasMultipleTransactions: false,
+            shouldFlagNewTransactionForChatPreview: false,
         });
 
         expect(Navigation.clearFullscreenPreInsertedFlag).toHaveBeenCalled();

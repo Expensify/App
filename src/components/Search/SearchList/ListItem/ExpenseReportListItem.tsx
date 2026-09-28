@@ -397,6 +397,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const shouldApplyAnimatedBorderRadius = !isLargeScreenWidth && !isFirstItem && !isLastItem;
     const animatedHighlightStyle = useRowHighlightAnimation({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        highlightKey: item?.keyForList,
         isSelected,
         borderRadius: 0,
         shouldApplyOtherStyles: shouldApplyAnimatedBorderRadius,

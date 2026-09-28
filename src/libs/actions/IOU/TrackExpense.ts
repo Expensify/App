@@ -52,7 +52,6 @@ import {
     getParsedComment,
     getReportOrDraftReport,
     getReportRecipientAccountIDs,
-    getReportTransactions,
     isHiddenForCurrentUser,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
@@ -133,7 +132,6 @@ import {
     getTransactionWithPreservedLocalReceiptSource,
 } from './MoneyRequestBuilder';
 import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
-import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
 import resolveWriteBarrier, {IMMEDIATE} from './resolveWriteBarrier';
 import {getSearchOnyxUpdate} from './SearchUpdate';
 
@@ -1992,10 +1990,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 );
             };
         }
-    }
-
-    if (isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID))) {
-        addPendingNewTransactionIDs(activeReportID, transaction.transactionID);
     }
 
     deferredAPIWrite?.();

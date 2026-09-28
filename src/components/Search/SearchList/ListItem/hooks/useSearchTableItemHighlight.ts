@@ -14,19 +14,23 @@ type UseSearchTableItemHighlightParams = {
 
     /** Whether this is the last row in the table (affects bottom radius) */
     isLastItem?: boolean;
+
+    /** Key of the item this row shows, so a recycled row doesn't play for the item it replaced. */
+    highlightKey: string | undefined;
 };
 
 /**
  * Highlight animation plus the pressable styles a search-table row needs: row paddings, bottom radius on the last wide row.
  * `isSelected` is not forwarded to the animation: selection is painted on the pressable, not the animated wrapper.
  */
-function useSearchTableItemHighlight({shouldHighlight = false, isSelected = false, isLastItem = false}: UseSearchTableItemHighlightParams = {}) {
+function useSearchTableItemHighlight({shouldHighlight = false, isSelected = false, isLastItem = false, highlightKey}: UseSearchTableItemHighlightParams) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
 
     const animatedHighlightStyle = useRowHighlightAnimation({
         shouldHighlight,
+        highlightKey,
         borderRadius: StyleUtils.getSearchTableHighlightBorderRadius(isLargeScreenWidth),
         shouldApplyOtherStyles: !isLargeScreenWidth,
     });

@@ -204,6 +204,7 @@ function TransactionGroupListItemImpl({
 
     const animatedHighlightStyle = useRowHighlightAnimation({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        highlightKey: item?.keyForList,
         isSelected: isItemSelected,
         shouldApplyOtherStyles: false,
     });

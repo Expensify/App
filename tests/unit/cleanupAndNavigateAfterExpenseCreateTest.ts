@@ -159,7 +159,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
         );
     });
 
-    it('should set shouldAddPendingNewTransactionIDs=true for CREATE into a brand-new optimistic chat that is not yet in the report cache', () => {
+    it('should set shouldFlagNewTransactionForChatPreview=true for CREATE into a brand-new optimistic chat that is not yet in the report cache', () => {
         // A brand-new optimistic chat created the same tick is NOT in the report cache, so getReportOrDraftReport returns undefined.
         jest.mocked(getReportOrDraftReport).mockReturnValue(undefined);
 
@@ -176,7 +176,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
         expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(
             expect.objectContaining({
                 activeReportID: 'optimistic-chat-not-in-cache',
-                shouldAddPendingNewTransactionIDs: true,
+                shouldFlagNewTransactionForChatPreview: true,
             }),
         );
     });
@@ -238,7 +238,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             isFromGlobalCreate: true,
             isInvoice: true,
             hasMultipleTransactions: false,
-            shouldAddPendingNewTransactionIDs: false,
+            shouldFlagNewTransactionForChatPreview: false,
             shouldNavigate: true,
         });
     });
@@ -260,12 +260,12 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             isFromGlobalCreate: true,
             isInvoice: true,
             hasMultipleTransactions: false,
-            shouldAddPendingNewTransactionIDs: false,
+            shouldFlagNewTransactionForChatPreview: false,
             shouldNavigate: false,
         });
     });
 
-    describe('shouldAddPendingNewTransactionIDs derivation', () => {
+    describe('shouldFlagNewTransactionForChatPreview derivation', () => {
         it('should always be true for CATEGORIZE (move-from-track to a workspace), even with a backToReport diversion', () => {
             cleanupAndNavigateAfterExpenseCreate({
                 action: CONST.IOU.ACTION.CATEGORIZE,
@@ -276,7 +276,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
                 backToReport: 'somewhere-else',
             });
 
-            expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: true}));
+            expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldFlagNewTransactionForChatPreview: true}));
         });
 
         it('should always be true for SHARE', () => {
@@ -288,7 +288,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
                 isFromGlobalCreate: false,
             });
 
-            expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: true}));
+            expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldFlagNewTransactionForChatPreview: true}));
         });
 
         it('should be true for CREATE when backToReport is the receiving chat', () => {
@@ -303,7 +303,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
                 backToReport: 'receiving-chat',
             });
 
-            expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: true}));
+            expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldFlagNewTransactionForChatPreview: true}));
         });
 
         it('should be false for CREATE when backToReport points to a money-request (expense) report', () => {
@@ -319,7 +319,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
                 backToReport: 'back-expense',
             });
 
-            expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: false}));
+            expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldFlagNewTransactionForChatPreview: false}));
         });
 
         it('should be false for CREATE when navigation lands on a money-request (expense) report instead of the chat', () => {
@@ -333,7 +333,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
                 isFromGlobalCreate: false,
             });
 
-            expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: false}));
+            expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldFlagNewTransactionForChatPreview: false}));
         });
 
         it('should be false for an invoice without looking up the report (invoice rooms are never money-request reports)', () => {
@@ -347,7 +347,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
                 isInvoice: true,
             });
 
-            expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: false, hasMultipleTransactions: false}));
+            expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldFlagNewTransactionForChatPreview: false, hasMultipleTransactions: false}));
             expect(getReportOrDraftReport).not.toHaveBeenCalled();
             expect(isMoneyRequestReport).not.toHaveBeenCalled();
         });

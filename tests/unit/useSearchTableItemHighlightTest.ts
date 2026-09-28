@@ -17,14 +17,14 @@ jest.mock('@hooks/useResponsiveLayout', () => () => ({isLargeScreenWidth: mockIs
 
 const mockUseAnimatedHighlightStyle = jest.mocked(useAnimatedHighlightStyle);
 
-type HookParams = Parameters<typeof useSearchTableItemHighlight>[0];
+type HookParams = Partial<Parameters<typeof useSearchTableItemHighlight>[0]>;
 
 function renderHighlightHook(params?: HookParams) {
     const {result} = renderHook(() => ({
         styles: useThemeStyles(),
         StyleUtils: useStyleUtils(),
         theme: useTheme(),
-        highlight: useSearchTableItemHighlight(params),
+        highlight: useSearchTableItemHighlight({highlightKey: undefined, ...params}),
     }));
     return result.current;
 }
@@ -48,6 +48,7 @@ describe('useSearchTableItemHighlight', () => {
             highlightColor: theme.messageHighlightBG,
             backgroundColor: theme.highlightBG,
             shouldApplyOtherStyles: !isLargeScreenWidth,
+            highlightKey: undefined,
         });
     });
 

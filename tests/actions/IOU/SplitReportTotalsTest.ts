@@ -24,6 +24,7 @@ import Onyx from 'react-native-onyx';
 
 import currencyList from '../../unit/currencyList.json';
 import createMock from '../../utils/createMock';
+import getFlaggedTransactionIDs from '../../utils/pendingNewTransactionFlags';
 import {getGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -57,9 +58,9 @@ jest.mock('@react-navigation/native');
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 jest.mock('@libs/actions/IOU/PendingNewTransactions', () => ({
-    addPendingNewTransactionIDs: jest.fn(),
+    ...jest.requireActual<Record<string, unknown>>('@libs/actions/IOU/PendingNewTransactions'),
+    flagNewTransactionForChatPreview: jest.fn(),
     deletePendingNewTransactionIDs: jest.fn(),
-    isOneToTwoTransactionTransition: jest.fn(() => false),
 }));
 jest.mock('@libs/API/writeWhenReady');
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
@@ -420,21 +421,21 @@ describe('actions/IOU', () => {
         const transactionID = '1';
         mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
 
-        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: false});
+        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: false, shouldFlagNewTransactionForChatPreview: false});
         expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
 
-        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true});
+        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, shouldFlagNewTransactionForChatPreview: false});
         expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
 
         mockedIsReportTopmostSplitNavigator.mockReturnValue(true);
-        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID});
+        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID, shouldFlagNewTransactionForChatPreview: false});
         expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
 
         mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
-        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID});
+        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID, shouldFlagNewTransactionForChatPreview: false});
         expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
 
-        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID, isInvoice: true});
+        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID, isInvoice: true, shouldFlagNewTransactionForChatPreview: false});
         expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
 
         spyOnMergeTransactionIdsHighlightOnSearchRoute.mockReset();
@@ -786,8 +787,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Then nothing is registered — no highlight for reverse splits
-            const pendingNewTransactionIDs = await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID);
-            expect(pendingNewTransactionIDs?.['new-merged-tx']).toBeUndefined();
+            expect(getFlaggedTransactionIDs(await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID))).toEqual([]);
         });
 
         it('skips registration when the expense report will become empty after the split', async () => {
@@ -816,9 +816,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Then nothing is registered — the list navigates away before any highlight could render
-            const pendingNewTransactionIDs = await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID);
-            expect(pendingNewTransactionIDs?.['new-tx-1']).toBeUndefined();
-            expect(pendingNewTransactionIDs?.['new-tx-2']).toBeUndefined();
+            expect(getFlaggedTransactionIDs(await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID))).toEqual([]);
         });
 
         it('registers the search-route highlight (not report metadata) when splitting from the Search/Spend page', async () => {
@@ -857,7 +855,7 @@ describe('actions/IOU', () => {
 
         /**
          * Reads REPORT_METADATA directly: the flags are written as Onyx optimisticData, not through the mocked
-         * addPendingNewTransactionIDs, so mock-only assertions cannot observe them - which is how this regressed.
+         * flagNewTransactionForChatPreview, so mock-only assertions cannot observe them - which is how this regressed.
          */
         function getPendingNewTransactionIDsFromOnyx(reportID: string) {
             return new Promise<Record<string, unknown> | undefined>((resolve) => {
@@ -902,9 +900,7 @@ describe('actions/IOU', () => {
             // Then no highlight flags land in REPORT_METADATA. Search navigates back to the Spend page and never mounts
             // the expense report's list, so nothing would consume or clear them - they would instead highlight stale rows
             // the next time the user opened that report from the Inbox.
-            const pendingNewTransactionIDs = await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID);
-            expect(pendingNewTransactionIDs?.['new-tx-1']).toBeUndefined();
-            expect(pendingNewTransactionIDs?.['new-tx-2']).toBeUndefined();
+            expect(getFlaggedTransactionIDs(await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID))).toEqual([]);
         });
 
         it('writes pendingNewTransactionIDs into report metadata when splitting from the expense report', async () => {
@@ -936,13 +932,12 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Then the flags are written, because this path opens the report and its list consumes and clears them on mount
-            const pendingNewTransactionIDs = await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID);
-            expect(pendingNewTransactionIDs?.['new-tx-3']).toBe(true);
-            expect(pendingNewTransactionIDs?.['new-tx-4']).toBe(true);
+            const flaggedTransactionIDs = getFlaggedTransactionIDs(await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID));
+            expect(flaggedTransactionIDs).toEqual(expect.arrayContaining(['new-tx-3', 'new-tx-4']));
 
             // And the transaction that already existed in the report is not flagged - it is not new, so highlighting it
             // would draw attention to a row the user has already seen
-            expect(pendingNewTransactionIDs?.['existing-tx-2']).toBeUndefined();
+            expect(flaggedTransactionIDs).not.toContain('existing-tx-2');
         });
 
         it('skips the search-route highlight during a reverse split from the Search/Spend page', async () => {
@@ -1007,9 +1002,7 @@ describe('actions/IOU', () => {
             );
 
             // And the report-metadata rail stays clean offline too
-            const pendingNewTransactionIDs = await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID);
-            expect(pendingNewTransactionIDs?.['offline-tx-1']).toBeUndefined();
-            expect(pendingNewTransactionIDs?.['offline-tx-2']).toBeUndefined();
+            expect(getFlaggedTransactionIDs(await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID))).toEqual([]);
 
             spyOnMergeTransactionIdsHighlightOnSearchRoute.mockRestore();
         });
@@ -1043,11 +1036,9 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Then neither the source report nor the destination reports carry stranded highlight flags
-            const sourceRail = await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID);
-            expect(sourceRail?.['moved-tx-1']).toBeUndefined();
-            expect(sourceRail?.['moved-tx-2']).toBeUndefined();
-            expect((await getPendingNewTransactionIDsFromOnyx('other-report-1'))?.['moved-tx-1']).toBeUndefined();
-            expect((await getPendingNewTransactionIDsFromOnyx('other-report-2'))?.['moved-tx-2']).toBeUndefined();
+            expect(getFlaggedTransactionIDs(await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID))).toEqual([]);
+            expect(getFlaggedTransactionIDs(await getPendingNewTransactionIDsFromOnyx('other-report-1'))).toEqual([]);
+            expect(getFlaggedTransactionIDs(await getPendingNewTransactionIDsFromOnyx('other-report-2'))).toEqual([]);
         });
     });
 });

@@ -7,16 +7,19 @@ type UseListItemHighlightParams = {
 
     /** Whether the row is currently selected */
     isSelected?: boolean;
+
+    /** Key of the item this row shows, so a recycled row doesn't play for the item it replaced. */
+    highlightKey: string | undefined;
 };
 
 /**
  * Highlight animation plus the pressable styles that let it show through.
  * `isSelected` is not forwarded to the animation: selection is painted on the pressable, not the animated wrapper.
  */
-function useListItemHighlight({shouldHighlight = false, isSelected = false}: UseListItemHighlightParams = {}) {
+function useListItemHighlight({shouldHighlight = false, isSelected = false, highlightKey}: UseListItemHighlightParams) {
     const styles = useThemeStyles();
 
-    const animatedHighlightStyle = useRowHighlightAnimation({shouldHighlight, borderRadius: styles.selectionListPressableItemWrapper.borderRadius});
+    const animatedHighlightStyle = useRowHighlightAnimation({shouldHighlight, highlightKey, borderRadius: styles.selectionListPressableItemWrapper.borderRadius});
 
     return {
         animatedHighlightStyle,

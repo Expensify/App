@@ -42,6 +42,7 @@ function ChatListItem<TItem extends ListItem>({
     const {isSelected} = useRowSelection(item.keyForList);
     const {pressableStyle, pressableWrapperStyle} = useListItemHighlight({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        highlightKey: item?.keyForList,
         isSelected,
     });
 

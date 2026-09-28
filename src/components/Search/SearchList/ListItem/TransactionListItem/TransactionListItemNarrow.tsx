@@ -85,6 +85,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     // so every other row keeps its existing (already square) behavior.
     const animatedHighlightStyle = useRowHighlightAnimation({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        highlightKey: item?.keyForList,
         isSelected,
         borderRadius: 0,
         shouldApplyOtherStyles: !isFirstItem && !isLastItem,

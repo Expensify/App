@@ -231,14 +231,235 @@ describe('getMoneyRequestInformation', () => {
     });
 
     describe('pendingNewTransactionIDs metadata rail', () => {
-        // Only the 0→1 negative is testable here (the resolved report has no existing txs); the >= 1 positive path lives in the useNewTransactions consumer tests.
+        const FLAGGED_AT = 1700000000000;
+        let dateNowSpy: jest.SpyInstance;
+        beforeEach(async () => {
+            dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(FLAGGED_AT);
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: PAYEE_ACCOUNT_ID, email: 'payee@example.com'});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, type: CONST.POLICY.TYPE.CORPORATE, name: 'Test Policy'});
+            await waitForBatchedUpdates();
+        });
+        afterEach(() => {
+            dateNowSpy.mockRestore();
+        });
+
+        const buildExistingIOUReport = (reportID: string, transactionCount?: number): Report => ({
+            reportID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: PAYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            currency: 'USD',
+            total: 0,
+            ...(transactionCount !== undefined && {transactionCount}),
+        });
+
+        const setReportTransaction = (transactionID: string, reportID: string, pendingAction?: Transaction['pendingAction']) =>
+            Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                transactionID,
+                reportID,
+                amount: 500,
+                created: '2024-01-01',
+                currency: 'USD',
+                merchant: 'Existing Merchant',
+                ...(pendingAction && {pendingAction}),
+            });
+
         it('does NOT flag the first transaction of a report (no stale flag to re-highlight the original on a later add)', () => {
             const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal});
             const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.iouReport.reportID}`;
             const newTxID = result.transaction.transactionID;
 
             expect(result.onyxData.optimisticData ?? []).not.toEqual(
-                expect.arrayContaining([expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[newTxID]: true})})})]),
+                expect.arrayContaining([
+                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${newTxID}:${FLAGGED_AT}`]: true})})}),
+                ]),
+            );
+        });
+
+        it('flags the transaction when the target report already holds a transaction', () => {
+            // Given a report whose count says it already holds one expense, though none is cached
+            const moneyRequestReportID = 'iou-report-rail-1';
+            const existingIOUReport = buildExistingIOUReport(moneyRequestReportID, 1);
+
+            // When an expense is added to it
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal, existingIOUReport, moneyRequestReportID});
+            const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReportID}`;
+            const newTxID = result.transaction.transactionID;
+
+            // Then the new expense is flagged, and a failed request clears that same flag
+            expect(result.onyxData.optimisticData ?? []).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${newTxID}:${FLAGGED_AT}`]: true})})}),
+                ]),
+            );
+            expect(result.onyxData.failureData ?? []).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${newTxID}:${FLAGGED_AT}`]: null})})}),
+                ]),
+            );
+        });
+
+        /**
+         * A multi-add action builds its adds in one synchronous run, passing each call the report the previous one returned.
+         * A single call can't express "this action's second add": from the report alone it looks like an add to a filled report.
+         */
+        const addToReport = (moneyRequestReportID: string, existingIOUReport: Report) =>
+            getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal, existingIOUReport, moneyRequestReportID});
+        const flagFor = (moneyRequestReportID: string, transactionID: string) =>
+            expect.objectContaining({
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReportID}`,
+                value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${transactionID}:${FLAGGED_AT}`]: true})}),
+            });
+
+        it('does not flag either expense of a report this same action fills, such as a duplicated report', () => {
+            // Given a report this action created, so it was showing nothing when the action began
+            const moneyRequestReportID = 'iou-report-rail-new-report';
+
+            // When the action adds two expenses to it in one run
+            const first = addToReport(moneyRequestReportID, buildExistingIOUReport(moneyRequestReportID, 0));
+            const second = addToReport(moneyRequestReportID, buildExistingIOUReport(moneyRequestReportID, 1));
+
+            // Then neither is flagged: both are the report's initial contents
+            expect(first.onyxData.optimisticData ?? []).not.toEqual(expect.arrayContaining([flagFor(moneyRequestReportID, first.transaction.transactionID)]));
+            expect(second.onyxData.optimisticData ?? []).not.toEqual(expect.arrayContaining([flagFor(moneyRequestReportID, second.transaction.transactionID)]));
+        });
+
+        it('flags an expense added in a later run, since by then the rows already there are ones the user could have seen', async () => {
+            // Given a report filled by an earlier action, whose row has since reached the transaction cache
+            const moneyRequestReportID = 'iou-report-rail-later-run';
+            const first = addToReport(moneyRequestReportID, buildExistingIOUReport(moneyRequestReportID, 0));
+            expect(first.onyxData.optimisticData ?? []).not.toEqual(expect.arrayContaining([flagFor(moneyRequestReportID, first.transaction.transactionID)]));
+            await setReportTransaction(first.transaction.transactionID, moneyRequestReportID);
+            await waitForBatchedUpdates();
+
+            // When a separate action adds to the same report
+            const later = addToReport(moneyRequestReportID, buildExistingIOUReport(moneyRequestReportID, 1));
+
+            // Then it is flagged: rows an earlier action left are the report's existing rows
+            expect(later.onyxData.optimisticData ?? []).toEqual(expect.arrayContaining([flagFor(moneyRequestReportID, later.transaction.transactionID)]));
+        });
+
+        it('flags every copy landing on a report that already held expenses before this action', async () => {
+            // Given a report showing one expense before the action began
+            const moneyRequestReportID = 'iou-report-rail-existing-report';
+            await setReportTransaction('before-the-action', moneyRequestReportID);
+            await waitForBatchedUpdates();
+
+            // When the action adds two copies to it in one run
+            const first = addToReport(moneyRequestReportID, buildExistingIOUReport(moneyRequestReportID, 1));
+            const second = addToReport(moneyRequestReportID, buildExistingIOUReport(moneyRequestReportID, 2));
+
+            // Then both are flagged, since each is an insertion
+            expect(first.onyxData.optimisticData ?? []).toEqual(expect.arrayContaining([flagFor(moneyRequestReportID, first.transaction.transactionID)]));
+            expect(second.onyxData.optimisticData ?? []).toEqual(expect.arrayContaining([flagFor(moneyRequestReportID, second.transaction.transactionID)]));
+        });
+
+        it('does not flag a transaction that is already on the target report', async () => {
+            // Given a report that already holds an expense
+            const moneyRequestReportID = 'iou-report-rail-3';
+            const existingTransactionID = 'edit-tx-1';
+            await setReportTransaction(existingTransactionID, moneyRequestReportID);
+            await waitForBatchedUpdates();
+            const existingIOUReport = buildExistingIOUReport(moneyRequestReportID, 2);
+
+            // When a request is built that reuses that expense rather than creating one
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal, existingIOUReport, moneyRequestReportID, existingTransactionID});
+            const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReportID}`;
+
+            // Then it is not flagged, since it adds no row to the report
+            expect(result.transaction.transactionID).toBe(existingTransactionID);
+            expect(result.onyxData.optimisticData ?? []).not.toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: expectedKey,
+                        value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${existingTransactionID}:${FLAGGED_AT}`]: true})}),
+                    }),
+                ]),
+            );
+        });
+
+        it('still flags the rows a run inserts when its first entry is one the report already holds, as a split in place is', async () => {
+            // Given a report showing one expense, which a split reuses as its first entry
+            const moneyRequestReportID = 'iou-report-rail-reused-first';
+            const reusedTransactionID = 'reused-tx';
+            await setReportTransaction(reusedTransactionID, moneyRequestReportID);
+            await waitForBatchedUpdates();
+
+            // When the run builds that entry first and then a genuinely new one
+            // With no `transactionCount`, as for a split in place, the reused entry reads the cache, which minus itself looks empty.
+            const reused = getMoneyRequestInformation({
+                ...baseParams,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                existingIOUReport: buildExistingIOUReport(moneyRequestReportID),
+                moneyRequestReportID,
+                existingTransactionID: reusedTransactionID,
+            });
+            const inserted = addToReport(moneyRequestReportID, buildExistingIOUReport(moneyRequestReportID));
+
+            // Then only the inserted row is flagged: a call that inserts nothing must not decide for the action
+            expect(reused.onyxData.optimisticData ?? []).not.toEqual(expect.arrayContaining([flagFor(moneyRequestReportID, reusedTransactionID)]));
+            expect(inserted.onyxData.optimisticData ?? []).toEqual(expect.arrayContaining([flagFor(moneyRequestReportID, inserted.transaction.transactionID)]));
+        });
+
+        it('flags the transaction even when the target report has no transaction count', async () => {
+            // Given a report with no count, whose one expense is in the cache
+            const moneyRequestReportID = 'iou-report-rail-2';
+            await setReportTransaction('existing-tx-1', moneyRequestReportID);
+            await waitForBatchedUpdates();
+            const existingIOUReport = buildExistingIOUReport(moneyRequestReportID);
+
+            // When an expense is added to it
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal, existingIOUReport, moneyRequestReportID});
+            const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReportID}`;
+            const newTxID = result.transaction.transactionID;
+
+            // Then it is flagged, since the cached expense shows the report already had a row
+            expect(result.onyxData.optimisticData ?? []).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${newTxID}:${FLAGGED_AT}`]: true})})}),
+                ]),
+            );
+        });
+
+        it('flags the transaction when the cache holds only part of a report whose one cached transaction is pending deletion', async () => {
+            // Given a report counting ten expenses, of which only one is cached and it is pending deletion
+            const moneyRequestReportID = 'iou-report-rail-5';
+            await setReportTransaction('partially-cached-tx-1', moneyRequestReportID, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            await waitForBatchedUpdates();
+            const existingIOUReport = buildExistingIOUReport(moneyRequestReportID, 10);
+
+            // When an expense is added to it
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal, existingIOUReport, moneyRequestReportID});
+            const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReportID}`;
+            const newTxID = result.transaction.transactionID;
+
+            // Then it is flagged, since a partial cache cannot show that the uncached rows are gone
+            expect(result.onyxData.optimisticData ?? []).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${newTxID}:${FLAGGED_AT}`]: true})})}),
+                ]),
+            );
+        });
+
+        it('does not flag when the only existing transaction is pending deletion, even though the transaction count still includes it', async () => {
+            // Given a report whose only expense is pending deletion, though its count still includes it
+            const moneyRequestReportID = 'iou-report-rail-4';
+            await setReportTransaction('deleted-tx-1', moneyRequestReportID, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            await waitForBatchedUpdates();
+            const existingIOUReport = buildExistingIOUReport(moneyRequestReportID, 1);
+
+            // When an expense is added to it
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal, existingIOUReport, moneyRequestReportID});
+            const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReportID}`;
+            const newTxID = result.transaction.transactionID;
+
+            // Then it is not flagged: with its only row being deleted, the new expense is the report's first
+            expect(result.onyxData.optimisticData ?? []).not.toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${newTxID}:${FLAGGED_AT}`]: true})})}),
+                ]),
             );
         });
     });

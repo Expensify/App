@@ -41,6 +41,19 @@ function useWideRHPActions() {
     return useContext(WideRHPActionsContext);
 }
 
+// Nothing is displayed wide on native; these only mirror the web exports.
+function subscribeToRHPRouteKeys(): () => void {
+    return () => {};
+}
+
+function getRHPRouteWidth(): undefined {
+    return undefined;
+}
+
+function getDisplayedRHPRouteWidth(): undefined {
+    return undefined;
+}
+
 export default WideRHPContextProvider;
 export {
     animatedReceiptPaneRHPWidth,
@@ -55,5 +68,8 @@ export {
     thirdOverlayProgress,
     useWideRHPState,
     useWideRHPActions,
+    subscribeToRHPRouteKeys,
+    getRHPRouteWidth,
+    getDisplayedRHPRouteWidth,
 };
 export type {WideRHPStateContextType, WideRHPActionsContextType};

@@ -1,7 +1,7 @@
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsFocusedRef from '@hooks/useIsFocusedRef';
+import useIsScreenVisible from '@hooks/useIsScreenVisible';
 import useLocalize from '@hooks/useLocalize';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,7 +18,7 @@ import type {ViewToken} from '@src/types/utils/ReactNativeCompat';
 import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useEffectEvent, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {MoneyRequestReportPreviewStyleType} from './types';
@@ -82,7 +82,7 @@ function useReportPreviewCarousel({
     const {translate, localeCompare} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [ownerLogin] = usePersonalDetail(iouReport?.ownerAccountID, loginSelector);
-    const isFocusedRef = useIsFocusedRef();
+    const isScreenVisible = useIsScreenVisible();
 
     const sortedTransactions = useMemo(() => {
         if (shouldShowAccessPlaceHolder) {
@@ -157,41 +157,47 @@ function useReportPreviewCarousel({
         return {itemVisiblePercentThreshold: 100};
     }, []);
 
-    const carouselTransactionsRef = useRef(carouselTransactions);
-
     useEffect(() => {
-        carouselTransactionsRef.current = carouselTransactions;
         onOrderedTransactionsChange?.(sortedTransactions);
-    }, [carouselTransactions, onOrderedTransactionsChange, sortedTransactions]);
+    }, [onOrderedTransactionsChange, sortedTransactions]);
+
+    // Scrolled to once per transaction, so returning to the chat doesn't pull the user back from older cards.
+    const scrolledToNewTransactionIDRef = useRef<string | undefined>(undefined);
+
+    const scrollToNewTransaction = useEffectEvent((index: number, transactionID: string | undefined) => {
+        if (!isScreenVisible || transactionID === scrolledToNewTransactionIDRef.current) {
+            return;
+        }
+
+        // If the new transaction is not available at the index it was on before the delay, avoid the scrolling
+        // because we are scrolling to either a wrong or unavailable transaction (which can cause crash).
+        if (transactionID !== carouselTransactions.at(index)?.transactionID) {
+            return;
+        }
+
+        scrolledToNewTransactionIDRef.current = transactionID;
+        carouselRef.current?.scrollToIndex({
+            index,
+            viewOffset: -2 * styles.gap2.gap,
+            animated: true,
+        });
+    });
 
     useEffect(() => {
+        if (!isScreenVisible) {
+            return;
+        }
         const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.has(transaction.transactionID));
 
         if (index < 0) {
             return;
         }
         const newTransaction = carouselTransactions.at(index);
-        setTimeout(() => {
-            if (!isFocusedRef.current) {
-                return;
-            }
+        setTimeout(() => scrollToNewTransaction(index, newTransaction?.transactionID), CONST.PENDING_TRANSACTION_SCROLL_DELAY);
 
-            // If the new transaction is not available at the index it was on before the delay, avoid the scrolling
-            // because we are scrolling to either a wrong or unavailable transaction (which can cause crash).
-            if (newTransaction?.transactionID !== carouselTransactionsRef.current.at(index)?.transactionID) {
-                return;
-            }
-
-            carouselRef.current?.scrollToIndex({
-                index,
-                viewOffset: -2 * styles.gap2.gap,
-                animated: true,
-            });
-        }, CONST.PENDING_TRANSACTION_SCROLL_DELAY);
-
-        // We only want to scroll to a new transaction when the set of new transaction IDs changes.
+        // We only want to scroll to a new transaction when the set of new transaction IDs changes, or when the chat is uncovered.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [newTransactionIDs]);
+    }, [newTransactionIDs, isScreenVisible]);
 
     const onViewableItemsChanged = useCallback(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
         const newIndex = viewableItems.at(0)?.index;

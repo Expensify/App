@@ -43,6 +43,7 @@ function GroupChildrenContainer({
 
     const animatedHighlightStyle = useRowHighlightAnimation({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        highlightKey: item?.keyForList,
         isSelected,
         shouldApplyOtherStyles: false,
     });

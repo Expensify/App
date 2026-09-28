@@ -1,34 +1,63 @@
-import CONST from '@src/CONST';
+import {buildClearedPendingNewTransactionFlags, buildPendingNewTransactionFlag, buildPendingNewTransactionFlagKey} from '@libs/PendingNewTransactionFlags';
+
 import ONYXKEYS from '@src/ONYXKEYS';
-import type Transaction from '@src/types/onyx/Transaction';
+
+import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-// The 1→2 transaction transition causes MoneyRequestReportActionsList to fresh-mount, breaking diff-based new transaction detection.
-// This helper detects that transition so callers can register pending IDs for the fallback highlight path.
-function isOneToTwoTransactionTransition(isMoneyRequestReport: boolean, transactions: Transaction[]) {
-    return isMoneyRequestReport && transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === 1;
+/** Highlight flag writers. An expense report's flags are read by its table, a chat's by its expense preview; a reportID alone can't say which. */
+
+type ReportMetadataUpdate = OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_METADATA>;
+
+/** Whether each report showed rows when the current action began. From an action's second add the report includes the first, so every add uses the first answer. */
+const reportsShowingRowsWhenActionBegan = new Map<string, boolean>();
+
+/** Answers once per report per action. Cleared a microtask later, when the action's synchronous run ends. */
+function wasReportShowingRowsWhenActionBegan(reportID: string, isShowingRowsNow: () => boolean): boolean {
+    const answeredForThisAction = reportsShowingRowsWhenActionBegan.get(reportID);
+    if (answeredForThisAction !== undefined) {
+        return answeredForThisAction;
+    }
+    const isShowingRows = isShowingRowsNow();
+    const isFirstAnswerOfThisAction = reportsShowingRowsWhenActionBegan.size === 0;
+    reportsShowingRowsWhenActionBegan.set(reportID, isShowingRows);
+    if (isFirstAnswerOfThisAction) {
+        Promise.resolve().then(() => reportsShowingRowsWhenActionBegan.clear());
+    }
+    return isShowingRows;
 }
 
-function addPendingNewTransactionIDs(reportID: string | undefined, transactionID: string | undefined) {
-    if (!reportID || !transactionID) {
+/** Flags a transaction for the expense preview in this chat. */
+function flagNewTransactionForChatPreview({chatReportID, transactionID}: {chatReportID: string | undefined; transactionID: string | undefined}) {
+    if (!chatReportID || !transactionID) {
         return;
     }
 
     // We are saving in object form so that consecutive onyx merge will not reset previous value.
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {pendingNewTransactionIDs: {[transactionID]: true}});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {pendingNewTransactionIDs: buildPendingNewTransactionFlag(transactionID)});
 }
 
-function deletePendingNewTransactionIDs(reportID: string | undefined, transactionIDs: string[]) {
-    if (!reportID) {
+/** Flags a transaction for the expense report's table. The write and its rollback share one key, so the rollback clears only this instance. */
+function buildNewTransactionFlagForReportTable({expenseReportID, transactionID}: {expenseReportID: string; transactionID: string}): {
+    optimisticUpdate: ReportMetadataUpdate;
+    failureUpdate: ReportMetadataUpdate;
+} {
+    const flagKey = buildPendingNewTransactionFlagKey(transactionID, Date.now());
+    const metadataKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseReportID}` as const;
+    return {
+        optimisticUpdate: {onyxMethod: Onyx.METHOD.MERGE, key: metadataKey, value: {pendingNewTransactionIDs: {[flagKey]: true}}},
+        failureUpdate: {onyxMethod: Onyx.METHOD.MERGE, key: metadataKey, value: {pendingNewTransactionIDs: buildClearedPendingNewTransactionFlags([flagKey])}},
+    };
+}
+
+/** Clears these flag instances; a flag written since has another key and survives. */
+function deletePendingNewTransactionIDs(reportID: string | undefined, flagKeys: string[]) {
+    if (!reportID || !flagKeys.length) {
         return;
     }
 
-    const pendingNewTransactionIDs: Record<string, null> = {};
-    for (const transactionID of transactionIDs) {
-        Object.assign(pendingNewTransactionIDs, {[transactionID]: null});
-    }
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {pendingNewTransactionIDs});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {pendingNewTransactionIDs: buildClearedPendingNewTransactionFlags(flagKeys)});
 }
 
-export {addPendingNewTransactionIDs, deletePendingNewTransactionIDs, isOneToTwoTransactionTransition};
+export {buildNewTransactionFlagForReportTable, deletePendingNewTransactionIDs, flagNewTransactionForChatPreview, wasReportShowingRowsWhenActionBegan};

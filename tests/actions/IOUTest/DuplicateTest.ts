@@ -3867,8 +3867,12 @@ describe('actions/Duplicate', () => {
             const requestMoneyCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCalls).toHaveLength(3);
 
-            const iouReportIDs = new Set(requestMoneyCalls.map((call) => call[1].iouReportID));
+            const iouReportIDs = new Set(requestMoneyCalls.map((call) => String(call[1].iouReportID)));
             expect(iouReportIDs.size).toBe(1);
+
+            // Every copy lands on a report this action created, so none is an insertion, though the later ones look like one by count.
+            const [copyReportID] = [...iouReportIDs];
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${copyReportID}`))?.pendingNewTransactionIDs).toBeUndefined();
         });
 
         it('should not defer auto submit when the last selected expense is unreported', async () => {

@@ -55,6 +55,7 @@ function TaskListItem<TItem extends ListItem>({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         isSelected,
         isLastItem: !!isLastItem,
+        highlightKey: item?.keyForList,
     });
 
     const listItemWrapperStyle = [
