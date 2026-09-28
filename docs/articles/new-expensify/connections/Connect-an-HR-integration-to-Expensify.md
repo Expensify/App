@@ -18,7 +18,7 @@ Once connected, an HR integration can:
 
 You can connect only one HR platform to a workspace at a time.
 
-To import candidates from an applicant tracking system (ATS), such as Greenhouse, use the **Recruiting** page instead of the **HR** page. Learn how to [connect a recruiting integration to Expensify](/articles/new-expensify/connections/Connect-a-recruiting-integration-to-Expensify).
+To import candidates from an applicant tracking system (ATS), such as Greenhouse, use the **Recruiting** page instead of the **HR** page. Learn how to [connect Greenhouse to Expensify](/articles/new-expensify/connections/Connect-Greenhouse-to-Expensify).
 
 ---
 

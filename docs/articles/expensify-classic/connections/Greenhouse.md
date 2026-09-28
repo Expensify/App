@@ -5,7 +5,7 @@ keywords: [Greenhouse, Expensify Classic, integration, candidate reimbursement]
 ---
 
    
-> **Note:** New Greenhouse connections are now set up in New Expensify. When you click **Take me to New Expensify** next to Greenhouse in Expensify Classic, Expensify turns on **Recruiting** for the workspace and opens it in New Expensify. The webhook steps below apply only to workspaces that already use the Classic Greenhouse integration. Learn how to [connect a recruiting integration to Expensify](/articles/new-expensify/connections/Connect-a-recruiting-integration-to-Expensify).
+> **Note:** New Greenhouse connections are now set up in New Expensify. When you click **Take me to New Expensify** next to Greenhouse in Expensify Classic, Expensify turns on **Recruiting** for the workspace and opens it in New Expensify. The webhook steps below apply only to workspaces that already use the Classic Greenhouse integration. Learn how to [connect Greenhouse to New Expensify](/articles/new-expensify/connections/Connect-Greenhouse-to-Expensify).
 
 Expensify's integration with Greenhouse allows you to automatically send candidate details from Greenhouse to Expensify for easy reimbursement. You can also set the candidate's recruiter or recruiting coordinator as their expense approver.
 
