@@ -383,8 +383,9 @@ function ReportFetchHandler() {
     }, [isAnonymousUser]);
 
     useEffect(() => {
+        const oneTransactionThreadKey = `${reportID}:${visibleTransactions?.at(0)?.transactionID}`;
         if (
-            createdOneTransactionThreadForRef.current === reportID ||
+            createdOneTransactionThreadForRef.current === oneTransactionThreadKey ||
             transactionThreadReportID !== CONST.FAKE_REPORT_ID ||
             transactionThreadReport?.reportID ||
             (!reportLoadingState.hasOnceLoadedReportActions && !reportMetadata?.isOptimisticReport && !isOffline)
@@ -393,10 +394,19 @@ function ReportFetchHandler() {
         }
 
         // A failed create rolls the thread back, which puts this ID back to FAKE_REPORT_ID. Without this we would
-        // rebuild it straight away and keep looping for as long as the server keeps failing.
-        createdOneTransactionThreadForRef.current = reportID;
+        // rebuild it straight away and keep looping for as long as the server keeps failing. Keyed on the transaction
+        // as well, so a different one transaction still gets its thread.
+        createdOneTransactionThreadForRef.current = oneTransactionThreadKey;
         createOneTransactionThread();
-    }, [reportLoadingState.hasOnceLoadedReportActions, reportMetadata?.isOptimisticReport, transactionThreadReport?.reportID, transactionThreadReportID, isOffline, reportID]);
+    }, [
+        reportLoadingState.hasOnceLoadedReportActions,
+        reportMetadata?.isOptimisticReport,
+        transactionThreadReport?.reportID,
+        transactionThreadReportID,
+        isOffline,
+        reportID,
+        visibleTransactions,
+    ]);
 
     const hasHeldPublicRoomJoin = useRef(false);
 

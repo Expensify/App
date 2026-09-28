@@ -1465,7 +1465,7 @@ function isReportActionVisibleAsLastAction(
         return false;
     }
 
-    if (Object.keys(reportAction.errors ?? {}).length > 0) {
+    if (Object.keys(getVisibleReportActionErrors(reportAction) ?? {}).length > 0) {
         return false;
     }
 
