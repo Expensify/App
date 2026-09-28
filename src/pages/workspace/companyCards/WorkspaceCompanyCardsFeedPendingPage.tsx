@@ -23,7 +23,6 @@ function WorkspaceCompanyCardsFeedPendingPage() {
     const {LaptopReviewCard} = useMemoizedLazyIllustrations(['LaptopReviewCard']);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
@@ -48,7 +47,6 @@ function WorkspaceCompanyCardsFeedPendingPage() {
                                 currentUserAccountID,
                                 isSelfTourViewed,
                                 hasCompletedGuidedSetupFlow,
-                                betas,
                                 shouldDismissModal: false,
                             });
                         }}

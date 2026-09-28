@@ -369,7 +369,6 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
             currentUserAccountID: ADMIN_ACCOUNT_ID,
             isSelfTourViewed: false,
             hasCompletedGuidedSetupFlow: true,
-            betas: undefined,
         });
     });
 });

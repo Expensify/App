@@ -25,7 +25,6 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const navigateRef = useRef<(event: MessageEvent<WalletStatementMessage>) => void>(null);
 
     /**
@@ -35,9 +34,9 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
         (event: MessageEvent<WalletStatementMessage>) => {
             const {data} = event;
             const {type, url} = data || {};
-            handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, type, url);
+            handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, type, url);
         },
-        [conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas],
+        [conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, hasCompletedGuidedSetupFlow],
     );
 
     useEffect(() => {

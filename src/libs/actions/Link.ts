@@ -32,7 +32,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
-import type {Beta, IntroSelected, Report, ReportNameValuePairs} from '@src/types/onyx';
+import type {IntroSelected, Report, ReportNameValuePairs} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -432,7 +432,6 @@ function openReportFromDeepLink(
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
     hasCompletedGuidedSetupFlow: boolean | undefined,
-    betas: OnyxEntry<Beta[]>,
     callerAccountID: number,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
 ) {
@@ -455,7 +454,6 @@ function openReportFromDeepLink(
             personalDetails: undefined,
             parentReportActionID: '0',
             isFromDeepLink: true,
-            betas,
             hasReportActions: false,
             currentUserAccountID: callerAccountID,
         });
@@ -615,7 +613,6 @@ function openReportFromDeepLink(
                                     currentUserAccountID,
                                     isSelfTourViewed,
                                     hasCompletedGuidedSetupFlow,
-                                    betas,
                                     shouldDismissModal: false,
                                 });
                                 return;

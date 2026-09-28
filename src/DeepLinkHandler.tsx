@@ -44,7 +44,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [introSelected, introSelectedMetadata] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [guidedSetupAndTourStatus, guidedSetupAndTourStatusMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
-    const [betas, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
+    const [, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
     const isAuthenticated = useIsAuthenticated();
 
     useEffect(() => {
@@ -129,7 +129,6 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                         introSelected,
                         guidedSetupAndTourStatus?.isSelfTourViewed,
                         guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                        betas,
                         session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         reportNameValuePairsRef.current,
                     );
@@ -174,7 +173,6 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 introSelected,
                 guidedSetupAndTourStatus?.isSelfTourViewed,
                 guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                betas,
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 reportNameValuePairsRef.current,
             );
@@ -190,7 +188,6 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     }, [
         conciergeReportID,
         introSelected,
-        betas,
         allReportsMetadata.status,
         reportNameValuePairsMetadata.status,
         sessionMetadata.status,
@@ -234,7 +231,6 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
         Report.openReport({
             reportID,
             introSelected,
-            betas,
             conciergeChat,
             // The public room already exists on the server, so no optimistic report is created and the personal details are never read.
             personalDetails: undefined,
@@ -243,16 +239,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
         });
-    }, [
-        isLoadingApp,
-        allReports,
-        introSelected,
-        betas,
-        conciergeChat,
-        session?.accountID,
-        guidedSetupAndTourStatus?.isSelfTourViewed,
-        guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-    ]);
+    }, [isLoadingApp, allReports, introSelected, conciergeChat, session?.accountID, guidedSetupAndTourStatus?.isSelfTourViewed, guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow]);
 
     return null;
 }

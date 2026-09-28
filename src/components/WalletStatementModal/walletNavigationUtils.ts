@@ -7,7 +7,6 @@ import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {Beta} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -20,7 +19,6 @@ function handleWalletStatementNavigation(
     currentUserAccountID: number | undefined,
     isSelfTourViewed: boolean | undefined,
     hasCompletedGuidedSetupFlow: boolean | undefined,
-    betas: OnyxEntry<Beta[]>,
     type?: string,
     url?: string,
 ): void {
@@ -35,7 +33,6 @@ function handleWalletStatementNavigation(
             currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
-            betas,
         });
         return;
     }

@@ -34,7 +34,6 @@ function SidePanelButton({style}: SidePanelButtonProps) {
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     if (shouldHideHelpButton) {
         return null;
@@ -57,7 +56,6 @@ function SidePanelButton({style}: SidePanelButtonProps) {
                         currentUserAccountID,
                         isSelfTourViewed,
                         hasCompletedGuidedSetupFlow,
-                        betas,
                         sourceReportID: sourceReportID && sourceReportID !== conciergeReportID ? sourceReportID : undefined,
                     });
                 }}
