@@ -406,8 +406,7 @@ function getPayMoneyRequestParams({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
-                    // Same key as the preview copy below so dismissing either clears both. Only matching keys are followed.
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', 0),
                 },
             },
         },
@@ -426,8 +425,8 @@ function getPayMoneyRequestParams({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                // Clear a previous failure so a retry does not keep showing a stale RBR.
-                [optimisticReportPreviewAction.reportActionID]: {...optimisticReportPreviewAction, errors: null},
+                // Clear only our own previous failure so a retry does not keep showing a stale RBR.
+                [optimisticReportPreviewAction.reportActionID]: {...optimisticReportPreviewAction, errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: null}},
             },
         });
         onyxData.failureData?.push({
