@@ -2497,6 +2497,7 @@ describe('OptionsListUtils', () => {
                 ...createOption({
                     dateFnsLocale: undefined,
                     convertToDisplayString,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     accountIDs: [PARITY_ACCOUNT_ID],
                     personalDetails: PARITY_PERSONAL_DETAILS,
                     report: PARITY_REPORT,
@@ -2567,6 +2568,7 @@ describe('OptionsListUtils', () => {
             const withConcierge = createOption({
                 dateFnsLocale: undefined,
                 convertToDisplayString,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 accountIDs: [PARITY_ACCOUNT_ID],
                 personalDetails: PARITY_PERSONAL_DETAILS,
                 report: PARITY_REPORT,
@@ -6953,6 +6955,7 @@ describe('OptionsListUtils', () => {
             const result = createOption({
                 dateFnsLocale: undefined,
                 convertToDisplayString,
+                currentUserAccountID: 1,
                 conciergeReportID: undefined,
                 accountIDs: [1, 2],
                 personalDetails: PERSONAL_DETAILS,
@@ -7028,6 +7031,7 @@ describe('OptionsListUtils', () => {
             const result = createOption({
                 dateFnsLocale: undefined,
                 convertToDisplayString,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 conciergeReportID: undefined,
                 accountIDs: [1, 2],
                 personalDetails: PERSONAL_DETAILS,
@@ -9997,6 +10001,7 @@ describe('OptionsListUtils', () => {
             const result = createOption({
                 dateFnsLocale: undefined,
                 convertToDisplayString,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 conciergeReportID: undefined,
                 accountIDs: [1, 2],
                 personalDetails: PERSONAL_DETAILS,

@@ -244,8 +244,7 @@ type GetAlternateTextConfig = {
     sortedActions?: Record<string, ReportAction[]>;
     isTrackIntentUser?: boolean;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
-    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
-    currentUserAccountID?: number;
+    currentUserAccountID: number;
     rules: OnyxCollection<Rule>;
 };
 
@@ -383,8 +382,7 @@ type CreateOptionParams = {
     conciergeReportID: string | undefined;
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>;
-    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
-    currentUserAccountID?: number;
+    currentUserAccountID: number;
     // TODO: Remove optional (?) once all callers pass pendingDeleteMemberAccountIDs. Refactor issue: https://github.com/Expensify/App/issues/66421
     pendingDeleteMemberAccountIDs?: string[];
 };
@@ -2010,7 +2008,7 @@ function prepareReportOptionsForDisplay(
         translate: LocalizedTranslate;
         convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
         dateFnsLocale: DateFnsLocale | undefined;
-        currentUserAccountID?: number;
+        currentUserAccountID: number;
     },
     conciergeReportID: string | undefined,
     sortedActions: Record<string, ReportAction[]> | undefined,

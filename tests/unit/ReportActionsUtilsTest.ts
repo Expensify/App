@@ -5737,7 +5737,7 @@ describe('ReportActionsUtils', () => {
                 creditedCurrency: 'USD',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString, 2);
 
             // Then the message reports the credited amount instead of the report total and names both accounts
             expect(result).toBe(translateLocal('iou.reimbursedCrossBorder', {amount: '$80.50', debitBankAccount: '9999', creditBankAccount: '5678'}));
@@ -5752,7 +5752,7 @@ describe('ReportActionsUtils', () => {
                 creditedAmount: 8050,
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString, 2);
 
             // Then we describe the payment without an amount rather than guessing a currency
             expect(result).toBe(
@@ -5774,7 +5774,7 @@ describe('ReportActionsUtils', () => {
                 creditedCurrency: 'USD',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, 'submitter@expensify.com', undefined, convertToDisplayString);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, 'submitter@expensify.com', undefined, convertToDisplayString, 2);
 
             // Then the message announces the submitter taking the report off hold rather than the credited amount
             expect(result).toBe(
