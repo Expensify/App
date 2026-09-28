@@ -1,5 +1,4 @@
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
-import ConfirmationDataContext from '@components/MoneyRequestConfirmationList/ConfirmationDataContext';
 import ConfirmationListLayout from '@components/MoneyRequestConfirmationList/ConfirmationListLayout';
 import DistanceRequestController from '@components/MoneyRequestConfirmationList/DistanceRequestController';
 import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
@@ -99,7 +98,7 @@ function DistanceConfirmationList(props: MoneyRequestConfirmationListProps) {
     );
 
     return (
-        <ConfirmationDataContext.Provider value={data}>
+        <>
             <TaxController
                 {...data.taxControllerProps}
                 distanceState={distanceState}
@@ -114,7 +113,7 @@ function DistanceConfirmationList(props: MoneyRequestConfirmationListProps) {
                 {...data.layoutProps}
                 listFooterContent={listFooterContent}
             />
-        </ConfirmationDataContext.Provider>
+        </>
     );
 }
 

@@ -1,7 +1,9 @@
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import FormHelpMessage from '@components/FormHelpMessage';
+import type {ReceiptOptions} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 import SettlementButton from '@components/SettlementButton';
+import type {PaymentActionParams} from '@components/SettlementButton/types';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 
 import useLocalize from '@hooks/useLocalize';
@@ -10,12 +12,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Policy, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
 
-import {useConfirmationData} from './ConfirmationDataContext';
+import type {MoneyRequestConfirmationListProps} from './types';
+
 import useConfirmationCtaText from './hooks/useConfirmationCtaText';
 import useReceiptTraining from './hooks/useReceiptTraining';
 
@@ -31,30 +37,84 @@ const CONFIRMATION_SENTRY_LABEL_BY_IOU_TYPE: Partial<Record<IOUType, string>> = 
     [CONST.IOU.TYPE.INVOICE]: CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_INVOICE_BUTTON,
 };
 
-function ConfirmationFooterContent() {
+type ConfirmationFooterContentProps = {
+    /** The IOU flow being confirmed. Picks the settlement button for pay and the Sentry label for the CTA. */
+    iouType: MoneyRequestConfirmationListProps['iouType'];
+
+    /** Validates and submits, with the payment method the button chose */
+    confirm: (params?: PaymentActionParams) => void;
+
+    /** Currency of the expense */
+    iouCurrencyCode: string;
+
+    /** Policy ID the confirmation was opened with */
+    policyID: string | undefined;
+
+    /** Report the expense is submitted to */
+    reportID: string;
+
+    /** Whether the expense is confirmed */
+    isConfirmed: boolean | undefined;
+
+    /** Whether the expense is in the process of being confirmed */
+    isConfirming: boolean | undefined;
+
+    /** The receipt being confirmed. Its path picks the CTA label and its loading state disables the button. */
+    receiptOptions: ReceiptOptions;
+
+    /** Form error rendered above the button */
+    errorMessage: string | undefined;
+
+    /** How many receipts this confirmation submits. Above one, the CTA reads as plural and a remove-this-expense button appears. */
+    expensesNumber: number;
+
+    /** Opens the modal that drops this receipt out of a multi-receipt confirmation */
+    showRemoveExpenseConfirmModal: (() => void) | undefined;
+
+    /** Transaction being confirmed */
+    transaction: OnyxEntry<Transaction>;
+
+    /** The resolved policy */
+    policy: OnyxEntry<Policy>;
+
+    /** Amount of the expense */
+    iouAmount: number;
+
+    /** Whether the expense is a split */
+    isTypeSplit: boolean;
+
+    /** Display amount shown in the CTA label */
+    formattedAmount: string;
+
+    /** Whether the expense is a per diem expense */
+    isPerDiemRequest: boolean;
+
+    /** Whether the distance route is still being calculated */
+    isDistanceRequestWithPendingRoute: boolean;
+};
+
+function ConfirmationFooterContent({
+    iouType,
+    confirm,
+    iouCurrencyCode,
+    policyID,
+    reportID,
+    isConfirmed,
+    isConfirming,
+    receiptOptions,
+    errorMessage,
+    expensesNumber,
+    showRemoveExpenseConfirmModal,
+    transaction,
+    policy,
+    iouAmount,
+    isTypeSplit,
+    formattedAmount,
+    isPerDiemRequest,
+    isDistanceRequestWithPendingRoute,
+}: ConfirmationFooterContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
-    const {
-        iouType,
-        confirm,
-        iouCurrencyCode,
-        policyID,
-        reportID,
-        isConfirmed,
-        isConfirming,
-        receiptOptions,
-        errorMessage,
-        expensesNumber,
-        showRemoveExpenseConfirmModal,
-        transaction,
-        policy,
-        iouAmount,
-        isTypeSplit,
-        formattedAmount,
-        isPerDiemRequest,
-        isDistanceRequestWithPendingRoute,
-    } = useConfirmationData();
 
     const {receiptPath = '', isLoadingReceipt = false} = receiptOptions;
 
@@ -156,3 +216,4 @@ function ConfirmationFooterContent() {
 }
 
 export default ConfirmationFooterContent;
+export type {ConfirmationFooterContentProps};

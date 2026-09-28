@@ -1,5 +1,4 @@
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
-import ConfirmationDataContext from '@components/MoneyRequestConfirmationList/ConfirmationDataContext';
 import ConfirmationListLayout from '@components/MoneyRequestConfirmationList/ConfirmationListLayout';
 import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
 import useConfirmationListData, {INLINE_FIELD_ERROR_KEYS} from '@components/MoneyRequestConfirmationList/hooks/useConfirmationListData';
@@ -68,7 +67,7 @@ function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
     );
 
     return (
-        <ConfirmationDataContext.Provider value={data}>
+        <>
             <TaxController {...data.taxControllerProps} />
             <SplitBillController {...data.splitBillControllerProps} />
             <FieldAutoSelector {...data.fieldAutoSelectProps} />
@@ -77,7 +76,7 @@ function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
                 isCompactMode={isCompactMode}
                 listFooterContent={listFooterContent}
             />
-        </ConfirmationDataContext.Provider>
+        </>
     );
 }
 

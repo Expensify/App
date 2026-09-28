@@ -9,6 +9,7 @@ import type {RefObject} from 'react';
 
 import React from 'react';
 
+import type {ConfirmationFooterContentProps} from './ConfirmationFooterContent';
 import type {MoneyRequestConfirmationListItem} from './types';
 
 import ConfirmationFooterContent from './ConfirmationFooterContent';
@@ -38,17 +39,30 @@ type ConfirmationListLayoutProps = {
 
     /** Clears the errors rendered on a participant row */
     onDismissError: () => void;
+
+    /** Inputs of the confirm button block rendered below the list. Not rendered when read-only. */
+    footerContentProps: ConfirmationFooterContentProps;
 };
 
 /**
  * Layout every confirmation shares: the participant list, the fields below it, and the confirm button.
  */
-function ConfirmationListLayout({transactionID, sections, listRef, isReadOnly, listFooterContent, isCompactMode = false, onSelectRow, onDismissError}: ConfirmationListLayoutProps) {
+function ConfirmationListLayout({
+    transactionID,
+    sections,
+    listRef,
+    isReadOnly,
+    listFooterContent,
+    isCompactMode = false,
+    onSelectRow,
+    onDismissError,
+    footerContentProps,
+}: ConfirmationListLayoutProps) {
     const styles = useThemeStyles();
 
     // The list drops its bottom safe-area padding only when there is no footer, so the read-only case must pass
     // `undefined` rather than a footer that renders nothing.
-    const footerContent = isReadOnly ? undefined : <ConfirmationFooterContent />;
+    const footerContent = isReadOnly ? undefined : <ConfirmationFooterContent {...footerContentProps} />;
 
     const selectionListStyle = {
         containerStyle: [styles.flexBasisAuto],

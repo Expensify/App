@@ -283,6 +283,28 @@ function useConfirmationListDataWithPolicy({
             isReadOnly,
             onSelectRow: navigateToParticipantPage,
             onDismissError: dismissParticipantRowError,
+
+            // The confirm button block, which owns the CTA label and the Test Drive tooltip
+            footerContentProps: {
+                iouType,
+                confirm,
+                iouCurrencyCode,
+                policyID,
+                reportID,
+                isConfirmed,
+                isConfirming,
+                receiptOptions,
+                errorMessage,
+                expensesNumber,
+                showRemoveExpenseConfirmModal,
+                transaction,
+                policy,
+                iouAmount,
+                isTypeSplit,
+                formattedAmount,
+                isPerDiemRequest,
+                isDistanceRequestWithPendingRoute,
+            },
         },
 
         /**
@@ -361,29 +383,10 @@ function useConfirmationListDataWithPolicy({
         },
 
         // Shared values, passed on to the footers
-        transaction,
         policy,
-        policyID,
         policyTags,
-        iouAmount,
-        iouCurrencyCode,
         customUnitRateID,
-        isTypeSplit,
         setIsTaxAmountEmpty,
-
-        // Read from context by `ConfirmationFooterContent`, which owns the CTA label and the Test Drive tooltip
-        confirm,
-        formattedAmount,
-        iouType,
-        reportID,
-        receiptOptions,
-        isConfirmed,
-        isConfirming,
-        errorMessage,
-        expensesNumber,
-        showRemoveExpenseConfirmModal,
-        isPerDiemRequest,
-        isDistanceRequestWithPendingRoute,
     };
 }
 

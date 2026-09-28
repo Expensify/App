@@ -1,5 +1,4 @@
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
-import ConfirmationDataContext from '@components/MoneyRequestConfirmationList/ConfirmationDataContext';
 import ConfirmationListLayout from '@components/MoneyRequestConfirmationList/ConfirmationListLayout';
 import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
 import useConfirmationListData from '@components/MoneyRequestConfirmationList/hooks/useConfirmationListData';
@@ -41,14 +40,14 @@ function InvoiceConfirmationList(props: MoneyRequestConfirmationListProps) {
     );
 
     return (
-        <ConfirmationDataContext.Provider value={data}>
+        <>
             <TaxController {...data.taxControllerProps} />
             <FieldAutoSelector {...data.fieldAutoSelectProps} />
             <ConfirmationListLayout
                 {...data.layoutProps}
                 listFooterContent={listFooterContent}
             />
-        </ConfirmationDataContext.Provider>
+        </>
     );
 }
 
