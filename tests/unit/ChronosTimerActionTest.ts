@@ -29,12 +29,17 @@ function getWriteOptions(): OnyxData<OnyxKey> {
     return options;
 }
 
-function getReportUpdate(updates: Array<OnyxUpdate<OnyxKey>> | undefined, reportID: string): Partial<Report> | undefined {
+/** Reads back the last-visible-action fields the report update restores, narrowing instead of asserting the Onyx value's type. */
+function getRestoredLastAction(updates: Array<OnyxUpdate<OnyxKey>> | undefined, reportID: string) {
     const update = updates?.find((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     if (!update || !('value' in update) || typeof update.value !== 'object' || update.value === null) {
         return undefined;
     }
-    return update.value as Partial<Report>;
+    const {value} = update;
+    return {
+        lastVisibleActionCreated: 'lastVisibleActionCreated' in value && typeof value.lastVisibleActionCreated === 'string' ? value.lastVisibleActionCreated : undefined,
+        lastActorAccountID: 'lastActorAccountID' in value && typeof value.lastActorAccountID === 'number' ? value.lastActorAccountID : undefined,
+    };
 }
 
 function getChronosNVPStartTime(updates: Array<OnyxUpdate<OnyxKey>> | undefined): string | undefined {
@@ -106,7 +111,7 @@ describe('startOrStopChronosTimer', () => {
         startOrStopChronosTimer(TEST_REPORT, WHISPER_TARGET_ACCOUNT_ID, null);
 
         // Then the failure data restores the whisper, which is the newest action that account can see
-        expect(getReportUpdate(getWriteOptions().failureData, TEST_REPORT.reportID)).toMatchObject({
+        expect(getRestoredLastAction(getWriteOptions().failureData, TEST_REPORT.reportID)).toEqual({
             lastVisibleActionCreated: whisper.created,
             lastActorAccountID: WHISPER_TARGET_ACCOUNT_ID,
         });
@@ -117,7 +122,7 @@ describe('startOrStopChronosTimer', () => {
         startOrStopChronosTimer(TEST_REPORT, COMMENT_ACTOR_ACCOUNT_ID, null);
 
         // Then the whisper is invisible to them, so the older comment is restored instead
-        expect(getReportUpdate(getWriteOptions().failureData, TEST_REPORT.reportID)).toMatchObject({
+        expect(getRestoredLastAction(getWriteOptions().failureData, TEST_REPORT.reportID)).toEqual({
             lastVisibleActionCreated: comment.created,
             lastActorAccountID: COMMENT_ACTOR_ACCOUNT_ID,
         });
