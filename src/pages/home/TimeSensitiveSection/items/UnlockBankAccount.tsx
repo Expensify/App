@@ -1,5 +1,6 @@
 import BaseWidgetItem from '@components/BaseWidgetItem';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -8,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import {pressLockedBankAccount} from '@libs/actions/BankAccounts';
 import {navigateToConciergeChat} from '@libs/actions/Report';
+import {showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,10 +30,12 @@ function UnlockBankAccount({bankAccountID, policyName}: UnlockBankAccountProps) 
     const icons = useMemoizedLazyExpensifyIcons(['BankLock']);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
+    const [unlockRequestedAt] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${bankAccountID}`);
+    const [initiatingBankAccountUnlock] = useOnyx(ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK);
+    const {showConfirmModal} = useConfirmModal();
 
     const title = policyName ? translate('homePage.timeSensitiveSection.unlockBankAccount.workspaceTitle') : translate('homePage.timeSensitiveSection.unlockBankAccount.personalTitle');
 
@@ -40,8 +44,12 @@ function UnlockBankAccount({bankAccountID, policyName}: UnlockBankAccountProps) 
         : translate('homePage.timeSensitiveSection.unlockBankAccount.personalSubtitle');
 
     const handleCtaPress = () => {
-        pressLockedBankAccount(bankAccountID, translate, conciergeReportID, delegateAccountID);
-        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas});
+        if (unlockRequestedAt) {
+            showUnlockAlreadyRequestedModal(showConfirmModal, translate);
+            return;
+        }
+        pressLockedBankAccount(bankAccountID, translate, conciergeReportID, delegateAccountID, initiatingBankAccountUnlock);
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed});
     };
 
     return (
