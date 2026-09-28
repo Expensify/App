@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
-import {getTagList} from '@libs/PolicyUtils';
+import {getTagList, matchesParentTagPath} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {SelectedTagOption} from '@libs/TagsOptionsListUtils';
 import {getTagListSections} from '@libs/TagsOptionsListUtils';
@@ -134,15 +134,7 @@ function TagPicker({
                 .slice(0, tagListIndex)
                 .join(':');
 
-            return Object.values(policyTagsWithAdditions).filter((policyTag) => {
-                const filterRegex = policyTag.rules?.parentTagsFilter;
-                if (!filterRegex) {
-                    return policyTagsWithAdditions;
-                }
-
-                const regex = new RegExp(filterRegex);
-                return regex.test(parentTag ?? '');
-            });
+            return Object.values(policyTagsWithAdditions).filter((policyTag) => matchesParentTagPath(policyTag, parentTag));
         }
 
         const selectedNames = new Set(selectedOptions.map((s) => s.name));

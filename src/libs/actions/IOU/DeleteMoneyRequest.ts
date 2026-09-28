@@ -16,7 +16,6 @@ import {
     getReimbursableTotal,
     getReportTransactions,
     getUnheldReimbursableTotal,
-    hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     hasOutstandingChildRequest,
     isArchivedReport,
     isExpenseReport,
@@ -25,7 +24,13 @@ import {
     updateOptimisticParentReportAction,
 } from '@libs/ReportUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
-import {getAmount, getCurrency, isOnHold, removeTransactionFromDuplicateTransactionViolation} from '@libs/TransactionUtils';
+import {
+    getAmount,
+    getCurrency,
+    hasNonReimbursableTransactions as hasNonReimbursableTransactionsTransactionUtils,
+    isOnHold,
+    removeTransactionFromDuplicateTransactionViolation,
+} from '@libs/TransactionUtils';
 
 import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
@@ -68,6 +73,7 @@ type DeleteMoneyRequestFunctionParams = {
     transactions: OnyxCollection<OnyxTypes.Transaction>;
     violations: OnyxCollection<OnyxTypes.TransactionViolations>;
     iouReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
     chatReport: OnyxEntry<OnyxTypes.Report>;
     isChatIOUReportArchived?: boolean | undefined;
     isSingleTransactionView?: boolean;
@@ -92,6 +98,7 @@ type PrepareToCleanUpMoneyRequestParams = {
     reportAction: OnyxTypes.ReportAction;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     iouReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions?: OnyxTypes.Transaction[];
     chatReport: OnyxEntry<OnyxTypes.Report>;
     isChatReportArchived: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
@@ -107,6 +114,7 @@ function prepareToCleanUpMoneyRequest({
     reportAction,
     transactionThreadReport,
     iouReport,
+    iouReportTransactions = [],
     chatReport,
     isChatReportArchived,
     getCurrencyDecimals,
@@ -292,7 +300,7 @@ function prepareToCleanUpMoneyRequest({
 
     const isTotalIndeterminate = wasAlreadyIndeterminate || !didUpdateOptimisticTotal;
 
-    const hasNonReimbursableTransactions = hasNonReimbursableTransactionsReportUtils(iouReport?.reportID);
+    const hasNonReimbursableTransactions = hasNonReimbursableTransactionsTransactionUtils(iouReportTransactions);
     const previewAmount = getReimbursableTotal(updatedIOUReport) + (updatedIOUReport?.nonReimbursableTotal ?? 0);
     // This message is stored on the report preview action, so it is built with hardcoded English strings
     // and en-locale amount formatting regardless of the viewer's locale (same convention as
@@ -398,10 +406,12 @@ type CleanUpMoneyRequestParams = {
     reportID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     iouReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
     chatReport: OnyxEntry<OnyxTypes.Report>;
     isChatIOUReportArchived: boolean | undefined;
     originalReportID: string | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    isOffline: boolean;
     isSingleTransactionView?: boolean;
     policy?: OnyxEntry<OnyxTypes.Policy>;
 };
@@ -412,10 +422,12 @@ function cleanUpMoneyRequest({
     reportID,
     transactionThreadReport,
     iouReport,
+    iouReportTransactions,
     chatReport,
     isChatIOUReportArchived,
     originalReportID,
     getCurrencyDecimals,
+    isOffline,
     isSingleTransactionView = false,
     policy,
 }: CleanUpMoneyRequestParams) {
@@ -425,6 +437,7 @@ function cleanUpMoneyRequest({
             reportAction,
             transactionThreadReport,
             iouReport,
+            iouReportTransactions,
             chatReport,
             isChatReportArchived: isChatIOUReportArchived,
             getCurrencyDecimals,
@@ -597,7 +610,7 @@ function cleanUpMoneyRequest({
     }
 
     if (!shouldDeleteIOUReport) {
-        clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID);
+        clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID, isOffline);
     }
 
     // First, update the reportActions to ensure related actions are not displayed.
@@ -605,7 +618,7 @@ function cleanUpMoneyRequest({
         Navigation.goBack(urlToNavigateBack, {
             afterTransition: () => {
                 if (shouldDeleteIOUReport) {
-                    clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID);
+                    clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID, isOffline);
                 }
                 Onyx.update(onyxUpdates);
             },
@@ -792,6 +805,7 @@ function deleteMoneyRequest({
     transactionThreadReport,
     violations,
     iouReport,
+    iouReportTransactions,
     chatReport,
     isChatIOUReportArchived,
     isSingleTransactionView = false,
@@ -828,6 +842,7 @@ function deleteMoneyRequest({
         reportAction,
         transactionThreadReport,
         iouReport,
+        iouReportTransactions,
         chatReport,
         isChatReportArchived: isChatIOUReportArchived,
         getCurrencyDecimals,

@@ -57,6 +57,7 @@ import type {PersonalDetails, Policy, Report, ReportAction, ReportNameValuePairs
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 import type Login from '@src/types/onyx/Login';
+import type {OriginalMessageReimbursed} from '@src/types/onyx/OriginalMessage';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -1457,6 +1458,7 @@ describe('OptionsListUtils', () => {
                 personalDetails,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -2112,6 +2114,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -3549,6 +3552,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -3591,6 +3595,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     sortByReportTypeInSearch: true,
                 },
@@ -3641,6 +3646,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -3703,6 +3709,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -3762,6 +3769,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS_WITH_PERIODS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     sortByReportTypeInSearch: true,
                 },
@@ -3806,6 +3814,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -3849,6 +3858,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -3902,6 +3912,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -3945,6 +3956,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -3990,6 +4002,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4031,6 +4044,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 },
@@ -4073,6 +4087,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 },
@@ -4115,6 +4130,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     maxRecentReportsToShow: 2,
                 },
@@ -4136,6 +4152,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     maxRecentReportsToShow: 0,
                 },
@@ -4178,6 +4195,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4239,6 +4257,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4303,6 +4322,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4367,6 +4387,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4405,6 +4426,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4746,6 +4768,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4785,6 +4808,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4826,6 +4850,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4867,6 +4892,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4907,6 +4933,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4945,6 +4972,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4988,6 +5016,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -5031,6 +5060,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -5074,6 +5104,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -5118,6 +5149,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     shouldAcceptName: false,
                 },
@@ -5160,6 +5192,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     shouldAcceptName: true,
                 },
@@ -5199,6 +5232,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -5237,6 +5271,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     sortByReportTypeInSearch: true,
                 },
@@ -5280,6 +5315,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     maxRecentReportsToShow: 5,
                 },
@@ -5327,6 +5363,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -5368,6 +5405,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -5425,7 +5463,7 @@ describe('OptionsListUtils', () => {
                         CURRENT_USER_EMAIL,
                         CURRENT_USER_ACCOUNT_ID,
                         PERSONAL_DETAILS_WITH_PERIODS,
-                        {dateFnsLocale: undefined, convertToDisplayString, sortByReportTypeInSearch: true},
+                        {dateFnsLocale: undefined, convertToDisplayString, sortByReportTypeInSearch: true, currentUserAccountID: CURRENT_USER_ACCOUNT_ID},
                         undefined,
                     );
 
@@ -5472,6 +5510,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -5531,6 +5570,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -5570,6 +5610,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -5584,6 +5625,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -7282,6 +7324,7 @@ describe('OptionsListUtils', () => {
 
             const result = createOption({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 accountIDs: [1, 2],
@@ -9934,6 +9977,7 @@ describe('OptionsListUtils', () => {
         it('should not return userToInvite for plain text name when shouldAcceptName is false', () => {
             const result = getUserToInviteOption({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 searchValue: 'Jeff Amazon',
                 personalDetails: PERSONAL_DETAILS,
@@ -9947,6 +9991,7 @@ describe('OptionsListUtils', () => {
         it('should return userToInvite for plain text name when shouldAcceptName is true', () => {
             const result = getUserToInviteOption({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 searchValue: 'Jeff Amazon',
                 personalDetails: PERSONAL_DETAILS,
@@ -9957,6 +10002,157 @@ describe('OptionsListUtils', () => {
             });
             expect(result).not.toBeNull();
             expect(result?.login).toBe('Jeff Amazon');
+        });
+
+        it('should return a valid invite option for a new email', () => {
+            const result = getUserToInviteOption({
+                dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                convertToDisplayString,
+                searchValue: 'newuser@example.com',
+                personalDetails: PERSONAL_DETAILS,
+                loginList: {},
+                currentUserEmail: CURRENT_USER_EMAIL,
+                rules: undefined,
+            });
+
+            expect(result).not.toBeNull();
+            expect(result?.login).toBe('newuser@example.com');
+            expect(result?.isOptimisticAccount).toBe(true);
+        });
+
+        it('should return null when searchValue is empty', () => {
+            const result = getUserToInviteOption({
+                dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                convertToDisplayString,
+                searchValue: '',
+                personalDetails: PERSONAL_DETAILS,
+                loginList: {},
+                currentUserEmail: CURRENT_USER_EMAIL,
+                rules: undefined,
+            });
+
+            expect(result).toBeNull();
+        });
+
+        it('should return null when searching for current user email', () => {
+            const result = getUserToInviteOption({
+                dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                convertToDisplayString,
+                searchValue: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
+                loginList: {},
+                currentUserEmail: CURRENT_USER_EMAIL,
+                rules: undefined,
+            });
+
+            expect(result).toBeNull();
+        });
+    });
+
+    describe('filterAndOrderOptions with userToInvite', () => {
+        it('should produce userToInvite when searching for a new email with config', () => {
+            const {options} = getValidOptions(
+                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined, convertToDisplayString},
+                translateLocal,
+                undefined,
+            );
+
+            const filteredOptions = filterAndOrderOptions(
+                options,
+                'newuser@example.com',
+                COUNTRY_CODE,
+                loginList,
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ACCOUNT_ID,
+                PERSONAL_DETAILS,
+                {
+                    dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    convertToDisplayString,
+                },
+                undefined,
+            );
+
+            expect(filteredOptions.userToInvite).not.toBeNull();
+            expect(filteredOptions.userToInvite?.login).toBe('newuser@example.com');
+            expect(filteredOptions.userToInvite?.isOptimisticAccount).toBe(true);
+        });
+
+        it('should produce userToInvite when searching for a new email without config', () => {
+            const {options} = getValidOptions(
+                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined, convertToDisplayString},
+                translateLocal,
+                undefined,
+            );
+
+            const filteredOptions = filterAndOrderOptions(
+                options,
+                'anotheruser@example.com',
+                COUNTRY_CODE,
+                loginList,
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ACCOUNT_ID,
+                PERSONAL_DETAILS,
+                {
+                    dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    convertToDisplayString,
+                },
+                undefined,
+            );
+
+            expect(filteredOptions.userToInvite).not.toBeNull();
+            expect(filteredOptions.userToInvite?.login).toBe('anotheruser@example.com');
+        });
+
+        it('should not produce userToInvite when search matches current user', () => {
+            const {options} = getValidOptions(
+                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined, convertToDisplayString},
+                translateLocal,
+                undefined,
+            );
+
+            const filteredOptions = filterAndOrderOptions(
+                options,
+                CURRENT_USER_EMAIL,
+                COUNTRY_CODE,
+                loginList,
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ACCOUNT_ID,
+                PERSONAL_DETAILS,
+                {
+                    dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    convertToDisplayString,
+                },
+                undefined,
+            );
+
+            expect(filteredOptions.userToInvite).toBeNull();
         });
     });
 
@@ -10146,6 +10342,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -10210,6 +10407,7 @@ describe('OptionsListUtils', () => {
             // Given a valid email search value and reports collection
             const result = getUserToInviteOption({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 searchValue: 'newuser@example.com',
                 loginList: {},
@@ -10434,6 +10632,7 @@ describe('OptionsListUtils', () => {
             // When the threaded conciergeReportID matches the report
             const conciergeOption = createOptionFromReport({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 report,
                 personalDetails: PERSONAL_DETAILS,
@@ -10448,6 +10647,7 @@ describe('OptionsListUtils', () => {
             // And an identical report with a non-matching conciergeReportID is not treated as Concierge
             const regularOption = createOptionFromReport({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 report,
                 personalDetails: PERSONAL_DETAILS,
@@ -10479,6 +10679,7 @@ describe('OptionsListUtils', () => {
 
             const result = createOptionFromReport({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 report,
                 personalDetails: PERSONAL_DETAILS,
@@ -10513,6 +10714,7 @@ describe('OptionsListUtils', () => {
 
             const result = createOptionFromReport({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 report,
                 personalDetails: PERSONAL_DETAILS,
@@ -10546,6 +10748,7 @@ describe('OptionsListUtils', () => {
 
             const result = createOptionFromReport({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 report,
                 personalDetails: PERSONAL_DETAILS,
@@ -10579,6 +10782,7 @@ describe('OptionsListUtils', () => {
 
             const result = createOptionFromReport({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 report,
                 personalDetails: PERSONAL_DETAILS,
@@ -10613,6 +10817,7 @@ describe('OptionsListUtils', () => {
             const config = {showPersonalDetails: true};
             const result = createOptionFromReport({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 report,
                 personalDetails: PERSONAL_DETAILS,
@@ -10652,6 +10857,7 @@ describe('OptionsListUtils', () => {
 
             const roomOption = createOptionFromReport({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 report,
                 personalDetails: PERSONAL_DETAILS,
@@ -10663,6 +10869,7 @@ describe('OptionsListUtils', () => {
             });
             const personalDetailsOption = createOptionFromReport({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 report,
                 personalDetails: PERSONAL_DETAILS,
@@ -10677,6 +10884,122 @@ describe('OptionsListUtils', () => {
             expect(roomOption.text).toBe('#admins');
             // With showPersonalDetails the option is named after the other participant (account 1 in PERSONAL_DETAILS).
             expect(personalDetailsOption.text).toBe('Mister Fantastic');
+        });
+
+        describe('reimbursed report preview', () => {
+            const SUBMITTER_LOGIN = 'submitter@expensify.com';
+
+            /**
+             * Builds an expense report whose last visible action is a REIMBURSED action, writes it to Onyx and
+             * returns the params for `createOptionFromReport`. Each case uses its own reportID because the
+             * module-level report-action caches survive `Onyx.clear()`, so a shared ID would leak across tests.
+             */
+            const setUpReimbursedReport = async (reportID: string, ownerAccountID: number, originalMessage: OriginalMessageReimbursed) => {
+                const report: Report = {
+                    reportID,
+                    reportName: 'Expense Report',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    ownerAccountID,
+                    // Empty so the preview falls through to getLastMessageTextForReport instead of reusing lastMessageText.
+                    lastMessageText: '',
+                    lastActionType: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                    lastVisibleActionCreated: '2024-01-01 10:00:00.000',
+                };
+                const reimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                    reportActionID: `reimbursed-${reportID}`,
+                    created: '2024-01-01 10:00:00.000',
+                    actorAccountID: 3,
+                    originalMessage,
+                    message: [{type: 'COMMENT', html: 'reimbursed', text: 'reimbursed'}],
+                };
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reimbursedAction.reportActionID]: reimbursedAction});
+                await waitForBatchedUpdates();
+
+                return {
+                    dateFnsLocale: undefined,
+                    report,
+                    personalDetails: {...PERSONAL_DETAILS, [ownerAccountID]: {accountID: ownerAccountID, login: SUBMITTER_LOGIN, displayName: 'Submitter'}},
+                    privateIsArchived: undefined,
+                    rules: undefined,
+                    policy: undefined,
+                    sortedActions: {[reportID]: [reimbursedAction]},
+                    conciergeReportID: undefined,
+                    config: {showChatPreviewLine: true},
+                    convertToDisplayString,
+                };
+            };
+
+            it('should address the payee directly only in the preview shown to them for a Fast ACH reimbursement', async () => {
+                // Given an expense report whose last action is a Fast_ACH reimbursement paid to account 42
+                const ownerAccountID = 42;
+                const params = await setUpReimbursedReport('create-option-reimbursed-fast-ach', ownerAccountID, {
+                    paymentMethod: 'Fast_ACH',
+                    creditBankAccountLast4: '1111',
+                    expectedDate: '2025-03-15',
+                });
+
+                // When the option is built for the report owner, and for somebody else
+                const ownOption = createOptionFromReport({...params, currentUserAccountID: ownerAccountID});
+                const otherOption = createOptionFromReport({...params, currentUserAccountID: 999});
+
+                // Then the wording follows the passed currentUserAccountID
+                expect(ownOption.alternateText).toContain('your bank account ending in 1111');
+                expect(otherOption.alternateText).toContain(`${SUBMITTER_LOGIN}'s bank account ending in 1111`);
+            });
+
+            it('should address the payee directly only in the preview shown to them for a StripeConnect reimbursement', async () => {
+                // Given an expense report reimbursed to account 42 through StripeConnect
+                const ownerAccountID = 42;
+                const params = await setUpReimbursedReport('create-option-reimbursed-stripe', ownerAccountID, {
+                    paymentMethod: 'StripeConnect',
+                    creditBankAccountLast4: '2222',
+                    stripePaymentType: 'bank_transfer',
+                });
+
+                // When the option is built for the report owner, and for somebody else
+                const ownOption = createOptionFromReport({...params, currentUserAccountID: ownerAccountID});
+                const otherOption = createOptionFromReport({...params, currentUserAccountID: 999});
+
+                // Then the wording follows the passed currentUserAccountID
+                expect(ownOption.alternateText).toContain('your bank account ending in 2222');
+                expect(otherOption.alternateText).toContain(`${SUBMITTER_LOGIN}'s bank account ending in 2222`);
+            });
+
+            it('should build the preview for the account it is given rather than the signed-in session account', async () => {
+                // Given a report owned by the signed-in user (the session accountID written in beforeEach)
+                const params = await setUpReimbursedReport('create-option-reimbursed-session', CURRENT_USER_ACCOUNT_ID, {
+                    paymentMethod: 'Fast_ACH',
+                    creditBankAccountLast4: '3333',
+                    expectedDate: '2025-03-15',
+                });
+
+                // When the option is built for a different account than the one in the session
+                const option = createOptionFromReport({...params, currentUserAccountID: 999});
+
+                // Then the passed account wins over the module-level session value, so the owner is named explicitly
+                expect(option.alternateText).toContain(`${SUBMITTER_LOGIN}'s bank account ending in 3333`);
+                expect(option.alternateText).not.toContain('your bank account');
+            });
+
+            it('should build the same ACH preview for every viewer', async () => {
+                // Given an expense report reimbursed with plain ACH, whose message never names the payee
+                const params = await setUpReimbursedReport('create-option-reimbursed-ach', 42, {
+                    paymentMethod: 'ACH',
+                    debitBankAccountLast4: '9999',
+                    creditBankAccountLast4: '5678',
+                });
+
+                // When the option is built for the report owner, and for somebody else
+                const ownOption = createOptionFromReport({...params, currentUserAccountID: 42});
+                const otherOption = createOptionFromReport({...params, currentUserAccountID: 999});
+
+                // Then both previews are identical
+                expect(ownOption.alternateText).toBe(otherOption.alternateText);
+                expect(ownOption.alternateText).toContain('to the bank account ending in 5678');
+            });
         });
     });
 
@@ -11376,6 +11699,7 @@ describe('OptionsListUtils', () => {
 
             const result = createOptionFromReport({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 report,
                 personalDetails: PERSONAL_DETAILS,
