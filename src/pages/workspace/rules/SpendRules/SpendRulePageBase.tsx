@@ -453,7 +453,7 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
                 shouldEnableKeyboardAvoidingView={false}
             >
                 <HeaderWithBackButtonAndTitle title={translate('workspace.rules.spendRules.restrictCardSpendTitle')}>
-                    {!!deleteIconButtonProps && <HeaderIconButton {...deleteIconButtonProps} />}
+                    {!!deleteIconButtonProps && <Header.IconButton {...deleteIconButtonProps} />}
                 </HeaderWithBackButtonAndTitle>
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>{revampFormContent}</ScrollView>
                 {canWriteSpendRules && (
