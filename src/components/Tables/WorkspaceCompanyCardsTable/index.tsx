@@ -14,6 +14,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -96,7 +97,7 @@ function WorkspaceCompanyCardsTable({
 }: WorkspaceCompanyCardsTableProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const tableRef = useRef<TableHandle<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>>(null);
 
@@ -127,7 +128,7 @@ function WorkspaceCompanyCardsTable({
     const [selectedCardKeys, setSelectedCardKeys] = useState<string[]>([]);
     const clearCardSelection = () => setSelectedCardKeys([]);
     useImperativeHandle(ref, () => ({clearSelection: clearCardSelection}));
-    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails, personalDetailsMetadata] = useAllPersonalDetails();
     const [sharedCardCustomNames] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`, {selector: companyCardCustomNamesSelector});
     const [companyCardsLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`);
 
@@ -366,7 +367,13 @@ function WorkspaceCompanyCardsTable({
         const isAssignedCardMatch = assignedKeyword.startsWith(searchLower) && item.isAssigned;
         const isUnassignedCardMatch = unassignedKeyword.startsWith(searchLower) && !item.isAssigned;
 
-        const searchTokens = [item.cardName, item.customCardName ?? '', item.cardholder?.displayName ?? '', item.cardholder?.login ?? ''];
+        const cardholderLogin = item.cardholder?.login ?? '';
+        const searchTokens = [
+            item.cardName,
+            item.customCardName ?? '',
+            item.cardholder?.displayName ?? '',
+            ...(Str.isSMSLogin(cardholderLogin) ? [formatPhoneNumber(cardholderLogin), cardholderLogin] : [cardholderLogin]),
+        ];
 
         const matchingItems = tokenizedSearch([item], searchString, () => searchTokens);
         return matchingItems.length > 0 || isAssignedCardMatch || isUnassignedCardMatch;
@@ -444,7 +451,9 @@ function WorkspaceCompanyCardsTable({
                     isLoading={isLoading}
                     policyID={policyID}
                     feedName={feedName}
+                    domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
                     canWriteCompanyCards={canWriteCompanyCards}
+                    shouldShowViewTransactions={showCards}
                     CardFeedIcon={cardFeedIcon}
                 />
             </View>
