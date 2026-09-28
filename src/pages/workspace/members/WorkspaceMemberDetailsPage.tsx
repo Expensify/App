@@ -2,6 +2,7 @@ import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import getBankIcon from '@components/Icon/BankIcons';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
@@ -43,7 +44,9 @@ import {
     canMemberManageMemberWithRole,
     canMemberWrite,
     getReimburserEmail,
+    getReimbursementChoice,
     isControlPolicy,
+    isPolicyAdmin,
     isPolicyApprover,
     PAYER_ROLES,
     tryNavigateToSubmitWorkspaceUpgrade,
@@ -179,6 +182,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const memberCards = workspaceCards
         ? Object.values(workspaceCards).filter((card) => card.accountID === accountID && card.nameValuePairs?.feedCountry !== CONST.TRAVEL.PROGRAM_TRAVEL_US)
         : [];
+
+    const memberBankAccount = isPolicyAdmin(policy) && getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? member?.bankAccount : undefined;
+    const memberBankIcon = getBankIcon({bankName: memberBankAccount?.bankName, styles});
 
     const isApprover = isPolicyApprover(policy, memberLogin) || isApproverOfOutstandingPolicyReports(accountID, outstandingReportsForPolicy, privateIsArchivedMap);
     const isTechnicalContact = policy?.technicalContact === details?.login;
@@ -487,6 +493,25 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                             </OfflineWithFeedback>
                                         );
                                     })}
+                                </>
+                            )}
+                            {!!memberBankAccount?.bankAccountLastFour && (
+                                <>
+                                    <View style={[styles.ph5, styles.pv3]}>
+                                        <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
+                                            {translate('common.bankAccounts')}
+                                        </Text>
+                                    </View>
+                                    <MenuItem
+                                        title={memberBankAccount.bankName ? memberBankAccount.bankName : translate('common.bankAccount')}
+                                        description={memberBankAccount.bankAccountLastFour}
+                                        icon={memberBankIcon.icon}
+                                        iconHeight={memberBankIcon.iconSize}
+                                        iconWidth={memberBankIcon.iconSize}
+                                        iconStyles={memberBankIcon.iconStyles}
+                                        displayInDefaultIconColor
+                                        interactive={false}
+                                    />
                                 </>
                             )}
                         </View>
