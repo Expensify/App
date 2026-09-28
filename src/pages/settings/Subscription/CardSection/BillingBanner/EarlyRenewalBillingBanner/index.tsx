@@ -4,6 +4,7 @@ import Button from '@components/Button';
 import useEarlyRenewalConfirmation from '@hooks/useEarlyRenewalConfirmation';
 import useEarlyRenewalPeriod from '@hooks/useEarlyRenewalPeriod';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
@@ -18,12 +19,13 @@ import type EarlyRenewalBillingBannerProps from './types';
 
 function EarlyRenewalBillingBanner({fallback}: EarlyRenewalBillingBannerProps) {
     const [eligibility, eligibilityMetadata] = useOnyx(ONYXKEYS.EARLY_RENEWAL_OFFER_ELIGIBILITY);
-    const {isNonIncentivizedPeriod} = useEarlyRenewalPeriod();
+    const {isNonIncentivizedPeriod, isIncentivizedPeriod} = useEarlyRenewalPeriod();
+    const {translate} = useLocalize();
     const showEarlyRenewalConfirmation = useEarlyRenewalConfirmation();
     const {isOffline} = useNetwork();
     const illustrations = useMemoizedLazyIllustrations(['MoneyBadge']);
 
-    if (eligibilityMetadata.status !== 'loaded' || !eligibility?.canClaim || !isNonIncentivizedPeriod) {
+    if (eligibilityMetadata.status !== 'loaded' || !eligibility?.canClaim || (!isNonIncentivizedPeriod && !isIncentivizedPeriod)) {
         return fallback;
     }
 
@@ -31,8 +33,8 @@ function EarlyRenewalBillingBanner({fallback}: EarlyRenewalBillingBannerProps) {
 
     return (
         <BillingBanner
-            title={copy.HOME_TITLE}
-            subtitle={copy.HOME_SUBTITLE}
+            title={isIncentivizedPeriod ? translate('earlyRenewal.incentivizedTitle') : copy.HOME_TITLE}
+            subtitle={isIncentivizedPeriod ? translate('earlyRenewal.incentivizedSubtitle') : copy.HOME_SUBTITLE}
             icon={illustrations.MoneyBadge}
             rightComponent={
                 <Button
@@ -41,7 +43,7 @@ function EarlyRenewalBillingBanner({fallback}: EarlyRenewalBillingBannerProps) {
                     size={CONST.BUTTON_SIZE.SMALL}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                 >
-                    <Button.Text>{copy.CTA}</Button.Text>
+                    <Button.Text>{isIncentivizedPeriod ? translate('earlyRenewal.claim') : copy.CTA}</Button.Text>
                 </Button>
             }
         />

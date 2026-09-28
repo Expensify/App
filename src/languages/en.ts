@@ -38,6 +38,24 @@ type AllCountries = Record<Country, string>;
 const translations = {
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renew your subscription for a 12-month term, from ${startDate} to ${endDate}.`,
+        incentivizedTitle: 'Renew early, get up to 2 months free',
+        incentivizedSubtitle: 'Claim a discount on your annual subscription.',
+        claim: 'Claim',
+        offer: {
+            heading: 'Choose your discount',
+            subtitle: 'Two sweet deals for you to choose from:',
+            oneYear: 'Renew for 1 year, get 1 month free',
+            twoYears: 'Renew for 2 years, get 2 months free',
+            bestDeal: 'Best deal',
+            disclaimer: 'The offer above will be applied as a 9% discount to your annual subscription. Overage charges are not included.',
+            renewAndClaim: 'Renew and claim discount',
+            chooseOptionError: 'Please choose an option.',
+        },
+        adminTitle: 'Ask your billing owner to renew early',
+        adminSubtitle: 'They can get up to 2 months free with your annual subscription.',
+        adminCTA: 'Nudge',
+        draftMessage: ({billingOwnerEmail, subscriptionURL}: {billingOwnerEmail: string; subscriptionURL: string}) =>
+            `@${billingOwnerEmail}, could you renew our Expensify subscription early? We'd get up to 2 months free. Claim it here: [subscription page](${subscriptionURL})`,
     },
     common: {
         durationDays: ({count}: {count: number}) => ({
