@@ -228,7 +228,7 @@ function FlagForReviewRulePageBase({
                 includeSafeAreaPaddingBottom
             >
                 <HeaderWithBackButtonAndTitle title={translate('workspace.rules.flagForReviewRule.title')}>
-                    {!!deleteIconButtonProps && <HeaderIconButton {...deleteIconButtonProps} />}
+                    {!!deleteIconButtonProps && <Header.IconButton {...deleteIconButtonProps} />}
                 </HeaderWithBackButtonAndTitle>
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.ph5, styles.pv3, styles.gap6]}>
