@@ -100,6 +100,7 @@ Onyx.connectWithoutView({
             return;
         }
         // An account can have zero transactions, which Onyx delivers as undefined. Count it as 0 so the zero cohort stays in the data.
+        // Keep a value that arrives before the session too, on cold start this collection can hydrate first and the callback will not run again.
         const transactionsCount = Object.keys(value ?? {}).length;
         sendTransactionsCount(transactionsCount);
         requestDatabaseSizeRemeasurement(transactionsCount);

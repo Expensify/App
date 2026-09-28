@@ -1,3 +1,6 @@
+/**
+ * Buckets the account size counts and the database size into the tier values used by the Sentry tags.
+ */
 import CONST from '@src/CONST';
 
 import type {ValueOf} from 'type-fest';
