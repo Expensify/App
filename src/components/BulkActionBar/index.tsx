@@ -18,6 +18,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Accessibility from '@libs/Accessibility';
+import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 
 import CONST from '@src/CONST';
@@ -87,7 +88,16 @@ function BulkActionBarContent<TValueType>({
     // keyup, shortcuts run on keydown, so ordering can't defer to them. `willAlertModalBecomeVisible` covers the open
     // animation, `isVisible` covers everything after, and an RHP only ever sets the latter.
     const [modal] = useOnyx(ONYXKEYS.MODAL);
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, onClearSelection, {isActive: !modal?.willAlertModalBecomeVisible && !modal?.isVisible});
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ESCAPE,
+        () => {
+            // A key press makes whatever holds focus match `:focus-visible`, so a checkbox clicked with the mouse would
+            // light up with a focus ring just as the selection it belongs to disappears.
+            blurActiveElement();
+            onClearSelection();
+        },
+        {isActive: !modal?.willAlertModalBecomeVisible && !modal?.isVisible},
+    );
 
     useEffect(() => {
         if (!moreAnchorRef.current || !isMoreMenuVisible) {
