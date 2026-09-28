@@ -8,13 +8,14 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import type {ListItem} from '@components/SelectionList/types';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsVendorColumnAvailable from '@hooks/useIsVendorColumnAvailable';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildSearchQueryString, queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {getColumnsToShow, getSortByOptions} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
@@ -51,12 +52,22 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
     const {clearSelectedTransactions} = useSearchSelectionActions();
 
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const isVendorColumnAvailable = useIsVendorColumnAvailable();
 
     const searchDataType = shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type;
     const currentColumns = !searchResults?.data
         ? []
-        : getColumnsToShow({currentAccountID: accountID, data: searchResults.data, visibleColumns, type: searchDataType, groupBy: groupBy?.value, sortBy: queryJSON.sortBy});
-    const sortableColumns = getSortByOptions(currentColumns, translate);
+        : getColumnsToShow({
+              currentAccountID: accountID,
+              data: searchResults.data,
+              visibleColumns,
+              type: searchDataType,
+              groupBy: groupBy?.value,
+              sortBy: queryJSON.sortBy,
+              shouldShowViolationsColumn: queryHasViolationFilter(queryJSON),
+              isVendorColumnAvailable,
+          });
+    const sortableColumns = getSortByOptions(currentColumns, translate, searchDataType);
     const sortOrder = queryJSON.sortOrder;
 
     const [selectedItem, setSelectedItem] = useState(queryJSON.sortBy);

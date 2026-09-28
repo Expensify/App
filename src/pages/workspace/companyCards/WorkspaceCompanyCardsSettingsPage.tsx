@@ -1,6 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -147,12 +148,9 @@ function WorkspaceCompanyCardsSettingsPage({
                 >
                     <HeaderWithBackButton title={translate('common.settings')} />
                     <View style={styles.flex1}>
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
-                            title={feedName}
-                            description={translate('workspace.moreFeatures.companyCards.cardFeedName')}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
+                        <MenuItemField
+                            value={feedName}
+                            name={translate('workspace.moreFeatures.companyCards.cardFeedName')}
                             onPress={navigateToChangeFeedName}
                         />
                         <OfflineWithFeedback pendingAction={selectedFeedData?.pendingFields?.statementPeriodEndDay}>

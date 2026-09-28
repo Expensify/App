@@ -24,7 +24,7 @@ import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, CardFeeds, CardList, PersonalDetailsList, Policy} from '@src/types/onyx';
+import type {CardFeeds, CardList, PersonalDetailsList, Policy} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -41,7 +41,7 @@ import useExportedToFilterOptions from './useExportedToFilterOptions';
 import useLoadSearchCategoryData from './useLoadSearchCategoryData';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
-import useSortedActions from './useSortedActions';
+import useSortedReportActionsData from './useSortedReportActionsData';
 
 type AutocompleteItemData = {
     filterKey: UserFriendlyKey;
@@ -58,7 +58,7 @@ type UseAutocompleteSuggestionsParams = {
     allFeeds: Record<string, CardFeeds | undefined> | undefined;
     options: OptionList;
     draftComments: OnyxCollection<string>;
-    betas: OnyxEntry<Beta[]>;
+    isDefaultRoomsBetaEnabled: boolean;
     countryCode: OnyxEntry<number>;
     loginList: OnyxEntry<Record<string, unknown>>;
     policies: NonNullable<OnyxCollection<Policy>>;
@@ -78,6 +78,7 @@ const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY).map((value
 const VIEW_FRIENDLY_VALUES = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const EXPENSE_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
 const RECEIPT_TYPE_FRIENDLY_VALUES = CONST.SEARCH.SELECTABLE_RECEIPT_TYPES.map((value) => getUserFriendlyValue(value));
+const TRANSACTION_STATUS_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_STATUS).map((value) => getUserFriendlyValue(value));
 const WITHDRAWAL_TYPE_VALUES = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
 const WITHDRAWAL_STATUS_VALUES = Object.values(CONST.SEARCH.SETTLEMENT_STATUS);
 const PAID_STATUS_VALUES = Object.values(CONST.SEARCH.PAID_STATUS);
@@ -108,7 +109,7 @@ function useAutocompleteSuggestions({
     allFeeds,
     options,
     draftComments,
-    betas,
+    isDefaultRoomsBetaEnabled,
     countryCode,
     loginList,
     policies,
@@ -130,7 +131,8 @@ function useAutocompleteSuggestions({
     const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allRecentTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const sortedActions = useSortedActions();
+    const sortedReportActionsData = useSortedReportActionsData();
+    const sortedActions = sortedReportActionsData?.sortedActions;
     const {currencyList} = useCurrencyListState();
     const {exportedToFilterOptions} = useExportedToFilterOptions();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -253,7 +255,7 @@ function useAutocompleteSuggestions({
                 convertToDisplayString,
                 options,
                 draftComments,
-                betas: betas ?? [],
+                isDefaultRoomsBetaEnabled,
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
                 searchQuery: autocompleteValue,
@@ -296,7 +298,7 @@ function useAutocompleteSuggestions({
                 convertToDisplayString,
                 options,
                 draftComments,
-                betas: betas ?? [],
+                isDefaultRoomsBetaEnabled,
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
                 searchQuery: autocompleteValue,
@@ -414,6 +416,16 @@ function useAutocompleteSuggestions({
             return filteredReceiptTypes.map((receiptType) => ({
                 filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.RECEIPT_TYPE,
                 text: receiptType,
+            }));
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS: {
+            const filteredTransactionStatuses = TRANSACTION_STATUS_FRIENDLY_VALUES.filter(
+                (transactionStatus) => transactionStatus.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(transactionStatus),
+            ).sort();
+
+            return filteredTransactionStatuses.map((transactionStatus) => ({
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TRANSACTION_STATUS,
+                text: transactionStatus,
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE: {

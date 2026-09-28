@@ -794,6 +794,17 @@ const tests = [
         },
     },
     {
+        query: 'type:expense group-by:day',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            groupBy: CONST.SEARCH.GROUP_BY.DAY,
+            filters: null,
+        },
+    },
+    {
         query: 'type:expense group-by:month',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -1177,6 +1188,48 @@ const keywordTests = [
         },
     },
     {
+        query: 'transaction-status:pending',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'transactionStatus',
+                right: 'pending',
+            },
+        },
+    },
+    {
+        query: 'transactionStatus:pending,posted',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'transactionStatus',
+                right: ['pending', 'posted'],
+            },
+        },
+    },
+    {
+        query: '-transactionStatus:pending',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'neq',
+                left: 'transactionStatus',
+                right: 'pending',
+            },
+        },
+    },
+    {
         query: 'columns:per-diem,drafts,draft,tax-rate,policy-name,withdrawal-id,bank-account',
         expected: {
             type: 'expense',
@@ -1244,7 +1297,7 @@ const keywordTests = [
         },
     },
     {
-        query: 'columns:group-category,group-tag,group-merchant,group-month,group-week,group-year,group-quarter',
+        query: 'columns:group-category,group-tag,group-merchant,group-day,group-month,group-week,group-year,group-quarter',
         expected: {
             type: 'expense',
             sortBy: 'date',
@@ -1254,6 +1307,7 @@ const keywordTests = [
                 CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
                 CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG,
                 CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY,
                 CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
                 CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK,
                 CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR,
@@ -1416,6 +1470,17 @@ const viewAndGroupByTests = [
     },
 
     // Time-based groupBy + view:bar defaults to sortOrder:asc
+    {
+        query: 'type:expense view:bar groupBy:day',
+        expected: {
+            type: 'expense',
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY,
+            sortOrder: 'asc',
+            view: 'bar',
+            groupBy: CONST.SEARCH.GROUP_BY.DAY,
+            filters: null,
+        },
+    },
     {
         query: 'type:expense view:bar groupBy:week',
         expected: {

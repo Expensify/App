@@ -3,6 +3,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {getSearchKeyForDataType} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
@@ -88,6 +89,7 @@ function navigateAfterExpenseCreate({
     }
 
     const type = isInvoice ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
+    const searchKey = getSearchKeyForDataType(type);
 
     // When already on Search ROOT with the same type (expense vs invoice), we navigate to the same screen (no-op or refresh); record as dismiss_modal_only.
     // When on another Search sub-tab (e.g. Chats), or on Search with a different type (e.g. on Invoice, submitting expense), record as navigate_to_search.
@@ -113,12 +115,12 @@ function navigateAfterExpenseCreate({
             if (!alreadyOnSearchRoot || !isSameSearchType || isRHPStillOnTop) {
                 // forceReplace keeps other callers on the tab they submitted from; skipped for the LOOKING_AROUND self-DM
                 // flow so it actually navigates to Search.
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: !(isLookingAroundUser && isSelfDMDestination)});
+                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString, searchKey}), {forceReplace: !(isLookingAroundUser && isSelfDMDestination)});
             } else {
                 Log.info('[IOU] navigateToSearch: already on matching Search root with RHP dismissed - no-op');
             }
         } else {
-            Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
+            Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString, searchKey}));
         }
     };
 

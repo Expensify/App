@@ -14,6 +14,7 @@ import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {TextInput as RNTextInput} from 'react-native';
 
 import React, {useMemo, useRef} from 'react';
@@ -28,7 +29,7 @@ type MerchantOrDescriptionCellProps = {
 function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, shouldUseNarrowLayout, isDescription, canEdit, onSave}: MerchantOrDescriptionCellProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const inputRef = useRef<RNTextInput | null>(null);
+    const inputRef = useRef<ComponentRef<typeof RNTextInput> | null>(null);
 
     const text = useMemo(() => {
         if (!isDescription) {
@@ -59,7 +60,7 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
     };
 
     const handleRef = (element: BaseTextInputRef | null) => {
-        inputRef.current = element as RNTextInput | null;
+        inputRef.current = element as ComponentRef<typeof RNTextInput> | null;
     };
 
     // Multiline TextInputs with autoFocus default cursor to the beginning; manually position it at the end on focus
