@@ -32,11 +32,9 @@ const MOCKS_RE = /[/\\]__mocks__[/\\]/;
 // Test files live under tests/ today, but a colocated one would lose `jest.mock` hoisting silently.
 const TEST_FILE_RE = /\.(test|spec)\.[jt]sx?$/;
 
-// esbuild emits two CJS interop helpers verbatim, both of which behave differently from Babel's:
-// its export getters are non-configurable, so `jest.spyOn` cannot redefine them, and they read the
-// binding directly, so a circular import throws where Babel's interop returned undefined.
-// The patterns are regexes because esbuild renames helper locals when the module already binds that
-// name (`name` becomes `name2`), so an exact string match misses those files.
+// esbuild's export helpers act differently from Babel's: `jest.spyOn` can't override their exports,
+// and a circular import throws instead of giving `undefined`. Patch both to act like Babel. Regexes,
+// because esbuild renames the helper's variables (`name` becomes `name2`) when the name is taken.
 const ESBUILD_HELPERS = [
     {
         marker: 'var __defProp',
@@ -52,9 +50,8 @@ const ESBUILD_HELPERS = [
 ];
 
 /**
- * Apply the helper rewrites above. A helper is absent whenever a module does not need it, but one
- * that is present in a shape we do not recognize means esbuild changed it and the patch is now a
- * silent no-op, so fail instead.
+ * Patch the esbuild helpers above. A missing helper is fine (the module doesn't need it), but one
+ * we can't match means esbuild changed it and the patch would silently do nothing, so throw.
  *
  * @param {string} code
  * @param {string} sourcePath
@@ -92,10 +89,8 @@ function getLang(filename) {
 }
 
 /**
- * Coverage instruments whatever the transformer returns, so the OXC path would run OXC, esbuild and
- * then istanbul on every file, where babel-jest emits the instrumentation in the pass it is already
- * doing. Measured on one CI shard that is slower and holds more memory, so a `--coverage` run stays
- * on babel-jest.
+ * Coverage runs stay on babel-jest: it adds coverage in the pass it already makes, while the OXC path
+ * would need a third pass (OXC, esbuild, then istanbul). On CI that was slower and used more memory.
  */
 function shouldUseOxc(filename, transformOptions) {
     if (transformOptions?.instrument) {
