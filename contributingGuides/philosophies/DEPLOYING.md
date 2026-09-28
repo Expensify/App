@@ -15,7 +15,7 @@ This describes the deployment processes, QA cycles, and build workflows for the 
 ### - All code MUST be deployed to staging before production
 We utilize a CI/CD deployment system built using [GitHub Actions](https://github.com/features/actions) to ensure that new code is automatically deployed to our users as fast as possible. All code is first deployed to our staging environments, where it undergoes quality assurance (QA) testing before it is deployed to production.
 
-### - Pull requests are deployed to staging after the next production deploy
+### - Pull requests are deployed to staging when the current checklist is closed
 The deploy checklist is locked from the moment it is created, so pull requests are not deployed to staging when they are merged. OSBotify comments on the merged PR, and it is deployed to staging together with everything else merged since the previous checklist when the current checklist is closed. If a change must reach staging sooner, it has to be cherry-picked.
 
 ### - StagingDeployCash MUST be used to track deployment progress
