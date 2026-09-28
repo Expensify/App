@@ -11401,4 +11401,58 @@ describe('actions/Report', () => {
             });
         });
     });
+
+    describe('optimisticReportLastData', () => {
+        const REPORT_ID = '95001';
+        const WHISPER_TARGET_ACCOUNT_ID = 606;
+        const COMMENT_ACTOR_ACCOUNT_ID = 707;
+
+        const comment: OnyxTypes.ReportAction = {
+            reportActionID: 'lastDataComment',
+            reportID: REPORT_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: COMMENT_ACTOR_ACCOUNT_ID,
+            created: '2027-01-01 10:00:00.000',
+            message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+            originalMessage: {html: 'Older comment'},
+        };
+
+        /** Newer than `comment`, and only the whispered-to account can see it. */
+        const whisper: OnyxTypes.ReportAction = {
+            reportActionID: 'lastDataWhisper',
+            reportID: REPORT_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+            actorAccountID: WHISPER_TARGET_ACCOUNT_ID,
+            created: '2027-01-01 12:00:00.000',
+            message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+            originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+        };
+
+        beforeEach(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[comment.reportActionID]: comment, [whisper.reportActionID]: whisper});
+            await waitForBatchedUpdates();
+        });
+
+        // `lastMessageText` is resolved by a separate helper that still reads the signed-in account, so only the
+        // action-derived fields are asserted here.
+        it('should point the last visible action at the whisper when the user is the one it targets', () => {
+            // Given a report whose newest action is a whisper aimed at the user
+            // When the optimistic last-report data is built for that user
+            const result = Report.optimisticReportLastData(REPORT_ID, {}, true, false, WHISPER_TARGET_ACCOUNT_ID);
+
+            // Then the action fields describe the whisper
+            expect(result.lastVisibleActionCreated).toBe(whisper.created);
+            expect(result.lastActorAccountID).toBe(WHISPER_TARGET_ACCOUNT_ID);
+        });
+
+        it('should skip the whisper and point at the older comment when it targets somebody else', () => {
+            // Given the same report, seen by an account the whisper does not target
+            // When the optimistic last-report data is built for that account
+            const result = Report.optimisticReportLastData(REPORT_ID, {}, true, false, WHISPER_TARGET_ACCOUNT_ID + 1);
+
+            // Then the whisper is invisible and the action fields describe the older comment
+            expect(result.lastVisibleActionCreated).toBe(comment.created);
+            expect(result.lastActorAccountID).toBe(COMMENT_ACTOR_ACCOUNT_ID);
+        });
+    });
 });
