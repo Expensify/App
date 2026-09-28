@@ -13,6 +13,8 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
+import type {ButtonProps} from './Button/types';
+
 import Button from './Button';
 import FormAlertWrapper from './FormAlertWrapper';
 
@@ -40,7 +42,8 @@ type FormAlertWithSubmitButtonProps = WithSentryLabel & {
     shouldShowLoadingImmediatelyOnPress?: boolean;
 
     onFixTheErrorsLinkPressed?: () => void;
-    onSubmit: () => void;
+
+    onSubmit: NonNullable<ButtonProps['onPress']>;
 
     /** Should the button be enabled when offline */
     enabledWhenOffline?: boolean;
