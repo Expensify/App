@@ -15,6 +15,7 @@ import {
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
 } from '@libs/actions/Policy/Category';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -698,6 +699,77 @@ describe('actions/PolicyCategory', () => {
             const importFinalModal = await importPolicyCategories(fakePolicy.id, []);
 
             expect(importFinalModal.promptKey).toStrictEqual('spreadsheet.importCategoriesNoneAddedOrUpdated');
+        });
+
+        it('Sends payroll code and category rule fields to the API', async () => {
+            // Given a category import that maps every Classic category column
+            const fakePolicy = createRandomPolicy(0);
+            const categoriesToImport: PolicyCategory[] = [
+                {
+                    name: 'Travel',
+                    enabled: true,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'GL Code': '6000',
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'Payroll Code': 'P100',
+                    areCommentsRequired: true,
+                    commentHint: 'Add the trip purpose',
+                    expenseLimitType: CONST.POLICY.EXPENSE_LIMIT_TYPES.DAILY,
+                    maxExpenseAmount: 5000,
+                },
+            ];
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When the categories are imported
+            await importPolicyCategories(fakePolicy.id, categoriesToImport);
+
+            // Then the new fields are passed through to the backend instead of being dropped from the payload
+            TestHelper.expectAPICommandToHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_CATEGORIES_SPREADSHEET, 0, {
+                policyID: fakePolicy.id,
+                categories: JSON.stringify([
+                    {
+                        name: 'Travel',
+                        enabled: true,
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        'GL Code': '6000',
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        'Payroll Code': 'P100',
+                        areCommentsRequired: true,
+                        commentHint: 'Add the trip purpose',
+                        expenseLimitType: CONST.POLICY.EXPENSE_LIMIT_TYPES.DAILY,
+                        maxExpenseAmount: 5000,
+                    },
+                ]),
+            });
+        });
+
+        it('Counts a category as updated when only its payroll code or description hint changes', async () => {
+            // Given existing categories whose GL code and enabled state will not change
+            const fakePolicy = createRandomPolicy(0);
+            const existingCategories = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                Travel: {name: 'Travel', enabled: true, 'GL Code': '6000', 'Payroll Code': 'P100'},
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                Meals: {name: 'Meals', enabled: true, 'GL Code': '6001', commentHint: 'Old hint'},
+            };
+            const categoriesToImport: PolicyCategory[] = [
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                {name: 'Travel', enabled: true, 'GL Code': '6000', 'Payroll Code': 'P200'},
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                {name: 'Meals', enabled: true, 'GL Code': '6001', commentHint: 'New hint'},
+            ];
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When the categories are imported
+            const importFinalModal = await importPolicyCategories(fakePolicy.id, categoriesToImport, existingCategories);
+
+            // Then both categories are reported as updated in the confirmation modal
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importCategoriesUpdated');
+            expect(importFinalModal.promptKeyParams).toStrictEqual({count: 2});
         });
     });
 

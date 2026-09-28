@@ -8299,6 +8299,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 flagAmountsOver: 'Signaler les montants supérieurs à',
                 flagAmountsOverDescription: (categoryName: string) => `S’applique à la catégorie « ${categoryName} ».`,
                 flagAmountsOverSubtitle: 'Cela remplace le montant maximal pour toutes les dépenses.',
+                expenseLimitType: 'Type de limite de dépense',
                 expenseLimitTypes: {
                     expense: 'Dépense individuelle',
                     expenseSubtitle:

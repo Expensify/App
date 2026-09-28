@@ -14,7 +14,7 @@ import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {hasAccountingConnections as hasAccountingConnectionsPolicyUtils, isControlPolicy} from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, isControlPolicy} from '@libs/PolicyUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -23,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {RouteProp} from '@react-navigation/native';
@@ -54,6 +55,28 @@ function parseCsvReceiptValue(raw: string | undefined): number | undefined {
         return num;
     }
     return undefined;
+}
+
+/**
+ * Parses a CSV cell value for the max expense amount column.
+ * Returns undefined for empty or invalid input so the existing value is left unchanged.
+ */
+function parseCsvAmountValue(raw: string | undefined): number | undefined {
+    const trimmed = raw?.trim();
+    if (!trimmed) {
+        return undefined;
+    }
+    const num = Number(trimmed);
+    return Number.isFinite(num) && num >= 0 ? num : undefined;
+}
+
+/**
+ * Parses a CSV cell value for the expense limit type column.
+ * Returns undefined for anything other than a known expense limit type.
+ */
+function parseCsvExpenseLimitType(raw: string | undefined): PolicyCategoryExpenseLimitType | undefined {
+    const trimmed = raw?.trim().toLowerCase();
+    return Object.values(CONST.POLICY.EXPENSE_LIMIT_TYPES).find((type) => type === trimmed);
 }
 
 type ImportedCategoriesPageProps = {
@@ -88,8 +111,18 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         if (isControlPolicy(policy)) {
             roles.push(
                 {text: translate('workspace.categories.glCode'), value: CONST.CSV_IMPORT_COLUMNS.GL_CODE},
+                {text: translate('workspace.categories.payrollCode'), value: CONST.CSV_IMPORT_COLUMNS.PAYROLL_CODE},
                 {text: translate('workspace.rules.categoryRules.requireReceiptsOver'), value: CONST.CSV_IMPORT_COLUMNS.MAX_AMOUNT_NO_RECEIPT},
                 {text: translate('workspace.rules.categoryRules.requireItemizedReceiptsOver'), value: CONST.CSV_IMPORT_COLUMNS.MAX_AMOUNT_NO_ITEMIZED_RECEIPT},
+            );
+        }
+
+        if (arePolicyRulesEnabled(policy, policyCategories)) {
+            roles.push(
+                {text: translate('workspace.rules.categoryRules.requireDescription'), value: CONST.CSV_IMPORT_COLUMNS.ARE_COMMENTS_REQUIRED},
+                {text: translate('workspace.rules.categoryRules.descriptionHint'), value: CONST.CSV_IMPORT_COLUMNS.COMMENT_HINT},
+                {text: translate('workspace.rules.categoryRules.flagAmountsOver'), value: CONST.CSV_IMPORT_COLUMNS.MAX_EXPENSE_AMOUNT},
+                {text: translate('workspace.rules.categoryRules.expenseLimitType'), value: CONST.CSV_IMPORT_COLUMNS.EXPENSE_LIMIT_TYPE},
             );
         }
 
@@ -145,11 +178,21 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         const categoriesEnabledColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ENABLED);
         const categoriesMaxAmountNoReceiptColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.MAX_AMOUNT_NO_RECEIPT);
         const categoriesMaxAmountNoItemizedReceiptColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.MAX_AMOUNT_NO_ITEMIZED_RECEIPT);
+        const categoriesPayrollCodeColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.PAYROLL_CODE);
+        const categoriesAreCommentsRequiredColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ARE_COMMENTS_REQUIRED);
+        const categoriesCommentHintColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.COMMENT_HINT);
+        const categoriesMaxExpenseAmountColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.MAX_EXPENSE_AMOUNT);
+        const categoriesExpenseLimitTypeColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.EXPENSE_LIMIT_TYPE);
         const categoriesNames = spreadsheet?.data[categoriesNamesColumn].map((name) => name);
         const categoriesEnabled = categoriesEnabledColumn !== -1 ? spreadsheet?.data[categoriesEnabledColumn].map((enabled) => enabled) : [];
         const categoriesGLCode = categoriesGLCodeColumn !== -1 ? spreadsheet?.data[categoriesGLCodeColumn].map((glCode) => glCode) : [];
         const categoriesMaxAmountNoReceipt = categoriesMaxAmountNoReceiptColumn !== -1 ? spreadsheet?.data[categoriesMaxAmountNoReceiptColumn] : [];
         const categoriesMaxAmountNoItemizedReceipt = categoriesMaxAmountNoItemizedReceiptColumn !== -1 ? spreadsheet?.data[categoriesMaxAmountNoItemizedReceiptColumn] : [];
+        const categoriesPayrollCode = categoriesPayrollCodeColumn !== -1 ? spreadsheet?.data[categoriesPayrollCodeColumn] : [];
+        const categoriesAreCommentsRequired = categoriesAreCommentsRequiredColumn !== -1 ? spreadsheet?.data[categoriesAreCommentsRequiredColumn] : [];
+        const categoriesCommentHint = categoriesCommentHintColumn !== -1 ? spreadsheet?.data[categoriesCommentHintColumn] : [];
+        const categoriesMaxExpenseAmount = categoriesMaxExpenseAmountColumn !== -1 ? spreadsheet?.data[categoriesMaxExpenseAmountColumn] : [];
+        const categoriesExpenseLimitType = categoriesExpenseLimitTypeColumn !== -1 ? spreadsheet?.data[categoriesExpenseLimitTypeColumn] : [];
         const categories = categoriesNames?.slice(containsHeader ? 1 : 0).map((name, index) => {
             const categoryAlreadyExists = policyCategories?.[name];
             const existingGLCodeOrDefault = categoryAlreadyExists?.['GL Code'] ?? '';
@@ -158,6 +201,8 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             const parsedMaxAmountNoReceipt = categoriesMaxAmountNoReceiptColumn !== -1 ? parseCsvReceiptValue(categoriesMaxAmountNoReceipt?.[dataIndex]?.toString()) : undefined;
             const parsedMaxAmountNoItemizedReceipt =
                 categoriesMaxAmountNoItemizedReceiptColumn !== -1 ? parseCsvReceiptValue(categoriesMaxAmountNoItemizedReceipt?.[dataIndex]?.toString()) : undefined;
+            const parsedMaxExpenseAmount = categoriesMaxExpenseAmountColumn !== -1 ? parseCsvAmountValue(categoriesMaxExpenseAmount?.[dataIndex]?.toString()) : undefined;
+            const parsedExpenseLimitType = categoriesExpenseLimitTypeColumn !== -1 ? parseCsvExpenseLimitType(categoriesExpenseLimitType?.[dataIndex]?.toString()) : undefined;
 
             return {
                 name,
@@ -166,6 +211,14 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
                 'GL Code': categoriesGLCodeColumn !== -1 ? (categoriesGLCode?.[dataIndex] ?? '') : existingGLCodeOrDefault,
                 ...(parsedMaxAmountNoReceipt !== undefined && {maxAmountNoReceipt: parsedMaxAmountNoReceipt}),
                 ...(parsedMaxAmountNoItemizedReceipt !== undefined && {maxAmountNoItemizedReceipt: parsedMaxAmountNoItemizedReceipt}),
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                ...(categoriesPayrollCodeColumn !== -1 && {'Payroll Code': categoriesPayrollCode?.[dataIndex] ?? ''}),
+                ...(categoriesAreCommentsRequiredColumn !== -1 && {
+                    areCommentsRequired: ['true', 'yes'].includes(categoriesAreCommentsRequired?.[dataIndex]?.toString().trim().toLowerCase() ?? ''),
+                }),
+                ...(categoriesCommentHintColumn !== -1 && {commentHint: categoriesCommentHint?.[dataIndex] ?? ''}),
+                ...(parsedMaxExpenseAmount !== undefined && {maxExpenseAmount: parsedMaxExpenseAmount}),
+                ...(parsedExpenseLimitType !== undefined && {expenseLimitType: parsedExpenseLimitType}),
             };
         });
 

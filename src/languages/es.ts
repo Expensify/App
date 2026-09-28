@@ -8306,6 +8306,7 @@ ${reportName}`,
                 flagAmountsOver: 'Señala importes superiores a',
                 flagAmountsOverDescription: (categoryName) => `Aplica a la categoría “${categoryName}”.`,
                 flagAmountsOverSubtitle: 'Esto anula el importe máximo para todos los gastos.',
+                expenseLimitType: 'Tipo de límite de gasto',
                 expenseLimitTypes: {
                     expense: 'Gasto individual',
                     expenseSubtitle:

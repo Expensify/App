@@ -910,7 +910,12 @@ async function importPolicyCategories(policyID: string, categories: PolicyCatego
                 existing.enabled !== category.enabled ||
                 (existing['GL Code'] ?? '') !== (category['GL Code'] ?? '') ||
                 ('maxAmountNoReceipt' in category && existing.maxAmountNoReceipt !== category.maxAmountNoReceipt) ||
-                ('maxAmountNoItemizedReceipt' in category && existing.maxAmountNoItemizedReceipt !== category.maxAmountNoItemizedReceipt)
+                ('maxAmountNoItemizedReceipt' in category && existing.maxAmountNoItemizedReceipt !== category.maxAmountNoItemizedReceipt) ||
+                ('Payroll Code' in category && (existing['Payroll Code'] ?? '') !== (category['Payroll Code'] ?? '')) ||
+                ('areCommentsRequired' in category && !!existing.areCommentsRequired !== !!category.areCommentsRequired) ||
+                ('commentHint' in category && (existing.commentHint ?? '') !== (category.commentHint ?? '')) ||
+                ('expenseLimitType' in category && existing.expenseLimitType !== category.expenseLimitType) ||
+                ('maxExpenseAmount' in category && existing.maxExpenseAmount !== category.maxExpenseAmount)
             ) {
                 acc.updated++;
             }
@@ -932,6 +937,12 @@ async function importPolicyCategories(policyID: string, categories: PolicyCatego
                 'GL Code': String(category['GL Code']),
                 ...('maxAmountNoReceipt' in category && {maxAmountNoReceipt: category.maxAmountNoReceipt}),
                 ...('maxAmountNoItemizedReceipt' in category && {maxAmountNoItemizedReceipt: category.maxAmountNoItemizedReceipt}),
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                ...('Payroll Code' in category && {'Payroll Code': String(category['Payroll Code'])}),
+                ...('areCommentsRequired' in category && {areCommentsRequired: category.areCommentsRequired}),
+                ...('commentHint' in category && {commentHint: category.commentHint}),
+                ...('expenseLimitType' in category && {expenseLimitType: category.expenseLimitType}),
+                ...('maxExpenseAmount' in category && {maxExpenseAmount: category.maxExpenseAmount}),
             })),
         ),
     };

@@ -8213,6 +8213,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 flagAmountsOver: 'Sinalizar valores acima de',
                 flagAmountsOverDescription: (categoryName: string) => `Aplica-se à categoria “${categoryName}”.`,
                 flagAmountsOverSubtitle: 'Isso substitui o valor máximo para todas as despesas.',
+                expenseLimitType: 'Tipo de limite de despesa',
                 expenseLimitTypes: {
                     expense: 'Despesa individual',
                     expenseSubtitle:

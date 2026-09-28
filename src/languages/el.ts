@@ -8735,6 +8735,7 @@ ${reportName}`,
                 flagAmountsOver: 'Επισήμανση ποσών άνω των',
                 flagAmountsOverDescription: (categoryName: string) => `Ισχύει για την κατηγορία «${categoryName}».`,
                 flagAmountsOverSubtitle: 'Αυτό παρακάμπτει το μέγιστο ποσό για όλες τις δαπάνες.',
+                expenseLimitType: 'Τύπος ορίου δαπάνης',
                 expenseLimitTypes: {
                     expense: 'Ατομική δαπάνη',
                     expenseSubtitle:
