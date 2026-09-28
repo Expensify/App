@@ -54,7 +54,6 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed, errorMessage
     };
 
     const onButtonPress = () => {
-        clearAddNewCompanyCardErrors();
         deleteCompanyCardFeed();
         Navigation.closeRHPFlow();
     };
