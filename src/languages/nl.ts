@@ -11478,11 +11478,6 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Verleng je abonnement voor een periode van 12 maanden, van ${startDate} tot ${endDate}.`,
-        adminTitle: 'Vraag je facturatie-eigenaar om vroegtijdig te verlengen',
-        adminSubtitle: 'Beoordeel een bericht aan je facturatie-eigenaar over het Early Renewal 2027-aanbod.',
-        adminCTA: 'Reminder',
-        draftMessage: ({billingOwnerEmail, subscriptionURL}: {billingOwnerEmail: string; subscriptionURL: string}) =>
-            `Hoi @${billingOwnerEmail}! Wil je Expensify's Early Renewal 2027-aanbod bekijken? Zie je [abonnementspagina](${subscriptionURL}) voor details.`,
     },
 };
 export default translations;

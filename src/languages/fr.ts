@@ -11586,11 +11586,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renouvelez votre abonnement pour une durée de 12 mois, du ${startDate} au ${endDate}.`,
-        adminTitle: 'Demandez à votre responsable de facturation de renouveler avant la date prévue',
-        adminSubtitle: 'Examiner un message à l’attention de votre responsable de facturation concernant l’offre de renouvellement anticipé 2027.',
-        adminCTA: 'Relance',
-        draftMessage: ({billingOwnerEmail, subscriptionURL}: {billingOwnerEmail: string; subscriptionURL: string}) =>
-            `Salut @${billingOwnerEmail} ! Pourrais-tu examiner l’offre de renouvellement anticipé 2027 d’Expensify ? Consulte ta [page d’abonnement](${subscriptionURL}) pour plus de détails.`,
     },
 };
 export default translations;

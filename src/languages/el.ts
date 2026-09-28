@@ -11798,11 +11798,6 @@ ${reportName}`,
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Ανανεώστε τη συνδρομή σας για περίοδο 12 μηνών, από ${startDate} έως ${endDate}.`,
-        adminTitle: 'Ζητήστε από το άτομο που διαχειρίζεται τη χρέωσή σας να ανανεώσει νωρίτερα',
-        adminSubtitle: 'Ελέγξτε ένα μήνυμα προς τον υπεύθυνο χρέωσης σας σχετικά με την προσφορά Early Renewal 2027.',
-        adminCTA: 'Υπενθύμιση',
-        draftMessage: ({billingOwnerEmail, subscriptionURL}: {billingOwnerEmail: string; subscriptionURL: string}) =>
-            `Γεια σας @${billingOwnerEmail}! Μπορείτε να ελέγξετε την προσφορά Πρόωρης Ανανέωσης 2027 της Expensify; Δείτε τη [σελίδα συνδρομής](${subscriptionURL}) σας για λεπτομέρειες.`,
     },
 };
 export default translations;

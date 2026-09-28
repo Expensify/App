@@ -11050,11 +11050,6 @@ ${reportName}`,
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `将您的订阅续订为 12 个月期限，自 ${startDate} 至 ${endDate}。`,
-        adminTitle: '请联系您的账单所有者提前续订',
-        adminSubtitle: '查看发送给您的账单所有者的有关 2027 年提前续订优惠的消息。',
-        adminCTA: '轻推',
-        draftMessage: ({billingOwnerEmail, subscriptionURL}: {billingOwnerEmail: string; subscriptionURL: string}) =>
-            `嗨 @${billingOwnerEmail}！你能查看一下 Expensify 的 2027 年提前续订优惠吗？详情请查看你的[订阅页面](${subscriptionURL})。`,
     },
 };
 export default translations;

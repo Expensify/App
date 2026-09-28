@@ -11346,11 +11346,6 @@ ${reportName}`,
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} から ${endDate} までの12か月契約でサブスクリプションを更新します。`,
-        adminTitle: '請求担当者に早期更新を依頼してください',
-        adminSubtitle: 'Early Renewal 2027 オファーについての請求管理者宛メッセージを確認します。',
-        adminCTA: 'ナッジ',
-        draftMessage: ({billingOwnerEmail, subscriptionURL}: {billingOwnerEmail: string; subscriptionURL: string}) =>
-            `@${billingOwnerEmail} さん、こんにちは！Expensify の 2027 年早期更新オファーをご確認いただけますか？詳しくは[サブスクリプションページ](${subscriptionURL})をご覧ください。`,
     },
 };
 export default translations;

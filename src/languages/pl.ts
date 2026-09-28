@@ -11496,11 +11496,6 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Odnów swoją subskrypcję na 12-miesięczny okres, od ${startDate} do ${endDate}.`,
-        adminTitle: 'Poproś właściciela rozliczeń o wcześniejsze odnowienie',
-        adminSubtitle: 'Przejrzyj wiadomość do swojego właściciela rozliczeń dotyczącą oferty Early Renewal 2027.',
-        adminCTA: 'Szturchnięcie',
-        draftMessage: ({billingOwnerEmail, subscriptionURL}: {billingOwnerEmail: string; subscriptionURL: string}) =>
-            `Hej @${billingOwnerEmail}! Czy możesz przejrzeć ofertę wczesnego odnowienia Expensify na 2027? Zobacz swoją [stronę subskrypcji](${subscriptionURL}), żeby poznać szczegóły.`,
     },
 };
 export default translations;

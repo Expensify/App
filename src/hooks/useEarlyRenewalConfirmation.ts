@@ -1,6 +1,6 @@
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 
-import {acceptEarlyRenewalOffer} from '@libs/actions/EarlyRenewalOffer';
+import acceptEarlyRenewalOffer from '@libs/actions/EarlyRenewalOffer';
 import DateUtils from '@libs/DateUtils';
 import {getNonIncentivizedEarlyRenewalDates} from '@libs/EarlyRenewalOfferUtils';
 
