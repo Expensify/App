@@ -100,7 +100,7 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
         >
             <HeaderWithBackButtonAndTitle title={Str.recapitalize(translate('statementPage.title', year, monthName))}>
                 {(!isOffline || isDownloading) && (
-                    <HeaderDownloadButton
+                    <Header.DownloadButton
                         onPress={processDownload}
                         isLoading={isDownloading}
                     />
