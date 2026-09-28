@@ -14,7 +14,7 @@ import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/V
 
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import {add as dateAdd} from 'date-fns';
@@ -102,17 +102,36 @@ const chatTypes = {
     SYSTEM: 'system',
 } as const;
 
+// Options on the onboarding accounting step, in display order. BaseOnboardingAccounting needs an icon and label for each key.
 const ONBOARDING_ACCOUNTING_MAPPING = {
     quickbooksOnline: 'QuickBooks Online',
+    intuitEnterpriseSuite: 'Intuit Enterprise Suite',
+    quickbooksDesktop: 'QuickBooks Desktop',
     xero: 'Xero',
     netsuite: 'NetSuite',
     intacct: 'Sage Intacct',
-    quickbooksDesktop: 'QuickBooks Desktop',
+    financialforce: 'Certinia',
+    rillet: 'Rillet',
     sap: 'SAP',
     oracle: 'Oracle',
     microsoftDynamics: 'Microsoft Dynamics',
     other: 'accounting software',
 };
+
+type OnboardingAccountingOption = keyof typeof ONBOARDING_ACCOUNTING_MAPPING;
+
+/** Accounting connections not offered on the onboarding accounting step. Remove one from this union to offer it. */
+type UnofferedOnboardingAccountingConnection =
+    | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY
+    | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE
+    // Covered by the Microsoft Dynamics option, and still behind the BUSINESS_CENTRAL beta.
+    | typeof CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL;
+
+type UnhandledAccountingConnection = Exclude<TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>, OnboardingAccountingOption | UnofferedOnboardingAccountingConnection>;
+
+// Fails typecheck if an accounting connection is neither offered on the onboarding step nor listed above.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type AssertEveryAccountingConnectionIsHandled<T extends never = UnhandledAccountingConnection> = T;
 
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
@@ -1123,6 +1142,7 @@ const CONST = {
         REPORT_MERGE: 'reportMerge',
         INSIGHTS_PAGE: 'insightsPage',
         INSIGHTS_COMPARE: 'insightsCompare',
+        PAYMENT_HISTORY: 'paymentHistory',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -3163,8 +3183,8 @@ const CONST = {
             CUSTOMERS: 'customers',
         },
         IMPORT_ITEMS: 'importItems',
-        AUTO_SYNC_ENABLED: 'enabled',
         ACCOUNTING_METHOD: 'accountingMethod',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
     },
 
     QUICKBOOKS_CONFIG: {
@@ -3935,6 +3955,8 @@ const CONST = {
         LONG_TERM_LIABILITY: 'LONG_TERM_LIABILITY',
         CREDIT_CARD: 'CREDIT_CARD',
         BANK: 'BANK',
+        OTHER_CURRENT_ASSET: 'OTHER_CURRENT_ASSET',
+        OTHER_CURRENT_LIABILITY: 'OTHER_CURRENT_LIABILITY',
     },
 
     CAMPFIRE_VENDOR_TYPE: {
@@ -4831,7 +4853,8 @@ const CONST = {
             get EXPORTED_TO_INTEGRATION_DISPLAY_NAMES(): string[] {
                 return this.ACCOUNTING_CONNECTION_NAMES.map((name) => this.NAME_USER_FRIENDLY[name as keyof typeof this.NAME_USER_FRIENDLY]);
             },
-            CORPORATE: ['quickbooksDesktop', 'netsuite', 'intacct', 'oracle', 'sap', 'microsoftDynamics', 'other'],
+            // Onboarding accounting choices that create a Control workspace, since their integrations need Control to connect.
+            CORPORATE: ['quickbooksDesktop', 'intuitEnterpriseSuite', 'netsuite', 'intacct', 'financialforce', 'rillet', 'oracle', 'sap', 'microsoftDynamics', 'other'],
             AUTH_HELP_LINKS: {
                 intacct:
                     "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
@@ -6867,8 +6890,6 @@ const CONST = {
         HIDDEN_BORDER_BOTTOM_WIDTH: 0,
     },
 
-    MISSING_TRANSLATION: 'MISSING TRANSLATION',
-
     /**
      * The count of characters we'll allow the user to type after reaching SEARCH_MAX_LENGTH in an input.
      */
@@ -7949,12 +7970,18 @@ const CONST = {
             GROUP_BY: 'groupBy',
             COLUMNS: 'columns',
             LIMIT: 'limit',
+            COMPARE: 'compare',
         },
         VIEW: {
             TABLE: 'table',
             BAR: 'bar',
             LINE: 'line',
             PIE: 'pie',
+        },
+        // Comparison modes for Insights queries, defined by the API.
+        COMPARE: {
+            PREVIOUS_PERIOD: 'previousPeriod',
+            AVERAGE: 'average',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
@@ -8096,6 +8123,7 @@ const CONST = {
             ORDER_DEAL_NUMBERS: 'order-deal-numbers',
             COLUMNS: 'columns',
             LIMIT: 'limit',
+            COMPARE: 'compare',
         },
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
@@ -9300,6 +9328,12 @@ const CONST = {
             UNREPORTED_EXPENSE_LIST_ITEM: 'UnreportedExpenseListItem',
             WORKSPACE_SELECTOR_SELECT_ALL: 'Search-WorkspaceSelectorSelectAll',
         },
+        INSIGHTS: {
+            CONTROL_DATE: 'Insights-ControlDate',
+            CONTROL_WORKSPACE: 'Insights-ControlWorkspace',
+            CONTROL_GROUP_CURRENCY: 'Insights-ControlGroupCurrency',
+            CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
+        },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',
         },
@@ -10244,6 +10278,7 @@ export type {
     CancellationType,
     OnboardingInvite,
     OnboardingAccounting,
+    OnboardingAccountingOption,
     OnboardingIntent,
     IOUActionParams,
     EnablePaymentsPageType,
