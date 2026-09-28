@@ -34,14 +34,12 @@ import ROUTES from '@src/ROUTES';
 import type {JoinablePolicy} from '@src/types/onyx/JoinablePolicies';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useNavigationState} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import type {BaseOnboardingWorkspacesProps} from './types';
-
-import useShouldHideBackButton from './useShouldHideBackButton';
 
 function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboardingWorkspacesProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
@@ -83,7 +81,9 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const isEmployerWithSubmit = onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER;
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
-    const shouldHideBackButton = useShouldHideBackButton(route.params?.backTo);
+    // Nothing in this stack to go back to. The work email merge and the private domain screen force-replace into this
+    // screen, so it is the only route there. `canGoBack()` can't answer this: it bubbles to the root stack.
+    const shouldHideBackButton = useNavigationState((state) => state.routes.length === 1);
 
     const finishOnboarding = (policy: JoinablePolicy) => {
         const isJoiningSubmitPolicy = policy.policyType === CONST.POLICY.TYPE.SUBMIT;

@@ -4,6 +4,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -67,6 +68,13 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
 
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
     }, [onboardingValues?.isMergeAccountStepCompleted, onboardingValues?.shouldRedirectToClassicAfterMerge, onboardingValues?.isMergeAccountStepSkipped, isVsb, isSmb, isFocused]);
+
+    // The work email screen force-replaces itself with this one, so Android's system Back would otherwise pop the whole
+    // onboarding modal while `shouldValidate` is still set. Run the same cleanup and fallback as the header Back button.
+    useAndroidBackButtonHandler(() => {
+        updateOnboardingValuesAndNavigation(onboardingValues);
+        return true;
+    });
 
     const sendValidateCode = () => {
         if (!credentials?.login) {

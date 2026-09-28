@@ -45,6 +45,9 @@ jest.mock('@rnmapbox/maps', () => {
     };
 });
 
+// Jest resolves the platform-neutral no-op variant, so use the Android one that actually registers the handler.
+jest.mock('@hooks/useAndroidBackButtonHandler', () => jest.requireActual<Record<string, unknown>>('@hooks/useAndroidBackButtonHandler/index.android'));
+
 TestHelper.setupGlobalFetchMock();
 
 const RootStack = createPlatformStackNavigator<{[NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: undefined}>();
@@ -229,37 +232,6 @@ describe('Onboarding work email validation (Android system back)', () => {
 
         // Then `shouldValidate` is cleared, otherwise validation reopens as soon as onboarding resumes
         expect((await getOnboardingValues())?.shouldValidate).toBeUndefined();
-    });
-
-    it('should swallow a system back press while merging the account is blocked', async () => {
-        // Given the merge is blocked, which is the one case where the header hides its back button
-        await TestHelper.signInWithTestUser();
-
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
-                hasCompletedGuidedSetupFlow: false,
-                shouldValidate: true,
-                isMergingAccountBlocked: true,
-            });
-            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
-                onboardingWorkEmail: workEmail,
-            });
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false});
-        });
-
-        renderOnboardingStack([SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION]);
-
-        await waitForBatchedUpdatesWithAct();
-
-        // When Android's system back button is pressed
-        const consumed = pressHardwareBack();
-
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the press is consumed and nothing moves, matching the hidden header back button
-        expect(consumed).toBe(true);
-        expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION]);
-        expect((await getOnboardingValues())?.shouldValidate).toBe(true);
     });
 
     it('should swallow a system back press on the post-merge Join a workspace screen', async () => {

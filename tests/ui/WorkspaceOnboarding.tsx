@@ -249,30 +249,6 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should not show the back button on join workspace after Add work email flow', async () => {
-        await TestHelper.signInWithTestUser();
-
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
-                hasCompletedGuidedSetupFlow: false,
-                shouldValidate: false,
-            });
-        });
-
-        // Rendered WITH a screen behind it, so only the `shouldValidate === false` condition can hide Back. Were this
-        // rendered as the sole route, stack depth alone would hide it and the assertion would prove nothing.
-        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()}, true);
-
-        await waitForBatchedUpdatesWithAct();
-
-        await waitFor(() => {
-            expect(screen.queryByLabelText(TestHelper.translateLocal('common.back'))).not.toBeOnTheScreen();
-        });
-
-        unmount();
-        await waitForBatchedUpdatesWithAct();
-    });
-
     it('should not show the back button on join workspace after merging a work email', async () => {
         await TestHelper.signInWithTestUser();
 
@@ -335,7 +311,7 @@ describe('OnboardingWorkspaces Page', () => {
             });
         });
 
-        // Same `backTo` as the first case, but without `shouldValidate: false`, so Back stays.
+        // Personal Details sits behind this screen, so Back stays.
         const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()}, true);
 
         await waitForBatchedUpdatesWithAct();
