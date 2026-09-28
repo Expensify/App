@@ -3371,6 +3371,7 @@ function broadcastUserIsLeavingRoom(reportID: string, currentUserAccountID: numb
 }
 
 /** Deletes a comment from the report, basically sets it as empty string */
+// eslint-disable-next-line @typescript-eslint/max-params
 function deleteReportComment(
     report: OnyxEntry<Report>,
     reportAction: ReportAction,
