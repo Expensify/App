@@ -1,4 +1,4 @@
-import {clearSearchTagFiltersSearchResults, openSearchTagFiltersPage, setSearchTagFiltersPagination} from '@libs/actions/Search';
+import {openSearchTagFiltersPage, setSearchTagFiltersPagination} from '@libs/actions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,14 +55,21 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     const cachedPolicyIDs = paginationState?.policyIDs;
     const isPolicyScopeMismatch = cachedPolicyIDs !== undefined && cachedPolicyIDs !== policyIDs;
 
+    const baseResults = paginationState?.baseResults;
+    const baseHasMore = paginationState?.baseHasMore ?? false;
+    const baseCursor = paginationState?.baseCursor ?? '';
+
     // Derive pagination state from Onyx (scoped to current policy)
-    const hasMore = isPolicyScopeMismatch ? false : (paginationState?.hasMore ?? false);
-    const nextCursor = isPolicyScopeMismatch ? '' : (paginationState?.nextCursor ?? '');
     const searchQuery = isPolicyScopeMismatch ? '' : (paginationState?.searchQuery ?? '');
-    const scopedSearchResults = isPolicyScopeMismatch ? undefined : searchResults;
+    const hasMore = isPolicyScopeMismatch ? false : searchQuery === '' ? (paginationState?.baseHasMore ?? paginationState?.hasMore ?? false) : (paginationState?.hasMore ?? false);
+    const nextCursor = isPolicyScopeMismatch ? '' : searchQuery === '' ? (paginationState?.baseCursor ?? paginationState?.nextCursor ?? '') : (paginationState?.nextCursor ?? '');
+
+    // For empty query or offline, show base cached tags if available so user always sees full list
+    const effectiveBaseResults = baseResults ?? searchResults;
+    const scopedSearchResults = isPolicyScopeMismatch ? undefined : searchQuery === '' || isOffline ? effectiveBaseResults : searchResults;
 
     // Track if we have cached data to avoid showing loading state on remount
-    const hasCachedData = !isPolicyScopeMismatch && !!searchResults && searchResults.length > 0;
+    const hasCachedData = !isPolicyScopeMismatch && !!effectiveBaseResults && effectiveBaseResults.length > 0;
     const [prevPolicyIDs, setPrevPolicyIDs] = useState(policyIDs);
     const [isFilteringLocally, setIsFilteringLocally] = useState(false);
 
@@ -72,14 +79,53 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     }
 
     // Only treat the cache as complete when the empty-query dataset is fully loaded.
-    // A finished server search for a non-empty term can still be a partial result set.
-    const hasCompleteEmptyQueryCache = hasCachedData && !hasMore && (searchQuery === '' || isFilteringLocally);
+    const effectiveBaseHasMore = paginationState?.baseHasMore ?? hasMore;
+    const hasCompleteEmptyQueryCache = hasCachedData && !effectiveBaseHasMore && (searchQuery === '' || isFilteringLocally);
 
     // Keep ref updated with latest values for use in stable callbacks
-    const stateRef = useRef({hasMore, nextCursor, searchQuery, searchResults: scopedSearchResults, hasCachedData, hasCompleteEmptyQueryCache, isSearching, isLoadingMore, policyIDs});
+    const stateRef = useRef({
+        hasMore,
+        nextCursor,
+        searchQuery,
+        searchResults: scopedSearchResults,
+        hasCachedData,
+        hasCompleteEmptyQueryCache,
+        isSearching,
+        isLoadingMore,
+        policyIDs,
+        baseResults: effectiveBaseResults,
+        baseHasMore: effectiveBaseHasMore,
+        baseCursor,
+    });
     useEffect(() => {
-        stateRef.current = {hasMore, nextCursor, searchQuery, searchResults: scopedSearchResults, hasCachedData, hasCompleteEmptyQueryCache, isSearching, isLoadingMore, policyIDs};
-    }, [hasMore, nextCursor, searchQuery, scopedSearchResults, hasCachedData, hasCompleteEmptyQueryCache, isSearching, isLoadingMore, policyIDs]);
+        stateRef.current = {
+            hasMore,
+            nextCursor,
+            searchQuery,
+            searchResults: scopedSearchResults,
+            hasCachedData,
+            hasCompleteEmptyQueryCache,
+            isSearching,
+            isLoadingMore,
+            policyIDs,
+            baseResults: effectiveBaseResults,
+            baseHasMore: effectiveBaseHasMore,
+            baseCursor,
+        };
+    }, [
+        hasMore,
+        nextCursor,
+        searchQuery,
+        scopedSearchResults,
+        hasCachedData,
+        hasCompleteEmptyQueryCache,
+        isSearching,
+        isLoadingMore,
+        policyIDs,
+        effectiveBaseResults,
+        effectiveBaseHasMore,
+        baseCursor,
+    ]);
 
     // Incremented on every new search so a cancelled request doesn't clear the loading state of its successor
     const requestSeqRef = useRef(0);
@@ -90,12 +136,22 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
 
     const prevWasOfflineRef = useRef(isOffline);
 
-    const updatePagination = (newHasMore: boolean, newNextCursor: string, newSearchQuery: string) => {
+    const updatePagination = (
+        newHasMore: boolean,
+        newNextCursor: string,
+        newSearchQuery: string,
+        newBaseResults = stateRef.current.baseResults,
+        newBaseHasMore = stateRef.current.baseHasMore,
+        newBaseCursor = stateRef.current.baseCursor,
+    ) => {
         stateRef.current.hasMore = newHasMore;
         stateRef.current.nextCursor = newNextCursor;
         stateRef.current.searchQuery = newSearchQuery;
         stateRef.current.policyIDs = policyIDs;
-        setSearchTagFiltersPagination(newHasMore, newNextCursor, newSearchQuery, policyIDs);
+        stateRef.current.baseResults = newBaseResults;
+        stateRef.current.baseHasMore = newBaseHasMore;
+        stateRef.current.baseCursor = newBaseCursor;
+        setSearchTagFiltersPagination(newHasMore, newNextCursor, newSearchQuery, policyIDs, newBaseResults, newBaseHasMore, newBaseCursor);
     };
 
     const loadMore = () => {
@@ -106,6 +162,7 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
             searchResults: currentResults,
             isSearching: currentIsSearching,
             isLoadingMore: currentIsLoadingMore,
+            baseResults: currentBaseResults,
         } = stateRef.current;
         if (currentIsSearching || currentIsLoadingMore || !currentHasMore || isOffline) {
             return;
@@ -113,8 +170,13 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
         const requestSeq = requestSeqRef.current;
         setIsLoadingMore(true);
         openSearchTagFiltersPage({searchQuery: currentQuery, cursor: currentCursor, limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE, policyIDs}, false, currentResults ?? [])
-            .then(({hasMore: newHasMore, nextCursor: newCursor}) => {
-                updatePagination(newHasMore, newCursor, currentQuery);
+            .then(({hasMore: newHasMore, nextCursor: newCursor, tags: newTags}) => {
+                if (currentQuery === '') {
+                    const updatedBaseResults = [...(currentBaseResults ?? currentResults ?? []), ...newTags];
+                    updatePagination(newHasMore, newCursor, currentQuery, updatedBaseResults, newHasMore, newCursor);
+                } else {
+                    updatePagination(newHasMore, newCursor, currentQuery);
+                }
             })
             // Failures are already logged by the network Logging middleware. Cancelled requests are expected when a newer search supersedes them.
             .catch(() => {})
@@ -129,7 +191,11 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     const searchTags = (query: string) => {
         if (isOffline) {
             // When offline, update the search query so TagSelector can filter cached results locally
-            updatePagination(stateRef.current.hasMore, stateRef.current.nextCursor, query);
+            updatePagination(
+                query === '' ? (stateRef.current.baseHasMore ?? stateRef.current.hasMore) : stateRef.current.hasMore,
+                query === '' ? (stateRef.current.baseCursor ?? stateRef.current.nextCursor) : stateRef.current.nextCursor,
+                query,
+            );
             return;
         }
 
@@ -156,8 +222,12 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
         setIsSearching(true);
 
         openSearchTagFiltersPage({searchQuery: query, cursor: '', limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE, policyIDs}, true)
-            .then(({hasMore: newHasMore, nextCursor: newCursor}) => {
-                updatePagination(newHasMore, newCursor, query);
+            .then(({hasMore: newHasMore, nextCursor: newCursor, tags: newTags}) => {
+                if (query === '') {
+                    updatePagination(newHasMore, newCursor, query, newTags, newHasMore, newCursor);
+                } else {
+                    updatePagination(newHasMore, newCursor, query);
+                }
             })
             // Failures are already logged by the network Logging middleware. Cancelled requests are expected when a newer search supersedes them.
             .catch(() => {})
@@ -170,17 +240,13 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
             });
     };
 
-    // Reset any active search query on unmount so reopening starts with an empty search.
-    // Preserves cached results when the empty-query dataset is intact, but clears partial search results from server queries.
+    // Reset active search query on unmount so reopening starts with an empty search.
+    // Restores base pagination and preserves the cached base tag list.
     useEffect(() => {
         return () => {
-            const {searchQuery: currentQuery, hasCompleteEmptyQueryCache: currentHasComplete} = stateRef.current;
+            const {searchQuery: currentQuery, baseResults: currentBaseResults, baseHasMore: currentBaseHasMore, baseCursor: currentBaseCursor} = stateRef.current;
             if (currentQuery !== '') {
-                if (currentHasComplete) {
-                    setSearchTagFiltersPagination(false, '', '', policyIDs);
-                } else {
-                    clearSearchTagFiltersSearchResults(policyIDs);
-                }
+                setSearchTagFiltersPagination(currentBaseHasMore ?? false, currentBaseCursor ?? '', '', policyIDs, currentBaseResults, currentBaseHasMore, currentBaseCursor);
             }
         };
     }, [policyIDs]);

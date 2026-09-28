@@ -1089,7 +1089,7 @@ function openSearchTagFiltersPage(
     params: OpenSearchTagFiltersPageParams,
     shouldCancelPendingRequests = false,
     currentResults: SearchTagFilterItem[] = [],
-): Promise<{hasMore: boolean; nextCursor: string}> {
+): Promise<{hasMore: boolean; nextCursor: string; tags: SearchTagFilterItem[]}> {
     if (shouldCancelPendingRequests) {
         HttpUtils.cancelPendingRequests(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE);
     }
@@ -1115,6 +1115,7 @@ function openSearchTagFiltersPage(
         return {
             hasMore: !!tagFiltersResponse?.hasMore,
             nextCursor: tagFiltersResponse?.nextCursor ?? '',
+            tags: newTags,
         };
     });
 }
@@ -1123,19 +1124,24 @@ function openSearchTagFiltersPage(
  * Updates the pagination state for tag filter search.
  * Stored in RAM-only Onyx key so it survives component remounts but resets on app restart.
  */
-function setSearchTagFiltersPagination(hasMore: boolean, nextCursor: string, searchQuery: string, policyIDs?: string) {
+function setSearchTagFiltersPagination(
+    hasMore: boolean,
+    nextCursor: string,
+    searchQuery: string,
+    policyIDs?: string,
+    baseResults?: SearchTagFilterItem[],
+    baseHasMore?: boolean,
+    baseCursor?: string,
+) {
     Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION, {
         hasMore,
         nextCursor,
         searchQuery,
         policyIDs,
+        baseResults,
+        baseHasMore,
+        baseCursor,
     });
-}
-
-/** Resets tag filter search results and pagination when clearing a partial server search. */
-function clearSearchTagFiltersSearchResults(policyIDs?: string) {
-    setSearchTagFiltersPagination(false, '', '', policyIDs);
-    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS, []);
 }
 
 function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {
@@ -2604,7 +2610,6 @@ export {
     openSearchCategoryFiltersPage,
     openSearchTagFiltersPage,
     setSearchTagFiltersPagination,
-    clearSearchTagFiltersSearchResults,
     getPolicyFromSearchSnapshot,
     getReportFromSearchSnapshot,
     getReportActionsFromSearchSnapshot,
