@@ -243,6 +243,7 @@ function BaseReportActionContextMenu({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const personalDetails = usePersonalDetails();
     const reportAttributes = useReportAttributes();
@@ -304,6 +305,7 @@ function BaseReportActionContextMenu({
                 isHarvestReport,
                 currentUserAccountID: currentUserPersonalDetails?.accountID,
                 rules,
+                cardList,
             }),
     );
 

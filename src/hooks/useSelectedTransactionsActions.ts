@@ -98,6 +98,7 @@ function useSelectedTransactionsActions({
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
@@ -599,7 +600,7 @@ function useSelectedTransactionsActions({
             }
 
             if (isManagedCardTransaction(transaction)) {
-                return canDeleteCardTransaction(transaction, policy);
+                return canDeleteCardTransaction(transaction, policy, cardList);
             }
 
             return typeof action?.actorAccountID === 'number' && typeof session?.accountID === 'number' && action.actorAccountID === session?.accountID;

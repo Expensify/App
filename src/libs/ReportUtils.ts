@@ -25,6 +25,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {
     BankAccountList,
+    CardList,
     GuideAccountIDsDerivedValue,
     IntroSelected,
     OnyxInputOrEntry,
@@ -3241,7 +3242,7 @@ function shouldCurrentUserSubmitReport(iouReport: OnyxEntry<Report>, chatReport:
     return isOwnReportAndRetracted || isWaitingForSubmissionFromCurrentUser(chatReport, policy);
 }
 
-function canDeleteCardTransaction(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>): boolean {
+function canDeleteCardTransaction(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, cardList: OnyxEntry<CardList>): boolean {
     const isCardTransaction = isManagedCardTransaction(transaction);
     if (!isCardTransaction) {
         return true;
@@ -3251,7 +3252,13 @@ function canDeleteCardTransaction(transaction: OnyxEntry<Transaction>, policy: O
         return true;
     }
 
-    return transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW;
+    if (!cardList) {
+        return false;
+    }
+
+    // This transaction should belong to the current user if the transaction's card is in Onyx
+    const isTransactionOwner = !!cardList[transaction?.cardID ?? CONST.DEFAULT_NUMBER_ID];
+    return isTransactionOwner && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW;
 }
 
 /**
@@ -3266,6 +3273,7 @@ function canDeleteMoneyRequestReport(
     currentUserAccountID: number,
     rules: OnyxCollection<Rule>,
     policy: OnyxEntry<Policy>,
+    cardList: OnyxEntry<CardList>,
     isReportLevelDelete = false,
 ): boolean {
     const isReportPolicyAdmin = isPolicyAdmin(policy);
@@ -3280,7 +3288,7 @@ function canDeleteMoneyRequestReport(
     }
 
     const isUnreported = isSelfDM(report) || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    const canCardTransactionBeDeleted = canDeleteCardTransaction(transaction, policy);
+    const canCardTransactionBeDeleted = canDeleteCardTransaction(transaction, policy, cardList);
 
     if (isUnreported) {
         return isOwner && canCardTransactionBeDeleted;
@@ -3333,6 +3341,7 @@ function canDeleteReportAction(
     childReportActions: OnyxCollection<ReportAction>,
     currentUserAccountID: number,
     rules: OnyxCollection<Rule>,
+    cardList: OnyxEntry<CardList>,
 ): boolean {
     const report = getReportOrDraftReport(reportID);
     const isActionOwner = reportAction?.actorAccountID === currentUserAccountID;
@@ -3343,7 +3352,7 @@ function canDeleteReportAction(
     }
 
     if (isMoneyRequestAction(reportAction)) {
-        const canCardTransactionBeDeleted = canDeleteCardTransaction(transaction, policy);
+        const canCardTransactionBeDeleted = canDeleteCardTransaction(transaction, policy, cardList);
         // For now, users cannot delete split actions
         const isSplitAction = getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 
@@ -3370,6 +3379,7 @@ function canDeleteReportAction(
             currentUserAccountID,
             rules,
             policy,
+            cardList,
             true,
         );
     }

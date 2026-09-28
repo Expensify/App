@@ -228,6 +228,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {
     BankAccountList,
+    CardList,
     Card,
     Download as DownloadOnyx,
     IntroSelected,
@@ -316,6 +317,7 @@ type ShouldShow = (args: {
     isHarvestReport?: boolean;
     currentUserAccountID: number;
     rules: OnyxCollection<Rule>;
+    cardList: OnyxEntry<CardList>;
 }) => boolean;
 
 type ContextMenuActionPayload = {
@@ -1691,6 +1693,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             childReportActions,
             currentUserAccountID,
             rules,
+            cardList,
         }) => {
             // A single-expense report preview also exposes its embedded money request action.
             // Preserve the expense-delete flow for its author. Otherwise, use the preview action so an admin
@@ -1719,7 +1722,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             return (
                 !!reportIDParam &&
                 type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
-                canDeleteReportAction(actionToDelete, reportID, iouTransaction, transactions, childReportActions, currentUserAccountID, rules) &&
+                canDeleteReportAction(actionToDelete, reportID, iouTransaction, transactions, childReportActions, currentUserAccountID, rules, cardList) &&
                 !isArchivedRoom &&
                 !isChronosReport &&
                 !isMessageDeleted(reportAction)

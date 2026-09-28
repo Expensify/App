@@ -254,6 +254,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: filteredPoliciesInfoSelector});
     const [preferredPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(preferredPolicyID)}`, {selector: billingRestrictionPolicySelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {showConfirmModal} = useConfirmModal();
     const reportForHeader = getReportForHeader(report, parentReport);
     const derivedReportNames = useDerivedReportNamesByReportIDs([report?.parentReportID, reportForHeader?.reportID]);
@@ -368,7 +369,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         (isActionOwner || (isPolicyAdmin && isManagedCardTransaction(iouTransaction))) &&
         (canDeleteTransaction(moneyRequestReport, rules, isMoneyRequestReportArchived) || isSelfDMTrackExpenseReport) &&
         !isDeletedParentAction;
-    const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && canDeleteCardTransaction(iouTransaction, policy)) || isDemoTransaction(iouTransaction);
+    const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && canDeleteCardTransaction(iouTransaction, policy, cardList)) || isDemoTransaction(iouTransaction);
 
     const shouldShowEditSplitOnDeleteAction = iouTransactionID ? shouldOpenSplitExpenseEditFlowOnDelete([iouTransactionID]) : false;
     let deleteMenuItemTitle = translate('reportActionContextMenu.deleteAction', requestParentReportAction);
