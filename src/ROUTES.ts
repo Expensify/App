@@ -5089,6 +5089,22 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/campfire/export/company-card-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/company-card-account` as const,
     },
+    POLICY_ACCOUNTING_CAMPFIRE_CARD_PROGRAM_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/campfire/export/card-program-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/card-program-account` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_CARD_PROGRAM_ACCOUNT_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/campfire/export/card-program-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/campfire/export/card-program-account/${encodeURIComponent(feed)}` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/campfire/export/card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/card-account` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_CARD_ACCOUNT_CARD_LIST: {
+        route: 'workspaces/:policyID/accounting/campfire/export/card-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/campfire/export/card-account/${encodeURIComponent(feed)}` as const,
+    },
     POLICY_ACCOUNTING_CAMPFIRE_ADVANCED: {
         route: 'workspaces/:policyID/accounting/campfire/advanced',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/advanced` as const,
