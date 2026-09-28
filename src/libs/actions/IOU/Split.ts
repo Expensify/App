@@ -1144,16 +1144,7 @@ function completeSplitBill({
         if (oneOnOneReportPreviewAction) {
             oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction, getCurrencyDecimals);
         } else {
-            oneOnOneReportPreviewAction = buildOptimisticReportPreview(
-                oneOnOneChatReport,
-                oneOnOneIOUReport,
-                getCurrencyDecimals,
-                '',
-                oneOnOneTransaction,
-                undefined,
-                undefined,
-                delegateAccountID,
-            );
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, getCurrencyDecimals, delegateAccountID, '', oneOnOneTransaction);
         }
         const hasViolations = hasViolationsReportUtils(oneOnOneIOUReport.reportID, transactionViolations, sessionAccountID, sessionEmail ?? '');
 
@@ -1935,16 +1926,7 @@ function createSplitsAndOnyxData({
         if (oneOnOneReportPreviewAction) {
             oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction, getCurrencyDecimals);
         } else {
-            oneOnOneReportPreviewAction = buildOptimisticReportPreview(
-                oneOnOneChatReport,
-                oneOnOneIOUReport,
-                getCurrencyDecimals,
-                '',
-                oneOnOneTransaction,
-                undefined,
-                undefined,
-                delegateAccountID,
-            );
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, getCurrencyDecimals, delegateAccountID, '', oneOnOneTransaction);
         }
 
         const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories) : [];
