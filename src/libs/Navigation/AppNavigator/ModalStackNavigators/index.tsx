@@ -15,6 +15,8 @@ import type {
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
     FlagCommentNavigatorParamList,
+    MergeATSFiltersNavigatorParamList,
+    MergeATSApprovalNavigatorParamList,
     MergeTransactionNavigatorParamList,
     MissingPersonalDetailsParamList,
     MoneyRequestNavigatorParamList,
@@ -532,6 +534,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/VacationDelegateMissingWorkspacesPage').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/SubscriptionSize').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.EXPENSIFY_CODE]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/ExpensifyCodePage').default,
+    [SCREENS.SETTINGS.SUBSCRIPTION.PAYMENT_HISTORY]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentHistoryPage').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/SubscriptionSettings').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.DISABLE_AUTO_RENEW_SURVEY]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/DisableAutoRenewSurveyPage').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.CANCEL_SUBSCRIPTION]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/CancelSubscriptionPage').default,
@@ -703,6 +706,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/export/DynamicQuickbooksDesktopExportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_ADVANCED]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/advanced/DynamicQuickbooksDesktopAdvancedPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT_SELECT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/advanced/DynamicQuickbooksDesktopFxExpenseAccountSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_AUTO_SYNC]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/advanced/QuickbooksDesktopAutoSyncPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD]: () =>
@@ -994,11 +999,23 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/export/CampfireDefaultCompanyCardVendorPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_COMPANY_CARD_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/export/CampfireCompanyCardAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_ADVANCED]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/advanced/CampfireAdvancedPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_EXPORT_METHOD]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/advanced/CampfireExportMethodPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_BILL_PAYMENT_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/advanced/CampfireBillPaymentAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/advanced/CampfireExpensifyCardSettlementAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_TRAVEL_BILLING_SETTLEMENT_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/advanced/CampfireTravelInvoicingSettlementAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_TRAVEL_BILLING_PAYABLE_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/advanced/CampfireTravelInvoicingPayableAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_PREREQUISITES]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/BusinessCentralPrerequisitesPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/BusinessCentralSetupPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_COMPANY_SELECTOR]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/BusinessCentralCompanySelector').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_IMPORT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/import/BusinessCentralImportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationSageIntacctAutoSyncPage').default,
@@ -1350,6 +1367,18 @@ const SearchReportActionsModalStackNavigator = createModalStackNavigator<SearchR
     [SCREENS.SEARCH.EDIT_MULTIPLE_ATTENDEES_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultipleAttendeesPage').default,
 });
 
+const MergeATSFiltersModalStackNavigator = createModalStackNavigator<MergeATSFiltersNavigatorParamList>({
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_IMPORT_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/merge/filters/MergeATSFiltersPage').default,
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_IMPORT_SETTINGS_FILTER]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/recruiting/merge/filters/MergeATSFilterSelectionPage').default,
+});
+
+const MergeATSApprovalModalStackNavigator = createModalStackNavigator<MergeATSApprovalNavigatorParamList>({
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVAL_MODE]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/approver/MergeATSApprovalModePage').default,
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVER_FIELD]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/approver/MergeATSApproverFieldPage').default,
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_FINAL_APPROVER]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/approver/MergeATSFinalApproverPage').default,
+});
+
 const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator({
     [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersContentPage').default,
@@ -1430,6 +1459,8 @@ export {
     EnablePaymentsStackNavigator,
     ExpensifyCardModalStackNavigator,
     FlagCommentStackNavigator,
+    MergeATSFiltersModalStackNavigator,
+    MergeATSApprovalModalStackNavigator,
     MergeTransactionStackNavigator,
     MissingPersonalDetailsModalStackNavigator,
     MoneyRequestModalStackNavigator,

@@ -1079,11 +1079,6 @@ const translations = {
                 subtitle: 'Expensify Card',
                 cta: 'Review',
             },
-            validateAccount: {
-                title: 'Validate your account',
-                subtitle: 'Account',
-                cta: 'Validate',
-            },
             addHomeAddress: {
                 title: 'Add your home address for distance tracking',
                 subtitle: 'Account',
@@ -1097,6 +1092,11 @@ const translations = {
                 dueSoonTitle: ({date}: {date: string}) => `Pay your invoice by ${date} to avoid service interruption`,
                 overdueTitle: 'Your payment is past due, please pay your invoice',
                 cta: 'Review',
+            },
+            renewSubscription: {
+                title: 'Turn on auto-renew to keep your current pricing',
+                subtitle: ({date}: {date: string}) => `Subscription ends ${date}`,
+                cta: 'Manage',
             },
             unlockBankAccount: {
                 workspaceTitle: 'Your business bank account has been locked',
@@ -1131,12 +1131,6 @@ const translations = {
             repaidLast30Days: 'Repaid last 30 days',
         },
         seeMore: ({count}: {count: number}) => `See ${count} more`,
-        discoverSection: {
-            title: 'Discover',
-            menuItemTitleNonAdmin: 'Learn how to create expenses and submit reports.',
-            menuItemTitleAdmin: 'Learn how to invite members, edit approval workflows, and reconcile company cards.',
-            menuItemDescription: 'See what Expensify can do in 2 min',
-        },
         forYouSection: {
             reviewExpenses: ({count}: {count: number}) => ({
                 one: 'Review 1 expense',
@@ -1600,6 +1594,7 @@ const translations = {
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `paid ${amount} with bank account ${last4Digits}` : `paid with bank account ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `paid ${amount ? `${amount} ` : ''}with bank account ${last4Digits} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
+        paymentWithExpectedDate: ({paymentMessage, expectedDateMessage}: {paymentMessage: string; expectedDateMessage: string}) => `${paymentMessage}. ${expectedDateMessage}`,
         invoicePersonalBank: (lastFour: string) => `Personal account • ${lastFour}`,
         invoiceBusinessBank: (lastFour: string) => `Business Account • ${lastFour}`,
         nextStep: 'Next steps',
@@ -1688,6 +1683,7 @@ const translations = {
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
         changedTheExpense: 'changed the expense',
+        addedReceipt: 'added a receipt',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `the ${valueName} to ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `set the ${translatedChangedField} to ${newMerchant}, which set the amount to ${newAmountToDisplay}`,
@@ -1739,7 +1735,8 @@ const translations = {
             receiptDeleteFailureError: 'Unexpected error deleting this receipt. Please try again later.',
             receiptFailureMessage: '<rbr>There was an error uploading your receipt. Please <a href="download">save the receipt</a> and <a href="retry">try again</a> later.</rbr>',
             receiptFailureMessageShort: 'There was an error uploading your receipt.',
-            receiptUploadFailedMessage: 'Receipt upload failed. Save the receipt, or delete the expense and lose it.',
+            receiptUploadFailedMessage: 'Upload failed. Try again or save for later.',
+            receiptUploadFailedSaveOnlyMessage: 'Upload failed. Save your receipt to keep it.',
             saveReceipt: 'Save receipt',
             genericDeleteFailureMessage: 'Unexpected error deleting this expense. Please try again later.',
             genericEditFailureMessage: 'Unexpected error editing this expense. Please try again later.',
@@ -1925,6 +1922,7 @@ const translations = {
             header: (workflowSettingLink: string) =>
                 `Choose an option to change the approver for this report. (Update your <a href="${workflowSettingLink}">workspace settings</a> to change this permanently for all reports.)`,
             changedApproverMessage: (managerID: number) => `changed the approver to <mention-user accountID="${managerID}"/>`,
+            changedFinalApproverMessage: (managerID: number) => `changed the final approver to <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `reassigned the approver to <mention-user accountID="${managerID}"/> via a workflow update`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
@@ -2835,6 +2833,7 @@ const translations = {
         cardStatus: {
             active: 'Active',
             inactive: 'Inactive',
+            pending: 'Pending',
             fixConnection: 'Please fix this connection',
             fixConnectionIn: (companyCardsRoute: string) => `Please fix this connection in <a href="${companyCardsRoute}">company cards</a>`,
             askAdminToFixConnection: 'Please ask an admin to fix this connection',
@@ -3026,10 +3025,10 @@ const translations = {
         addApprovalTip: 'This default workflow applies to all members, unless a more specific workflow exists.',
         approver: 'Approver',
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
-        configureViaHR: ({provider}: {provider: string}) => `Configure via ${provider}.`,
-        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+        configureViaProvider: ({provider}: {provider: string}) => `Configure via ${provider}.`,
+        integrationApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Approvals are managed by your ${provider} integration. To update your approval workflow, head to your ${provider} connection settings.`,
-        goToHRSettings: ({provider}: {provider: string}) => `Go to ${provider} settings`,
+        goToProviderSettings: ({provider}: {provider: string}) => `Go to ${provider} settings`,
         approverFromProvider: ({provider}: {provider: string}) => `from ${provider}`,
         finalApprover: 'Final approver',
         manager: 'Manager',
@@ -3510,8 +3509,7 @@ const translations = {
         },
         accounting: {
             title: 'Do you use any accounting software?',
-            none: 'None',
-            otherAccountingSoftware: 'Your accounting software',
+            otherAccountingSoftware: 'Name of software',
         },
         interestedFeatures: {
             title: 'What features are you interested in?',
@@ -4404,7 +4402,7 @@ const translations = {
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
         enterTheDateOfBirthOfTheOwner: "What's the owner's date of birth?",
-        enterTheSSN: "What's the owner's Social Security Number?",
+        enterTheSSN: "What are the last 4 digits of the owner's Social Security Number?",
         dontWorry: "Don't worry, we don't do any personal credit checks!",
         enterTheOwnersAddress: "What's the owner's address?",
         letsDoubleCheck: 'Let’s double check that everything looks right.',
@@ -5190,6 +5188,9 @@ const translations = {
                 autoSyncDescription: 'Expensify will automatically sync with QuickBooks Desktop every day.',
                 createEntities: 'Auto-create entities',
                 createEntitiesDescription: "Expensify will automatically create vendors in QuickBooks Desktop if they don't exist already.",
+                fxExpenseAccount: 'Currency conversion fee account',
+                fxExpenseAccountDescription:
+                    "When your company covers the currency conversion cost on a reimbursement paid abroad, we'll add it to the export as an extra line coded to this account.",
             },
             itemsDescription: 'Choose how to handle QuickBooks Desktop items in Expensify.',
             accountingMethods: {
@@ -5626,6 +5627,9 @@ const translations = {
             journalEntriesProvTaxPostingAccount: 'Journal entries provincial tax posting account',
             foreignCurrencyAmount: 'Export foreign currency amount',
             exportToNextOpenPeriod: 'Export to next open period',
+            exportToNextOpenPeriodLockedSubtitle: 'To disable export to next open period, first disable split non-reimbursable exports by period.',
+            splitExportsByPostingPeriod: 'Split exports by posting period',
+            splitExportsByPostingPeriodSubtitle: 'Enable export to next open period to enable split non-reimbursable exports by period in NetSuite',
             nonReimbursableJournalPostingAccount: 'Non-reimbursable journal posting account',
             reimbursableJournalPostingAccount: 'Reimbursable journal posting account',
             journalPostingPreference: {
@@ -6295,6 +6299,38 @@ const translations = {
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add accounts in Campfire and sync the connection again',
+            autoSyncDescription: 'Sync Campfire and Expensify automatically, every day. Reports sync in realtime.',
+            accountingMethods: {
+                label: 'Export method',
+                description: 'Choose when to export expenses.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Cash',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Out-of-pocket expenses will export when final approved',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
+                },
+            },
+            syncReimbursedReports: 'Sync reimbursed reports',
+            syncReimbursedReportsDescription: 'When a report is paid via ACH, a bill payment will be generated in this account.',
+            billPaymentAccount: {
+                label: 'Bill payment account',
+                description: 'Choose the clearing account Campfire credits when Expensify marks a bill paid.',
+            },
+            syncExpensifyCardSettlements: 'Sync Expensify Card settlements',
+            settlementAccount: {
+                label: 'Expensify Card settlement account',
+                description: "Choose your settlement account and we'll create the payment in Campfire.",
+            },
+            syncTravelInvoicingSettlements: 'Sync Travel Invoicing settlements',
+            travelInvoicingSettlementAccount: {
+                label: 'Travel Invoicing settlement account',
+                description: "Choose your settlement account and we'll create the payment in Campfire.",
+            },
+            travelInvoicingPayableAccount: {
+                label: 'Travel Invoicing payable account',
+            },
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central setup',
@@ -6308,6 +6344,9 @@ const translations = {
             noCompaniesFoundDescription: 'Please add a company in Dynamics 365 Business Central and sync the connection again',
             noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please add vendors in Business Central and sync the connection again',
+            importDescription: 'Choose which coding configurations to import from Dynamics 365 Business Central.',
+            items: 'Items',
+            enableNewCategories: 'Enable newly imported categories',
         },
         type: {
             free: 'Free',
@@ -7713,10 +7752,6 @@ const translations = {
             providerFinalApprover: (providerName: string) => `${providerName} final approver`,
             syncing: 'Syncing employees',
             approvalModeDescription: (providerName: string) => `Members and managers are set up to sync with ${providerName}.`,
-            approvalModeWarningTitle: 'Change approval mode?',
-            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
-                `Are you sure you would like to change the approval mode for this workspace? Learn more about the different ${providerName}-enabled workflow modes in our <a href="${helpSiteURL}">help site</a>.`,
-            approvalModeWarningConfirm: 'Change approval mode',
             approvalModeDescriptions: {
                 basic: 'All users submit to a single person for processing and approval.',
                 manager: (providerName: string) => `Employees submit reports to their direct manager configured in ${providerName}.`,
@@ -7783,9 +7818,41 @@ const translations = {
             dontSeeYourATS: `<muted-text-label>Don't see your ATS here? <a href="#">Ask Concierge</a> and we can add it.</muted-text-label>`,
             importSettings: 'Import settings',
             defaultApprover: 'Default approver',
+            approverField: `First approver`,
+            finalApprover: `Final approver`,
+            finalApproverOptional: 'Final approver (optional)',
+            approvalModeDescription: (providerName: string) => `Set the approver for new members being imported from ${providerName} to Expensify.`,
+            approverFieldDescription: (providerName: string) => `Choose the first approver for your candidates: either their Recruiter or their Coordinator assigned in ${providerName}.`,
+            approvalModeDescriptions: {
+                basic: 'Choose a single approver',
+                advanced: `Candidate's recruiter or coordinator becomes their expense approver`,
+                custom: 'Manually set approvers in Expensify',
+            },
             approverFields: {
                 recruiter: 'Recruiter',
                 recruitingCoordinator: 'Recruiting coordinator',
+            },
+            filters: {
+                description: (providerName: string) => `Select which members get imported from ${providerName}. You can choose from job stages, tags, and offices.`,
+                enableJobStagesOrTags: 'Enable Job stages or Tags to continue',
+                stages: {
+                    title: 'Job stage',
+                    toggleTitle: 'Job stages',
+                    description: 'Choose the job stage of candidates you would like to sync with this workspace',
+                    allSelected: 'All job stages',
+                },
+                tags: {
+                    title: 'Tag',
+                    toggleTitle: 'Tags',
+                    description: 'Choose the tags of candidates you would like to sync with this workspace',
+                    allSelected: 'All tags',
+                },
+                offices: {
+                    title: 'Office',
+                    toggleTitle: 'Offices',
+                    description: 'Choose the offices of candidates you would like to sync with this workspace',
+                    allSelected: 'All offices',
+                },
             },
         },
         merge: {
@@ -7812,6 +7879,10 @@ const translations = {
                 advanced: 'Advanced approval',
                 custom: 'Custom approval',
             },
+            approvalModeWarningTitle: 'Change approval mode?',
+            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Are you sure you would like to change the approval mode for this workspace? Learn more about the different ${providerName}-enabled workflow modes in our <a href="${helpSiteURL}">help site</a>.`,
+            approvalModeWarningConfirm: 'Change approval mode',
             syncingModalTitle: 'Your connection is syncing',
             syncingModalDescription: "The first connection can take some time. You'll be notified of any errors.",
             syncLimitReached: {
@@ -7947,6 +8018,9 @@ const translations = {
                 CA: 'Canada',
                 GB: 'Great Britain',
                 AU: 'Australia',
+                NO: 'Norway',
+                SE: 'Sweden',
+                ZA: 'South Africa',
             },
             errors: {
                 rateNameRequired: 'Rate name is required',
@@ -8800,9 +8874,6 @@ const translations = {
                 addSpendRule: 'Add spend rule',
                 editRuleTitle: 'Edit rule',
                 restrictCardSpendTitle: 'Restrict card spend',
-                restrictCardSpendSubtitle: 'Block or limit spend at the point of sale.',
-                ifAnyCardMatches: 'If any card matches:',
-                thenDoThisAtPointOfSale: 'Then do this at the point of sale:',
                 permittedCurrencies: 'Permitted currencies',
                 setRestrictions: 'Set restrictions',
                 merchantRestrictions: 'Merchant restrictions',
@@ -8833,18 +8904,13 @@ const translations = {
                 allowedMerchants: 'Allowed merchants',
                 allowedMerchantTypes: 'Allowed merchant types',
                 blockedMerchants: 'Blocked merchants',
-                maxAmountHelp: 'Any charge over this amount will be declined, regardless of merchant and spend category restrictions.',
                 maxAmountCurrencyMismatchTitle: 'Currency mismatch',
                 maxAmountCurrencyMismatchPrompt: 'To set a max amount, select cards that settle in the same currency.',
                 currenciesCurrencyMismatchTitle: 'Currency mismatch',
                 currenciesCurrencyMismatchPrompt: 'To set preferred currencies, select cards that settle in the same currency.',
                 reviewSelectedCards: 'Review selected cards',
                 allCurrencies: 'All currencies',
-                permittedCurrenciesSubtitle: 'Choose to allow all or specific currencies',
                 settlementCurrencyPermittedSubtitle: 'The card settlement currency is always permitted',
-                restrictMerchantsOffSubtitle: "Charges are approved for permitted currencies that don't exceed a max amount",
-                restrictMerchantsAllowSubtitle: "Charges are approved for permitted currencies that don't exceed a max amount, and the merchant or merchant type matches.",
-                restrictMerchantsBlockSubtitle: "Charges are approved for permitted currencies that don't exceed a max amount, or the merchant or merchant type matches.",
                 summaryMoreCount: ({summary, count}: {summary: string; count: number}) => (count > 0 ? `${summary}, +${count} more` : summary),
                 summaryMerchants: ({
                     merchants,
@@ -9891,6 +9957,7 @@ const translations = {
                 after: (date?: string) => `After ${date ?? ''}`,
                 on: (date?: string) => `On ${date ?? ''}`,
                 customDate: 'Custom date',
+                customDay: 'Custom day',
                 customRange: 'Custom range',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Never',
@@ -10022,6 +10089,8 @@ const translations = {
             line: 'Line',
             pie: 'Pie',
         },
+        // @context Chart label showing a segment's share of total spending. "percent" already includes the percent sign (e.g. "42%").
+        percentOfSpend: ({percent}: {percent: string}) => `${percent} of spend`,
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'From',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Cards',
@@ -11017,6 +11086,11 @@ const translations = {
                 title: 'Your free trial has ended',
                 subtitle: 'Add a payment card to continue using all of your favorite features.',
             },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `Your subscription ends ${date}`,
+                subtitle: 'Turn on auto-renew to keep your current pricing.',
+                manage: 'Manage',
+            },
             earlyDiscount: {
                 claimOffer: 'Claim offer',
                 subscriptionPageTitle: (discountType: number) => `<strong>${discountType}% off your first year!</strong> Just add a payment card and start an annual subscription.`,
@@ -11140,6 +11214,10 @@ const translations = {
             error: {
                 invalid: 'This code is invalid',
             },
+        },
+        paymentHistory: {
+            title: 'View payment history',
+            subtitle: 'Your complete monthly payment history charged to this account.',
         },
         subscriptionSettings: {
             title: 'Subscription settings',
@@ -11380,18 +11458,8 @@ const translations = {
         },
     },
     productMarketingWindow: {
-        roleTypes: {
-            admin: {
-                heading: 'Enhanced vendor mapping',
-                body: 'Create vendors and custom rules for easy mapping to major accounting packages.',
-                cta: 'Try it out',
-            },
-            member: {
-                heading: 'Pre-built agents for you',
-                body: 'Use pre-built or custom agents to code, split, and submit expenses automatically on your behalf.',
-                cta: 'Try it out',
-            },
-        },
+        heading: 'Connect Expensify to Claude',
+        body: 'Search, analyze, and summarize expense data directly in Claude.',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
