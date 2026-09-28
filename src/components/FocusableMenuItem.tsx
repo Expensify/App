@@ -1,5 +1,6 @@
 import useSyncFocus from '@hooks/useSyncFocus';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React, {useRef} from 'react';
@@ -14,7 +15,7 @@ type FocusableMenuItemProps = MenuItemProps & {
 };
 
 function FocusableMenuItem({shouldSyncFocus = true, ...props}: FocusableMenuItemProps) {
-    const ref = useRef<View>(null);
+    const ref = useRef<ComponentRef<typeof View>>(null);
 
     // Sync focus on an item
     useSyncFocus(ref, !!props.focused, shouldSyncFocus);

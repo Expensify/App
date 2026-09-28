@@ -23,10 +23,6 @@ describe('calculateDynamicColumnWidths', () => {
         it('keeps equal columns when there are no columns', () => {
             expect(calculateDynamicColumnWidths([], 900)).toEqual({widths: [], shouldScrollHorizontally: false});
         });
-
-        it('keeps equal columns when the table has not been measured yet', () => {
-            expect(calculateDynamicColumnWidths([buildConstraints(400), buildConstraints(100)], 0)).toEqual({widths: [], shouldScrollHorizontally: false});
-        });
     });
 
     describe('behavior 1: every column fits in an equal share', () => {
@@ -82,6 +78,66 @@ describe('calculateDynamicColumnWidths', () => {
 
             expect(result.widths).toEqual([200, 200]);
             expect(result.shouldScrollHorizontally).toBe(false);
+        });
+
+        it('keeps the columns inside the row when a capped column needs less than its cap', () => {
+            // Given the Company cards table at 1163px: a member column at 359px, a card column whose content overflows
+            // its 180px cap, a card name column at 353px, an export account column whose 154px of content stops short
+            // of the same cap, and an actions column that must fit its 112px Assign button
+            const constraints = [buildConstraints(359, 160), buildConstraints(331, 331, 180), buildConstraints(353, 120), buildConstraints(154, 120, 180), buildFitContentConstraints(112)];
+
+            // When the widths are resolved
+            const result = calculateDynamicColumnWidths(constraints, 1163);
+
+            // Then the columns are squeezed instead of letting the export account column grow into its cap, so they add
+            // up to the row and the actions cell is not pushed outside the table
+            expect(result.widths).toEqual([362, 180, 355, 154, 112]);
+            expect(sumOf(result.widths)).toBe(1163);
+            expect(result.shouldScrollHorizontally).toBe(false);
+        });
+
+        it('holds a capped column to its maximum while the others take up the slack', () => {
+            // Given a row with more room than the columns' content needs, where resolving it leaves the last column a
+            // share wider than its 50px cap
+            const constraints = [buildFitContentConstraints(300), buildConstraints(30, 30, 60), buildConstraints(200, 10, 50)];
+
+            // When the widths are resolved
+            const result = calculateDynamicColumnWidths(constraints, 400);
+
+            // Then the capped column stops at 50px and the room it cannot use goes to the column that can
+            expect(result.widths).toEqual([320, 30, 50]);
+            expect(result.widths.at(2)).toBeLessThanOrEqual(50);
+            expect(result.shouldScrollHorizontally).toBe(false);
+        });
+
+        it('resolves a row where no column has any room to give up', () => {
+            // Given two columns that both have to fit their content, so neither can be squeezed, in a row a capped
+            // column claims more of than it needs
+            const constraints = [buildFitContentConstraints(70), buildConstraints(30, 30, 40)];
+
+            // When the widths are resolved
+            const result = calculateDynamicColumnWidths(constraints, 105);
+
+            // Then each column takes its own width rather than a ratio worked out by dividing by zero
+            expect(result.widths).toEqual([70, 30]);
+            expect(result.shouldScrollHorizontally).toBe(false);
+        });
+
+        it('holds a column whose minimum is wider than its content to its content', () => {
+            // Given an empty column asking for a minimum wider than the content it has, next to a column that claims
+            // more of the row than it needs
+            const constraints = [
+                {contentWidth: 0, minWidth: 1, maxWidth: 2},
+                {contentWidth: 5, minWidth: 0, maxWidth: 8},
+            ];
+
+            // When the widths are resolved
+            const result = calculateDynamicColumnWidths(constraints, 6);
+
+            // Then it takes its content width, because a minimum it never asked to fill would give it a negative share
+            // of the squeeze and a negative grid track
+            expect(result.widths).toEqual([0, 6]);
+            expect(sumOf(result.widths)).toBeLessThanOrEqual(6);
         });
     });
 
@@ -147,6 +203,19 @@ describe('calculateDynamicColumnWidths', () => {
             const result = calculateDynamicColumnWidths([buildFitContentConstraints(900.2), buildFitContentConstraints(300.7)], 700);
 
             expect(result).toEqual({widths: [901, 301], shouldScrollHorizontally: true});
+        });
+
+        it('stops at the minimum widths and scrolls when the fixed columns leave nothing to share', () => {
+            const result = calculateDynamicColumnWidths([buildConstraints(400), buildConstraints(100)], 0);
+
+            expect(result).toEqual({widths: [180, 100], shouldScrollHorizontally: true});
+        });
+
+        it('stops at the minimum widths and scrolls when the fixed columns need more room than the table has', () => {
+            // A table showing 38 columns, 18 of them fixed, measured 751px wide with 1294px of fixed columns.
+            const result = calculateDynamicColumnWidths([buildConstraints(400), buildConstraints(100)], -1119);
+
+            expect(result).toEqual({widths: [180, 100], shouldScrollHorizontally: true});
         });
     });
 
