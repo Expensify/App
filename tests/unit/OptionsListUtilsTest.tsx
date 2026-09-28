@@ -10062,7 +10062,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {dateFnsLocale: undefined, convertToDisplayString, getReportByID: getReportByIDFromOnyx},
                 translateLocal,
                 undefined,
             );
@@ -10097,7 +10097,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {dateFnsLocale: undefined, convertToDisplayString, getReportByID: getReportByIDFromOnyx},
                 translateLocal,
                 undefined,
             );
@@ -10131,7 +10131,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, convertToDisplayString},
+                {dateFnsLocale: undefined, convertToDisplayString, getReportByID: getReportByIDFromOnyx},
                 translateLocal,
                 undefined,
             );
