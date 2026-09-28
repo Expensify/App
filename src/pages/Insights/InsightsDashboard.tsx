@@ -19,7 +19,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getInsights} from '@libs/actions/Insights';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {InsightsDashboardID} from '@src/types/onyx';
+import type {InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useEffectEvent} from 'react';
@@ -38,8 +40,8 @@ import InsightsNoExpensesState from './states/InsightsNoExpensesState';
 import useInsightsFilters from './useInsightsFilters';
 
 type InsightsDashboardContentProps = {
+    dashboard: OnyxEntry<InsightsDashboardRecord>;
     state: InsightsDashboardState;
-
     headlineChart: InsightsDashboardChart;
 
     /** Charts in the grid below the headline, left out when no workspace in scope is eligible for them */
@@ -55,7 +57,7 @@ type InsightsDashboardContentProps = {
     onGroupByChange: (groupBy: InsightsFilters['groupBy']) => void;
 };
 
-function InsightsDashboardContent({state, headlineChart, supportingCharts, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
+function InsightsDashboardContent({dashboard, state, headlineChart, supportingCharts, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -111,6 +113,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                     chart={headlineChart.chart}
                     queryJSON={headlineChart.queryJSON}
                     snapshot={headlineChart.snapshot}
+                    dashboard={dashboard}
                     filters={filters}
                     onRetry={onRetry}
                     onGroupByChange={onGroupByChange}
@@ -128,6 +131,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                                     chart={chart}
                                     queryJSON={queryJSON}
                                     snapshot={snapshot}
+                                    dashboard={dashboard}
                                     filters={filters}
                                     onRetry={onRetry}
                                 />
@@ -204,6 +208,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
                 />
             )}
             <InsightsDashboardContent
+                dashboard={dashboard}
                 state={state}
                 headlineChart={headlineChart}
                 supportingCharts={supportingCharts}

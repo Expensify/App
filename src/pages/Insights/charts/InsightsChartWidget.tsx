@@ -23,7 +23,7 @@ import {INSIGHTS_CHART_STATE, resolveInsightsChartData} from '@pages/Insights/re
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {SearchResults} from '@src/types/onyx';
+import type {InsightsDashboard, SearchResults} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -41,6 +41,9 @@ type InsightsChartWidgetProps = {
     /** The snapshot stored under the chart's own query */
     snapshot: OnyxEntry<SearchResults>;
 
+    /** The record stored for the query on screen, which names the chart's snapshot */
+    dashboard: OnyxEntry<InsightsDashboard>;
+
     /** Page-level filters every chart on the dashboard is narrowed by */
     filters: InsightsFilters;
 
@@ -51,7 +54,7 @@ type InsightsChartWidgetProps = {
     onGroupByChange?: (groupBy: InsightsFilters['groupBy']) => void;
 };
 
-function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGroupByChange}: InsightsChartWidgetProps) {
+function InsightsChartWidget({chart, queryJSON, snapshot, dashboard, filters, onRetry, onGroupByChange}: InsightsChartWidgetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -59,7 +62,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
 
     const {isOffline} = useNetwork();
     const sortedData = useGroupedItems(snapshot, queryJSON);
-    const {data, state} = resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline});
+    const {data, state} = resolveInsightsChartData({chart, dashboard, snapshot, queryJSON, sortedData, isOffline});
     const groupBy = chart.groupBy ?? filters.groupBy;
     const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
     const shouldShowTable = chart.view === CONST.SEARCH.VIEW.BAR || chart.view === CONST.SEARCH.VIEW.PIE;
