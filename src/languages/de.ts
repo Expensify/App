@@ -1194,6 +1194,8 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `Ups! Ein erforderliches Feld („${fieldName}“) wurde nicht zugeordnet. Bitte überprüfe es und versuche es erneut.`,
         singleFieldMultipleColumns: (fieldName: string) => `Ups! Du hast ein einzelnes Feld („${fieldName}“) mehreren Spalten zugeordnet. Bitte überprüfe dies und versuche es erneut.`,
         emptyMappedField: (fieldName: string) => `Ups! Das Feld („${fieldName}“) enthält einen oder mehrere leere Werte. Bitte überprüfe es und versuche es erneut.`,
+        fieldValueTooLong: (fieldName: string, limit: number) =>
+            `Ups! Das Feld („${fieldName}“) enthält einen oder mehrere Werte mit mehr als ${limit} Zeichen. Bitte überprüfe es und versuche es erneut.`,
         importSuccessfulTitle: 'Import erfolgreich',
         importCategoriesNoneAddedOrUpdated: 'Es wurden keine Kategorien hinzugefügt oder aktualisiert.',
         importCategoriesAdded: ({count}: {count: number}) => ({
