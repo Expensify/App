@@ -13,7 +13,6 @@ Once connected, the integration can:
 
 - Add Greenhouse candidates who match your import settings to your Expensify workspace.
 - Set each candidate's expense approver, including their recruiter or recruiting coordinator from Greenhouse.
-- Remove candidates from the workspace when they no longer match your import settings.
 - Automatically sync candidates every day.
 
 ---
