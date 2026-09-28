@@ -7,10 +7,7 @@ type ConfirmationData = ReturnType<typeof useConfirmationListData>;
 
 const ConfirmationDataContext = createContext<ConfirmationData | undefined>(undefined);
 
-/**
- * Reads the resolved confirmation data. The side-effect controllers use this instead of taking the same twenty-odd
- * values as props from every list variant.
- */
+/** Reads the resolved confirmation data. */
 function useConfirmationData() {
     const value = useContext(ConfirmationDataContext);
     if (!value) {

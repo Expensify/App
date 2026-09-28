@@ -69,9 +69,9 @@ function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
 
     return (
         <ConfirmationDataContext.Provider value={data}>
-            <TaxController />
-            <SplitBillController />
-            <FieldAutoSelector />
+            <TaxController {...data.taxControllerProps} />
+            <SplitBillController {...data.splitBillControllerProps} />
+            <FieldAutoSelector {...data.fieldAutoSelectProps} />
             <ConfirmationListLayout
                 {...data.layoutProps}
                 isCompactMode={isCompactMode}

@@ -100,10 +100,16 @@ function DistanceConfirmationList(props: MoneyRequestConfirmationListProps) {
 
     return (
         <ConfirmationDataContext.Provider value={data}>
-            <TaxController distanceState={distanceState} />
-            <DistanceRequestController distanceState={distanceState} />
-            <SplitBillController />
-            <FieldAutoSelector />
+            <TaxController
+                {...data.taxControllerProps}
+                distanceState={distanceState}
+            />
+            <DistanceRequestController
+                {...data.distanceControllerProps}
+                distanceState={distanceState}
+            />
+            <SplitBillController {...data.splitBillControllerProps} />
+            <FieldAutoSelector {...data.fieldAutoSelectProps} />
             <ConfirmationListLayout
                 {...data.layoutProps}
                 listFooterContent={listFooterContent}

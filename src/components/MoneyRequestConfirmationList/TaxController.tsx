@@ -2,14 +2,44 @@ import usePrevious from '@hooks/usePrevious';
 
 import {setMoneyRequestTaxAmount, setMoneyRequestTaxRateValues} from '@libs/actions/IOU/MoneyRequest';
 
+import type {Policy, Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import {useEffect} from 'react';
 
 import type useDistanceRequestState from './hooks/useDistanceRequestState';
 
-import {useConfirmationData} from './ConfirmationDataContext';
 import useTaxAmount from './hooks/useTaxAmount';
 
 type TaxControllerProps = {
+    /** ID of the transaction being confirmed */
+    transactionID: string | undefined;
+
+    /** Policy ID of the resolved policy. Re-seeds the tax rate on a policy switch even when the default code stays the same. */
+    policyID: string | undefined;
+
+    /** Whether the confirmation is read-only */
+    isReadOnly: boolean;
+
+    /** Whether the tax fields are shown for this expense */
+    shouldShowTax: boolean;
+
+    /** Whether the expense is being moved off a track expense */
+    isMovingTransactionFromTrackExpense: boolean;
+
+    /** Transaction being confirmed */
+    transaction: OnyxEntry<Transaction>;
+
+    /** The resolved policy */
+    policy: OnyxEntry<Policy>;
+
+    /** The policy a track expense is being moved to */
+    policyForMovingExpenses: OnyxEntry<Policy>;
+
+    /** The selected distance rate ID */
+    customUnitRateID: string;
+
     /**
      * Only the distance surface passes this. `useTaxAmount` computes the taxable amount from the route rather than
      * from the stored transaction amount inside distance branches.
@@ -21,8 +51,18 @@ type TaxControllerProps = {
  * Side-effect-only component that syncs tax rate defaults
  * and tax amount when the transaction or policy changes.
  */
-function TaxController({distanceState}: TaxControllerProps) {
-    const {transactionID, policyID, isReadOnly, shouldShowTax, isMovingTransactionFromTrackExpense, transaction, policy, policyForMovingExpenses, customUnitRateID} = useConfirmationData();
+function TaxController({
+    transactionID,
+    policyID,
+    isReadOnly,
+    shouldShowTax,
+    isMovingTransactionFromTrackExpense,
+    transaction,
+    policy,
+    policyForMovingExpenses,
+    customUnitRateID,
+    distanceState,
+}: TaxControllerProps) {
     const transactionTaxAmount = transaction?.taxAmount;
 
     const previousTransactionCurrency = usePrevious(transaction?.currency);

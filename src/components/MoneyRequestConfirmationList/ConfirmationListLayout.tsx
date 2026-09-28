@@ -11,7 +11,6 @@ import React from 'react';
 
 import type {MoneyRequestConfirmationListItem} from './types';
 
-import {useConfirmationData} from './ConfirmationDataContext';
 import ConfirmationFooterContent from './ConfirmationFooterContent';
 import ConfirmationTelemetry from './ConfirmationTelemetry';
 
@@ -24,6 +23,9 @@ type ConfirmationListLayoutProps = {
 
     /** Lets the surface scroll an inline footer field into view when it is focused */
     listRef: RefObject<SelectionListWithSectionsHandle | null>;
+
+    /** Read-only list: no confirm button */
+    isReadOnly: boolean;
 
     /** The expense fields for the type being confirmed */
     listFooterContent: React.JSX.Element | null | undefined;
@@ -41,9 +43,8 @@ type ConfirmationListLayoutProps = {
 /**
  * Layout every confirmation shares: the participant list, the fields below it, and the confirm button.
  */
-function ConfirmationListLayout({transactionID, sections, listRef, listFooterContent, isCompactMode = false, onSelectRow, onDismissError}: ConfirmationListLayoutProps) {
+function ConfirmationListLayout({transactionID, sections, listRef, isReadOnly, listFooterContent, isCompactMode = false, onSelectRow, onDismissError}: ConfirmationListLayoutProps) {
     const styles = useThemeStyles();
-    const {isReadOnly} = useConfirmationData();
 
     // The list drops its bottom safe-area padding only when there is no footer, so the read-only case must pass
     // `undefined` rather than a footer that renders nothing.

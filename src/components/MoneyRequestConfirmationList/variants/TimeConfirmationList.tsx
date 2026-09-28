@@ -43,7 +43,7 @@ function TimeConfirmationList(props: MoneyRequestConfirmationListProps) {
 
     return (
         <ConfirmationDataContext.Provider value={data}>
-            <FieldAutoSelector />
+            <FieldAutoSelector {...data.fieldAutoSelectProps} />
             <ConfirmationListLayout
                 {...data.layoutProps}
                 listFooterContent={listFooterContent}

@@ -42,8 +42,8 @@ function InvoiceConfirmationList(props: MoneyRequestConfirmationListProps) {
 
     return (
         <ConfirmationDataContext.Provider value={data}>
-            <TaxController />
-            <FieldAutoSelector />
+            <TaxController {...data.taxControllerProps} />
+            <FieldAutoSelector {...data.fieldAutoSelectProps} />
             <ConfirmationListLayout
                 {...data.layoutProps}
                 listFooterContent={listFooterContent}

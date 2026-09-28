@@ -4,17 +4,61 @@ import {setMoneyRequestCategory, setMoneyRequestTag} from '@libs/actions/IOU/Mon
 import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
 import {getTag} from '@libs/TransactionUtils';
 
+import type {Policy, PolicyCategories, PolicyTagLists, Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
 import {useEffect} from 'react';
 
-import {useConfirmationData} from './ConfirmationDataContext';
+type FieldAutoSelectorProps = {
+    /** ID of the transaction being confirmed */
+    transactionID: string | undefined;
+
+    /** Transaction being confirmed */
+    transaction: OnyxEntry<Transaction>;
+
+    /** Categories of the resolved policy */
+    policyCategories: OnyxEntry<PolicyCategories>;
+
+    /** Tag lists of the resolved policy */
+    policyTagLists: Array<ValueOf<PolicyTagLists>>;
+
+    /** Tags of the resolved policy */
+    policyTags: OnyxEntry<PolicyTagLists>;
+
+    /** The resolved policy */
+    policy: OnyxEntry<Policy>;
+
+    /** Whether the category field is shown for this expense */
+    shouldShowCategories: boolean;
+
+    /** Whether the policy requires a category */
+    isCategoryRequired: boolean;
+
+    /** Category currently set on the transaction */
+    iouCategory: string;
+
+    /** Whether the expense is being moved off a track expense */
+    isMovingTransactionFromTrackExpense: boolean;
+};
 
 /**
  * Side-effect-only component that auto-selects the only enabled category
  * and required single tags when the confirmation list mounts.
  */
-function FieldAutoSelector() {
-    const {transactionID, transaction, policyCategories, policyTagLists, policyTags, policy, shouldShowCategories, isCategoryRequired, iouCategory, isMovingTransactionFromTrackExpense} =
-        useConfirmationData();
+function FieldAutoSelector({
+    transactionID,
+    transaction,
+    policyCategories,
+    policyTagLists,
+    policyTags,
+    policy,
+    shouldShowCategories,
+    isCategoryRequired,
+    iouCategory,
+    isMovingTransactionFromTrackExpense,
+}: FieldAutoSelectorProps) {
     const {getCurrencyDecimals} = useCurrencyListActions();
     // Auto select the category if there is only one enabled category and it is required
     useEffect(() => {
