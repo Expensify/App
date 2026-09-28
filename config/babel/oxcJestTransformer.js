@@ -2,7 +2,6 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
-const remapping = require('@jridgewell/remapping');
 const babelJest = require('babel-jest');
 const oxcReactCompilerConfig = require('./oxcReactCompilerConfig');
 
@@ -113,7 +112,9 @@ function processWithOxc(sourceText, sourcePath) {
         return null;
     }
 
-    const cjs = esbuild.transformSync(oxcResult.code, {
+    // esbuild chains an inline input map, so its output maps straight back to the original file.
+    const inputMap = Buffer.from(JSON.stringify(oxcResult.map)).toString('base64');
+    const cjs = esbuild.transformSync(`${oxcResult.code}\n//# sourceMappingURL=data:application/json;base64,${inputMap}`, {
         loader: 'js',
         format: 'cjs',
         supported: {'dynamic-import': false},
@@ -121,10 +122,7 @@ function processWithOxc(sourceText, sourcePath) {
         sourcemap: true,
     });
 
-    // esbuild's map points at OXC's output, so chain it onto OXC's map to reach the original file.
-    const map = remapping([cjs.map, oxcResult.map], () => null).toString();
-
-    return {code: patchEsbuildHelpers(cjs.code, sourcePath), map};
+    return {code: patchEsbuildHelpers(cjs.code, sourcePath), map: cjs.map};
 }
 
 module.exports = {
