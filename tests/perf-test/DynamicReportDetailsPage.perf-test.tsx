@@ -317,6 +317,9 @@ describe('DynamicReportDetailsPage', () => {
     });
 
     test('[DynamicReportDetailsPage] should re-render a workspace room when participant personal details change', async () => {
+        // Reassure calls the scenario once per run while Onyx is seeded once per test, and Onyx skips merges that change nothing,
+        // so every run must write names that don't exist yet
+        let run = 0;
         const scenario = async () => {
             // Given the workspace room page has rendered
             await screen.findByText(TestHelper.translateLocal('common.members'));
@@ -325,9 +328,10 @@ describe('DynamicReportDetailsPage', () => {
             for (let index = 0; index < UPDATES_PER_SCENARIO; index++) {
                 const accountID = participantAccountIDs.at(index + 1) ?? 2;
                 await mergeAndFlush(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                    [accountID]: {displayName: `Renamed ${index}`},
+                    [accountID]: {displayName: `Renamed ${run}-${index}`},
                 });
             }
+            run++;
         };
 
         // Then reassure measures the re-renders caused by personal details changes
