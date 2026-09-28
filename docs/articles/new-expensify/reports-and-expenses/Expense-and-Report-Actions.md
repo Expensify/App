@@ -192,6 +192,10 @@ Payments can only be canceled before processing begins. Manual payments cannot b
 
 Only workspace admins can bypass approvers. Some settings may prevent self-approval.
 
-## How do I invite a member to an expense report?
+## How do I invite a member to a report?
 
-Open the report, click the report header to open **Details**, select **Members**, then click **Invite member**. This is only available on Draft reports, and only for the submitter or a Workspace Admin. [Learn how to invite members to an expense report](/articles/new-expensify/reports-and-expenses/Invite-Members-to-an-Expense-Report).
+On a Draft report, select the report header, select **Members**, then select **Invite member**. Search for the person by name, email, or phone number, select them, then select **Invite**.
+
+Invited members can see every expense on the report and comment, but they aren't added to the workspace or approval workflow. The Invite member option is available to the submitter and Workspace Admins while the report is in Draft status. [Learn how to invite members to an expense report](/articles/new-expensify/reports-and-expenses/Invite-Members-to-an-Expense-Report).
+
+
