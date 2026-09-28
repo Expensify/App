@@ -171,11 +171,11 @@ If a Workspace has rates with effective dates and you manually select a rate tha
 
 What happens depends on whether you move individual expenses or a whole report.
 
-**If you move individual expenses to a report on another Workspace:** when the expense’s rate does not exist on the new Workspace, or is disabled there, the expense automatically switches to that Workspace’s default distance rate. The unit, distance, amount, and currency are recalculated to match. If the new Workspace has no enabled distance rates, the expense keeps its original rate and shows a “Rate not valid for this workspace” violation.
+**If you move individual expenses to a report on another Workspace:** when the expense’s rate does not exist on the new Workspace, or is disabled there, the expense automatically switches to that Workspace’s default distance rate. The unit, distance, amount, and currency are recalculated to match.
 
 **If you move a whole report to another Workspace:** the expenses keep their original unit and rate. If a rate isn’t valid in the new Workspace, the expense shows a “Rate not valid for this workspace” violation.
 
-In both cases, selecting a valid rate on the expense clears the violation and updates the expense. Open the expense and select the **Rate** field to choose a rate from the new Workspace.
+Selecting a valid rate on the expense clears the violation and updates the expense. Open the expense and select the **Rate** field to choose a rate from the new Workspace.
 
 ## Do I need to keep the mobile app open during GPS tracking?
 
