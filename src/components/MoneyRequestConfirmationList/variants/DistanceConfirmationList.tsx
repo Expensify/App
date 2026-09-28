@@ -10,7 +10,7 @@ import DistanceMapFooter from '@components/MoneyRequestConfirmationListFooter/va
 import DistanceOdometerFooter from '@components/MoneyRequestConfirmationListFooter/variants/DistanceOdometerFooter';
 
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getCreated, getRateID, isGPSDistanceRequest as isGPSDistanceRequestUtil, isManualDistanceRequest as isManualDistanceRequestUtil} from '@libs/TransactionUtils';
+import {getCreated, isGPSDistanceRequest as isGPSDistanceRequestUtil, isManualDistanceRequest as isManualDistanceRequestUtil} from '@libs/TransactionUtils';
 
 import React from 'react';
 
@@ -30,8 +30,6 @@ function DistanceConfirmationList(props: MoneyRequestConfirmationListProps) {
     const shouldShowRateAutoUpdatedTooltip =
         !!transaction?.comment?.customUnit?.rateAutoUpdated && !!transaction.created && DistanceRequestUtils.isRateEligibleForDate(mileageRate, transaction.created);
 
-    const customUnitRateID = getRateID(transaction);
-
     const distanceData = {
         distance,
         // The distance field reads this to decide whether it has a figure worth showing, so a
@@ -42,7 +40,7 @@ function DistanceConfirmationList(props: MoneyRequestConfirmationListProps) {
         distanceRateCurrency: currency,
         mileageRate,
         expenseDate: getCreated(transaction),
-        customUnitRateID,
+        customUnitRateID: data.distanceControllerProps.customUnitRateID,
         shouldShowRateAutoUpdatedTooltip,
         customUnit: transaction?.comment?.customUnit,
     };
