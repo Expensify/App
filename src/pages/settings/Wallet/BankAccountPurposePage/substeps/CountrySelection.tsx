@@ -22,6 +22,10 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 
+function isSupportedCountryCode(countryCode: string): countryCode is Country {
+    return countryCode in CONST.ALL_COUNTRIES && countryCode in CONST.BBA_COUNTRY_CURRENCY_MAP;
+}
+
 function CountrySelection() {
     const [country, countryMetadata] = useOnyx(ONYXKEYS.COUNTRY);
     const [reimbursementAccount, reimbursementAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -83,15 +87,16 @@ function CountrySelection() {
     };
 
     const onConfirm = () => {
-        if (!resolvedSelectedCountry) {
+        if (!resolvedSelectedCountry || !isSupportedCountryCode(resolvedSelectedCountry)) {
             setShouldShowError(true);
             return;
         }
+        const confirmedCountry = resolvedSelectedCountry;
         startWithLoading(() => {
-            const selectedCurrency = CONST.BBA_COUNTRY_CURRENCY_MAP[resolvedSelectedCountry];
+            const selectedCurrency = CONST.BBA_COUNTRY_CURRENCY_MAP[confirmedCountry];
             const shouldResume =
                 reimbursementAccountDraft?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET &&
-                reimbursementAccountDraft?.country === resolvedSelectedCountry &&
+                reimbursementAccountDraft?.country === confirmedCountry &&
                 reimbursementAccountDraft?.currency === selectedCurrency;
             const policyID = shouldResume ? reimbursementAccount?.achData?.policyID : undefined;
             const bankAccountID = shouldResume ? (reimbursementAccount?.achData?.bankAccountID ?? reimbursementAccountDraft?.bankAccountID) : undefined;
@@ -118,13 +123,14 @@ function CountrySelection() {
             if (!shouldResume) {
                 clearReimbursementAccount();
                 clearReimbursementAccountDraft();
-                updateReimbursementAccountDraft({country: resolvedSelectedCountry as Country, currency: selectedCurrency, source: CONST.BANK_ACCOUNT.SOURCE.WALLET});
+                updateReimbursementAccountDraft({country: confirmedCountry, currency: selectedCurrency, source: CONST.BANK_ACCOUNT.SOURCE.WALLET});
             }
 
             if (shouldResumeUSBankInfo && savedUSBankInfoSubPage) {
-                return setBankAccountSubStep(savedUSBankInfoSubPage).then(() => {
+                setBankAccountSubStep(savedUSBankInfoSubPage).then(() => {
                     navigateToBankAccountRoute({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
                 });
+                return;
             }
 
             navigateToBankAccountRoute({

@@ -60,7 +60,9 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 
 const mockGetPaymentMethods = jest.fn();
 jest.mock('@userActions/PaymentMethods', () => ({
-    getPaymentMethods: () => mockGetPaymentMethods(),
+    getPaymentMethods: () => {
+        mockGetPaymentMethods();
+    },
 }));
 
 // Stub the terminal screens so the assertions are about which branch the page picked, not about their internals.
@@ -105,6 +107,9 @@ const EUR_POLICY: Policy = {...USD_POLICY, outputCurrency: CONST.CURRENCY.EUR};
 const MEMBER_POLICY: Policy = {...USD_POLICY, role: CONST.POLICY.ROLE.USER};
 
 const PENDING_DELETE_POLICY: Policy = {...USD_POLICY, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+
+const DEFAULT_REIMBURSEMENT_ACCOUNT = createMock<ReimbursementAccount>(CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
+const ACCOUNT_CREATED_AT = '2026-09-26 15:00:27';
 
 // A policy that has loaded without publishing a currency. `Policy` declares outputCurrency as required, so the mock
 // helper is what lets this fixture describe the partially-loaded shape Onyx can actually hold.
@@ -313,7 +318,7 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
 
         it('preserves unfinished Wallet bank information before an account is created', async () => {
             // Given a Wallet business setup with locally saved bank information and no backend account
-            await seedOnyx(CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA, null);
+            await seedOnyx(DEFAULT_REIMBURSEMENT_ACCOUNT, null);
             await act(async () => {
                 await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
                     country: CONST.COUNTRY.US,
@@ -633,7 +638,7 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
     describe('Wallet business setup resume', () => {
         it('keeps the root mounted and resumes a USD manual draft before account creation', async () => {
             // Given a Wallet USD draft saved on manual bank information before a backend account exists
-            await seedOnyx(CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA, null);
+            await seedOnyx(DEFAULT_REIMBURSEMENT_ACCOUNT, null);
             await act(async () => {
                 await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
                     country: CONST.COUNTRY.US,
@@ -662,7 +667,7 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
 
         it('keeps the root mounted and resumes a USD Plaid draft before account creation', async () => {
             // Given a Wallet USD draft saved after selecting an account through Plaid
-            await seedOnyx(CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA, null);
+            await seedOnyx(DEFAULT_REIMBURSEMENT_ACCOUNT, null);
             await act(async () => {
                 await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
                     country: CONST.COUNTRY.US,
@@ -691,7 +696,7 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
 
         it('refreshes the Wallet bank account list when dismissed after USD bank information is completed', async () => {
             // Given a resumed Wallet flow in which Step 2 creates the backend bank account and advances to Step 3
-            await seedOnyx(CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA, null);
+            await seedOnyx(DEFAULT_REIMBURSEMENT_ACCOUNT, null);
             await act(async () => {
                 await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
                     country: CONST.COUNTRY.US,
@@ -724,7 +729,7 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
 
         it('keeps the root mounted and resumes a non-USD bank-info draft before account creation', async () => {
             // Given a Wallet EUR draft saved on account-holder details before a backend account exists
-            await seedOnyx(CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA, null);
+            await seedOnyx(DEFAULT_REIMBURSEMENT_ACCOUNT, null);
             await act(async () => {
                 await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
                     country: 'DE',
@@ -754,7 +759,7 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
 
         it('refreshes the Wallet bank account list when dismissed after non-USD bank information is completed', async () => {
             // Given a resumed Wallet flow in which Step 2 creates the backend bank account and advances to Step 3
-            await seedOnyx(CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA, null);
+            await seedOnyx(DEFAULT_REIMBURSEMENT_ACCOUNT, null);
             await act(async () => {
                 await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
                     country: 'DE',
@@ -769,7 +774,7 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
             await act(async () => {
                 await Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
                     ...PENDING_ACCOUNT,
-                    achData: buildAchData({currency: CONST.CURRENCY.EUR, country: 'DE', state: CONST.BANK_ACCOUNT.STATE.PENDING, created: true, corpay: {}}),
+                    achData: buildAchData({currency: CONST.CURRENCY.EUR, country: 'DE', state: CONST.BANK_ACCOUNT.STATE.PENDING, created: ACCOUNT_CREATED_AT, corpay: {}}),
                 });
                 await waitForBatchedUpdatesWithAct();
             });
@@ -857,7 +862,7 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
             await seedOnyx(
                 {
                     ...PENDING_ACCOUNT,
-                    achData: buildAchData({state: CONST.BANK_ACCOUNT.STATE.SETUP, currency: CONST.CURRENCY.EUR, country: 'DE', created: true, corpay: {}}),
+                    achData: buildAchData({state: CONST.BANK_ACCOUNT.STATE.SETUP, currency: CONST.CURRENCY.EUR, country: 'DE', created: ACCOUNT_CREATED_AT, corpay: {}}),
                 },
                 null,
             );

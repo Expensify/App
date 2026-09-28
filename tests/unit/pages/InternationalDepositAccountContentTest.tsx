@@ -1,6 +1,7 @@
-import {render} from '@testing-library/react-native';
+import {render, screen} from '@testing-library/react-native';
 
 import FormDraftPersistenceContext from '@components/Form/FormDraftPersistenceContext';
+import Text from '@components/Text';
 
 import useSubPage from '@hooks/useSubPage';
 
@@ -47,11 +48,12 @@ jest.mock('@userActions/FormActions', () => ({
 let mockIsFocused = true;
 let mockIsEditing = false;
 let mockCurrentPageName: string = CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION;
-let mockShouldPersistDraft = false;
-const MockCurrentPage = jest.fn(function MockCurrentPage() {
-    mockShouldPersistDraft = useContext(FormDraftPersistenceContext);
-    return null;
-});
+const DRAFT_PERSISTENCE_TEST_ID = 'draft-persistence';
+
+function MockCurrentPage() {
+    const shouldPersistDraft = useContext(FormDraftPersistenceContext);
+    return <Text testID={DRAFT_PERSISTENCE_TEST_ID}>{String(shouldPersistDraft)}</Text>;
+}
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof ReactNavigationModule>('@react-navigation/native'),
@@ -86,7 +88,6 @@ describe('InternationalDepositAccountContent Wallet resume page', () => {
         mockIsFocused = true;
         mockIsEditing = false;
         mockCurrentPageName = CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION;
-        mockShouldPersistDraft = false;
         mockedUseSubPage.mockImplementation(() => ({
             CurrentPage: MockCurrentPage,
             isEditing: mockIsEditing,
@@ -208,7 +209,7 @@ describe('InternationalDepositAccountContent Wallet resume page', () => {
         const {rerender} = render(<InternationalDepositAccountContent {...props} />);
 
         // Then its inputs are allowed to save edits before the user confirms them
-        expect(mockShouldPersistDraft).toBe(true);
+        expect(screen.getByTestId(DRAFT_PERSISTENCE_TEST_ID)).toHaveTextContent('true');
 
         // When the same page is rendered outside Wallet
         rerender(
@@ -219,13 +220,13 @@ describe('InternationalDepositAccountContent Wallet resume page', () => {
         );
 
         // Then the existing non-Wallet edit behavior remains unchanged
-        expect(mockShouldPersistDraft).toBe(false);
+        expect(screen.getByTestId(DRAFT_PERSISTENCE_TEST_ID)).toHaveTextContent('false');
 
         // When Wallet edits a page that already owns its persistence behavior
         mockCurrentPageName = CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE;
         rerender(<InternationalDepositAccountContent {...props} />);
 
         // Then the shared context does not broaden that page's behavior
-        expect(mockShouldPersistDraft).toBe(false);
+        expect(screen.getByTestId(DRAFT_PERSISTENCE_TEST_ID)).toHaveTextContent('false');
     });
 });
