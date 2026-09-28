@@ -93,6 +93,10 @@ async function main(): Promise<void> {
                 description: 'Journey phase order; alternate it across paired batches to check build-order drift',
                 required: false,
             },
+            'benchmark-batch': {
+                description: 'Unique output batch ID for a journey benchmark; defaults to the current timestamp',
+                required: false,
+            },
             profile: {
                 description: 'Immutable merged profile to use when building the optimized app',
                 required: false,
@@ -112,6 +116,7 @@ async function main(): Promise<void> {
         cli.namedArgs.fixture,
         cli.namedArgs.profile,
         cli.namedArgs['benchmark-order'],
+        cli.namedArgs['benchmark-batch'],
     );
 }
 
@@ -125,6 +130,7 @@ async function runWorkflow(
     fixturePath?: string,
     profilePath?: string,
     benchmarkOrder?: string,
+    benchmarkBatch?: string,
 ): Promise<void> {
     const adapter = getAdapter(platformName, appID, deviceIdentifier);
 
@@ -169,12 +175,20 @@ async function runWorkflow(
             return;
         case 'benchmark-journey': {
             const benchmarkAdapter = await createBenchmarkAdapter(adapter, deviceIdentifier);
-            await benchmarkJourneyAll(adapter, benchmarkAdapter.deviceIdentifier, readJourneyFixture(fixturePath), runs, timeoutSeconds, readBenchmarkOrder(benchmarkOrder));
+            await benchmarkJourneyAll(adapter, benchmarkAdapter.deviceIdentifier, readJourneyFixture(fixturePath), runs, timeoutSeconds, readBenchmarkOrder(benchmarkOrder), benchmarkBatch);
             return;
         }
         case 'benchmark-heavy-journey': {
             const benchmarkAdapter = await createBenchmarkAdapter(adapter, deviceIdentifier);
-            await benchmarkHeavyJourneyAll(adapter, benchmarkAdapter.deviceIdentifier, readJourneyFixture(fixturePath), runs, timeoutSeconds, readBenchmarkOrder(benchmarkOrder));
+            await benchmarkHeavyJourneyAll(
+                adapter,
+                benchmarkAdapter.deviceIdentifier,
+                readJourneyFixture(fixturePath),
+                runs,
+                timeoutSeconds,
+                readBenchmarkOrder(benchmarkOrder),
+                benchmarkBatch,
+            );
             return;
         }
         case 'dump':

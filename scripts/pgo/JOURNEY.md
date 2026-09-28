@@ -76,7 +76,7 @@ Use an exclusive device lease on a persistent runner: Linux or macOS with an arm
 
 Run these steps for each staging or production release candidate before publication. Pin the compiler, SDK, dependencies, architecture, build settings, and automation version; retain them alongside the profile. The current runner records source revisions but does not validate binary provenance. The release pipeline must enforce that the training artifact and optimized build match, and keep simultaneous jobs from sharing a device or profile output directory. Store signing credentials separately from the fixture.
 
-This change supplies the journey and profile collection hook for local and CI execution. Connecting it to the store release workflows and measuring held-out interactive performance remain separate integration steps.
+The release build workflows collect and validate a profile when their caller enables PGO. The PR preview also runs held-out interaction benchmarks on separate local baseline and optimized builds. Store promotion still needs a gate that verifies the staged binary's proof.
 
 ## Held-out interaction benchmark
 

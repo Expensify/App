@@ -178,8 +178,9 @@ async function benchmarkJourneyAll(
     runs: number,
     timeoutSeconds: number,
     order: BenchmarkOrder = 'release-first',
+    batchID?: string,
 ): Promise<void> {
-    await benchmarkJourneyScenario(adapter, deviceID, fixture, runs, timeoutSeconds, SHORT_JOURNEY, order);
+    await benchmarkJourneyScenario(adapter, deviceID, fixture, runs, timeoutSeconds, SHORT_JOURNEY, order, batchID);
 }
 
 async function benchmarkHeavyJourneyAll(
@@ -189,8 +190,9 @@ async function benchmarkHeavyJourneyAll(
     runs: number,
     timeoutSeconds: number,
     order: BenchmarkOrder = 'release-first',
+    batchID?: string,
 ): Promise<void> {
-    await benchmarkJourneyScenario(adapter, deviceID, fixture, runs, timeoutSeconds, HEAVY_JOURNEY, order);
+    await benchmarkJourneyScenario(adapter, deviceID, fixture, runs, timeoutSeconds, HEAVY_JOURNEY, order, batchID);
 }
 
 async function benchmarkJourneyScenario(
@@ -201,8 +203,12 @@ async function benchmarkJourneyScenario(
     timeoutSeconds: number,
     scenario: JourneyScenario,
     order: BenchmarkOrder,
+    requestedBatchID?: string,
 ): Promise<void> {
-    const batchID = new Date().toISOString().replaceAll(/[:.]/g, '-');
+    const batchID = requestedBatchID ?? new Date().toISOString().replaceAll(/[:.]/g, '-');
+    if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/.test(batchID)) {
+        fail('Benchmark batch ID must contain only letters, numbers, hyphens, and underscores.');
+    }
     const paths = journeyBenchmarkPaths(adapter, batchID, scenario.directory);
     const directory = join(adapter.benchmarkDirectory, scenario.directory, batchID);
     if (existsSync(directory)) {
