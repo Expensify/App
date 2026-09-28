@@ -11188,10 +11188,7 @@ ${reportName}`,
                 invalid: 'Este código no es válido',
             },
         },
-        paymentHistory: {
-            title: 'Ver historial de pagos',
-            subtitle: 'Tu historial mensual completo de pagos cargados a esta cuenta.',
-        },
+        paymentHistory: {title: 'Ver historial de pagos', subtitle: 'Tu historial completo de pagos mensuales cargados a esta cuenta.'},
         subscriptionSettings: {
             title: 'Configuración de suscripción',
             summary: (subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease) =>

@@ -10942,10 +10942,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 invalid: 'Questo codice non è valido',
             },
         },
-        paymentHistory: {
-            title: 'Visualizza cronologia pagamenti',
-            subtitle: 'La cronologia mensile completa dei pagamenti addebitati a questo account.',
-        },
+        paymentHistory: {title: 'Vedi cronologia pagamenti', subtitle: 'Il tuo storico completo dei pagamenti mensili addebitati su questo conto.'},
         subscriptionSettings: {
             title: 'Impostazioni abbonamento',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>

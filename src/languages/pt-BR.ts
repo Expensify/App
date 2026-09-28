@@ -10900,10 +10900,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 invalid: 'Este código é inválido',
             },
         },
-        paymentHistory: {
-            title: 'Ver histórico de pagamentos',
-            subtitle: 'Seu histórico mensal completo de pagamentos cobrados nesta conta.',
-        },
+        paymentHistory: {title: 'Ver histórico de pagamento', subtitle: 'Seu histórico completo de pagamentos mensais cobrados nesta conta.'},
         subscriptionSettings: {
             title: 'Configurações de assinatura',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
