@@ -22,7 +22,7 @@ function UpcomingTravelSection() {
     return (
         <WidgetContainer
             title={translate('homePage.upcomingTravel')}
-            containerStyles={shouldUseNarrowLayout ? styles.pb2 : styles.pb5}
+            containerStyles={styles.getWidgetContainerBottomPaddingStyle(shouldUseNarrowLayout)}
         >
             {upcomingReservations.map((reservation) => (
                 <UpcomingTravelItem

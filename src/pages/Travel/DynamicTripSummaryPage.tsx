@@ -30,8 +30,9 @@ function DynamicTripSummaryPage({route}: DynamicTripSummaryPageProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRAVEL_TRIP_SUMMARY.path);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${route.params.reportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(route.params.transactionID)}`);
-    const reservationsData: TripReservationUtils.ReservationData[] = TripReservationUtils.getReservationsFromTripReport(report, transaction ? [transaction] : []);
+    const reservationsData: TripReservationUtils.ReservationData[] = TripReservationUtils.getReservationsFromTripReport(report, reportNameValuePairs, transaction ? [transaction] : []);
 
     return (
         <ScreenWrapper

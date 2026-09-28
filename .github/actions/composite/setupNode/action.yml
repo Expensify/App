@@ -9,7 +9,7 @@ inputs:
     default: 'false'
   SEED_STICKY_DISKS:
     description: |
-      'true' only in the seedStickyDisks workflow, which installs dependencies and nothing else.
+      'true' only in the seedCache workflow, which installs dependencies and nothing else.
       Everywhere else the disks are mounted read-through so no job can persist build artifacts or
       tool caches into the snapshot.
     required: false

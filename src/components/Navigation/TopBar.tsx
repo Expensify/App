@@ -5,6 +5,7 @@ import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import Text from '@components/Text';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -26,6 +27,8 @@ import React from 'react';
 import {Keyboard, View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
+import AccountAvatarButton from './AccountAvatarButton';
+
 type TopBarProps = {
     breadcrumbLabel: string;
     shouldDisplaySearch?: boolean;
@@ -45,6 +48,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
     const isAnonymousUser = isAnonymousUserUtil(session);
 
     const isInLandscapeMode = useIsInLandscapeMode();
+    const {contentHeaderHeightStyle} = useContentHeaderHeight();
     const {wideRHPRouteKeys} = useWideRHPState();
     const isWideRHPVisible = !!wideRHPRouteKeys.length;
 
@@ -54,7 +58,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
     return (
         <View style={[styles.w100, styles.zIndex10]}>
             <View
-                style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ml5, styles.mr3, styles.headerBarHeight]}
+                style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ml5, styles.mr3, contentHeaderHeightStyle]}
                 dataSet={{dragArea: true}}
                 onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
             >
@@ -85,6 +89,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                 )}
                 {displaySearch && <SearchButton />}
                 {shouldDisplayHelpButton && <SidePanelButton />}
+                <AccountAvatarButton />
             </View>
             <LoadingBar shouldShow={!isWideRHPVisible && !!shouldShowLoadingBar} />
         </View>

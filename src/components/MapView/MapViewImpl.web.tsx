@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 
 import 'mapbox-gl/dist/mapbox-gl.css';
 import ImageSVG from '@components/ImageSVG';
