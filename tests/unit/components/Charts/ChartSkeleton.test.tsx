@@ -13,7 +13,6 @@ import React from 'react';
 const CONTAINER_WIDTH = 320;
 const NARROW_CONTAINER_WIDTH = 160;
 
-// The shapes size off the measured container, which never lays out under the test renderer, so without this every shape would draw at zero width.
 function renderAtContainerWidth(view: ChartView, width = CONTAINER_WIDTH) {
     render(<ChartSkeleton view={view} />);
     fireEvent(screen.getByTestId(CHART_SKELETON_TEST_ID), 'layout', {nativeEvent: {layout: {width, height: 0}}});
@@ -102,5 +101,19 @@ describe('ChartSkeleton', () => {
         screen.unmount();
         renderAtContainerWidth(CONST.SEARCH.VIEW.PIE);
         expect(Number(getLoaderProps().height)).toBeGreaterThan(CHART_CONTENT_MIN_HEIGHT);
+    });
+
+    it('should reserve no legend row for a pie that hides its legend', () => {
+        // Given a pie whose legend is replaced by a table below it
+        // When its placeholder renders
+        render(
+            <ChartSkeleton
+                view={CONST.SEARCH.VIEW.PIE}
+                shouldShowLegend={false}
+            />,
+        );
+
+        // Then the box is only the ring, so the table does not move up when the pie replaces the placeholder
+        expect(Number(getLoaderProps().height)).toBe(CHART_CONTENT_MIN_HEIGHT);
     });
 });

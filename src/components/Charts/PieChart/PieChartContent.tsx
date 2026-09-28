@@ -149,7 +149,12 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     };
 
     if (isLoading) {
-        return <ChartSkeleton view={CONST.SEARCH.VIEW.PIE} />;
+        return (
+            <ChartSkeleton
+                view={CONST.SEARCH.VIEW.PIE}
+                shouldShowLegend={shouldShowLegend}
+            />
+        );
     }
 
     if (data.length === 0) {

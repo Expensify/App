@@ -25,7 +25,6 @@ const LINE_TEST_ID = 'chartSkeletonLine';
 const MARKER_TEST_ID = 'chartSkeletonMarker';
 const PIE_TEST_ID = 'chartSkeletonPie';
 
-/** Stands in for the y-axis label column, which the loaded chart sizes from its data and the placeholder cannot. */
 const Y_AXIS_GUTTER = 64;
 
 const AXIS_THICKNESS = 1;
@@ -36,11 +35,7 @@ const AXIS_THICKNESS = 1;
  */
 const Y_RANGE_BOTTOM = CHART_CONTENT_MIN_HEIGHT - VictoryTheme.axis.padding.bottom - VictoryTheme.axis.labelGap * 2;
 
-/**
- * The y scale's `nice()` rounds the padded domain out to whole steps: one below zero, since the domain starts at zero,
- * and about ten above it. So the zero line, which the loaded chart draws as its baseline, sits one step in eleven
- * above the bottom of the range.
- */
+/** The y scale's `nice()` rounds the padded domain out to whole steps: one below zero, since the domain starts at zero, and about ten above it. */
 const Y_RANGE_TYPICAL_STEPS = 11;
 
 const LINE_SERIES = [0.12, 0.2732, 0.6575, 0.2327, 0.3302, 0.7745, 0.5831, 0.7384, 0.3981, 0.6358, 0.2378, 0.88];
@@ -50,7 +45,7 @@ const LINE_HALF_THICKNESS = 1;
 /** The design rings each marker in the card color. */
 const LINE_MARKER_CLEARANCE = LINE_MARKER_RADIUS + 2;
 
-/** The same fade from the baseline up to the series line that `AreaGradient` gives the loaded chart. */
+/** The same fade `AreaGradient` gives the loaded chart. */
 const AREA_ALPHA_BASELINE = 0.02;
 const AREA_ALPHA_LINE = 0.2;
 
@@ -60,24 +55,21 @@ const BAR_PITCH_RATIO = 0.1938;
 const BAR_INSET_RATIO = 0.0489;
 const BAR_BORDER_RADIUS = 8;
 
-/** Fractions of the ring, largest first, which is the order the loaded chart lays its slices out in. */
+/** Largest first, which is the order the loaded chart lays its slices out in. */
 const PIE_SLICE_SHARES = [0.41, 0.214, 0.214, 0.085, 0.077];
 
-/** The total and its caption in the middle of the ring. */
 const PIE_LABEL_BARS = [
     {width: 48, offsetY: -17.5},
     {width: 72, offsetY: 6.5},
 ];
 const PIE_LABEL_BAR_HEIGHT = 12;
 
-/** The `mb2` under each item of the pie legend. */
 const PIE_LEGEND_ITEM_MARGIN_BOTTOM = 8;
 
 /** One row of the legend PieChartContent draws below the ring: the container's top margin, a line of `textNormal` and the item's bottom margin. */
 const PIE_LEGEND_ROW_HEIGHT = variables.qrShareHorizontalPadding + variables.fontSizeNormalHeight + PIE_LEGEND_ITEM_MARGIN_BOTTOM;
 
 type ChartSkeletonLayers = {
-    /** Drawn beneath the shimmer in a paint of its own */
     chrome?: ReactElement;
 
     /** Becomes the shimmer's clip path, so only fill geometry counts and a stroked shape draws nothing */
@@ -335,22 +327,24 @@ function renderPieShape(width: number): ChartSkeletonLayers {
     };
 }
 
-// Each height is the box its chart draws into, so the box holds its size when the chart replaces the placeholder. The
-// pie's box is the ring plus one legend row, left empty because the design draws no legend placeholder.
 const PLACEHOLDER_BY_VIEW: Record<ChartView, {render: (width: number) => ChartSkeletonLayers; height: number}> = {
     [CONST.SEARCH.VIEW.BAR]: {render: renderBarShape, height: getCartesianChartHeight()},
     [CONST.SEARCH.VIEW.LINE]: {render: renderLineShape, height: getCartesianChartHeight()},
-    [CONST.SEARCH.VIEW.PIE]: {render: renderPieShape, height: CHART_CONTENT_MIN_HEIGHT + PIE_LEGEND_ROW_HEIGHT},
+    [CONST.SEARCH.VIEW.PIE]: {render: renderPieShape, height: CHART_CONTENT_MIN_HEIGHT},
 };
 
 type ChartSkeletonProps = {
     view: ChartView;
+
+    /** Whether the loaded pie draws its legend. */
+    shouldShowLegend?: boolean;
 };
 
-function ChartSkeleton({view}: ChartSkeletonProps) {
+function ChartSkeleton({view, shouldShowLegend = true}: ChartSkeletonProps) {
     const theme = useTheme();
     const {ref, onLayout, containerWidth} = useContainerWidth();
     const {render, height} = PLACEHOLDER_BY_VIEW[view];
+    const legendHeight = view === CONST.SEARCH.VIEW.PIE && shouldShowLegend ? PIE_LEGEND_ROW_HEIGHT : 0;
     const {chrome, shimmer} = render(containerWidth);
 
     return (
@@ -361,7 +355,7 @@ function ChartSkeleton({view}: ChartSkeletonProps) {
         >
             <SkeletonViewContentLoader
                 animate
-                height={height}
+                height={height + legendHeight}
                 width={containerWidth}
                 backgroundColor={theme.skeletonLHNIn}
                 foregroundColor={theme.skeletonLHNOut}

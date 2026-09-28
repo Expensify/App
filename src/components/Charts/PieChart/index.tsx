@@ -17,7 +17,12 @@ function PieChart(props: PieChartProps) {
                 <SkiaWebChart
                     getComponent={getPieChartContent}
                     componentProps={{...props, chartWidth}}
-                    loadingFallback={<ChartSkeleton view={CONST.SEARCH.VIEW.PIE} />}
+                    loadingFallback={
+                        <ChartSkeleton
+                            view={CONST.SEARCH.VIEW.PIE}
+                            shouldShowLegend={props.shouldShowLegend}
+                        />
+                    }
                 />
             )}
         </ChartWidthBox>
