@@ -6341,7 +6341,7 @@ const translations = {
             syncReimbursedReportsDescription: 'When a report is paid via ACH, a bill payment will be generated in this account.',
             billPaymentAccount: {
                 label: 'Bill payment account',
-                description: "Choose where to pay bills from and we'll create the payment in Campfire.",
+                description: 'Choose the clearing account Campfire credits when Expensify marks a bill paid.',
             },
             syncExpensifyCardSettlements: 'Sync Expensify Card settlements',
             settlementAccount: {

@@ -8897,12 +8897,15 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 },
                 alternateText: {
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Les dépenses hors poche seront exportées une fois approuvées définitivement',
-                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Les dépenses payées de votre poche seront exportées une fois réglées',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Les dépenses hors poche seront exportées une fois payées',
                 },
             },
             syncReimbursedReports: 'Synchroniser les notes de frais remboursées',
-            syncReimbursedReportsDescription: "Lorsqu'une note de frais est payée par ACH, un règlement de facture sera généré sur ce compte.",
-            billPaymentAccount: {label: 'Compte de paiement de factures', description: 'Choisissez d’où payer les factures et nous créerons le paiement dans Campfire.'},
+            syncReimbursedReportsDescription: 'Lorsqu’une note de frais est payée par virement ACH, un paiement de facture sera généré sur ce compte.',
+            billPaymentAccount: {
+                label: 'Compte de paiement des factures',
+                description: 'Choisissez le compte de compensation des crédits Campfire lorsque Expensify marque une facture comme payée.',
+            },
             syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
             settlementAccount: {label: 'Compte de règlement de la Carte Expensify', description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Campfire.'},
             syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage',
@@ -8910,7 +8913,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 label: 'Compte de règlement de facturation de voyage',
                 description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Campfire.',
             },
-            travelInvoicingPayableAccount: {label: 'Compte fournisseur pour facturation de voyage'},
+            travelInvoicingPayableAccount: {label: 'Compte fournisseur pour la facturation de voyage'},
         },
         businessCentral: {
             businessCentralSetup: 'Configuration de Dynamics 365 Business Central',
