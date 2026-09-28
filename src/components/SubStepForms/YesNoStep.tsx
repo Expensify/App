@@ -38,7 +38,7 @@ type YesNoStepProps = {
     onValueChange?: () => void;
 };
 
-function YesNoStep({title, description, defaultValue, onSelectedValue, submitButtonStyles, submitFlexEnabled, isLoading = false, children, onValueChange}: YesNoStepProps) {
+function YesNoStep({title, description, defaultValue, onSelectedValue, submitButtonStyles, submitFlexEnabled, isLoading, children, onValueChange}: YesNoStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [value, setValue] = useState(defaultValue);

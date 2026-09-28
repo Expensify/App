@@ -141,7 +141,7 @@ function FormProvider({
     shouldTrimValues = true,
     allowHTML = false,
     shouldPreserveCustomValidationErrors = false,
-    isLoading: isOnyxLoading = false,
+    isLoading: isOnyxLoading,
     shouldRenderFooterAboveSubmit = false,
     shouldUseStrictHtmlTagValidation = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
@@ -297,7 +297,9 @@ function FormProvider({
         [touchedInputs],
     );
 
-    const isExternalLoading = !!formState?.isLoading || isOnyxLoading;
+    // Stays undefined when neither source declares a loading flag, so usePressLoading self-clears instead of waiting for a hand-over that never comes
+    const hasExternalLoadingFlag = formState?.isLoading !== undefined || isOnyxLoading !== undefined;
+    const isExternalLoading = hasExternalLoadingFlag ? !!formState?.isLoading || !!isOnyxLoading : undefined;
     const {isLoading: isPressLoading, startWithLoading} = usePressLoading({isLoading: isExternalLoading});
     const isLoading = shouldShowLoadingImmediatelyOnPress ? isPressLoading : isExternalLoading;
 
@@ -333,14 +335,15 @@ function FormProvider({
                 return;
             }
 
+            // Returns the promise so the caller can await the submit, which keeps the press spinner up until the work settles
             const runSubmit = () => {
                 if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT) {
-                    KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
-                } else if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
-                    KeyboardUtils.dismissKeyboardAndExecute(() => onSubmit(trimmedStringValues));
-                } else {
-                    onSubmit(trimmedStringValues);
+                    return KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
                 }
+                if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
+                    return KeyboardUtils.dismissKeyboardAndExecute(() => onSubmit(trimmedStringValues));
+                }
+                return onSubmit(trimmedStringValues);
             };
 
             if (!shouldShowLoadingImmediatelyOnPress) {

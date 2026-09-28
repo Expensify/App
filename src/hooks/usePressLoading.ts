@@ -3,8 +3,7 @@ import {useContext, useEffect, useState} from 'react';
 
 type UsePressLoadingOptions = {
     /**
-     * External loading flag (e.g. driven by Onyx). Leave it undefined when there is none: the hook then clears the pressed
-     * state once the work settles, instead of waiting for a hand-over that is never coming.
+     * External loading flag (e.g. driven by Onyx). Leave it undefined when there is none.
      */
     isLoading?: boolean;
     /** Reset the pressed state when the screen regains navigation focus. Defaults to true. */
