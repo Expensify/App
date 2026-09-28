@@ -10173,7 +10173,9 @@ describe('actions/Report', () => {
             // Then the thread is rolled back rather than left in Onyx with a createChat error the user cannot dismiss,
             // which is what force-displayed it in the LHN as an empty row with a "Fix" badge
             expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${result.reportID}` as const)).toBeFalsy();
-            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${result.reportID}` as const)).toBeFalsy();
+            // The optimistic CREATED action goes, but the key is merged rather than nulled so anything the user
+            // queued in the thread, e.g. an offline comment, is not destroyed with it.
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${result.reportID}` as const)).toEqual({});
             expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.reportID}` as const)).toBeFalsy();
 
             // And the parent action no longer links to a report that does not exist

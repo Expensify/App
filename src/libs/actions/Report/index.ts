@@ -2108,9 +2108,11 @@ function openReport(params: OpenReportActionParams) {
                     value: null,
                 },
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    // Remove only the action we created. Nulling the whole key would take anything the user queued in
+                    // the thread with it, e.g. a comment written while offline.
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                    value: null,
+                    value: {[optimisticCreatedAction.reportActionID]: null},
                 },
                 {
                     onyxMethod: Onyx.METHOD.SET,
