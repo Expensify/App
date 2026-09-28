@@ -3371,6 +3371,7 @@ function broadcastUserIsLeavingRoom(reportID: string, currentUserAccountID: numb
 }
 
 /** Deletes a comment from the report, basically sets it as empty string */
+// TODO: Convert these positional params into a single object param, like the sibling actions in this file already use. That also removes the need for the suppression below. Refactor issue: https://github.com/Expensify/App/issues/66408
 // eslint-disable-next-line @typescript-eslint/max-params
 function deleteReportComment(
     report: OnyxEntry<Report>,
