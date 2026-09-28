@@ -275,10 +275,13 @@ describe('DynamicReportDetailsPage', () => {
     });
 
     test('[DynamicReportDetailsPage] should render a workspace room with members and actions', async () => {
+        // Given a workspace room with 20 participants and 30 actions, the heaviest chat variant of the page
         const scenario = async () => {
+            // When the page mounts and the members row appears, which means the room menu has rendered
             await screen.findByText(TestHelper.translateLocal('common.members'));
         };
 
+        // Then reassure measures the mount cost of the room variant
         await measureRenders(renderPage(roomReport), {
             scenario,
             wrapper: Wrapper,
@@ -286,10 +289,13 @@ describe('DynamicReportDetailsPage', () => {
     });
 
     test('[DynamicReportDetailsPage] should render an expense report', async () => {
+        // Given an open expense report on a workspace, which renders the money request menu rows
         const scenario = async () => {
+            // When the page mounts and the long report ID row appears, which only expense reports show
             await screen.findByText(TestHelper.translateLocal('common.longReportID'));
         };
 
+        // Then reassure measures the mount cost of the expense report variant
         await measureRenders(renderPage(expenseReport), {
             scenario,
             wrapper: Wrapper,
@@ -297,10 +303,13 @@ describe('DynamicReportDetailsPage', () => {
     });
 
     test('[DynamicReportDetailsPage] should render a transaction thread with the delete action', async () => {
+        // Given a transaction thread whose parent IOU action and transaction are in Onyx
         const scenario = async () => {
+            // When the page mounts and the delete row appears, which needs the parent action and transaction to resolve
             await screen.findByText(TestHelper.translateLocal('reportActionContextMenu.deleteAction', iouAction));
         };
 
+        // Then reassure measures the mount cost of the transaction thread variant
         await measureRenders(renderPage(transactionThreadReport), {
             scenario,
             wrapper: Wrapper,
@@ -309,8 +318,10 @@ describe('DynamicReportDetailsPage', () => {
 
     test('[DynamicReportDetailsPage] should re-render a workspace room when participant personal details change', async () => {
         const scenario = async () => {
+            // Given the workspace room page has rendered
             await screen.findByText(TestHelper.translateLocal('common.members'));
 
+            // When several participants are renamed, because the page subscribes to the whole personal details list
             for (let index = 0; index < UPDATES_PER_SCENARIO; index++) {
                 const accountID = participantAccountIDs.at(index + 1) ?? 2;
                 await mergeAndFlush(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -319,6 +330,7 @@ describe('DynamicReportDetailsPage', () => {
             }
         };
 
+        // Then reassure measures the re-renders caused by personal details changes
         await measureRenders(renderPage(roomReport), {
             scenario,
             wrapper: Wrapper,
@@ -327,13 +339,16 @@ describe('DynamicReportDetailsPage', () => {
 
     test('[DynamicReportDetailsPage] should re-render a workspace room when new report actions arrive', async () => {
         const scenario = async () => {
+            // Given the workspace room page has rendered
             await screen.findByText(TestHelper.translateLocal('common.members'));
 
+            // When new actions arrive one at a time, because the page subscribes to the report actions collection
             for (let index = 0; index < UPDATES_PER_SCENARIO; index++) {
                 await mergeAndFlush(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ROOM_REPORT_ID}`, buildRoomActions(1, ROOM_ACTIONS_COUNT + 1 + index));
             }
         };
 
+        // Then reassure measures the re-renders caused by report action updates
         await measureRenders(renderPage(roomReport), {
             scenario,
             wrapper: Wrapper,
@@ -342,8 +357,10 @@ describe('DynamicReportDetailsPage', () => {
 
     test('[DynamicReportDetailsPage] should re-render a workspace room when the report itself updates', async () => {
         const scenario = async () => {
+            // Given the workspace room page has rendered
             await screen.findByText(TestHelper.translateLocal('common.members'));
 
+            // When only last message fields change on the report, which no row on the page displays
             for (let index = 0; index < UPDATES_PER_SCENARIO; index++) {
                 await mergeAndFlush(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}`, {
                     lastMessageText: `message ${index}`,
@@ -352,6 +369,7 @@ describe('DynamicReportDetailsPage', () => {
             }
         };
 
+        // Then reassure measures the re-renders caused by report merges alone
         await measureRenders(renderPage(roomReport), {
             scenario,
             wrapper: Wrapper,
@@ -360,8 +378,10 @@ describe('DynamicReportDetailsPage', () => {
 
     test('[DynamicReportDetailsPage] should re-render a transaction thread when the transaction updates', async () => {
         const scenario = async () => {
+            // Given the transaction thread page has rendered
             await screen.findByText(TestHelper.translateLocal('reportActionContextMenu.deleteAction', iouAction));
 
+            // When the linked transaction changes amount and description, as it does while the expense is edited
             for (let index = 0; index < UPDATES_PER_SCENARIO; index++) {
                 await mergeAndFlush(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, {
                     amount: 5000 + index,
@@ -370,6 +390,7 @@ describe('DynamicReportDetailsPage', () => {
             }
         };
 
+        // Then reassure measures the re-renders caused by transaction updates
         await measureRenders(renderPage(transactionThreadReport), {
             scenario,
             wrapper: Wrapper,
@@ -378,8 +399,10 @@ describe('DynamicReportDetailsPage', () => {
 
     test('[DynamicReportDetailsPage] should re-render a workspace room when a new message arrives', async () => {
         const scenario = async () => {
+            // Given the workspace room page has rendered
             await screen.findByText(TestHelper.translateLocal('common.members'));
 
+            // When a new message arrives, which writes the action and the report in the same batch like a real push
             for (let index = 0; index < UPDATES_PER_SCENARIO; index++) {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ROOM_REPORT_ID}`, buildRoomActions(1, ROOM_ACTIONS_COUNT + 1 + index));
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}`, {
@@ -390,6 +413,7 @@ describe('DynamicReportDetailsPage', () => {
             }
         };
 
+        // Then reassure measures the re-renders caused by a combined action and report update
         await measureRenders(renderPage(roomReport), {
             scenario,
             wrapper: Wrapper,
@@ -398,7 +422,9 @@ describe('DynamicReportDetailsPage', () => {
 
     test('[DynamicReportDetailsPage] should pin and unpin a workspace room', async () => {
         const scenario = async () => {
+            // Given the workspace room page has rendered with the pin row
             const pinButton = await screen.findByText(TestHelper.translateLocal('common.pin'));
+            // When the user pins and then unpins the room, which toggles the row label each time
             fireEvent.press(pinButton);
             await waitForBatchedUpdates();
 
@@ -409,6 +435,7 @@ describe('DynamicReportDetailsPage', () => {
             await screen.findByText(TestHelper.translateLocal('common.pin'));
         };
 
+        // Then reassure measures the re-renders caused by a user interaction on the page
         await measureRenders(renderPage(roomReport), {
             scenario,
             wrapper: Wrapper,
