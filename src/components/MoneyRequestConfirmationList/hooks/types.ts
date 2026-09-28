@@ -39,13 +39,9 @@ type UseConfirmationListDataParams = MoneyRequestConfirmationListProps & {
     distanceState?: ConfirmationDistanceState;
 };
 
-/**
- * Everything `useConfirmationListData` resolves, as one prop bundle per consumer. Each bundle is typed from the
- * component that takes it, so the hook cannot return a key nothing reads, and a component cannot grow an input the
- * hook does not supply.
- */
+/** Everything `useConfirmationListData` resolves. */
 type ConfirmationListData = {
-    /** Spread onto `ConfirmationListLayout`. The variant adds `listFooterContent`, `fieldFlags`, `isCompactMode`, and its controllers as children. */
+    /** Spread onto `ConfirmationListLayout`. */
     layoutProps: Omit<ConfirmationListLayoutProps, 'listFooterContent' | 'fieldFlags' | 'isCompactMode' | 'children'>;
 
     /** Spread onto the variant's footer */

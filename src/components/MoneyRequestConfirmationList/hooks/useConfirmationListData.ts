@@ -15,7 +15,6 @@ import {arePolicyRulesEnabled, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {getCategory, getCurrency, getMerchant, getRateID, hasValidModifiedAmount} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 
 import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
@@ -299,7 +298,6 @@ function useConfirmationListDataWithPolicy({
             onSelectRow: navigateToParticipantPage,
             onDismissError: dismissParticipantRowError,
 
-            // The confirm button block, which owns the CTA label and the Test Drive tooltip
             footerContentProps: {
                 iouType,
                 confirm,
@@ -321,10 +319,7 @@ function useConfirmationListDataWithPolicy({
                 isDistanceRequestWithPendingRoute,
             },
 
-            /**
-             * The `ConfirmationFieldsProvider` props that are the same for every expense type. `ConfirmationListLayout` spreads
-             * these and adds the variant's `fieldFlags` (`isScanRequest`, `isDistanceRequest`, etc.).
-             */
+            /** The `ConfirmationFieldsProvider` props that are the same for every expense type. */
             confirmationFieldsProviderProps: {
                 transactionID,
                 reportID,

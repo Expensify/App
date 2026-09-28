@@ -47,10 +47,7 @@ type ConfirmationListLayoutProps = {
     fieldFlags?: ConfirmationFieldFlags;
 
     /**
-     * Side-effect controllers. They render before the list on purpose: their effects flush before the footer fields'
-     * effects, so for example `TaxController` seeds `taxCode`/`taxAmount` before `TaxFields` reads them. They are
-     * components rather than hooks in the variant because a hook's effect would run after the children's, and because
-     * fields can be unmounted (the compact scan layout hides them behind "Show more") while the seeding must still run.
+     * Side-effect controllers. They render before the list on purpose: their effects flush before the footer fields' effects.
      */
     children?: ReactNode;
 
@@ -107,7 +104,6 @@ function ConfirmationListLayout({
 
     return (
         <MouseProvider>
-            {/* Controllers go before the list so their effects run before the fields' effects */}
             {children}
             <ConfirmationTelemetry transactionID={transactionID} />
             <SelectionListWithSections<MoneyRequestConfirmationListItem>
