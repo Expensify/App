@@ -345,6 +345,29 @@ function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransaction
     return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters: newFlatFilters})) ?? queryJSON;
 }
 
+/**
+ * The query a template export sends for a group selection.
+ *
+ * ExportSearchWithTemplate has no isGroupExport flag, so a grouped query exports one row per group instead of the group's expenses.
+ * Drop groupBy and limit the way buildSpecificGroupQuery does, so the export covers every expense in the selected groups.
+ * Returns undefined when the selected groups can't be turned into a filter, so the export never widens to the whole search.
+ */
+function getTemplateGroupExportQuery(queryJSON: SearchQueryJSON, selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchQueryJSON | undefined {
+    const groupFilteredQueryJSON = addSelectedGroupsFilter(queryJSON, selectedTransactions, searchData);
+    if (groupFilteredQueryJSON === queryJSON) {
+        return undefined;
+    }
+    return buildSearchQueryJSON(
+        buildSearchQueryString({
+            ...groupFilteredQueryJSON,
+            groupBy: undefined,
+            limit: undefined,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+        }),
+    );
+}
+
 function getAllMatchingExportQueryAndExclusions(
     queryJSON: SearchQueryJSON,
     excludedTransactions: SelectedTransactions,
@@ -1000,17 +1023,20 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 );
             } else {
                 const {isGroupExport, transactionIDList} = getGroupExportScope(queryJSON, selectedTransactions);
+                const groupExportQueryJSON = isGroupExport && queryJSON ? getTemplateGroupExportQuery(queryJSON, selectedTransactions, currentSearchResults?.data) : undefined;
+                if (isGroupExport && !groupExportQueryJSON) {
+                    setIsDownloadErrorModalVisible(true);
+                    return;
+                }
                 queueExportSearchWithTemplate(
                     {
                         templateName,
                         templateType,
-                        jsonQuery:
-                            isGroupExport && queryJSON
-                                ? serializeQueryJSONForBackend(
-                                      addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data),
-                                      getGroupExportExactMatchFilterKeys(queryJSON.groupBy),
-                                  )
-                                : '{}',
+                        // searchKey changes what the backend query matches (e.g. reconciliation includes Expensify Card cash back),
+                        // so the export must send it exactly as search() does or the exported set differs from the viewed set.
+                        jsonQuery: groupExportQueryJSON
+                            ? serializeQueryJSONForBackend({...groupExportQueryJSON, searchKey: currentSearchKey}, getGroupExportExactMatchFilterKeys(queryJSON?.groupBy))
+                            : '{}',
                         reportIDList: isGroupExport ? [] : selectedTransactionReportIDs,
                         transactionIDList,
                         policyID,
@@ -1031,6 +1057,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             isOffline,
             areAllMatchingItemsSelected,
             currentSearchResults?.data,
+            currentSearchKey,
             queryJSON,
             selectedTransactionReportIDs,
             selectAllMatchingItems,

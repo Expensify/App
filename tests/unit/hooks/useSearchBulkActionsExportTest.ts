@@ -238,6 +238,7 @@ let mockSelectedTransactions: SelectedTransactions = {};
 let mockSelectedReports: SelectedReports[] = [];
 let mockCurrentSearchResults: SearchResults | undefined;
 let mockAreAllMatchingItemsSelected = false;
+let mockCurrentSearchKey: string | undefined;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
@@ -249,7 +250,7 @@ jest.mock('@components/Search/SearchContext', () => ({
         currentSearchResults: mockCurrentSearchResults,
     }),
     useSearchQueryContext: () => ({
-        currentSearchKey: undefined,
+        currentSearchKey: mockCurrentSearchKey,
         currentSearchHash: 12345,
         currentSearchQueryJSON: undefined,
         suggestedSearches: undefined,
@@ -485,6 +486,7 @@ describe('useSearchBulkActions - export options', () => {
         // tests override with mockResolvedValueOnce to exercise the cancel path.
         mockShowConfirmModal.mockResolvedValue({action: 'CONFIRM'});
         mockAreAllMatchingItemsSelected = false;
+        mockCurrentSearchKey = undefined;
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
         // A policy connected to NetSuite so the integration export branch is reachable.
@@ -1386,6 +1388,68 @@ describe('useSearchBulkActions - export options', () => {
             expect(parameters?.reportIDList).toEqual([]);
             expect(parameters?.transactionIDList).toEqual(['tx2']);
             expect(parameters?.jsonQuery).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
+        });
+
+        // Regression test for https://github.com/Expensify/App/issues/102103: the template export has no isGroupExport
+        // flag, so a query that still carried groupBy exported one row per selected card instead of the card's expenses.
+        it('sends the Reconciliation export an ungrouped query scoped to the selected card groups', async () => {
+            // Given a user who qualifies for the Reconciliation template
+            mockTemplatesIncludingReconciliation();
+            // Given a ticked card group on the Reconciliation search, because searchKey changes which expenses the backend matches
+            selectCardGroup();
+            mockCurrentSearchKey = CONST.SEARCH.SEARCH_KEYS.RECONCILIATION;
+            const searchResults = makeSearchResults([]);
+            Object.assign(searchResults.data, {[CARD_GROUP_KEY]: {cardID: 1234}});
+            mockCurrentSearchResults = searchResults;
+            jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: 1234});
+            // Given a limit on the grouped search, because it caps the number of card groups and would cap the exported expenses once groupBy is gone
+            const limitedCardGroupedQueryJSON: SearchQueryJSON = {...cardGroupedExpenseQueryJSON, inputQuery: `${cardGroupedExpenseQueryJSON.inputQuery} limit:1`, limit: 1};
+
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: limitedCardGroupedQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.reconciliationAllExpenses')).toBeDefined();
+            });
+
+            // When the user runs the Reconciliation export on that selection
+            getExportOptionByText(result.current.headerButtonsOptions, 'export.reconciliationAllExpenses')?.onSelected?.();
+
+            await waitFor(() => {
+                expect(queueExportSearchWithTemplate).toHaveBeenCalled();
+            });
+
+            const [parameters] = jest.mocked(queueExportSearchWithTemplate).mock.calls.at(-1) ?? [];
+            const query: unknown = JSON.parse(parameters?.jsonQuery ?? '{}');
+            // Then the query lists the card's expenses rather than the card group, and no group limit caps them
+            expect(query).not.toHaveProperty('groupBy');
+            expect(query).not.toHaveProperty('limit');
+            // Then the export is still scoped to the selected card
+            expect(JSON.stringify(query)).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
+            // Then searchKey is sent, so the exported set matches the viewed set
+            expect(query).toHaveProperty('searchKey', CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+        });
+
+        it('shows the download error instead of exporting the whole search when the card group cannot be scoped', async () => {
+            // Given a user who qualifies for the Reconciliation template
+            mockTemplatesIncludingReconciliation();
+            // Given a ticked card group whose row is missing from the snapshot, so no cardID filter can be built for it
+            selectCardGroup();
+            mockCurrentSearchResults = makeSearchResults([]);
+
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.reconciliationAllExpenses')).toBeDefined();
+            });
+
+            // When the user runs the Reconciliation export on that selection
+            getExportOptionByText(result.current.headerButtonsOptions, 'export.reconciliationAllExpenses')?.onSelected?.();
+
+            // Then nothing is exported, because dropping groupBy without a cardID filter would export every card in the search
+            await waitFor(() => {
+                expect(result.current.isDownloadErrorModalVisible).toBe(true);
+            });
+            expect(queueExportSearchWithTemplate).not.toHaveBeenCalled();
         });
 
         // The template export and Current view both scope a group selection through `getGroupExportScope`. Pinning
