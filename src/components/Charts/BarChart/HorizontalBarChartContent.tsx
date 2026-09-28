@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import {MIN_BAR_ROW_HEIGHT} from '@components/Charts/barChartConstants';
+import {HORIZONTAL_BAR_DOMAIN_PADDING, MIN_BAR_ROW_HEIGHT} from '@components/Charts/barChartConstants';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import type {HitTestArgs, ResolveTargetIndexArgs} from '@components/Charts/hooks';
@@ -26,9 +26,6 @@ import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimate
 import {CartesianChart} from 'victory-native';
 
 import type {BarChartProps} from './types';
-
-/** Extra pixel spacing between the chart boundary and the data range. `right` keeps the longest bar's tip and its tooltip off the edge. */
-const BASE_DOMAIN_PADDING = {top: 8, bottom: 8, left: 0, right: 8};
 
 /** Gap between the bar tip and the tooltip pointer, lifting the tooltip clear of the bar. */
 const TOOLTIP_TIP_GAP = 4;
@@ -192,10 +189,10 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
 
     const domainPadding = (() => {
         if (barAreaHeight === 0) {
-            return BASE_DOMAIN_PADDING;
+            return HORIZONTAL_BAR_DOMAIN_PADDING;
         }
         const verticalPadding = calculateMinDomainPadding(barAreaHeight, data.length, HORIZONTAL_BAR_PADDING);
-        return {...BASE_DOMAIN_PADDING, top: verticalPadding, bottom: verticalPadding};
+        return {...HORIZONTAL_BAR_DOMAIN_PADDING, top: verticalPadding, bottom: verticalPadding};
     })();
 
     const barThickness = useSharedValue(0);

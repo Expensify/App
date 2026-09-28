@@ -1,4 +1,4 @@
-import BAR_INNER_PADDING from '@components/Charts/barChartConstants';
+import BAR_INNER_PADDING, {VERTICAL_BAR_DOMAIN_PADDING} from '@components/Charts/barChartConstants';
 import {ChartFontsProvider, useChartFontManager, useChartLabelFormats, useChartLabelLayout, useChartLabelMeasurements} from '@components/Charts/hooks';
 import {calculateMinDomainPadding, getVerticalBarPlotBounds, getYAxisLabelWidth} from '@components/Charts/utils';
 import {GLYPH_PADDING} from '@components/Charts/VictoryTheme';
@@ -17,9 +17,6 @@ import VerticalBarChartContentBody from './VerticalBarChartContent';
 
 const FONT_SIZE = variables.iconSizeExtraSmall;
 
-// Mirrors the vertical chart's domain padding, to predict the y-axis label gutter (and thus the plot width).
-const BASE_DOMAIN_PADDING = {top: 32, bottom: 1};
-
 /**
  * Resolves the bar chart orientation on every layout change and renders the matching body. Wide layouts pass
  * `isHorizontal`. Narrow layouts predict the vertical chart's label fit from the container width, so the chart
@@ -34,7 +31,7 @@ function BarChartOrientationDispatcher({isHorizontal = false, canFallBackToHoriz
     const measurements = useChartLabelMeasurements(data, fontManager, FONT_SIZE);
 
     // Predict the vertical chart's plot geometry from the container width so the fit decision matches what it would measure after mounting.
-    const yAxisLabelWidth = getYAxisLabelWidth(data, formatValue, fontManager, FONT_SIZE, BASE_DOMAIN_PADDING);
+    const yAxisLabelWidth = getYAxisLabelWidth(data, formatValue, fontManager, FONT_SIZE, VERTICAL_BAR_DOMAIN_PADDING);
     const plotBounds = getVerticalBarPlotBounds(containerWidth, yAxisLabelWidth + GLYPH_PADDING);
     const domainPadding = containerWidth > 0 && data.length > 0 ? calculateMinDomainPadding(containerWidth, data.length, BAR_INNER_PADDING) : 0;
     const paddingScale = plotBounds.width > 0 ? plotBounds.width / (plotBounds.width + 2 * domainPadding) : 0;
