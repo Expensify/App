@@ -31,7 +31,7 @@ import type {DynamicFormValues} from './types';
 import {summarizeItem} from './adapters/ListFieldAdapter';
 import carriedAnswersByForm from './carriedAnswersByForm';
 import DynamicFormPage from './DynamicFormPage';
-import DynamicFormShell from './DynamicFormShell';
+import DynamicFormShell, {STEP_INDICATOR_MIN_PAGES} from './DynamicFormShell';
 import formatDynamicFieldValue from './formatDynamicFieldValue';
 import getDynamicFieldErrors from './getDynamicFieldErrors';
 import {getFieldLabel} from './getInputComponentForField';
@@ -415,7 +415,7 @@ function DynamicFormFlow({
             stepNames={stepNames}
             stepIndex={Math.min(stepIndex, Math.max(stepNames.length - 1, 0))}
             onBackButtonPress={goBackFromPage}
-            shouldShowStepIndicator={layout === 'auto' ? undefined : layout === 'stepper'}
+            shouldShowStepIndicator={layout === 'auto' ? visibleGroupPages.length >= STEP_INDICATOR_MIN_PAGES : layout === 'stepper'}
         >
             {content}
         </DynamicFormShell>
