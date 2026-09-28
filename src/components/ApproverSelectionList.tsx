@@ -24,6 +24,7 @@ import type {ListItem} from './SelectionList/types';
 
 import BlockingView from './BlockingViews/BlockingView';
 import FullPageNotFoundView from './BlockingViews/FullPageNotFoundView';
+import CollapsibleHeaderOnKeyboard from './CollapsibleHeaderOnKeyboard';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
 import SelectionList from './SelectionList';
@@ -168,11 +169,13 @@ function ApproverSelectionList({
                 onLinkPress={goBackFromInvalidPolicy}
                 addBottomSafeAreaPadding
             >
-                <HeaderWithBackButton
-                    title={headerTitle}
-                    onBackButtonPress={onBackButtonPress}
-                />
-                {subtitle}
+                <CollapsibleHeaderOnKeyboard>
+                    <HeaderWithBackButton
+                        title={headerTitle}
+                        onBackButtonPress={onBackButtonPress}
+                    />
+                    {subtitle}
+                </CollapsibleHeaderOnKeyboard>
                 <SelectionList
                     key={selectionListKey}
                     data={data}
