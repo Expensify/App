@@ -36,10 +36,13 @@ import {CartesianChart, Line} from 'victory-native';
 
 import type {CartesianChartProps, ChartDataPoint} from '..';
 
+/** Inner dot radius for line chart data points */
 const DOT_RADIUS = 4;
 
+/** Extra hover area beyond the dot radius for easier touch targeting */
 const DOT_HOVER_EXTRA_RADIUS = 2;
 
+/** Base domain padding applied to all sides */
 const BASE_DOMAIN_PADDING = {top: 16, bottom: 16, left: 0, right: 0};
 
 type LineChartProps = CartesianChartProps & {

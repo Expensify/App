@@ -27,7 +27,7 @@ type PieChartProps = ChartProps & {
     /** Symbol/unit for value labels in tooltip (e.g., '$', '€'). */
     valueUnit?: string;
 
-    /** Defaults to 'left'. */
+    /** Position of the unit symbol relative to the value. Defaults to 'left'. */
     valueUnitPosition?: UnitPosition;
 
     /** Whether to draw the slice legend below the donut */
@@ -45,11 +45,13 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     const [activeSliceIndex, setActiveSliceIndex] = useState(-1);
     const [isHoveringOverPie, setIsHoveringOverPie] = useState(false);
 
+    // Shared values for hover state
     const isHovering = useSharedValue(false);
     const cursorX = useSharedValue(0);
     const cursorY = useSharedValue(0);
     const tooltipPosition = useSharedValue({x: 0, y: 0});
 
+    // Calculate pie geometry
     const canvasHeight = CHART_CONTENT_MIN_HEIGHT;
     const radius = Math.min(chartWidth, canvasHeight) / 2;
     const innerRadius = radius * VictoryTheme.pie.innerRadiusRatio;
@@ -67,6 +69,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     const {formatValue} = useChartLabelFormats({data, unit: valueUnit, unitPosition: valueUnitPosition});
     const tooltipData = useTooltipData(activeOriginalDataIndex, data, formatValue);
 
+    // Handle hover state updates
     const updateActiveSlice = (x: number, y: number) => {
         const {centerX, centerY} = pieGeometry;
         const sliceIndex = findSliceAtPosition(x, y, centerX, centerY, radius, innerRadius, processedSlices);
@@ -74,6 +77,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
         setIsHoveringOverPie(sliceIndex >= 0);
     };
 
+    // Handle slice press callback
     const handleSlicePress = (sliceIndex: number) => {
         if (sliceIndex < 0 || sliceIndex >= processedSlices.length) {
             return;
@@ -88,6 +92,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
         }
     };
 
+    // Hover gesture
     const hoverGesture = () =>
         Gesture.Hover()
             .onBegin((e) => {
@@ -115,6 +120,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                 scheduleOnRN(setIsHoveringOverPie, false);
             });
 
+    // Tap gesture for click/tap navigation
     const tapGesture = () =>
         Gesture.Tap().onEnd((e) => {
             'worklet';
@@ -127,6 +133,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
             }
         });
 
+    // Combined gestures - Race allows both hover and tap to work independently
     const combinedGesture = Gesture.Race(hoverGesture(), tapGesture());
 
     const renderLegendItem = (slice: PieSlice) => {
@@ -206,6 +213,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                         </View>
                     )}
 
+                    {/* Tooltip */}
                     {activeSliceIndex >= 0 && !!tooltipData && (
                         <ChartTooltip
                             label={tooltipData.label}

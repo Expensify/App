@@ -50,8 +50,9 @@ function ChartUnavailable() {
 }
 
 /**
- * When the environment can't provide a usable WebGL/Skia surface this shows an "unable to display chart"
- * empty state instead of mounting Skia, avoiding the CanvasKit GL-init crash (see `isSkiaWebSupported`).
+ * Shared web wrapper around `WithSkiaWeb` for the chart entry points (Pie/Line/Bar and the Victory
+ * renderer). When the environment can't provide a usable WebGL/Skia surface it shows an "unable to
+ * display chart" empty state instead of mounting Skia, avoiding the CanvasKit GL-init crash (see `isSkiaWebSupported`).
  */
 // `object` mirrors WithSkiaWeb's own constraint; `Record<string, unknown>` would reject the
 // interface-based render-html renderer props (VictoryChartRendererProps) that lack an index signature.
@@ -64,11 +65,13 @@ function SkiaWebChart<TProps extends object>({getComponent, componentProps, load
     // while a fresh chart still re-checks capability instead of trusting a stale session-wide result.
     const [isSupported] = useState(() => isSkiaWebSupported());
 
-    // The probe can pass while the renderer still ends up without a drawing surface.
+    // The probe can pass while the renderer still ends up without a drawing surface, so also listen for the
+    // renderer reporting that and degrade to the empty state.
     const isSurfaceUnavailable = useIsSkiaSurfaceUnavailable(containerRef);
     const hasDrawn = useHasSkiaDrawn(containerRef);
     const isAwaitingFirstDraw = !!loadingFallback && !hasDrawn;
 
+    // If unsupported, the device can't give CanvasKit a usable WebGL surface.
     if (!isSupported || isSurfaceUnavailable) {
         return <ChartUnavailable />;
     }
