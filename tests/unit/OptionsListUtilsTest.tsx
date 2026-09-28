@@ -14,6 +14,7 @@ import DateUtils from '@libs/DateUtils';
 import type {HydratedPersonalDetailOption, OptionList, Options, PersonalDetailOptionOrShell, SearchOption, SearchOptionData} from '@libs/OptionsListUtils';
 import {
     canCreateOptimisticPersonalDetailOption,
+    clearAlternateTextCache,
     clearFilteredOptionListCache,
     createFilteredOptionList,
     createOption,
@@ -855,6 +856,10 @@ describe('OptionsListUtils', () => {
 
         // createFilteredOptionList caches results at module level; clear it so tests stay order-independent.
         clearFilteredOptionListCache();
+
+        // The chat-preview cache is also module level, and its guarded inputs can survive Onyx.clear(),
+        // so reset it the same way to keep cases order-independent.
+        clearAlternateTextCache();
 
         // Onyx.clear() models sign-out and empties PERSONAL_DETAILS_LIST. Report-holder option text
         // resolves via ReportUtils.allPersonalDetails (the live connect), so restore the list the
