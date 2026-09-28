@@ -5849,7 +5849,13 @@ function optimisticReportLastData(
 }
 
 /** Flag a comment as offensive */
-function flagComment(reportAction: OnyxEntry<ReportAction>, severity: string, originalReport: OnyxEntry<Report> | undefined, isOriginalReportArchived: boolean | undefined) {
+function flagComment(
+    reportAction: OnyxEntry<ReportAction>,
+    severity: string,
+    originalReport: OnyxEntry<Report> | undefined,
+    isOriginalReportArchived: boolean | undefined,
+    currentUserAccountID: number,
+) {
     const originalReportID = originalReport?.reportID;
     const message = ReportActionsUtils.getReportActionMessage(reportAction);
 
@@ -5910,6 +5916,7 @@ function flagComment(reportAction: OnyxEntry<ReportAction>, severity: string, or
         } as ReportActions,
         canUserPerformWriteAction,
         isOriginalReportArchived,
+        currentUserAccountID,
     );
 
     const optimisticReport: Partial<Report> = {
