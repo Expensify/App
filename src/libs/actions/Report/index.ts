@@ -3737,7 +3737,14 @@ function editReportComment(
         },
     ];
 
-    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, canUserPerformWriteAction, optimisticReportActions as ReportActions);
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(
+        originalReportID,
+        canUserPerformWriteAction,
+        optimisticReportActions as ReportActions,
+        undefined,
+        undefined,
+        currentUserAccountID,
+    );
     if (reportActionID === lastVisibleAction?.reportActionID) {
         const lastMessageText = formatReportLastMessageText(reportComment);
         const optimisticReport = {
