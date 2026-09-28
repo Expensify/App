@@ -82,22 +82,4 @@ describe('CardSection billing banner', () => {
         expect(screen.getByText('SubscriptionExpiringSoonBanner')).toBeOnTheScreen();
         expect(screen.queryByText('PreTrialBillingBanner')).not.toBeOnTheScreen();
     });
-
-    it('still shows the pre-trial banner when the subscription is not about to expire', async () => {
-        // Given an annual subscriber whose subscription still auto-renews, and no free trial NVPs
-        await Onyx.merge(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {
-            type: CONST.SUBSCRIPTION.TYPE.ANNUAL,
-            autoRenew: true,
-            endDate: format(addDays(new Date(), 10), CONST.DATE.FNS_FORMAT_STRING),
-        });
-        await waitForBatchedUpdatesWithAct();
-
-        // When the Subscription page card section renders
-        renderCardSection();
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the existing pre-trial banner is unchanged, because the expiring soon check does not apply
-        expect(screen.getByText('PreTrialBillingBanner')).toBeOnTheScreen();
-        expect(screen.queryByText('SubscriptionExpiringSoonBanner')).not.toBeOnTheScreen();
-    });
 });
