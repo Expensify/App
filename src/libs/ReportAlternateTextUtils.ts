@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Card,
+    CardList,
     PersonalDetails,
     PersonalDetailsList,
     Policy,
@@ -15,8 +16,10 @@ import type {
     ReportActions,
     ReportAttributesDerivedValue,
     ReportMetadata,
+    Rule,
     Transaction,
     VisibleReportActionsDerivedValue,
+    WorkspaceCardsList,
 } from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -27,7 +30,6 @@ import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
-import {convertToDisplayString as convertToDisplayStringUtil} from './CurrencyUtils';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {formatList} from './Localize';
@@ -36,7 +38,7 @@ import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDy
 import {getIsOffline} from './NetworkState';
 import Parser from './Parser';
 import {getLoginByAccountID, getPersonalDetailsByID, getPersonalDetailsForAccountIDs, getPersonalDetailsListByIDs, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {getCleanedTagName, hasDynamicExternalWorkflow} from './PolicyUtils';
+import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin} from './PolicyUtils';
 import {
     getActionableCard3DSTransactionApprovalMessage,
     getActionableCardFraudAlertResolutionMessage,
@@ -45,15 +47,19 @@ import {
     getAddedBudgetMessage,
     getAddedCardFeedMessage,
     getAddedConnectionMessage,
+    getApprovalLimitUpdateMessage,
     getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
+    getCardConnectionBrokenMessage,
     getCardIssuedMessage,
     getCategoryTaxRateMessage,
     getChangedApproverActionMessage,
     getCombinedReportActions,
     getCompanyAddressUpdateMessage,
+    getCompanyCardConnectionBroken30DaysMessage,
     getCompanyCardConnectionBrokenMessage,
+    getConciergeAutoSelectDistanceRateMessage,
     getCurrencyConversionFeeMessage,
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
@@ -79,6 +85,7 @@ import {
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getOverLimitForwardsToUpdateMessage,
     getPlaidBalanceFailureMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogDefaultBillableMessage,
@@ -189,7 +196,7 @@ import {
     wasActionTakenByCurrentUser,
     withDEWRoutedActionsArray,
 } from './ReportActionsUtils';
-import {deprecatedGetReportName, getReportName} from './ReportNameUtils';
+import {getReportName} from './ReportNameUtils';
 import {
     canUserPerformWriteAction,
     excludeParticipantsForDisplay,
@@ -243,6 +250,7 @@ import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUp
 import StringUtils from './StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from './TaskUtils';
 import {getAmount as getTransactionAmount, getCurrency as getTransactionCurrency, getDescription, isScanning} from './TransactionUtils';
+import {getTravelBillingFeedID} from './TravelBillingUtils';
 
 let allReports: OnyxCollection<Report>;
 // connectWithoutView is justified: this is module-level, non-render preview computation shared by LHN and Search;
@@ -438,6 +446,7 @@ function getLastActorDisplayNameFromLastVisibleActions(
  */
 function getLastMessageTextForReport({
     translate,
+    convertToDisplayString,
     dateFnsLocale,
     report,
     personalDetails,
@@ -456,8 +465,10 @@ function getLastMessageTextForReport({
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     sortedActions = deprecatedAllSortedReportActions,
     currentUserAccountID,
+    rules,
 }: {
     translate: LocalizedTranslate;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     dateFnsLocale: DateFnsLocale | undefined;
     report: OnyxEntry<Report>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -479,6 +490,7 @@ function getLastMessageTextForReport({
     sortedActions?: Record<string, ReportAction[]>;
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
+    rules: OnyxCollection<Rule>;
 }): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
@@ -542,8 +554,7 @@ function getLastMessageTextForReport({
             }
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
-        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-        const properSchemaForMoneyRequestMessage = getReportPreviewMessage(translate, convertToDisplayStringUtil, {
+        const properSchemaForMoneyRequestMessage = getReportPreviewMessage(translate, convertToDisplayString, {
             reportOrID: report,
             iouReportAction: lastReportAction,
             shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -566,8 +577,7 @@ function getLastMessageTextForReport({
             const reportName = reportAttributesDerived?.[iouReport.reportID]?.reportName ?? '';
             lastMessageTextFromReport = formatReportLastMessageText(reportName);
         } else {
-            // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-            const reportPreviewMessage = getReportPreviewMessage(translate, convertToDisplayStringUtil, {
+            const reportPreviewMessage = getReportPreviewMessage(translate, convertToDisplayString, {
                 reportOrID: !isEmptyObject(iouReport) ? iouReport : null,
                 iouReportAction: lastIOUMoneyReportAction ?? lastReportAction,
                 shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -584,8 +594,7 @@ function getLastMessageTextForReport({
     } else if (isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils, report});
     } else if (isReimbursementDeQueuedOrCanceledAction(lastReportAction)) {
-        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-        lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(translate, lastReportAction, report?.ownerAccountID, convertToDisplayStringUtil);
+        lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(translate, lastReportAction, report?.ownerAccountID, convertToDisplayString);
     } else if (isDeletedParentAction(lastReportAction) && reportUtilsIsChatReport(report)) {
         lastMessageTextFromReport = getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (isPendingRemove(lastReportAction) && report?.reportID && isThreadParentMessage(lastReportAction, report.reportID)) {
@@ -600,8 +609,7 @@ function getLastMessageTextForReport({
             report?.ownerAccountID,
             getLoginByAccountID(report?.ownerAccountID, personalDetails),
             getLoginByAccountID(lastReportAction.actorAccountID, personalDetails),
-            // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-            convertToDisplayStringUtil,
+            convertToDisplayString,
             currentUserAccountID,
         );
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
@@ -609,14 +617,16 @@ function getLastMessageTextForReport({
     } else if (isModifiedExpenseAction(lastReportAction)) {
         const properSchemaForModifiedExpenseMessageWithHTML = getForReportAction({
             translate,
-            // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-            convertToDisplayString: convertToDisplayStringUtil,
+            convertToDisplayString,
             reportAction: lastReportAction,
             policy,
             movedFromReport,
             movedToReport,
             policyTags,
+            currentUserAccountID,
             currentUserLogin: currentUserLogin ?? '',
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
+            movedFromReportName: undefined,
         });
         // Strip HTML tags for plain text display in options list
         const properSchemaForModifiedExpenseMessage = Parser.htmlToText(properSchemaForModifiedExpenseMessageWithHTML);
@@ -653,6 +663,7 @@ function getLastMessageTextForReport({
                 report,
                 isTrackIntentUser,
                 policy,
+                rules,
             })
                 ? translate('iou.markedAsDone', getOriginalMessage(lastReportAction)?.message)
                 : translate('iou.submitted', getOriginalMessage(lastReportAction)?.message);
@@ -707,7 +718,12 @@ function getLastMessageTextForReport({
     } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
         lastMessageTextFromReport = getMessageOfOldDotReportAction(translate, lastReportAction, false);
     } else if (isActionableJoinRequest(lastReportAction)) {
-        lastMessageTextFromReport = getJoinRequestMessage(translate, policy, lastReportAction);
+        lastMessageTextFromReport = getJoinRequestMessage(
+            translate,
+            policy?.name ?? '',
+            lastReportAction,
+            getPersonalDetailsByID(getOriginalMessage(lastReportAction)?.accountID, personalDetails),
+        );
     } else if (
         lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM ||
         lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM
@@ -732,8 +748,7 @@ function getLastMessageTextForReport({
     } else if (isRenamedAction(lastReportAction)) {
         lastMessageTextFromReport = getRenamedAction(translate, lastReportAction, isExpenseReport(report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION)) {
-        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-        lastMessageTextFromReport = getDeletedTransactionMessage(translate, lastReportAction, convertToDisplayStringUtil);
+        lastMessageTextFromReport = getDeletedTransactionMessage(translate, lastReportAction, convertToDisplayString);
     } else if (
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) ||
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE) ||
@@ -756,10 +771,11 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = Parser.htmlToText(getActionableMentionWhisperMessage(translate, lastReportAction, getPersonalDetailsListByIDs(targetAccountIDs, personalDetails)));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED)) {
         lastMessageTextFromReport = getDynamicExternalWorkflowRoutedMessage(lastReportAction, translate);
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE)) {
+        lastMessageTextFromReport = getConciergeAutoSelectDistanceRateMessage(translate, lastReportAction);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {
-        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-        lastMessageTextFromReport = getPolicyChangeLogMaxExpenseAmountMessage(translate, lastReportAction, convertToDisplayStringUtil);
+        lastMessageTextFromReport = getPolicyChangeLogMaxExpenseAmountMessage(translate, lastReportAction, convertToDisplayString);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE)) {
         lastMessageTextFromReport = getPolicyChangeLogMaxExpenseAgeMessage(translate, lastReportAction);
@@ -792,8 +808,7 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = getUpdatedAutoHarvestingMessage(translate, lastReportAction);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT)) {
-        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-        lastMessageTextFromReport = getAutoReimbursementMessage(translate, lastReportAction, convertToDisplayStringUtil);
+        lastMessageTextFromReport = getAutoReimbursementMessage(translate, lastReportAction, convertToDisplayString);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE)) {
         lastMessageTextFromReport = getCategoryTaxRateMessage(translate, lastReportAction);
@@ -856,6 +871,14 @@ function getLastMessageTextForReport({
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE)) {
         lastMessageTextFromReport = getDeleteAgentRuleMessage(translate, lastReportAction);
     }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO)) {
+        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+        lastMessageTextFromReport = getOverLimitForwardsToUpdateMessage(translate, lastReportAction, convertToDisplayString);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT)) {
+        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+        lastMessageTextFromReport = getApprovalLimitUpdateMessage(translate, lastReportAction, convertToDisplayString);
+    }
     if (isPolicyCopyReportAction(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getPolicyChangeLogCopyMessage(translate, lastReportAction));
     }
@@ -889,16 +912,14 @@ function getLastMessageTextForReport({
         } else if (report?.transactionCount && report?.transactionCount > 0 && report?.currency) {
             const latestVisibleMoneyRequestAction = getLatestVisibleMoneyRequestAction(reportID, canUserPerformWrite, sortedActions?.[reportID], visibleReportActionsDataParam);
             if (isExpenseReport(report) && latestVisibleMoneyRequestAction) {
-                // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-                lastMessageTextFromReport = getExpenseReportPreviewText(report, latestVisibleMoneyRequestAction, translate, transactions, convertToDisplayStringUtil);
+                lastMessageTextFromReport = getExpenseReportPreviewText(report, latestVisibleMoneyRequestAction, translate, transactions, convertToDisplayString);
             } else if (!isExpenseReport(report)) {
                 lastMessageTextFromReport = lastVisibleMessage?.lastMessageText;
             } else if (!isCreatedAction(lastReportAction)) {
                 lastMessageTextFromReport =
                     formatReportLastMessageText(
                         Parser.htmlToText(
-                            // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-                            getReportPreviewMessage(translate, convertToDisplayStringUtil, {
+                            getReportPreviewMessage(translate, convertToDisplayString, {
                                 reportOrID: report,
                                 iouReportAction: lastReportAction,
                                 shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -992,7 +1013,7 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
             welcomeMessage.messageHtml = translate(
                 'reportActionsView.beginningOfChatHistoryPolicyExpenseChat',
                 getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')}),
-                getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber, translate}),
+                getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}),
             );
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         }
@@ -1076,7 +1097,7 @@ function getRoomWelcomeMessage({
     } else if (isInvoiceRoom(report)) {
         const payer =
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
-                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber, translate})
+                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')})
                 : invoiceReceiverPolicy?.name;
         const receiver = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
         welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryInvoiceRoom', payer ?? '', receiver);
@@ -1114,6 +1135,8 @@ type GetReportAlternateTextParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     dateFnsLocale: DateFnsLocale | undefined;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
+    rules: OnyxCollection<Rule>;
 };
 
 /**
@@ -1145,6 +1168,8 @@ function getReportAlternateText({
     formatPhoneNumber,
     dateFnsLocale,
     convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
+    rules,
 }: GetReportAlternateTextParams): string | undefined {
     let alternateText: string | undefined;
     const isChatRoomReport = isChatRoom(report);
@@ -1181,6 +1206,7 @@ function getReportAlternateText({
     if (!lastMessageTextFromReport) {
         lastMessageTextFromReport = getLastMessageTextForReport({
             translate,
+            convertToDisplayString,
             dateFnsLocale,
             report,
             personalDetails,
@@ -1197,6 +1223,7 @@ function getReportAlternateText({
             lastAction,
             isTrackIntentUser,
             currentUserAccountID,
+            rules,
         });
     }
 
@@ -1205,7 +1232,7 @@ function getReportAlternateText({
 
     // Specifically for concierge chats and expense reports, which don't meet any of the conditions in the if statement below
     if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL)) {
-        lastMessageText = getActionableCard3DSTransactionApprovalMessage(translate, lastAction) ?? lastMessageText;
+        lastMessageText = getActionableCard3DSTransactionApprovalMessage(translate, lastAction, convertToDisplayString, convertToDisplayStringWithoutCurrency) ?? lastMessageText;
     } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT) && !!getDelegateSubmitMessage(translate, lastAction, currentUserLogin)) {
         lastMessageText = Parser.htmlToText(getDelegateSubmitMessage(translate, lastAction, currentUserLogin));
     }
@@ -1248,8 +1275,10 @@ function getReportAlternateText({
                     : translate('workspace.invite.removed');
             const users = translate(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
             alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName}: ${verb} ${targetAccountIDsLength} ${users}`);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const roomName = deprecatedGetReportName(lastActionReport ?? undefined, reportAttributesDerived) || lastActionOriginalMessage?.roomName;
+            const lastActionReportID = lastActionReport?.reportID;
+            const roomName =
+                getReportName(lastActionReport ?? undefined, lastActionReportID ? reportAttributesDerived?.[lastActionReportID]?.reportName : undefined) ||
+                lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
@@ -1277,6 +1306,12 @@ function getReportAlternateText({
             alternateText = Parser.htmlToText(getIntegrationSyncFailedMessage(translate, lastAction, report?.policyID));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
             alternateText = Parser.htmlToText(getCompanyCardConnectionBrokenMessage(translate, lastAction));
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS)) {
+            alternateText = Parser.htmlToText(getCompanyCardConnectionBroken30DaysMessage(translate, lastAction));
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN)) {
+            alternateText = Parser.htmlToText(getCardConnectionBrokenMessage(undefined, getOriginalMessage(lastAction)?.cardName, translate, false));
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS)) {
+            alternateText = Parser.htmlToText(getCardConnectionBrokenMessage(undefined, getOriginalMessage(lastAction)?.cardName, translate, true));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE)) {
             alternateText = Parser.htmlToText(getPlaidBalanceFailureMessage(translate, lastAction));
         } else if (lastAction?.actionName && isCategoryModificationAction(lastAction.actionName)) {
@@ -1361,6 +1396,10 @@ function getReportAlternateText({
             alternateText = getSubmitsToUpdateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO) {
             alternateText = getForwardsToUpdateMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO) {
+            alternateText = getOverLimitForwardsToUpdateMessage(translate, lastAction, convertToDisplayString);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT) {
+            alternateText = getApprovalLimitUpdateMessage(translate, lastAction, convertToDisplayString);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME) {
             alternateText = getInvoiceCompanyNameUpdateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE) {
@@ -1588,9 +1627,38 @@ function getReportAlternateText({
     return alternateText;
 }
 
+function getExpensifyCardFromReportAction({
+    reportAction,
+    policy,
+    cardList,
+    workspaceCardList,
+}: {
+    reportAction: OnyxEntry<ReportAction>;
+    policy: OnyxEntry<Policy>;
+    cardList: OnyxEntry<CardList>;
+    workspaceCardList: OnyxCollection<WorkspaceCardsList>;
+}): Card | undefined {
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
+
+    const cardIssuedActionOriginalMessage = isCardIssuedAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
+    const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
+    if (!isPolicyAdmin(policy)) {
+        return cardList?.[cardID];
+    }
+
+    // Issued Expensify Cards live on one of two Onyx keys: regular cards on the 2-segment key,
+    // Travel Billing cards on the `_TRAVEL_US` variant. Check both.
+    return (
+        workspaceCardList?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`]?.[cardID] ??
+        workspaceCardList?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${getTravelBillingFeedID(workspaceAccountID)}`]?.[cardID] ??
+        cardList?.[cardID]
+    );
+}
+
 export {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     deprecatedCachedOneTransactionThreadReportIDs,
+    getExpensifyCardFromReportAction,
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,

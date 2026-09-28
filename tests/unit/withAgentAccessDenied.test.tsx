@@ -27,6 +27,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(() => ''),
     isActiveRoute: jest.fn(() => false),
     isTopmostRouteModalScreen: jest.fn(() => false),
+    popRootToTop: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
 
@@ -52,7 +53,9 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: false}));
+jest.mock('@hooks/useResponsiveLayout', () => () => ({
+    shouldUseNarrowLayout: false,
+}));
 
 function ProtectedContent() {
     return <Text testID="protected-content">Protected Content</Text>;

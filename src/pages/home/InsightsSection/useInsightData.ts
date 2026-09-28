@@ -1,14 +1,12 @@
+import useGroupedItems from '@components/Search/hooks/useGroupedItems';
 import type {ChartView, GroupedItem, SearchQueryJSON, SearchView} from '@components/Search/types';
 
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import {search} from '@libs/actions/Search';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
-import {getSections, getSortedSections, isGroupedItemArray, isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,16 +53,12 @@ function getInsightState(
     return INSIGHT_STATE.READY;
 }
 
-function useInsightData(config: SearchTypeMenuItem | undefined) {
+function useInsightData(config: SearchTypeMenuItem | undefined, isConfigResolved = true) {
     const queryJSON = config?.searchQueryJSON;
     const searchKey = config?.key;
     const {groupBy} = queryJSON ?? {};
     const view = queryJSON?.view && isChartView(queryJSON.view) ? queryJSON.view : CONST.SEARCH.VIEW.BAR;
 
-    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
-    const {accountID, login} = useCurrentUserPersonalDetails();
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
 
     const {isOffline} = useNetwork();
@@ -72,7 +66,7 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
 
     const retry = () => {
         // `search.isLoading` is persisted and may be stale after a reload. Call `search()` again and let it ignore a request that is still running.
-        if (!queryJSON || isOffline) {
+        if (!queryJSON || isOffline || !isConfigResolved) {
             return;
         }
 
@@ -96,37 +90,11 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
             return;
         }
         onConfigChanged();
-    }, [queryJSON?.hash, isOffline, isFocused]);
+    }, [queryJSON?.hash, isOffline, isFocused, isConfigResolved]);
 
-    const sortedSections =
-        searchResults?.data && queryJSON && groupBy && login
-            ? getSortedSections(
-                  queryJSON.type,
-                  getSections({
-                      dateFnsLocale,
-                      type: queryJSON.type,
-                      data: searchResults.data,
-                      groupBy,
-                      queryJSON,
-                      currentAccountID: accountID,
-                      currentUserEmail: login,
-                      translate,
-                      formatPhoneNumber,
-                      bankAccountList: undefined,
-                      conciergeReportID,
-                      convertToDisplayString,
-                      reportAttributesDerivedValue: undefined,
-                  })[0],
-                  localeCompare,
-                  translate,
-                  queryJSON.sortBy,
-                  queryJSON.sortOrder,
-                  groupBy,
-              )
-            : undefined;
-    const sortedData = sortedSections && isGroupedItemArray(sortedSections) ? sortedSections : undefined;
+    const sortedData = useGroupedItems(searchResults, queryJSON);
 
-    const state = getInsightState(isOffline, searchResults, queryJSON, sortedData);
+    const state = isConfigResolved ? getInsightState(isOffline, searchResults, queryJSON, sortedData) : INSIGHT_STATE.LOADING;
 
     return {
         queryJSON,

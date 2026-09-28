@@ -34,6 +34,7 @@ import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
 // Expensify Card
 import ExpensifyCardCoins from '@assets/images/emptystate__expensify-card-coins.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
+import ExpensifyCardAppleWalletIllustration from '@assets/images/expensifyCard/cardAppleWalletIllustration.svg';
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
 import ExpensifyCardProtectionIllustration from '@assets/images/expensifyCard/cardProtectionIllustration.svg';
 // Other Images
@@ -107,6 +108,7 @@ import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 // Simple Illustrations - Original core ones
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
+import AiAutomation from '@assets/images/simple-illustrations/simple-illustration__ai-automation.svg';
 import AiBot from '@assets/images/simple-illustrations/simple-illustration__ai-bot.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
 import Members from '@assets/images/simple-illustrations/simple-illustration__approval-members.svg';
@@ -124,6 +126,8 @@ import CalculatorMoney from '@assets/images/simple-illustrations/simple-illustra
 import CalendarMonthly from '@assets/images/simple-illustrations/simple-illustration__calendar-monthly.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
+import CardDenied from '@assets/images/simple-illustrations/simple-illustration__carddenied.svg';
+import CardIntoWallet from '@assets/images/simple-illustrations/simple-illustration__cardintowallet.svg';
 import CardReaderAlt from '@assets/images/simple-illustrations/simple-illustration__cardreader-alt.svg';
 import Chair from '@assets/images/simple-illustrations/simple-illustration__chair.svg';
 import Chalkboard from '@assets/images/simple-illustrations/simple-illustration__chalkboard.svg';
@@ -151,6 +155,7 @@ import FishbowlBlue from '@assets/images/simple-illustrations/simple-illustratio
 import Flag from '@assets/images/simple-illustrations/simple-illustration__flag.svg';
 import Flash from '@assets/images/simple-illustrations/simple-illustration__flash.svg';
 import FolderOpen from '@assets/images/simple-illustrations/simple-illustration__folder-open.svg';
+import FolderSync from '@assets/images/simple-illustrations/simple-illustration__foldersync.svg';
 import FoodTruck from '@assets/images/simple-illustrations/simple-illustration__foodtruck-tacos.svg';
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
 import HandCard from '@assets/images/simple-illustrations/simple-illustration__handcard.svg';
@@ -160,6 +165,8 @@ import Hourglass from '@assets/images/simple-illustrations/simple-illustration__
 import HouseMoney from '@assets/images/simple-illustrations/simple-illustration__house-money.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
 import HouseWithMap from '@assets/images/simple-illustrations/simple-illustration__housewithmap.svg';
+import IceCreamNumberOne from '@assets/images/simple-illustrations/simple-illustration__ice-cream-number-1.svg';
+import IceCreamNumberTwo from '@assets/images/simple-illustrations/simple-illustration__ice-cream-number-2.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
 import LifeRing from '@assets/images/simple-illustrations/simple-illustration__lifering.svg';
 import Lightbulb from '@assets/images/simple-illustrations/simple-illustration__lightbulb.svg';
@@ -167,6 +174,7 @@ import LockClosed from '@assets/images/simple-illustrations/simple-illustration_
 import LockClosedOrange from '@assets/images/simple-illustrations/simple-illustration__lockclosed_orange.svg';
 import LockOpen from '@assets/images/simple-illustrations/simple-illustration__lockopen.svg';
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
+import MagnifyingGlassChart from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-chart.svg';
 import MagnifyingGlassMoney from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-money.svg';
 import MagnifyingGlassReceipt from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-receipt.svg';
 import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
@@ -274,6 +282,7 @@ const Illustrations = {
     // Expensify Card
     ExpensifyCardIllustration,
     ExpensifyCardProtectionIllustration,
+    ExpensifyCardAppleWalletIllustration,
 
     // Product Illustrations
     Abracadabra,
@@ -338,16 +347,21 @@ const Illustrations = {
 
     // Simple Illustrations
     Accounting,
+    AiAutomation,
     AiBot,
     Building,
     BuildingCross,
     BankCoin,
     Coins,
+    CardDenied,
+    CardIntoWallet,
     CreditCardsNew,
     FolderOpen,
+    FolderSync,
     HandCard,
     Hashtag,
     InvoiceBlue,
+    MagnifyingGlassChart,
     MagnifyingGlassMoney,
     MagnifyingGlassReceipt,
     MoneyReceipts,
@@ -422,6 +436,8 @@ const Illustrations = {
     House,
     HouseWithMap,
     HouseMoney,
+    IceCreamNumberOne,
+    IceCreamNumberTwo,
     LifeRing,
     Lightbulb,
     LockClosed,

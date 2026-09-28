@@ -1,6 +1,7 @@
 import Log from '@libs/Log';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {Channel, ChannelAuthorizerGenerator, Options} from 'pusher-js/with-encryption';
@@ -86,6 +87,8 @@ function init(args: Args): Promise<void> {
 
         const options: Options = {
             cluster: args.cluster,
+            activityTimeout: CONST.PUSHER.ACTIVITY_TIMEOUT_MS,
+            pongTimeout: CONST.PUSHER.PONG_TIMEOUT_MS,
         };
 
         if (customAuthorizer) {
