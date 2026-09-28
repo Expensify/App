@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails, usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -52,7 +53,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {personalDetailsSelector} from '@src/selectors/PersonalDetails';
 import {accountIDSelector} from '@src/selectors/Session';
 import type {PersonalDetails} from '@src/types/onyx';
 
@@ -85,7 +85,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     const derivedReportName = useDerivedReportNameByReportID(report?.reportID);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const isCurrentUserAdmin = currentUserAccountID !== undefined && isGroupChatAdmin(report, currentUserAccountID);
     const isGroupChat = isGroupChatUtils(report);
     const isCurrentUserGroupChatAdmin = isGroupChat && isCurrentUserAdmin;
@@ -111,7 +111,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     // Bulk member actions (remove, change role) only exist for group chats, so expense reports always render the invite button instead.
     const shouldShowBulkActionsButton = isGroupChat && (isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0);
     const firstSelectedMember = selectedMembers?.at(0);
-    const [firstSelectedMemberDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(firstSelectedMember)});
+    const [firstSelectedMemberDetails] = usePersonalDetail(firstSelectedMember);
 
     // The Table stores selection as string keys, while this page tracks accountIDs as numbers.
     const onRowSelectionChange = (keys: string[]) => setSelectedMembers(keys.map(Number));

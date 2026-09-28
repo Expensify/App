@@ -16,8 +16,8 @@ import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchSavedSearchParamList} from '@libs/Navigation/types';
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';

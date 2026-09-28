@@ -13,9 +13,9 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
-import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getFilterFromQuery} from './SearchQueryUtils';
+import type {SearchKey} from './SearchKeyUtils';
 
-type SearchKey = ValueOf<typeof CONST.SEARCH.SEARCH_KEYS> | `${typeof CONST.SEARCH.SAVED_SEARCH_PREFIX}${string}`;
+import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getFilterFromQuery} from './SearchQueryUtils';
 
 type ExpenseStatusPredicate = (expenseReport?: OnyxTypes.Report, transactionReportID?: string) => boolean;
 
@@ -525,4 +525,4 @@ function isEligibleForStatus(currentQueryJSON: SearchQueryJSON | undefined, repo
 }
 
 export {SEARCH_TYPE_MENU_ICON_NAMES, expenseStatusActionMapping, getSuggestedSearches, isEligibleForStatus};
-export type {SearchKey, SearchTypeMenuItem};
+export type {SearchTypeMenuItem};
