@@ -1192,6 +1192,11 @@ function clearPageRequestedSearch() {
     pageRequestedSearch = undefined;
 }
 
+/** Whether a request for this query's page was sent in this session and is still awaiting its response. */
+function isSearchRequestInFlight(hash: number, offset = 0) {
+    return inFlightSearchRequests.has(`${hash}_${offset}`);
+}
+
 let shouldPreventSearchAPI = false;
 function handlePreventSearchAPI(hash: number | undefined) {
     if (typeof hash === 'undefined') {
@@ -2611,5 +2616,6 @@ export {
     markPageRequestedSearch,
     consumePageRequestedSearch,
     clearPageRequestedSearch,
+    isSearchRequestInFlight,
 };
 export type {TransactionPreviewData};

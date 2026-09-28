@@ -10,6 +10,7 @@ import type {SearchResults} from '@src/types/onyx';
 import type * as NativeNavigation from '@react-navigation/native';
 
 const mockSearch = jest.fn<void, unknown[]>();
+let mockIsSearchRequestInFlight = false;
 let mockCurrentSearchResults: SearchResults | undefined;
 let mockShouldUseLiveData = false;
 
@@ -33,6 +34,7 @@ jest.mock('@libs/actions/Search', () => ({
     search: (...args: unknown[]) => mockSearch(...args),
     markPageRequestedSearch: jest.fn(),
     clearPageRequestedSearch: jest.fn(),
+    isSearchRequestInFlight: () => mockIsSearchRequestInFlight,
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -88,6 +90,7 @@ describe('useSearchPageSetup', () => {
     beforeEach(() => {
         mockSearch.mockClear();
         mockShouldUseLiveData = false;
+        mockIsSearchRequestInFlight = false;
     });
 
     it('retries an unresolved search when temporary search prevention clears', async () => {
@@ -116,6 +119,51 @@ describe('useSearchPageSetup', () => {
 
         await waitFor(() => expect(mockSearch).toHaveBeenCalledTimes(1));
         expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({isLoading: false}));
+    });
+
+    it('does not resend a live first-page request after the page already sent this query', async () => {
+        // Given the page already sent the first page of this query, and its response has loaded
+        const queryJSON = getQueryJSON();
+        const {rerender} = renderHook(
+            ({searchResults}) => {
+                mockCurrentSearchResults = searchResults;
+                useSearchPageSetup(queryJSON);
+            },
+            {initialProps: {searchResults: makeUnresolvedSearchResults(queryJSON.hash, true)}},
+        );
+        await waitFor(() => expect(mockSearch).toHaveBeenCalledTimes(1));
+        rerender({searchResults: makeCachedSearchResults(queryJSON.hash, false, CONST.SEARCH.SNAPSHOT_STATE.LOADED)});
+
+        // When Search sends its own first-page request (for example the select-all totals request)
+        mockIsSearchRequestInFlight = true;
+        rerender({searchResults: makeCachedSearchResults(queryJSON.hash, true, CONST.SEARCH.SNAPSHOT_STATE.LOADING)});
+        await Promise.resolve();
+
+        // Then the page does not send it again, because the resent request would run as a duplicate once the first
+        // one returns and show the footer's loading skeleton after the totals arrived
+        expect(mockSearch).toHaveBeenCalledTimes(1);
+    });
+
+    it('sends a cached query once when Search starts its first-page request', async () => {
+        // Given a cached query that the page did not need to request on this visit
+        const queryJSON = getQueryJSON();
+        const {rerender} = renderHook(
+            ({searchResults}) => {
+                mockCurrentSearchResults = searchResults;
+                useSearchPageSetup(queryJSON);
+            },
+            {initialProps: {searchResults: makeCachedSearchResults(queryJSON.hash, false, CONST.SEARCH.SNAPSHOT_STATE.LOADED)}},
+        );
+        await Promise.resolve();
+        expect(mockSearch).not.toHaveBeenCalled();
+
+        // When Search sends its own first-page request for it
+        mockIsSearchRequestInFlight = true;
+        rerender({searchResults: makeCachedSearchResults(queryJSON.hash, true, CONST.SEARCH.SNAPSHOT_STATE.LOADING)});
+
+        // Then the page still sends the query once, so the visit is saved to recent searches
+        await waitFor(() => expect(mockSearch).toHaveBeenCalledTimes(1));
+        expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({shouldSaveRecentSearch: true}));
     });
 
     it('does not restart the first page while a later page is loading', async () => {
