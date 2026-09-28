@@ -418,8 +418,12 @@ function ReportActionItem({
 
     const latestActionErrors = getLatestErrorMessageField({...action, errors: visibleActionErrors} as OnyxDataWithErrors);
 
-    // Once the expense is deleted there is nothing to retry, so say what happened instead of "try again later".
-    const displayedActionErrors = isDeletedReportPreviewWithError(action) ? mapValues(latestActionErrors, () => translate('iou.error.payFailedExpenseDeleted')) : latestActionErrors;
+    // Once the report is deleted there is nothing to retry, so say what happened instead of "try again later".
+    let displayedActionErrors = latestActionErrors;
+    if (isDeletedReportPreviewWithError(action)) {
+        const payFailedMessage = translate('iou.error.payFailedExpenseDeleted');
+        displayedActionErrors = mapValues(latestActionErrors, () => payFailedMessage);
+    }
 
     /**
      * Show the ReportActionContextMenu modal popover.
