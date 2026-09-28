@@ -1,16 +1,18 @@
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import type {SummaryGroup, SummaryGroupRow} from '@components/SubStepForms/ConfirmationStep';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {getLetterAvatarURL} from '@libs/UserAvatarUtils';
 
 import {clearDraftValues, setDraftValues} from '@userActions/FormActions';
 
+import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -21,6 +23,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 import type {DynamicFormPage as DynamicFormPageSchema} from './groupFieldsIntoPages';
 import type {DynamicFormValues} from './types';
@@ -92,7 +95,7 @@ function isListItems(value: unknown): value is DynamicFormListItem[] {
     return Array.isArray(value) && value.every((item) => isRecord(item) && typeof item.id === 'string');
 }
 
-/** Sensitive item answers never reach the draft; they are carried per item under this key and merged back on submit */
+/** Sensitive item answers never reach the draft. They are carried per item under this key and merged back on submit. */
 function getCarriedItemKey(listKey: string, itemID: string): string {
     return `${listKey}${ITEM_EDITOR_SEPARATOR}${itemID}`;
 }
@@ -115,6 +118,7 @@ function DynamicFormFlow({
     onPageSubmit,
 }: DynamicFormFlowProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const [draft, draftMetadata] = useOnyx(`${formID}Draft`);
     const hasRoutedPage = !!(useRoute().params as {subPage?: string} | undefined)?.subPage;
     const [carriedAnswers, setCarriedAnswers] = useState<DynamicFormValues>(() => (hasRoutedPage ? carriedAnswersByForm.get(formID) : undefined) ?? {});
@@ -213,10 +217,17 @@ function DynamicFormFlow({
             return;
         }
         const sensitiveKeys = editorSensitiveKeysSignature.split('\n');
+        let ignore = false;
         clearDraftValues(LIST_ITEM_FORM_ID);
-        setDraftValues(LIST_ITEM_FORM_ID, Object.fromEntries(Object.entries(editingItem ?? {}).filter(([key]) => key !== 'id' && !sensitiveKeys.includes(key)))).then(() =>
-            setSeededEditorPage(currentPageName),
-        );
+        setDraftValues(LIST_ITEM_FORM_ID, Object.fromEntries(Object.entries(editingItem ?? {}).filter(([key]) => key !== 'id' && !sensitiveKeys.includes(key)))).then(() => {
+            if (ignore) {
+                return;
+            }
+            setSeededEditorPage(currentPageName);
+        });
+        return () => {
+            ignore = true;
+        };
     }, [currentPageName, editorField, editingItem, editorSensitiveKeysSignature]);
 
     const openListItemEditor = (fieldKey: string, itemID?: string, action?: 'edit') => Navigation.navigate(buildRoute(getCarriedItemKey(fieldKey, itemID ?? NEW_ITEM_ID), action));
@@ -228,12 +239,25 @@ function DynamicFormFlow({
         }
         const id = editingItem?.id ?? Str.guid();
         const item: DynamicFormListItem = {...Object.fromEntries(Object.entries(values).filter(([key]) => !editorSensitiveKeys.includes(key))), id};
-        const sensitiveAnswers = Object.fromEntries(Object.entries(values).filter(([key, answer]) => editorSensitiveKeys.includes(key) && answer !== '' && answer !== undefined));
         setDraftValues(formID, {[editorField.key]: editingItem ? editorItems.map((existing) => (existing.id === id ? item : existing)) : [...editorItems, item]});
-        if (Object.keys(sensitiveAnswers).length > 0) {
+        if (editorSensitiveKeys.length > 0) {
             const carriedItemKey = getCarriedItemKey(editorField.key, id);
             const existing = carriedAnswersByForm.get(formID)?.[carriedItemKey] ?? carriedAnswers[carriedItemKey];
-            const nextCarried = {...carriedAnswers, ...carriedAnswersByForm.get(formID), [carriedItemKey]: {...(isRecord(existing) ? existing : {}), ...sensitiveAnswers}};
+            const nextSensitiveAnswers: DynamicFormValues = {...(isRecord(existing) ? existing : {})};
+            for (const key of editorSensitiveKeys) {
+                const answer = values[key];
+                if (answer === '' || answer === undefined) {
+                    delete nextSensitiveAnswers[key];
+                } else {
+                    nextSensitiveAnswers[key] = answer;
+                }
+            }
+            const nextCarried = {...carriedAnswers, ...carriedAnswersByForm.get(formID)};
+            if (Object.keys(nextSensitiveAnswers).length > 0) {
+                nextCarried[carriedItemKey] = nextSensitiveAnswers;
+            } else {
+                delete nextCarried[carriedItemKey];
+            }
             carriedAnswersByForm.set(formID, nextCarried);
             setCarriedAnswers(nextCarried);
         }
@@ -323,7 +347,11 @@ function DynamicFormFlow({
 
     const isLoading = isRedirecting || isCurrentPageSkipped || isDraftLoading || (!currentGroupPage && !isConfirmationPage && !editorField);
 
-    let content = <FullScreenLoadingIndicator />;
+    let content = (
+        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+        </View>
+    );
     if (!isLoading && currentGroupPage && !isConfirmationPage) {
         content = (
             <DynamicFormPage

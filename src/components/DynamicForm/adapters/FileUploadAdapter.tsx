@@ -1,12 +1,11 @@
 import UploadFile from '@components/UploadFile';
+import type {UploadFileProps} from '@components/UploadFile';
 
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {ComponentProps} from 'react';
-
 import React, {useState} from 'react';
 
-type FileUploadAdapterProps = Pick<ComponentProps<typeof UploadFile>, 'buttonText' | 'acceptedFileTypes' | 'fileLimit' | 'maxFileSize' | 'style'> & {
+type FileUploadAdapterProps = Pick<UploadFileProps, 'buttonText' | 'acceptedFileTypes' | 'fileLimit' | 'maxFileSize' | 'style'> & {
     /** Files supplied by the FormProvider */
     value?: FileObject[];
 

@@ -26,7 +26,7 @@ const PERCENT_MAX = 100;
 
 const CHOICE_TYPES = new Set<DynamicFormField['type']>(['select', 'multiselect', 'radio', 'countryMultiselect']);
 
-/** A boolean alone on its page is a Yes/No question, so No is an answer; among other fields it is a consent box that must be ticked */
+/** A boolean alone on its page is a Yes/No question, so No is an answer. Among other fields it is a consent box that must be ticked. */
 function isAnswered(value: unknown, isAloneOnPage: boolean): boolean {
     if (Array.isArray(value)) {
         return value.length > 0;

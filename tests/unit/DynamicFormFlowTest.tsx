@@ -6,6 +6,8 @@ import type {DynamicFormValues} from '@components/DynamicForm/types';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import {setDraftValues} from '@userActions/FormActions';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {DynamicFormField} from '@src/types/onyx';
@@ -575,6 +577,73 @@ describe('DynamicFormFlow', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('legalEntityShareholders~new', 'edit'));
+    });
+
+    it('removes a cleared sensitive list-item answer from the final submission', async () => {
+        // Given
+        const fields: DynamicFormField[] = [
+            {
+                key: 'owners',
+                label: 'Owners',
+                group: 'Owners',
+                type: 'list',
+                required: true,
+                refreshOnChange: false,
+                itemFields: [
+                    {key: 'name', label: 'Name', group: 'Owner', type: 'text', required: true, refreshOnChange: false},
+                    {key: 'ssn', label: 'SSN', group: 'Owner', type: 'text', required: false, sensitive: true, refreshOnChange: false},
+                ],
+            },
+        ];
+        const formID = ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM;
+        const carriedItemKey = 'owners~owner-1';
+        const onSubmit = jest.fn();
+        await act(async () => {
+            await setDraftValues(formID, {owners: [{id: 'owner-1', name: 'Alice Nguyen'}]});
+        });
+        carriedAnswersByForm.set(formID, {[carriedItemKey]: {ssn: '123456789'}});
+        mockRouteParams.subPage = carriedItemKey;
+        render(
+            <DynamicFormFlow
+                fields={fields}
+                formID={formID}
+                headerTitle="Owners"
+                testID="DynamicFormFlowClearSensitive"
+                hasConfirmation
+                buildRoute={buildRoute}
+                onSubmit={onSubmit}
+                onBack={jest.fn()}
+                confirmationTitle="Confirm"
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When
+        fireEvent.changeText(screen.getByLabelText('SSN'), '');
+        fireEvent.press(screen.getByText('common.save'));
+        await waitForBatchedUpdatesWithAct();
+
+        screen.unmount();
+        mockRouteParams.subPage = 'confirm';
+        render(
+            <DynamicFormFlow
+                fields={fields}
+                formID={formID}
+                headerTitle="Owners"
+                testID="DynamicFormFlowClearSensitive"
+                hasConfirmation
+                buildRoute={buildRoute}
+                onSubmit={onSubmit}
+                onBack={jest.fn()}
+                confirmationTitle="Confirm"
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('common.confirm'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then
+        expect(onSubmit).toHaveBeenCalledWith({owners: [{id: 'owner-1', name: 'Alice Nguyen'}]});
     });
 
     it('submits a sensitive answer typed on the last page of a form with no confirmation page', async () => {
