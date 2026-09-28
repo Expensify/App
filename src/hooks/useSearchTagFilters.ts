@@ -56,17 +56,32 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     const isPolicyScopeMismatch = cachedPolicyIDs !== undefined && cachedPolicyIDs !== policyIDs;
 
     const baseResults = paginationState?.baseResults;
-    const baseHasMore = paginationState?.baseHasMore ?? false;
+    const baseHasMore = paginationState?.baseHasMore;
     const baseCursor = paginationState?.baseCursor ?? '';
 
     // Derive pagination state from Onyx (scoped to current policy)
     const searchQuery = isPolicyScopeMismatch ? '' : (paginationState?.searchQuery ?? '');
-    const hasMore = isPolicyScopeMismatch ? false : searchQuery === '' ? (paginationState?.baseHasMore ?? paginationState?.hasMore ?? false) : (paginationState?.hasMore ?? false);
-    const nextCursor = isPolicyScopeMismatch ? '' : searchQuery === '' ? (paginationState?.baseCursor ?? paginationState?.nextCursor ?? '') : (paginationState?.nextCursor ?? '');
-
+    let hasMore = false;
+    let nextCursor = '';
     // Show base tags when empty or offline so results include all cached tags instead of partial search matches
     const effectiveBaseResults = baseResults ?? searchResults;
-    const scopedSearchResults = isPolicyScopeMismatch ? undefined : searchQuery === '' || isOffline ? effectiveBaseResults : searchResults;
+    let scopedSearchResults: OnyxTypes.SearchTagFilterItem[] | undefined;
+
+    if (!isPolicyScopeMismatch) {
+        if (searchQuery === '') {
+            hasMore = baseHasMore ?? paginationState?.hasMore ?? false;
+            nextCursor = baseCursor || (paginationState?.nextCursor ?? '');
+            scopedSearchResults = effectiveBaseResults;
+        } else if (isOffline) {
+            hasMore = paginationState?.hasMore ?? false;
+            nextCursor = paginationState?.nextCursor ?? '';
+            scopedSearchResults = effectiveBaseResults;
+        } else {
+            hasMore = paginationState?.hasMore ?? false;
+            nextCursor = paginationState?.nextCursor ?? '';
+            scopedSearchResults = searchResults;
+        }
+    }
 
     // Track if we have cached data to avoid showing loading state on remount
     const hasCachedData = !isPolicyScopeMismatch && !!effectiveBaseResults && effectiveBaseResults.length > 0;
@@ -79,7 +94,7 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     }
 
     // Only treat the cache as complete when the empty-query dataset is fully loaded.
-    const effectiveBaseHasMore = paginationState?.baseHasMore ?? hasMore;
+    const effectiveBaseHasMore = baseHasMore ?? hasMore;
     const hasCompleteEmptyQueryCache = hasCachedData && !effectiveBaseHasMore && (searchQuery === '' || isFilteringLocally);
 
     // Keep ref updated with latest values for use in stable callbacks
@@ -140,18 +155,22 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
         newHasMore: boolean,
         newNextCursor: string,
         newSearchQuery: string,
-        newBaseResults = stateRef.current.baseResults,
-        newBaseHasMore = stateRef.current.baseHasMore,
-        newBaseCursor = stateRef.current.baseCursor,
+        newBaseResults?: OnyxTypes.SearchTagFilterItem[],
+        newBaseHasMore?: boolean,
+        newBaseCursor?: string,
     ) => {
+        const resolvedBaseResults = newBaseResults ?? stateRef.current.baseResults;
+        const resolvedBaseHasMore = newBaseHasMore ?? stateRef.current.baseHasMore;
+        const resolvedBaseCursor = newBaseCursor ?? stateRef.current.baseCursor;
+
         stateRef.current.hasMore = newHasMore;
         stateRef.current.nextCursor = newNextCursor;
         stateRef.current.searchQuery = newSearchQuery;
         stateRef.current.policyIDs = policyIDs;
-        stateRef.current.baseResults = newBaseResults;
-        stateRef.current.baseHasMore = newBaseHasMore;
-        stateRef.current.baseCursor = newBaseCursor;
-        setSearchTagFiltersPagination(newHasMore, newNextCursor, newSearchQuery, policyIDs, newBaseResults, newBaseHasMore, newBaseCursor);
+        stateRef.current.baseResults = resolvedBaseResults;
+        stateRef.current.baseHasMore = resolvedBaseHasMore;
+        stateRef.current.baseCursor = resolvedBaseCursor;
+        setSearchTagFiltersPagination(newHasMore, newNextCursor, newSearchQuery, policyIDs, resolvedBaseResults, resolvedBaseHasMore, resolvedBaseCursor);
     };
 
     const loadMore = () => {
@@ -170,9 +189,9 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
         const requestSeq = requestSeqRef.current;
         setIsLoadingMore(true);
         openSearchTagFiltersPage({searchQuery: currentQuery, cursor: currentCursor, limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE, policyIDs}, false, currentResults ?? [])
-            .then(({hasMore: newHasMore, nextCursor: newCursor, tags: newTags}) => {
+            .then(({hasMore: newHasMore, nextCursor: newCursor, tags}) => {
                 if (currentQuery === '') {
-                    const updatedBaseResults = [...(currentBaseResults ?? currentResults ?? []), ...newTags];
+                    const updatedBaseResults = tags !== undefined ? [...(currentBaseResults ?? currentResults ?? []), ...tags] : (currentBaseResults ?? currentResults);
                     updatePagination(newHasMore, newCursor, currentQuery, updatedBaseResults, newHasMore, newCursor);
                 } else {
                     updatePagination(newHasMore, newCursor, currentQuery);
@@ -222,9 +241,10 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
         setIsSearching(true);
 
         openSearchTagFiltersPage({searchQuery: query, cursor: '', limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE, policyIDs}, true)
-            .then(({hasMore: newHasMore, nextCursor: newCursor, tags: newTags}) => {
+            .then(({hasMore: newHasMore, nextCursor: newCursor, tags}) => {
                 if (query === '') {
-                    updatePagination(newHasMore, newCursor, query, newTags, newHasMore, newCursor);
+                    const updatedBaseResults = tags !== undefined ? tags : stateRef.current.baseResults;
+                    updatePagination(newHasMore, newCursor, query, updatedBaseResults, newHasMore, newCursor);
                 } else {
                     updatePagination(newHasMore, newCursor, query);
                 }

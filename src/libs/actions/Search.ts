@@ -1089,7 +1089,7 @@ function openSearchTagFiltersPage(
     params: OpenSearchTagFiltersPageParams,
     shouldCancelPendingRequests = false,
     currentResults: SearchTagFilterItem[] = [],
-): Promise<{hasMore: boolean; nextCursor: string; tags: SearchTagFilterItem[]}> {
+): Promise<{hasMore: boolean; nextCursor: string; tags?: SearchTagFilterItem[]}> {
     if (shouldCancelPendingRequests) {
         HttpUtils.cancelPendingRequests(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE);
     }
