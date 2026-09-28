@@ -159,6 +159,7 @@ function AddPersonalBankAccountPage() {
         skipPages,
         onFinished,
         buildRoute,
+        shouldReplaceRoute: isOpenedFromWalletFlow,
     });
 
     const confirmationIndex = pages.findIndex((page) => page.pageName === SUB_PAGE_NAMES.CONFIRMATION);

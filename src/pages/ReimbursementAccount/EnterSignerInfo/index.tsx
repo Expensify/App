@@ -79,7 +79,7 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
         prevPage,
         moveTo,
         isRedirecting,
-    } = useSubPage<EnterSignerInfoFormSubPageProps>({pages, startFrom: 0, onFinished: submit, buildRoute});
+    } = useSubPage<EnterSignerInfoFormSubPageProps>({pages, startFrom: 0, onFinished: submit, buildRoute, shouldReplaceRoute: true});
 
     useEffect(() => {
         if (enterSignerInfoForm?.errors || enterSignerInfoForm?.isSavingSignerInformation || !enterSignerInfoForm?.isSuccess) {
