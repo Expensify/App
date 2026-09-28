@@ -219,6 +219,26 @@ describe('ReportFetchHandler', () => {
         expect(mockOpenReport).not.toHaveBeenCalled();
     });
 
+    it('does NOT treat switching from a loaded report to an unloaded one as a wiped stamp', async () => {
+        // Given a mounted report whose actions have already loaded once, and another report that has never loaded
+        const OTHER_REPORT_ID = '3';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OTHER_REPORT_ID}`, {reportID: OTHER_REPORT_ID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {hasOnceLoadedReportActions: true, isLoadingInitialReportActions: false});
+        await waitForBatchedUpdates();
+        const {rerender} = renderHandler();
+        await waitForBatchedUpdates();
+        mockOpenReport.mockClear();
+
+        // When the same screen is re-parameterized to the other report without unmounting
+        setRouteParams({reportID: OTHER_REPORT_ID});
+        rerender(<HandlerTree isInPreloadedTab={false} />);
+        await waitForBatchedUpdates();
+
+        // Then the other report is fetched exactly once, by the normal fetch effect, not again by the cache-clear re-fetch
+        expect(mockOpenReport.mock.calls.filter(([params]) => (params as {reportID?: string}).reportID === OTHER_REPORT_ID)).toHaveLength(1);
+    });
+
     it('holds the re-fetch of a wiped loaded stamp while the Inbox tab is preloaded and resumes it once it opens', async () => {
         // Given a report mounted inside a warmed tab the user has not opened yet
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
