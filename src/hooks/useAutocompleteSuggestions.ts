@@ -639,8 +639,7 @@ function useAutocompleteSuggestions({
                 .filter((datePreset) => datePreset.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(datePreset.toLowerCase()))
                 .sort()
                 .slice(0, 10);
-            const filterKey = autocompleteKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL ? CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ANY_APPROVAL : autocompleteKey;
-            return filteredDatePresets.map((datePreset) => ({filterKey, text: datePreset}));
+            return filteredDatePresets.map((datePreset) => ({filterKey: getUserFriendlyKey(autocompleteKey), text: datePreset}));
         }
         default: {
             return [];
