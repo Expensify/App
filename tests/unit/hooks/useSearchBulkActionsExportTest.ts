@@ -1231,20 +1231,20 @@ describe('useSearchBulkActions - export options', () => {
             ?.onSelected?.();
 
         await waitFor(() => {
-            expect(queueBulkMarkAsExported).toHaveBeenCalledWith(expect.any(String), CONST.POLICY.CONNECTIONS.NAME.NETSUITE, false);
+            expect(queueBulkMarkAsExported).toHaveBeenCalledWith(expect.any(String), CONST.POLICY.CONNECTIONS.NAME.NETSUITE, undefined);
         });
         expect(markAsManuallyExported).not.toHaveBeenCalled();
         expect(mockClearSelectedTransactions).toHaveBeenCalled();
     });
 
-    it('passes isIntuitEnterpriseSuite so the backend can tell an IES connection apart from a regular QBO connection sharing the same connectionName', async () => {
+    it('passes qboIntegrationAlias so the backend can tell an IES connection apart from a regular QBO connection sharing the same connectionName', async () => {
         /**
          * Given: "Select all" is checked on a workspace connected to QBO with the Intuit Enterprise Suite scope.
          *
          * When: the user clicks "Mark as exported".
          *
-         * Then: isIntuitEnterpriseSuite is sent as true, since connectionName alone can't distinguish IES from
-         *       a regular QBO connection.
+         * Then: qboIntegrationAlias is sent as the IES alias, since connectionName alone can't distinguish IES
+         *       from a regular QBO connection.
          */
         mockAreAllMatchingItemsSelected = true;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
@@ -1266,7 +1266,43 @@ describe('useSearchBulkActions - export options', () => {
             ?.onSelected?.();
 
         await waitFor(() => {
-            expect(queueBulkMarkAsExported).toHaveBeenCalledWith(expect.any(String), CONST.POLICY.CONNECTIONS.NAME.QBO, true);
+            expect(queueBulkMarkAsExported).toHaveBeenCalledWith(
+                expect.any(String),
+                CONST.POLICY.CONNECTIONS.NAME.QBO,
+                CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE,
+            );
+        });
+    });
+
+    it('omits qboIntegrationAlias for a regular QBO connection', async () => {
+        /**
+         * Given: "Select all" is checked on a workspace connected to regular QBO (no IES scope).
+         *
+         * When: the user clicks "Mark as exported".
+         *
+         * Then: qboIntegrationAlias is left undefined, since there is nothing to disambiguate.
+         */
+        mockAreAllMatchingItemsSelected = true;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+            id: POLICY_ID,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {}},
+        });
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === 'workspace.common.markAsExported')).toBe(true);
+        });
+
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === 'workspace.common.markAsExported')
+            ?.onSelected?.();
+
+        await waitFor(() => {
+            expect(queueBulkMarkAsExported).toHaveBeenCalledWith(expect.any(String), CONST.POLICY.CONNECTIONS.NAME.QBO, undefined);
         });
     });
 

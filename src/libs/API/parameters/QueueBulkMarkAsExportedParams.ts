@@ -1,5 +1,6 @@
 import type {SearchQueryString} from '@components/Search/types';
 
+import type CONST from '@src/CONST';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
 type QueueBulkMarkAsExportedParams = {
@@ -9,8 +10,8 @@ type QueueBulkMarkAsExportedParams = {
     /** The accounting connection to scope the bulk action to, since the button is per-integration and must never mix connections */
     connectionName: ConnectionName;
 
-    /** Whether this is the Intuit Enterprise Suite variant of a QuickBooks Online connection, so the backend can tell it apart from a regular QBO connection sharing the same connectionName */
-    isIntuitEnterpriseSuite: boolean;
+    /** Set only when connectionName is QBO and the connection is its Intuit Enterprise Suite variant, since that shares connectionName with regular QBO and the backend otherwise can't tell them apart */
+    qboIntegrationAlias?: typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE;
 };
 
 export default QueueBulkMarkAsExportedParams;

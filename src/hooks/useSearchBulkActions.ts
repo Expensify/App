@@ -2200,7 +2200,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             return;
                         }
                         clearSelectedTransactions();
-                        queueBulkMarkAsExported(serializeQueryJSONForBackend(queryJSON), integration, isIntuitEnterpriseSuiteConnection(integrationPolicy));
+                        const qboIntegrationAlias =
+                            integration === CONST.POLICY.CONNECTIONS.NAME.QBO && isIntuitEnterpriseSuiteConnection(integrationPolicy)
+                                ? CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE
+                                : undefined;
+                        queueBulkMarkAsExported(serializeQueryJSONForBackend(queryJSON), integration, qboIntegrationAlias);
                         playSound(SOUNDS.SUCCESS);
                     };
                     const handleMarkAction = areAllMatchingItemsSelected
