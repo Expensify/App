@@ -646,6 +646,73 @@ describe('DynamicFormFlow', () => {
         expect(onSubmit).toHaveBeenCalledWith({owners: [{id: 'owner-1', name: 'Alice Nguyen'}]});
     });
 
+    it('keeps an untouched sensitive list-item answer when only another answer is edited', async () => {
+        // Given
+        const fields: DynamicFormField[] = [
+            {
+                key: 'owners',
+                label: 'Owners',
+                group: 'Owners',
+                type: 'list',
+                required: true,
+                refreshOnChange: false,
+                itemFields: [
+                    {key: 'name', label: 'Name', group: 'Owner', type: 'text', required: true, refreshOnChange: false},
+                    {key: 'ssn', label: 'SSN', group: 'Owner', type: 'text', required: false, sensitive: true, refreshOnChange: false},
+                ],
+            },
+        ];
+        const formID = ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM;
+        const carriedItemKey = 'owners~owner-1';
+        const onSubmit = jest.fn();
+        await act(async () => {
+            await setDraftValues(formID, {owners: [{id: 'owner-1', name: 'Alice Nguyen'}]});
+        });
+        carriedAnswersByForm.set(formID, {[carriedItemKey]: {ssn: '123456789'}});
+        mockRouteParams.subPage = carriedItemKey;
+        render(
+            <DynamicFormFlow
+                fields={fields}
+                formID={formID}
+                headerTitle="Owners"
+                testID="DynamicFormFlowKeepSensitive"
+                hasConfirmation
+                buildRoute={buildRoute}
+                onSubmit={onSubmit}
+                onBack={jest.fn()}
+                confirmationTitle="Confirm"
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When
+        fireEvent.changeText(screen.getByLabelText('Name'), 'Alice Webb');
+        fireEvent.press(screen.getByText('common.save'));
+        await waitForBatchedUpdatesWithAct();
+
+        screen.unmount();
+        mockRouteParams.subPage = 'confirm';
+        render(
+            <DynamicFormFlow
+                fields={fields}
+                formID={formID}
+                headerTitle="Owners"
+                testID="DynamicFormFlowKeepSensitive"
+                hasConfirmation
+                buildRoute={buildRoute}
+                onSubmit={onSubmit}
+                onBack={jest.fn()}
+                confirmationTitle="Confirm"
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('common.confirm'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then
+        expect(onSubmit).toHaveBeenCalledWith({owners: [{id: 'owner-1', name: 'Alice Webb', ssn: '123456789'}]});
+    });
+
     it('submits a sensitive answer typed on the last page of a form with no confirmation page', async () => {
         const fields: DynamicFormField[] = [
             {key: 'nickname', label: 'Nickname', group: 'Profile', type: 'text', required: true, refreshOnChange: false},
