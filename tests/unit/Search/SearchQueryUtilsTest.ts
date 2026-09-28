@@ -849,6 +849,21 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense withdrawalStatus:pending,cleared,failed');
         });
 
+        test('drops withdrawal status filter for reports', () => {
+            // Given a reports search form that still holds a withdrawal status value, e.g. after switching from expenses
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                withdrawalStatus: [CONST.SEARCH.SETTLEMENT_STATUS.PENDING],
+                withdrawalStatusNot: [CONST.SEARCH.SETTLEMENT_STATUS.FAILED],
+            };
+
+            // When the query string is built
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then withdrawal status is omitted because the backend does not support it for reports
+            expect(result).toEqual('type:expense-report');
+        });
+
         test('with single paid status filter', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense-report',
