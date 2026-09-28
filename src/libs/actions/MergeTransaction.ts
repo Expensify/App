@@ -284,11 +284,10 @@ function getTransactionsForMerging({
     }
 
     // Candidate discovery:
-    // - Admins: The list of eligible expenses now includes expenses from the same submitter across all of their draft
-    //   reports where the admin has access. This replaces the previous same-report-only shortcut so admins can initiate
-    //   cross-report merges from either the card or cash expense.
-    // - Managers (non-admin approvers): Still limited to same-report transactions on the processing report they
-    //   triggered the merge from, as they review one report at a time.
+    // - Admins: See expenses from the same submitter across the submitter's open reports and submitted reports pending
+    //   final approval that the admin can access, so admins can merge a card and cash expense on different reports.
+    // - Managers (non-admin approvers): Limited to same-report transactions on the processing report they triggered
+    //   the merge from, as they review one report at a time.
     // - Submitters will see all their editable expenses, including their IOUs/unreported expenses.
     // IOU:
     // - There are no admins/approvers outside of the submitter in these cases, so there’s no consideration for different roles.
@@ -296,7 +295,6 @@ function getTransactionsForMerging({
     const isAdmin = isPolicyAdmin(policy, currentUserLogin);
     const isManager = isReportManager(report);
 
-    // Managers (non-admin approvers) reviewing a processing report still see only same-report transactions.
     if (isPaidGroupPolicy(policy) && isManager && !isAdmin && !isCurrentUserSubmitter(report)) {
         const eligibleTransactions = reportTransactions.filter((transaction): transaction is Transaction => {
             if (!transaction || transaction.transactionID === transactionID) {
