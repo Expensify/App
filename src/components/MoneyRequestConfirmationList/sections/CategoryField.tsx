@@ -65,9 +65,11 @@ function CategoryField({
     const isAutoFillFromReceipt = categoryState?.isAutoFillFromReceipt ?? false;
     const decodedCategoryName = getDecodedLeafCategoryName(iouCategory);
 
-    const getCategoryRightLabelIcon = () => (willAutoFill ? icons.Sparkles : undefined);
+    const shouldPromiseAutomaticCategory = willAutoFill && (isAutoFillFromReceipt || !isCategoryRequired);
+
+    const getCategoryRightLabelIcon = () => (shouldPromiseAutomaticCategory ? icons.Sparkles : undefined);
     const getCategoryRightLabel = () => {
-        if (willAutoFill) {
+        if (shouldPromiseAutomaticCategory) {
             return translate('common.automatic');
         }
         if (isCategoryRequired) {

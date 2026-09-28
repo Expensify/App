@@ -122,6 +122,8 @@ type NumberWithSymbolFormProps = {
     /**
      * Renders the flip and currency buttons as their icon plus label, without the pill background, so they read as
      * part of the field rather than as controls stacked on top of it. Their tap targets are unchanged.
+     * Left off for `AmountForm`, whose trailing button (e.g. the Chronos OOO duration unit) is a control on top of a
+     * standalone amount input rather than a row inside a form, so it keeps the pill.
      */
     shouldUseBorderlessButtons?: boolean;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
