@@ -3978,6 +3978,7 @@ describe('actions/Report', () => {
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
+                delegateAccountID: undefined,
                 parentReport: undefined,
                 policy: targetPolicy,
                 currentUserAccountID: 1,
@@ -4015,6 +4016,7 @@ describe('actions/Report', () => {
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
+                delegateAccountID: undefined,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -4078,6 +4080,7 @@ describe('actions/Report', () => {
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
+                delegateAccountID: undefined,
                 parentReport,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -4151,6 +4154,7 @@ describe('actions/Report', () => {
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
+                delegateAccountID: undefined,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -4162,7 +4166,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
-                reportTransactions: [],
+                reportTransactions: [transaction],
             });
             await waitForBatchedUpdates();
 
@@ -4250,6 +4254,7 @@ describe('actions/Report', () => {
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
+                delegateAccountID: undefined,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -4261,7 +4266,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
-                reportTransactions: [],
+                reportTransactions: [expenseTransaction, refundTransaction],
             });
             await waitForBatchedUpdates();
 
@@ -4337,6 +4342,7 @@ describe('actions/Report', () => {
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
+                delegateAccountID: undefined,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -4348,7 +4354,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
-                reportTransactions: [],
+                reportTransactions: [audTransaction, usdTransaction],
             });
             await waitForBatchedUpdates();
 
@@ -4392,6 +4398,7 @@ describe('actions/Report', () => {
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
+                delegateAccountID: undefined,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4485,6 +4492,7 @@ describe('actions/Report', () => {
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
+                delegateAccountID: undefined,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUser: {accountID: 1},
@@ -4532,6 +4540,7 @@ describe('actions/Report', () => {
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
+                delegateAccountID: undefined,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4565,6 +4574,7 @@ describe('actions/Report', () => {
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
+                delegateAccountID: undefined,
                 parentReport: undefined,
                 policy: targetPolicy,
                 currentUser: {accountID: 1},
@@ -4597,6 +4607,7 @@ describe('actions/Report', () => {
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
+                delegateAccountID: undefined,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4629,6 +4640,7 @@ describe('actions/Report', () => {
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
+                delegateAccountID: undefined,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4663,6 +4675,7 @@ describe('actions/Report', () => {
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
+                delegateAccountID: undefined,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4717,6 +4730,7 @@ describe('actions/Report', () => {
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
+                delegateAccountID: undefined,
                 parentReport: undefined,
                 policy: targetPolicy,
                 currentUser: {accountID: 1, email: 'current-user@expensifail.com'},
@@ -5188,6 +5202,7 @@ describe('actions/Report', () => {
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
+                delegateAccountID: undefined,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -5199,6 +5214,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             expect(buildOptimisticNextStep).toHaveBeenCalledWith({
                 report,
@@ -5210,6 +5226,66 @@ describe('actions/Report', () => {
                 predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 isTrackIntentUser: false,
             });
+        });
+
+        it('should set delegateAccountID on the optimistic report preview action', () => {
+            const delegateAccountID = 99;
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const policy = createRandomPolicy(Number(1));
+            const {optimisticReportPreviewAction} = Report.buildOptimisticChangePolicyData({
+                report,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
+                delegateAccountID,
+                parentReport: undefined,
+                policy,
+                currentUserAccountID: 1,
+                currentUserEmail: '',
+                ownerLogin: undefined,
+                managerLogin: '',
+                hasViolationsParam: false,
+                isASAPSubmitBetaEnabled: true,
+                isReportLastVisibleArchived: undefined,
+                reportPreviewAction: undefined,
+                isTrackIntentUser: false,
+                reportTransactions: [],
+            });
+            expect(optimisticReportPreviewAction.delegateAccountID).toBe(delegateAccountID);
+        });
+
+        // Without this the system message renders as the delegator until the API response arrives,
+        // then swaps to the copilot.
+        it('should set delegateAccountID on the optimistic change policy action', () => {
+            const delegateAccountID = 99;
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const policy = createRandomPolicy(Number(1));
+            const {optimisticMovedReportAction} = Report.buildOptimisticChangePolicyData({
+                report,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
+                delegateAccountID,
+                parentReport: undefined,
+                policy,
+                currentUserAccountID: 1,
+                currentUserEmail: '',
+                ownerLogin: undefined,
+                managerLogin: '',
+                hasViolationsParam: false,
+                isASAPSubmitBetaEnabled: true,
+                isReportLastVisibleArchived: undefined,
+                reportPreviewAction: undefined,
+                isTrackIntentUser: false,
+                reportTransactions: [],
+            });
+            expect(optimisticMovedReportAction.delegateAccountID).toBe(delegateAccountID);
         });
 
         it('should set pendingAction and clear convertedAmount when moving to workspace with different currency', async () => {
@@ -5244,6 +5320,7 @@ describe('actions/Report', () => {
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
+                delegateAccountID: undefined,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -5255,6 +5332,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [transaction],
             });
 
             // Find the transaction optimistic data
@@ -5310,6 +5388,7 @@ describe('actions/Report', () => {
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
+                delegateAccountID: undefined,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -5321,6 +5400,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [transaction],
             });
 
             // Should NOT find transaction optimistic data when currencies are the same
@@ -5360,6 +5440,7 @@ describe('actions/Report', () => {
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
+                delegateAccountID: undefined,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -5371,6 +5452,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [transaction],
             });
 
             // Should NOT find transaction optimistic data when transaction matches destination currency
@@ -5423,6 +5505,7 @@ describe('actions/Report', () => {
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
+                delegateAccountID: undefined,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -5434,6 +5517,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [matchingTransaction, nonMatchingTransaction],
             });
 
             // Should NOT find optimistic data for the matching transaction (USD matches USD destination)
@@ -5489,6 +5573,7 @@ describe('actions/Report', () => {
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
+                delegateAccountID: undefined,
                 parentReport,
                 policy,
                 currentUserAccountID: 1,
@@ -5500,6 +5585,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportPreviewAction,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
 
             const parentReportActionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`;
@@ -10836,14 +10922,29 @@ describe('actions/Report', () => {
         it('sets delegateAccountID when delegateAccountIDParam is provided', () => {
             const chatReport = createMock<OnyxTypes.Report>({reportID: 'chat1'});
             const iouReport = createMock<OnyxTypes.Report>({reportID: 'iou1', ownerAccountID: 1, managerID: 2});
-            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, TestHelper.getCurrencyDecimalsLocal, '', null, undefined, undefined, DELEGATE_ACCOUNT_ID);
+            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, TestHelper.getCurrencyDecimalsLocal, DELEGATE_ACCOUNT_ID, '', null);
             expect(result.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         });
 
         it('does not set delegateAccountID when delegateAccountIDParam is undefined', () => {
             const chatReport = createMock<OnyxTypes.Report>({reportID: 'chat2'});
             const iouReport = createMock<OnyxTypes.Report>({reportID: 'iou2', ownerAccountID: 1, managerID: 2});
-            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, TestHelper.getCurrencyDecimalsLocal, '', null, undefined, undefined, undefined);
+            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, TestHelper.getCurrencyDecimalsLocal, undefined, '', null);
+            expect(result.delegateAccountID).toBeUndefined();
+        });
+
+        // The builder used to read the signed-in delegate from Onyx when the caller passed nothing,
+        // which silently attributed the action to a copilot the caller never asked for.
+        it('does not fall back to the signed-in delegate when delegateAccountIDParam is undefined', async () => {
+            const delegateLogin = 'copilot@example.com';
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[DELEGATE_ACCOUNT_ID]: {accountID: DELEGATE_ACCOUNT_ID, login: delegateLogin}});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: delegateLogin}});
+            await waitForBatchedUpdates();
+
+            const chatReport = createMock<OnyxTypes.Report>({reportID: 'chat3'});
+            const iouReport = createMock<OnyxTypes.Report>({reportID: 'iou3', ownerAccountID: 1, managerID: 2});
+            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, TestHelper.getCurrencyDecimalsLocal, undefined, '', null);
+
             expect(result.delegateAccountID).toBeUndefined();
         });
     });

@@ -15,12 +15,17 @@ import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isAnyHRReadOnlyWorkflowMode} from '@libs/merge/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {canMemberWrite, goBackFromInvalidPolicy, isPendingDeletePolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
-import {convertApprovalWorkflowRulesToWorkflows, convertPolicyEmployeesToApprovalWorkflows, filterRulesForPolicy, getApprovalWorkflowRulesForPolicy} from '@libs/WorkflowUtils';
+import {
+    convertApprovalWorkflowRulesToWorkflows,
+    convertPolicyEmployeesToApprovalWorkflows,
+    filterRulesForPolicy,
+    getApprovalWorkflowRulesForPolicy,
+    isApprovalWorkflowLockedByIntegration,
+} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -164,7 +169,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         !canWriteApprovals ||
         isPendingDeletePolicy(policy) ||
         !currentApprovalWorkflow ||
-        isAnyHRReadOnlyWorkflowMode(policy) ||
+        isApprovalWorkflowLockedByIntegration(policy) ||
         shouldHideDynamicExternalWorkflowPeople(policy);
 
     // Set the initial approval workflow when the page is loaded

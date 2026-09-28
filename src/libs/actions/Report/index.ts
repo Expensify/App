@@ -6788,9 +6788,9 @@ function markAsManuallyExported(reportIDs: string[], connectionName: ConnectionN
     API.write(WRITE_COMMANDS.MARK_AS_EXPORTED, params, {optimisticData, successData, failureData});
 }
 
-function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams, onDownloadFailed: () => void, translate: LocalizedTranslate) {
+function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams, onDownloadFailed: () => void, translate: LocalizedTranslate, reportTransactions: Transaction[]) {
     let reportIDParam = reportID;
-    const allReportTransactions = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const allReportTransactions = reportTransactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const allTransactionIDs = allReportTransactions.map((transaction) => transaction.transactionID);
     if (allTransactionIDs.length !== transactionIDList.length) {
         reportIDParam = '-1';
@@ -7907,7 +7907,9 @@ function buildOptimisticChangePolicyData({
     reportPreviewAction,
     isTrackIntentUser,
     getCurrencyDecimals,
+    reportTransactions,
     rules,
+    delegateAccountID,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7923,7 +7925,9 @@ function buildOptimisticChangePolicyData({
     reportPreviewAction: OnyxEntry<ReportAction>;
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    reportTransactions: Transaction[];
     rules: OnyxCollection<Rule>;
+    delegateAccountID: number | undefined;
 }) {
     const optimisticData: Array<
         OnyxUpdate<
@@ -8155,8 +8159,7 @@ function buildOptimisticChangePolicyData({
     // 3. Optimistically create a new REPORT_PREVIEW reportAction with the newReportPreviewActionID
     // and set it as a parent of the moved report
     const policyExpenseChat = optimisticPolicyExpenseChatReport ?? getPolicyExpenseChat(report.ownerAccountID, policy.id);
-    // TODO: delegateAccountIDParam will be threaded in PR 15 (https://github.com/Expensify/App/issues/66425)
-    const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, report, getCurrencyDecimals, '', null, undefined, undefined, undefined);
+    const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, report, getCurrencyDecimals, delegateAccountID, '', null);
 
     const newPolicyExpenseChatReportID = policyExpenseChat?.reportID;
 
@@ -8210,7 +8213,7 @@ function buildOptimisticChangePolicyData({
     });
 
     // 4. Optimistically create a CHANGE_POLICY reportAction on the report using the reportActionID
-    const optimisticMovedReportAction = buildOptimisticChangePolicyReportAction(report.policyID, policy.id, currentUserAccountID);
+    const optimisticMovedReportAction = buildOptimisticChangePolicyReportAction(report.policyID, policy.id, currentUserAccountID, delegateAccountID);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -8273,9 +8276,8 @@ function buildOptimisticChangePolicyData({
     // Only clear for transactions that don't match the destination currency - matching transactions can keep their values
     const sourceCurrency = report.currency;
     const destinationCurrency = policy.outputCurrency;
-    const transactions = getReportTransactions(reportID);
 
-    for (const transaction of transactions) {
+    for (const transaction of reportTransactions) {
         if (!shouldClearConvertedAmount(transaction, sourceCurrency, destinationCurrency)) {
             continue;
         }
@@ -8314,7 +8316,7 @@ function buildOptimisticChangePolicyData({
         let newReimbursableTotal = 0;
         let newUnheldReimbursableTotal = 0;
 
-        for (const transaction of transactions) {
+        for (const transaction of reportTransactions) {
             const transactionCurrency = getCurrency(transaction);
 
             // Only include transactions that match the destination currency
@@ -8408,6 +8410,7 @@ function changeReportPolicy({
     getCurrencyDecimals,
     reportTransactions,
     rules,
+    delegateAccountID,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8425,6 +8428,7 @@ function changeReportPolicy({
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     reportTransactions: Transaction[];
     rules: OnyxCollection<Rule>;
+    delegateAccountID: number | undefined;
 }) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report) || shouldBlockChangeReportPolicyForMapOrGPSRequirement(reportTransactions, policy)) {
         return;
@@ -8444,7 +8448,9 @@ function changeReportPolicy({
         reportPreviewAction,
         isTrackIntentUser,
         getCurrencyDecimals,
+        reportTransactions,
         rules,
+        delegateAccountID,
     });
 
     const params = {
@@ -8481,6 +8487,7 @@ function changeReportPolicyAndInviteSubmitter({
     getCurrencyDecimals,
     reportTransactions,
     rules,
+    delegateAccountID,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8499,6 +8506,7 @@ function changeReportPolicyAndInviteSubmitter({
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     reportTransactions: Transaction[];
     rules: OnyxCollection<Rule>;
+    delegateAccountID: number | undefined;
 }) {
     if (
         !report.reportID ||
@@ -8561,7 +8569,9 @@ function changeReportPolicyAndInviteSubmitter({
         reportPreviewAction,
         isTrackIntentUser,
         getCurrencyDecimals,
+        reportTransactions,
         rules,
+        delegateAccountID,
     });
 
     const optimisticData = [...optimisticAddMembersData, ...optimisticChangePolicyData];
