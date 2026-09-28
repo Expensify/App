@@ -59,6 +59,7 @@ import {
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBroken30DaysMessage,
     getCompanyCardConnectionBrokenMessage,
+    getConciergeAutoSelectDistanceRateMessage,
     getCurrencyConversionFeeMessage,
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
@@ -195,7 +196,7 @@ import {
     wasActionTakenByCurrentUser,
     withDEWRoutedActionsArray,
 } from './ReportActionsUtils';
-import {deprecatedGetReportName, getReportName} from './ReportNameUtils';
+import {getReportName} from './ReportNameUtils';
 import {
     canUserPerformWriteAction,
     excludeParticipantsForDisplay,
@@ -624,6 +625,8 @@ function getLastMessageTextForReport({
             policyTags,
             currentUserAccountID,
             currentUserLogin: currentUserLogin ?? '',
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
+            movedFromReportName: undefined,
         });
         // Strip HTML tags for plain text display in options list
         const properSchemaForModifiedExpenseMessage = Parser.htmlToText(properSchemaForModifiedExpenseMessageWithHTML);
@@ -768,6 +771,8 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = Parser.htmlToText(getActionableMentionWhisperMessage(translate, lastReportAction, getPersonalDetailsListByIDs(targetAccountIDs, personalDetails)));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED)) {
         lastMessageTextFromReport = getDynamicExternalWorkflowRoutedMessage(lastReportAction, translate);
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE)) {
+        lastMessageTextFromReport = getConciergeAutoSelectDistanceRateMessage(translate, lastReportAction);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {
         lastMessageTextFromReport = getPolicyChangeLogMaxExpenseAmountMessage(translate, lastReportAction, convertToDisplayString);
@@ -1008,7 +1013,7 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
             welcomeMessage.messageHtml = translate(
                 'reportActionsView.beginningOfChatHistoryPolicyExpenseChat',
                 getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')}),
-                getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber, translate}),
+                getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}),
             );
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         }
@@ -1092,7 +1097,7 @@ function getRoomWelcomeMessage({
     } else if (isInvoiceRoom(report)) {
         const payer =
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
-                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber, translate})
+                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')})
                 : invoiceReceiverPolicy?.name;
         const receiver = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
         welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryInvoiceRoom', payer ?? '', receiver);
@@ -1270,8 +1275,10 @@ function getReportAlternateText({
                     : translate('workspace.invite.removed');
             const users = translate(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
             alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName}: ${verb} ${targetAccountIDsLength} ${users}`);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const roomName = deprecatedGetReportName(lastActionReport ?? undefined, reportAttributesDerived) || lastActionOriginalMessage?.roomName;
+            const lastActionReportID = lastActionReport?.reportID;
+            const roomName =
+                getReportName(lastActionReport ?? undefined, lastActionReportID ? reportAttributesDerived?.[lastActionReportID]?.reportName : undefined) ||
+                lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM

@@ -172,10 +172,13 @@ By default, tag GL codes are hidden from members. Workspace Admins on the Contro
 
 1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), select **Workspaces** > **[workspace name]**.
 2. Select **Tags**.
-3. In the top-right corner, select **Settings**.
-4. Turn on **Show GL codes when selecting a tag**.
+3. Select **More**.
+4. Select **Settings**.
+5. Turn on **Show GL codes when selecting a tag**.
 
 Once enabled, each tag displays its GL code as a second line beneath the tag name in the tag picker, and members can search for a tag by its GL code.
+
+If a GL code isn't displayed, it isn't available for that tag in your accounting system. Add the GL code in your accounting system and sync the connection, or add it directly in Expensify if your tags aren't managed by an accounting connection.
 
 **Note:** This setting only appears when GL codes are enabled for the workspace.
 
@@ -243,4 +246,8 @@ Multi-level tags are available on Control workspaces only. If your Control works
 
 ## Can members see Tag GL codes?
 
-By default, no. Tag GL codes are visible only to Workspace Admins. However, a Workspace Admin can turn on **Show GL codes when selecting a tag** in **Tags** > **Settings** to display each tag's GL code in the tag picker for members. If that setting is off, you can still include the GL code in the tag name (for example: `1001 - Marketing`).
+By default, no. Tag GL codes are visible only to Workspace Admins. However, a Workspace Admin can turn on **Show GL codes when selecting a tag** in **Tags** > **More** > **Settings** to display each tag's GL code in the tag picker for members. If that setting is off, you can still include the GL code in the tag name (for example: `1001 - Marketing`).
+
+## Why isn't a GL code displayed for a tag?
+
+If **Show GL codes when selecting a tag** is on but a tag has no GL code next to it, that tag doesn't have a GL code available in your accounting system. Add the GL code in your accounting system and sync the connection so it appears in Expensify.

@@ -11,6 +11,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePayChatReportActions from '@hooks/usePayChatReportActions';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
@@ -32,6 +33,7 @@ import {useReportPreviewActions, useReportPreviewActionState, useReportPreviewAn
 import useReportPreviewActionButtonData from './useReportPreviewActionButtonData';
 
 function PayActionButton() {
+    const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -57,7 +59,6 @@ function PayActionButton() {
     const {iouReport, policy, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd} = actionButtonData;
     const chatReportPolicy = usePolicy(chatReport?.policyID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
@@ -85,6 +86,7 @@ function PayActionButton() {
             if (isInvoiceReportUtils(iouReport)) {
                 startAnimation();
                 payInvoice({
+                    isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                     getCurrencyDecimals,
                     paymentMethodType: type,
                     chatReport: currentChatReport,
@@ -99,9 +101,8 @@ function PayActionButton() {
                     paymentMethod,
                     activePolicy,
                     conciergeChat,
-                    betas,
                     isSelfTourViewed,
-                    defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate),
+                    defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail, currentUserDetails.displayName, lastWorkspaceNumber, translate),
                     chatReportActions: getChatReportActions(payAsBusiness),
                     delegateAccountID,
                     isTrackIntentUser,
@@ -109,6 +110,7 @@ function PayActionButton() {
                 });
             } else {
                 payMoneyRequest({
+                    isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                     getCurrencyDecimals,
                     paymentType: type,
                     chatReport: currentChatReport,
@@ -119,7 +121,6 @@ function PayActionButton() {
                     activePolicy,
                     policy,
                     chatReportPolicy,
-                    betas,
                     isSelfTourViewed,
                     userBillingGracePeriodEnds,
                     amountOwed,

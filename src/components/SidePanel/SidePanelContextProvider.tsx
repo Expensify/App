@@ -101,9 +101,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
 
     if (prevShouldHideSidePanel !== shouldHideSidePanel) {
         setPrevShouldHideSidePanel(shouldHideSidePanel);
-        if (shouldHideSidePanel) {
-            setSessionStartTime(null);
-        } else if (!sessionStartTime) {
+        if (!shouldHideSidePanel && !sessionStartTime) {
             setSessionStartTime(getServerAnchoredDBTime());
         }
     }
@@ -129,8 +127,13 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
                 duration: CONST.SIDE_PANEL_ANIMATED_TRANSITION,
                 useNativeDriver: true,
             }),
-        ]).start(() => {
+        ]).start(({finished}) => {
             setIsSidePanelTransitionEnded(true);
+            // Clear the session after the slide-out, not when it starts: the panel stays mounted for the animation and
+            // a null session empties its message list. `finished` is false on an interrupted close, sparing the new session.
+            if (finished && shouldHideSidePanel) {
+                setSessionStartTime(null);
+            }
             onCloseCompleteRef.current?.();
             onCloseCompleteRef.current = undefined;
         });

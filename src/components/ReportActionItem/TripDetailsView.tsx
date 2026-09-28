@@ -167,7 +167,6 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
             shouldGreyOutWhenDisabled={false}
             numberOfLinesTitle={0}
             interactive
-            onSecondaryInteraction={() => {}}
             iconHeight={20}
             iconWidth={20}
             iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3, shouldCenterIcon && styles.alignSelfCenter]}
