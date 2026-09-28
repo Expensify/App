@@ -43,6 +43,7 @@ type PusherDraftPaceRefs = {
 };
 
 type PusherDraftPacingRuntime = PusherDraftPaceRefs & {
+    completedReportActionIDsRef: MutableRef<Set<string>>;
     currentDraftRef: MutableRef<ConciergeDraft | null>;
     isGroupPolicyReport: boolean;
     reportID: string;
@@ -136,7 +137,13 @@ function resetPusherDraftPace(runtime: PusherDraftPaceRefs) {
 }
 
 function clearCachedPusherDraft(runtime: PusherDraftPacingRuntime) {
-    const {currentDraftRef, reportID, setDraft} = runtime;
+    const {completedReportActionIDsRef, currentDraftRef, reportID, setDraft} = runtime;
+
+    // Clearing the display must not let delayed Pusher events restart a completed reply.
+    // Unfinished drafts cleared on reconnect can still resume.
+    if (currentDraftRef.current?.status === CONCIERGE_DRAFT_STATUS.COMPLETED && !currentDraftRef.current.pusherPendingCompletionEvent) {
+        completedReportActionIDsRef.current.add(currentDraftRef.current.reportAction.reportActionID);
+    }
 
     resetPusherDraftPace(runtime);
     currentDraftRef.current = null;
@@ -631,9 +638,9 @@ function promoteQueuedPusherDraftTarget(runtime: PusherDraftPacingRuntime): bool
 }
 
 function isStalePusherDraftEventAgainstTarget(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent, latestEvent: ConciergeDraftEvent | null): boolean {
-    const {currentDraftRef, reportID} = runtime;
+    const {completedReportActionIDsRef, currentDraftRef, reportID} = runtime;
 
-    if (event.reportID !== reportID) {
+    if (event.reportID !== reportID || completedReportActionIDsRef.current.has(event.reportActionID)) {
         return true;
     }
 
@@ -867,6 +874,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
     // first paint instead of flashing the synthetic bubble away.
     const [draft, setDraft] = useState<ConciergeDraft | null>(() => getCachedDraft(reportID));
     const currentDraftRef = useRef<ConciergeDraft | null>(draft);
+    const completedReportActionIDsRef = useRef(new Set<string>());
     const visibleBodyMarkdownRef = useRef(draft?.bodyMarkdown ?? '');
     const visibleSourceMarkdownRef = useRef(draft?.pusherVisibleSourceMarkdown ?? draft?.bodyMarkdown ?? '');
     const visibleSourceOffsetRef = useRef(draft?.pusherVisibleSourceOffset ?? draft?.bodyMarkdown?.length ?? 0);
@@ -885,6 +893,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
 
     const clearDraft = () => {
         clearCachedPusherDraft({
+            completedReportActionIDsRef,
             completedPusherDraftEventRef,
             currentDraftRef,
             finalRenderedHTMLRevealDurationRef,
@@ -961,6 +970,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
         const sequence = Math.max(currentDraft.sequence, latestPusherDraftEvent?.sequence ?? 0, visibleSequenceRef.current) + 1;
         startFinalRenderedHTMLReveal(
             {
+                completedReportActionIDsRef,
                 completedPusherDraftEventRef,
                 currentDraftRef,
                 finalRenderedHTMLRevealDurationRef,
@@ -997,6 +1007,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
 
     useEffect(() => {
         const runtime = {
+            completedReportActionIDsRef,
             completedPusherDraftEventRef,
             currentDraftRef,
             finalRenderedHTMLRevealDurationRef,

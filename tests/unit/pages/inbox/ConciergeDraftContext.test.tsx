@@ -776,6 +776,14 @@ describe('ConciergeDraftContext', () => {
             expect(result.current.state.isDraftPendingCompletion).toBe(false);
             expect(getCachedDraft(REPORT_ID)).toBeNull();
 
+            // Delayed updates cannot recreate the cleared draft, through either subscription path.
+            const lateEvent = createDraftEvent('Old answer', {sequence: 2});
+            act(() => emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, lateEvent));
+            expect(result.current.state.draftReportAction).toBeNull();
+            act(() => emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_EVENTS, {events: [lateEvent]}));
+            expect(result.current.state.draftReportAction).toBeNull();
+            expect(getCachedDraft(REPORT_ID)).toBeNull();
+
             // And a new answer still starts its own stream normally.
             act(() =>
                 emitPusherEvent(
