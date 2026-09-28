@@ -586,6 +586,8 @@ const WRITE_COMMANDS = {
     UPDATE_CAMPFIRE_EXPORT_DATE: 'UpdateCampfireExportDate',
     UPDATE_CAMPFIRE_DEFAULT_VENDOR: 'UpdateCampfireDefaultVendor',
     UPDATE_CAMPFIRE_CREDIT_CARD_ACCOUNT: 'UpdateCampfireCreditCardAccount',
+    UPDATE_CAMPFIRE_EXPORT_TO_MULTIPLE_ACCOUNTS: 'UpdateCampfireExportToMultipleAccounts',
+    UPDATE_CAMPFIRE_CARD_PROGRAM_ACCOUNT: 'UpdateCampfireCardProgramAccount',
     UPDATE_CAMPFIRE_AUTO_SYNC: 'UpdateCampfireAutoSync',
     UPDATE_CAMPFIRE_ACCOUNTING_METHOD: 'UpdateCampfireAccountingMethod',
     UPDATE_CAMPFIRE_SYNC_REIMBURSED_REPORTS: 'UpdateCampfireSyncReimbursedReports',
