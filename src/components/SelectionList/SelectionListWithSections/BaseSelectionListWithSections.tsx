@@ -91,6 +91,7 @@ function BaseSelectionListWithSectionsImpl({
     shouldHighlightSelectedItem,
     shouldDisableHoverStyle,
     selectionButtonPosition,
+    shouldFooterBeInsideList = false,
     setShouldDisableHoverStyle = () => {},
 }: SelectionListWithSectionsProps<ListItem>) {
     const styles = useThemeStyles();
@@ -333,6 +334,17 @@ function BaseSelectionListWithSectionsImpl({
         }
     };
 
+    // Footer renders nothing when there is no footer content
+    const footer = (
+        <Footer<ListItem>
+            footerContent={footerContent}
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+        />
+    );
+
+    const shouldShowEmptyState = itemsCount === 0 && (shouldShowLoadingPlaceholder || shouldShowListEmptyContent);
+    const isFooterInsideList = shouldFooterBeInsideList && !shouldShowEmptyState;
+
     return (
         <View
             ref={containerRef}
@@ -341,7 +353,7 @@ function BaseSelectionListWithSectionsImpl({
         >
             {textInputComponent()}
             {customHeaderContent}
-            {itemsCount === 0 && (shouldShowLoadingPlaceholder || shouldShowListEmptyContent) ? (
+            {shouldShowEmptyState ? (
                 <SelectionListEmptyState
                     shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                     shouldShowListEmptyContent={shouldShowListEmptyContent}
@@ -371,19 +383,23 @@ function BaseSelectionListWithSectionsImpl({
                     showsVerticalScrollIndicator
                     keyboardShouldPersistTaps="always"
                     ListHeaderComponent={customListHeaderContent}
-                    ListFooterComponent={listFooterContent}
+                    ListFooterComponent={
+                        isFooterInsideList ? (
+                            <>
+                                {listFooterContent}
+                                {footer}
+                            </>
+                        ) : (
+                            listFooterContent
+                        )
+                    }
                     ListFooterComponentStyle={style?.listFooterContentStyle}
                     style={style?.listStyle}
                     contentContainerStyle={style?.contentContainerStyle}
                     maintainVisibleContentPosition={{disabled: true}}
                 />
             )}
-            {!!footerContent && (
-                <Footer<ListItem>
-                    footerContent={footerContent}
-                    addBottomSafeAreaPadding={addBottomSafeAreaPadding}
-                />
-            )}
+            {!isFooterInsideList && footer}
         </View>
     );
 }
