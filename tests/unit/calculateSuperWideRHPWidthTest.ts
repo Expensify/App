@@ -39,8 +39,22 @@ describe('calculateSuperWideRHPWidth', () => {
         const superWideRHPWidth = calculateSuperWideRHPWidth(windowWidth);
 
         // Then the wide RHP floor wins over the raw 900 - 360 = 540, so the sheet is never narrower than the layout it shows.
-        // The floor is the window less the floating card's 12px inset margin, which is what keeps the card's left edge on-screen.
-        expect(superWideRHPWidth).toBe(888);
+        // The floor is the window less the floating card's 12px margin and 2px of border, which is what keeps the card's left edge on-screen.
+        expect(superWideRHPWidth).toBe(886);
+    });
+
+    it('keeps the floating card fully on-screen on every wide layout width', () => {
+        // Given every window width between the narrow layout breakpoint and where the Side Panel starts docking
+        const windowWidths = Array.from({length: 500}, (_, index) => 801 + index);
+
+        // When the left edge of the wide and super wide cards is measured as the window less the right margin, the border and the card width
+        const cardLeftEdges = windowWidths.flatMap((windowWidth) =>
+            [calculateWideRHPWidth(windowWidth), calculateSuperWideRHPWidth(windowWidth)].map((cardWidth) => windowWidth - 12 - 2 - cardWidth),
+        );
+
+        // Then no width pushes it off the left of the window, which is what regressed at 801-811 when only part of the inset was charged.
+        expect(cardLeftEdges.filter((cardLeftEdge) => cardLeftEdge < 0)).toEqual([]);
+        expect(cardLeftEdges.at(0)).toBe(0);
     });
 
     it('pins the exact window width where the wide RHP floor takes over', () => {
