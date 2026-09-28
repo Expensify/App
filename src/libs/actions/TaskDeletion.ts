@@ -109,10 +109,9 @@ function deleteTask(
 
     const optimisticLastReportData = optimisticReportLastData(
         parentReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+        currentUserAccountID,
         optimisticReportActions,
         canUserPerformWriteAction,
-        undefined,
-        currentUserAccountID,
     );
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {

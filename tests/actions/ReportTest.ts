@@ -11438,7 +11438,7 @@ describe('actions/Report', () => {
         it('should point the last visible action at the whisper when the user is the one it targets', () => {
             // Given a report whose newest action is a whisper aimed at the user
             // When the optimistic last-report data is built for that user
-            const result = Report.optimisticReportLastData(REPORT_ID, {}, true, false, WHISPER_TARGET_ACCOUNT_ID);
+            const result = Report.optimisticReportLastData(REPORT_ID, WHISPER_TARGET_ACCOUNT_ID, {}, true, false);
 
             // Then the action fields describe the whisper
             expect(result.lastVisibleActionCreated).toBe(whisper.created);
@@ -11448,7 +11448,7 @@ describe('actions/Report', () => {
         it('should skip the whisper and point at the older comment when it targets somebody else', () => {
             // Given the same report, seen by an account the whisper does not target
             // When the optimistic last-report data is built for that account
-            const result = Report.optimisticReportLastData(REPORT_ID, {}, true, false, WHISPER_TARGET_ACCOUNT_ID + 1);
+            const result = Report.optimisticReportLastData(REPORT_ID, WHISPER_TARGET_ACCOUNT_ID + 1, {}, true, false);
 
             // Then the whisper is invisible and the action fields describe the older comment
             expect(result.lastVisibleActionCreated).toBe(comment.created);

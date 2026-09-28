@@ -3487,10 +3487,10 @@ function deleteReportComment(
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
     const optimisticLastReportData = optimisticReportLastData(
         originalReportID,
+        currentUserAccountID,
         optimisticReportActions as ReportActions,
         canUserPerformWriteAction,
         isOriginalReportArchived,
-        currentUserAccountID,
     );
 
     const optimisticReport: Partial<Report> = {
@@ -5833,11 +5833,10 @@ function removeFromGroupChat(report: Report, accountIDList: number[]) {
 
 function optimisticReportLastData(
     reportID: string,
+    currentUserAccountID: number,
     optimisticReportActions: Record<string, NullishDeep<ReportAction> | null> = {},
     canUserPerformWriteAction?: boolean,
     isReportArchived?: boolean,
-    // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
-    currentUserAccountID?: number,
 ) {
     const lastMessageText = getLastVisibleMessage(reportID, isReportArchived, optimisticReportActions).lastMessageText ?? '';
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, canUserPerformWriteAction, optimisticReportActions, undefined, undefined, currentUserAccountID);
@@ -5911,12 +5910,12 @@ function flagComment(
 
     const optimisticLastReportData = optimisticReportLastData(
         originalReportID ?? String(CONST.DEFAULT_NUMBER_ID),
+        currentUserAccountID,
         {
             [reportActionID]: {...reportAction, message: [updatedMessage], pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
         } as ReportActions,
         canUserPerformWriteAction,
         isOriginalReportArchived,
-        currentUserAccountID,
     );
 
     const optimisticReport: Partial<Report> = {

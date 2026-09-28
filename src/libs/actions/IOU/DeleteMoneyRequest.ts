@@ -956,10 +956,9 @@ function deleteMoneyRequest({
         const optimisticReportActions = reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {};
         const optimisticLastReportData = optimisticReportLastData(
             iouReport?.chatReportID ?? String(CONST.DEFAULT_NUMBER_ID),
+            currentUserAccountID,
             optimisticReportActions,
             canUserPerformWriteAction,
-            undefined,
-            currentUserAccountID,
         );
 
         if (chatReport) {
