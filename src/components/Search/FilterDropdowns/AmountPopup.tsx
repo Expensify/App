@@ -42,6 +42,7 @@ function AmountInput({title, value, name, onSave, onBackButtonPress}: AmountInpu
             onApply={() => onSave(amount)}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_AMOUNT}
             onBackButtonPress={onBackButtonPress}
+            shouldSubmitOnEnter
         >
             <AmountWithoutCurrencyInput
                 containerStyles={[styles.ph4, styles.mb2]}
