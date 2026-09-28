@@ -395,6 +395,7 @@ type SearchQueryAST = {
     filters: ASTNode;
     rawFilterList?: RawQueryFilter[];
     columns?: SearchCustomColumnIds | SearchCustomColumnIds[];
+    groupColumns?: SearchColumnType[];
     limit?: number;
 };
 
