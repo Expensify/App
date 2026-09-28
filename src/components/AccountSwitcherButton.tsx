@@ -27,6 +27,8 @@ import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
+import type {ComponentRef} from 'react';
+
 import {canSwitchAccountsSelector} from '@selectors/Account';
 import {Str} from 'expensify-common';
 import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
@@ -55,7 +57,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
     const styles = useThemeStyles();
     const {localeCompare, translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
@@ -69,7 +71,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
     const delegators = account?.delegatedAccess?.delegators ?? [];
     const personalDetailsByLogin = usePersonalDetailsByLogins([delegate, ...delegators.map((delegator) => delegator.email)]);
 
-    const buttonRef = useRef<View>(null);
+    const buttonRef = useRef<ComponentRef<typeof View>>(null);
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {calculatePopoverPosition} = usePopoverPosition();
 
@@ -234,6 +236,11 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
         });
     };
 
+    // Right alignment only makes sense while the button is the trailing item of a row, which is the landscape phone
+    // header. A narrow portrait header stacks and centers the button, so right-aligning there grows the tooltip
+    // leftward off the screen, and the wide layout puts the button in the top bar.
+    const isButtonTrailingItemOfRow = shouldUseNarrowLayout && isInLandscapeMode;
+
     const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
     const tooltipProps = shouldShowProductTrainingTooltip
         ? {
@@ -242,14 +249,16 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
               anchorAlignment: {
                   // Center on the button so the pointer lands on the button's center rather than off by its right edge.
                   // The tooltip is wider than the room left of the window gutter, so the body still gets pulled left and
-                  // only the pointer ends up truly centered. Narrow layouts keep the right alignment they had before.
-                  horizontal: shouldUseNarrowLayout ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+                  // only the pointer ends up truly centered.
+                  horizontal: isButtonTrailingItemOfRow ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
                   vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
               },
               shiftVertical: variables.accountSwitcherTooltipShiftVertical,
               // The nudge squares the right-aligned tooltip up against the gutter. Centered alignment subtracts it back
               // out of the pointer offset, which would drag the pointer off the button's center, so drop it.
-              shiftHorizontal: shouldUseNarrowLayout ? variables.accountSwitcherTooltipShiftHorizontal : 0,
+              shiftHorizontal: isButtonTrailingItemOfRow ? variables.accountSwitcherTooltipShiftHorizontal : 0,
+              // Native ignores the keep-on-screen clamp unless we opt in.
+              computeHorizontalShiftForNative: true,
               wrapperStyle: styles.productTrainingTooltipWrapper,
               onTooltipPress: onPressSwitcher,
               // The switcher lives in the settings sidebar, which isn't the navigation-focused screen on wide layouts.
