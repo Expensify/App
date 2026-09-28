@@ -1,4 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -28,6 +29,8 @@ import {isPerDiemRequest, isScanRequest} from '@libs/TransactionUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -56,6 +59,9 @@ type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS
 
 // Tab indices for IOURequestStartPage
 const PER_DIEM_TAB_INDEX = 2;
+
+// Vertical space the tab bar keeps below the header, so the collapsing header does not hand it out twice.
+const TAB_NAVIGATOR_HEIGHT_LANDSCAPE = variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding;
 
 function IOURequestStartPage({
     route,
@@ -284,15 +290,17 @@ function IOURequestStartPage({
                 {/* The confirmation screen is shown on the start page for the manual tab, so we do not want to disable the drag and drop provider in that case */}
                 <DragAndDropProvider isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN && selectedTab !== CONST.TAB_REQUEST.MANUAL}>
                     <View style={styles.flex1}>
-                        <FocusTrapContainerElement
-                            onContainerElementChanged={setHeaderWithBackButtonContainerElement}
-                            style={[styles.w100]}
-                        >
-                            <HeaderWithBackButton
-                                title={tabTitles[iouType]}
-                                onBackButtonPress={navigateBack}
-                            />
-                        </FocusTrapContainerElement>
+                        <CollapsibleHeaderOnKeyboard collapsibleHeaderOffset={shouldUseTab ? TAB_NAVIGATOR_HEIGHT_LANDSCAPE : 0}>
+                            <FocusTrapContainerElement
+                                onContainerElementChanged={setHeaderWithBackButtonContainerElement}
+                                style={[styles.w100]}
+                            >
+                                <HeaderWithBackButton
+                                    title={tabTitles[iouType]}
+                                    onBackButtonPress={navigateBack}
+                                />
+                            </FocusTrapContainerElement>
+                        </CollapsibleHeaderOnKeyboard>
 
                         {shouldUseTab ? (
                             <OnyxTabNavigator
