@@ -30,12 +30,6 @@ type LabelLayoutConfig = {
 
     /** Measurements of the label text. */
     measurements: ReturnType<typeof useChartLabelMeasurements>;
-
-    /**
-     * When true, labels that don't fit at 45° request a horizontal bar layout (`shouldUseHorizontalBars`)
-     * instead of falling back to 90° rotation with skipped labels.
-     */
-    canFallBackToHorizontalBars?: boolean;
 };
 
 const EMPTY_LAYOUT = {
@@ -48,19 +42,9 @@ const EMPTY_LAYOUT = {
     firstLabelMaxWidth: Infinity,
     lastLabelMaxWidth: Infinity,
     ellipsisWidth: 0,
-    shouldUseHorizontalBars: false,
 };
 
-function useChartLabelLayout({
-    data,
-    fontManager,
-    tickSpacing,
-    labelAreaWidth,
-    firstTickLeftSpace = Infinity,
-    lastTickRightSpace = Infinity,
-    measurements,
-    canFallBackToHorizontalBars = false,
-}: LabelLayoutConfig) {
+function useChartLabelLayout({data, fontManager, tickSpacing, labelAreaWidth, firstTickLeftSpace = Infinity, lastTickRightSpace = Infinity, measurements}: LabelLayoutConfig) {
     // Phase 1: font/data measurements — stable across geometry-only changes (resize).
 
     // Phase 2: layout decisions + label truncation.
@@ -77,9 +61,8 @@ function useChartLabelLayout({
     const effectiveFirstTickLeftSpace = data.length === 1 ? Infinity : firstTickLeftSpace;
     const effectiveLastTickRightSpace = data.length === 1 ? Infinity : lastTickRightSpace;
 
-    // Pick rotation (prefer 0° → 45° → 90°, or 0° → 45° → horizontal bars when allowed)
+    // Pick rotation (prefer 0° → 45° → 90°)
     let rotation: LabelRotation = LABEL_ROTATIONS.VERTICAL;
-    let shouldUseHorizontalBars = false;
 
     const hWidth = effectiveWidth(maxLabelWidth, lineHeight, LABEL_ROTATIONS.HORIZONTAL);
     const hFitsInTicks = hWidth + LABEL_PADDING <= tickSpacing && maxVisibleCount(labelAreaWidth, hWidth) >= data.length;
@@ -104,8 +87,6 @@ function useChartLabelLayout({
 
         if (dFitsInTicks && dEdgeFits) {
             rotation = LABEL_ROTATIONS.DIAGONAL;
-        } else if (canFallBackToHorizontalBars) {
-            shouldUseHorizontalBars = true;
         }
     }
 
@@ -149,7 +130,6 @@ function useChartLabelLayout({
         firstLabelMaxWidth: labelMaxWidths.at(0) ?? tickMaxWidth,
         lastLabelMaxWidth: labelMaxWidths.at(lastIndex) ?? tickMaxWidth,
         ellipsisWidth,
-        shouldUseHorizontalBars,
     };
 }
 

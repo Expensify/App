@@ -82,6 +82,7 @@ import {
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
     isReportManager as isReportManagerUtils,
+    isReportOwner as isReportOwnerUtils,
     isSelfDM as isSelfDMReportUtils,
     isSettled,
     isTrackExpenseReportNew,
@@ -723,8 +724,16 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
     return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy) && !isExportedUtils(reportActions, report);
 }
 
-function isDeleteAction(report: Report, reportTransactions: Transaction[], currentUserAccountID: number, rules: OnyxCollection<Rule>, reportActions?: ReportAction[]): boolean {
-    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions ?? [], currentUserAccountID, rules);
+function isDeleteAction(
+    report: Report,
+    reportTransactions: Transaction[],
+    currentUserAccountID: number,
+    rules: OnyxCollection<Rule>,
+    reportActions?: ReportAction[],
+    policy?: Policy,
+    isReportLevelDelete = false,
+): boolean {
+    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions ?? [], currentUserAccountID, rules, policy, isReportLevelDelete);
 }
 
 function shouldShowEditSplitInDeleteAction(
@@ -968,6 +977,18 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
     return true;
 }
 
+function isDownloadPDFAction(report: Report, currentUserAccountID: number): boolean {
+    // An open report has no finalized report on the backend, and `ExportReportToPDF` re-runs its access check against the
+    // report's current owner/manager. After a rejection the report goes back to open and is owned by the submitter again,
+    // so anyone else (e.g. the approver who rejected it, or their vacation delegate) gets a 404 instead of a PDF.
+    // The owner can still export their own draft, so only hide the action for everyone else.
+    if (isOpenReportUtils(report) && !isReportOwnerUtils(report, currentUserAccountID)) {
+        return false;
+    }
+
+    return true;
+}
+
 function getSecondaryReportActions({
     currentUserLogin,
     currentUserAccountID,
@@ -1134,7 +1155,9 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
 
-    options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
+    if (isDownloadPDFAction(report, currentUserAccountID)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
+    }
 
     if (reportTransactions.some(hasReceiptTransactionUtils)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS);
@@ -1176,7 +1199,7 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(report, reportTransactions, currentUserAccountID, rules, reportActions ?? [])) {
+    if (isDeleteAction(report, reportTransactions, currentUserAccountID, rules, reportActions ?? [], policy, true)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
 
@@ -1305,7 +1328,7 @@ function getSecondaryTransactionThreadActions({
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(parentReport, [reportTransaction], currentUserAccountID, rules, reportAction ? [reportAction] : [])) {
+    if (isDeleteAction(parentReport, [reportTransaction], currentUserAccountID, rules, reportAction ? [reportAction] : [], policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE);
     }
 

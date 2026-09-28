@@ -131,7 +131,21 @@ function useReconcileSelectionWithData({
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     useEffect(() => {
-        if (!isFocused) {
+        const shouldReconcileMovedExcludedTransaction =
+            isExpenseReportType &&
+            areAllMatchingItemsSelected &&
+            shouldReconcileExcludedTransactions &&
+            filteredData.some((item) => {
+                if (!('transactions' in item) || !item.keyForList) {
+                    return false;
+                }
+                return item.transactions.some((transaction) => {
+                    const listKey = transaction.keyForList ?? transaction.transactionID;
+                    const exclusion = excludedTransactions[listKey] ?? excludedTransactions[transaction.transactionID];
+                    return !!exclusion?.reportID && exclusion.reportID !== item.keyForList;
+                });
+            });
+        if (!isFocused && shouldReconcileMovedExcludedTransaction === false) {
             return;
         }
 
@@ -139,7 +153,16 @@ function useReconcileSelectionWithData({
             return;
         }
         const newTransactionList: SelectedTransactions = {};
+        const inferredExcludedTransactions: SelectedTransactions = {};
         const liveSelectionEntries = new Map<string, SelectedTransactionInfo>();
+        const nonEmptyReportKeys = new Set<string>();
+        const excludedReportKeys = new Set(
+            isExpenseReportType
+                ? Object.values(excludedTransactions)
+                      .map((transaction) => transaction.reportID)
+                      .filter((reportID): reportID is string => !!reportID)
+                : [],
+        );
         if (areItemsGrouped) {
             for (const transactionGroup of filteredData) {
                 if (!Object.hasOwn(transactionGroup, 'transactions') || !('transactions' in transactionGroup)) {
@@ -156,7 +179,10 @@ function useReconcileSelectionWithData({
                     if (transactionGroup.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                         continue;
                     }
-                    if (reportKey && !Object.hasOwn(excludedTransactions, reportKey) && (reportKey in selectedTransactions || areAllMatchingItemsSelected)) {
+                    const isEmptyReportExcluded = !!reportKey && isExpenseReportType && (Object.hasOwn(excludedTransactions, reportKey) || excludedReportKeys.has(reportKey));
+                    if (isEmptyReportExcluded) {
+                        inferredExcludedTransactions[reportKey] = liveSelectionEntries.get(reportKey) ?? mapEmptyReportToSelectedEntry(transactionGroup)[1];
+                    } else if (reportKey && !Object.hasOwn(excludedTransactions, reportKey) && (reportKey in selectedTransactions || areAllMatchingItemsSelected)) {
                         const emptyReportSelection = liveSelectionEntries.get(reportKey) ?? mapEmptyReportToSelectedEntry(transactionGroup)[1];
                         newTransactionList[reportKey] = {
                             ...emptyReportSelection,
@@ -164,6 +190,10 @@ function useReconcileSelectionWithData({
                         };
                     }
                     continue;
+                }
+
+                if (isExpenseReportType && reportKey) {
+                    nonEmptyReportKeys.add(reportKey);
                 }
 
                 // For expense reports: when ANY transaction is selected, we want ALL transactions in the report selected.
@@ -174,17 +204,25 @@ function useReconcileSelectionWithData({
                     (transaction) => (!!transaction.keyForList && transaction.keyForList in selectedTransactions) || transaction.transactionID in selectedTransactions,
                 );
                 const propagateSelectionToAllRows = (isExpenseReportType && (wasReportSelected || hasIndividualSelectedInGroup)) || (wasReportSelected && !isExpenseReportType);
-                const isParentGroupExcluded = type === CONST.SEARCH.DATA_TYPES.EXPENSE && !!reportKey && Object.hasOwn(excludedTransactions, reportKey);
+                const isParentGroupExcluded =
+                    !!reportKey &&
+                    ((type === CONST.SEARCH.DATA_TYPES.EXPENSE && Object.hasOwn(excludedTransactions, reportKey)) ||
+                        (isExpenseReportType && (Object.hasOwn(excludedTransactions, reportKey) || excludedReportKeys.has(reportKey))));
 
                 for (const transactionItem of transactionGroup.transactions) {
                     const listKey = transactionItem.keyForList ?? transactionItem.transactionID;
-                    const isDirectlyExcluded = Object.hasOwn(excludedTransactions, listKey) || Object.hasOwn(excludedTransactions, transactionItem.transactionID);
+                    const directExclusion = excludedTransactions[listKey] ?? excludedTransactions[transactionItem.transactionID];
+                    // A report exclusion belongs to the report where it was created. If the transaction moves to a
+                    // selected report, it must inherit that destination report's selection instead of carrying the
+                    // source report's exclusion with it.
+                    const directExclusionBelongsToCurrentReport = !isExpenseReportType || !reportKey || !directExclusion?.reportID || directExclusion.reportID === reportKey;
+                    const isDirectlyExcluded = !!directExclusion && directExclusionBelongsToCurrentReport;
                     const isExcluded = isParentGroupExcluded || isDirectlyExcluded;
                     const isSelected = listKey in selectedTransactions || transactionItem.transactionID in selectedTransactions;
 
                     // Include transaction if: already individually selected, part of select-all, or group-level propagation (expense report / empty group expanded)
                     const shouldInclude = !isExcluded && (isSelected || areAllMatchingItemsSelected || propagateSelectionToAllRows);
-                    if (!shouldInclude && !isDirectlyExcluded) {
+                    if (!shouldInclude && !isDirectlyExcluded && !(isExpenseReportType && isParentGroupExcluded)) {
                         continue;
                     }
 
@@ -216,11 +254,15 @@ function useReconcileSelectionWithData({
                         isSelected: !isExcluded && (areAllMatchingItemsSelected || !!previousSelection?.isSelected || propagateSelectionToAllRows),
                         canReject: transactionItem.report ? canRejectReportAction(transactionItem.report, currentUserAccountID, transactionItem.policy) : false,
                         policyID: transactionItem.report?.policyID,
-                        groupKey: previousSelection?.groupKey ?? (propagateSelectionToAllRows && !isExpenseReportType ? reportKey : undefined),
+                        groupKey:
+                            previousSelection?.groupKey ?? ((propagateSelectionToAllRows && !isExpenseReportType) || (isExpenseReportType && isParentGroupExcluded) ? reportKey : undefined),
                         isSelectedViaGroup: previousSelection?.isSelectedViaGroup,
                     };
                     liveSelectionEntries.set(listKey, liveSelectionEntry);
                     liveSelectionEntries.set(transactionItem.transactionID, liveSelectionEntry);
+                    if (isExpenseReportType && isParentGroupExcluded && !isDirectlyExcluded) {
+                        inferredExcludedTransactions[listKey] = liveSelectionEntry;
+                    }
                     if (shouldInclude) {
                         newTransactionList[listKey] = liveSelectionEntry;
                     }
@@ -308,11 +350,19 @@ function useReconcileSelectionWithData({
 
         let reconciledExcludedTransactions = excludedTransactions;
         if (shouldReconcileExcludedTransactions && areAllMatchingItemsSelected && !isEmptyObject(excludedTransactions)) {
-            const nextExcludedTransactions: SelectedTransactions = {};
+            const nextExcludedTransactions: SelectedTransactions = {...inferredExcludedTransactions};
             for (const [key, excludedTransaction] of Object.entries(excludedTransactions)) {
+                // Once an empty excluded report gains children, replace its report-level marker with the current
+                // child exclusions seeded above so the footer counts the report only once.
+                if (isExpenseReportType && key === excludedTransaction.reportID && nonEmptyReportKeys.has(key)) {
+                    continue;
+                }
                 const transactionID = excludedTransaction.transaction?.transactionID;
                 const liveEntry = liveSelectionEntries.get(key) ?? (transactionID ? liveSelectionEntries.get(transactionID) : undefined);
                 if (liveEntry) {
+                    if (isExpenseReportType && excludedTransaction.reportID && liveEntry.reportID && excludedTransaction.reportID !== liveEntry.reportID) {
+                        continue;
+                    }
                     nextExcludedTransactions[key] = {
                         ...liveEntry,
                         groupKey: excludedTransaction.groupKey,
@@ -322,9 +372,9 @@ function useReconcileSelectionWithData({
                     continue;
                 }
 
-                // Lazy group children are held in a separate snapshot. Keep their exclusions while the parent
-                // group is still present; if the parent disappears, the child no longer matches this search.
-                if (excludedTransaction.groupKey && liveSelectionEntries.has(excludedTransaction.groupKey)) {
+                // Lazy expense-group children are held in a separate snapshot. Keep their exclusions while the parent
+                // group is still present; report rows contain their current children, so a missing child was removed.
+                if (!isExpenseReportType && excludedTransaction.groupKey && liveSelectionEntries.has(excludedTransaction.groupKey)) {
                     nextExcludedTransactions[key] = excludedTransaction;
                 }
             }
@@ -443,6 +493,7 @@ function SearchWriteActionsProvider({
     const searchResultsData = searchResults?.data;
     const currentUserEmail = email ?? '';
     const currentUserLogin = login ?? '';
+    const shouldPreserveAllMatchingSelection = type === CONST.SEARCH.DATA_TYPES.EXPENSE || isExpenseReportType;
 
     const toggle: SearchRowSelectionActionsValue['toggle'] = (item, itemTransactions) => {
         if (isReportActionListItemType(item) || isTaskListItemType(item)) {
@@ -512,7 +563,7 @@ function SearchWriteActionsProvider({
                 },
                 {
                     totalSelectableItemsCount,
-                    shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    shouldPreserveAllMatchingSelection,
                     shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
                 },
             );
@@ -594,8 +645,9 @@ function SearchWriteActionsProvider({
                 });
             },
             {
+                ...(isExpenseReportType ? {data: filteredData} : {}),
                 totalSelectableItemsCount,
-                shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE,
+                shouldPreserveAllMatchingSelection,
                 shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
             },
         );
@@ -697,7 +749,8 @@ function SearchWriteActionsProvider({
         selfDMReport,
         reportNameValuePairs,
         outstandingReportsByPolicyID,
-        shouldReconcileExcludedTransactions: type === CONST.SEARCH.DATA_TYPES.EXPENSE && !!searchResultsData && searchResults?.search?.isLoading === false && !searchResults?.errors,
+        shouldReconcileExcludedTransactions:
+            (type === CONST.SEARCH.DATA_TYPES.EXPENSE || isExpenseReportType) && !!searchResultsData && searchResults?.search?.isLoading === false && !searchResults?.errors,
     });
     useTurnOffSelectionModeWhenEmpty({isFocused, isMobileSelectionModeEnabled});
     useSyncMobileSelectionModeWithScreenSize({isFocused, isMobileSelectionModeEnabled, isSearchResultsEmpty});
