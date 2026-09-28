@@ -54,6 +54,7 @@ function DatePicker({
     rightHandSideComponent,
     onPickerVisibilityChange,
     shouldHideCalendarIcon = false,
+    shouldEnableMonthYearBackdropInNarrowPane = false,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
@@ -276,6 +277,7 @@ function DatePicker({
                 shouldPositionFromTop={!isInverted}
                 forwardedFSClass={forwardedFSClass}
                 shouldCloseWhenBrowserNavigationChanged
+                shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
             />
         </>
     );

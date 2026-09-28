@@ -13,6 +13,7 @@ import TextInput from '@components/TextInput';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -57,6 +58,7 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
     const isInLandscapeMode = useIsInLandscapeMode();
+    const {isInNarrowPaneModal} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
 
     const [draftValue, setDraftValue] = useState(value);
@@ -154,6 +156,9 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                 wrapperStyle={styles.mv0}
                 shouldDeferShowUntilPositioned
                 shouldHideClearButton
+                // The Month/Year pickers are right-docked, and a right-docked modal opened from the RHP drops its
+                // backdrop by default, so the report behind them would not be dimmed.
+                shouldEnableMonthYearBackdropInNarrowPane={isInNarrowPaneModal}
             />
         );
     }
