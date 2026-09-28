@@ -154,6 +154,7 @@ function useConfirmationListDataWithPolicy({
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const shouldShowReadOnlySplits = isPolicyExpenseChat || isReadOnly || isScanRequest;
+
     // Both the validation gate and the clear gate below key off this, so it is computed once here rather than
     // being re-derived per hook, where the two could be updated independently.
     const shouldShowDate = shouldShowConfirmationDate(shouldShowSmartScanFields, isDistanceRequest);
