@@ -1232,7 +1232,7 @@ function MoneyRequestView({
         : [];
     const fieldsToShow = getMoneyRequestViewFields(tableColumns, savedColumns.length > 0);
 
-    const renderField = (column: SearchColumnType) => {
+    const renderField = (column: SearchColumnType): React.ReactNode => {
         switch (column) {
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
                 return (

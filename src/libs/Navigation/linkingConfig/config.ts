@@ -1658,9 +1658,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_NAME]: DYNAMIC_ROUTES.REPORT_SETTINGS_NAME.path,
                         [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_WRITE_CAPABILITY]: DYNAMIC_ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.path,
                         [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_VISIBILITY]: DYNAMIC_ROUTES.REPORT_SETTINGS_VISIBILITY.path,
+                        [SCREENS.REPORT_SETTINGS.FIELDS]: {
+                            path: ROUTES.REPORT_SETTINGS_FIELDS.route,
+                        },
                         [SCREENS.REPORT_SETTINGS.COLUMNS]: {
                             path: ROUTES.REPORT_SETTINGS_COLUMNS.route,
-                            parse: {isExpenseView: (value: string) => value === 'true'},
                         },
                     },
                 },

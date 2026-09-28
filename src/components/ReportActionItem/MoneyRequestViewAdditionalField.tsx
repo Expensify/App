@@ -1,3 +1,4 @@
+/** Read-only report columns reuse the table's value and formatting helpers. */
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import type {SearchColumnType} from '@components/Search/types';
 
@@ -41,7 +42,6 @@ type MoneyRequestViewAdditionalFieldProps = {
     attendeeCount: number;
 };
 
-/** Read-only report columns reuse the table's value and formatting helpers. */
 function MoneyRequestViewAdditionalField({column, transaction, report, policy, policyCategories, policyTagLists, attendeeCount}: MoneyRequestViewAdditionalFieldProps) {
     const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();

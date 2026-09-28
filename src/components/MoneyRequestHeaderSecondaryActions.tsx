@@ -545,7 +545,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 if (!parentReport?.reportID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.REPORT_SETTINGS_COLUMNS.getRoute(parentReport.reportID, true));
+                Navigation.navigate(ROUTES.REPORT_SETTINGS_FIELDS.getRoute(parentReport.reportID));
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS]: {

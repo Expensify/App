@@ -408,7 +408,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 if (!reportID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.REPORT_SETTINGS_COLUMNS.getRoute(reportID, true));
+                Navigation.navigate(ROUTES.REPORT_SETTINGS_FIELDS.getRoute(reportID));
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {

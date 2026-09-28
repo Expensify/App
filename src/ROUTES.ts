@@ -2730,9 +2730,13 @@ const ROUTES = {
         route: 'r/:reportID/change-approver/reassign',
         getRoute: (reportID: string) => `r/${reportID}/change-approver/reassign` as const,
     },
+    REPORT_SETTINGS_FIELDS: {
+        route: 'r/:reportID/settings/fields',
+        getRoute: (reportID: string) => `r/${reportID}/settings/fields` as const,
+    },
     REPORT_SETTINGS_COLUMNS: {
         route: 'r/:reportID/settings/columns',
-        getRoute: (reportID: string, isExpenseView = false) => `r/${reportID}/settings/columns${isExpenseView ? '?isExpenseView=true' : ''}` as const,
+        getRoute: (reportID: string) => `r/${reportID}/settings/columns` as const,
     },
     CHRONOS_SCHEDULE_OOO: {
         route: 'r/:reportID/chronos/schedule-ooo',
