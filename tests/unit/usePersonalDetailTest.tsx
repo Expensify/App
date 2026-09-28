@@ -1,9 +1,9 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import {usePersonalDetail, usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -13,6 +13,7 @@ const ALICE = {accountID: 1, displayName: 'Alice', login: 'alice@test.com'};
 const BOB = {accountID: 2, displayName: 'Bob', login: 'bob@test.com'};
 
 const loginSelector = (personalDetail: PersonalDetails | undefined) => personalDetail?.login;
+const loginsSelector = (personalDetails: PersonalDetailsList) => Object.values(personalDetails).map((personalDetail) => personalDetail?.login);
 
 async function mergePersonalDetails(personalDetails: Record<number, Partial<PersonalDetails>>) {
     await act(async () => {
@@ -108,6 +109,50 @@ describe('usePersonalDetail', () => {
         await mergePersonalDetails({[BOB.accountID]: {displayName: 'Bob Renamed'}});
 
         // Then the component doesn't re-render, because Alice's record is unchanged
+        expect(renderCount).toBe(initialRenderCount);
+    });
+});
+
+describe('usePersonalDetailsByIDs', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ALICE.accountID]: ALICE, [BOB.accountID]: BOB});
+        await waitForBatchedUpdates();
+    });
+
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdates();
+    });
+
+    it('passes only the requested accounts to the selector', () => {
+        // Given the personal details list contains Alice and Bob
+
+        // When selecting logins for Alice only
+        const {result} = renderHook(() => usePersonalDetailsByIDs([ALICE.accountID], loginsSelector));
+
+        // Then Bob's login is left out, because the selector only sees the requested accounts
+        expect(result.current[0]).toEqual([ALICE.login]);
+    });
+
+    it('does not re-render when a field outside the selector changes', async () => {
+        // Given a component reading only Alice's login
+        let renderCount = 0;
+        renderHook(() => {
+            renderCount++;
+            return usePersonalDetailsByIDs([ALICE.accountID], loginsSelector);
+        });
+        const initialRenderCount = renderCount;
+
+        // When Alice's display name changes
+        await mergePersonalDetails({[ALICE.accountID]: {displayName: 'Alice Renamed'}});
+
+        // Then the component doesn't re-render, because the selected logins are unchanged
         expect(renderCount).toBe(initialRenderCount);
     });
 });
