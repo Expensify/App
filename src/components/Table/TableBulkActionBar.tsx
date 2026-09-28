@@ -33,4 +33,3 @@ function TableBulkActionBar<TValueType>({onClearSelection, ...bulkActionBarProps
 }
 
 export default TableBulkActionBar;
-export type {TableBulkActionBarProps};
