@@ -12,7 +12,7 @@ const checklistEndsWith = '\r\n### Screenshots/Videos';
 
 const prNumber = github.context.payload.pull_request?.number;
 
-// Items that used to be added to the checklist automatically and are now enforced by the coding-standards
+// Items that used to be added to the checklist automatically and are now enforced by the app-coding-standards
 // rules instead. Transitional: this list and the strip below can go once the PRs still carrying them close.
 const RETIRED_CHECKLIST_ITEMS = [
     "I verified that similar component doesn't exist in the codebase",
@@ -66,7 +66,7 @@ async function removeRetiredChecksAndCheckForCompletion() {
     // eslint-disable-next-line prefer-const
     let [contentBeforeChecklist, checklist, contentAfterChecklist] = partitionWithChecklist(body);
 
-    // Drop items that were added to the checklist before they became coding-standards rules, so PRs opened
+    // Drop items that were added to the checklist before they became app-coding-standards rules, so PRs opened
     // back then are not left holding boxes that nobody is meant to tick.
     for (const check of RETIRED_CHECKLIST_ITEMS) {
         const regex = new RegExp(`- \\[([ x])] ${escapeRegExp(check)}\r\n`);

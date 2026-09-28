@@ -12,7 +12,6 @@
 "../../__mocks__/react-native-onyx.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../__mocks__/react-native-safe-area-context.tsx"	"react-hooks/refs"	4
 "../../__mocks__/react-native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../.github/actions/javascript/authorChecklist/categories/newComponentCategory.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../.github/actions/javascript/failureNotifier/failureNotifier.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../.github/actions/javascript/formatCodeCovComment/formatCodeCovComment.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../.github/actions/javascript/getAndroidRolloutPercentage/getAndroidRolloutPercentage.ts"	"rulesdir/no-default-id-values"	1
