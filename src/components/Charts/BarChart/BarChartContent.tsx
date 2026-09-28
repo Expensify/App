@@ -1,7 +1,7 @@
 import BAR_INNER_PADDING, {VERTICAL_BAR_DOMAIN_PADDING} from '@components/Charts/barChartConstants';
 import {ChartFontsProvider, useChartFontManager, useChartLabelFormats, useChartLabelLayout, useChartLabelMeasurements} from '@components/Charts/hooks';
-import {calculateMinDomainPadding, getVerticalBarPlotBounds, getYAxisLabelWidth} from '@components/Charts/utils';
-import {GLYPH_PADDING} from '@components/Charts/VictoryTheme';
+import {getVerticalBarLabelLayoutInputs, getVerticalBarPlotBounds, getYAxisLabelWidth} from '@components/Charts/utils';
+import {GLYPH_PADDING, LABEL_ROTATIONS} from '@components/Charts/VictoryTheme';
 
 import variables from '@styles/variables';
 
@@ -33,22 +33,23 @@ function BarChartOrientationDispatcher({isHorizontal = false, canFallBackToHoriz
     // Predict the vertical chart's plot geometry from the container width so the fit decision matches what it would measure after mounting.
     const yAxisLabelWidth = getYAxisLabelWidth(data, formatValue, fontManager, FONT_SIZE, VERTICAL_BAR_DOMAIN_PADDING);
     const plotBounds = getVerticalBarPlotBounds(containerWidth, yAxisLabelWidth + GLYPH_PADDING);
-    const domainPadding = containerWidth > 0 && data.length > 0 ? calculateMinDomainPadding(containerWidth, data.length, BAR_INNER_PADDING) : 0;
-    const paddingScale = plotBounds.width > 0 ? plotBounds.width / (plotBounds.width + 2 * domainPadding) : 0;
 
-    const {shouldUseHorizontalBars} = useChartLabelLayout({
+    const {labelRotation} = useChartLabelLayout({
         data,
         fontManager,
         fontSize: FONT_SIZE,
-        tickSpacing: plotBounds.width > 0 && data.length > 0 ? plotBounds.width / data.length : 0,
-        labelAreaWidth: plotBounds.width,
-        firstTickLeftSpace: plotBounds.left + domainPadding * paddingScale,
-        lastTickRightSpace: containerWidth > 0 ? containerWidth - plotBounds.right + domainPadding * paddingScale : 0,
         measurements,
-        canFallBackToHorizontalBars,
+        ...getVerticalBarLabelLayoutInputs({
+            containerWidth,
+            plotLeft: plotBounds.left,
+            plotRight: plotBounds.right,
+            plotWidth: plotBounds.width,
+            dataLength: data.length,
+            innerPadding: BAR_INNER_PADDING,
+        }),
     });
 
-    const renderHorizontal = isHorizontal || shouldUseHorizontalBars;
+    const renderHorizontal = isHorizontal || (canFallBackToHorizontalBars && labelRotation === LABEL_ROTATIONS.VERTICAL);
 
     const handleLayout = (event: LayoutChangeEvent) => {
         setContainerWidth(event.nativeEvent.layout.width);

@@ -13,7 +13,7 @@ import {
     useDynamicYDomain,
     useLabelHitTesting,
 } from '@components/Charts/hooks';
-import {calculateMinDomainPadding, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
+import {calculateMinDomainPadding, getVerticalBarLabelLayoutInputs, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
@@ -70,9 +70,6 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
         return {...VERTICAL_BAR_DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding};
     })();
 
-    const totalDomainPadding = domainPadding.left + domainPadding.right;
-    const paddingScale = barAreaWidth > 0 ? barAreaWidth / (barAreaWidth + totalDomainPadding) : 0;
-
     const originalLabels = data.map(getXAxisLabel);
 
     const measurements = useChartLabelMeasurements(data, fontManager, variables.iconSizeExtraSmall);
@@ -81,11 +78,15 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
         data,
         fontManager,
         fontSize: variables.iconSizeExtraSmall,
-        tickSpacing: barAreaWidth > 0 ? barAreaWidth / data.length : 0,
-        labelAreaWidth: barAreaWidth,
-        firstTickLeftSpace: boundsLeft + domainPadding.left * paddingScale,
-        lastTickRightSpace: chartWidth > 0 ? chartWidth - boundsRight + domainPadding.right * paddingScale : 0,
         measurements,
+        ...getVerticalBarLabelLayoutInputs({
+            containerWidth: chartWidth,
+            plotLeft: boundsLeft,
+            plotRight: boundsRight,
+            plotWidth: barAreaWidth,
+            dataLength: data.length,
+            innerPadding: BAR_INNER_PADDING,
+        }),
     });
 
     const {formatValue} = useChartLabelFormats({

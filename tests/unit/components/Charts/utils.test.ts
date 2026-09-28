@@ -9,6 +9,7 @@ import {
     getAdditionalOffset,
     getHorizontalChartHeight,
     getNiceYAxisTicks,
+    getVerticalBarLabelLayoutInputs,
     getVerticalBarPlotBounds,
     isAngleInSlice,
     isCursorInSkewedLabel,
@@ -779,5 +780,41 @@ describe('getVerticalBarPlotBounds', () => {
         expect(bounds.left).toBe(30 + LABEL_GAP);
         expect(bounds.right).toBe(30 + LABEL_GAP);
         expect(bounds.width).toBe(0);
+    });
+});
+
+describe('getVerticalBarLabelLayoutInputs', () => {
+    it('derives the label layout geometry from the plot bounds', () => {
+        // Given a 400px container with 2 points and the resolved plot bounds
+        // When computing the label layout inputs
+        // Then tick spacing, label area, and edge spaces follow from the bounds and the domain padding
+        // (domainPadding = calculateMinDomainPadding(400, 2, 0) = 200, paddingScale = 200 / (200 + 2*200) = 1/3)
+        const inputs = getVerticalBarLabelLayoutInputs({containerWidth: 400, plotLeft: 40, plotRight: 380, plotWidth: 200, dataLength: 2, innerPadding: 0});
+        expect(inputs.tickSpacing).toBe(100);
+        expect(inputs.labelAreaWidth).toBe(200);
+        expect(inputs.firstTickLeftSpace).toBeCloseTo(40 + 200 / 3, 5);
+        expect(inputs.lastTickRightSpace).toBeCloseTo(20 + 200 / 3, 5);
+    });
+
+    it('returns zeros before the container is measured', () => {
+        // Given a container width of 0 (chart not yet laid out)
+        // When computing the label layout inputs
+        // Then every geometry input is 0 so the layout hook takes its empty-layout early return
+        expect(getVerticalBarLabelLayoutInputs({containerWidth: 0, plotLeft: 0, plotRight: 0, plotWidth: 0, dataLength: 2, innerPadding: 0})).toEqual({
+            tickSpacing: 0,
+            labelAreaWidth: 0,
+            firstTickLeftSpace: 0,
+            lastTickRightSpace: 0,
+        });
+    });
+
+    it('drops the domain padding for a single data point', () => {
+        // Given a single-point chart where there are no adjacent bars to pad against
+        // When computing the label layout inputs
+        // Then domain padding is 0, so the edge spaces equal the raw distances to the container edges
+        const inputs = getVerticalBarLabelLayoutInputs({containerWidth: 300, plotLeft: 50, plotRight: 280, plotWidth: 230, dataLength: 1, innerPadding: 0.3});
+        expect(inputs.tickSpacing).toBe(230);
+        expect(inputs.firstTickLeftSpace).toBe(50);
+        expect(inputs.lastTickRightSpace).toBe(20);
     });
 });

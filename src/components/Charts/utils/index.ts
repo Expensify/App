@@ -474,6 +474,36 @@ function getVerticalBarPlotBounds(chartWidth: number, paddingLeft: number): {lef
 }
 
 /**
+ * Layout inputs shared by the vertical bar chart body and the orientation dispatcher, derived from the plot bounds.
+ * The body passes its measured bounds and the dispatcher passes bounds predicted from the container width, so both
+ * feed `useChartLabelLayout` the exact same geometry and cannot drift apart.
+ */
+function getVerticalBarLabelLayoutInputs({
+    containerWidth,
+    plotLeft,
+    plotRight,
+    plotWidth,
+    dataLength,
+    innerPadding,
+}: {
+    containerWidth: number;
+    plotLeft: number;
+    plotRight: number;
+    plotWidth: number;
+    dataLength: number;
+    innerPadding: number;
+}): {tickSpacing: number; labelAreaWidth: number; firstTickLeftSpace: number; lastTickRightSpace: number} {
+    const domainPadding = containerWidth > 0 && dataLength > 0 ? calculateMinDomainPadding(containerWidth, dataLength, innerPadding) : 0;
+    const paddingScale = plotWidth > 0 ? plotWidth / (plotWidth + 2 * domainPadding) : 0;
+    return {
+        tickSpacing: plotWidth > 0 && dataLength > 0 ? plotWidth / dataLength : 0,
+        labelAreaWidth: plotWidth,
+        firstTickLeftSpace: plotLeft + domainPadding * paddingScale,
+        lastTickRightSpace: containerWidth > 0 ? containerWidth - plotRight + domainPadding * paddingScale : 0,
+    };
+}
+
+/**
  * Height of a horizontal bar chart. Grows with the row count so every category row gets at least
  * `minRowHeight` of vertical space, keeping all category labels visible instead of thinning them out.
  * Never smaller than `minHeight`, so small datasets keep the shared minimum.
@@ -533,6 +563,7 @@ export {
     getYAxisLabelWidth,
     getHorizontalChartHeight,
     getVerticalBarPlotBounds,
+    getVerticalBarLabelLayoutInputs,
 };
 
 export type {ChartLabelHitTestParams};
