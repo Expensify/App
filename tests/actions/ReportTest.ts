@@ -1964,6 +1964,76 @@ describe('actions/Report', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
     });
 
+    it('resolves Concierge followups only when the Concierge message is the last action the user can see', async () => {
+        const CONCIERGE_ACTION_ID = 'conciergeFollowups';
+        const WHISPER_TARGET_ACCOUNT_ID = 505;
+        const UNRESOLVED_HTML = `<p>Here is some helpful information.</p>\n<followup-list>\n  <followup><followup-text>First?</followup-text></followup>\n</followup-list>`;
+
+        /** Seeds a report whose Concierge message carries unresolved followups, below a newer whisper for one account. */
+        const seedReport = async (reportID: string) => {
+            const conciergeAction: OnyxTypes.ReportAction = {
+                reportActionID: CONCIERGE_ACTION_ID,
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                created: '2026-09-01 10:00:00.000',
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: UNRESOLVED_HTML, text: 'Here is some helpful information.'}],
+                originalMessage: {html: UNRESOLVED_HTML},
+            };
+            const whisper: OnyxTypes.ReportAction = {
+                reportActionID: 'conciergeWhisper',
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                actorAccountID: WHISPER_TARGET_ACCOUNT_ID,
+                created: '2026-09-01 11:00:00.000',
+                message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[CONCIERGE_ACTION_ID]: conciergeAction, [whisper.reportActionID]: whisper});
+            await waitForBatchedUpdates();
+        };
+
+        const getConciergeHtml = async (reportID: string) => {
+            const actions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const);
+            const message = actions?.[CONCIERGE_ACTION_ID]?.message;
+            return Array.isArray(message) ? message.at(0)?.html : undefined;
+        };
+
+        // Given the whisper is visible to the commenting user, so it outranks the Concierge message
+        const whisperVisibleReportID = '60001';
+        await seedReport(whisperVisibleReportID);
+        Report.addAttachmentWithComment({
+            report: {...createRandomReport(60001, undefined), reportID: whisperVisibleReportID},
+            notifyReportID: whisperVisibleReportID,
+            ancestors: [],
+            attachments: new File([''], 'a.txt', {type: 'text/plain'}),
+            currentUserAccountID: WHISPER_TARGET_ACCOUNT_ID,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the followups stay unresolved, because the Concierge message is not the last action
+        expect(await getConciergeHtml(whisperVisibleReportID)).toContain('<followup-list>');
+
+        // Given the whisper targets somebody else, leaving the Concierge message last
+        const whisperHiddenReportID = '60002';
+        await seedReport(whisperHiddenReportID);
+        Report.addAttachmentWithComment({
+            report: {...createRandomReport(60002, undefined), reportID: whisperHiddenReportID},
+            notifyReportID: whisperHiddenReportID,
+            ancestors: [],
+            attachments: new File([''], 'b.txt', {type: 'text/plain'}),
+            currentUserAccountID: WHISPER_TARGET_ACCOUNT_ID + 1,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the followups are optimistically marked resolved
+        expect(await getConciergeHtml(whisperHiddenReportID)).toContain('<followup-list selected>');
+    });
+
     it('should send not DeleteComment request and remove AddTextAndAttachment accordingly', async () => {
         global.fetch = TestHelper.createGlobalFetchMock({
             headers: new Headers({
