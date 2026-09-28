@@ -124,6 +124,25 @@ describe('ConfirmationReceiptThumbnail', () => {
         expect(screen.queryByTestId('receipt-page-count-badge')).toBeNull();
     });
 
+    it('drops the detected count when stitching replaces the receipt with the same PDF URI', () => {
+        // Given a 3-page local PDF whose badge is showing
+        const {rerenderWith} = renderThumbnail();
+        loadPDF(3);
+
+        // When the receipt is stitched and the replacement reuses the same URI, so the source-change reset does not run
+        rerenderWith({isLoadingReceipt: true});
+        rerenderWith({isLoadingReceipt: false});
+
+        // Then the old count is gone until the replacement finishes loading
+        expect(screen.queryByTestId('receipt-page-count-badge')).toBeNull();
+
+        // When the stitched replacement loads and turns out to have 1 page
+        loadPDF(1);
+
+        // Then the old count still does not badge the stitched file
+        expect(screen.queryByTestId('receipt-page-count-badge')).toBeNull();
+    });
+
     it('hides the badge when the PDF fails to load', () => {
         // Given a 3-page local PDF whose badge is showing
         renderThumbnail();
