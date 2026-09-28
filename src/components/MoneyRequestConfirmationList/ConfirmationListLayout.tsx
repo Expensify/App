@@ -129,4 +129,4 @@ function ConfirmationListLayout({
 }
 
 export default ConfirmationListLayout;
-export type {ConfirmationFieldFlags, ConfirmationListLayoutProps};
+export type {ConfirmationListLayoutProps};
