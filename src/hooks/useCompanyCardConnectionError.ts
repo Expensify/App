@@ -4,15 +4,13 @@
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CombinedCardFeeds, CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import useCardFeeds from './useCardFeeds';
 import useOnyx from './useOnyx';
 
-function useCompanyCardConnectionError({policyID, newFeed, isAddingNewCard}: {policyID?: string; newFeed?: CompanyCardFeedWithDomainID; isAddingNewCard: boolean}) {
+function useCompanyCardConnectionError({cardFeeds, newFeed, isAddingNewCard}: {cardFeeds?: CombinedCardFeeds; newFeed?: CompanyCardFeedWithDomainID; isAddingNewCard: boolean}) {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const [cardFeeds] = useCardFeeds(policyID);
     const newFeedErrors = newFeed ? cardFeeds?.[newFeed]?.errors : undefined;
     const errorMessage = (isAddingNewCard ? getLatestErrorMessage(addNewCard) : '') || getLatestErrorMessage({errors: newFeedErrors});
     const hasAddNewCardError = isAddingNewCard && !isEmptyObject(addNewCard?.errors);

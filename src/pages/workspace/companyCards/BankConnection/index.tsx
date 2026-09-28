@@ -75,7 +75,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.[feed]) : false;
     const headerTitleAddCards = translate('workspace.companyCards.addCards');
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
-    const {errorMessage, hasError: isNewFeedHasError, hasAddNewCardError, hasNewFeedError} = useCompanyCardConnectionError({policyID, newFeed, isAddingNewCard: !feed});
+    const {errorMessage, hasError: isNewFeedHasError} = useCompanyCardConnectionError({cardFeeds, newFeed, isAddingNewCard: !feed});
     // importPlaidAccounts only writes these errors while repairing an existing feed, so the add-card flow ignores them
     const hasImportError = !!feed && !isEmptyObject(assignCard?.errors);
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
@@ -119,7 +119,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     );
 
     useEffect(() => {
-        if ((!url && !isPlaid) || isOffline || hasNewFeedError || (hasAddNewCardError && !isNewFeedConnected) || isAllFeedsResultLoading || (isBlockedToAddNewFeeds && !feed)) {
+        if ((!url && !isPlaid) || isOffline || isNewFeedHasError || isAllFeedsResultLoading || (isBlockedToAddNewFeeds && !feed)) {
             return;
         }
 
@@ -197,8 +197,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
         onImportPlaidAccounts,
         isFeedConnectionBroken,
         updateBrokenConnection,
-        hasAddNewCardError,
-        hasNewFeedError,
+        isNewFeedHasError,
         hasImportError,
         checkForDuplicateFeed,
     ]);
