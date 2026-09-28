@@ -290,6 +290,7 @@ import {
     isScanning,
     isScanRequest as isScanRequestTransactionUtils,
     isTransactionPendingDelete,
+    isTransactionOwner,
 } from './TransactionUtils';
 import addTrailingForwardSlash from './UrlUtils';
 import {getDefaultAvatarURL} from './UserAvatarUtils';
@@ -3256,9 +3257,7 @@ function canDeleteCardTransaction(transaction: OnyxEntry<Transaction>, policy: O
         return false;
     }
 
-    // This transaction should belong to the current user if the transaction's card is in Onyx
-    const isTransactionOwner = !!cardList[transaction?.cardID ?? CONST.DEFAULT_NUMBER_ID];
-    return isTransactionOwner && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW;
+    return isTransactionOwner(transaction, cardList) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW;
 }
 
 /**
