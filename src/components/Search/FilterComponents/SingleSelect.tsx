@@ -6,6 +6,7 @@ import type {ListItem, TextInputOptions} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
@@ -72,6 +73,7 @@ function SingleSelectImpl({
     onChange,
 }: SingleSelectProps<string>) {
     const {translate} = useLocalize();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const styles = useThemeStyles();
     const [selectedItem, setSelectedItem] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -161,6 +163,7 @@ function SingleSelectImpl({
                     shouldShowLoadingPlaceholder={!noResultsFound}
                     customListHeaderContent={header}
                     footerContent={footer}
+                    shouldFooterBeInsideList={shouldFooterBeInsideList}
                 />
             </Activity>
         </ListFilterWrapper>
