@@ -904,18 +904,7 @@ describe('actions/Report', () => {
             .then(() => {
                 rerender(report);
                 // If the user deletes a comment that is before the last read
-                Report.deleteReportComment({
-                    report,
-                    reportAction: {...reportActions[200]},
-                    originalReportActions: undefined,
-                    reportActions: undefined,
-                    ancestors: ancestors.current,
-                    isReportArchived: undefined,
-                    isOriginalReportArchived: undefined,
-                    currentEmail: USER_1_LOGIN,
-                    isOffline: false,
-                    currentUserAccountID: 1,
-                });
+                Report.deleteReportComment(report, {...reportActions[200]}, undefined, undefined, ancestors.current, undefined, undefined, USER_1_LOGIN, false, 1);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -934,18 +923,7 @@ describe('actions/Report', () => {
 
                 rerender(report);
                 // If the user deletes the last comment after the lastReadTime the lastMessageText will reflect the new last comment
-                Report.deleteReportComment({
-                    report,
-                    reportAction: {...reportActions[400]},
-                    originalReportActions: undefined,
-                    reportActions: undefined,
-                    ancestors: ancestors.current,
-                    isReportArchived: undefined,
-                    isOriginalReportArchived: undefined,
-                    currentEmail: USER_1_LOGIN,
-                    isOffline: false,
-                    currentUserAccountID: 1,
-                });
+                Report.deleteReportComment(report, {...reportActions[400]}, undefined, undefined, ancestors.current, undefined, undefined, USER_1_LOGIN, false, 1);
                 return waitForBatchedUpdates();
             })
             .then(() => getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const))
@@ -1701,18 +1679,7 @@ describe('actions/Report', () => {
         });
 
         rerender(originalReport);
-        Report.deleteReportComment({
-            report: originalReport,
-            reportAction: newReportAction,
-            originalReportActions: undefined,
-            reportActions: undefined,
-            ancestors: ancestors.current,
-            isReportArchived: undefined,
-            isOriginalReportArchived: undefined,
-            currentEmail: '',
-            isOffline: false,
-            currentUserAccountID: 1,
-        });
+        Report.deleteReportComment(originalReport, newReportAction, undefined, undefined, ancestors.current, undefined, undefined, '', false, 1);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1769,18 +1736,7 @@ describe('actions/Report', () => {
         expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
 
         rerender(originalReport);
-        Report.deleteReportComment({
-            report: originalReport,
-            reportAction: newReportAction,
-            originalReportActions: undefined,
-            reportActions: undefined,
-            ancestors: ancestors.current,
-            isReportArchived: undefined,
-            isOriginalReportArchived: undefined,
-            currentEmail: currentUserEmail,
-            isOffline: false,
-            currentUserAccountID: 1,
-        });
+        Report.deleteReportComment(originalReport, newReportAction, undefined, undefined, ancestors.current, undefined, undefined, currentUserEmail, false, 1);
         await waitForBatchedUpdates();
 
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1850,18 +1806,7 @@ describe('actions/Report', () => {
         });
 
         rerender(originalReport);
-        Report.deleteReportComment({
-            report: originalReport,
-            reportAction,
-            originalReportActions: undefined,
-            reportActions: undefined,
-            ancestors: ancestors.current,
-            isReportArchived: undefined,
-            isOriginalReportArchived: undefined,
-            currentEmail: '',
-            isOffline: false,
-            currentUserAccountID: 1,
-        });
+        Report.deleteReportComment(originalReport, reportAction, undefined, undefined, ancestors.current, undefined, undefined, '', false, 1);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -1920,18 +1865,7 @@ describe('actions/Report', () => {
                 }),
             );
 
-        Report.deleteReportComment({
-            report: REPORT,
-            reportAction,
-            originalReportActions: undefined,
-            reportActions: undefined,
-            ancestors: [],
-            isReportArchived: undefined,
-            isOriginalReportArchived: undefined,
-            currentEmail: '',
-            isOffline: false,
-            currentUserAccountID: 1,
-        });
+        Report.deleteReportComment(REPORT, reportAction, undefined, undefined, [], undefined, undefined, '', false, 1);
 
         jest.runOnlyPendingTimers();
         await waitForBatchedUpdates();
@@ -2007,18 +1941,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment({
-            report: REPORT,
-            reportAction: newReportAction,
-            originalReportActions: undefined,
-            reportActions: undefined,
-            ancestors: [],
-            isReportArchived: undefined,
-            isOriginalReportArchived: undefined,
-            currentEmail: '',
-            isOffline: false,
-            currentUserAccountID: 1,
-        });
+        Report.deleteReportComment(REPORT, newReportAction, undefined, undefined, [], undefined, undefined, '', false, 1);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -2102,18 +2025,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment({
-            report: REPORT,
-            reportAction: newReportAction,
-            originalReportActions: undefined,
-            reportActions: undefined,
-            ancestors: [],
-            isReportArchived: undefined,
-            isOriginalReportArchived: undefined,
-            currentEmail: '',
-            isOffline: false,
-            currentUserAccountID: 1,
-        });
+        Report.deleteReportComment(REPORT, newReportAction, undefined, undefined, [], undefined, undefined, '', false, 1);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -2330,19 +2242,7 @@ describe('actions/Report', () => {
             }),
         };
 
-        Report.deleteReportComment({
-            report: REPORT,
-            reportAction: commentAction,
-            originalReportActions: reportActionsForReport,
-            reportActions: undefined,
-            ancestors: [],
-            isReportArchived: undefined,
-            isOriginalReportArchived: undefined,
-            currentEmail: '',
-            isOffline: false,
-            currentUserAccountID: 1,
-            visibleReportActionsDataParam: undefined,
-        });
+        Report.deleteReportComment(REPORT, commentAction, reportActionsForReport, undefined, [], undefined, undefined, '', false, 1, undefined);
         await waitForBatchedUpdates();
 
         const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
@@ -2428,19 +2328,7 @@ describe('actions/Report', () => {
         };
 
         // Delete comment B — only whisper B (at commentB + 1) should be marked deleted
-        Report.deleteReportComment({
-            report: REPORT,
-            reportAction: commentBAction,
-            originalReportActions: reportActionsForReport,
-            reportActions: undefined,
-            ancestors: [],
-            isReportArchived: undefined,
-            isOriginalReportArchived: undefined,
-            currentEmail: '',
-            isOffline: false,
-            currentUserAccountID: 1,
-            visibleReportActionsDataParam: undefined,
-        });
+        Report.deleteReportComment(REPORT, commentBAction, reportActionsForReport, undefined, [], undefined, undefined, '', false, 1, undefined);
         await waitForBatchedUpdates();
 
         const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
@@ -2539,18 +2427,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment({
-            report: REPORT,
-            reportAction: newReportAction,
-            originalReportActions: undefined,
-            reportActions: undefined,
-            ancestors: [],
-            isReportArchived: undefined,
-            isOriginalReportArchived: undefined,
-            currentEmail: '',
-            isOffline: false,
-            currentUserAccountID: 1,
-        });
+        Report.deleteReportComment(REPORT, newReportAction, undefined, undefined, [], undefined, undefined, '', false, 1);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -2652,18 +2529,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment({
-            report: REPORT,
-            reportAction,
-            originalReportActions: undefined,
-            reportActions: undefined,
-            ancestors: [],
-            isReportArchived: undefined,
-            isOriginalReportArchived: undefined,
-            currentEmail: '',
-            isOffline: false,
-            currentUserAccountID: 1,
-        });
+        Report.deleteReportComment(REPORT, reportAction, undefined, undefined, [], undefined, undefined, '', false, 1);
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -2726,18 +2592,7 @@ describe('actions/Report', () => {
 
         const {result: ancestors} = renderHook(() => useAncestors({reportID: REPORT_ID}));
 
-        Report.deleteReportComment({
-            report: REPORT,
-            reportAction,
-            originalReportActions: undefined,
-            reportActions: undefined,
-            ancestors: ancestors.current,
-            isReportArchived: undefined,
-            isOriginalReportArchived: undefined,
-            currentEmail: '',
-            isOffline: false,
-            currentUserAccountID: 1,
-        });
+        Report.deleteReportComment(REPORT, reportAction, undefined, undefined, ancestors.current, undefined, undefined, '', false, 1);
 
         expect(PersistedRequests.getAll().length).toBe(3);
 
@@ -2984,30 +2839,8 @@ describe('actions/Report', () => {
 
         const {result: ancestors} = renderHook(() => useAncestors(report));
 
-        Report.deleteReportComment({
-            report,
-            reportAction: mentionAction,
-            originalReportActions: undefined,
-            reportActions: undefined,
-            ancestors: ancestors.current,
-            isReportArchived: undefined,
-            isOriginalReportArchived: undefined,
-            currentEmail: '',
-            isOffline: false,
-            currentUserAccountID: 1,
-        });
-        Report.deleteReportComment({
-            report,
-            reportAction: mentionAction2,
-            originalReportActions: undefined,
-            reportActions: undefined,
-            ancestors: ancestors.current,
-            isReportArchived: undefined,
-            isOriginalReportArchived: undefined,
-            currentEmail: '',
-            isOffline: false,
-            currentUserAccountID: 1,
-        });
+        Report.deleteReportComment(report, mentionAction, undefined, undefined, ancestors.current, undefined, undefined, '', false, 1);
+        Report.deleteReportComment(report, mentionAction2, undefined, undefined, ancestors.current, undefined, undefined, '', false, 1);
 
         await waitForBatchedUpdates();
 
@@ -3044,18 +2877,7 @@ describe('actions/Report', () => {
             mockNavigation.getTopmostSearchReportRouteParams.mockReturnValue({reportID: CHILD_REPORT_ID});
 
             const {result: ancestors} = renderHook(() => useAncestors(parentReport));
-            Report.deleteReportComment({
-                report: parentReport,
-                reportAction,
-                originalReportActions: undefined,
-                reportActions: undefined,
-                ancestors: ancestors.current,
-                isReportArchived: undefined,
-                isOriginalReportArchived: undefined,
-                currentEmail: '',
-                isOffline: false,
-                currentUserAccountID: 1,
-            });
+            Report.deleteReportComment(parentReport, reportAction, undefined, undefined, ancestors.current, undefined, undefined, '', false, 1);
             await waitForBatchedUpdates();
 
             expect(mockNavigation.goBack).toHaveBeenCalled();
@@ -3073,18 +2895,7 @@ describe('actions/Report', () => {
             mockNavigation.getTopmostSearchReportRouteParams.mockReturnValue({reportID: CHILD_REPORT_ID, reportActionID: 'action-999'});
 
             const {result: ancestors} = renderHook(() => useAncestors(parentReport));
-            Report.deleteReportComment({
-                report: parentReport,
-                reportAction,
-                originalReportActions: undefined,
-                reportActions: undefined,
-                ancestors: ancestors.current,
-                isReportArchived: undefined,
-                isOriginalReportArchived: undefined,
-                currentEmail: '',
-                isOffline: false,
-                currentUserAccountID: 1,
-            });
+            Report.deleteReportComment(parentReport, reportAction, undefined, undefined, ancestors.current, undefined, undefined, '', false, 1);
             await waitForBatchedUpdates();
 
             expect(mockNavigation.goBack).toHaveBeenCalled();
@@ -11692,18 +11503,7 @@ describe('actions/Report', () => {
                 });
                 await waitForBatchedUpdates();
 
-                Report.deleteReportComment({
-                    report: {reportID: REPORT_ID},
-                    reportAction: deletedComment,
-                    originalReportActions: undefined,
-                    reportActions: undefined,
-                    ancestors: [],
-                    isReportArchived: undefined,
-                    isOriginalReportArchived: undefined,
-                    currentEmail: '',
-                    isOffline: false,
-                    currentUserAccountID,
-                });
+                Report.deleteReportComment({reportID: REPORT_ID}, deletedComment, undefined, undefined, [], undefined, undefined, '', false, currentUserAccountID);
                 await waitForBatchedUpdates();
 
                 return (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const))?.lastVisibleActionCreated;

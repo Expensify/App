@@ -3370,34 +3370,21 @@ function broadcastUserIsLeavingRoom(reportID: string, currentUserAccountID: numb
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, leavingStatus);
 }
 
-type DeleteReportCommentParams = {
-    report: OnyxEntry<Report>;
-    reportAction: ReportAction;
-    originalReportActions: OnyxEntry<ReportActions>;
-    reportActions: OnyxEntry<ReportActions>;
-    ancestors: Ancestor[];
-    isReportArchived: boolean | undefined;
-    isOriginalReportArchived: boolean | undefined;
-    currentEmail: string;
-    isOffline: boolean;
-    currentUserAccountID: number;
-    visibleReportActionsDataParam?: VisibleReportActionsDerivedValue;
-};
-
 /** Deletes a comment from the report, basically sets it as empty string */
-function deleteReportComment({
-    report,
-    reportAction,
-    originalReportActions,
-    reportActions,
-    ancestors,
-    isReportArchived,
-    isOriginalReportArchived,
-    currentEmail,
-    isOffline,
-    currentUserAccountID,
-    visibleReportActionsDataParam,
-}: DeleteReportCommentParams) {
+// eslint-disable-next-line @typescript-eslint/max-params
+function deleteReportComment(
+    report: OnyxEntry<Report>,
+    reportAction: ReportAction,
+    originalReportActions: OnyxEntry<ReportActions>,
+    reportActions: OnyxEntry<ReportActions>,
+    ancestors: Ancestor[],
+    isReportArchived: boolean | undefined,
+    isOriginalReportArchived: boolean | undefined,
+    currentEmail: string,
+    isOffline: boolean,
+    currentUserAccountID: number,
+    visibleReportActionsDataParam?: VisibleReportActionsDerivedValue,
+) {
     const reportID = report?.reportID;
     const originalReportID = getOriginalReportID(reportID, reportAction, reportActions, isOffline);
     const reportActionID = reportAction.reportActionID;
