@@ -3381,6 +3381,7 @@ function deleteReportComment(
     isOriginalReportArchived: boolean | undefined,
     currentEmail: string,
     isOffline: boolean,
+    currentUserAccountID: number,
     visibleReportActionsDataParam?: VisibleReportActionsDerivedValue,
 ) {
     const reportID = report?.reportID;
@@ -3484,7 +3485,13 @@ function deleteReportComment(
     // If we are deleting the last visible message, let's find the previous visible one (or set an empty one if there are none) and update the lastMessageText in the LHN.
     // Similarly, if we are deleting the last read comment we will want to update the lastVisibleActionCreated to use the previous visible message.
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
-    const optimisticLastReportData = optimisticReportLastData(originalReportID, optimisticReportActions as ReportActions, canUserPerformWriteAction, isOriginalReportArchived);
+    const optimisticLastReportData = optimisticReportLastData(
+        originalReportID,
+        optimisticReportActions as ReportActions,
+        canUserPerformWriteAction,
+        isOriginalReportArchived,
+        currentUserAccountID,
+    );
 
     const optimisticReport: Partial<Report> = {
         ...optimisticLastReportData,

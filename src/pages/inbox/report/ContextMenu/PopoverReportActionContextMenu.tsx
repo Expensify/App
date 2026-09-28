@@ -440,6 +440,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     isOriginalReportArchived,
                     email ?? '',
                     isOffline,
+                    currentUserAccountID,
                     visibleReportActionsData ?? undefined,
                 );
             };
