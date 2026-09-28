@@ -34,6 +34,7 @@ import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import PusherHelper from '../../utils/PusherHelper';
 import {createGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
+import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -2405,7 +2406,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 childVisibleActionCount: 2,
                 originalMessage: {linkedReportID: IOU_REPORT_ID},
             };
-            // The money-request action being deleted; its reportID is what resolves the IOU report below.
+            // The money-request action being deleted. Its reportID is what resolves the IOU report below.
             const deletedIOUAction: ReportAction = {
                 ...createRandomReportAction(13),
                 reportActionID: 'deletedIOU',
@@ -2437,8 +2438,15 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     currentUserAccountID,
                 });
                 const entry = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`);
-                const value = entry?.value as Record<string, Partial<ReportAction>> | undefined;
-                return value?.[previewAction.reportActionID]?.childLastVisibleActionCreated;
+                const value: unknown = entry && 'value' in entry ? entry.value : undefined;
+                if (!isObject(value)) {
+                    return undefined;
+                }
+                const updatedPreview = value[previewAction.reportActionID];
+                if (!isObject(updatedPreview) || typeof updatedPreview.childLastVisibleActionCreated !== 'string') {
+                    return undefined;
+                }
+                return updatedPreview.childLastVisibleActionCreated;
             };
 
             // Given the whisper targets the deleting user, it is the newest action they can see
