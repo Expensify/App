@@ -10940,6 +10940,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 invalid: 'Ten kod jest nieprawidłowy',
             },
         },
+        paymentHistory: {title: 'Zobacz historię płatności', subtitle: 'Pełna miesięczna historia płatności obciążających to konto.'},
         subscriptionSettings: {
             title: 'Ustawienia subskrypcji',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
