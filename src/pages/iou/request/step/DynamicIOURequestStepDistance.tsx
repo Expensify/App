@@ -60,6 +60,7 @@ import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type TransactionStateType from '@src/types/utils/TransactionStateType';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
@@ -127,7 +128,6 @@ function DynamicIOURequestStepDistance({
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
@@ -168,7 +168,7 @@ function DynamicIOURequestStepDistance({
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = Object.keys(waypoints).length;
     const numberOfPreviousWaypoints = Object.keys(previousWaypoints).length;
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const isLoadingRoute = currentTransaction?.comment?.isLoading ?? false;
     const isLoading = currentTransaction?.isLoading ?? false;
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
@@ -396,7 +396,6 @@ function DynamicIOURequestStepDistance({
         isEditingSplit,
         isDraft: shouldUseTransactionDraft(action),
         introSelected,
-        betas,
         conciergeChat,
         isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
         hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
@@ -475,7 +474,6 @@ function DynamicIOURequestStepDistance({
         translate,
         selfDMReport,
         policyForMovingExpenses,
-        betas,
         recentWaypoints,
         introSelected,
     });
