@@ -73,7 +73,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
-    const {errorMessage, hasError: isNewFeedHasError} = useCompanyCardConnectionError({cardFeeds, newFeed, isAddingNewCard: !feed});
+    const {errorMessage, hasError: isNewFeedHasError} = useCompanyCardConnectionError({cardFeeds, addNewCard, newFeed, isAddingNewCard: !feed});
     // importPlaidAccounts only writes these errors while repairing an existing feed, so the add-card flow ignores them
     const hasImportError = !!feed && !isEmptyObject(assignCard?.errors);
     const illustrations = useMemoizedLazyIllustrations(['BrokenCompanyCardBankConnection']);
