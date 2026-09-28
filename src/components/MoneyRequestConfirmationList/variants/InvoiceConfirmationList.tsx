@@ -13,28 +13,15 @@ import {View} from 'react-native';
 
 /** Confirms an invoice */
 function InvoiceConfirmationList(props: MoneyRequestConfirmationListProps) {
-    const {selectedParticipants, isParticipantPickerVisible = false, onToggleBillable, onToggleReimbursable, receiptOptions} = props;
-
     const data = useConfirmationListData({...props, iouType: CONST.IOU.TYPE.INVOICE});
 
     const listFooterContent = (
         <ConfirmationFieldsProvider
             {...data.confirmationFieldsProviderProps}
             isTypeInvoice
-            onTaxAmountEmptyChange={data.setIsTaxAmountEmpty}
         >
             <View>
-                <InvoiceFooter
-                    policy={data.policy}
-                    policyTags={data.policyTags}
-                    selectedParticipants={selectedParticipants}
-                    amountDisplay={data.amountDisplay}
-                    requiredFlags={data.requiredFlags}
-                    visibilityFlags={{...data.visibilityFlags, isParticipantPickerVisible}}
-                    errorState={data.errorState}
-                    toggleHandlers={{onToggleReimbursable, onToggleBillable}}
-                    receiptOptions={receiptOptions}
-                />
+                <InvoiceFooter {...data.footerProps} />
             </View>
         </ConfirmationFieldsProvider>
     );

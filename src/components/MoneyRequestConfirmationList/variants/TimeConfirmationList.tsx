@@ -15,8 +15,6 @@ import {View} from 'react-native';
  * fields, which is what the manual confirmation renders anyway.
  */
 function TimeConfirmationList(props: MoneyRequestConfirmationListProps) {
-    const {selectedParticipants, onToggleBillable, onToggleReimbursable, receiptOptions} = props;
-
     const data = useConfirmationListData({...props, isTimeRequest: true});
 
     const listFooterContent = (
@@ -25,17 +23,7 @@ function TimeConfirmationList(props: MoneyRequestConfirmationListProps) {
             isTimeRequest
         >
             <View>
-                <TimeFooter
-                    policy={data.policy}
-                    policyTags={data.policyTags}
-                    selectedParticipants={selectedParticipants}
-                    amountDisplay={data.amountDisplay}
-                    requiredFlags={data.requiredFlags}
-                    visibilityFlags={data.visibilityFlags}
-                    errorState={data.errorState}
-                    toggleHandlers={{onToggleReimbursable, onToggleBillable}}
-                    receiptOptions={receiptOptions}
-                />
+                <TimeFooter {...data.footerProps} />
             </View>
         </ConfirmationFieldsProvider>
     );

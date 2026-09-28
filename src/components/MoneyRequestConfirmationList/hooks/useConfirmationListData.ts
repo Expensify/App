@@ -58,6 +58,9 @@ function useConfirmationListDataWithPolicy({
     isEditingSplitBill,
     expensesNumber = 0,
     receiptOptions,
+    isParticipantPickerVisible = false,
+    onToggleBillable,
+    onToggleReimbursable,
     isConfirmed,
     isConfirming,
     shouldShowSmartScanFields = true,
@@ -274,6 +277,18 @@ function useConfirmationListDataWithPolicy({
         onSendMoney,
     });
 
+    const amountDisplay = {amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee};
+    const requiredFlags = {isCategoryRequired, isMerchantRequired, isDescriptionRequired};
+    const visibilityFlags = {
+        shouldShowSmartScanFields,
+        shouldShowAmountField: !isPerDiemRequest,
+        shouldShowMerchant,
+        shouldShowCategories,
+        shouldShowTax,
+        isParticipantPickerVisible,
+    };
+    const errorState = {shouldDisplayFieldError, formError, clearFormErrors, setFormError};
+
     return {
         /** Handed straight to `ConfirmationListLayout`. Only `listFooterContent` differs per expense type. */
         layoutProps: {
@@ -309,7 +324,7 @@ function useConfirmationListDataWithPolicy({
 
         /**
          * The `ConfirmationFieldsProvider` props that are the same for every expense type. A variant spreads these
-         * and adds only the type flags that are true for it.
+         * and adds only the expense-type flags (`isScanRequest`, `isDistanceRequest`, etc.) that are true for it.
          */
         confirmationFieldsProviderProps: {
             transactionID,
@@ -322,15 +337,24 @@ function useConfirmationListDataWithPolicy({
             didConfirm: !!didConfirm,
             canEnterScanFieldsManually,
             isPolicyExpenseChat,
+            isEditingSplitBill,
             scrollFocusedInputIntoView,
             onSubmitForm: confirm,
+            onTaxAmountEmptyChange: setIsTaxAmountEmpty,
         },
 
-        // Footer prop bundles, shared by every variant's footer
-        amountDisplay: {amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee},
-        requiredFlags: {isCategoryRequired, isMerchantRequired, isDescriptionRequired},
-        visibilityFlags: {shouldShowSmartScanFields, shouldShowAmountField: !isPerDiemRequest, shouldShowMerchant, shouldShowCategories, shouldShowTax},
-        errorState: {shouldDisplayFieldError, formError, clearFormErrors, setFormError},
+        /** The props every variant's footer takes. A variant spreads these and adds only its footer-specific extras. */
+        footerProps: {
+            policy,
+            policyTags,
+            selectedParticipants: selectedParticipantsProp,
+            amountDisplay,
+            requiredFlags,
+            visibilityFlags,
+            errorState,
+            toggleHandlers: {onToggleReimbursable, onToggleBillable},
+            receiptOptions,
+        },
 
         // Side-effect controller props, passed as props so each controller re-renders only when its own inputs change
         taxControllerProps: {
@@ -381,12 +405,6 @@ function useConfirmationListDataWithPolicy({
             setFormError,
             clearFormErrors,
         },
-
-        // Shared values, passed on to the footers
-        policy,
-        policyTags,
-        customUnitRateID,
-        setIsTaxAmountEmpty,
     };
 }
 

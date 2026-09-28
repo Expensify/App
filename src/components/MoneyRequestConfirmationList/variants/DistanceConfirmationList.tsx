@@ -11,7 +11,7 @@ import DistanceMapFooter from '@components/MoneyRequestConfirmationListFooter/va
 import DistanceOdometerFooter from '@components/MoneyRequestConfirmationListFooter/variants/DistanceOdometerFooter';
 
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getCreated, isGPSDistanceRequest as isGPSDistanceRequestUtil, isManualDistanceRequest as isManualDistanceRequestUtil} from '@libs/TransactionUtils';
+import {getCreated, getRateID, isGPSDistanceRequest as isGPSDistanceRequestUtil, isManualDistanceRequest as isManualDistanceRequestUtil} from '@libs/TransactionUtils';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -21,17 +21,7 @@ import {View} from 'react-native';
  * odometer reading.
  */
 function DistanceConfirmationList(props: MoneyRequestConfirmationListProps) {
-    const {
-        transaction,
-        selectedParticipants,
-        isEditingSplitBill,
-        isOdometerDistanceRequest = false,
-        receiptStitchError,
-        isParticipantPickerVisible = false,
-        onToggleBillable,
-        onToggleReimbursable,
-        receiptOptions,
-    } = props;
+    const {transaction, isOdometerDistanceRequest = false, receiptStitchError} = props;
 
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
     const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
@@ -42,56 +32,56 @@ function DistanceConfirmationList(props: MoneyRequestConfirmationListProps) {
     const shouldShowRateAutoUpdatedTooltip =
         !!transaction?.comment?.customUnit?.rateAutoUpdated && !!transaction.created && DistanceRequestUtils.isRateEligibleForDate(mileageRate, transaction.created);
 
-    const footerProps = {
-        policy: data.policy,
-        policyTags: data.policyTags,
-        selectedParticipants,
-        distanceData: {
-            distance,
-            // The distance field reads this to decide whether it has a figure worth showing, so a
-            // pending route (or a commuter exclusion still being decided) reads as not having one.
-            hasRoute: hasRoute && !isDistanceRequestWithPendingRoute,
-            unit,
-            distanceRateName: mileageRate.name,
-            distanceRateCurrency: currency,
-            mileageRate,
-            expenseDate: getCreated(transaction),
-            customUnitRateID: data.customUnitRateID,
-            shouldShowRateAutoUpdatedTooltip,
-            customUnit: transaction?.comment?.customUnit,
-        },
-        amountDisplay: data.amountDisplay,
-        requiredFlags: data.requiredFlags,
-        visibilityFlags: {...data.visibilityFlags, isParticipantPickerVisible},
-        errorState: data.errorState,
-        toggleHandlers: {onToggleReimbursable, onToggleBillable},
-        receiptOptions,
+    const customUnitRateID = getRateID(transaction);
+
+    const distanceData = {
+        distance,
+        // The distance field reads this to decide whether it has a figure worth showing, so a
+        // pending route (or a commuter exclusion still being decided) reads as not having one.
+        hasRoute: hasRoute && !isDistanceRequestWithPendingRoute,
+        unit,
+        distanceRateName: mileageRate.name,
+        distanceRateCurrency: currency,
+        mileageRate,
+        expenseDate: getCreated(transaction),
+        customUnitRateID,
+        shouldShowRateAutoUpdatedTooltip,
+        customUnit: transaction?.comment?.customUnit,
     };
 
     const renderFooter = () => {
         if (isManualDistanceRequest) {
-            return <DistanceManualFooter {...footerProps} />;
+            return (
+                <DistanceManualFooter
+                    {...data.footerProps}
+                    distanceData={distanceData}
+                />
+            );
         }
         if (isOdometerDistanceRequest) {
             return (
                 <DistanceOdometerFooter
-                    {...footerProps}
+                    {...data.footerProps}
+                    distanceData={distanceData}
                     receiptStitchError={receiptStitchError}
                 />
             );
         }
-        return <DistanceMapFooter {...footerProps} />;
+        return (
+            <DistanceMapFooter
+                {...data.footerProps}
+                distanceData={distanceData}
+            />
+        );
     };
 
     const listFooterContent = (
         <ConfirmationFieldsProvider
             {...data.confirmationFieldsProviderProps}
-            isEditingSplitBill={isEditingSplitBill}
             isDistanceRequest
             isManualDistanceRequest={isManualDistanceRequest}
             isOdometerDistanceRequest={isOdometerDistanceRequest}
             isGPSDistanceRequest={isGPSDistanceRequest}
-            onTaxAmountEmptyChange={data.setIsTaxAmountEmpty}
         >
             <View>{renderFooter()}</View>
         </ConfirmationFieldsProvider>

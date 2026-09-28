@@ -10,8 +10,6 @@ import {View} from 'react-native';
 
 /** Confirms a per-diem expense. */
 function PerDiemConfirmationList(props: MoneyRequestConfirmationListProps) {
-    const {selectedParticipants, onToggleBillable, onToggleReimbursable} = props;
-
     const data = useConfirmationListData({...props, isPerDiemRequest: true});
 
     const listFooterContent = (
@@ -20,16 +18,7 @@ function PerDiemConfirmationList(props: MoneyRequestConfirmationListProps) {
             isPerDiemRequest
         >
             <View>
-                <PerDiemFooter
-                    policy={data.policy}
-                    policyTags={data.policyTags}
-                    selectedParticipants={selectedParticipants}
-                    amountDisplay={data.amountDisplay}
-                    requiredFlags={data.requiredFlags}
-                    visibilityFlags={data.visibilityFlags}
-                    errorState={data.errorState}
-                    toggleHandlers={{onToggleReimbursable, onToggleBillable}}
-                />
+                <PerDiemFooter {...data.footerProps} />
             </View>
         </ConfirmationFieldsProvider>
     );

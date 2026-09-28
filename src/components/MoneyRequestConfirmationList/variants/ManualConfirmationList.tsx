@@ -15,30 +15,18 @@ import {View} from 'react-native';
  * and a time expense outside CREATE, all of which confirm as a plain expense.
  */
 function ManualConfirmationList(props: MoneyRequestConfirmationListProps) {
-    const {selectedParticipants, isEditingSplitBill, isPerDiemRequest, isTimeRequest, isParticipantPickerVisible = false, onToggleBillable, onToggleReimbursable, receiptOptions} = props;
+    const {isPerDiemRequest, isTimeRequest} = props;
 
     const data = useConfirmationListData(props);
 
     const listFooterContent = (
         <ConfirmationFieldsProvider
             {...data.confirmationFieldsProviderProps}
-            isEditingSplitBill={isEditingSplitBill}
             isPerDiemRequest={isPerDiemRequest}
             isTimeRequest={isTimeRequest}
-            onTaxAmountEmptyChange={data.setIsTaxAmountEmpty}
         >
             <View>
-                <ManualFooter
-                    policy={data.policy}
-                    policyTags={data.policyTags}
-                    selectedParticipants={selectedParticipants}
-                    amountDisplay={data.amountDisplay}
-                    requiredFlags={data.requiredFlags}
-                    visibilityFlags={{...data.visibilityFlags, isParticipantPickerVisible}}
-                    errorState={data.errorState}
-                    toggleHandlers={{onToggleReimbursable, onToggleBillable}}
-                    receiptOptions={receiptOptions}
-                />
+                <ManualFooter {...data.footerProps} />
             </View>
         </ConfirmationFieldsProvider>
     );
