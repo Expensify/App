@@ -94,12 +94,14 @@ type MockSectionsListProps = {
     onSelectRow: (item: MockMember) => void;
     shouldUpdateFocusedIndex?: boolean;
     initiallyFocusedItemKey?: string;
+    textInputOptions?: {onChangeText?: (text: string) => void};
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- only the login field of each entry is read in this page
 const PERSONAL_DETAILS = Object.fromEntries([
-    [2, {accountID: 2, login: 'payer@test.com', displayName: 'Payer'}],
-    [3, {accountID: 3, login: 'admin@test.com', displayName: 'Admin'}],
+    // Display names share the "Test" prefix so a single search term matches both members.
+    [2, {accountID: 2, login: 'payer@test.com', displayName: 'Test Payer'}],
+    [3, {accountID: 3, login: 'admin@test.com', displayName: 'Test Admin'}],
 ]) as unknown as PersonalDetailsList;
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- only a handful of policy fields are read in this page
@@ -167,6 +169,19 @@ describe('WorkspaceWorkflowsPayerPage', () => {
         // ...and the newly picked admin only got the checkmark, staying in the admins section.
         const admin = props?.sections.at(1)?.data.find((member) => member.keyForList === '3');
         expect(admin?.isSelected).toBe(true);
+    });
+
+    it('pins the saved payer to the top of the search results', () => {
+        render(pageElement());
+
+        // Searching collapses the two sections into one filtered list.
+        act(() => {
+            getListProps()?.textInputOptions?.onChangeText?.('Test');
+        });
+
+        const props = getListProps();
+        // The saved payer leads the filtered results instead of appearing after the admins.
+        expect(props?.sections.at(0)?.data.at(0)?.keyForList).toBe('2');
     });
 
     it('keeps the saved payer in the top section (not the unsaved pick) when the page regains focus', () => {

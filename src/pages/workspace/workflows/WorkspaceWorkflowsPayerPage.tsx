@@ -164,7 +164,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         const sectionsArray: MembersSection[] = [];
         if (searchTerm !== '') {
             const searchValue = getSearchValueForPhoneOrEmail(searchTerm, countryCode);
-            const filteredOptions = tokenizedSearch([...formattedPolicyAdmins, ...formattedAuthorizedPayer], searchValue, (option) => [option.text ?? '', option.login ?? '']);
+            // Keep the frozen initial payer first so it stays pinned to the top of the search results (tokenizedSearch preserves input order).
+            const filteredOptions = tokenizedSearch([...formattedAuthorizedPayer, ...formattedPolicyAdmins], searchValue, (option) => [option.text ?? '', option.login ?? '']);
             return [
                 {
                     title: undefined,
