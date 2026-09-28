@@ -40,7 +40,7 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
         },
     ];
 
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = snapshotHashes.map((snapshotHash) => ({
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = snapshotHashes.map((snapshotHash) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`,
         value: {
@@ -48,7 +48,7 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
         },
     }));
 
-    read(READ_COMMANDS.GET_INSIGHTS, {jsonQuery}, {optimisticData, failureData, finallyData});
+    read(READ_COMMANDS.GET_INSIGHTS, {jsonQuery}, {optimisticData, successData, failureData});
 }
 
 function setInsightsFilters(searchKey: InsightsSearchKey, query: string) {
