@@ -1,7 +1,7 @@
 ---
 title: Configure QuickBooks Desktop
 description: Learn how to connect and configure your QuickBooks Desktop integration with Expensify to manage imports, exports, and advanced accounting settings.
-keywords: [New Expensify, QuickBooks Desktop, Expensify integration, accounting settings, import settings, export settings, QBD, configure QuickBooks Desktop]
+keywords: [New Expensify, QuickBooks Desktop, Expensify integration, accounting settings, import settings, export settings, QBD, configure QuickBooks Desktop, currency conversion fee account, currency conversion fees QuickBooks Desktop]
 order: 2
 ---
 
@@ -118,6 +118,27 @@ These options manage syncing behavior, automation preferences, and additional ac
    * **Bill payment account**: Select the account for bill payments (defaults to the first option)
    * **Invoice collections account**: Select the account for invoice collections (defaults to the first option)
 
+## How to set a Currency conversion fee account for QuickBooks Desktop
+
+When you reimburse an employee in a different currency and your company pays the currency conversion fees, Expensify withdraws more from your bank account than the employee receives. The **Currency conversion fee account** setting adds that difference to the exported report as an extra line, so the export in QuickBooks Desktop matches the amount that left your bank account.
+
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace Name] > Accounting > QuickBooks Desktop**.
+2. Select the **Advanced** tab.
+3. Click **Currency conversion fee account**.
+4. Select the expense account where the currency conversion cost should post.
+5. Click **Save**.
+
+After you click **Save**, the **Currency conversion fee account** row shows the account you selected. When a reimbursed report exports, Expensify adds the currency conversion cost as an extra line on the vendor bill, check, or journal entry, coded to that account.
+
+No account is selected by default. If you leave the setting empty, or select **None** and click **Save**, the currency conversion cost is not added to the export.
+
+**Currency conversion fee account** appears on the **Advanced** tab only when:
+
+* **Payments** is enabled on the workspace with a connected reimbursement bank account.
+* **When to Export** is set to **Cash** (the default). With **Accrual**, reports export at final approval, before the currency conversion cost is known.
+
+This setting is not available on every workspace. [Learn how to choose who pays currency conversion fees](/articles/new-expensify/workspaces/Workspace-Workflows#how-to-choose-who-pays-currency-conversion-fees).
+
 ---
 
 # Step 5: Export Process
@@ -173,5 +194,13 @@ You can export to an employee record when exporting reports as **Journal Entries
 By default, we'll look for a vendor record with an email address matching the report submitter. If we don't find one, we'll look for an employee record. Employees must have a **Main Email** in QuickBooks Desktop that matches the email associated with their Expensify account. 
 
 If there is no vendor or employee record and **Auto-create entities** is enabled, we'll create a new vendor record for the submitter.
+
+## Why doesn't my exported report include the currency conversion cost?
+
+The currency conversion cost is only known after the reimbursement runs. Check the following:
+
+* A **Currency conversion fee account** is selected on the **Advanced** tab.
+* **Currency conversion fees** is set to **Company pays** under **Workspaces > [Workspace Name] > Workflows > Payments**.
+* The report was exported after it was paid. A report you export manually before it's paid won't include the currency conversion cost.
 
 
