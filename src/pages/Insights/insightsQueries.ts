@@ -1,9 +1,9 @@
-import type {SearchQueryString} from '@components/Search/types';
+import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getRangeQueryValue} from '@libs/SearchQueryUtils';
 
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import type {InsightsDashboard, InsightsDashboardID, InsightsGraphKey} from '@src/types/onyx';
+import type {InsightsDashboard, InsightsDashboardID} from '@src/types/onyx';
 
 import type {InsightsChartSpec} from './dashboardSpecs';
 import type {InsightsFilters} from './insightsFilters';
@@ -43,11 +43,12 @@ function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters
     );
 }
 
-/** Returns the chart's graph slot paired with its snapshot hash. */
-function buildSnapshotHashEntries(chart: InsightsChartSpec, filters: InsightsFilters): Array<[InsightsGraphKey, {snapshotHash: number}]> {
-    const snapshotHash = buildSearchQueryJSON(applyInsightsFilters(chart, filters))?.hash;
-    return snapshotHash ? [[chart.graphKey, {snapshotHash}]] : [];
-}
+type InsightsChartQuery = {
+    chart: InsightsChartSpec;
+
+    /** The chart's own query, whose hash its snapshot is stored under */
+    queryJSON: Readonly<SearchQueryJSON> | undefined;
+};
 
 type InsightsQuery = {
     /** Request payload for GetInsights. */
@@ -58,9 +59,12 @@ type InsightsQuery = {
 
     /** Hashes of the snapshots the graphs are stored under. */
     snapshotHashes: number[];
+
+    headlineChart: InsightsChartQuery;
+    supportingCharts: InsightsChartQuery[];
 };
 
-/** Builds one request for the whole dashboard: the shared filters query plus the snapshot hash each graph's data is stored under. */
+/** Builds one request for the whole dashboard: the shared filters query plus the query of each chart, whose hash its data is stored under. */
 function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: InsightsFilters): InsightsQuery | undefined {
     const inputQuery = buildInsightsQueryString(filters);
     const queryJSON = buildSearchQueryJSON(inputQuery);
@@ -68,8 +72,13 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
         return undefined;
     }
 
-    const {searchKey, headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[dashboard];
-    const graphEntries = [...buildSnapshotHashEntries(headlineChart, filters), ...supportingCharts.flatMap((chart) => buildSnapshotHashEntries(chart, filters))];
+    const spec = INSIGHTS_DASHBOARD_SPECS[dashboard];
+    const buildChartQuery = (chart: InsightsChartSpec): InsightsChartQuery => ({chart, queryJSON: buildSearchQueryJSON(applyInsightsFilters(chart, filters))});
+    const headlineChart = buildChartQuery(spec.headlineChart);
+    const supportingCharts = spec.supportingCharts.map(buildChartQuery);
+    const graphEntries = [headlineChart, ...supportingCharts].flatMap(({chart, queryJSON: chartQueryJSON}) =>
+        chartQueryJSON ? [[chart.graphKey, {snapshotHash: chartQueryJSON.hash}] as const] : [],
+    );
     const insightsHashes: InsightsDashboard['graphs'] = Object.fromEntries(graphEntries);
 
     return {
@@ -78,14 +87,16 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
             groupBy: queryJSON.groupBy,
             filters: queryJSON.filters,
             inputQuery,
-            searchKey,
+            searchKey: spec.searchKey,
             insightsHashes,
         }),
         hash: queryJSON.hash,
         snapshotHashes: graphEntries.map(([, {snapshotHash}]) => snapshotHash),
+        headlineChart,
+        supportingCharts,
     };
 }
 
 export {applyInsightsFilters, buildDateFormValues, buildInsightsQueryString};
-export type {InsightsQuery};
+export type {InsightsChartQuery, InsightsQuery};
 export default buildInsightsJsonQuery;
