@@ -8344,7 +8344,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 matchTypeContains: 'Enthält',
                 matchTypeExact: 'Stimmt genau überein',
                 maxAmount: 'Maximalbetrag',
-                maxAmountHelp: 'Jede Belastung über diesem Betrag wird abgelehnt, unabhängig von Händler- und Ausgabenkategoriebeschränkungen.',
                 maxAmountCurrencyMismatchTitle: 'Währungsabweichung',
                 maxAmountCurrencyMismatchPrompt: 'Um einen Maximalbetrag festzulegen, wählen Sie Karten aus, die in derselben Währung abgerechnet werden.',
                 reviewSelectedCards: 'Ausgewählte Karten prüfen',
@@ -8423,9 +8422,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     cta: 'Karte bestellen',
                 },
                 restrictCardSpendTitle: 'Kartenausgaben beschränken',
-                restrictCardSpendSubtitle: 'Ausgaben direkt am Verkaufsort blockieren oder begrenzen.',
-                ifAnyCardMatches: 'Wenn eine Karte übereinstimmt:',
-                thenDoThisAtPointOfSale: 'Machen Sie dann Folgendes am Verkaufspunkt:',
                 setRestrictions: 'Einschränkungen festlegen',
                 merchantRestrictions: 'Händlerbeschränkungen',
                 blockedMerchant: 'Gesperrter Händler',
@@ -8439,15 +8435,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 currencies: 'Währungen',
                 permittedCurrencies: 'Zulässige Währungen',
                 allCurrencies: 'Alle Währungen',
-                permittedCurrenciesSubtitle: 'Wählen Sie, ob alle oder nur bestimmte Währungen zulässig sind',
                 settlementCurrencyPermittedSubtitle: 'Die Kartenabrechnungswährung ist immer zulässig',
                 currenciesCurrencyMismatchTitle: 'Währungsabweichung',
                 currenciesCurrencyMismatchPrompt: 'Um bevorzugte Währungen festzulegen, wählen Sie Karten aus, die in derselben Währung abgerechnet werden.',
-                restrictMerchantsOffSubtitle: 'Belastungen werden für zulässige Währungen genehmigt, die einen Höchstbetrag nicht überschreiten',
-                restrictMerchantsAllowSubtitle:
-                    'Ausgaben werden genehmigt für zulässige Währungen, die einen Höchstbetrag nicht überschreiten und bei denen das Unternehmen oder der Unternehmenstyp übereinstimmt.',
-                restrictMerchantsBlockSubtitle:
-                    'Gebühren werden genehmigt, wenn sie in zulässigen Währungen erfolgen und einen Höchstbetrag nicht überschreiten oder wenn das Geschäft bzw. die Geschäftsart übereinstimmt.',
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Erlaubt ${shownCount > 1 ? 'Währungen' : 'Währung'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} weitere` : ''}`,
                 defaultRulesCannotBeDeleted: 'Standardregeln können nicht gelöscht werden',
