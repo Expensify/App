@@ -14,6 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportMetadata} from '@src/types/onyx';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -159,7 +160,7 @@ function AnimatedSubmitButton({
         <Animated.View style={[containerStyles, {minWidth}]}>
             {isAnimationRunning && canShow && (
                 <Animated.View
-                    ref={(el: View | null) => {
+                    ref={(el: ComponentRef<typeof View> | null) => {
                         viewRef.current = el as HTMLElement | null;
                     }}
                     exiting={buttonAnimation}

@@ -82,6 +82,7 @@ import {
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
     isReportManager as isReportManagerUtils,
+    isReportOwner as isReportOwnerUtils,
     isSelfDM as isSelfDMReportUtils,
     isSettled,
     isTrackExpenseReportNew,
@@ -122,6 +123,7 @@ function isSplitAction(
     currentUserLogin: string,
     currentUserAccountID: number,
     rules: OnyxCollection<Rule>,
+    reportOwnerLogin: string | undefined,
     policy?: OnyxEntry<Policy>,
     parentReport?: OnyxEntry<Report>,
 ): boolean {
@@ -188,7 +190,7 @@ function isSplitAction(
     }
 
     // Hide split option for the submitter if the report is forwarded
-    return (isSubmitter && isAwaitingFirstLevelApproval(report, rules)) || isAdmin || isManager;
+    return (isSubmitter && isAwaitingFirstLevelApproval(report, rules, reportOwnerLogin)) || isAdmin || isManager;
 }
 
 function isSubmitAction({
@@ -443,17 +445,6 @@ function getPayActionPaymentType(action: ReportAction | undefined): string | und
     return originalMessage && 'paymentType' in originalMessage ? originalMessage.paymentType : undefined;
 }
 
-function hasPayActionPassedNachaCutoff(action: ReportAction | undefined): boolean {
-    if (!action) {
-        return false;
-    }
-    const now = new Date();
-    const paymentDatetime = new Date(action.created);
-    const nowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));
-    const cutoffTimeUTC = new Date(Date.UTC(paymentDatetime.getUTCFullYear(), paymentDatetime.getUTCMonth(), paymentDatetime.getUTCDate(), 23, 45, 0));
-    return nowUTC.getTime() > cutoffTimeUTC.getTime();
-}
-
 function isCancelPaymentAction(
     currentAccountID: number,
     currentUserEmail: string,
@@ -509,19 +500,8 @@ function isCancelPaymentAction(
         return true;
     }
 
-    // Bank payment is processing when:
-    // 1. In BILLING state (ACH batch submitted), OR
-    // 2. In APPROVED + REIMBURSED state (immediately after paying via bank, before batch is sent), OR
-    // 3. In AUTOREIMBURSED state (automatically reimbursed)
-    const isInBillingState = report.stateNum === CONST.REPORT.STATE_NUM.BILLING && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-    const isApprovedAndReimbursed = report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-    const isAutoReimbursed = report.stateNum === CONST.REPORT.STATE_NUM.AUTOREIMBURSED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-    const isBankProcessing = isPaidViaBankAccount && (isInBillingState || isApprovedAndReimbursed || isAutoReimbursed);
-    const isPaymentProcessing = (!!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) || isBankProcessing;
-
-    const hasDailyNachaCutoffPassed = hasPayActionPassedNachaCutoff(latestPayAction);
-
-    return isPaymentProcessing && !hasDailyNachaCutoffPassed;
+    // Only Auth knows whether a bank reimbursement, queued or in flight, can still be cancelled (fast ACH posts the credit right away).
+    return !!report.canCancelReimbursement;
 }
 
 function isReceivedPaymentAction(report: Report, reportTransactions: Transaction[] = [], reportActions: ReportAction[] = [], policy?: Policy): boolean {
@@ -752,8 +732,9 @@ function isDeleteAction(
     rules: OnyxCollection<Rule>,
     policy: OnyxEntry<Policy>,
     reportActions?: ReportAction[],
+    isReportLevelDelete = false,
 ): boolean {
-    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions ?? [], currentUserAccountID, policy, rules);
+    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions ?? [], currentUserAccountID, rules, policy, isReportLevelDelete);
 }
 
 function shouldShowEditSplitInDeleteAction(
@@ -998,6 +979,18 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
     return true;
 }
 
+function isDownloadPDFAction(report: Report, currentUserAccountID: number): boolean {
+    // An open report has no finalized report on the backend, and `ExportReportToPDF` re-runs its access check against the
+    // report's current owner/manager. After a rejection the report goes back to open and is owned by the submitter again,
+    // so anyone else (e.g. the approver who rejected it, or their vacation delegate) gets a 404 instead of a PDF.
+    // The owner can still export their own draft, so only hide the action for everyone else.
+    if (isOpenReportUtils(report) && !isReportOwnerUtils(report, currentUserAccountID)) {
+        return false;
+    }
+
+    return true;
+}
+
 function getSecondaryReportActions({
     currentUserLogin,
     currentUserAccountID,
@@ -1144,7 +1137,7 @@ function getSecondaryReportActions({
     }
 
     if (
-        isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, rules, policy, parentReport) &&
+        isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, rules, submitterLogin, policy, parentReport) &&
         !shouldShowEditSplitInDeleteAction(report, reportTransactions, reportActions, originalTransaction, currentUserAccountID, policy, rules)
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
@@ -1164,7 +1157,9 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
 
-    options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
+    if (isDownloadPDFAction(report, currentUserAccountID)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
+    }
 
     if (reportTransactions.some(hasReceiptTransactionUtils)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS);
@@ -1206,7 +1201,7 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(report, reportTransactions, currentUserAccountID, rules, policy, reportActions ?? [])) {
+    if (isDeleteAction(report, reportTransactions, currentUserAccountID, rules, policy, reportActions ?? [], true)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
 
@@ -1240,6 +1235,7 @@ function getSecondaryTransactionThreadActions({
     currentUserLogin,
     currentUserAccountID,
     parentReport,
+    parentReportOwnerLogin,
     reportTransaction,
     reportAction,
     originalTransaction,
@@ -1255,6 +1251,12 @@ function getSecondaryTransactionThreadActions({
     currentUserLogin: string;
     currentUserAccountID: number;
     parentReport: Report;
+    /**
+     * Login of the parent report owner. Optional so the existing test callers keep compiling, because
+     * isAwaitingFirstLevelApproval still falls back to the personal details store when it is omitted.
+     * See https://github.com/Expensify/App/issues/66413.
+     */
+    parentReportOwnerLogin?: string;
     reportTransaction: Transaction;
     reportAction: ReportAction | undefined;
     originalTransaction: OnyxEntry<Transaction>;
@@ -1283,7 +1285,7 @@ function getSecondaryTransactionThreadActions({
     }
 
     if (
-        isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, rules, policy, grandParentReport) &&
+        isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, rules, parentReportOwnerLogin, policy, grandParentReport) &&
         !shouldShowEditSplitInDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [], originalTransaction, currentUserAccountID, policy, rules)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);

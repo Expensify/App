@@ -11,6 +11,7 @@ import {getExportTemplates, handlePreventSearchAPI} from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, getReportAction, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isMergeActionForSelectedTransactions, isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -57,6 +58,7 @@ import usePermissions from './usePermissions';
 import {useAllPersonalDetails} from './usePersonalDetails';
 import usePersonalPolicy from './usePersonalPolicy';
 import useReportIsArchived from './useReportIsArchived';
+import useReportTransactions from './useReportTransactions';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import {shouldShowBulkDuplicateOption} from './useSearchBulkActions';
 import useSplitEffectivePolicy from './useSplitEffectivePolicy';
@@ -127,6 +129,7 @@ function useSelectedTransactionsActions({
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const reportTransactions = useReportTransactions(report?.reportID);
     const {isBetaEnabled} = usePermissions();
     const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({report, reportActions, policy});
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -438,6 +441,7 @@ function useSelectedTransactionsActions({
                                       onExportFailed?.();
                                   },
                                   translate,
+                                  reportTransactions,
                               );
                               clearSelectedTransactions(true);
                           }
@@ -533,7 +537,17 @@ function useSelectedTransactionsActions({
             selectedTransactionsList.length === 1 &&
             report &&
             !(isExpenseSplit && hasMultipleSplits) &&
-            isSplitAction(report, [firstTransaction], originalTransaction, login ?? '', currentUserAccountID, rules, policy, parentReport);
+            isSplitAction(
+                report,
+                [firstTransaction],
+                originalTransaction,
+                login ?? '',
+                currentUserAccountID,
+                rules,
+                getLoginByAccountID(report?.ownerAccountID, personalDetails),
+                policy,
+                parentReport,
+            );
 
         if (canSplitTransaction) {
             options.push({

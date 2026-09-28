@@ -1,4 +1,5 @@
-// cspell:ignore Montag Dienstag Freitag Sonntag März Τρίτη Κυριακή -- German and Greek weekday and month
+// cspell:ignore Montag Dienstag Freitag Sonntag März Τρίτη Κυριακή Januar grudzień janv styczeń stycznia
+// cspell:ignore Ιανουάριος Ιανουαρίου -- German, Polish, French and Greek weekday and month
 // names, asserted verbatim so the locale-driven formatters are covered rather than only the English path.
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
@@ -16,7 +17,10 @@ import {addDays, addMinutes, endOfDay, format, set, setHours, setMinutes, startO
 import {fromZonedTime, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import {de} from 'date-fns/locale/de';
 import {el} from 'date-fns/locale/el';
+import {fr} from 'date-fns/locale/fr';
 import {ja} from 'date-fns/locale/ja';
+import {nl} from 'date-fns/locale/nl';
+import {pl} from 'date-fns/locale/pl';
 import Onyx from 'react-native-onyx';
 
 import {translateLocal} from '../utils/TestHelper';
@@ -337,6 +341,79 @@ describe('DateUtils', () => {
             const cardMonth = 1;
             const cardYear = new Date().getFullYear() + 1;
             expect(DateUtils.isCardExpired(cardMonth, cardYear)).toBe(false);
+        });
+    });
+
+    describe('getMonthNames', () => {
+        it('returns twelve months in the given language', () => {
+            const englishMonths = DateUtils.getMonthNames(undefined);
+            expect(englishMonths).toHaveLength(12);
+            expect(englishMonths.at(0)).toBe('January');
+            expect(englishMonths.at(11)).toBe('December');
+            expect(DateUtils.getMonthNames(de).at(0)).toBe('Januar');
+        });
+
+        it('uses the standalone month, which Greek and Polish inflect differently from the one beside a day', () => {
+            // `MONTH_FORMAT` is `LLLL`, not `MMMM`. With `MMMM` a picker list would read the genitive `Ιανουαρίου`
+            // or `stycznia`, meaning "of January", because those languages decline the month when a day number
+            // follows it.
+            expect(DateUtils.getMonthNames(el).at(0)).toBe('Ιανουάριος');
+            expect(DateUtils.getMonthNames(pl).at(0)).toBe('styczeń');
+            expect(DateUtils.getMonthNames(pl).at(11)).toBe('grudzień');
+        });
+    });
+
+    describe('getFormattedQuarterForSearch', () => {
+        it('covers each quarter with the right month boundaries', () => {
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, undefined)).toBe('Q1 2026 (Jan 1 - Mar 31)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 2, undefined)).toBe('Q2 2026 (Apr 1 - Jun 30)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 3, undefined)).toBe('Q3 2026 (Jul 1 - Sep 30)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 4, undefined)).toBe('Q4 2026 (Oct 1 - Dec 31)');
+        });
+
+        it('labels the quarter the way the locale does', () => {
+            // `QQQ` rather than a hardcoded `Q`. `Intl.DateTimeFormat` has no quarter option, so date-fns is the only
+            // source for these. The day range inside the parentheses is still the hand-written US-ordered `MMM d`,
+            // which is why French reads `janv. 1` rather than `1 janv.`. Localizing that ordering is a separate
+            // change.
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, fr)).toBe('1er trim. 2026 (janv. 1 - mars 31)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, pl)).toBe('I kw. 2026 (sty 1 - mar 31)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, nl)).toBe('K1 2026 (jan. 1 - mrt. 31)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, el)).toBe('Τ1 2026 (Ιαν 1 - Μαρ 31)');
+            // German and Japanese keep the English-looking `Q1`, so a dropped locale would not show up there.
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, de)).toBe('Q1 2026 (Jan. 1 - März 31)');
+        });
+    });
+
+    describe('getShortFormattedQuarterForSearch', () => {
+        it('names every quarter of the year', () => {
+            // Given the four quarters of 2026, whose boundaries the caller derives from the quarter number alone
+            const quarters = [1, 2, 3, 4];
+
+            // When each is rendered without a locale, which is the English default the search header shipped with
+            const labels = quarters.map((quarter) => DateUtils.getShortFormattedQuarterForSearch(2026, quarter, undefined));
+
+            // Then each label names its own quarter, so a wrong month offset would surface as a mislabelled group
+            expect(labels).toEqual(['Q1 ’26', 'Q2 ’26', 'Q3 ’26', 'Q4 ’26']);
+        });
+
+        it('takes the quarter abbreviation from the language rather than hardcoding Q', () => {
+            // Given a language that does not call a quarter "Q", which is what the previous `Q${quarter}` template
+            // could never express
+            // When the first quarter of 2026 is rendered in each
+            // Then the abbreviation follows the language while the year suffix stays the same shape
+            expect(DateUtils.getShortFormattedQuarterForSearch(2026, 1, fr)).toBe('1er trim. ’26');
+            expect(DateUtils.getShortFormattedQuarterForSearch(2026, 1, pl)).toBe('I kw. ’26');
+            expect(DateUtils.getShortFormattedQuarterForSearch(2026, 1, nl)).toBe('K1 ’26');
+            expect(DateUtils.getShortFormattedQuarterForSearch(2026, 1, el)).toBe('Τ1 ’26');
+        });
+
+        it('leaves German and English alike, so a dropped locale would not show up in either', () => {
+            // Given German, which happens to abbreviate quarters exactly as English does
+            // When the same quarter is rendered in both
+            // Then they match, which is why the assertions above use languages that differ instead
+            expect(DateUtils.getShortFormattedQuarterForSearch(2026, 1, de)).toBe('Q1 ’26');
+            expect(DateUtils.getShortFormattedQuarterForSearch(2026, 1, undefined)).toBe('Q1 ’26');
         });
     });
 

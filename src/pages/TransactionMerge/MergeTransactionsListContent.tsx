@@ -13,6 +13,7 @@ import useMergeTransactions from '@hooks/useMergeTransactions';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import useReportTransactions from '@hooks/useReportTransactions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getTransactionsForMerging, setupMergeTransactionData, setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
@@ -59,6 +60,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({
         mergeTransaction,
     });
+    const targetReportTransactions = useReportTransactions(targetTransactionReport?.reportID);
 
     useEffect(() => {
         // If the eligible transactions are already loaded, don't fetch them again
@@ -70,12 +72,23 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             isOffline,
             targetTransaction,
             transactions,
+            reportTransactions: targetReportTransactions,
             policy: targetTransactionPolicy,
             report: targetTransactionReport,
             currentUserLogin,
             rules,
         });
-    }, [transactions, isOffline, mergeTransaction?.eligibleTransactions, targetTransactionPolicy, targetTransactionReport, currentUserLogin, targetTransaction, rules]);
+    }, [
+        transactions,
+        isOffline,
+        mergeTransaction?.eligibleTransactions,
+        targetTransactionPolicy,
+        targetTransactionReport,
+        currentUserLogin,
+        targetTransaction,
+        targetReportTransactions,
+        rules,
+    ]);
 
     const data = !eligibleTransactions
         ? []
