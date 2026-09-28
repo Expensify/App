@@ -708,7 +708,18 @@ describe('Unread Indicators', () => {
 
                     const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
                     if (lastReportAction) {
-                        deleteReportComment(report, lastReportAction, undefined, undefined, [], undefined, undefined, '', false, 1);
+                        deleteReportComment({
+                            report,
+                            reportAction: lastReportAction,
+                            originalReportActions: undefined,
+                            reportActions: undefined,
+                            ancestors: [],
+                            isReportArchived: undefined,
+                            isOriginalReportArchived: undefined,
+                            currentEmail: '',
+                            isOffline: false,
+                            currentUserAccountID: 1,
+                        });
                     }
                     return waitForBatchedUpdates();
                 })
@@ -764,7 +775,18 @@ describe('Unread Indicators', () => {
 
             await waitForBatchedUpdates();
 
-            deleteReportComment(report, firstNewReportAction, undefined, undefined, [], undefined, undefined, '', false, 1);
+            deleteReportComment({
+                report,
+                reportAction: firstNewReportAction,
+                originalReportActions: undefined,
+                reportActions: undefined,
+                ancestors: [],
+                isReportArchived: undefined,
+                isOriginalReportArchived: undefined,
+                currentEmail: '',
+                isOffline: false,
+                currentUserAccountID: 1,
+            });
 
             await waitForBatchedUpdates();
         }
