@@ -49,7 +49,7 @@ Every field is a `DynamicFormField` (`src/types/onyx/DynamicFormField.ts`). The 
 | `file` | `UploadFile` | same |
 | `amount` | `AmountForm`, with a currency picker when `currencyKey` is set | same |
 | `percent` | `PercentageForm` | same |
-| `list` | avatar rows with Edit and a confirmed remove, an add row, and an item editor page inside the flow (a modal outside it) | same |
+| `list` | `ListField` rows with an avatar, Edit and a confirmed remove, plus an add row; items are edited on their own page inside the flow (a modal outside it) | same |
 
 "Alone on its page" means the field is the only visible one; choice fields then present as the page itself, which is how the follow-up form designs work. Everything else renders as a row.
 
