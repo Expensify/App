@@ -1586,6 +1586,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noReimbursableExpenses: 'Dieser Bericht enthält einen ungültigen Betrag',
         pendingConversionMessage: 'Die Gesamtsumme wird aktualisiert, sobald du wieder online bist',
         changedTheExpense: 'hat die Ausgabe geändert',
+        addedReceipt: 'hat einen Beleg hinzugefügt',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `den Wert ${valueName} auf ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `lege ${translatedChangedField} auf ${newMerchant} fest, wodurch der Betrag auf ${newAmountToDisplay} gesetzt wurde`,
