@@ -1,14 +1,22 @@
-import {render} from '@testing-library/react-native';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+
+import Navigation from '@libs/Navigation/Navigation';
+import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 
 import CopilotPage from '@pages/settings/Copilot/CopilotPage';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 
 const SESSION_EMAIL = 'me@example.com';
-const AGENT_SESSION_EMAIL = 'agent_42@expensify.ai';
 const OWNER_EMAIL = 'owner@example.com';
+let mockIsAgentAccount = false;
+let mockPersonalDetailsByLogin: Record<string, {displayName: string}> = {};
+let mockIsOffline = false;
+
+jest.mock('@hooks/useIsAgentAccount', () => () => mockIsAgentAccount);
 
 const mockUseOnyx = jest.fn<unknown[], [string]>();
 
@@ -23,7 +31,7 @@ jest.mock('@hooks/useOnyx', () => ({
     },
 }));
 
-jest.mock('@hooks/usePersonalDetailsByLogin', () => jest.fn(() => ({})));
+jest.mock('@hooks/usePersonalDetailsByLogin', () => jest.fn(() => mockPersonalDetailsByLogin));
 
 jest.mock('@components/DelegateNoAccessModalProvider', () => ({
     useDelegateNoAccessActions: jest.fn(() => ({showDelegateNoAccessModal: jest.fn()})),
@@ -35,7 +43,7 @@ jest.mock('@components/LockedAccountModalProvider', () => ({
     useLockedAccountState: jest.fn(() => ({isAccountLocked: false})),
 }));
 
-jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
+jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: mockIsOffline})));
 
 jest.mock('@hooks/useConfirmModal', () => jest.fn(() => ({showConfirmModal: jest.fn()})));
 
@@ -53,7 +61,7 @@ jest.mock('@hooks/useThemeStyles', () =>
             new Proxy(
                 {},
                 {
-                    get: () => ({}),
+                    get: (_target, property) => (property === 'searchBarWidth' ? () => ({}) : {}),
                 },
             ),
     ),
@@ -85,6 +93,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@libs/PersonalDetailsUtils', () => ({
+    ...jest.requireActual<typeof PersonalDetailsUtils>('@libs/PersonalDetailsUtils'),
     getPersonalDetailByEmail: jest.fn(() => undefined),
 }));
 
@@ -126,6 +135,34 @@ jest.mock('@components/ScrollView', () => {
     return MockScrollView;
 });
 
+jest.mock('@components/SearchBar', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/consistent-type-imports -- require() returns an untyped module; the React Native component annotations are supplied by JSX usage
+    const {Text, TextInput}: typeof import('react-native') = require('react-native');
+    function MockSearchBar({
+        label,
+        inputValue,
+        onChangeText,
+        shouldShowEmptyState,
+    }: {
+        label: string;
+        inputValue: string;
+        onChangeText: (value: string) => void;
+        shouldShowEmptyState?: boolean;
+    }) {
+        return (
+            <>
+                <TextInput
+                    accessibilityLabel={label}
+                    value={inputValue}
+                    onChangeText={onChangeText}
+                />
+                {!!shouldShowEmptyState && <Text>common.noResultsFoundMatching</Text>}
+            </>
+        );
+    }
+    return MockSearchBar;
+});
+
 jest.mock('@components/SectionSubtitleHTML', () => {
     function MockSectionSubtitleHTML() {
         return null;
@@ -136,6 +173,9 @@ jest.mock('@components/SectionSubtitleHTML', () => {
 describe('CopilotPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockIsAgentAccount = false;
+        mockPersonalDetailsByLogin = {};
+        mockIsOffline = false;
     });
 
     function setOnyxAccount(account: Record<string, unknown> | undefined, overrides: {sessionEmail?: string} = {}) {
@@ -212,12 +252,106 @@ describe('CopilotPage', () => {
         expect(nonAgentCount % 2).toBe(0);
         const occurrencesPerRow = nonAgentCount / 2;
 
-        setOnyxAccount({validated: true, delegatedAccess: {delegators: [], delegates: twoDelegates, delegate: OWNER_EMAIL}}, {sessionEmail: AGENT_SESSION_EMAIL});
+        mockIsAgentAccount = true;
+        setOnyxAccount({validated: true, delegatedAccess: {delegators: [], delegates: twoDelegates, delegate: OWNER_EMAIL}});
         const agentOutput = JSON.stringify(render(<CopilotPage />).toJSON());
         const agentCount = agentOutput.split('icon-three-dots').length - 1;
 
         expect(agentOutput).toContain(OWNER_EMAIL);
         expect(agentOutput).toContain('other@example.com');
         expect(agentCount).toBe(occurrencesPerRow);
+    });
+
+    it('shows search at 12 combined displayed relationships but not at 11', () => {
+        const delegators = Array.from({length: 6}, (_, index) => ({email: `delegator-${index}@example.com`, role: 'all'}));
+        const delegates = Array.from({length: 6}, (_, index) => ({email: `delegate-${index}@example.com`, role: 'submitter'}));
+        setOnyxAccount({validated: true, delegatedAccess: {delegators, delegates: delegates.slice(0, 5)}});
+        const {rerender} = render(<CopilotPage />);
+        expect(screen.queryByLabelText('workspace.people.findMember')).toBeNull();
+
+        setOnyxAccount({validated: true, delegatedAccess: {delegators, delegates}});
+        rerender(<CopilotPage />);
+        expect(screen.getByLabelText('workspace.people.findMember')).toBeOnTheScreen();
+    });
+
+    it('does not count optimistic delegates toward the search threshold', () => {
+        const delegates = Array.from({length: CONST.STANDARD_LIST_ITEM_LIMIT}, (_, index) => ({
+            email: `delegate-${index}@example.com`,
+            role: 'submitter',
+            optimisticAccountID: index === 0 ? 123 : undefined,
+        }));
+        setOnyxAccount({validated: true, delegatedAccess: {delegators: [], delegates}});
+
+        render(<CopilotPage />);
+        expect(screen.queryByLabelText('workspace.people.findMember')).toBeNull();
+    });
+
+    it('filters both sections by display name and email while keeping Add copilot available', async () => {
+        const matchingDelegatorEmail = 'delegator-5@example.com';
+        const matchingDelegateEmail = 'delegate-5@example.com';
+        const delegators = Array.from({length: 6}, (_, index) => ({email: `delegator-${index}@example.com`, role: 'all'}));
+        const delegates = Array.from({length: 6}, (_, index) => ({email: `delegate-${index}@example.com`, role: 'submitter'}));
+        mockPersonalDetailsByLogin = {
+            [matchingDelegatorEmail]: {displayName: 'Matching Boss'},
+            [matchingDelegateEmail]: {displayName: 'Matching Assistant'},
+        };
+        setOnyxAccount({validated: true, delegatedAccess: {delegators, delegates}});
+        const {toJSON} = render(<CopilotPage />);
+
+        fireEvent.changeText(screen.getByLabelText('workspace.people.findMember'), 'Matching Boss');
+        await waitFor(() => {
+            const output = JSON.stringify(toJSON());
+            expect(output).toContain('Matching Boss');
+            expect(output).not.toContain('Matching Assistant');
+            expect(output).toContain('delegate.youCanAccessTheseAccounts');
+            expect(output).not.toContain('delegate.membersCanAccessYourAccount');
+            expect(output).toContain('delegate.addCopilot');
+        });
+
+        fireEvent.changeText(screen.getByLabelText('workspace.people.findMember'), matchingDelegateEmail);
+        await waitFor(() => {
+            const output = JSON.stringify(toJSON());
+            expect(output).toContain('Matching Assistant');
+            expect(output).not.toContain('Matching Boss');
+            expect(output).not.toContain('delegate.youCanAccessTheseAccounts');
+            expect(output).toContain('delegate.membersCanAccessYourAccount');
+        });
+
+        fireEvent.changeText(screen.getByLabelText('workspace.people.findMember'), 'no matching copilot');
+        await waitFor(() => {
+            const output = JSON.stringify(toJSON());
+            expect(output).not.toContain('delegate.youCanAccessTheseAccounts');
+            expect(output).not.toContain('delegate.membersCanAccessYourAccount');
+            expect(output).toContain('common.noResultsFoundMatching');
+            expect(output).toContain('delegate.addCopilot');
+        });
+    });
+
+    it('makes a delegate row non-interactive and hides its three-dot menu while its removal is pending', () => {
+        mockIsOffline = true;
+        setOnyxAccount({
+            validated: true,
+            delegatedAccess: {
+                delegators: [],
+                delegates: [
+                    {
+                        email: 'removed@example.com',
+                        role: 'all',
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    },
+                ],
+            },
+        });
+
+        const {toJSON} = render(<CopilotPage />);
+        const output = JSON.stringify(toJSON());
+
+        expect(output).toContain('removed@example.com');
+        expect(output).not.toContain('icon-three-dots');
+
+        fireEvent.press(screen.getByText('removed@example.com'));
+
+        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 });

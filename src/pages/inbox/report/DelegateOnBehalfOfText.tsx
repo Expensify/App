@@ -2,12 +2,13 @@ import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {personalDetailByLoginSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
+import {personalDetailsSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 
 type DelegateOnBehalfOfTextFallbackProps = {
@@ -18,7 +19,7 @@ type DelegateOnBehalfOfTextFallbackProps = {
 function DelegateOnBehalfOfTextFallback({fallbackLogin}: DelegateOnBehalfOfTextFallbackProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [detail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailByLoginSelector(fallbackLogin)});
+    const detail = usePersonalDetailByLogin(fallbackLogin);
     return <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', detail?.displayName ?? '')}</Text>;
 }
 

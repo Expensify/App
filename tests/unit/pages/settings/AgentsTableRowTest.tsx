@@ -32,12 +32,6 @@ jest.mock('@hooks/useThemeStyles', () =>
     ),
 );
 
-jest.mock('@hooks/useStyleUtils', () =>
-    jest.fn(() => ({
-        getBackgroundAndBorderStyle: jest.fn(() => ({})),
-    })),
-);
-
 jest.mock('@hooks/useTheme', () =>
     jest.fn(() => ({
         sidebar: '#fff',
@@ -69,14 +63,19 @@ jest.mock('@components/Table/TableContext', () => ({
         tableMethods: {},
         selectionEnabled: false,
         isMobileSelectionEnabled: false,
+        tableListMetadata: {
+            hasPageHeader: false,
+            shouldRenderStickyHeader: false,
+        },
     })),
+    useTableRowSemanticID: jest.fn(() => undefined),
 }));
 
-jest.mock('@components/ReportActionAvatars', () => {
-    function MockReportActionAvatars() {
+jest.mock('@components/Avatar/connected/AccountAvatar', () => {
+    function MockAccountAvatar() {
         return null;
     }
-    return MockReportActionAvatars;
+    return MockAccountAvatar;
 });
 
 jest.mock('@components/Icon', () => {
@@ -113,7 +112,7 @@ const mockRecordButtonInnerStyles = jest.fn((accessibilityLabel: string, innerSt
     mockButtonInnerStyles[accessibilityLabel] = innerStyles;
 });
 
-jest.mock('@components/ButtonComposed', () => {
+jest.mock('@components/Button', () => {
     const {TouchableOpacity, Text} = jest.requireActual<typeof ReactNative>('react-native');
 
     function MockButtonIcon() {

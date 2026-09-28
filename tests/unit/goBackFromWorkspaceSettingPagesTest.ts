@@ -8,6 +8,8 @@ import type {NavigationState, PartialState} from '@react-navigation/native';
 
 import {StackActions} from '@react-navigation/native';
 
+import createMock from '../utils/createMock';
+
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
@@ -33,7 +35,7 @@ function mockRootState(routes: Array<{name: string; state?: PartialState<Navigat
         index: index ?? routes.length - 1,
     };
     // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.fn() mock doesn't rely on `this` binding
-    jest.mocked(navigationRef.getRootState).mockReturnValue(state as unknown as NavigationState);
+    jest.mocked(navigationRef.getRootState).mockReturnValue(createMock<NavigationState>(state));
 }
 
 describe('goBackFromWorkspaceSettingPages', () => {

@@ -39,11 +39,14 @@ type ApprovalWorkflowSectionProps = {
     /** Whether the workflow should be shown as read-only */
     isDisabled?: boolean;
 
-    /** HR provider display name, used in advanced (manager) mode to show "Manager (from {provider})" */
-    hrProviderName?: string;
+    /** Display name of the integration the workflow comes from, used to name that integration in the approver labels, e.g. "Manager (from {provider})" */
+    providerName?: string;
 
     /** When true, uses HR advanced (manager) mode labels: "Manager (from {provider})" then "Final approver" */
     isHRAdvancedMode?: boolean;
+
+    /** When true, uses recruiting (ATS) advanced mode labels: the usual approver labels, with "(from {provider})" appended to the first approver */
+    isRecruitingAdvancedMode?: boolean;
 
     /** Email of the configured final approver in HR advanced (manager) mode, used to correctly label a sole approver who is the final approver */
     hrFinalApproverEmail?: string;
@@ -55,16 +58,18 @@ function ApprovalWorkflowSection({
     onShowAllMembersPress,
     currency = CONST.CURRENCY.USD,
     isDisabled = false,
-    hrProviderName,
+    providerName,
     isHRAdvancedMode = false,
+    isRecruitingAdvancedMode = false,
     hrFinalApproverEmail,
 }: ApprovalWorkflowSectionProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lightbulb', 'Pencil', 'Users', 'UserCheck']);
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
+    const {translate, toLocaleOrdinalWithWords, localeCompare, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const fromProviderSuffix = providerName ? ` (${translate('workflowsPage.approverFromProvider', {provider: providerName})})` : '';
     const approverTitle = (index: number) => {
         if (isHRAdvancedMode) {
             const isLast = index === approvalWorkflow.approvers.length - 1;
@@ -76,10 +81,18 @@ function ApprovalWorkflowSection({
             if (approvalWorkflow.approvers.length <= 1) {
                 return translate('workflowsPage.approver');
             }
-            const fromProviderSuffix = hrProviderName ? ` (${translate('workflowsPage.approverFromProvider', {provider: hrProviderName})})` : '';
             return `${translate('workflowsPage.manager')}${fromProviderSuffix}`;
         }
-        return approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : translate('workflowsPage.approver');
+
+        if (approvalWorkflow.approvers.length <= 1) {
+            return translate('workflowsPage.approver');
+        }
+
+        const title = `${toLocaleOrdinalWithWords(index + 1)} ${translate('workflowsPage.approver').toLowerCase()}`;
+        if (isRecruitingAdvancedMode && index === 0) {
+            return `${title}${fromProviderSuffix}`;
+        }
+        return title;
     };
 
     const sortedMembers = approvalWorkflow.isDefault ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare);
@@ -88,7 +101,9 @@ function ApprovalWorkflowSection({
     // the workflow (e.g. a member invited offline) is still pending server confirmation.
     const membersPendingAction = sortedMembers.find((member) => !!member.pendingFields?.submitsTo)?.pendingFields?.submitsTo;
 
-    const members = approvalWorkflow.isDefault ? translate('workspace.common.everyone') : sortedMembers.map((m) => Str.removeSMSDomain(m.displayName)).join(', ');
+    const members = approvalWorkflow.isDefault
+        ? translate('workspace.common.everyone')
+        : sortedMembers.map((m) => (Str.isSMSLogin(m.displayName) ? formatPhoneNumber(m.displayName) : m.displayName)).join(', ');
 
     const memberPills = sortedMembers.map((m) => ({
         avatar: m.avatar,
@@ -98,7 +113,9 @@ function ApprovalWorkflowSection({
     const pressAction = isDisabled ? undefined : onPress;
     const accessibilityLabel = translate('workflowsPage.accessibilityLabel', {
         members,
-        approvers: approvalWorkflow?.approvers.map((approver) => Str.removeSMSDomain(approver?.displayName ?? '')).join(', '),
+        approvers: approvalWorkflow?.approvers
+            .map((approver) => (Str.isSMSLogin(approver?.displayName ?? '') ? formatPhoneNumber(approver?.displayName ?? '') : (approver?.displayName ?? '')))
+            .join(', '),
     });
 
     return (
@@ -191,7 +208,7 @@ function ApprovalWorkflowSection({
                                         />
                                     </View>
                                 }
-                                helperText={getApprovalLimitDescription({approver, currency, translate, convertToDisplayString})}
+                                helperText={getApprovalLimitDescription({approver, currency, translate, formatPhoneNumber, convertToDisplayString})}
                                 helperTextStyle={styles.workflowApprovalLimitText}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER}
                             />
@@ -202,13 +219,14 @@ function ApprovalWorkflowSection({
             {!isDisabled && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt4, styles.gap2]}>
                     <Button
-                        small
-                        icon={icons.Pencil}
-                        text={translate('workflowsPage.editWorkflowAction')}
+                        size={CONST.BUTTON_SIZE.SMALL}
                         onPress={onPress}
                         accessibilityLabel={translate('workflowsPage.editWorkflowAction')}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.APPROVAL_WORKFLOW_SECTION}
-                    />
+                    >
+                        <Button.Icon src={icons.Pencil} />
+                        <Button.Text>{translate('workflowsPage.editWorkflowAction')}</Button.Text>
+                    </Button>
                 </View>
             )}
         </View>

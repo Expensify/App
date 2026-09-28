@@ -1,6 +1,6 @@
 import {ReportSubmitToPopoverHost, SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
-import type {SearchParams} from '@components/Search/types';
+import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -10,6 +10,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
 import {PaymentContextProvider} from '@hooks/usePaymentContext';
 import usePrevious from '@hooks/usePrevious';
+import useReleaseOptionListCaches from '@hooks/useReleaseOptionListCaches';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchOverlay from '@hooks/useSearchOverlay';
 import useSearchPageSetup from '@hooks/useSearchPageSetup';
@@ -20,8 +21,10 @@ import {searchInServer} from '@libs/actions/Report';
 import {clearFooterConversion, search} from '@libs/actions/Search';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+import {isQueryARefinement} from '@libs/SearchQueryRefinement';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {hasFilterBarsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
@@ -50,8 +53,9 @@ function SearchPage({route}: SearchPageProps) {
 
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
 
-    const {searchRequestResponseStatusCode, setSearchRequestResponseStatusCode} = useSearchPageSetup(currentSearchQueryJSON);
+    useSearchPageSetup(currentSearchQueryJSON);
     useSeedMyExpensesSearch();
+    useReleaseOptionListCaches();
 
     // Adjust state during rendering rather than in a useEffect: the value is consumed in the same
     // render below (`searchResults = lastNonEmptySearchResults` when sorting), so a useEffect would
@@ -111,19 +115,45 @@ function SearchPage({route}: SearchPageProps) {
         setIsSorting(false);
     }, [currentSearchResults?.isLoading, isSorting, prevIsLoading]);
 
-    const handleSearchAction = useCallback(
-        (value: SearchParams | string) => {
-            if (typeof value === 'string') {
-                searchInServer(value);
-            } else {
-                setSearchRequestResponseStatusCode(null);
-                search(value)?.then((jsonCode) => {
-                    setSearchRequestResponseStatusCode(Number(jsonCode ?? 0));
-                });
-            }
-        },
-        [setSearchRequestResponseStatusCode],
-    );
+    const [lastResolvedSearch, setLastResolvedSearch] = useState<{queryJSON: SearchQueryJSON; searchResults: SearchResults} | undefined>(undefined);
+
+    // Changing a filter builds a query that has never been cached, so keying the results area on the requested
+    // query would mount it with no data and flash a skeleton in the middle of the fade. Key it on the last query
+    // that actually resolved instead: the current results stay on screen until the new ones arrive, then the area
+    // swaps once.
+    const isSearchResolvedForCurrentQuery = isCurrentSearchResolved && !!searchResults && !!currentSearchQueryJSON;
+    if (isSearchResolvedForCurrentQuery && currentSearchQueryJSON && searchResults && lastResolvedSearch?.searchResults !== searchResults) {
+        setLastResolvedSearch({queryJSON: currentSearchQueryJSON, searchResults});
+    }
+
+    // Allow showing skeleton when the query exceeds max hold time
+    const [staleHoldTimedOutHash, setStaleHoldTimedOutHash] = useState<number | undefined>(undefined);
+    const currentQueryHash = currentSearchQueryJSON?.hash;
+
+    useEffect(() => {
+        if (isSearchResolvedForCurrentQuery || currentQueryHash === undefined) {
+            return;
+        }
+
+        const timeoutID = setTimeout(() => setStaleHoldTimedOutHash(currentQueryHash), CONST.SEARCH.ANIMATION.MAX_STALE_HOLD_DURATION);
+        return () => clearTimeout(timeoutID);
+    }, [isSearchResolvedForCurrentQuery, currentQueryHash]);
+
+    const hasStaleHoldTimedOut = staleHoldTimedOutHash !== undefined && staleHoldTimedOutHash === currentQueryHash;
+
+    // Only a filter refinement is worth holding for. A sidebar item or saved search is a different search, so its
+    // results area starts from the skeleton rather than showing rows that belong to the query the user just left.
+    const shouldHoldLastResolvedSearch = !isSearchResolvedForCurrentQuery && !!lastResolvedSearch && !hasStaleHoldTimedOut && isQueryARefinement(currentSearchQueryJSON?.inputQuery);
+    const contentQueryJSON = shouldHoldLastResolvedSearch ? lastResolvedSearch.queryJSON : currentSearchQueryJSON;
+    const contentSearchResults = shouldHoldLastResolvedSearch ? lastResolvedSearch.searchResults : searchResults;
+
+    const handleSearchAction = useCallback((value: SearchParams | string) => {
+        if (typeof value === 'string') {
+            searchInServer(value);
+        } else {
+            search(value);
+        }
+    }, []);
 
     const onSortPressedCallback = useCallback(() => {
         setIsSorting(true);
@@ -149,8 +179,8 @@ function SearchPage({route}: SearchPageProps) {
                         <SearchPageNarrow
                             queryJSON={currentSearchQueryJSON}
                             searchResults={searchResults}
-                            searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                            setSearchRequestResponseStatusCode={setSearchRequestResponseStatusCode}
+                            contentQueryJSON={contentQueryJSON}
+                            contentSearchResults={contentSearchResults}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             onSortPressedCallback={onSortPressedCallback}
                             searchOverlayContent={searchOverlayContent}
@@ -162,7 +192,8 @@ function SearchPage({route}: SearchPageProps) {
                         <SearchPageWide
                             queryJSON={currentSearchQueryJSON}
                             searchResults={searchResults}
-                            searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                            contentQueryJSON={contentQueryJSON}
+                            contentSearchResults={contentSearchResults}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             handleSearchAction={handleSearchAction}
                             onSortPressedCallback={onSortPressedCallback}

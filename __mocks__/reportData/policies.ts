@@ -73,7 +73,6 @@ const policy420A: Policy = {
     outputCurrency: 'USD',
     avatarURL: '',
     employeeList: {},
-    isPolicyExpenseChatEnabled: true,
     lastModified: '1744880511066991',
     chatReportIDAnnounce: '0',
     chatReportIDAdmins: '1552825053855260',

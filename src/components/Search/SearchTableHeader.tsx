@@ -2,6 +2,8 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isCreatedDateType} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -68,6 +70,11 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         canEdit: true,
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.VENDOR,
+        translationKey: 'common.vendor',
+        isColumnSortable: false,
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
         translationKey: 'common.description',
         canEdit: true,
@@ -110,6 +117,11 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAG,
         translationKey: 'common.tag',
         canEdit: true,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
+        translationKey: 'common.violations',
+        isColumnSortable: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE,
@@ -203,7 +215,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
 const taskHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
-        translationKey: 'common.date',
+        translationKey: 'search.filters.created',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
@@ -246,7 +258,7 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
-        translationKey: 'common.date',
+        translationKey: 'search.filters.created',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTED,
@@ -263,6 +275,10 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED,
         translationKey: 'search.filters.firstApproved',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.PAID_BY,
+        translationKey: 'search.filters.paidBy',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
@@ -317,6 +333,14 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
         translationKey: 'common.internationalReimbursementIDs',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED,
+        translationKey: 'common.amountDebited',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED,
+        translationKey: 'common.amountReimbursed',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,
         translationKey: 'common.reportID',
     },
@@ -336,18 +360,17 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
 ];
 
 const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderIcons): SearchColumnConfig[] => {
-    const commonGroupHeaders: SearchColumnConfig[] = [
-        {
-            columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
-            translationKey: 'common.expenses' as TranslationPaths,
-            isColumnSortable: true,
-        },
-        {
-            columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
-            translationKey: 'common.total' as TranslationPaths,
-            isColumnSortable: true,
-        },
-    ];
+    const groupExpensesHeader: SearchColumnConfig = {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+        translationKey: 'common.expenses' as TranslationPaths,
+        isColumnSortable: true,
+    };
+    const groupTotalHeader: SearchColumnConfig = {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+        translationKey: 'common.total' as TranslationPaths,
+        isColumnSortable: true,
+    };
+    const commonGroupHeaders: SearchColumnConfig[] = [groupExpensesHeader, groupTotalHeader];
     switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.FROM:
             return [
@@ -405,7 +428,18 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
                     translationKey: 'common.withdrawalID',
                 },
-                ...commonGroupHeaders,
+                groupExpensesHeader,
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED,
+                    translationKey: 'common.amountDebited',
+                    isColumnSortable: true,
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED,
+                    translationKey: 'common.amountReimbursed',
+                    isColumnSortable: true,
+                },
+                groupTotalHeader,
             ];
         case CONST.SEARCH.GROUP_BY.CATEGORY:
             return [
@@ -430,6 +464,15 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                 {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG,
                     translationKey: 'common.tag',
+                    isColumnSortable: true,
+                },
+                ...commonGroupHeaders,
+            ];
+        case CONST.SEARCH.GROUP_BY.DAY:
+            return [
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY,
+                    translationKey: 'search.filters.groupBy.day',
                     isColumnSortable: true,
                 },
                 ...commonGroupHeaders,
@@ -600,6 +643,7 @@ function SearchTableHeader({
         <SortableTableHeader
             columns={orderedColumnConfig}
             shouldShowColumn={shouldShowColumn}
+            isDateColumnCreated={isCreatedDateType(type)}
             dateColumnSize={shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             submittedColumnSize={shouldShowYearSubmitted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             approvedColumnSize={shouldShowYearApproved ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}

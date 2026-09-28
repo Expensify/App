@@ -16,13 +16,13 @@ import {getCommandURL} from '@libs/ApiUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCodeType} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {getAddressComponents, getPlaceAutocompleteTerms} from '@libs/GooglePlacesUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
+import type {ComponentRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
 
@@ -81,7 +81,6 @@ function AddressSearchListEmptyComponent({searchValue, onEmptyChange}: {searchVa
 
 function AddressSearchListLoader({onLoadingChange}: {onLoadingChange: (isLoading: boolean) => void}) {
     const styles = useThemeStyles();
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddressSearch.listLoader'};
 
     useEffect(() => {
         onLoadingChange(true);
@@ -90,7 +89,7 @@ function AddressSearchListLoader({onLoadingChange}: {onLoadingChange: (isLoading
 
     return (
         <View style={[styles.pv4]}>
-            <ActivityIndicator reasonAttributes={reasonAttributes} />
+            <ActivityIndicator />
         </View>
     );
 }
@@ -146,7 +145,7 @@ function AddressSearch({
     const [isListEmpty, setIsListEmpty] = useState(false);
     const shouldTriggerGeolocationCallbacks = useRef(true);
     const [shouldHidePredefinedPlaces, setShouldHidePredefinedPlaces] = useState(false);
-    const containerRef = useRef<View>(null);
+    const containerRef = useRef<ComponentRef<typeof View>>(null);
 
     useDebouncedAccessibilityAnnouncement(
         translate('common.suggestionsAvailableFor', searchValue.trim()),
@@ -392,11 +391,6 @@ function AddressSearch({
 
     const listLoader = useMemo(() => <AddressSearchListLoader onLoadingChange={setIsLoadingResults} />, []);
 
-    const fetchingLocationReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'AddressSearch.isFetchingCurrentLocation',
-        isFetchingCurrentLocation,
-    };
-
     return (
         /*
          * The GooglePlacesAutocomplete component uses a VirtualizedList internally,
@@ -538,10 +532,7 @@ function AddressSearch({
             </ScrollView>
             {isFetchingCurrentLocation && (
                 <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={fetchingLocationReasonAttributes}
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             )}
         </>

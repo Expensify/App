@@ -1,6 +1,6 @@
 import {act, render} from '@testing-library/react-native';
 
-import type * as Link from '@libs/actions/Link';
+import {openReportFromDeepLink} from '@libs/actions/Link';
 import * as Report from '@libs/actions/Report';
 
 import CONST from '@src/CONST';
@@ -13,7 +13,6 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/actions/Link', () => ({
-    ...jest.requireActual<typeof Link>('@libs/actions/Link'),
     openReportFromDeepLink: jest.fn(),
 }));
 
@@ -69,6 +68,41 @@ describe('DeepLinkHandler', () => {
         expect(Report.openReport).toHaveBeenCalledWith(expect.objectContaining({reportID: PUBLIC_ROOM_ID}));
     });
 
+    it('threads onboarding status from NVP_ONBOARDING into the refetch openReport (#66424)', async () => {
+        await act(async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS},
+                [ONYXKEYS.IS_LOADING_APP]: true,
+                [ONYXKEYS.CONCIERGE_REPORT_ID]: '',
+                [ONYXKEYS.NVP_INTRO_SELECTED]: {},
+                [ONYXKEYS.BETAS]: [],
+                // Deliberately mismatched flags so the assertion proves each field maps to its own source and they are not swapped.
+                // selfTourViewed feeds isSelfTourViewed (true), while hasCompletedGuidedSetupFlow passes through unchanged (false).
+                [ONYXKEYS.NVP_ONBOARDING]: {selfTourViewed: true, hasCompletedGuidedSetupFlow: false},
+            });
+        });
+
+        Linking.setInitialURL(`new-expensify://r/${PUBLIC_ROOM_ID}`);
+
+        render(<DeepLinkHandler onInitialUrl={jest.fn()} />);
+        await waitForBatchedUpdatesWithAct();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // The combined NVP_ONBOARDING selector feeds both onboarding flags into openReport so guided-setup optimistic data
+        // is derived from real Onyx data instead of the deprecated module-level Onyx.connect fallback.
+        expect(Report.openReport).toHaveBeenCalledWith(
+            expect.objectContaining({
+                reportID: PUBLIC_ROOM_ID,
+                isSelfTourViewed: true,
+                hasCompletedGuidedSetupFlow: false,
+            }),
+        );
+    });
+
     it('does not refetch when the public room is already present in Onyx', async () => {
         await act(async () => {
             await Onyx.multiSet({
@@ -117,5 +151,40 @@ describe('DeepLinkHandler', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(Report.openReport).not.toHaveBeenCalled();
+    });
+
+    it('passes the latest report name-value pairs to warm deep links', async () => {
+        const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${PUBLIC_ROOM_ID}` as const;
+        const archivedAt = '2024-01-01 00:00:00.000';
+        await act(async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS},
+                [ONYXKEYS.IS_LOADING_APP]: false,
+                [ONYXKEYS.CONCIERGE_REPORT_ID]: '',
+                [ONYXKEYS.NVP_INTRO_SELECTED]: {},
+                [ONYXKEYS.BETAS]: [],
+            });
+        });
+        const addEventListenerSpy = jest.spyOn(Linking, 'addEventListener');
+
+        render(<DeepLinkHandler onInitialUrl={jest.fn()} />);
+        await waitForBatchedUpdatesWithAct();
+        jest.mocked(openReportFromDeepLink).mockClear();
+
+        await act(async () => {
+            await Onyx.set(reportNameValuePairsKey, {private_isArchived: archivedAt});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const urlChangeHandler = addEventListenerSpy.mock.calls.find(([eventType]) => eventType === 'url')?.[1];
+        expect(urlChangeHandler).toBeDefined();
+        await act(async () => {
+            urlChangeHandler?.({url: `new-expensify://r/${PUBLIC_ROOM_ID}`});
+        });
+
+        expect(jest.mocked(openReportFromDeepLink).mock.calls.at(-1)?.[7]).toEqual({
+            [reportNameValuePairsKey]: {private_isArchived: archivedAt},
+        });
+        addEventListenerSpy.mockRestore();
     });
 });

@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
-import reserveSearchChannelIfGlobalCreate from '@libs/Navigation/helpers/reserveSearchChannelIfGlobalCreate';
+import markPendingWriteForSearchPage from '@libs/Navigation/helpers/markPendingWriteForSearchPage';
 import {startTracking} from '@libs/telemetry/submitFollowUpAction';
 import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 import {extractUrlDomain} from '@libs/Url';
@@ -53,7 +53,7 @@ function DynamicIOURequestStepCompanyInfo({route, report, transaction}: DynamicI
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {inputCallbackRef} = useAutoFocusInput();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -108,9 +108,10 @@ function DynamicIOURequestStepCompanyInfo({route, report, transaction}: DynamicI
             },
             {skipSubmitExpenseSpan: true},
         );
-        reserveSearchChannelIfGlobalCreate(!!isFromGlobalCreate);
+        markPendingWriteForSearchPage(!!isFromGlobalCreate);
         const invoiceChatReportID = report?.reportID ? undefined : reportID;
         sendInvoice({
+            getCurrencyDecimals,
             currentUserAccountID: currentUserPersonalDetails.accountID,
             transaction,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],

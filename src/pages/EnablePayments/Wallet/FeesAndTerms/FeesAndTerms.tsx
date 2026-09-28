@@ -64,7 +64,7 @@ function FeesAndTerms() {
     };
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'EnablePaymentsFeesAndTerms', isRedirecting}} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

@@ -42,6 +42,7 @@ function DynamicDebugDetailsConstantPickerPage({
         if (([TRANSACTION_FORM_INPUT_IDS.CURRENCY, TRANSACTION_FORM_INPUT_IDS.MODIFIED_CURRENCY, TRANSACTION_FORM_INPUT_IDS.ORIGINAL_CURRENCY] as string[]).includes(fieldName)) {
             return (
                 <CurrencySelectionList
+                    initiallySelectedCurrencyCode={fieldValue}
                     onSelect={({currencyCode}) =>
                         onSubmit({
                             text: currencyCode,

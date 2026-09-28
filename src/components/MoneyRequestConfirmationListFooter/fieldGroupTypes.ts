@@ -2,6 +2,7 @@ import type {MileageRate} from '@libs/DistanceRequestUtils';
 
 import type {TranslationPaths} from '@src/languages/types';
 import type {Unit} from '@src/types/onyx/Policy';
+import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 
 /** Pre-formatted amount values displayed in Amount/Attendee fields */
 type AmountDisplay = {
@@ -15,28 +16,13 @@ type DistanceData = {
     distance: number;
     hasRoute: boolean;
     unit: Unit | undefined;
-    rate: number | undefined;
     distanceRateName: string | undefined;
     distanceRateCurrency: string;
     mileageRate: MileageRate;
     expenseDate: string | undefined;
     customUnitRateID: string | undefined;
     shouldShowRateAutoUpdatedTooltip?: boolean;
-};
-
-/** Distance-mode discriminators (manual / odometer / GPS) */
-type DistanceFlags = {
-    isManualDistanceRequest: boolean;
-    isOdometerDistanceRequest: boolean;
-    isGPSDistanceRequest: boolean;
-};
-
-/** What kind of expense the surface is confirming. Drives field gating across groups. */
-type ExpenseMode = {
-    isDistance: boolean;
-    isTime: boolean;
-    isInvoice: boolean;
-    isPerDiem: boolean;
+    customUnit?: TransactionCustomUnit;
 };
 
 /** Per-field "required" flags driven by policy/workflow */
@@ -55,7 +41,7 @@ type VisibilityFlags = {
     shouldShowTax: boolean;
 
     /** Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount autofocus on picker close. */
-    isParticipantPickerVisible: boolean;
+    isParticipantPickerVisible?: boolean;
 };
 
 /** Shared error state surfaced into multiple fields */
@@ -80,14 +66,14 @@ type CompactState = {
 
 /** External-facing compact-mode controls (the footer derives `isCompactMode` itself) */
 type CompactControls = {
-    showMoreFields?: boolean;
-    setShowMoreFields?: (showMoreFields: boolean) => void;
+    showMoreFields: boolean;
+    setShowMoreFields: (showMoreFields: boolean) => void;
 };
 
 /** Receipt-related inputs threaded into the receipt section */
 type ReceiptOptions = {
-    receiptFilename: string;
-    receiptPath: string | number;
+    receiptFilename?: string;
+    receiptPath?: string | number;
     isLoadingReceipt?: boolean;
     isReceiptEditable?: boolean;
     shouldDisplayReceipt: boolean;
@@ -95,4 +81,4 @@ type ReceiptOptions = {
     onPDFPassword?: () => void;
 };
 
-export type {AmountDisplay, CompactControls, CompactState, DistanceData, DistanceFlags, ErrorState, ExpenseMode, ReceiptOptions, RequiredFlags, ToggleHandlers, VisibilityFlags};
+export type {AmountDisplay, CompactControls, CompactState, DistanceData, ErrorState, ReceiptOptions, RequiredFlags, ToggleHandlers, VisibilityFlags};

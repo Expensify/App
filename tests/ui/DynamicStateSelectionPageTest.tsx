@@ -48,9 +48,11 @@ jest.mock('@hooks/useLocalize', () =>
             }
 
             const [, stateKey, property] = key.split('.');
-            // stateKey is parsed from an `allStates.<key>.*` path generated from mockStates itself, so it is guaranteed valid.
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            const state = mockStates[stateKey as keyof typeof mockStates];
+            const stateEntry = Object.entries(mockStates).find(([keyName]) => keyName === stateKey);
+            if (!stateEntry) {
+                throw new Error(`Unknown state key: ${stateKey}`);
+            }
+            const state = stateEntry[1];
 
             if (property === 'stateName') {
                 return state.stateName;
@@ -108,18 +110,13 @@ describe('DynamicStateSelectionPage', () => {
         const searchedProps = mockedSelectionList.mock.lastCall?.[0];
         const expectedSearchResults = searchOptions(
             'New',
-            Object.keys(mockStates).map((stateKey) => {
-                // stateKey comes from Object.keys(mockStates) itself, so it is guaranteed valid.
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-                const state = mockStates[stateKey as keyof typeof mockStates];
-                return {
-                    value: state.stateISO,
-                    keyForList: state.stateISO,
-                    text: state.stateName,
-                    isSelected: state.stateISO === 'NY',
-                    searchValue: StringUtils.sanitizeString(`${state.stateISO}${state.stateName}`),
-                };
-            }),
+            Object.values(mockStates).map((state) => ({
+                value: state.stateISO,
+                keyForList: state.stateISO,
+                text: state.stateName,
+                isSelected: state.stateISO === 'NY',
+                searchValue: StringUtils.sanitizeString(`${state.stateISO}${state.stateName}`),
+            })),
         );
 
         expect(searchedProps?.data.map((item) => item.keyForList)).toEqual(expectedSearchResults.map((item) => item.keyForList));

@@ -1,7 +1,8 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -31,10 +32,7 @@ import {View} from 'react-native';
 import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
 
 type BaseDomainMemberDetailsComponentProps = {
-    /** Domain ID */
     domainAccountID: number;
-
-    /** User account ID */
     accountID: number;
 
     /** List of additional fields (e.g., force 2FA) */
@@ -54,7 +52,7 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
         selector: personalDetailsSelector,
     });
 
-    const displayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate}));
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate, formatPhoneNumber});
     const phoneNumber = getPhoneNumber(personalDetails);
     const memberLogin = personalDetails?.login ?? '';
     const isSMSLogin = Str.isSMSLogin(memberLogin);
@@ -72,11 +70,10 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                             <OfflineWithFeedback pendingAction={personalDetails?.pendingFields?.avatar}>
-                                <Avatar
+                                <UserAvatar
                                     containerStyles={[styles.mb4, styles.noOutline]}
                                     source={personalDetails?.avatar}
-                                    avatarID={accountID}
-                                    type={CONST.ICON_TYPE_AVATAR}
+                                    accountID={accountID}
                                     size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                     fallbackIcon={personalDetails?.fallbackIcon}
                                 />
@@ -93,19 +90,17 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
                             {avatarButton}
                         </View>
                         <View style={styles.w100}>
-                            <MenuItemWithTopDescription
-                                title={copyableName}
-                                copyValue={copyableName}
-                                description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
-                                interactive={false}
-                                copyable
-                            />
+                            <MenuItemField
+                                name={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                value={copyableName}
+                            >
+                                <MenuItem.Copy value={copyableName} />
+                            </MenuItemField>
                             {children}
-                            <MenuItem
+                            <MenuItemNavigation
                                 title={translate('common.profile')}
                                 icon={icons.Info}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)))}
-                                shouldShowRightIcon
                             />
                         </View>
                     </View>

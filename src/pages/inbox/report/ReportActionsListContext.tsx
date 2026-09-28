@@ -51,8 +51,9 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
         isReportArchived,
         isReportTransactionThread,
         shouldBeAlignedToTop,
-        isLoadingInitialReportActions,
+        isReportLoadPending,
         hasOnceLoadedReportActions,
+        isLoadingInitialReportActions,
         isLoadingApp,
         reportActionsLength,
         oldestUnreadReportAction,
@@ -62,19 +63,25 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
         isConciergeMainDM,
         hasCachedReportActions,
         showConciergeSidePanelWelcome,
+        derivedIsEmptyReport,
     } = readinessSignals;
 
-    const isReportUnread = isUnread(report, transactionThreadReport, isReportArchived);
+    const isReportUnread = isUnread(report, transactionThreadReport, isReportArchived, derivedIsEmptyReport);
+
+    // Before the first successful load, a missing loading-state entry means ReportFetchHandler has not
+    // enqueued OpenReport yet. Once a terminal failure writes false, the stored state releases the gate.
+    const shouldKeepInitialReportLoadGated = isReportLoadPending || (!hasOnceLoadedReportActions && isLoadingInitialReportActions !== false);
 
     // When opening an unread report, it is very likely that the message we will open to is not the latest,
     // which is the only one we will have in cache.
-    const isInitiallyLoadingReport = isReportUnread && !!isLoadingInitialReportActions && reportActionsLength <= 1;
+    const isInitiallyLoadingReport = isReportUnread && shouldKeepInitialReportLoadGated && reportActionsLength <= 1;
 
     // Same for unread messages, we need to wait for the results from the OpenReport API call
     // if the oldest unread report action is not available yet. Only applies during the *first* load
     // for this report: after `hasOnceLoadedReportActions` is set, a later "mark as unread" must not
     // bring back this loading gate (we are not re-opening the report from a cold cache).
-    const isUnreadMessagePageLoadingInitially = !shouldBeAlignedToTop && !reportActionIDFromRoute && isReportUnread && !oldestUnreadReportAction && !hasOnceLoadedReportActions;
+    const isUnreadMessagePageLoadingInitially =
+        !shouldBeAlignedToTop && !reportActionIDFromRoute && isReportUnread && !oldestUnreadReportAction && !hasOnceLoadedReportActions && shouldKeepInitialReportLoadGated;
 
     // Once all the above conditions are met, we can consider the report ready.
     const isReportLoading = isInitiallyLoadingReport || isUnreadMessagePageLoadingInitially;
@@ -83,7 +90,7 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
     const isMissingTransactionThreadReportID = !transactionThreadReport?.reportID;
     const isReportDataIncomplete = isSingleExpenseReport && isMissingTransactionThreadReportID;
 
-    const shouldShowSkeletonForInitialLoad = !!isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline;
+    const shouldShowSkeletonForInitialLoad = isReportLoadPending && (isReportDataIncomplete || isMissingReportActions) && !isOffline;
 
     const shouldShowSkeletonForAppLoad = !!isLoadingApp && !isOffline;
 
@@ -102,7 +109,7 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
 
     // When opening a linked message online, wait for the first load before rendering the list: the batch of
     // actions that arrives right after the initial load shifts the list and breaks the anchor to the linked action.
-    const shouldShowSkeletonForLinkedMessageLoad = !!reportActionIDFromRoute && !isOffline && !hasOnceLoadedReportActions && !!isLoadingInitialReportActions;
+    const shouldShowSkeletonForLinkedMessageLoad = !!reportActionIDFromRoute && !isOffline && !hasOnceLoadedReportActions && isReportLoadPending;
 
     const shouldShowInitialSkeleton = shouldShowSkeletonForConciergePanel || shouldShowSkeletonForInitialLoad || shouldShowSkeletonForAppLoad || shouldShowSkeletonForLinkedMessageLoad;
 
@@ -114,7 +121,6 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
     return {
         shouldShowLoadingSkeleton,
         shouldShowDerivedTimingSkeleton,
-        shouldShowInitialSkeleton,
     };
 }
 

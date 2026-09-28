@@ -36,6 +36,9 @@ type CreateDistanceRequestParams = {
     distanceRequestType?: string;
     customUnitPolicyID?: string;
 
+    /** Distance in meters of the alternate map route the user picked, so the backend doesn't fall back to primary route */
+    selectedRouteDistance?: number;
+
     /** When true, the backend defers auto-submit so batch expense creation (e.g. duplicate report) can finish before the report is submitted */
     shouldDeferAutoSubmit?: boolean;
 };

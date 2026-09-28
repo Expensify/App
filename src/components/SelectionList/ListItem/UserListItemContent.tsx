@@ -1,18 +1,13 @@
-import Icon from '@components/Icon';
-import ReportActionAvatars from '@components/ReportActionAvatars';
-import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
+import ListItemComposed from '@components/SelectionList/ListItemComposed';
+import {useListItemContext} from '@components/SelectionList/ListItemContext';
 import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
 import TextWithTooltip from '@components/TextWithTooltip';
 
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import getButtonState from '@libs/getButtonState';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,41 +25,19 @@ const reportExistsSelector = (report: OnyxEntry<Report>) => !!report;
 
 type UserListItemContentProps<TItem extends ListItem> = {
     item: TItem;
-    isFocused?: boolean;
-    showTooltip: boolean;
-    isDisabled?: boolean | null;
-    shouldDisableHoverStyle?: boolean;
-    /** Pre-computed flag: true when a separate right-side interactive element exists that VoiceOver should focus independently. */
-    shouldDisableAccessibleGrouping: boolean;
     forwardedFSClass?: ForwardedFSClassProps['forwardedFSClass'];
-    /** Current hover state, forwarded from the parent's render-prop child. */
-    hovered: boolean;
 };
 
 /**
  * Shared inner content for UserListItem and BareUserListItem.
  * Renders the avatar, display name, alternate text, rightElement, and optional right caret.
- * The outer pressable wrapper (SelectableListItem or BaseListItem) is the caller's responsibility.
+ * The outer pressable wrapper (SelectableListItem or ListItemComposed) is the caller's responsibility
+ * and provides the focus/hover/tooltip state through ListItemContext.
  */
-function UserListItemContent<TItem extends ListItem>({
-    item,
-    isFocused,
-    showTooltip,
-    isDisabled,
-    shouldDisableHoverStyle,
-    shouldDisableAccessibleGrouping,
-    forwardedFSClass,
-    hovered,
-}: UserListItemContentProps<TItem>) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark']);
+function UserListItemContent<TItem extends ListItem>({item, forwardedFSClass}: UserListItemContentProps<TItem>) {
     const styles = useThemeStyles();
-    const theme = useTheme();
-    const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
-
-    const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
-    const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
+    const {translate, formatPhoneNumber} = useLocalize();
+    const {shouldShowTooltip, shouldDisableAccessibleGrouping} = useListItemContext();
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- some utils that are used to get reportID return empty string "", which would make subscription to the whole collection with nullish coalescing operator, example of this could be found in NewChatPage.tsx where some hooks return reportID as empty strings
     const [isReportInOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item.reportID || undefined}`, {
@@ -79,7 +52,34 @@ function UserListItemContent<TItem extends ListItem>({
     const shouldUseIconPolicyID = !item.reportID && !item.accountID && !item.policyID;
     const policyID = isThereOnlyWorkspaceIcon && shouldUseIconPolicyID ? String(item.icons?.at(0)?.id) : item.policyID;
 
-    const isHovered = hovered && !shouldDisableHoverStyle;
+    const fallbackDisplayName = item.text ?? item.alternateText ?? undefined;
+
+    // A report resolves its own avatars, so it keeps going through `ReportAvatar`, otherwise using Account/Policy.
+    let avatar: React.ReactNode;
+    if (reportExists) {
+        avatar = (
+            <ListItemComposed.ReportAvatar
+                reportID={item.reportID}
+                fallbackDisplayName={fallbackDisplayName}
+            />
+        );
+    } else if (policyID) {
+        avatar = (
+            <ListItemComposed.WorkspaceAvatar
+                policyID={policyID}
+                accountID={itemAccountID}
+                fallbackDisplayName={fallbackDisplayName}
+            />
+        );
+    } else if (itemAccountID) {
+        avatar = (
+            <ListItemComposed.UserAvatar
+                accountID={itemAccountID}
+                fallbackDisplayName={fallbackDisplayName}
+            />
+        );
+    }
+
     const baseAccessibilityLabel = getAccessibilityLabel(item);
     const accessibilityLabel =
         shouldDisableAccessibleGrouping && item.isSelected !== undefined
@@ -93,52 +93,22 @@ function UserListItemContent<TItem extends ListItem>({
             role={shouldDisableAccessibleGrouping ? CONST.ROLE.BUTTON : undefined}
             style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
         >
-            {(!!reportExists || !!itemAccountID || !!policyID) && (
-                <ReportActionAvatars
-                    subscriptAvatarBorderColor={isHovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                    shouldShowTooltip={showTooltip}
-                    secondaryAvatarContainerStyle={[
-                        StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                        isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                        isHovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                    ]}
-                    reportID={reportExists ? item.reportID : undefined}
-                    accountIDs={!reportExists && !!itemAccountID ? [itemAccountID] : []}
-                    policyID={!reportExists && !!policyID ? policyID : undefined}
-                    singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
-                    fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
-                />
-            )}
+            {avatar}
             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
                 <TextWithTooltip
-                    shouldShowTooltip={showTooltip}
-                    text={Str.removeSMSDomain(item.text ?? '')}
-                    style={[
-                        styles.optionDisplayName,
-                        isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                        item.isBold !== false && styles.sidebarLinkTextBold,
-                        styles.pre,
-                        item.alternateText ? styles.mb1 : null,
-                    ]}
+                    shouldShowTooltip={shouldShowTooltip}
+                    text={Str.isSMSLogin(item.text ?? '') ? formatPhoneNumber(item.text ?? '') : (item.text ?? '')}
+                    style={[styles.optionDisplayName, styles.sidebarLinkText, item.isBold !== false && styles.sidebarLinkTextBold, styles.pre, item.alternateText ? styles.mb1 : null]}
                 />
                 {!!item.alternateText && (
-                    <TextWithTooltip
-                        shouldShowTooltip={showTooltip}
-                        text={Str.removeSMSDomain(item.alternateText ?? '')}
-                        style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                    <ListItemComposed.Subtitle
+                        text={Str.isSMSLogin(item.alternateText ?? '') ? formatPhoneNumber(item.alternateText ?? '') : (item.alternateText ?? '')}
                         forwardedFSClass={forwardedFSClass}
                     />
                 )}
             </View>
-            {!!item.rightElement && <ListItemFocusContext.Provider value={{isFocused}}>{item.rightElement}</ListItemFocusContext.Provider>}
-            {!!item.shouldShowRightCaret && (
-                <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, isDisabled && styles.cursorDisabled]}>
-                    <Icon
-                        src={icons.ArrowRight}
-                        fill={StyleUtils.getIconFillColor(getButtonState(isHovered, false, false, !!isDisabled, item.isInteractive !== false))}
-                    />
-                </View>
-            )}
+            {item.rightElement}
+            {!!item.shouldShowRightCaret && <ListItemComposed.RightCaret />}
         </View>
     );
 }

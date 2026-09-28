@@ -22,7 +22,6 @@ type OnboardingFlowContext = {
 
 type OnboardingStepResult = {
     stepCounter: StepCounterParams;
-    progressBarPercentage: number;
 };
 
 const {ONBOARDING} = SCREENS;
@@ -63,9 +62,6 @@ const qualifierSuffixes = {
     [ONBOARDING_SIGNUP_QUALIFIERS.SMB]: [ONBOARDING.EMPLOYEES, ONBOARDING.INTERESTED_FEATURES, ONBOARDING.ACCOUNTING],
     [ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL]: null,
 } satisfies Record<ValueOf<typeof ONBOARDING_SIGNUP_QUALIFIERS>, OnboardingScreen[] | null>;
-
-const maxSuffixLength = Math.max(...Object.values(purposeSuffixes).map((s) => s.length));
-const maxPrivateSuffixLength = Math.max(...Object.values(purposeSuffixes).map((s) => s.filter((p) => p !== ONBOARDING.PERSONAL_DETAILS).length));
 
 function getAdjustedSuffix(suffix: OnboardingScreen[], context: OnboardingFlowContext): OnboardingScreen[] {
     if (context.isAccountingEnabled === false) {
@@ -137,11 +133,8 @@ function getOnboardingStepCounter(page: OnboardingScreen, context: OnboardingFlo
         if (index === -1) {
             return undefined;
         }
-        const isPrivateDomain = !context.isFromPublicDomain && !!context.hasAccessibleDomainPolicies;
-        const maxFlowLength = prefix.length + 1 + (isPrivateDomain ? maxPrivateSuffixLength : maxSuffixLength);
         return {
             stepCounter: {step: index + 1},
-            progressBarPercentage: Math.round(((index + 1) / maxFlowLength) * 100),
         };
     }
 
@@ -151,7 +144,6 @@ function getOnboardingStepCounter(page: OnboardingScreen, context: OnboardingFlo
     }
     return {
         stepCounter: {step: index + 1, total: flow.length},
-        progressBarPercentage: Math.round(((index + 1) / flow.length) * 100),
     };
 }
 

@@ -1,10 +1,9 @@
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import Icon from '@components/Icon';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import Table from '@components/Table';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -18,25 +17,16 @@ import {View} from 'react-native';
 import type {RoomMemberRowData} from '.';
 
 type RoomMembersTableRowProps = {
-    /** The room member item for the row */
     item: RoomMemberRowData;
-
-    /** The index of the row relative to all other rows */
     rowIndex: number;
 };
 
 export default function RoomMembersTableRow({item, rowIndex}: RoomMembersTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const styleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const accessibilityLabel = `${item.name}, ${item.email}`;
-
-    const getSecondaryAvatarContainerStyle = (hovered: boolean) => [
-        styleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-        hovered ? styleUtils.getBackgroundAndBorderStyle(styles.sidebarLinkHover?.backgroundColor ?? theme.sidebar) : undefined,
-    ];
 
     return (
         <Table.Row
@@ -55,11 +45,9 @@ export default function RoomMembersTableRow({item, rowIndex}: RoomMembersTableRo
             {({hovered}) => (
                 <>
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                        <ReportActionAvatars
-                            size={CONST.AVATAR_SIZE.DEFAULT}
-                            accountIDs={[item.accountID]}
+                        <AccountAvatar
+                            accountID={item.accountID}
                             fallbackDisplayName={item.name ?? item.email}
-                            secondaryAvatarContainerStyle={getSecondaryAvatarContainerStyle(!!hovered)}
                         />
                         <View style={[styles.flex1, styles.gap1]}>
                             <TextWithTooltip

@@ -10,6 +10,7 @@ package com.margelo.nitro.utils
 import androidx.annotation.Keep
 import com.facebook.jni.HybridData
 import com.facebook.proguard.annotations.DoNotStrip
+import dalvik.annotation.optimization.FastNative
 import com.margelo.nitro.core.HybridObject
 
 /**
@@ -28,6 +29,10 @@ abstract class HybridAppStartTimeModuleSpec: HybridObject() {
   @get:DoNotStrip
   @get:Keep
   abstract val appStartTime: Double
+  
+  @get:DoNotStrip
+  @get:Keep
+  abstract val appStartupMarkers: Map<String, Double>
 
   // Methods
   
@@ -42,6 +47,7 @@ abstract class HybridAppStartTimeModuleSpec: HybridObject() {
   @Keep
   protected open class CxxPart(javaPart: HybridAppStartTimeModuleSpec): HybridObject.CxxPart(javaPart) {
     // C++ JHybridAppStartTimeModuleSpec::CxxPart::initHybrid(...)
+    @FastNative
     external override fun initHybrid(): HybridData
   }
   override fun createCxxPart(): CxxPart {

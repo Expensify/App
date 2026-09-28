@@ -11,8 +11,16 @@ import type {ReportAction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
+import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
+import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+
+const mockDispatchLocalDraftEvent = jest.fn();
+
+jest.mock('@pages/inbox/ConciergeDraftContext', () => ({
+    useConciergeDraftActions: () => ({dispatchLocalDraftEvent: mockDispatchLocalDraftEvent}),
+}));
 
 const REPORT_ID = '1';
 const REPORT_ACTION_ID = '100';
@@ -20,12 +28,12 @@ const REPORT_ACTION_ID = '100';
 /** Short delay used for tests where we need the timer to actually fire (ms) */
 const SHORT_DELAY = 80;
 
-const fakeConciergeAction = {
+const fakeConciergeAction = createMock<ReportAction>({
     reportActionID: REPORT_ACTION_ID,
     actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
     message: [{html: 'To set up QuickBooks, go to Settings...', text: 'To set up QuickBooks, go to Settings...', type: CONST.REPORT.MESSAGE.TYPE.COMMENT}],
-} as ReportAction;
+});
 
 /** Long HTML with >100 chars of plain text → tokenizeForReveal emits ≥100 char-level
  *  anchors → the hook's `tokens.length >= 100` gate opts INTO the trickle path. */
@@ -34,16 +42,10 @@ const LONG_HTML =
     '<ol><li>Click <strong>More features</strong>, then in the <strong>Integrate</strong> section toggle <strong>Accounting</strong>.</li>' +
     '<li>Click <strong>Connect</strong> next to Xero.</li><li>Log in to Xero as an administrator and authorize the connection.</li></ol>';
 
-const fakeLongConciergeAction = {
+const fakeLongConciergeAction = createMock<ReportAction>({
     ...fakeConciergeAction,
     message: [{html: LONG_HTML, text: LONG_HTML.replaceAll(/<[^>]+>/g, ''), type: CONST.REPORT.MESSAGE.TYPE.COMMENT}],
-} as ReportAction;
-
-/** Tuple of (message, sendNow?, parameters?) for Log.info calls — matches the
- *  arg list usePendingConciergeResponse passes. Typing the spy's `.mock.calls`
- *  via this lets the find/filter callbacks access call[0]/[2] without tripping
- *  @typescript-eslint/no-unsafe-member-access. */
-type LogInfoCall = [string, boolean?, Record<string, unknown>?];
+});
 
 /** Wait for a given number of ms (real timer) */
 function delay(ms: number): Promise<void> {
@@ -58,6 +60,7 @@ describe('usePendingConciergeResponse', () => {
     });
 
     beforeEach(async () => {
+        mockDispatchLocalDraftEvent.mockClear();
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -225,7 +228,7 @@ describe('usePendingConciergeResponse', () => {
     });
 
     describe('trickle path (long replies, ≥100 char-level anchors)', () => {
-        let logSpy: jest.SpyInstance;
+        let logSpy: jest.SpiedFunction<typeof Log.info>;
 
         beforeEach(() => {
             logSpy = jest.spyOn(Log, 'info').mockImplementation(() => {});
@@ -251,13 +254,18 @@ describe('usePendingConciergeResponse', () => {
             await waitForBatchedUpdates();
 
             // Then [ConciergeTrickle] start should have fired with token + duration metadata
-            const calls = logSpy.mock.calls as LogInfoCall[];
+            const calls = logSpy.mock.calls;
             const startCall = calls.find((call) => call[0] === '[ConciergeTrickle] start');
-            expect(startCall).toBeDefined();
-            const payload = startCall?.[2] as {reportActionID?: string; tokenCount?: number; durationMs?: number} | undefined;
-            expect(payload?.reportActionID).toBe(REPORT_ACTION_ID);
-            expect(payload?.tokenCount ?? 0).toBeGreaterThanOrEqual(100);
-            expect(payload?.durationMs).toBeGreaterThan(0);
+            if (!startCall) {
+                throw new Error('Expected Concierge trickle start telemetry.');
+            }
+            const payload = startCall[2];
+            if (!isObject(payload) || typeof payload.tokenCount !== 'number' || typeof payload.durationMs !== 'number') {
+                throw new Error('Expected Concierge trickle start telemetry metadata.');
+            }
+            expect(payload.reportActionID).toBe(REPORT_ACTION_ID);
+            expect(payload.tokenCount).toBeGreaterThanOrEqual(100);
+            expect(payload.durationMs).toBeGreaterThan(0);
 
             unmount();
         });
@@ -284,13 +292,36 @@ describe('usePendingConciergeResponse', () => {
 
             // The start log should report a non-trivial initialStage and elapsedAtStart >= 5s,
             // proving the trickle resumed at the wall-clock-correct position rather than restarting from char 0.
-            const calls = logSpy.mock.calls as LogInfoCall[];
+            const calls = logSpy.mock.calls;
             const startCall = calls.find((call) => call[0] === '[ConciergeTrickle] start');
-            expect(startCall).toBeDefined();
-            const payload = startCall?.[2] as {initialStage?: number; elapsedAtStart?: number} | undefined;
-            expect(payload?.elapsedAtStart ?? 0).toBeGreaterThanOrEqual(4_900);
-            expect(payload?.initialStage ?? 0).toBeGreaterThan(1);
+            if (!startCall) {
+                throw new Error('Expected Concierge trickle start telemetry.');
+            }
+            const payload = startCall[2];
+            if (!isObject(payload) || typeof payload.initialStage !== 'number' || typeof payload.elapsedAtStart !== 'number') {
+                throw new Error('Expected Concierge trickle resume metadata.');
+            }
+            expect(payload.elapsedAtStart).toBeGreaterThanOrEqual(4_900);
+            expect(payload.initialStage).toBeGreaterThan(1);
 
+            unmount();
+        });
+
+        it('preserves original HTML when an optimistic reveal completes', async () => {
+            // Given a pending reply whose self-closing tags are normalized by the reveal tokenizer.
+            const html = `${LONG_HTML}<br/><p>Ready&#39;s next step</p>`;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${REPORT_ID}`, {
+                reportAction: {...fakeLongConciergeAction, message: [{html, text: html, type: CONST.REPORT.MESSAGE.TYPE.COMMENT}]},
+                displayAfter: Date.now() - 10_000,
+            });
+            await waitForBatchedUpdates();
+
+            // When a revisit completes the elapsed reveal immediately.
+            const {unmount} = renderHook(() => usePendingConciergeResponse(REPORT_ID));
+            await waitForBatchedUpdates();
+
+            // Then the completed draft matches the original optimistic action, allowing the list to retire it.
+            expect(mockDispatchLocalDraftEvent).toHaveBeenLastCalledWith(expect.objectContaining({status: 'completed', finalRenderedHTML: html}));
             unmount();
         });
 
@@ -330,7 +361,7 @@ describe('usePendingConciergeResponse', () => {
             await waitForBatchedUpdates();
 
             // Then no trickle telemetry should have fired and the pending optimistic should be discarded.
-            const calls = logSpy.mock.calls as LogInfoCall[];
+            const calls = logSpy.mock.calls;
             const startCall = calls.find((call) => call[0] === '[ConciergeTrickle] start');
             expect(startCall).toBeUndefined();
 
@@ -381,11 +412,11 @@ describe('usePendingConciergeResponse', () => {
             await waitForBatchedUpdates();
 
             // Then no completion telemetry should fire after unmount
-            const callsBefore = logSpy.mock.calls as LogInfoCall[];
+            const callsBefore = logSpy.mock.calls;
             const completeCallsBefore = callsBefore.filter((call) => call[0] === '[ConciergeTrickle] complete').length;
             await delay(500);
             await waitForBatchedUpdates();
-            const callsAfter = logSpy.mock.calls as LogInfoCall[];
+            const callsAfter = logSpy.mock.calls;
             const completeCallsAfter = callsAfter.filter((call) => call[0] === '[ConciergeTrickle] complete').length;
 
             expect(completeCallsAfter).toBe(completeCallsBefore);

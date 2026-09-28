@@ -5,7 +5,6 @@ import useOnyx from '@hooks/useOnyx';
 
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import AddressPage from '@pages/AddressPage';
 
@@ -41,13 +40,9 @@ function PersonalAddressPage() {
     const [defaultCountry, defaultCountryStatus] = useOnyx(ONYXKEYS.COUNTRY);
     const isLoading = isLoadingOnyxValue(defaultCountryStatus);
     const address = useMemo(() => normalizeCountryCode(getCurrentAddress(privatePersonalDetails)) as Address, [privatePersonalDetails]);
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'PersonalAddressPage',
-        isLoading,
-    };
 
     if (isLoading) {
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
     return (
         <AddressPage

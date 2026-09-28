@@ -7,12 +7,14 @@ import ExpensifyApprovedLogo from '@assets/images/subscription-details__approved
 import EmptyStateBackgroundImage from '@assets/images/themeDependent/empty-state_background-fade-dark.svg';
 import ExampleCheckEN from '@assets/images/themeDependent/example-check-image-dark-en.png';
 import ExampleCheckES from '@assets/images/themeDependent/example-check-image-dark-es.png';
+import IceCreamBackgroundImage from '@assets/images/themeDependent/ice-cream_background-fade-dark.svg';
 import WorkspaceProfile from '@assets/images/workspace-profile.png';
 
 import type IllustrationsType from '@styles/theme/illustrations/types';
 
 const illustrations = {
     EmptyStateBackgroundImage,
+    IceCreamBackgroundImage,
     ExampleCheckEN,
     ExampleCheckES,
     WorkspaceProfile,

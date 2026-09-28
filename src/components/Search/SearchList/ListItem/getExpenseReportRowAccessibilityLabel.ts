@@ -12,6 +12,7 @@ type ExpenseReportRowAccessibilityItem = Pick<
 >;
 
 type ExpenseReportRowAccessibilityLabelDeps = {
+    dateFnsLocale: LocaleContextProps['dateFnsLocale'];
     translate: LocaleContextProps['translate'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
@@ -20,8 +21,8 @@ type ExpenseReportRowAccessibilityLabelDeps = {
  * Screen-reader name for an expense report row. The row is a single accessibility element, so this label is its whole
  * announcement and must mirror the visible cells.
  */
-function getExpenseReportRowAccessibilityLabel(item: ExpenseReportRowAccessibilityItem, {translate, convertToDisplayString}: ExpenseReportRowAccessibilityLabelDeps): string {
-    const {amount, date, expenseCountText} = getExpenseReportRowDisplayValues(item, {translate, convertToDisplayString});
+function getExpenseReportRowAccessibilityLabel(item: ExpenseReportRowAccessibilityItem, {translate, dateFnsLocale, convertToDisplayString}: ExpenseReportRowAccessibilityLabelDeps): string {
+    const {amount, date, expenseCountText} = getExpenseReportRowDisplayValues(item, {translate, dateFnsLocale, convertToDisplayString});
     return [item.formattedFrom, item.reportName, item.formattedStatus, amount, date, expenseCountText].filter(Boolean).join(', ');
 }
 

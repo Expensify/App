@@ -5,6 +5,7 @@ import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
+import {isGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID, getWorkspaceChats} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
@@ -38,7 +39,7 @@ function useScanActions() {
     const [reportID] = useState(() => generateReportID());
 
     const policyChatForActivePolicy: OnyxTypes.Report =
-        !isEmptyObject(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && policyChats.length > 0 ? (policyChats.at(0) ?? ({} as OnyxTypes.Report)) : ({} as OnyxTypes.Report);
+        !isEmptyObject(activePolicy) && isGroupPolicy(activePolicy) && policyChats.length > 0 ? (policyChats.at(0) ?? ({} as OnyxTypes.Report)) : ({} as OnyxTypes.Report);
 
     const startScan = () => {
         interceptAnonymousUser(() => {

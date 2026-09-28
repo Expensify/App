@@ -45,7 +45,7 @@ jest.mock('@hooks/useLocalize', () =>
         translate: (key: string) => {
             if (key.startsWith('allCountries.')) {
                 const countryISO = key.split('.').at(-1) ?? '';
-                return mockAllCountries[countryISO as keyof typeof mockAllCountries] ?? key;
+                return Object.entries(mockAllCountries).find(([iso]) => iso === countryISO)?.[1] ?? key;
             }
 
             return key;
@@ -211,13 +211,16 @@ describe('CountrySelectionList', () => {
         const searchedProps = mockedSelectionList.mock.lastCall?.[0];
         const expectedSearchResults = searchOptions(
             'Uni',
-            countries.map((countryISO) => ({
-                value: countryISO,
-                keyForList: countryISO,
-                text: CONST.ALL_COUNTRIES[countryISO as keyof typeof CONST.ALL_COUNTRIES],
-                isSelected: countryISO === initialCountry,
-                searchValue: StringUtils.sanitizeString(`${countryISO}${CONST.ALL_COUNTRIES[countryISO as keyof typeof CONST.ALL_COUNTRIES]}`),
-            })),
+            countries.map((countryISO) => {
+                const countryName = Object.entries(CONST.ALL_COUNTRIES).find(([iso]) => iso === countryISO)?.[1] ?? '';
+                return {
+                    value: countryISO,
+                    keyForList: countryISO,
+                    text: countryName,
+                    isSelected: countryISO === initialCountry,
+                    searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
+                };
+            }),
         );
 
         expect(searchedProps?.data.map((item) => item.keyForList)).toEqual(expectedSearchResults.map((item) => item.keyForList));

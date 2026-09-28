@@ -8,6 +8,8 @@ import type {ValueOf} from 'type-fest';
 import {rand, randAmount, randNumber, randPastDate, randWord} from '@ngneat/falso';
 import {format} from 'date-fns';
 
+import createMock from '../createMock';
+
 export default function createRandomCard(
     index: number,
     options?: {
@@ -66,7 +68,7 @@ export default function createRandomCard(
         scrapeMinDate: format(randPastDate(), CONST.DATE.FNS_DB_FORMAT_STRING),
         errors: {},
         errorFields: {},
-        ...(options?.possibleFraud ? {nameValuePairs: {possibleFraud: options.possibleFraud} as Card['nameValuePairs']} : {}),
+        ...(options?.possibleFraud ? {nameValuePairs: createMock<NonNullable<Card['nameValuePairs']>>({possibleFraud: options.possibleFraud})} : {}),
     };
 }
 

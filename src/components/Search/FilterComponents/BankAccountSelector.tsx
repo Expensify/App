@@ -11,11 +11,11 @@ import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getBankAccountSearchLabel, isFilterableBankAccount} from '@libs/BankAccountUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import variables from '@styles/variables';
 
@@ -48,6 +48,7 @@ type BankAccountFilterItem = {
 
 function BankAccountSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: BankAccountSelectorProps) {
     const theme = useTheme();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -158,7 +159,6 @@ function BankAccountSelector({value = [], selectionListTextInputStyle, selection
     };
 
     const isLoadingOnyxData = isLoadingOnyxValue(bankAccountListMetadata);
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'SearchFiltersBankAccountPage', isLoadingFromOnyx: isLoadingOnyxData};
 
     return (
         <ListFilterView
@@ -173,7 +173,6 @@ function BankAccountSelector({value = [], selectionListTextInputStyle, selection
                         color={theme.spinner}
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.pl3]}
-                        reasonAttributes={reasonAttributes}
                     />
                 </View>
             ) : (
@@ -191,6 +190,7 @@ function BankAccountSelector({value = [], selectionListTextInputStyle, selection
                     shouldPreventAutoScrollOnSelect
                     style={selectionListStyle}
                     footerContent={footer}
+                    shouldFooterBeInsideList={shouldFooterBeInsideList}
                 />
             )}
         </ListFilterView>

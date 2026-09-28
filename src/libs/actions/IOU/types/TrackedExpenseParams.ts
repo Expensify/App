@@ -1,3 +1,5 @@
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import type {CreateWorkspaceParams} from '@libs/API/parameters';
 
 import type {BuildPolicyDataKeys, CurrentUser} from '@userActions/Policy/Policy';
@@ -45,6 +47,9 @@ type TrackedExpenseTransactionParams = Omit<BaseTransactionParams, 'taxCode' | '
     taxAmount: number;
     taxValue?: string;
     attendees?: Attendee[];
+
+    /** Distance in meters of the alternate map route the user picked, so the backend doesn't fall back to the primary route */
+    selectedRouteDistance?: number;
 };
 
 type TrackedExpensePolicyParams = {
@@ -72,6 +77,7 @@ type TrackedExpenseParams = {
     isDistanceRequest?: boolean;
     currentUser: CurrentUser;
     reportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
+    personalDetailsByLogins?: PersonalDetailsByLogin;
 };
 
 export type {TrackedExpenseParams, TrackedExpensePolicyParams, TrackedExpenseTransactionParams, TrackedExpenseReportInformation, BuildOnyxDataForTrackExpenseKeys};

@@ -1,13 +1,12 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
-import type {IOUAction, IOUType} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
@@ -15,18 +14,8 @@ import React from 'react';
 import {timeStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
-type TimeFieldsProps = {
-    isReadOnly: boolean;
-    didConfirm: boolean;
-    transactionID: string | undefined;
-    action: IOUAction;
-    iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-    reportID: string;
-    reportActionID: string | undefined;
-};
-
-function TimeFields({isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID}: TimeFieldsProps) {
-    const styles = useThemeStyles();
+function TimeFields() {
+    const {isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
@@ -38,38 +27,38 @@ function TimeFields({isReadOnly, didConfirm, transactionID, action, iouType, rep
 
     return (
         <>
-            <MenuItemWithTopDescription
+            <MenuItemField
                 key={translate('iou.timeTracking.hours')}
-                shouldShowRightIcon={!isReadOnly}
-                title={`${iouTimeCount}`}
-                description={translate('iou.timeTracking.hours')}
-                style={styles.moneyRequestMenuItem}
-                titleStyle={styles.flex1}
-                onPress={() => {
-                    if (!transactionID) {
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_HOURS_EDIT.getRoute(action, iouType, transactionID, reportID, reportActionID));
-                }}
-                disabled={didConfirm}
-                interactive={!isReadOnly}
+                value={`${iouTimeCount}`}
+                name={translate('iou.timeTracking.hours')}
+                onPress={
+                    !isReadOnly
+                        ? () => {
+                              if (!transactionID) {
+                                  return;
+                              }
+                              Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_HOURS_EDIT.getRoute(action, iouType, transactionID, reportID, reportActionID));
+                          }
+                        : undefined
+                }
+                isDisabled={didConfirm}
                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.HOURS_FIELD}
             />
-            <MenuItemWithTopDescription
+            <MenuItemField
                 key={`time_${translate('common.rate')}`}
-                shouldShowRightIcon={!isReadOnly}
-                title={translate('iou.timeTracking.ratePreview', convertToDisplayString(iouTimeRate, iouCurrencyCode))}
-                description={translate('common.rate')}
-                style={styles.moneyRequestMenuItem}
-                titleStyle={styles.flex1}
-                onPress={() => {
-                    if (!transactionID) {
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME_RATE.getRoute(action, iouType, transactionID, reportID, reportActionID));
-                }}
-                disabled={didConfirm}
-                interactive={!isReadOnly}
+                value={translate('iou.timeTracking.ratePreview', convertToDisplayString(iouTimeRate, iouCurrencyCode))}
+                name={translate('common.rate')}
+                onPress={
+                    !isReadOnly
+                        ? () => {
+                              if (!transactionID) {
+                                  return;
+                              }
+                              Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME_RATE.getRoute(action, iouType, transactionID, reportID, reportActionID));
+                          }
+                        : undefined
+                }
+                isDisabled={didConfirm}
                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TIME_RATE_FIELD}
             />
         </>

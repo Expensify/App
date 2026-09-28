@@ -6,6 +6,7 @@ import useReportActionAvatars from '@components/ReportActionAvatars/useReportAct
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
+import type ReportActionName from '@src/types/onyx/ReportActionName';
 
 import Onyx from 'react-native-onyx';
 
@@ -47,17 +48,17 @@ describe('useReportActionAvatars', () => {
 
         test.each(
             Object.values(CONST.REPORT.ACTIONS.TYPE)
-                .reduce((result, cur) => {
+                .reduce<ReportActionName[]>((result, cur) => {
                     if (typeof cur === 'object') {
                         result.push(...Object.values(cur));
                     } else {
                         result.push(cur);
                     }
                     return result;
-                }, [] as string[])
-                .map((value) => [value === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, value]),
+                }, [])
+                .map((value) => [value === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, value] as const),
         )('With an invoice report, isWorkspaceActor should be %s when the actionName is "%s"', async (expected, actionName) => {
-            const reportAction = {...mockReportAction, actionName: actionName as typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT};
+            const reportAction = {...mockReportAction, actionName};
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.reportActionID}`, {[reportAction.reportActionID]: reportAction});
 
             const {
@@ -150,6 +151,53 @@ describe('useReportActionAvatars', () => {
             // Same bug as admin room: useNearestReportAvatars falls through to getIcons(policyRoom) → workspace icon.
             // Proves the fix must cover all policy room types, not just admin rooms.
             expect(data.avatars.at(0)?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
+        });
+    });
+
+    describe('Concierge thread', () => {
+        const conciergeDMReportID = 9200;
+        const threadReportID = 9201;
+        const askerAccountID = 12345;
+        const parentActionID = '9202';
+
+        const mockConciergeDM = createRegularChat(conciergeDMReportID, [CONST.ACCOUNT_ID.CONCIERGE, askerAccountID]);
+        const mockThread = {
+            ...createRegularChat(threadReportID, [CONST.ACCOUNT_ID.CONCIERGE, askerAccountID]),
+            chatReportID: String(conciergeDMReportID),
+            parentReportID: String(conciergeDMReportID),
+            parentReportActionID: parentActionID,
+        };
+
+        beforeEach(async () => {
+            await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, String(conciergeDMReportID));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${conciergeDMReportID}`, mockConciergeDM);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, mockThread);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeDMReportID}`, {
+                [parentActionID]: {
+                    ...createRandomReportAction(Number(parentActionID)),
+                    reportActionID: parentActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: askerAccountID,
+                    childReportID: String(threadReportID),
+                },
+            });
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [CONST.ACCOUNT_ID.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, displayName: 'Concierge', login: 'concierge@expensify.com'},
+                [askerAccountID]: {accountID: askerAccountID, displayName: 'Asker', login: 'asker@example.com'},
+            });
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(() => {
+            Onyx.clear();
+        });
+
+        test('shows the Concierge avatar once the parent action has loaded', () => {
+            const {
+                result: {current: data},
+            } = renderHook(() => useReportActionAvatars({report: mockThread, action: undefined}), {wrapper});
+
+            expect(data.avatars.at(0)?.id).toBe(CONST.ACCOUNT_ID.CONCIERGE);
         });
     });
 

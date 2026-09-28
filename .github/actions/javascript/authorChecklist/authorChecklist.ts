@@ -105,7 +105,7 @@ async function removeRetiredChecksAndCheckForCompletion() {
     }
 }
 
-if (require.main === module) {
+if (import.meta.main) {
     removeRetiredChecksAndCheckForCompletion();
 }
 

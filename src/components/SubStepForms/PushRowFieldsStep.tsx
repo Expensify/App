@@ -5,7 +5,7 @@ import PushRowWithModal from '@components/PushRowWithModal';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -23,16 +23,10 @@ type PushRowField<TFormID extends keyof OnyxFormValuesMapping> = {
     searchInputTitle: string;
 };
 
-type PushRowFieldsStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & {
-    /** The ID of the form */
+type PushRowFieldsStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps & {
     formID: TFormID;
-
-    /** Title of the form */
     formTitle: string;
-
-    /** A function to call when the form is submitted */
     onSubmit: (values: FormOnyxValues<TFormID>) => void;
-
     pushRowFields: Array<PushRowField<TFormID>>;
 };
 

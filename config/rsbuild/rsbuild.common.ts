@@ -15,6 +15,12 @@ import {fileURLToPath} from 'url';
 import type Environment from './types.ts';
 
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+import SENTRY_APPLICATION_KEY from '../../src/libs/telemetry/sentryApplicationKey.ts'; // eslint-disable-line @dword-design/import-alias/prefer-alias
+// Relative on purpose: module aliases are not resolved when this config is evaluated.
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+import getAppVersion from '../../src/libs/VersionUtils.ts'; // eslint-disable-line @dword-design/import-alias/prefer-alias
+import oxcReactCompilerConfig from '../babel/oxcReactCompilerConfig.js';
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import CustomVersionFilePlugin from './CustomVersionFilePlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import ModuleInitTimingPlugin from './ModuleInitTimingPlugin.ts';
@@ -46,8 +52,11 @@ function getOxcAndWorkletsLoaders(isDevServer: boolean) {
         {
             loader: path.resolve(dirname, './loaders/oxc-react-compiler-loader.mjs'),
             options: {
-                reactCompiler: {target: '19', panicThreshold: 'none', isDev: isDevServer},
-                target: 'node20',
+                reactCompiler: oxcReactCompilerConfig({
+                    // The empty string matches every path, replacing the default filter that skips
+                    // node_modules. Web only: native must not compile dependencies.
+                    sources: [''],
+                }),
                 jsx: {runtime: 'automatic', development: isDevServer, refresh: isDevServer},
             },
         },
@@ -160,6 +169,9 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
                 // @sentry/react-native references the optional expo-updates module. We do not install it,
                 // so web/Storybook bundles should treat it as unavailable instead of failing resolution.
                 'expo-updates': false,
+                // @sentry/react-native references Expo Router internally. We do not install it, so web/Storybook
+                // bundles should treat it as unavailable instead of failing resolution.
+                'expo-router/build/global-state/router-store': false,
                 // Use legacy build of pdfjs-dist to support older browsers
                 'pdfjs-dist$': path.resolve(dirname, '../../node_modules/pdfjs-dist/legacy/build/pdf.mjs'),
                 '@assets': path.resolve(dirname, '../../assets'),
@@ -318,10 +330,12 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
     const shared = getSharedConfiguration({file, platform, isDevServer});
     const sharedRspackTool = shared.tools?.rspack;
     const sentryWebpackPlugin = isDevelopment ? undefined : (await import('@sentry/webpack-plugin')).sentryWebpackPlugin;
+    const {semanticVersion, buildNumber} = getAppVersion(process.env.npm_package_version ?? '');
+    const releaseName = `${process.env.npm_package_name}@${semanticVersion}`;
 
     if (!isDevelopment) {
-        const releaseName = `${process.env.npm_package_name}@${process.env.npm_package_version}`;
         console.debug(`[SENTRY ${platform.toUpperCase()}] Release: ${releaseName}`);
+        console.debug(`[SENTRY ${platform.toUpperCase()}] Dist: ${buildNumber ?? 'none'}`);
         console.debug(`[SENTRY ${platform.toUpperCase()}] Assets Path: ${'./dist/**/*.{js,map}'}`);
     }
 
@@ -330,6 +344,13 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
         ...shared,
         source: {
             ...shared.source,
+            define: {
+                ...shared.source?.define,
+                // Did `@sentry/webpack-plugin` stamp `applicationKey` into the chunks? Gates
+                // `thirdPartyErrorFilterIntegration` in `src/libs/telemetry/integrations/index.web.ts`,
+                // which can only classify frames when it did.
+                __SENTRY_APPLICATION_KEY_STAMPED__: !!sentryWebpackPlugin,
+            },
             entry: {main: './index.js'},
         },
         output: {
@@ -365,6 +386,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
             copy: [
                 {from: 'web/favicon.png'},
                 {from: 'web/favicon-unread.png'},
+                {from: 'web/favicon-concierge-unread.png'},
                 {from: 'web/og-preview-image.png'},
                 {from: 'web/apple-touch-icon.png'},
                 {from: 'web/robots.txt'},
@@ -541,18 +563,27 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                     ...(sentryWebpackPlugin
                         ? ([
                               sentryWebpackPlugin({
-                                  authToken: process.env.SENTRY_AUTH_TOKEN as string | undefined,
+                                  authToken: process.env.SENTRY_AUTH_TOKEN,
                                   org: 'expensify',
                                   project: 'app',
                                   release: {
-                                      name: `${process.env.npm_package_name}@${process.env.npm_package_version}`,
+                                      name: releaseName,
+                                      dist: buildNumber,
                                       create: true,
                                       setCommits: {auto: true},
+                                      // Don't inject SENTRY_RELEASE into every chunk: the SDK only reads it as a
+                                      // fallback, and setupSentry.ts passes `release` to Sentry.init explicitly.
+                                      // If set to true, the app version is embedded into every chunk, so each version
+                                      // bump changes the contenthash of every bundle and invalidates the entire cache.
+                                      inject: false,
                                   },
                                   sourcemaps: {
                                       assets: './dist/**/*.{js,map}',
                                       filesToDeleteAfterUpload: './dist/**/*.map',
                                   },
+                                  // Stamps every chunk so the SDK can tell our frames from injected ones at runtime.
+                                  // Reported to the app as `__SENTRY_APPLICATION_KEY_STAMPED__` (see `source.define`).
+                                  applicationKey: SENTRY_APPLICATION_KEY,
                                   debug: false,
                                   telemetry: false,
                               }),

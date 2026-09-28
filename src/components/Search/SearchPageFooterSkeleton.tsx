@@ -4,9 +4,6 @@ import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
-
 import React from 'react';
 import {View} from 'react-native';
 
@@ -20,15 +17,9 @@ const TOTAL_BAR_OFFSET = COUNT_BAR_WIDTH + BAR_GAP;
 const SKELETON_WIDTH = TOTAL_BAR_OFFSET + TOTAL_BAR_WIDTH;
 const skeletonContainerStyle = {height: SKELETON_HEIGHT, width: SKELETON_WIDTH};
 
-type SearchPageFooterSkeletonProps = {
-    /** Context describing why the skeleton is rendered, for telemetry */
-    reasonAttributes: SkeletonSpanReasonAttributes;
-};
-
-function SearchPageFooterSkeleton({reasonAttributes}: SearchPageFooterSkeletonProps) {
+function SearchPageFooterSkeleton() {
     const styles = useThemeStyles();
     const theme = useTheme();
-    useSkeletonSpan('SearchPageFooterSkeleton', reasonAttributes);
 
     return (
         <View style={[styles.overflowHidden, skeletonContainerStyle]}>

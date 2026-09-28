@@ -29,7 +29,7 @@ import {
 
 import getWalletPersonalDetailsParams from '@pages/EnablePayments/shared/getWalletPersonalDetailsParams';
 import IdologyQuestions from '@pages/EnablePayments/shared/IdologyQuestions';
-import useWalletPhoneMagicCode from '@pages/EnablePayments/shared/useWalletPhoneMagicCode';
+import useWalletPhoneValidateCode from '@pages/EnablePayments/shared/useWalletPhoneValidateCode';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 
 import {setAdditionalDetailsQuestions} from '@userActions/Wallet';
@@ -82,7 +82,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
     const maxDate = subYears(currentDate, CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
     const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN;
 
-    const {submitPersonalDetails} = useWalletPhoneMagicCode();
+    const {submitPersonalDetails} = useWalletPhoneValidateCode();
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
         const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);

@@ -1,3 +1,4 @@
+import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -12,13 +13,11 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceConfirmationAvatar from '@hooks/useWorkspaceConfirmationAvatar';
 
 import {generatePolicyID, setDuplicateWorkspaceData} from '@libs/actions/Policy/Policy';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -85,12 +84,14 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
 
     const stashedLocalAvatarImage = workspaceAvatar?.avatarUri ?? undefined;
 
-    const DefaultAvatar = useWorkspaceConfirmationAvatar({
-        policyID,
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
-        source: stashedLocalAvatarImage || getDefaultWorkspaceAvatar(workspaceNameFirstCharacter),
-        name: workspaceNameFirstCharacter,
-    });
+    const workspaceAvatarNode = (
+        <WorkspaceAvatar
+            source={stashedLocalAvatarImage}
+            size={CONST.AVATAR_SIZE.XXXX_LARGE}
+            name={workspaceNameFirstCharacter}
+            avatarID={policyID ?? CONST.DEFAULT_NUMBER_ID}
+        />
+    );
 
     return (
         <>
@@ -104,8 +105,8 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
                 </View>
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
-                    avatarID={policyID}
                     source={stashedLocalAvatarImage}
+                    avatar={workspaceAvatarNode}
                     onImageSelected={(image) => {
                         setAvatarFile(image);
                         setWorkspaceAvatar({avatarUri: image.uri ?? '', avatarFileName: image.name ?? '', avatarFileType: image.type});
@@ -114,13 +115,9 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
                         setAvatarFile(undefined);
                         setWorkspaceAvatar({avatarUri: null, avatarFileName: null, avatarFileType: null});
                     }}
-                    size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                    avatarStyle={styles.alignSelfCenter}
                     editIcon={expensifyIcons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
-                    type={CONST.ICON_TYPE_WORKSPACE}
                     style={[styles.w100, styles.alignItemsCenter, styles.mv4, styles.mb6, styles.alignSelfCenter, styles.ph5]}
-                    DefaultAvatar={DefaultAvatar}
                     editorMaskImage={icons.ImageCropSquareMask}
                 />
                 <FormProvider
