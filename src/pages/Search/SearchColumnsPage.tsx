@@ -2,11 +2,10 @@ import ColumnsSettingsList from '@components/ColumnsSettingsList';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchCustomColumnIds} from '@components/Search/types';
 
+import useIsVendorColumnAvailable from '@hooks/useIsVendorColumnAvailable';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {hasVendorFeatureOnAnyPolicy} from '@libs/PolicyUtils';
 import {buildQueryStringFromFilterFormValues, getCurrentSearchQueryJSON, hasValuesIncludeViolationFilter} from '@libs/SearchQueryUtils';
 import {getCustomColumnDefault, getCustomColumns, insertColumnBeforeTotalAmount} from '@libs/SearchUIUtils';
 
@@ -14,22 +13,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import type {Policy} from '@src/types/onyx';
 
-import type {OnyxCollection} from 'react-native-onyx';
-
-import React, {useCallback} from 'react';
+import React from 'react';
 
 function SearchColumnsPage() {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const {currentSearchKey} = useSearchQueryContext();
-    const {isBetaEnabled} = usePermissions();
-    const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
-    const isVendorColumnAvailableSelector = useCallback(
-        (allPolicies: OnyxCollection<Policy>) => hasVendorFeatureOnAnyPolicy(allPolicies, isVendorMatchingBetaEnabled),
-        [isVendorMatchingBetaEnabled],
-    );
-    const [isVendorColumnAvailable = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isVendorColumnAvailableSelector});
+    const isVendorColumnAvailable = useIsVendorColumnAvailable();
 
     const groupBy = searchAdvancedFiltersForm?.groupBy;
     const queryType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
@@ -100,6 +90,7 @@ function SearchColumnsPage() {
             groupColumns={allGroupCustomColumns}
             defaultGroupColumns={defaultGroupCustomColumns}
             onSave={applyChanges}
+            type={queryType}
         />
     );
 }
