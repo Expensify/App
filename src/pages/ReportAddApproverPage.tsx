@@ -9,6 +9,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -58,12 +59,15 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const employeeList = policy?.employeeList;
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(employeeList ?? {}));
     const allApprovers = (() => {
         if (!employeeList) {
             return [];
         }
 
-        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, true, false);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, employeePersonalDetails, true, false);
+        // Resolve the translation once, not per member.
+        const hiddenText = translate('common.hidden');
         return Object.values(employeeList)
             .map((employee): SelectionListApprover | null => {
                 const isAdmin = employee?.role === CONST.REPORT.ROLE.ADMIN;
@@ -81,7 +85,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 }
 
                 const {avatar} = personalDetails?.[accountID] ?? {};
-                const displayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber, translate});
+                const displayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber, hiddenTranslation: hiddenText});
                 return {
                     text: displayName,
                     alternateText: email,

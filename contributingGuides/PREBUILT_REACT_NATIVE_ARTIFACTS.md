@@ -69,17 +69,14 @@ To force it for a single Gradle invocation, without editing the properties file:
 
 ## Disabling prebuilt artifacts on iOS
 
-Prebuilt artifacts are enabled by default for HybridApp. Standalone NewDot always compiles
-`react-native` from source: under `use_frameworks! :linkage => :static` (required by Firebase) the
-prebuilt React Core cannot expose `React_RCTAppDelegate` as an importable Swift module, which the
-standalone Swift `AppDelegate` needs. HybridApp is unaffected, because its `AppDelegate` is written in
-Objective-C and imports that header directly.
-
-To compile `react-native` from source in HybridApp, set `BUILD_RN_FROM_SOURCE` when installing pods:
+Prebuilt artifacts are enabled by default for both HybridApp and standalone NewDot. To compile
+`react-native` from source instead, set `BUILD_RN_FROM_SOURCE` when installing pods:
 
 ```bash
 BUILD_RN_FROM_SOURCE=1 npm run pod-install
 ```
+
+For standalone NewDot, use `npm run pod-install-standalone` instead.
 
 The flag is read during `pod install`, so switching it requires reinstalling the pods, not just
 rebuilding.

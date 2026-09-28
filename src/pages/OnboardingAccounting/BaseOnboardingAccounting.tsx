@@ -4,23 +4,22 @@ import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
+import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import OnboardingHeader from '@components/OnboardingHeader';
 import {PressableWithoutFeedback} from '@components/Pressable';
-import RadioButtonWithLabel from '@components/RadioButtonWithLabel';
+import RadioButton from '@components/RadioButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useCompleteOnboarding from '@hooks/useCompleteOnboarding';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setOnboardingAccountingEnabled, setOnboardingAdminsChatReportID, setOnboardingPolicyID, setOnboardingUserReportedIntegration} from '@libs/actions/Welcome';
@@ -31,13 +30,14 @@ import {isGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 
 import variables from '@styles/variables';
 
-import type {OnboardingAccounting} from '@src/CONST';
+import type {OnboardingAccounting, OnboardingAccountingOption} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type IconAsset from '@src/types/utils/IconAsset';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 
@@ -46,81 +46,42 @@ import {View} from 'react-native';
 
 import type {BaseOnboardingAccountingProps} from './types';
 
-type Integration = {
-    key: keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY;
-    iconName: 'QBOCircle' | 'QBDSquare' | 'XeroCircle' | 'NetSuiteSquare' | 'IntacctSquare' | 'SapSquare' | 'OracleSquare' | 'MicrosoftDynamicsSquare';
-    translationKey: TranslationPaths;
-};
+type AccountingIntegrationKey = Exclude<OnboardingAccountingOption, 'other'>;
 
-type AccountingOptionKey = Integration['key'] | 'other';
+type AccountingOptionKey = OnboardingAccountingOption;
 
-const integrations: Integration[] = [
-    {
-        key: 'quickbooksOnline',
-        iconName: 'QBOCircle',
-        translationKey: 'workspace.accounting.qbo',
-    },
-    {
-        key: 'quickbooksDesktop',
-        iconName: 'QBDSquare',
-        translationKey: 'workspace.accounting.qbd',
-    },
-    {
-        key: 'xero',
-        iconName: 'XeroCircle',
-        translationKey: 'workspace.accounting.xero',
-    },
-    {
-        key: 'netsuite',
-        iconName: 'NetSuiteSquare',
-        translationKey: 'workspace.accounting.netsuite',
-    },
-    {
-        key: 'intacct',
-        iconName: 'IntacctSquare',
-        translationKey: 'workspace.accounting.intacct',
-    },
-    {
-        key: 'sap',
-        iconName: 'SapSquare',
-        translationKey: 'workspace.accounting.sap',
-    },
-    {
-        key: 'oracle',
-        iconName: 'OracleSquare',
-        translationKey: 'workspace.accounting.oracle',
-    },
-    {
-        key: 'microsoftDynamics',
-        iconName: 'MicrosoftDynamicsSquare',
-        translationKey: 'workspace.accounting.microsoftDynamics',
-    },
-];
+/** Icon and label for each option in `CONST.ONBOARDING_ACCOUNTING_MAPPING`. `satisfies` keeps the keys in sync. */
+const accountingIntegrationDetails = {
+    quickbooksOnline: {iconName: 'QBOCircle', translationKey: 'workspace.accounting.qbo'},
+    intuitEnterpriseSuite: {iconName: 'IntuitSquare', translationKey: 'workspace.accounting.intuitEnterpriseSuite'},
+    quickbooksDesktop: {iconName: 'QBDSquare', translationKey: 'workspace.accounting.qbd'},
+    xero: {iconName: 'XeroCircle', translationKey: 'workspace.accounting.xero'},
+    netsuite: {iconName: 'NetSuiteSquare', translationKey: 'workspace.accounting.netsuite'},
+    intacct: {iconName: 'IntacctSquare', translationKey: 'workspace.accounting.intacct'},
+    // Certinia has no `workspace.accounting` label, so reuse its connection page title.
+    financialforce: {iconName: 'CertiniaSquare', translationKey: 'workspace.certinia.title'},
+    rillet: {iconName: 'RilletSquare', translationKey: 'workspace.accounting.rillet'},
+    sap: {iconName: 'SapSquare', translationKey: 'workspace.accounting.sap'},
+    oracle: {iconName: 'OracleSquare', translationKey: 'workspace.accounting.oracle'},
+    microsoftDynamics: {iconName: 'MicrosoftDynamicsSquare', translationKey: 'workspace.accounting.microsoftDynamics'},
+} satisfies Record<AccountingIntegrationKey, {iconName: ExpensifyIconName; translationKey: TranslationPaths}>;
 
-function isIntegrationKey(integrationKey: OnboardingAccounting | undefined): integrationKey is Integration['key'] {
-    return integrations.some((integration) => integration.key === integrationKey);
+const integrationKeys = ObjectUtils.typedKeys(accountingIntegrationDetails);
+
+const integrationIconNames = integrationKeys.map((integrationKey) => accountingIntegrationDetails[integrationKey].iconName);
+
+const accountingOptionKeys = ObjectUtils.typedKeys(CONST.ONBOARDING_ACCOUNTING_MAPPING);
+
+function isIntegrationKey(integrationKey: OnboardingAccounting | undefined): integrationKey is AccountingIntegrationKey {
+    return integrationKeys.some((key) => key === integrationKey);
 }
-
-type OnboardingListItem = ListItem & {
-    keyForList: AccountingOptionKey;
-};
 
 function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccountingProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons([
-        'Connect',
-        'QBOCircle',
-        'QBDSquare',
-        'XeroCircle',
-        'NetSuiteSquare',
-        'IntacctSquare',
-        'SapSquare',
-        'OracleSquare',
-        'MicrosoftDynamicsSquare',
-    ]);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(integrationIconNames);
+    const illustrations = useMemoizedLazyIllustrations(['Pencil']);
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
@@ -141,7 +102,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const [userReportedIntegrationName, setUserReportedIntegrationName] = useState('');
     const [shouldScrollToOtherInput, setShouldScrollToOtherInput] = useState(initialSelectedIntegration === 'other');
     const [error, setError] = useState('');
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const otherAccountingSoftwareInputRef = useRef<BaseTextInputRef | null>(null);
     const isOtherSelected = selectedIntegration === 'other';
 
@@ -156,40 +117,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         setOnboardingAdminsChatReportID(groupPolicy.chatReportIDAdmins?.toString());
         setOnboardingPolicyID(groupPolicy.id);
     }, [groupPolicy, onboardingPolicyID]);
-
-    const createAccountingOption = (integration: Integration): OnboardingListItem => {
-        const icon = expensifyIcons[integration.iconName] as IconAsset | undefined;
-        return {
-            keyForList: integration.key,
-            text: translate(integration.translationKey),
-            leftElement: (
-                <Icon
-                    src={icon}
-                    width={variables.iconSizeExtraLarge}
-                    height={variables.iconSizeExtraLarge}
-                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.AVATAR_SHAPE.CIRCLE), styles.mr3]}
-                />
-            ),
-            isSelected: selectedIntegration === integration.key,
-        };
-    };
-
-    const othersAccountingOption: OnboardingListItem = {
-        keyForList: 'other',
-        text: translate('workspace.accounting.other'),
-        leftElement: (
-            <Icon
-                src={expensifyIcons.Connect}
-                width={variables.iconSizeNormal}
-                height={variables.iconSizeNormal}
-                fill={theme.icon}
-                additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.AVATAR_SHAPE.CIRCLE), styles.mr3, styles.onboardingSmallIcon]}
-            />
-        ),
-        isSelected: isOtherSelected,
-    };
-
-    const accountingOptions: OnboardingListItem[] = [...integrations.map(createAccountingOption), othersAccountingOption];
 
     const submitAccounting = async () => {
         if (!selectedIntegration) {
@@ -209,7 +136,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         });
     };
 
-    const handleIntegrationSelect = (integrationKey: OnboardingListItem['keyForList']) => {
+    const handleIntegrationSelect = (integrationKey: AccountingOptionKey) => {
         if (integrationKey === 'other' && isOtherSelected) {
             otherAccountingSoftwareInputRef.current?.focus();
             setError('');
@@ -233,31 +160,42 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         setShouldScrollToOtherInput(false);
     }, [shouldScrollToOtherInput]);
 
-    function renderOption(item: OnboardingListItem) {
+    function renderOption(optionKey: AccountingOptionKey) {
+        const isOtherOption = optionKey === 'other';
+        const label = translate(isOtherOption ? 'workspace.accounting.other' : accountingIntegrationDetails[optionKey].translationKey);
+        const isSelected = selectedIntegration === optionKey;
+
         return (
             <PressableWithoutFeedback
-                key={item.keyForList}
-                onPress={() => handleIntegrationSelect(item.keyForList)}
-                accessibilityLabel={item.text}
+                key={optionKey}
+                onPress={() => handleIntegrationSelect(optionKey)}
+                accessibilityLabel={label}
                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.ACCOUNTING_SELECT_INTEGRATION}
                 accessible={false}
-                hoverStyle={styles.hoveredComponentBG}
-                style={[styles.onboardingAccountingItem, isSmallScreenWidth && styles.flexBasis100]}
+                // Keep the selected fill on hover.
+                hoverStyle={isSelected ? undefined : styles.hoveredComponentBG}
+                style={[
+                    styles.onboardingAccountingItem,
+                    isSmallScreenWidth ? styles.onboardingAccountingItemNarrow : styles.onboardingAccountingItemWide,
+                    isSelected && styles.onboardingAccountingItemSelected,
+                ]}
             >
-                <RadioButtonWithLabel
-                    isChecked={!!item.isSelected}
-                    onPress={() => handleIntegrationSelect(item.keyForList)}
-                    accessibilityLabel={item.text}
-                    style={[styles.flexRowReverse]}
-                    wrapperStyle={[styles.ml0]}
-                    labelElement={
-                        <View style={[styles.alignItemsCenter, styles.flexRow]}>
-                            {item.leftElement}
-                            <Text style={styles.textStrong}>{item.text}</Text>
-                        </View>
-                    }
-                    shouldBlendOpacity
+                {/* Square to match the mocks, but a radio because only one option can be picked. */}
+                <RadioButton
+                    isChecked={isSelected}
+                    onPress={() => handleIntegrationSelect(optionKey)}
+                    accessibilityLabel={label}
+                    containerBorderRadius={variables.componentBorderRadiusSmall}
+                    wrapperStyle={styles.onboardingAccountingItemSelectionButton}
                 />
+                <Icon
+                    src={isOtherOption ? illustrations.Pencil : expensifyIcons[accountingIntegrationDetails[optionKey].iconName]}
+                    width={variables.iconSizeExtraLarge}
+                    height={variables.iconSizeExtraLarge}
+                    // The Other illustration has no circular badge.
+                    additionalStyles={isOtherOption ? undefined : [StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.AVATAR_SHAPE.CIRCLE)]}
+                />
+                <Text style={[styles.textLabel, styles.textStrong, styles.textAlignCenter, styles.mt2]}>{label}</Text>
             </PressableWithoutFeedback>
         );
     }
@@ -310,16 +248,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 onContentSizeChange={handleContentSizeChange}
                 keyboardShouldPersistTaps="handled"
             >
-                <View style={[styles.flexRow, styles.flexWrap, styles.gap3, styles.mb3]}>
-                    {accountingOptions.map(renderOption)}
-                    {/* Keep Other from expanding across the empty second column on wide layouts. */}
-                    {!isSmallScreenWidth && (
-                        <View
-                            testID="onboarding-accounting-wide-layout-spacer"
-                            style={[styles.onboardingAccountingItem, styles.bgTransparent, styles.p0]}
-                        />
-                    )}
-                </View>
+                <View style={[styles.flexRow, styles.flexWrap, styles.gap3, styles.mb3]}>{accountingOptionKeys.map(renderOption)}</View>
                 {isOtherSelected && (
                     <TextInput
                         ref={otherAccountingSoftwareInputRef}
