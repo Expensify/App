@@ -2,6 +2,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
@@ -123,7 +124,7 @@ import {doesPersonalDetailExistSelector} from '@src/selectors/PersonalDetails';
 import type {BillingGraceEndPeriod, ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -200,24 +201,6 @@ function getRestrictedPolicyID(
 
 function isGroupSelection(key: string, transaction: SelectedTransactions[string]): boolean {
     return key.startsWith(CONST.SEARCH.GROUP_PREFIX) || (!!transaction.isSelectedViaGroup && !!transaction.groupKey);
-}
-
-/**
- * How a selection on a grouped search has to be exported.
- *
- * Selecting a group stores its loaded children with isSelectedViaGroup. The group key is only stored when no children are loaded.
- * Use isGroupSelection rather than the key prefix so exports include every item matching the group filter.
- *
- * `transactionIDList` drops the rows covered by that filter and keeps the rows the user ticked individually
- * alongside them.
- */
-function getGroupExportScope(queryJSON: SearchQueryJSON | undefined, selectedTransactions: SelectedTransactions): {isGroupExport: boolean; transactionIDList: string[]} {
-    const selectedTransactionsKeys = Object.keys(selectedTransactions);
-    const isGroupExport = !!queryJSON?.groupBy && Object.entries(selectedTransactions).some(([key, transaction]) => isGroupSelection(key, transaction));
-    return {
-        isGroupExport,
-        transactionIDList: isGroupExport ? selectedTransactionsKeys.filter((key) => !isGroupSelection(key, selectedTransactions[key])) : selectedTransactionsKeys,
-    };
 }
 
 /**
@@ -379,6 +362,25 @@ function getAllMatchingExportQueryAndExclusions(
 
     const exportQueryJSON = buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters}));
     return exportQueryJSON ? {queryJSON: exportQueryJSON, excludedTransactionIDList} : undefined;
+}
+
+function getAllMatchingReportQuery(queryJSON: SearchQueryJSON, excludedTransactions: SelectedTransactions): SearchQueryJSON | undefined {
+    const excludedEntries = Object.values(excludedTransactions);
+    if (excludedEntries.some((transaction) => !transaction.reportID)) {
+        return undefined;
+    }
+    const excludedReportIDs = [...new Set(excludedEntries.map((transaction) => transaction.reportID).filter((reportID): reportID is string => !!reportID))];
+    if (excludedReportIDs.length === 0) {
+        return queryJSON;
+    }
+
+    const flatFilters = queryJSON.flatFilters.map((filter) => ({...filter, filters: [...filter.filters]}));
+    flatFilters.push({
+        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+        filters: excludedReportIDs.map((reportID) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: reportID})),
+    });
+
+    return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters}));
 }
 
 const MERCHANT_GROUP_EXACT_MATCH_FILTER_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
@@ -555,7 +557,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {
         introSelected,
         isSelfTourViewed,
-        betas,
         activePolicyID,
         activePolicy,
         conciergeChat,
@@ -566,6 +567,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         delegateEmail,
     } = usePaymentContext();
     const allTransactions = useAllTransactions();
+    const allReportsTransactionsAndViolations = useAllReportsTransactionsAndViolations();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -981,20 +983,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     true,
                 );
             } else {
-                const {isGroupExport, transactionIDList} = getGroupExportScope(queryJSON, selectedTransactions);
+                const isGroupExport = !!queryJSON?.groupBy && selectedTransactionsKeys.some((key) => key.startsWith(CONST.SEARCH.GROUP_PREFIX));
                 queueExportSearchWithTemplate(
                     {
                         templateName,
                         templateType,
-                        jsonQuery:
-                            isGroupExport && queryJSON
-                                ? serializeQueryJSONForBackend(
-                                      addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data),
-                                      getGroupExportExactMatchFilterKeys(queryJSON.groupBy),
-                                  )
-                                : '{}',
+                        jsonQuery: isGroupExport
+                            ? serializeQueryJSONForBackend(
+                                  addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data),
+                                  getGroupExportExactMatchFilterKeys(queryJSON.groupBy),
+                              )
+                            : '{}',
                         reportIDList: isGroupExport ? [] : selectedTransactionReportIDs,
-                        transactionIDList,
+                        transactionIDList: isGroupExport ? [] : selectedTransactionsKeys,
                         policyID,
                         exportName,
                     },
@@ -1015,6 +1016,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             currentSearchResults?.data,
             queryJSON,
             selectedTransactionReportIDs,
+            selectedTransactionsKeys,
             selectAllMatchingItems,
             clearSelectedTransactions,
         ],
@@ -1103,16 +1105,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const exportName = translate(isBasicExport ? 'export.basicExport' : 'export.currentView');
 
             if (areAllMatchingItemsSelected) {
-                if ((!isExpenseType && selectedTransactionsKeys.length === 0) || !hash) {
+                const supportsAllMatchingExclusions = isExpenseType || isExpenseReportType;
+                if ((!supportsAllMatchingExclusions && selectedTransactionsKeys.length === 0) || !hash) {
                     return;
                 }
                 const allMatchingExportData = isExpenseType && queryJSON ? getAllMatchingExportQueryAndExclusions(queryJSON, excludedTransactions, currentSearchResults?.data) : undefined;
-                if (isExpenseType && !allMatchingExportData) {
+                const allMatchingReportExportQuery = isExpenseReportType && queryJSON ? getAllMatchingReportQuery(queryJSON, excludedTransactions) : undefined;
+                if ((isExpenseType && !allMatchingExportData) || (isExpenseReportType && !allMatchingReportExportQuery)) {
                     setIsDownloadErrorModalVisible(true);
                     return;
                 }
                 const reportIDList = selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [];
-                const exportParameters = getCSVExportParameters(isBasicExport, allMatchingExportData?.queryJSON ?? queryJSON);
+                const exportParameters = getCSVExportParameters(isBasicExport, allMatchingExportData?.queryJSON ?? allMatchingReportExportQuery ?? queryJSON);
                 queueExportSearchItemsToCSV({
                     jsonQuery: exportParameters.jsonQuery,
                     reportIDList,
@@ -1129,7 +1133,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
 
-            const {isGroupExport, transactionIDList} = getGroupExportScope(queryJSON, selectedTransactions);
+            const isGroupExport = !!queryJSON?.groupBy && Object.entries(selectedTransactions).some(([key, transaction]) => isGroupSelection(key, transaction));
+            const transactionIDList = isGroupExport ? selectedTransactionsKeys.filter((key) => !isGroupSelection(key, selectedTransactions[key])) : selectedTransactionsKeys;
             let didFail = false;
             const reportIDList = selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs;
             const queryJSONToExport = isGroupExport && queryJSON ? addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data) : queryJSON;
@@ -1151,6 +1156,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     setIsDownloadErrorModalVisible(true);
                 },
                 translate,
+                allReportsTransactionsAndViolations,
             );
             if (!didFail) {
                 clearSelectedTransactions(undefined, true);
@@ -1168,6 +1174,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             selectedTransactions,
             selectedTransactionsKeys,
             isExpenseType,
+            isExpenseReportType,
             excludedTransactions,
             translate,
             clearSelectedTransactions,
@@ -1175,6 +1182,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             hash,
             currentSearchResults?.data,
             getCSVExportParameters,
+            allReportsTransactionsAndViolations,
         ],
     );
 
@@ -1470,7 +1478,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             if (areAllMatchingItemsSelected) {
-                const serializedQuery = queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON);
+                const allMatchingQuery = isExpenseReportType && queryJSON ? getAllMatchingReportQuery(queryJSON, excludedTransactions) : queryJSON;
+                if (isExpenseReportType && !allMatchingQuery) {
+                    Log.info('[BulkPay] Dropping bulk pay: report exclusion has no reportID');
+                    return;
+                }
+                const serializedQuery = allMatchingQuery ? serializeQueryJSONForBackend(allMatchingQuery) : JSON.stringify(allMatchingQuery);
                 queueBulkPayReports(serializedQuery);
                 playSound(SOUNDS.SUCCESS);
                 clearSelectedTransactions();
@@ -1653,7 +1666,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                     payInvoice({
                         isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
-                        betas,
                         getCurrencyDecimals,
                         paymentMethodType: paymentItem.paymentType as PaymentMethodType,
                         chatReport,
@@ -1683,7 +1695,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                 payMoneyRequest({
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
-                    betas,
                     getCurrencyDecimals,
                     paymentType: paymentItem.paymentType as PaymentMethodType,
                     chatReport,
@@ -1726,8 +1737,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             hash,
             areAllMatchingItemsSelected,
             queryJSON,
+            excludedTransactions,
+            isExpenseReportType,
             isOffline,
-            betas,
             isBetaEnabled,
             isDelegateAccessRestricted,
             selectedReports.length,
@@ -1931,8 +1943,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         });
     }, [selectedReports, currentSearchResults?.data, isTrackIntentUser, policies, selectedTransactions, rules]);
 
+    // Some matches haven't been loaded yet, so the client can't check whether they are movable
+    const hasUnloadedMatchingExpenses = !!currentSearchResults?.search?.hasMoreResults;
+    const isUnreportedOnlyQuery = useMemo(() => {
+        const statusFilter = queryJSON ? getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) : undefined;
+        return !statusFilter?.isNegated && !!statusFilter?.value?.length && statusFilter.value.every((status) => status === CONST.SEARCH.STATUS.EXPENSE.UNREPORTED);
+    }, [queryJSON]);
+
     const {headerButtonsOptions, dropdownButtonsOptions} = useMemo(() => {
-        if ((selectedTransactionsKeys.length === 0 && !(isExpenseType && areAllMatchingItemsSelected)) || !hash) {
+        if ((selectedTransactionsKeys.length === 0 && !((isExpenseType || isExpenseReportType) && areAllMatchingItemsSelected)) || !hash) {
             const noOptions = CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
             return {headerButtonsOptions: noOptions, dropdownButtonsOptions: noOptions};
         }
@@ -1954,8 +1973,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const includeReportLevelExport = ((isExpenseReportType || typeInvoice) && areFullReportsSelected) || (typeExpense && !isExpenseReportType && isAllOneTransactionReport);
 
-            const groupBy = getValidGroupBy(queryJSON?.groupBy);
-            const isGroupedSearch = !!groupBy;
+            const isGroupedSearch = !!getValidGroupBy(queryJSON?.groupBy);
 
             const policy = selectedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`] : undefined;
             // The export templates available to the user, pre-grouped and sorted alphabetically. The basic export is part of the default group so it's sorted alongside
@@ -1971,7 +1989,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 doAllSelectedItemsBelongToCADPolicies,
                 hasCardEnabledAdminPolicy,
             );
-            const shouldHideTemplateExports = isExpenseType && areAllMatchingItemsSelected && Object.keys(excludedTransactions).length > 0;
+            const shouldHideTemplateExports = (isExpenseType || isExpenseReportType) && areAllMatchingItemsSelected && Object.keys(excludedTransactions).length > 0;
             const availableCustomTemplates = shouldHideTemplateExports
                 ? customTemplates.filter((template) => template.templateName === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV)
                 : customTemplates;
@@ -1983,14 +2001,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const isReportsTab = isExpenseReportType;
             const includesGroupExport = isGroupedSearch && Object.entries(selectedTransactions).some(([key, selectedTransaction]) => isGroupSelection(key, selectedTransaction));
-            // Group selections are sent as query filters, not report or transaction IDs, so template exports are usually unavailable.
-            // Reconciliation - All Expenses is supported for card-grouped searches because selected card groups become a `cardID:`
-            // filter, which template reports can use to scope card spend.
-            const includesCardGroupExport = includesGroupExport && groupBy === CONST.SEARCH.GROUP_BY.CARD;
-            const customTemplatesToShow = includesCardGroupExport ? [] : availableCustomTemplates;
-            const defaultTemplatesToShow = includesCardGroupExport
-                ? availableDefaultTemplates.filter((template) => template.templateName === CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES)
-                : availableDefaultTemplates;
 
             const canReportBeExported = (report: (typeof selectedReports)[0], exportOption: ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>) => {
                 if (!report.reportID) {
@@ -2249,7 +2259,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 addSeparatorBefore: true,
             });
 
-            if (!allSelectedAreDeleted && (!includesGroupExport || includesCardGroupExport)) {
+            if (!allSelectedAreDeleted && !includesGroupExport) {
                 // Builds a single export sub-menu item for a template. `isDefaultTemplate` picks the icon and `addSeparatorBefore` draws the divider at the top of each group.
                 const buildExportOption = (template: ExportTemplate, isDefaultTemplate: boolean, addSeparatorBefore: boolean): ExportMenuItem => {
                     // The basic export is a plain CSV download, so it uses its own handler rather than the template export flow
@@ -2273,10 +2283,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 };
 
                 // Add each group's templates separately so the icon and the group-boundary divider come from the group itself, not from an index into a combined list.
-                for (const [index, template] of customTemplatesToShow.entries()) {
+                for (const [index, template] of availableCustomTemplates.entries()) {
                     exportOptions.push(buildExportOption(template, false, index === 0));
                 }
-                for (const [index, template] of defaultTemplatesToShow.entries()) {
+                for (const [index, template] of availableDefaultTemplates.entries()) {
                     exportOptions.push(buildExportOption(template, true, index === 0));
                 }
             } else if (!isGroupedSearch) {
@@ -2332,6 +2342,59 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             dropdownButtonsOptions: openExportOptionsDirectlyIfSoleAction(builtOptions),
         });
 
+        // These checks only see the loaded page. The backend enforces the same rules on the full set.
+        const moveOwnerAccountIDs = new Set<number>();
+        let moveHasUnknownOwner = false;
+        for (const id of selectedTransactionsKeys) {
+            const transactionEntry = selectedTransactions[id];
+            if (!transactionEntry) {
+                continue;
+            }
+            const ownerAccountID =
+                transactionEntry.ownerAccountID ??
+                getReportOrDraftReport(transactionEntry.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionEntry.reportID}`])?.ownerAccountID;
+            if (typeof ownerAccountID === 'number') {
+                moveOwnerAccountIDs.add(ownerAccountID);
+            } else {
+                moveHasUnknownOwner = true;
+            }
+        }
+        const moveHasMultipleOwners = moveOwnerAccountIDs.size > 1 || (moveHasUnknownOwner && (moveOwnerAccountIDs.size > 0 || selectedTransactionsKeys.length > 1));
+
+        // For selections across submitters, offer only Auto report when every expense has a resolved owner, is on a
+        // card the mover can resolve, and does not depend on the destination workspace. Otherwise hide the flow.
+        // The backend resolves each destination through the card. No card, or a feed they do not administer, fails
+        // the whole request.
+        const canAutoReportAcrossSubmitters =
+            moveOwnerAccountIDs.size > 1 &&
+            !moveHasUnknownOwner &&
+            selectedTransactionsKeys.every((id) => {
+                const transaction = selectedTransactions[id]?.transaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+                if (!canResolveTransactionCard(transaction, nonPersonalAndWorkspaceCards)) {
+                    return false;
+                }
+                return !(isPerDiemRequest(transaction) || isManualDistanceRequest(transaction) || isOdometerDistanceRequest(transaction));
+            });
+
+        // `every` returns true for an empty selection, so check the length too. The destination page has nothing to move.
+        const canAllTransactionsBeMoved = selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
+        const canMoveExpenses = canAllTransactionsBeMoved && !isExpenseReportType && (!moveHasMultipleOwners || canAutoReportAcrossSubmitters);
+
+        const moveExpensesOption: DropdownOption<SearchHeaderOptionValue> = {
+            text: translate('iou.moveExpenses'),
+            icon: expensifyIcons.DocumentMerge,
+            value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
+            shouldCloseModalOnSelect: true,
+            onSelected: () => {
+                // A queued all-matching move would send a stale query, so ask the user to reconnect like export does
+                if (areAllMatchingItemsSelected && isOffline) {
+                    setIsOfflineModalVisible(true);
+                    return;
+                }
+                Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP.getRoute());
+            },
+        };
+
         const {shouldEnableBulkPayOption} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs, personalPolicyID);
         const hasLoadedPayableReport = payableSelectedReports.length > 0 || selectedReports.length === 0;
         const shouldShowPayOption = areAllMatchingItemsSelected
@@ -2364,7 +2427,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 // so send the search query to the backend and let it resolve the reports. The searchKey changes what
                 // the backend query matches, so it must be sent exactly as search() does or the exported set differs from the viewed set.
                 if (areAllMatchingItemsSelected) {
-                    const serializedQuery = queryJSON ? serializeQueryJSONForBackend({...queryJSON, searchKey: currentSearchKey}) : JSON.stringify(queryJSON);
+                    const allMatchingReportQuery = queryJSON ? getAllMatchingReportQuery(queryJSON, excludedTransactions) : undefined;
+                    if (!allMatchingReportQuery) {
+                        setIsDownloadErrorModalVisible(true);
+                        return;
+                    }
+                    const serializedQuery = serializeQueryJSONForBackend({...allMatchingReportQuery, searchKey: currentSearchKey});
                     exportReportsToPDF([], serializedQuery);
 
                     // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
@@ -2391,11 +2459,23 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         };
 
         if (areAllMatchingItemsSelected) {
-            const selectAllOptions = shouldShowPayOption ? [payButtonOption, exportButtonOption] : [exportButtonOption];
-            if (isExpenseReportSearch) {
-                selectAllOptions.push(downloadPDFOption);
+            // Offer an all-matching move only when no rows are excluded and unloaded matches are unreported.
+            // The backend rejects the entire move if any matching expense is invalid
+            const isAllMatchingSelectionMovable = isEmptyObject(excludedTransactions) && (!hasUnloadedMatchingExpenses || isUnreportedOnlyQuery);
+
+            const allMatchingOptions: Array<DropdownOption<SearchHeaderOptionValue>> = [];
+            if (shouldShowPayOption) {
+                allMatchingOptions.push(payButtonOption);
             }
-            return buildResult(selectAllOptions);
+            allMatchingOptions.push(exportButtonOption);
+            if (isExpenseReportSearch) {
+                allMatchingOptions.push(downloadPDFOption);
+            }
+            if (canMoveExpenses && isAllMatchingSelectionMovable) {
+                allMatchingOptions.push(moveExpensesOption);
+            }
+
+            return buildResult(allMatchingOptions);
         }
 
         if (allSelectedAreDeleted) {
@@ -2891,54 +2971,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
         }
 
-        const ownerAccountIDs = new Set<number>();
-        let hasUnknownOwner = false;
-        for (const id of selectedTransactionsKeys) {
-            const transactionEntry = selectedTransactions[id];
-            if (!transactionEntry) {
-                continue;
-            }
-            const ownerAccountID =
-                transactionEntry.ownerAccountID ??
-                getReportOrDraftReport(transactionEntry.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionEntry.reportID}`])?.ownerAccountID;
-            if (typeof ownerAccountID === 'number') {
-                ownerAccountIDs.add(ownerAccountID);
-            } else {
-                hasUnknownOwner = true;
-            }
-        }
-        const hasMultipleOwners = ownerAccountIDs.size > 1 || (hasUnknownOwner && (ownerAccountIDs.size > 0 || selectedTransactionsKeys.length > 1));
-
-        const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
-
-        // Across submitters the only destination the App can offer is "Auto report". Every other mixed-owner selection
-        // stays hidden as before, so there is no entry into a screen that could only offer one submitter's reports to
-        // everybody else's expenses. Requirements:
-        //   - every owner resolved, or the count below cannot tell one cardholder's bulk selection from a mixed one
-        //   - every expense on a card the mover can resolve, since the backend resolves each destination through the
-        //     card. No card, or a feed they do not administer, fails the whole request
-        //   - nothing whose validity depends on the destination workspace, which the backend picks: per diem rates and
-        //     the map/GPS rules on manual and odometer distance can only be checked against a known workspace
-        // An expense we cannot read fails all three, so it withholds the flow rather than risking a rejected move.
-        const canAutoReportAcrossSubmitters =
-            ownerAccountIDs.size > 1 &&
-            !hasUnknownOwner &&
-            selectedTransactionsKeys.every((id) => {
-                const transaction = selectedTransactions[id]?.transaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
-                if (!canResolveTransactionCard(transaction, nonPersonalAndWorkspaceCards)) {
-                    return false;
-                }
-                return !(isPerDiemRequest(transaction) || isManualDistanceRequest(transaction) || isOdometerDistanceRequest(transaction));
-            });
-
-        if (canAllTransactionsBeMoved && !isExpenseReportType && (!hasMultipleOwners || canAutoReportAcrossSubmitters)) {
-            options.push({
-                text: translate('iou.moveExpenses'),
-                icon: expensifyIcons.DocumentMerge,
-                value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP.getRoute()),
-            });
+        if (canMoveExpenses) {
+            options.push(moveExpensesOption);
         }
 
         const firstTransactionKey = selectedTransactionsKeys.at(0);
@@ -3128,6 +3162,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         noReportsShouldMarkAsDone,
         currentUserPersonalDetails.accountID,
         delegateAccountID,
+        hasUnloadedMatchingExpenses,
+        isUnreportedOnlyQuery,
         currentSearchQueryJSON,
         currentSearchResults?.search?.isLoading,
         shouldCalculateTotalsOnRefresh,
