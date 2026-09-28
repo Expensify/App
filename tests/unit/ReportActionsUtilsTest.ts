@@ -1379,6 +1379,51 @@ describe('ReportActionsUtils', () => {
                     )
             );
         });
+
+        it('should resolve whisper visibility from the passed currentUserAccountID instead of the session', async () => {
+            const reportID = '90210';
+            const comment: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),
+                created: '2023-08-01 16:00:00',
+                reportActionID: 'comment1',
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                },
+            };
+            const whisperTargetAccountID = 100;
+            const whisper: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction('email2@test.com', 3),
+                created: '2023-08-01 18:00:00',
+                reportActionID: 'whisper1',
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'Do you want to invite them?',
+                        text: 'Do you want to invite them?',
+                        whisperedTo: [whisperTargetAccountID],
+                    },
+                ],
+                originalMessage: {
+                    inviteeAccountIDs: [1],
+                    whisperedTo: [whisperTargetAccountID],
+                },
+            };
+
+            // Given a report whose newest action is a whisper targeted at a single account
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[comment.reportActionID]: comment, [whisper.reportActionID]: whisper});
+            await waitForBatchedUpdates();
+
+            // When the whispered-to account is passed explicitly, the whisper is the last visible action
+            expect(ReportActionsUtils.getLastVisibleAction(reportID, true, {}, undefined, undefined, whisperTargetAccountID)?.reportActionID).toBe(whisper.reportActionID);
+
+            // When another account is passed explicitly, the whisper is skipped and the comment wins
+            expect(ReportActionsUtils.getLastVisibleAction(reportID, true, {}, undefined, undefined, whisperTargetAccountID + 1)?.reportActionID).toBe(comment.reportActionID);
+        });
     });
 
     describe('getExportIntegrationActionFragments', () => {
