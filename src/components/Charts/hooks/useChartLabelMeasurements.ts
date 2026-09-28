@@ -13,7 +13,7 @@ function useChartLabelMeasurements(data: ChartDataPoint[], fontManager: SkTypefa
     }
 
     const {ascent, descent} = getFontLineMetrics(fontManager, fontSize);
-    const lineHeight = Math.abs(ascent) + Math.abs(descent);
+    const lineHeight = ascent + descent;
     const ellipsisWidth = measureTextWidth(ELLIPSIS, fontManager, fontSize);
     const labels = data.map(getXAxisLabel);
     const labelWidths = labels.map((label) => measureTextWidth(label, fontManager, fontSize));
