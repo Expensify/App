@@ -45,27 +45,39 @@ describe('HoldMenuModalWrapper', () => {
     });
 
     it('offers the partial option when a valid non-held amount is supplied', () => {
+        // Given a report whose non-held expenses add up to a meaningful amount
+        // When the hold menu is rendered
         renderWrapper({nonHeldAmount: '$40.00', hasNonHeldExpenses: true});
 
+        // Then the partial option offers that amount
         expect(mockDecisionModalProps?.firstOptionText).toContain('$40.00');
     });
 
     it('omits the partial option when the non-held amount is not meaningful, even though non-held expenses exist', () => {
-        // Regression for https://github.com/Expensify/App/issues/100639
+        // Given a report with non-held expenses whose amounts net out, so the caller sends no amount
+        // See https://github.com/Expensify/App/issues/100639
+        // When the hold menu is rendered
         renderWrapper({nonHeldAmount: undefined, hasNonHeldExpenses: true});
 
+        // Then the partial option is not offered, rather than offering a zero amount
         expect(mockDecisionModalProps?.firstOptionText).toBeUndefined();
     });
 
     it('omits the partial option when every expense is on hold', () => {
+        // Given a report where every expense is on hold
+        // When the hold menu is rendered
         renderWrapper({nonHeldAmount: undefined, hasNonHeldExpenses: false});
 
+        // Then there is nothing to approve partially
         expect(mockDecisionModalProps?.firstOptionText).toBeUndefined();
     });
 
     it('still shows the full amount option in every case', () => {
+        // Given a report with no meaningful non-held amount
+        // When the hold menu is rendered
         renderWrapper({nonHeldAmount: undefined, hasNonHeldExpenses: true});
 
+        // Then the full amount option is always available
         expect(mockDecisionModalProps?.secondOptionText).toContain('$100.00');
     });
 });

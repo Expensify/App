@@ -46,9 +46,9 @@ function useConfirmApproval(
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
-    const [liveReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [liveReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const moneyRequestReport = liveReport ?? fallbackReport;
-    const [livePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
+    const [livePolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const policy = livePolicy ?? fallbackPolicy;
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -58,7 +58,10 @@ function useConfirmApproval(
     const [ownerLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const liveTransactions = Object.values(reportTransactions);
-    const transactions = liveTransactions.length > 0 || !fallbackTransactions ? liveTransactions : fallbackTransactions;
+    // Live data wins per transaction, but keep the ones that haven't hydrated into Onyx yet.
+    const transactions = fallbackTransactions
+        ? [...new Map([...fallbackTransactions, ...liveTransactions].map((transaction) => [transaction.transactionID, transaction])).values()]
+        : liveTransactions;
     const [transactionViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
         selector: transactionViolationsByIDsSelector(transactions.map((transaction) => transaction.transactionID)),
     });

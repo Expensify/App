@@ -1,4 +1,3 @@
-import type {HoldMenuCallback} from '@components/Search';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
 import type {TransactionPreviewData} from '@libs/actions/Search';
@@ -216,7 +215,6 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     index?: number;
     onInputFocus?: (item: TItem) => void;
     onInputBlur?: (e: BlurEvent) => void;
-    onHoldMenuOpen?: HoldMenuCallback;
     shouldDisableHoverStyle?: boolean;
 
     /** Whether the network is offline */

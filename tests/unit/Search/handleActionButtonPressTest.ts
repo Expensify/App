@@ -337,8 +337,12 @@ describe('handleActionButtonPress', () => {
     const snapshotReport = mockSnapshotForItem.data[reportKey];
     const snapshotPolicy = mockSnapshotForItem.data[policyKey];
 
-    test('Should not navigate to item when report has one transaction on hold and action is approve', () => {
-        const goToItem = jest.fn(() => {});
+    test('Should navigate to the report when the report has one transaction on hold and action is approve', () => {
+        // Given a report with a held transaction, whose approve action is handled by ApproveActionCell instead
+        const approveMoneyRequestMock = jest.spyOn(ReportWorkflow, 'approveMoneyRequest').mockImplementation(jest.fn());
+        const goToItem = jest.fn();
+
+        // When the action button is pressed
         handleActionButtonPress({
             isASAPSubmitBetaEnabled: false,
             conciergeChat: undefined,
@@ -351,34 +355,6 @@ describe('handleActionButtonPress', () => {
             submitterLogin: undefined,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
-            ownerBillingGracePeriodEnd: undefined,
-            amountOwed: undefined,
-            userBillingGracePeriodEnds: undefined,
-            policy: snapshotPolicy,
-            chatReportActions: undefined,
-            currentUserAccountID: 1206,
-            delegateAccountID: undefined,
-            isTrackIntentUser: false,
-            allViolations: undefined,
-            rules: undefined,
-        });
-        expect(goToItem).not.toHaveBeenCalled();
-    });
-
-    test('Should approve the full report when the report has one transaction on hold and action is approve', () => {
-        const approveMoneyRequestMock = jest.spyOn(ReportWorkflow, 'approveMoneyRequest').mockImplementation(jest.fn());
-        handleActionButtonPress({
-            isASAPSubmitBetaEnabled: false,
-            conciergeChat: undefined,
-            getCurrencyDecimals: getCurrencyDecimalsLocal,
-            hash: searchHash,
-            item: mockReportItemWithHold,
-            goToItem: jest.fn(),
-            snapshotReport,
-            snapshotPolicy,
-            submitterLogin: undefined,
-            lastPaymentMethod: mockLastPaymentMethod,
-            personalPolicyID: undefined,
             userBillingGracePeriodEnds: undefined,
             ownerBillingGracePeriodEnd: undefined,
             amountOwed: undefined,
@@ -391,7 +367,9 @@ describe('handleActionButtonPress', () => {
             rules: undefined,
         });
 
-        expect(approveMoneyRequestMock).toHaveBeenCalledWith(expect.objectContaining({full: true}));
+        // Then the report opens instead of approving held expenses without a prompt
+        expect(goToItem).toHaveBeenCalled();
+        expect(approveMoneyRequestMock).not.toHaveBeenCalled();
         approveMoneyRequestMock.mockRestore();
     });
 
