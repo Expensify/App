@@ -5691,6 +5691,13 @@ describe('ReportActionsUtils', () => {
                 message: [],
             }) as ReportAction;
 
+        const buildFastACHAction = () =>
+            buildReimbursedAction({
+                paymentMethod: 'Fast_ACH',
+                creditBankAccountLast4: '1111',
+                expectedDate: '2025-03-15',
+            });
+
         it('shows the funding bank account from the masked accountNumber when debitBankAccountLast4 is absent', () => {
             // Given a reimbursed action carrying the raw masked accountNumber, as delivered by real-time Pusher updates
             const action = buildReimbursedAction({
@@ -5837,6 +5844,46 @@ describe('ReportActionsUtils', () => {
 
             const resultOtherUser = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999);
             expect(resultOtherUser).toContain(submitterLogin);
+        });
+
+        it('names the submitter when the signed-in session owns the report but the current user does not', async () => {
+            // Given a signed-in session whose account owns the report
+            const ownerAccountID = 42;
+            const submitterLogin = 'submitter@example.com';
+            const action = buildFastACHAction();
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: ownerAccountID});
+            await waitForBatchedUpdates();
+
+            // When the message is built for a different current user
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999);
+
+            // Then it names the submitter, and matches what the same call produces with no session at all
+            expect(result).toContain(submitterLogin);
+            expect(result).not.toContain('your');
+
+            await Onyx.set(ONYXKEYS.SESSION, null);
+            await waitForBatchedUpdates();
+            expect(ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999)).toBe(result);
+        });
+
+        it('shows "your" wording when the report has no owner and the current user is unknown', () => {
+            // Given a report with no owner, so the submitter also resolves to the default account ID
+            const submitterLogin = 'submitter@example.com';
+
+            // When the current user is unknown and passed as the default account ID
+            const result = ReportActionsUtils.getReimbursedMessage(
+                translateLocal,
+                undefined,
+                buildFastACHAction(),
+                undefined,
+                submitterLogin,
+                undefined,
+                convertToDisplayString,
+                CONST.DEFAULT_NUMBER_ID,
+            );
+
+            // Then both sides resolve to the same ID and the message addresses the current user directly
+            expect(result).toContain('your');
         });
     });
 
