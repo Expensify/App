@@ -998,32 +998,22 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
             visibleSequenceRef,
         };
         const channelName = getReportChannelName(reportID);
-        const handleResubscribe = () => {
+        const unregisterResubscribe = Pusher.onChannelResubscribe(channelName, () => {
             clearCachedPusherDraft(runtime);
-        };
+        });
 
         const draftEventSubscriptions = [
             {
                 eventType: Pusher.TYPE.CONCIERGE_DRAFT_EVENTS,
-                listener: Pusher.subscribe(
-                    channelName,
-                    Pusher.TYPE.CONCIERGE_DRAFT_EVENTS,
-                    (eventData: ConciergeDraftEventsEvent) => {
-                        handlePusherDraftEvents(runtime, eventData);
-                    },
-                    handleResubscribe,
-                ),
+                listener: Pusher.subscribe(channelName, Pusher.TYPE.CONCIERGE_DRAFT_EVENTS, (eventData: ConciergeDraftEventsEvent) => {
+                    handlePusherDraftEvents(runtime, eventData);
+                }),
             },
             ...PUSHER_DRAFT_EVENT_TYPES.map((eventType) => ({
                 eventType,
-                listener: Pusher.subscribe(
-                    channelName,
-                    eventType,
-                    (eventData: ConciergeDraftEvent) => {
-                        handlePusherDraftEvent(runtime, eventData);
-                    },
-                    handleResubscribe,
-                ),
+                listener: Pusher.subscribe(channelName, eventType, (eventData: ConciergeDraftEvent) => {
+                    handlePusherDraftEvent(runtime, eventData);
+                }),
             })),
         ];
 
@@ -1064,6 +1054,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
             unsubscribeVisibility();
             stopPusherDraftPace(runtime);
             stopFinalRenderedHTMLReveal(runtime);
+            unregisterResubscribe();
             for (const subscription of subscriptions) {
                 subscription.unsubscribe();
             }

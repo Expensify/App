@@ -3,7 +3,7 @@
  */
 import {arePaymentsEnabled} from '@libs/PolicyUtils';
 
-import {getOutstandingReportsSignature, getYourSpendApplicability} from '@pages/home/YourSpendSection/useYourSpendData';
+import {getYourSpendApplicability, getYourSpendReportsSignature} from '@pages/home/YourSpendSection/useYourSpendData';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,7 +17,6 @@ function makePolicy(overrides: Partial<Policy> = {}): Policy {
         role: 'admin',
         owner: 'test@example.com',
         ownerAccountID: 1,
-        isPolicyExpenseChatEnabled: true,
         outputCurrency: CONST.CURRENCY.USD,
         ...overrides,
     } as Policy;
@@ -117,34 +116,34 @@ describe('getYourSpendApplicability', () => {
     });
 });
 
-describe('getOutstandingReportsSignature', () => {
+describe('getYourSpendReportsSignature (outstandingReportIDs)', () => {
     const ACCOUNT_ID = 12345;
     const PAID_GROUP_POLICY_IDS = ['policy_1', 'policy_2'];
 
     it('returns an empty string when reports is undefined', () => {
-        expect(getOutstandingReportsSignature(undefined, PAID_GROUP_POLICY_IDS, ACCOUNT_ID)).toBe('');
+        expect(getYourSpendReportsSignature(undefined, PAID_GROUP_POLICY_IDS, ACCOUNT_ID).outstandingReportIDs).toBe('');
     });
 
     it('returns an empty string when paidGroupPolicyIDs is empty', () => {
-        expect(getOutstandingReportsSignature(reportsCollection([makeReport()]), [], ACCOUNT_ID)).toBe('');
+        expect(getYourSpendReportsSignature(reportsCollection([makeReport()]), [], ACCOUNT_ID).outstandingReportIDs).toBe('');
     });
 
     it('includes only SUBMITTED/SUBMITTED reports owned by the account on a listed policy', () => {
         const reports = reportsCollection([makeReport({reportID: 'r1', policyID: 'policy_1'}), makeReport({reportID: 'r2', policyID: 'policy_2'})]);
 
-        expect(getOutstandingReportsSignature(reports, PAID_GROUP_POLICY_IDS, ACCOUNT_ID)).toBe('r1,r2');
+        expect(getYourSpendReportsSignature(reports, PAID_GROUP_POLICY_IDS, ACCOUNT_ID).outstandingReportIDs).toBe('r1,r2');
     });
 
     it('excludes reports on a policy not in the list', () => {
         const reports = reportsCollection([makeReport({reportID: 'r1', policyID: 'policy_1'}), makeReport({reportID: 'r2', policyID: 'policy_other'})]);
 
-        expect(getOutstandingReportsSignature(reports, PAID_GROUP_POLICY_IDS, ACCOUNT_ID)).toBe('r1');
+        expect(getYourSpendReportsSignature(reports, PAID_GROUP_POLICY_IDS, ACCOUNT_ID).outstandingReportIDs).toBe('r1');
     });
 
     it('excludes reports owned by a different account', () => {
         const reports = reportsCollection([makeReport({reportID: 'r1'}), makeReport({reportID: 'r2', ownerAccountID: 99999})]);
 
-        expect(getOutstandingReportsSignature(reports, PAID_GROUP_POLICY_IDS, ACCOUNT_ID)).toBe('r1');
+        expect(getYourSpendReportsSignature(reports, PAID_GROUP_POLICY_IDS, ACCOUNT_ID).outstandingReportIDs).toBe('r1');
     });
 
     it('excludes non-OUTSTANDING reports', () => {
@@ -153,12 +152,12 @@ describe('getOutstandingReportsSignature', () => {
             makeReport({reportID: 'r2', stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED}),
         ]);
 
-        expect(getOutstandingReportsSignature(reports, PAID_GROUP_POLICY_IDS, ACCOUNT_ID)).toBe('r1');
+        expect(getYourSpendReportsSignature(reports, PAID_GROUP_POLICY_IDS, ACCOUNT_ID).outstandingReportIDs).toBe('r1');
     });
 
     it('returns report IDs sorted ascending regardless of input order', () => {
         const reports = reportsCollection([makeReport({reportID: 'r3'}), makeReport({reportID: 'r1'}), makeReport({reportID: 'r2'})]);
 
-        expect(getOutstandingReportsSignature(reports, PAID_GROUP_POLICY_IDS, ACCOUNT_ID)).toBe('r1,r2,r3');
+        expect(getYourSpendReportsSignature(reports, PAID_GROUP_POLICY_IDS, ACCOUNT_ID).outstandingReportIDs).toBe('r1,r2,r3');
     });
 });

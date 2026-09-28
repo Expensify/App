@@ -1,4 +1,6 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -10,6 +12,7 @@ import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
@@ -32,8 +35,10 @@ import {convertToBackendAmount} from './CurrencyUtils';
 import {
     calculateDefaultReimbursable,
     getExistingTransactionID,
+    isLookingAroundSearchRoutingActive,
     isMovingTransactionFromTrackExpense,
     isParticipantP2P,
+    isSelfDMSoleDestination,
     navigateToConfirmationPage,
     navigateToParticipantPage,
     resolveOptimisticChatReportID,
@@ -43,12 +48,14 @@ import {submitWithDismissFirst} from './Navigation/helpers/submitWithDismissFirs
 import Navigation from './Navigation/Navigation';
 import {rand64} from './NumberUtils';
 import {getParticipantsOption, getReportOption} from './OptionsListUtils';
-import Permissions from './Permissions';
-import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isSelfDM, shouldEnableNegative} from './ReportUtils';
+import {getLoginByAccountID} from './PersonalDetailsUtils';
+import {isTaxTrackingEnabled} from './PolicyUtils';
+import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from './ReportUtils';
 import shouldUseDefaultExpensePolicy from './shouldUseDefaultExpensePolicy';
-import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt} from './TransactionUtils';
+import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt, isExpenseUnreported} from './TransactionUtils';
 
 type SubmitAmountArgs = {
+    dateFnsLocale: DateFnsLocale | undefined;
     report: OnyxEntry<OnyxTypes.Report>;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     splitDraftTransaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -76,8 +83,12 @@ type SubmitAmountArgs = {
     amount: string;
     paymentMethod?: PaymentMethodType;
     translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    /** Whether the app is offline. Offline suppresses the LOOKING_AROUND self-DM -> Search routing. */
+    isOffline?: boolean;
 
     // Submit-time Onyx data — supplied by the screen via AmountSubmitDataSync so this module owns no subscriptions.
+    rules: OnyxCollection<OnyxTypes.Rule>;
     allPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     allReports: OnyxCollection<OnyxTypes.Report>;
     allReportDrafts: OnyxCollection<OnyxTypes.Report>;
@@ -85,15 +96,13 @@ type SubmitAmountArgs = {
     transactionDrafts: OnyxCollection<OnyxTypes.Transaction>;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     storedTransaction: OnyxEntry<OnyxTypes.Transaction>;
-    parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
     userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
     duplicateTransactions: OnyxCollection<OnyxTypes.Transaction>;
     duplicateTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     isTrackIntentUser: boolean | undefined;
     reportAttributesDerivedValue: OnyxEntry<ReportAttributesDerivedValue>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-    betaConfiguration: OnyxEntry<OnyxTypes.BetaConfiguration>;
+    isASAPSubmitBetaEnabled: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     onboarding: OnyxEntry<OnyxTypes.Onboarding>;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
@@ -102,6 +111,11 @@ type SubmitAmountArgs = {
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     conciergeReportID: OnyxEntry<string>;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 /**
@@ -135,6 +149,23 @@ function getIsP2PForAmount({chatReportForP2P, currentUserAccountID}: GetIsP2PFor
     return isParticipantP2P(firstParticipant);
 }
 
+/**
+ * Determines whether a transaction's current tax code is still the auto-applied default for the given currency
+ * (i.e. the user has not manually picked a different rate).
+ */
+function isTaxCodeAutoDefaultForCurrency(
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    currency: string | undefined,
+    taxCode: string | undefined,
+): boolean {
+    if (taxCode === '') {
+        return false;
+    }
+    const defaultTaxCodeForCurrency = getDefaultTaxCode(policy, transaction, currency);
+    return !taxCode || taxCode === defaultTaxCodeForCurrency;
+}
+
 type SubmitAmountContext = {
     isEditing: boolean;
     isCreateAction: boolean;
@@ -150,6 +181,7 @@ type SubmitAmountContext = {
     existingTransactionID: string | undefined;
     isASAPSubmitBetaEnabled: boolean;
     newAmount: number;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 function navigateToConfirmationAfterAssigningParticipants(
@@ -191,7 +223,7 @@ function navigateToParticipantPageDeferred(iouType: IOUType, transactionID: stri
 }
 
 function buildSubmitAmountContext(args: SubmitAmountArgs): SubmitAmountContext {
-    const {action, iouType, transaction, splitDraftTransaction, report, policy, currentUserPersonalDetails, betas, betaConfiguration, amount} = args;
+    const {action, iouType, transaction, splitDraftTransaction, report, policy, currentUserPersonalDetails, isASAPSubmitBetaEnabled, amount} = args;
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreateAction = action === CONST.IOU.ACTION.CREATE;
     const isSubmitAction = action === CONST.IOU.ACTION.SUBMIT;
@@ -199,6 +231,7 @@ function buildSubmitAmountContext(args: SubmitAmountArgs): SubmitAmountContext {
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
     return {
+        isVendorMatchingBetaEnabled: args.isVendorMatchingBetaEnabled,
         isEditing,
         isCreateAction,
         isSubmitAction,
@@ -211,13 +244,26 @@ function buildSubmitAmountContext(args: SubmitAmountArgs): SubmitAmountContext {
         currentUserAccountID: currentUserPersonalDetails.accountID,
         currentUserEmail: currentUserPersonalDetails.login ?? '',
         existingTransactionID: getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction),
-        isASAPSubmitBetaEnabled: Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas, betaConfiguration),
+        isASAPSubmitBetaEnabled,
         newAmount: convertToBackendAmount(Number.parseFloat(amount)),
     };
 }
 
 function buildReportParticipants(args: SubmitAmountArgs) {
-    const {report, policy, currentUserPersonalDetails, reportAttributesDerivedValue, allReportDrafts, allReportNVPs, allPersonalDetails, conciergeReportID, translate} = args;
+    const {
+        report,
+        policy,
+        currentUserPersonalDetails,
+        reportAttributesDerivedValue,
+        allReportDrafts,
+        allReportNVPs,
+        allPersonalDetails,
+        conciergeReportID,
+        translate,
+        dateFnsLocale,
+        convertToDisplayString,
+        rules,
+    } = args;
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
     const reportAttributesReports = reportAttributesDerivedValue?.reports;
     const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
@@ -227,14 +273,29 @@ function buildReportParticipants(args: SubmitAmountArgs) {
         const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
         return participantAccountID
             ? getParticipantsOption(participant, allPersonalDetails, translate)
-            : getReportOption(participant, privateIsArchived, policy, allPersonalDetails, conciergeReportID, reportAttributesReports, reportDraft);
+            : getReportOption({
+                  participant,
+                  privateIsArchived,
+                  policy,
+                  personalDetails: allPersonalDetails,
+                  conciergeReportID,
+                  reportAttributesDerived: reportAttributesReports,
+                  reportDraft,
+                  currentUserAccountID: currentUserPersonalDetails.accountID,
+                  localize: {
+                      translate,
+                      dateFnsLocale,
+                      convertToDisplayString,
+                  },
+                  rules,
+              });
     });
 }
 
 type ParticipantOption = ReturnType<typeof buildReportParticipants>[number];
 
 function submitSkipConfirmationPayment(args: SubmitAmountArgs, ctx: SubmitAmountContext, participants: ParticipantOption[]): void {
-    const {report, selectedCurrency, paymentMethod, quickAction} = args;
+    const {report, selectedCurrency, paymentMethod, quickAction, delegateAccountID, getCurrencyDecimals} = args;
     const {currentUserAccountID, newAmount: backendAmount} = ctx;
     const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID([participants.at(0)?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID], report);
     const sendMoneyParams = {
@@ -247,19 +308,20 @@ function submitSkipConfirmationPayment(args: SubmitAmountArgs, ctx: SubmitAmount
         recipient: participants.at(0) ?? {},
         optimisticChatReportID,
         shouldStartTracking: false,
+        delegateAccountID,
+        getCurrencyDecimals,
     };
 
-    const executeSendMoneyWrite = (overrides?: {shouldDeferForSearch?: boolean}) => {
-        const mergedParams = {...sendMoneyParams, ...overrides};
+    const executeSendMoneyWrite = () => {
         if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-            sendMoneyWithWallet(mergedParams);
+            sendMoneyWithWallet(sendMoneyParams);
         } else {
-            sendMoneyElsewhere(mergedParams);
+            sendMoneyElsewhere(sendMoneyParams);
         }
     };
 
     submitWithDismissFirst({
-        executeWrite: () => executeSendMoneyWrite({shouldDeferForSearch: false}),
+        executeWrite: executeSendMoneyWrite,
         destinationReportID: chatReportID,
         telemetryContext: {
             scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
@@ -285,16 +347,20 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
         quickAction,
         onboarding,
         introSelected,
+        isOffline,
         recentWaypoints,
-        betas,
         transactionViolations,
         transactionDrafts,
         storedTransaction,
         policyRecentlyUsedCurrencies,
         allPersonalDetails,
+        conciergeChat,
         action,
         currentUserPersonalDetails,
         isTrackIntentUser,
+        formatPhoneNumber,
+        getCurrencyDecimals,
+        rules,
     } = args;
     const {currentUserAccountID, currentUserEmail, existingTransactionID, isASAPSubmitBetaEnabled, newAmount: backendAmount} = ctx;
 
@@ -305,6 +371,9 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
     const optimisticTransactionID = rand64();
     const {optimisticChatReportID} = resolveOptimisticChatReportID([participant?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID], report);
     const isTrackExpenseSubmit = iouType === CONST.IOU.TYPE.TRACK;
+    // Whether this expense's sole destination is the current user's self-DM. Scopes the LOOKING_AROUND
+    // "route to Spend > Expenses" behaviour to the self-DM case (matches the confirmation step).
+    const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserAccountID);
     const draftTransactionIDsList = Object.keys(transactionDrafts ?? {});
     const isSelfTourViewed = hasSeenTourSelector(onboarding) ?? false;
     const executeExpenseWrite = (overrides: WriteOverrides) => {
@@ -330,21 +399,23 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 currentUser: {accountID: currentUserAccountID, email: currentUserEmail},
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                 introSelected,
+                conciergeChat,
                 quickAction,
                 recentWaypoints,
-                betas,
                 draftTransactionIDs: draftTransactionIDsList,
                 isSelfTourViewed,
                 optimisticChatReportID,
                 optimisticTransactionID,
                 delegateAccountID,
                 reportActionsList: undefined,
+                getCurrencyDecimals,
+                rules,
             });
         } else {
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
             requestMoney({
+                isVendorMatchingBetaEnabled: ctx.isVendorMatchingBetaEnabled,
                 report,
-                betas,
                 participantParams: {
                     participant: participant ?? {},
                     payeeEmail: currentUserEmail,
@@ -371,11 +442,15 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 existingTransaction: storedTransaction,
                 draftTransactionIDs: draftTransactionIDsList,
                 isSelfTourViewed,
+                conciergeChat,
                 personalDetails: allPersonalDetails,
                 optimisticChatReportID,
                 optimisticTransactionID,
                 delegateAccountID,
                 isTrackIntentUser,
+                formatPhoneNumber,
+                getCurrencyDecimals,
+                rules,
             });
         }
         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
@@ -387,11 +462,16 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
             backToReport,
             optimisticChatReportID,
             linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction,
+            isLookingAroundUser: isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline),
+            isSelfDMDestination,
         });
     };
     submitWithDismissFirst({
         executeWrite: executeExpenseWrite,
         destinationReportID: isTrackExpenseSubmit ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID,
+        isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+        isLookingAroundUser: isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline),
+        isSelfDMDestination,
         telemetryContext: {
             scenario: isTrackExpenseSubmit ? CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.TRACK_EXPENSE : CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.REQUEST_MONEY_MANUAL,
             iouType,
@@ -403,7 +483,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
 }
 
 function submitCreateWithReport(args: SubmitAmountArgs, ctx: SubmitAmountContext): void {
-    const {report, policy, transaction, iouType, transactionID, reportID, backToReport, shouldSkipConfirmation, selectedCurrency} = args;
+    const {report, policy, transaction, iouType, transactionID, reportID, backToReport, shouldSkipConfirmation, selectedCurrency, getCurrencyDecimals} = args;
     const {currentUserAccountID, isSplitBill, newAmount: backendAmount} = ctx;
 
     const participants = buildReportParticipants(args);
@@ -425,7 +505,7 @@ function submitCreateWithReport(args: SubmitAmountArgs, ctx: SubmitAmountContext
     }
     if (isSplitBill && !report?.isOwnPolicyExpenseChat && report?.participants) {
         const participantAccountIDs = Object.keys(report.participants).map((accountID) => Number(accountID));
-        setSplitShares(transaction, backendAmount, selectedCurrency || CONST.CURRENCY.USD, participantAccountIDs, currentUserAccountID);
+        setSplitShares(transaction, backendAmount, selectedCurrency || CONST.CURRENCY.USD, participantAccountIDs, currentUserAccountID, getCurrencyDecimals);
     }
     navigateToConfirmationAfterAssigningParticipants(transactionID, report, currentUserAccountID, iouType, reportID, backToReport);
 }
@@ -490,8 +570,26 @@ function submitCreateAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): v
 
     setMoneyRequestAmount(transactionID, amountInSmallestCurrencyUnits, selectedCurrency || CONST.CURRENCY.USD, shouldKeepUserInput, hasReceipt(transaction));
 
-    if (isMovingTransactionFromTrackExpense(action)) {
-        const taxCode = selectedCurrency !== policy?.outputCurrency ? policy?.taxRates?.foreignTaxDefault : policy?.taxRates?.defaultExternalID;
+    // When the currency changes, re-apply the default tax rate for the new currency so the confirmation page and the
+    // created expense reflect the currency-appropriate default (e.g. the foreign default for a foreign currency).
+    // Only do this when the current tax code is still the auto-applied default for the previous currency, so a tax
+    // rate the user manually selected is preserved across the currency change.
+    const previousCurrency = getCurrency(transaction);
+    const isCurrentTaxAutoDefault = isTaxCodeAutoDefaultForCurrency(policy, transaction, previousCurrency, transaction?.taxCode);
+    const isPolicyExpenseChatParticipant = transaction?.participants?.some((participant) => participant.isPolicyExpenseChat) ?? false;
+
+    // Mirror the tax contexts the confirmation list uses (see MoneyRequestConfirmationList's shouldShowTax): a Track
+    // expense from a self-DM/default workspace isn't a policy expense chat, but the confirmation page still shows tax
+    // for the track flow, so the currency recompute must run for it too. Otherwise Back → change currency → Next would
+    // leave the stale previous-currency default tax on the draft.
+    const isTaxEnabled = isTaxTrackingEnabled(
+        isPolicyExpenseChat(report) || isPolicyExpenseChatParticipant || iouType === CONST.IOU.TYPE.TRACK || isExpenseUnreported(transaction),
+        policy,
+        false,
+    );
+
+    if (isMovingTransactionFromTrackExpense(action) || (isTaxEnabled && selectedCurrency !== previousCurrency && isCurrentTaxAutoDefault)) {
+        const taxCode = getDefaultTaxCode(policy, transaction, selectedCurrency);
         if (taxCode) {
             setMoneyRequestTaxRate(transactionID, taxCode);
             const taxPercentage = getTaxValue(policy, transaction, taxCode) ?? '';
@@ -529,16 +627,19 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         splitDraftTransaction,
         transaction,
         report,
-        parentReportNextStep,
         duplicateTransactions,
         duplicateTransactionViolations,
         policyCategories,
         delegateAccountID,
         policyRecentlyUsedCurrencies,
         allReports,
+        allPersonalDetails,
         navigateBack,
         isTrackIntentUser,
         reportPolicyTags,
+        getCurrencyDecimals,
+        getCurrencySymbol,
+        rules,
     } = args;
     const {currentTransaction, allowNegative, disableOppositeConversion, isSplitBill, currentUserAccountID, currentUserEmail, isASAPSubmitBetaEnabled, newAmount} = ctx;
 
@@ -549,31 +650,36 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         return;
     }
 
-    // If currency has changed, then we get the default tax rate based on currency, otherwise we use the current tax rate selected in transaction, if we have it.
+    // When the currency changes we re-apply the new currency's default tax rate, but only when the current tax rate is
+    // still the auto-applied default for the previous currency. A tax rate the user picked manually is preserved across
+    // the currency change (mirrors the create-flow guard in `submitCreateAmount`).
     const transactionTaxCode = getTransactionDetails(currentTransaction)?.taxCode;
     const defaultTaxCode = getDefaultTaxCode(policy, currentTransaction, selectedCurrency) ?? '';
-    const taxCode = (selectedCurrency !== transactionCurrency ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
+    const isCurrentTaxAutoDefault = isTaxCodeAutoDefaultForCurrency(policy, currentTransaction, transactionCurrency, transactionTaxCode);
+    const isTransactionTaxCodeValid = transactionTaxCode === '' || getTaxValue(policy, currentTransaction, transactionTaxCode ?? '') !== undefined;
+    const taxCode = ((selectedCurrency !== transactionCurrency && isCurrentTaxAutoDefault) || !isTransactionTaxCodeValid ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
     const taxPercentage = getTaxValue(policy, currentTransaction, taxCode) ?? '';
     const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));
 
     if (isSplitBill) {
-        setDraftSplitTransaction(transactionID, splitDraftTransaction, {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount});
+        setDraftSplitTransaction(transactionID, splitDraftTransaction, {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount}, getCurrencyDecimals, getCurrencySymbol);
         navigateBack();
         return;
     }
 
     // Reset split shares for non-split-bill edits (split-bill share recalculation is handled by the confirmation list).
     if (transaction?.splitShares) {
-        resetSplitShares(transaction, newAmount, selectedCurrency, currentUserAccountID, false);
+        resetSplitShares(transaction, newAmount, selectedCurrency, currentUserAccountID, getCurrencyDecimals, false);
     }
 
     const parentReport = report?.parentReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : undefined;
 
     updateMoneyRequestAmountAndCurrency({
+        isVendorMatchingBetaEnabled: ctx.isVendorMatchingBetaEnabled,
         transactionID,
         transactionThreadReport: report,
         parentReport,
-        parentReportNextStep,
+        iouReportOwnerLogin: getLoginByAccountID(parentReport?.ownerAccountID, allPersonalDetails),
         transactions: duplicateTransactions,
         transactionViolations: duplicateTransactionViolations,
         currency: selectedCurrency,
@@ -590,6 +696,9 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         delegateAccountID,
         reportPolicyTags,
         isTrackIntentUser,
+        getCurrencyDecimals,
+        getCurrencySymbol,
+        rules,
     });
     navigateBack();
 }
@@ -600,7 +709,7 @@ function submitAmount(args: SubmitAmountArgs): void {
     if (!ctx.isEditing) {
         // Edits to the amount from the splits page should reset the split shares.
         if (args.transaction?.splitShares) {
-            resetSplitShares(args.transaction, ctx.newAmount, args.selectedCurrency, ctx.currentUserAccountID, true);
+            resetSplitShares(args.transaction, ctx.newAmount, args.selectedCurrency, ctx.currentUserAccountID, args.getCurrencyDecimals, true);
         }
         submitCreateAmount(args, ctx);
         return;

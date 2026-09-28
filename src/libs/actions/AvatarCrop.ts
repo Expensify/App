@@ -1,4 +1,4 @@
-import {serializeAvatarCropImage} from '@libs/AvatarCropUtils';
+import {buildAvatarCropResult, serializeAvatarCropImage} from '@libs/AvatarCropUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 
 import type {TranslationPaths} from '@src/languages/types';
@@ -61,17 +61,7 @@ function clearAvatarCropDraft(): Promise<void> {
  * The image is serialized for persistence (base64 on web) before being written to Onyx.
  */
 function setAvatarCropResult({token, image}: SetAvatarCropResultParams): Promise<void> {
-    return serializeAvatarCropImage(image).then((uri) =>
-        Onyx.set(ONYXKEYS.AVATAR_CROP_RESULT, {
-            token,
-            uri: uri ?? '',
-            name: image.name ?? '',
-            type: image.type ?? '',
-            size: image.size,
-            ...('width' in image && {width: image.width}),
-            ...('height' in image && {height: image.height}),
-        }),
-    );
+    return buildAvatarCropResult(image, token).then((result) => Onyx.set(ONYXKEYS.AVATAR_CROP_RESULT, result));
 }
 
 /** Clears the crop result once the opener has consumed it */

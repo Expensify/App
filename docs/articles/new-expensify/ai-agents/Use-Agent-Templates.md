@@ -29,6 +29,8 @@ When you create an agent from a template, you can edit its instructions at any t
 
 ## What TipMaster does
 
+TipMaster flags restaurant receipts where the tip exceeds 20%. 
+
 When you add a restaurant receipt, TipMaster calculates the tip percentage using the pre-tax subtotal. If the tip is greater than 20%, it adds a comment showing the subtotal, tip amount, and calculated percentage. It ignores receipts that aren't from restaurants and tips that are 20% or less.
 
 TipMaster is useful for maintaining consistent meal spending, identifying accidental over-tipping, or highlighting expenses that may need additional review.
@@ -39,7 +41,7 @@ TipMaster is useful for maintaining consistent meal spending, identifying accide
 
 Translator Tess translates receipts that aren't written in English.
 
-When you add a non-English receipt, Translator Tess comments with an English translation of the receipt's key details, including the merchant, date, line items, subtotal, tax, and total. Receipts that are already in English are ignored.
+When you add a receipt in another language, Translator Tess comments with an English translation of the receipt's key details, including the merchant, date, line items, subtotal, tax, and total. Receipts that are already in English are ignored.
 
 Translator Tess is useful for international travel, reviewing foreign-language receipts, or keeping expense documentation consistent across global teams.
 

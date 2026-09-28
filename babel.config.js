@@ -27,6 +27,8 @@ function traceTransformer() {
     };
 }
 
+const isTestEnv = process.env.BABEL_ENV === 'test' || process.env.NODE_ENV === 'test';
+
 const metro = {
     presets: [require('@react-native/babel-preset')],
     plugins: [
@@ -93,7 +95,34 @@ const metro = {
         ],
         '@babel/plugin-transform-export-namespace-from',
         // The worklets babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/getting-started/
-        'react-native-worklets/plugin',
+        // Skipped under Jest (isTestEnv): reanimated and worklets are fully mocked in jest/setup.ts, so the
+        // plugin's worklet transform is wasted work - and its output is not cached, so a heavy nested
+        // Babel transform re-runs on every test run.
+        ...(isTestEnv
+            ? []
+            : [
+                  [
+                      'react-native-worklets/plugin',
+                      {
+                          bundleMode: true,
+                          // In Bundle Mode, an import that a worklet captures in its closure becomes a "remote function"
+                          // and throws when called synchronously on a Worklet Runtime. The `react-native-live-markdown`
+                          // ExpensiMark parser runs on the LiveMarkdownRuntime and directly imports `ExpensiMark`,
+                          // `unescapeText` (from `expensify-common/utils`) and `decode` (from `html-entities`) into its
+                          // worklets, so those imports must be forwarded to avoid the "Tried to synchronously call a
+                          // Remote Function" crash. Their transitive dependencies (expensify-common's `Str`, `punycode`,
+                          // `awesome-phonenumber`, html-entities' internals, ...) do NOT need forwarding: metro bundles
+                          // the whole `require()` graph onto the Worklet Runtime, so they resolve locally there.
+                          // `relativePaths` only needs to cover live-markdown's own `./rangeUtils` (expensify-common and
+                          // html-entities resolve to CommonJS, where `relativePaths` forwarding never fires).
+                          // See https://docs.swmansion.com/react-native-worklets/docs/bundleMode/importForwarding
+                          importForwarding: {
+                              moduleNames: ['expensify-common', 'expensify-common/utils', 'html-entities'],
+                              relativePaths: ['@expensify/react-native-live-markdown'],
+                          },
+                      },
+                  ],
+              ]),
     ],
     env: {
         production: {
@@ -131,8 +160,15 @@ if (process.env.CAPTURE_METRICS === 'true') {
     ]);
 }
 
+const repack = {
+    ...metro,
+    plugins: metro.plugins
+        .filter((plugin) => !(Array.isArray(plugin) && plugin[0] === 'module-resolver' && plugin[2] !== 'extra-alias'))
+        .map((plugin) => (Array.isArray(plugin) && plugin[0] === 'react-native-worklets/plugin' ? 'react-native-worklets/plugin' : plugin)),
+};
+
 module.exports = (api) => {
-    if (!process.env.KNIP) {
+    if (process.env.DEBUG_BABEL_CONFIG === 'true') {
         console.debug('babel.config.js');
         console.debug('  - api.version:', api.version);
         console.debug('  - api.env:', api.env());
@@ -141,11 +177,16 @@ module.exports = (api) => {
     }
 
     // For `react-native` (iOS/Android) caller will be "metro"
+    // For `@callstack/repack` (Re.Pack native bundler) caller will be "@callstack/repack"
     // For jest, it will be babel-jest
     // The web build and Storybook (Rsbuild) don't call into this file at all
     const runningIn = api.caller((args = {}) => args.name);
-    if (!process.env.KNIP) {
+    if (process.env.DEBUG_BABEL_CONFIG === 'true') {
         console.debug('  - running in: ', runningIn);
+    }
+
+    if (runningIn === '@callstack/repack') {
+        return repack;
     }
 
     return ['metro', 'babel-jest'].includes(runningIn) ? metro : {};

@@ -8,6 +8,8 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {ButtonVariant} from '@styles/utils/types';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -19,16 +21,11 @@ import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
 
 type FloatingPillButtonProps = {
-    /** Whether the button uses the success style */
-    success: boolean;
-
-    /** Whether the button uses the danger style */
-    danger?: boolean;
+    variant?: ButtonVariant;
 
     /** Callback when the button is pressed */
     onPress?: () => void;
 
-    /** The icon to display */
     icon: IconAsset;
 
     /** The fill color for the icon */
@@ -37,20 +34,20 @@ type FloatingPillButtonProps = {
     /** The label text to display */
     label: string;
 
-    /** Additional text styles */
     textStyle?: StyleProp<TextStyle>;
 };
 
-function FloatingPillButton({success, danger, onPress, icon, iconFill, label, textStyle}: FloatingPillButtonProps) {
+function FloatingPillButton({variant, onPress, icon, iconFill, label, textStyle}: FloatingPillButtonProps) {
     const styles = useThemeStyles();
 
     return (
         <Button
-            success={success}
-            danger={danger}
-            small
+            variant={variant}
+            size={CONST.BUTTON_SIZE.SMALL}
             onPress={onPress}
             sentryLabel={CONST.SENTRY_LABEL.REPORT.FLOATING_MESSAGE_COUNTER}
+            // Restores the 12px horizontal padding from the legacy implementation.
+            innerStyles={styles.ph3}
         >
             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                 <Icon
@@ -74,7 +71,6 @@ type FloatingMessageCounterProps = {
     /** Whether the New Messages indicator is active */
     isActive?: boolean;
 
-    /** Whether there are new messages */
     hasNewMessages: boolean;
 
     /** Callback to be called when user clicks the New Messages indicator */
@@ -90,7 +86,7 @@ type FloatingMessageCounterProps = {
     onActionBadgePress?: () => void;
 
     /** Whether to show "Mark as done" copy instead of "Submit" copy for track-intent users */
-    isMarkAsDone?: boolean;
+    shouldShowMarkAsDoneCopy?: boolean;
 };
 
 const MARKER_INACTIVE_TRANSLATE_Y = -40;
@@ -103,7 +99,7 @@ function FloatingMessageCounter({
     actionBadge,
     actionBadgeBrickRoadStatus,
     onActionBadgePress,
-    isMarkAsDone,
+    shouldShowMarkAsDoneCopy,
 }: FloatingMessageCounterProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
     const theme = useTheme();
@@ -139,7 +135,7 @@ function FloatingMessageCounter({
         transform: [{translateY: translateY.get()}],
     }));
 
-    const actionBadgeText = getActionBadgeText(actionBadge, translate, isMarkAsDone);
+    const actionBadgeText = getActionBadgeText(actionBadge, translate, shouldShowMarkAsDoneCopy);
 
     return (
         <Animated.View
@@ -150,8 +146,7 @@ function FloatingMessageCounter({
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                     {shouldShowActionBadgePill ? (
                         <FloatingPillButton
-                            success={!isError}
-                            danger={isError}
+                            variant={isError ? CONST.BUTTON_VARIANT.DANGER : CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={onActionBadgePress}
                             icon={icons.UpArrow}
                             iconFill={theme.textLight}
@@ -160,7 +155,7 @@ function FloatingMessageCounter({
                         />
                     ) : (
                         <FloatingPillButton
-                            success={hasNewMessages}
+                            variant={hasNewMessages ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                             onPress={onClick}
                             icon={icons.DownArrow}
                             iconFill={hasNewMessages ? theme.textLight : theme.icon}

@@ -6,6 +6,7 @@ import {getTaxRatesSection} from '@libs/TaxOptionsListUtils';
 import IntlStore from '@src/languages/IntlStore';
 import type {Policy, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
 
+import createMock from '../utils/createMock';
 import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -49,13 +50,13 @@ describe('TaxOptionsListUtils', () => {
                 },
             },
         };
-        const policy = {
+        const policy = createMock<Policy>({
             taxRates: taxRatesWithDefault,
-        } as Policy;
+        });
 
-        const transaction = {
+        const transaction = createMock<Transaction>({
             taxCode: 'CODE1',
-        } as Transaction;
+        });
 
         const resultList: Array<Section<TaxRatesOption>> = [
             {

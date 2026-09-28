@@ -1,6 +1,7 @@
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
+import NumericInput from '@components/NumericInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -10,11 +11,11 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setDraftValues} from '@libs/actions/FormActions';
+import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
 
 import variables from '@styles/variables';
 
@@ -29,6 +30,8 @@ import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceCreateTaxValuePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_CREATE_VALUE>;
+
+const shouldUseLegacyInput = canUseTouchScreenUtil();
 
 function WorkspaceCreateTaxValuePage({
     route: {
@@ -46,8 +49,7 @@ function WorkspaceCreateTaxValuePage({
     const save = () => {
         const normalizedValue = currentValue !== undefined ? String(Number(currentValue)) : currentValue;
         setDraftValues(ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM, {[INPUT_IDS.VALUE]: normalizedValue});
-        skipNextFocusRestore();
-        goBack();
+        Navigation.goBack(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID), {shouldSkipFocusRestore: true});
     };
 
     const inputRef = useRef<BaseTextInputRef | null>(null);
@@ -74,29 +76,51 @@ function WorkspaceCreateTaxValuePage({
                 addBottomSafeAreaPadding
             >
                 <View style={styles.flex1}>
-                    <NumberWithSymbolForm
-                        value={currentValue}
-                        onInputChange={setCurrentValue}
-                        ref={inputRef}
-                        decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
-                        maxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
-                        isSymbolPressable={false}
-                        symbol="%"
-                        symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX}
-                        autoGrowExtraSpace={variables.w80}
-                        autoGrowMarginSide="left"
-                        style={[styles.iouAmountTextInput, styles.textAlignRight]}
-                        containerStyle={styles.iouAmountTextInputContainer}
-                        touchableInputWrapperStyle={styles.heightUndefined}
-                    />
+                    {shouldUseLegacyInput ? (
+                        <NumberWithSymbolForm
+                            value={currentValue}
+                            onInputChange={setCurrentValue}
+                            ref={inputRef}
+                            decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
+                            maxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
+                            isSymbolPressable={false}
+                            symbol="%"
+                            symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX}
+                            autoGrowExtraSpace={variables.w80}
+                            autoGrowMarginSide="left"
+                            style={[styles.iouAmountTextInput, styles.textAlignRight]}
+                            containerStyle={styles.iouAmountTextInputContainer}
+                            touchableInputWrapperStyle={styles.heightUndefined}
+                        />
+                    ) : (
+                        <NumericInput
+                            value={currentValue}
+                            onInputChange={setCurrentValue}
+                            decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
+                            maxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
+                        >
+                            <NumericInput.Container>
+                                <NumericInput.TextInput
+                                    autoGrowExtraSpace={variables.w80}
+                                    autoGrowMarginSide="left"
+                                    style={[styles.iouAmountTextInput, styles.textAlignRight]}
+                                    containerStyle={styles.iouAmountTextInputContainer}
+                                    touchableInputWrapperStyle={styles.heightUndefined}
+                                    ref={inputRef}
+                                />
+                                <NumericInput.Symbol>%</NumericInput.Symbol>
+                            </NumericInput.Container>
+                        </NumericInput>
+                    )}
                     <Button
-                        success
-                        large
-                        pressOnEnter
-                        text={translate('common.save')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={save}
                         style={styles.mh5}
-                    />
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{translate('common.save')}</Button.Text>
+                    </Button>
                 </View>
             </ScrollView>
         </ScreenWrapper>

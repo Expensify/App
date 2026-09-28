@@ -4,6 +4,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 import {getSpan} from '@libs/telemetry/activeSpans';
 
@@ -12,7 +13,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
 /**
- * Tab Navigator containing Home, Inbox (Reports), Search, Settings, and Workspaces pages.
+ * Tab Navigator containing Home, Inbox (Reports), Search, Insights, Settings, and Workspaces pages.
  */
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 
@@ -29,6 +30,7 @@ const LazyHomePage = lazy(() => import('@pages/home/HomePage'));
 const LazyReportsSplitNavigator = lazy(() => import('./ReportsSplitNavigator'));
 const LazySettingsSplitNavigator = lazy(() => import('./SettingsSplitNavigator'));
 const LazyWorkspaceNavigator = lazy(() => import('./WorkspaceNavigator'));
+const LazyInsightsPage = lazy(() => import('@pages/Insights/InsightsPage'));
 
 type LazyFallbackProps = {
     /** Sentry span to tag when this fallback renders. */
@@ -48,10 +50,7 @@ function LazyFallback({tabSpanName}: LazyFallbackProps) {
 
     return (
         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.appBG]}>
-            <ActivityIndicator
-                size="large"
-                reasonAttributes={{context: 'TabNavigator.LazyTab'}}
-            />
+            <ActivityIndicator size="large" />
         </View>
     );
 }
@@ -71,6 +70,7 @@ const HomePageScreen = withSuspense(LazyHomePage);
 const ReportsSplitNavigatorScreen = withSuspense(LazyReportsSplitNavigator, CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
 const SettingsSplitNavigatorScreen = withSuspense(LazySettingsSplitNavigator);
 const WorkspaceNavigatorScreen = withSuspense(LazyWorkspaceNavigator);
+const InsightsPageScreen = withSuspense(LazyInsightsPage);
 
 const renderTabBar = ({state}: BottomTabBarProps) => <TabNavigatorBar state={state} />;
 
@@ -81,7 +81,7 @@ const Tab = createBottomTabNavigator<TabNavigatorParamList>();
  * Swiping from these screens would pop the entire TAB_NAVIGATOR, which feels wrong.
  * WORKSPACE.INITIAL is intentionally excluded — swiping back from it returns to the workspace list.
  */
-const TAB_ROOT_SCREENS_WITHOUT_GESTURE = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.SETTINGS.ROOT]);
+const TAB_ROOT_SCREENS_WITHOUT_GESTURE = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.INSIGHTS, SCREENS.SETTINGS.ROOT]);
 
 const TAB_SCREEN_OPTIONS_BASE = {
     headerShown: false,
@@ -115,6 +115,7 @@ function TabNavigator() {
             backBehavior="fullHistory"
             tabBar={renderTabBar}
             screenOptions={screenOptions}
+            screenLayout={bottomTabScreenLayoutWrapper}
         >
             <Tab.Screen
                 name={SCREENS.HOME}
@@ -127,6 +128,10 @@ function TabNavigator() {
             <Tab.Screen
                 name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
                 component={SearchFullscreenNavigator}
+            />
+            <Tab.Screen
+                name={SCREENS.INSIGHTS}
+                component={InsightsPageScreen}
             />
             <Tab.Screen
                 name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}

@@ -1,6 +1,8 @@
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
@@ -13,6 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, isControlPolicy, settingsPendingAction} from '@libs/PolicyUtils';
 
 import {canImportLocationsAsTags, shouldSwitchLocationsToReportFields} from '@pages/workspace/accounting/qbo/utils';
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -24,9 +27,11 @@ import ROUTES from '@src/ROUTES';
 import type {IntegrationEntityMap} from '@src/types/onyx/Policy';
 
 import React, {useCallback, useEffect} from 'react';
+import {View} from 'react-native';
 
 function QuickbooksLocationsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -60,6 +65,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
             displayName="QuickbooksLocationsPage"
             headerTitle="workspace.qbo.locations"
             title="workspace.qbo.locationsDescription"
+            titleAlreadyTranslated={translate('workspace.qbo.locationsDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -90,16 +96,22 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                 isToggleTriggered={shouldAnimateAccordionSection}
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS], qboConfig?.pendingFields)}>
-                    <MenuItemWithTopDescription
-                        interactive={canUseTagsForLocations}
-                        title={!isTagsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
-                        description={translate('workspace.common.displayedAs')}
-                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS.getRoute(policyID))}
-                        shouldShowRightIcon={canUseTagsForLocations}
-                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt4]}
-                        brickRoadIndicator={areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS], qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        hintText={translate('workspace.qbo.locationsLineItemsRestrictionDescription')}
-                    />
+                    <View style={styles.mt4}>
+                        <MenuItemSectionRoot
+                            onPress={canUseTagsForLocations ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS.getRoute(policyID)) : undefined}
+                        >
+                            <MenuItemField.Row
+                                name={translate('workspace.common.displayedAs')}
+                                value={!isTagsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
+                            >
+                                {areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS], qboConfig?.errorFields) && (
+                                    <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                )}
+                                {canUseTagsForLocations && <MenuItem.Chevron />}
+                            </MenuItemField.Row>
+                            <MenuItem.HelpText message={translate('workspace.qbo.locationsLineItemsRestrictionDescription', integrationName)} />
+                        </MenuItemSectionRoot>
+                    </View>
                 </OfflineWithFeedback>
             </Accordion>
         </ConnectionLayout>

@@ -10,7 +10,7 @@ import TextLink from '@components/TextLink';
 import useDelayedAutoFocus from '@hooks/useDelayedAutoFocus';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -23,14 +23,9 @@ import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
-type RegistrationNumberStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & {
-    /** The ID of the form */
+type RegistrationNumberStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps & {
     formID: TFormID;
-
-    /** A function to call when the form is submitted */
     onSubmit: (values: FormOnyxValues<TFormID>) => void;
-
-    /** The ID of the form input */
     inputID: FormOnyxKeys<TFormID>;
 
     /** The default values for the input */

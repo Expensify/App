@@ -11,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setWorkspaceConfirmationCurrency} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
-import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,10 +39,9 @@ function DynamicWorkspaceCurrencySelectionPage() {
             // After selecting, don't restore focus to the currency menu item on the confirmation page —
             // a focused button suppresses the form's submit-on-Enter, so the next Enter would re-open this
             // page instead of creating the workspace. The header Back button keeps the default focus restore.
-            skipNextFocusRestore();
-            goBack();
+            Navigation.goBack(backPath, {shouldSkipFocusRestore: true});
         },
-        [goBack],
+        [backPath],
     );
 
     return (

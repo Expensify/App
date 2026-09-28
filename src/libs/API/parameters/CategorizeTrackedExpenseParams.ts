@@ -31,6 +31,9 @@ type CategorizeTrackedExpenseParams = {
     engagementChoice?: string;
     description?: string;
     attendees?: string;
+
+    /** Distance in meters of the alternate map route the user picked, so the backend doesn't fall back to the primary route */
+    selectedRouteDistance?: number;
 };
 
 export default CategorizeTrackedExpenseParams;

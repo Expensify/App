@@ -1,5 +1,6 @@
+import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {isIOUReport} from '@libs/ReportUtils';
+import {isInvoiceReport, isIOUReport} from '@libs/ReportUtils';
 import {getTagArrayFromName, isDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -43,7 +44,7 @@ function getCommonDependentTag(transactions: Array<OnyxEntry<Transaction> | unde
 }
 
 /**
- * Returns the transaction, report, reportAction, and policy for a given transaction ID.
+ * Returns the transaction, report, reportAction, the report's actions, and policy for a given transaction ID.
  * Returns null if the transaction is not found.
  */
 function getTransactionEditContext(
@@ -61,7 +62,7 @@ function getTransactionEditContext(
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? {};
     const reportAction = getIOUActionForTransactionID(Object.values(reportActions), transactionID);
     const transactionPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-    return {transaction, report, reportAction, transactionPolicy};
+    return {transaction, report, reportAction, reportActions, transactionPolicy};
 }
 
 /**
@@ -102,6 +103,27 @@ function isBulkEditTaxTrackingEnabled(
             return !!bulkEditPolicy?.tax?.trackingEnabled;
         }
         return !!transactionPolicy?.tax?.trackingEnabled;
+    });
+}
+
+/**
+ * Reported expenses check their own workspace policy; unreported expenses fall back to
+ * the bulk-edit workspace policy because they have no report to resolve a per-transaction policy from.
+ */
+function isBulkEditAttendeeTrackingEnabled(
+    selectedTransactionContexts: Array<{transaction: Transaction; report: OnyxEntry<Report>; transactionPolicy: OnyxEntry<Policy>}>,
+    bulkEditPolicy: OnyxEntry<Policy>,
+): boolean {
+    return selectedTransactionContexts.every(({transaction, report, transactionPolicy}) => {
+        if (isInvoiceReport(report)) {
+            return false;
+        }
+
+        if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            return isAttendeeTrackingEnabled(bulkEditPolicy) && bulkEditPolicy?.type === CONST.POLICY.TYPE.CORPORATE;
+        }
+
+        return isAttendeeTrackingEnabled(transactionPolicy) && transactionPolicy?.type === CONST.POLICY.TYPE.CORPORATE;
     });
 }
 
@@ -164,6 +186,7 @@ export {
     hasCustomUnitMerchantInSelection,
     areAllTransactionsExpenseCompatible,
     isBulkEditTaxTrackingEnabled,
+    isBulkEditAttendeeTrackingEnabled,
     withSnapshotTransactions,
     withSnapshotReportActions,
     withSnapshotReports,

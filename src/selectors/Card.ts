@@ -1,5 +1,5 @@
 import {getExpensifyCardFeedsForDisplay} from '@libs/CardFeedUtils';
-import {hasAssignedCardMatching, isActiveCard, isCard, isCardHiddenFromSearch, isCSVFeedOrExpensifyCard, isExpensifyCard, isPersonalCard} from '@libs/CardUtils';
+import {hasActiveExpensifyCard, hasAssignedCardMatching, isActiveCard, isCard, isCardHiddenFromSearch, isCSVFeedOrExpensifyCard, isExpensifyCard, isPersonalCard} from '@libs/CardUtils';
 import {filterObject} from '@libs/ObjectUtils';
 
 import CONST from '@src/CONST';
@@ -68,16 +68,23 @@ const filterOutPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
 const getBankLinkedPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
     return filterObject(
         cards ?? {},
-        (key, card) => card?.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH && card?.bank !== CONST.PERSONAL_CARDS.BANK_NAME.CSV && (!card?.fundID || card?.fundID === '0'),
+        (key, card) => !!card && card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH && card.bank !== CONST.PERSONAL_CARDS.BANK_NAME.CSV && (!card.fundID || card.fundID === '0'),
     );
 };
+
+/**
+ * Selects all regular (non-travel) Expensify Card feeds for display. Callers scope to a specific workspace by
+ * matching a feed's `fundID` against that workspace's candidate fund IDs — its primary feed (`linkedPolicyIDs`), a
+ * `preferredPolicy`-linked feed, or the policy's `policyAccountID` — via `getActiveExpensifyCardFeedID`.
+ */
+const expensifyCardFeedsForDisplaySelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>) =>
+    Object.values(getExpensifyCardFeedsForDisplay(allCards ?? undefined, undefined)).filter((feed) => feed.country !== CONST.TRAVEL.PROGRAM_TRAVEL_US);
 
 /**
  * Selects the Expensify Card feed from the card list and returns the first regular (non-travel) one.
  */
 const defaultExpensifyCardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>) => {
-    const cards = Object.values(getExpensifyCardFeedsForDisplay(allCards ?? undefined, undefined));
-    return cards.find((feed) => feed.country !== CONST.TRAVEL.PROGRAM_TRAVEL_US);
+    return expensifyCardFeedsForDisplaySelector(allCards).at(0);
 };
 
 /**
@@ -112,10 +119,14 @@ const companyCardCustomNamesSelector = (cardFeeds: OnyxEntry<CardFeeds>) => card
 const hasIssuedExpensifyCardSelector = (cardsList: OnyxEntry<WorkspaceCardsList>): boolean =>
     hasAssignedCardMatching(cardsList, (card) => card.bank === CONST.EXPENSIFY_CARD.BANK && isActiveCard(card));
 
+/** Reduces the card list to a boolean so consumers don't re-render on unrelated card changes. */
+const hasActiveExpensifyCardSelector = (cardList: OnyxEntry<CardList>): boolean => hasActiveExpensifyCard(cardList ?? undefined);
+
 export {
     filterCardsHiddenFromSearch,
     filterOutPersonalCards,
     defaultExpensifyCardSelector,
+    expensifyCardFeedsForDisplaySelector,
     cardByIdSelector,
     areAllExpensifyCardsShipped,
     buildFeedKeysWithAssignedCards,
@@ -123,4 +134,5 @@ export {
     isExpensifyCardContinuousReconciliationEnabledSelector,
     companyCardCustomNamesSelector,
     hasIssuedExpensifyCardSelector,
+    hasActiveExpensifyCardSelector,
 };

@@ -30,9 +30,12 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 
+// Sage Intacct's default-vendor fields hold a raw vendor ID; sending this empty string clears the default.
+const CLEAR_DEFAULT_VENDOR = '';
+
 function DynamicSageIntacctDefaultVendorPage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
 
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_DEFAULT_VENDOR>>();
     const policyID = route.params.policyID;
@@ -64,12 +67,31 @@ function DynamicSageIntacctDefaultVendorPage() {
         settingName = CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR;
     }
 
-    const vendorSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctVendors(policy, defaultVendor), [defaultVendor, policy]);
+    // Only the non-reimbursable credit-card-charge path treats a blank vendor as a valid state (falls back to "Credit Card Misc"), so we only offer a "None" row on that setting.
+    const canClear = settingName === CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR;
+
+    const vendorOptions = useMemo<SelectorType[]>(() => getSageIntacctVendors(policy, defaultVendor, localeCompare), [defaultVendor, localeCompare, policy]);
+    const clearOption: SelectorType = useMemo(
+        () => ({
+            value: CLEAR_DEFAULT_VENDOR,
+            text: translate('common.none'),
+            keyForList: CLEAR_DEFAULT_VENDOR,
+            isSelected: !defaultVendor,
+        }),
+        [translate, defaultVendor],
+    );
+    const shouldShowClearOption = canClear && (!!defaultVendor || vendorOptions.length > 0);
+    const vendorSelectorOptions = useMemo<SelectorType[]>(
+        () => (shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions),
+        [shouldShowClearOption, clearOption, vendorOptions],
+    );
 
     const listHeaderComponent = useMemo(
         () => (
             <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.sageIntacct.defaultVendorDescription', isReimbursable)}</Text>
+                <Text style={[styles.pb5, styles.textNormal]}>
+                    {isReimbursable ? translate('workspace.sageIntacct.defaultVendorDescription', true) : translate('workspace.accounting.defaultVendorSelectHeader')}
+                </Text>
             </View>
         ),
         [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, isReimbursable],
@@ -77,9 +99,11 @@ function DynamicSageIntacctDefaultVendorPage() {
 
     const updateDefaultVendor = useCallback(
         ({value}: SelectorType) => {
-            if (value !== defaultVendor) {
-                updateSageIntacctDefaultVendor(policyID, settingName, value, defaultVendor);
+            const isAlreadySelected = value === defaultVendor || (!value && !defaultVendor);
+            if (isAlreadySelected) {
+                return;
             }
+            updateSageIntacctDefaultVendor(policyID, settingName, value, defaultVendor);
             goBack();
         },
         [defaultVendor, policyID, settingName, goBack],

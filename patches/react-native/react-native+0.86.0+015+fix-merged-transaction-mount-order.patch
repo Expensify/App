@@ -1,0 +1,66 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp
+index b82bdab..2a63b6b 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp
++++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp
+@@ -580,8 +580,13 @@
+   auto surfaceId = transaction.getSurfaceId();
+   auto& mutations = transaction.getMutations();
+ 
++  // Writing deletes last is only sound within a single differ-produced
++  // transaction ("FIXME: this optimization is incorrect when multiple
++  // transactions are merged together" below). Keep mutation order whenever this
++  // transaction is a merge of several commits.
+   bool maintainMutationOrder =
+-      ReactNativeFeatureFlags::disableMountItemReorderingAndroid();
++      ReactNativeFeatureFlags::disableMountItemReorderingAndroid() ||
++      transaction.wasMerged();
+ 
+   auto revisionNumber = telemetry.getRevisionNumber();
+ 
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.cpp b/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.cpp
+index d7dd1bc..e24c746 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.cpp
+@@ -44,6 +44,7 @@
+ void MountingTransaction::mergeWith(MountingTransaction&& transaction) {
+   react_native_assert(transaction.getSurfaceId() == surfaceId_);
+   number_ = transaction.getNumber();
++  merged_ = true;
+   mutations_.insert(
+       mutations_.end(),
+       std::make_move_iterator(transaction.mutations_.begin()),
+@@ -54,4 +55,8 @@
+   telemetry_ = std::move(transaction.telemetry_);
+ }
+ 
++bool MountingTransaction::wasMerged() const {
++  return merged_;
++}
++
+ } // namespace facebook::react
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.h b/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.h
+index 7841b5a..9df6c55 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.h
+@@ -83,11 +83,21 @@
+    */
+   void mergeWith(MountingTransaction &&transaction);
+ 
++  /*
++   * Returns true when `mergeWith` has concatenated another transaction into
++   * this one. Android's mount-item reordering - writing deletes last, and
++   * bucketing updates ahead of them - is only sound within a single
++   * differ-produced transaction, so such a transaction must be mounted in
++   * mutation order instead.
++   */
++  bool wasMerged() const;
++
+  private:
+   SurfaceId surfaceId_;
+   Number number_;
+   ShadowViewMutationList mutations_;
+   mutable TransactionTelemetry telemetry_;
++  bool merged_{false};
+ };
+ 
+ } // namespace facebook::react

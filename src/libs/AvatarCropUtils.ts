@@ -29,6 +29,21 @@ function serializeAvatarCropImage(image: FileObject | File | CustomRNImageManipu
 }
 
 /**
+ * Serializes an image into the persisted {@link AvatarCropResult} shape (base64 on web, URI on native).
+ */
+function buildAvatarCropResult(image: File | CustomRNImageManipulatorResult, token = ''): Promise<AvatarCropResult> {
+    return serializeAvatarCropImage(image).then((uri) => ({
+        token,
+        uri: uri ?? '',
+        name: image.name ?? '',
+        type: image.type ?? '',
+        size: image.size,
+        ...('width' in image && {width: image.width}),
+        ...('height' in image && {height: image.height}),
+    }));
+}
+
+/**
  * Reconstructs the cropped image from the Onyx result. On web a base64 data URL is turned back into
  * a real File (with a freshly minted blob URI); on native the stored object is returned as-is.
  */
@@ -51,4 +66,4 @@ function buildFileFromAvatarCropResult(result: AvatarCropResult): File | CustomR
     };
 }
 
-export {serializeAvatarCropImage, buildFileFromAvatarCropResult};
+export {serializeAvatarCropImage, buildAvatarCropResult, buildFileFromAvatarCropResult};

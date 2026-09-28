@@ -3,7 +3,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FormHelpMessage from '@components/FormHelpMessage';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import PushRowWithModal from '@components/PushRowWithModal';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -19,7 +19,7 @@ import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import Navigation from '@navigation/Navigation';
 
-import getAvailableEuCountries from '@pages/ReimbursementAccount/utils/getAvailableEuCountries';
+import getAvailableCardCountryOptions from '@pages/ReimbursementAccount/utils/getAvailableCardCountryOptions';
 
 import {clearErrors, setDraftValues} from '@userActions/FormActions';
 import {setIsComingFromGlobalReimbursementsFlow} from '@userActions/Policy/Policy';
@@ -35,30 +35,25 @@ import {View} from 'react-native';
 const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 
 type CountryFullStepProps = {
-    /** Handles back button press */
     onBackButtonPress: () => void;
-
-    /** Array of step names */
     stepNames: readonly string[];
 
     /** Handles submit button press */
     onSubmit: () => void;
 
-    /** ID of current policy */
     policyID: string | undefined;
-
-    /** Whether the user is coming from the expensify card */
     isComingFromExpensifyCard?: boolean;
 };
 
 function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isComingFromExpensifyCard}: CountryFullStepProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
 
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [supportedCountriesByCurrency] = useOnyx(ONYXKEYS.CARD_SUPPORTED_COUNTRIES);
     const [showNoPolicyError, setShowNoPolicyError] = useState(false);
 
     const currency =
@@ -67,12 +62,13 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
         reimbursementAccount?.achData?.currency ??
         CONST.BBA_COUNTRY_CURRENCY_MAP[reimbursementAccount?.achData?.country ?? ''];
 
-    const shouldAllowChange = currency === CONST.CURRENCY.EUR && !reimbursementAccount?.achData?.accountNumber;
+    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID) && isComingFromExpensifyCard;
+    // GBP maps 1:1 to GB outside the Expensify Card flow, so only unlock the country picker for GBP during card onboarding, where GI is also valid
+    const shouldAllowChange = (currency === CONST.CURRENCY.EUR || (currency === CONST.CURRENCY.GBP && isUkEuCurrencySupported)) && !reimbursementAccount?.achData?.accountNumber;
     const defaultCountries = shouldAllowChange ? CONST.ALL_EUROPEAN_UNION_COUNTRIES : CONST.ALL_COUNTRIES;
     const countryDefaultValue = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
     const currencyMappedToCountry = mapCurrencyToCountry(currency) || countryDefaultValue;
-    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID) && isComingFromExpensifyCard;
-    const countriesSupportedForExpensifyCard = getAvailableEuCountries();
+    const countriesSupportedForExpensifyCard = getAvailableCardCountryOptions(supportedCountriesByCurrency, currency, localeCompare);
 
     const [userSelectedCountry, setUserSelectedCountry] = useState<string>('');
     const selectedCountry = shouldAllowChange ? userSelectedCountry || countryDefaultValue : currencyMappedToCountry;
@@ -137,10 +133,9 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
                 submitFlexEnabled={!showNoPolicyError}
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('countryStep.confirmBusinessBank')}</Text>
-                <MenuItemWithTopDescription
-                    description={translate('common.currency')}
-                    title={currency}
-                    interactive={false}
+                <MenuItemField
+                    name={translate('common.currency')}
+                    value={currency}
                 />
                 {!!policyID && (
                     <View style={styles.ph5}>

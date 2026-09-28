@@ -1,5 +1,5 @@
 import Badge from '@components/Badge';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
@@ -29,7 +29,15 @@ function GettingStartedRow({item}: GettingStartedRowProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
 
     const navigateToItem = () => {
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(item.route));
+        if (item.onPress) {
+            item.onPress();
+            return;
+        }
+        const {route} = item;
+        if (!route) {
+            return;
+        }
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(route));
     };
 
     return (

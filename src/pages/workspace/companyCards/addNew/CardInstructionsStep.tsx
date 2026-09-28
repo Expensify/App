@@ -1,4 +1,5 @@
 import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -6,7 +7,6 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
@@ -20,7 +20,7 @@ import Navigation from '@navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeedProvider, CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
+import type {CardFeedProvider} from '@src/types/onyx/CardFeeds';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -43,7 +43,6 @@ function getCardInstructionHeader(feedProvider: CardFeedProvider) {
 function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
 
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
 
@@ -59,7 +58,7 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
 
     const submit = () => {
         if (isStripeFeedProvider && policyID) {
-            updateSelectedFeed(getCardFeedWithDomainID(feedProvider, workspaceAccountID) as CompanyCardFeedWithDomainID, policyID);
+            updateSelectedFeed(getCardFeedWithDomainID(feedProvider, workspaceAccountID), policyID);
             Navigation.goBack();
             return;
         }
@@ -105,14 +104,14 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
                     <RenderHTML html={Parser.replace(feedProvider ? translate(`workspace.companyCards.addNewCard.enableFeed.${feedProvider}`) : '')} />
                 </View>
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
-                    <Button
-                        isDisabled={isOffline}
-                        success
-                        large
+                    <ButtonDisabledWhenOffline
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         style={[styles.w100]}
                         onPress={submit}
-                        text={buttonTranslation}
-                    />
+                    >
+                        <Button.Text>{buttonTranslation}</Button.Text>
+                    </ButtonDisabledWhenOffline>
                 </View>
             </ScrollView>
         </ScreenWrapper>

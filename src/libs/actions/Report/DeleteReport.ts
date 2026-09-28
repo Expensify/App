@@ -1,5 +1,6 @@
 import Log from '@libs/Log';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage} from '@libs/ReportActionMessageUtils';
+import {isMoneyRequestAction} from '@libs/ReportActionTypeGuards';
 
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,14 +16,12 @@ import Onyx from 'react-native-onyx';
 let allReports: OnyxCollection<Report>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => (allReports = value),
 });
 
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
     callback: (value) => (allReportActions = value),
 });
 

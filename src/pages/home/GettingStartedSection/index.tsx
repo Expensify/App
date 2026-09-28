@@ -57,7 +57,7 @@ function GettingStartedSection() {
 
     return (
         <WidgetContainer title={translate('homePage.gettingStartedSection.title')}>
-            <View style={[styles.getForYouSectionContainerStyle(shouldUseNarrowLayout), styles.mb2]}>
+            <View style={[styles.getWidgetRowGroupStyle(shouldUseNarrowLayout), styles.mb2]}>
                 {items.map((item) => (
                     <GettingStartedRow
                         key={item.key}
@@ -74,7 +74,7 @@ function GettingStartedSection() {
                 >
                     <Text style={[styles.textLabelSupporting, styles.gettingStartedFooterLink]}>
                         {`${translate('homePage.gettingStartedSection.needHelp')} `}
-                        <Text style={styles.link}>{helpLinkText}</Text>
+                        <Text style={[styles.textLabelSupporting, styles.link]}>{helpLinkText}</Text>
                         {` ${translate('homePage.gettingStartedSection.forGuidedSetup')}`}
                     </Text>
                 </PressableWithoutFeedback>

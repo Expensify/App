@@ -3,14 +3,16 @@ import {merchantStateSelector} from '@components/MoneyRequestConfirmationList/se
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 
+import createMock from '../../../utils/createMock';
+
 function createTransaction(overrides: Partial<Transaction> = {}): Transaction {
-    return {
+    return createMock<Transaction>({
         transactionID: 'txn1',
         amount: 100,
         currency: 'USD',
         merchant: 'Coffee Shop',
         ...overrides,
-    } as Transaction;
+    });
 }
 
 describe('MoneyRequestConfirmationList selectors', () => {
@@ -27,7 +29,16 @@ describe('MoneyRequestConfirmationList selectors', () => {
                 isMerchantSet: true,
                 isMissing: false,
                 hasReceipt: false,
+                iouRequestType: undefined,
+                isAmountSet: false,
+                isCreatedSet: false,
             });
+        });
+
+        it('carries the sibling scan fields, which the merchant field needs for the all-or-nothing rule', () => {
+            const transaction = createTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN, isAmountSet: true, isCreatedSet: true});
+
+            expect(merchantStateSelector(transaction)).toEqual(expect.objectContaining({iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN, isAmountSet: true, isCreatedSet: true}));
         });
 
         it('prefers modifiedMerchant over merchant', () => {

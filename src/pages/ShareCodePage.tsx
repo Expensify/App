@@ -3,6 +3,7 @@ import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
 import type {QRShareWithDownloadHandle} from '@components/QRShare/QRShareWithDownload/types';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -13,7 +14,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReportAttributes, {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
+import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,6 +24,7 @@ import Clipboard from '@libs/Clipboard';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
+import {getReportNameFromNames} from '@libs/ReportAttributesUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     getChatRoomSubtitle,
@@ -52,7 +54,6 @@ import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
 type ShareCodePageOnyxProps = {
-    /** The report currently being looked at */
     report?: OnyxEntry<Report>;
 
     /** The policy for the report currently being looked at */
@@ -78,6 +79,25 @@ function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Polic
     return policy.avatarURL as ImageSourcePropType;
 }
 
+/**
+ * The QR library spreads its `fill` prop onto the SVG logo even when it's undefined, which strips root
+ * attributes like fill="none" that some avatars need (their stroke-only paths would fill black otherwise),
+ * so only forward `fill` when it's actually set.
+ */
+function createAvatarQRLogo(LocalAvatarLogo: React.FC<SvgProps>): React.FC<SvgProps> {
+    function AvatarQRLogo({fill, ...rest}: SvgProps) {
+        return fill == null ? (
+            <LocalAvatarLogo {...rest} />
+        ) : (
+            <LocalAvatarLogo
+                fill={fill}
+                {...rest}
+            />
+        );
+    }
+    return AvatarQRLogo;
+}
+
 function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Cash', 'Checkmark', 'Copy', 'Download', 'FallbackAvatar']);
     const themeStyles = useThemeStyles();
@@ -88,8 +108,12 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const reportAttributes = useReportAttributes();
-    const derivedParentReportName = useDerivedReportNameByReportID(report?.parentReportID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const reportForTitle = useMemo(() => getReportForHeader(report, parentReport), [report, parentReport]);
+    const derivedReportNames = useDerivedReportNamesByReportIDs([report?.parentReportID, reportForTitle?.reportID]);
+    const derivedParentReportName = getReportNameFromNames(derivedReportNames, report?.parentReportID);
+    const derivedTitleReportName = getReportNameFromNames(derivedReportNames, reportForTitle?.reportID);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isReport = !!report?.reportID;
@@ -100,24 +124,35 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                 return getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
             }
             if (isMoneyRequestReport(report)) {
-                // generate subtitle from participants
+                // generate subtitle from participants; resolve the translation once, not per participant
+                const hiddenText = translate('common.hidden');
                 return getParticipantsAccountIDsForDisplay(report, true)
-                    .map((accountID) => getDisplayNameForParticipant({accountID, formatPhoneNumber, translate}))
+                    .map((accountID) => getDisplayNameForParticipant({accountID, formatPhoneNumber, hiddenTranslation: hiddenText}))
                     .join(' & ');
             }
 
             return (
                 getParentNavigationSubtitle(report, policy, conciergeReportID, translate, derivedParentReportName, isParentReportArchived).workspaceName ??
-                getChatRoomSubtitle(report, policy, conciergeReportID, translate, false, isReportArchived)
+                getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived)
             );
         }
 
         return currentUserPersonalDetails.login;
-    }, [report, policy, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived, formatPhoneNumber, conciergeReportID, translate, derivedParentReportName]);
+    }, [
+        report,
+        policy,
+        currentUserPersonalDetails.login,
+        isReport,
+        isReportArchived,
+        isParentReportArchived,
+        formatPhoneNumber,
+        conciergeReportID,
+        translate,
+        derivedParentReportName,
+        rules,
+    ]);
 
-    const reportForTitle = useMemo(() => getReportForHeader(report), [report]);
-
-    const title = isReport ? getReportName(reportForTitle, reportAttributes) : (currentUserPersonalDetails.displayName ?? '');
+    const title = isReport ? getReportName(reportForTitle, derivedTitleReportName) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
     const url = isReport
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`
@@ -125,17 +160,17 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
 
     // Catalog-backed avatars (agent/default user avatars) have a bundled local SVG. Render the profile QR logo from
     // that SVG rather than the CDN URL so it still shows offline; only user-uploaded avatars fall back to the URL.
-    const localAvatarLogo = isReport ? undefined : findLocalAvatarForURL(currentUserPersonalDetails?.avatar);
+    const LocalAvatarLogo = isReport ? undefined : findLocalAvatarForURL(currentUserPersonalDetails?.avatar);
 
     let logo: ImageSourcePropType | undefined;
     if (isReport) {
         logo = getLogoForWorkspace(report, policy);
-    } else if (!localAvatarLogo) {
+    } else if (!LocalAvatarLogo) {
         logo = getAvatarURL({avatarSource: currentUserPersonalDetails?.avatar, accountID: currentUserPersonalDetails?.accountID}) as ImageSourcePropType;
     }
 
     // Default logos (avatars) are SVG and they require some special logic to display correctly
-    let svgLogo: React.FC<SvgProps> | undefined = localAvatarLogo;
+    let svgLogo: React.FC<SvgProps> | undefined = LocalAvatarLogo ? createAvatarQRLogo(LocalAvatarLogo) : undefined;
     let logoBackgroundColor: string | undefined;
     let svgLogoFillColor: string | undefined;
 
@@ -191,21 +226,24 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                     We shouldn't introduce platform specific code in our codebase.
                     This is a temporary solution while Web is not supported for the QR code download feature */}
                     {shouldAllowDownloadQRCode && (
-                        <MenuItem
-                            isAnonymousAction
-                            title={translate('common.download')}
-                            icon={icons.Download}
-                            onPress={() => qrCodeRef.current?.download?.()}
-                        />
+                        <MenuItem.Root onPress={() => qrCodeRef.current?.download?.()}>
+                            <MenuItem.Row>
+                                <MenuItem.Leading>
+                                    <MenuItem.Icon src={icons.Download} />
+                                </MenuItem.Leading>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>{translate('common.download')}</MenuItem.Title>
+                                </MenuItem.Content>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
                     )}
 
-                    <MenuItem
+                    <MenuItemNavigation
                         title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText`)}
                         icon={icons.Cash}
                         onPress={() => {
                             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REFERRAL_DETAILS.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE)));
                         }}
-                        shouldShowRightIcon
                     />
                 </View>
             </ScrollView>

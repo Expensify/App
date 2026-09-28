@@ -13,8 +13,8 @@ const intlPolyfill: IntlPolyfill = () => {
     require('@formatjs/intl-locale/polyfill-force');
 
     require('@formatjs/intl-pluralrules/polyfill-force');
+    // Load en Locale data for safety fallback
     require('@formatjs/intl-pluralrules/locale-data/en');
-    require('@formatjs/intl-pluralrules/locale-data/es');
 
     polyfillListFormat();
 };

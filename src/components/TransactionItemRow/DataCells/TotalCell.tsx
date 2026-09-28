@@ -9,16 +9,14 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {convertToBackendAmount, convertToFrontendAmountAsString, getCurrencyDecimals, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToFrontendAmountAsString, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {formatToParts} from '@libs/NumberFormatUtils';
 import {parseFloatAnyLocale, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {isGroupPolicy} from '@libs/PolicyUtils';
-import {isExpenseReport, isInvoiceReport, shouldEnableNegative} from '@libs/ReportUtils';
-import {getAmount as getTransactionAmount, getCurrency as getTransactionCurrency, isDeletedTransaction, isExpenseUnreported, isScanning} from '@libs/TransactionUtils';
+import {getTransactionDisplayAmount, isInvoiceReport, shouldEnableNegative} from '@libs/ReportUtils';
+import {getCurrency as getTransactionCurrency, isExpenseUnreported, isScanning} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type {Policy, Report} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React, {useRef, useState} from 'react';
 
@@ -46,14 +44,12 @@ function getTransactionItemIouType(transactionItem: TransactionItem) {
 function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report, policy}: TotalCellProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const currency = getTransactionCurrency(transactionItem);
 
     const effectiveReport = report ?? transactionItem.report;
     const effectivePolicy = policy ?? transactionItem.policy;
-    const isDeleted = isDeletedTransaction(transactionItem);
-    const isFromExpenseReport = (!isEmptyObject(effectiveReport) && isExpenseReport(effectiveReport)) || isGroupPolicy(effectivePolicy);
-    const amount = getTransactionAmount(transactionItem, isFromExpenseReport, transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, isDeleted);
+    const amount = getTransactionDisplayAmount(transactionItem, effectiveReport, effectivePolicy);
     let amountToDisplay = convertToDisplayString(amount, currency);
     if (isScanning(transactionItem)) {
         amountToDisplay = translate('iou.receiptStatusTitle');

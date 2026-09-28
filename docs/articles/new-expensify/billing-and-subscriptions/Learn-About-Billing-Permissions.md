@@ -23,6 +23,8 @@ The Workspace owner is the person whose payment card is charged for the Workspac
 
 You can confirm the owner of a Workspace you're a member of by selecting **Workspaces** in the navigation tabs (on the left on web, on the bottom on mobile) and viewing the **Owner** column. 
 
+![The Workspaces list view with the Owner column visible, showing a workspace row and the email/name of its owner in that column]({{site.url}}/assets/images/ExpensiHelp-Learn-About-Billing-Permissions.png){:width="100%"}
+
 ---
 
 ## What billing permissions does the Workspace owner have?

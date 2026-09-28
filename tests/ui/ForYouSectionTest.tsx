@@ -1,16 +1,20 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import {useAppLoadSkeletonVisibility} from '@hooks/useInFlightRequests';
+import type useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTodoCounts from '@hooks/useTodoCounts';
 
+import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
+import type * as NetworkStateModule from '@libs/NetworkState';
 
 import ForYouSection from '@pages/home/ForYouSection';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {TransactionViolations} from '@src/types/onyx';
+import type {AnyRequest, Domain, TransactionViolations} from '@src/types/onyx';
 
 import type * as ReactNavigation from '@react-navigation/native';
 
@@ -19,6 +23,21 @@ import Onyx from 'react-native-onyx';
 
 import {createMockReport} from '../utils/ReportTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+let mockHasLoadedAppStatus: 'loading' | 'loaded' = 'loaded';
+let mockIsOffline = false;
+
+jest.mock('@hooks/useOnyx', () => {
+    const actualUseOnyx = jest.requireActual<{default: typeof useOnyx}>('@hooks/useOnyx').default;
+
+    return {
+        __esModule: true,
+        default: (...args: Parameters<typeof useOnyx>) => {
+            const result = actualUseOnyx(...args);
+            return args.at(0) === 'hasLoadedApp' ? [result.at(0), {status: mockHasLoadedAppStatus}] : result;
+        },
+    };
+});
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -30,6 +49,27 @@ jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 
 jest.mock('@hooks/useTodoCounts', () => jest.fn());
 
+// `useNetwork` reads this through `useSyncExternalStore` without a notification, so set it before the render
+// under test rather than after.
+jest.mock('@libs/NetworkState', () => ({
+    ...jest.requireActual<typeof NetworkStateModule>('@libs/NetworkState'),
+    getIsOffline: () => mockIsOffline,
+}));
+
+jest.mock('@pages/home/ForYouSection/ForYouSkeleton', () => () => {
+    const ReactModule = jest.requireActual<typeof React>('react');
+    return ReactModule.createElement('View', {testID: 'for-you-skeleton'});
+});
+
+// Stubbed, but the stub forwards `isCopyLoading` so these tests can tell whether the date, greeting and placeholder
+// are behind skeleton bars. What the bars actually look like is exercised in ConciergePromptBoxTest.
+jest.mock('@pages/home/ForYouSection/ConciergePromptBox', () => ({isCopyLoading}: {isCopyLoading: boolean}) => {
+    const ReactModule = jest.requireActual<typeof React>('react');
+    return ReactModule.createElement('View', {testID: 'concierge-prompt-box'}, isCopyLoading ? ReactModule.createElement('View', {testID: 'concierge-copy-skeleton'}) : null);
+});
+
+jest.mock('@pages/home/TimeSensitiveSection/useTimeSensitiveItems', () => jest.fn(() => []));
+
 // ForYouSection calls useIsFocused() to freeze useTodoCounts when unfocused; this test renders it outside a
 // NavigationContainer, so stub the focus hook (useTodoCounts is mocked, so the focus value itself is irrelevant).
 jest.mock('@react-navigation/native', () => {
@@ -38,6 +78,7 @@ jest.mock('@react-navigation/native', () => {
     return {
         ...actualNavigation,
         useIsFocused: jest.fn(() => true),
+        useFocusEffect: jest.fn(),
     };
 });
 
@@ -53,6 +94,7 @@ jest.mock('@react-navigation/native', () => {
     return {
         ...actualNav,
         useIsFocused: () => mockIsFocused,
+        useFocusEffect: jest.fn(),
     };
 });
 
@@ -84,6 +126,11 @@ jest.mock('@hooks/useThemeStyles', () =>
 jest.mock('@hooks/useTheme', () => jest.fn(() => ({})));
 
 const RECEIPT_SEARCH_ASSET = {testID: 'receipt-search-icon'};
+const USER_SHIELD_ASSET = {testID: 'user-shield-icon'};
+
+// Onyx's key for a domain's pending adminship requesters. Referenced through a variable (rather than a literal
+// property name) so the snake_case key doesn't trip the naming-convention lint rule on these object literals.
+const DOMAIN_ADMIN_REQUESTERS_KEY = 'domain_adminRequesters' as const;
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({
@@ -92,6 +139,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
         ThumbsUp: null,
         Export: null,
         ReceiptSearch: RECEIPT_SEARCH_ASSET,
+        UserShield: USER_SHIELD_ASSET,
     })),
     useMemoizedLazyIllustrations: jest.fn(() => ({
         ThumbsUpStars: null,
@@ -105,13 +153,11 @@ jest.mock('react-native-reanimated', () => {
 });
 
 const mockNavigate = jest.mocked(Navigation.navigate);
-const mockUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
+const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 const mockUseTodoCounts = jest.mocked(useTodoCounts);
 
 const ACCOUNT_ID = 12345;
 
-// ForYouSection now derives its counts/single-IDs from the useTodoCounts hook (which is mocked here) instead of the
-// removed TODOS derived value, so the fixtures only need the report buckets the hook's return is computed from.
 type TodoReport = {reportID: string};
 type TodoFixture = {
     reportsToSubmit: TodoReport[];
@@ -151,6 +197,22 @@ async function seedFlaggedExpenses(...expenses: Array<{transactionID: string; re
         ]),
     );
 }
+/**
+ * Seeds a domain where ACCOUNT_ID is an admin, along with a set of pending domain_adminRequesters entries.
+ */
+async function seedDomainAdmin(domainAccountID: number, requesterAccountIDs: number[]) {
+    const domain: Domain = {
+        validated: true,
+        accountID: domainAccountID,
+        email: `domain${domainAccountID}@example.com`,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        domain_defaultSecurityGroupID: '',
+        [DOMAIN_ADMIN_REQUESTERS_KEY]: Object.fromEntries(requesterAccountIDs.map((requesterAccountID) => [requesterAccountID, 'read' as const])),
+    };
+    Reflect.set(domain, `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}1`, ACCOUNT_ID);
+    await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, domain);
+}
+
 // Drive the component by controlling the mocked hook's return value from the report-bucket fixtures.
 function setTodoCounts(todos: TodoFixture) {
     const singleReportID = (reports: TodoReport[]) => (reports.length === 1 ? reports.at(0)?.reportID : undefined);
@@ -170,13 +232,48 @@ function setTodoCounts(todos: TodoFixture) {
     });
 }
 
+// ConciergePromptBox is mocked, so these props are inert here. They only satisfy ForYouSection's required prop types.
+const conciergeMenuProps = {isConciergeMenuVisible: false, setIsConciergeMenuVisible: () => {}};
+
+// ForYouSection takes the app load gate as a prop, so the harness reads it the way HomePage does. That keeps the
+// cases below driving the gate through Onyx.
+function ForYouSectionHarness() {
+    const isInitialLoad = useAppLoadSkeletonVisibility();
+
+    return (
+        <ForYouSection
+            isInitialLoad={isInitialLoad}
+            {...conciergeMenuProps}
+        />
+    );
+}
+
 function renderForYouSection() {
-    return render(<ForYouSection />);
+    return render(<ForYouSectionHarness />);
 }
 
 function pressFirstBeginButton() {
     const [firstButton] = screen.getAllByText('Begin');
     fireEvent.press(firstButton);
+}
+
+const buildRequest = (command: AnyRequest['command'], extra: Partial<AnyRequest> = {}): AnyRequest => ({
+    command,
+    data: {},
+    ...extra,
+});
+
+async function setAppLoadState({hasLoadedApp, isLoadingApp, requests = []}: {hasLoadedApp: boolean; isLoadingApp: boolean; requests?: AnyRequest[]}) {
+    await act(async () => {
+        await Onyx.multiSet({
+            [ONYXKEYS.HAS_LOADED_APP]: hasLoadedApp,
+            [ONYXKEYS.IS_LOADING_APP]: isLoadingApp,
+            [ONYXKEYS.PERSISTED_REQUESTS]: requests,
+            [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: null,
+            [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: true},
+        });
+    });
+    await waitForBatchedUpdatesWithAct();
 }
 
 describe('ForYouSection', () => {
@@ -185,6 +282,8 @@ describe('ForYouSection', () => {
     });
 
     beforeEach(async () => {
+        mockHasLoadedAppStatus = 'loaded';
+        mockIsOffline = false;
         mockIsFocused = true;
         mockUseResponsiveLayout.mockReturnValue({
             shouldUseNarrowLayout: false,
@@ -219,6 +318,161 @@ describe('ForYouSection', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    describe('app load gate', () => {
+        it('shows the skeleton during a cold OpenApp load', async () => {
+            await setAppLoadState({
+                hasLoadedApp: false,
+                isLoadingApp: false,
+                requests: [buildRequest(WRITE_COMMANDS.OPEN_APP)],
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
+        });
+
+        it('keeps the skeleton visible while HAS_LOADED_APP is hydrating', async () => {
+            mockHasLoadedAppStatus = 'loading';
+            await setAppLoadState({
+                hasLoadedApp: false,
+                isLoadingApp: false,
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
+        });
+
+        it('uses IS_LOADING_APP as a cold restart recovery fallback after HAS_LOADED_APP hydrates false', async () => {
+            mockHasLoadedAppStatus = 'loaded';
+            await setAppLoadState({
+                hasLoadedApp: false,
+                isLoadingApp: true,
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
+        });
+
+        it('does not show the skeleton after loading settles without an OpenApp request', async () => {
+            mockHasLoadedAppStatus = 'loaded';
+            await setAppLoadState({
+                hasLoadedApp: false,
+                isLoadingApp: false,
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('for-you-skeleton')).not.toBeOnTheScreen();
+        });
+
+        it('does not show the skeleton on a cached start with a stranded loading flag', async () => {
+            mockHasLoadedAppStatus = 'loading';
+            await setAppLoadState({
+                hasLoadedApp: true,
+                isLoadingApp: true,
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('for-you-skeleton')).not.toBeOnTheScreen();
+        });
+
+        it('does not show the skeleton for a warm ReconnectApp', async () => {
+            await setAppLoadState({
+                hasLoadedApp: true,
+                isLoadingApp: true,
+                requests: [buildRequest(WRITE_COMMANDS.RECONNECT_APP)],
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('for-you-skeleton')).not.toBeOnTheScreen();
+        });
+
+        it('does not show the skeleton for an account switch after the app has loaded', async () => {
+            await setAppLoadState({
+                hasLoadedApp: true,
+                isLoadingApp: true,
+                requests: [buildRequest(WRITE_COMMANDS.OPEN_APP)],
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('for-you-skeleton')).not.toBeOnTheScreen();
+        });
+
+        it('ignores IS_LOADING_REPORT_DATA while the app is unloaded', async () => {
+            await setAppLoadState({
+                hasLoadedApp: false,
+                isLoadingApp: false,
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('for-you-skeleton')).not.toBeOnTheScreen();
+        });
+
+        it('drops both skeletons for an OpenApp initiated offline', async () => {
+            mockIsOffline = true;
+            await setAppLoadState({
+                hasLoadedApp: false,
+                isLoadingApp: false,
+                requests: [buildRequest(WRITE_COMMANDS.OPEN_APP, {initiatedOffline: true})],
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('for-you-skeleton')).not.toBeOnTheScreen();
+            expect(screen.queryByTestId('concierge-copy-skeleton')).not.toBeOnTheScreen();
+        });
+
+        it('drops both skeletons on an offline restart with a stranded loading flag and no request', async () => {
+            mockIsOffline = true;
+            mockHasLoadedAppStatus = 'loaded';
+            await setAppLoadState({
+                hasLoadedApp: false,
+                isLoadingApp: true,
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('for-you-skeleton')).not.toBeOnTheScreen();
+            expect(screen.queryByTestId('concierge-copy-skeleton')).not.toBeOnTheScreen();
+        });
+
+        it('keeps both skeletons while an OpenApp queued online is pending', async () => {
+            mockIsOffline = true;
+            await setAppLoadState({
+                hasLoadedApp: false,
+                isLoadingApp: false,
+                requests: [buildRequest(WRITE_COMMANDS.OPEN_APP)],
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
+            expect(screen.getByTestId('concierge-copy-skeleton')).toBeOnTheScreen();
+        });
+    });
+
     describe('EmptyState', () => {
         it('renders EmptyState when there are no todos', async () => {
             await act(async () => {
@@ -248,7 +502,8 @@ describe('ForYouSection', () => {
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.queryByText('homePage.forYou')).not.toBeOnTheScreen();
+            expect(screen.queryByText('homePage.toDos')).not.toBeOnTheScreen();
+            expect(screen.queryByTestId('forYouEmptyState')).not.toBeOnTheScreen();
             expect(screen.queryByText('Begin')).not.toBeOnTheScreen();
         });
 
@@ -262,7 +517,7 @@ describe('ForYouSection', () => {
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+            expect(screen.getByTestId('forYouEmptyState')).toBeOnTheScreen();
         });
 
         it('renders to-do items for a new user who has todos', async () => {
@@ -278,7 +533,7 @@ describe('ForYouSection', () => {
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+            expect(screen.getByText('homePage.toDos')).toBeOnTheScreen();
             expect(screen.getByText('Begin')).toBeOnTheScreen();
         });
 
@@ -296,14 +551,14 @@ describe('ForYouSection', () => {
             await waitForBatchedUpdatesWithAct();
 
             // The section renders to-dos and persists the "has seen a to-do" flag.
-            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+            expect(screen.getByText('Begin')).toBeOnTheScreen();
 
-            // Clearing the to-dos must not unmount the section; it should stay visible (now empty).
+            // Clearing the to-dos must not unmount the section. It should stay visible (now the empty state).
             setTodoCounts(BASE_TODOS);
-            rerender(<ForYouSection />);
+            rerender(<ForYouSectionHarness />);
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+            expect(screen.getByTestId('forYouEmptyState')).toBeOnTheScreen();
             expect(screen.queryByText('Begin')).not.toBeOnTheScreen();
         });
 
@@ -318,24 +573,56 @@ describe('ForYouSection', () => {
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.queryByText('homePage.forYou')).not.toBeOnTheScreen();
+            expect(screen.queryByTestId('forYouEmptyState')).not.toBeOnTheScreen();
             expect(screen.queryByText('Begin')).not.toBeOnTheScreen();
         });
 
         it('still shows the skeleton during the initial load for a new user', async () => {
             await act(async () => {
                 await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);
-                // The onboarding status must be known, otherwise the skeleton stays hidden to avoid flashing for onboarding users.
                 await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
                 await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+                await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [buildRequest(WRITE_COMMANDS.OPEN_APP)]);
             });
             await waitForBatchedUpdatesWithAct();
 
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
-            // The section wrapper (and its title) remain rendered while the skeleton is shown.
-            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+            expect(screen.getByTestId('concierge-prompt-box')).toBeOnTheScreen();
+            expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
+            expect(screen.queryByText('homePage.toDos')).not.toBeOnTheScreen();
+        });
+
+        it('shows the skeleton during the initial load before the onboarding NVP arrives', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);
+                await Onyx.set(ONYXKEYS.NVP_ONBOARDING, null);
+                await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+                await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [buildRequest(WRITE_COMMANDS.OPEN_APP)]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
+        });
+
+        it('drops the skeleton once the onboarding NVP reports the user is still onboarding', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);
+                await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+                await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+                await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [buildRequest(WRITE_COMMANDS.OPEN_APP)]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('for-you-skeleton')).not.toBeOnTheScreen();
+            expect(screen.getByTestId('concierge-prompt-box')).toBeOnTheScreen();
         });
     });
 
@@ -460,7 +747,7 @@ describe('ForYouSection', () => {
             // While the Home tab is blurred the scan is skipped, but the hook retains the last computed count
             // in state, so the row keeps its count instead of flashing back to the empty state.
             mockIsFocused = false;
-            rerender(<ForYouSection />);
+            rerender(<ForYouSectionHarness />);
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText('homePage.forYouSection.reviewExpenses:{"count":1}')).toBeOnTheScreen();
@@ -499,7 +786,6 @@ describe('ForYouSection', () => {
                     backTo: ROUTES.HOME,
                 }),
             );
-            // The standard report routes should not be used for the review row anymore.
             expect(mockNavigate).not.toHaveBeenCalled();
         });
 
@@ -622,7 +908,11 @@ describe('ForYouSection', () => {
             pressFirstBeginButton();
 
             expect(mockNavigate).toHaveBeenCalledTimes(1);
-            const calledRoute = mockNavigate.mock.calls.at(0)?.at(0) as string;
+            const calledRoute = mockNavigate.mock.calls.at(0)?.at(0);
+            expect(typeof calledRoute).toBe('string');
+            if (typeof calledRoute !== 'string') {
+                return;
+            }
             expect(calledRoute).toContain(ROUTES.SEARCH_ROOT.route);
         });
 
@@ -641,7 +931,11 @@ describe('ForYouSection', () => {
             pressFirstBeginButton();
 
             expect(mockNavigate).toHaveBeenCalledTimes(1);
-            const calledRoute = mockNavigate.mock.calls.at(0)?.at(0) as string;
+            const calledRoute = mockNavigate.mock.calls.at(0)?.at(0);
+            expect(typeof calledRoute).toBe('string');
+            if (typeof calledRoute !== 'string') {
+                return;
+            }
             expect(calledRoute).toContain(ROUTES.SEARCH_ROOT.route);
         });
     });
@@ -795,6 +1089,116 @@ describe('ForYouSection', () => {
                 expect(mockNavigate).toHaveBeenCalledTimes(1);
                 expect(mockNavigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, ROUTES.HOME));
             });
+        });
+    });
+
+    describe('domain admin requests row', () => {
+        it('is not rendered when there are no pending domain admin requests', async () => {
+            await act(async () => {
+                setTodoCounts(BASE_TODOS);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(/homePage\.forYouSection\.reviewDomainAdminRequests/)).not.toBeOnTheScreen();
+        });
+
+        it('renders with the count-1 string when exactly one request is pending', async () => {
+            await act(async () => {
+                setTodoCounts(BASE_TODOS);
+                await seedDomainAdmin(1, [999]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('homePage.forYouSection.reviewDomainAdminRequests:{"count":1}')).toBeOnTheScreen();
+        });
+
+        it('renders with the count-N string when multiple requests are pending', async () => {
+            await act(async () => {
+                setTodoCounts(BASE_TODOS);
+                await seedDomainAdmin(1, [998, 999]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('homePage.forYouSection.reviewDomainAdminRequests:{"count":2}')).toBeOnTheScreen();
+        });
+
+        it('exposes a Begin CTA and uses the UserShield icon asset', async () => {
+            await act(async () => {
+                setTodoCounts(BASE_TODOS);
+                await seedDomainAdmin(1, [999]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const {UNSAFE_root: unsafeRoot} = renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('Begin')).toBeOnTheScreen();
+
+            const matchingNodes = unsafeRoot.findAll((node) => node.props && (node.props as {icon?: unknown}).icon === USER_SHIELD_ASSET);
+            expect(matchingNodes.length).toBeGreaterThan(0);
+        });
+
+        it('navigates to DOMAIN_ADMINS when only one domain has pending requests', async () => {
+            await act(async () => {
+                setTodoCounts(BASE_TODOS);
+                await seedDomainAdmin(1, [999]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            pressFirstBeginButton();
+
+            expect(mockNavigate).toHaveBeenCalledTimes(1);
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.DOMAIN_ADMINS.getRoute(1));
+        });
+
+        it('navigates to DOMAINS_LIST when multiple domains have pending requests', async () => {
+            await act(async () => {
+                setTodoCounts(BASE_TODOS);
+                await seedDomainAdmin(1, [999]);
+                await seedDomainAdmin(2, [998]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            pressFirstBeginButton();
+
+            expect(mockNavigate).toHaveBeenCalledTimes(1);
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.DOMAINS_LIST.getRoute());
+        });
+
+        it('disappears once the last pending request is cleared (set to a tombstone)', async () => {
+            await act(async () => {
+                setTodoCounts(BASE_TODOS);
+                await seedDomainAdmin(1, [999]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('homePage.forYouSection.reviewDomainAdminRequests:{"count":1}')).toBeOnTheScreen();
+
+            const clearedRequesterAccountID = 999;
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}1`, {[DOMAIN_ADMIN_REQUESTERS_KEY]: {[clearedRequesterAccountID]: null}});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(/homePage\.forYouSection\.reviewDomainAdminRequests/)).not.toBeOnTheScreen();
         });
     });
 });

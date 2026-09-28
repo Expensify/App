@@ -10,7 +10,6 @@ const RETURN = 3;
 type Priority = typeof INITIAL | typeof AUTO | typeof RETURN;
 
 const Priorities = {INITIAL, AUTO, RETURN} as const;
-
 const CYCLE_TIMEOUT_MS = 2000;
 
 let currentPriority: Priority | 0 = 0;

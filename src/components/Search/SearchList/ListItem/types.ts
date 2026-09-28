@@ -8,9 +8,7 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import type CONST from '@src/CONST';
 import type {
-    BankAccountList,
     BillingGraceEndPeriod,
-    CardFeeds,
     CardList,
     LastPaymentMethod,
     PersonalDetails,
@@ -28,6 +26,7 @@ import type {
     SearchCardGroup,
     SearchCategoryGroup,
     SearchDataTypes,
+    SearchDayGroup,
     SearchMemberGroup,
     SearchMerchantGroup,
     SearchMonthGroup,
@@ -47,7 +46,6 @@ import type {ValueOf} from 'type-fest';
 type SearchListActionProps = {
     /** The last payment method used per policy */
     lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
-    /** The user's personal policy ID */
     personalPolicyID?: string;
     /** Billing grace period end dates for workspace owners (shared across all list items) */
     userBillingGracePeriodEnds?: OnyxCollection<BillingGraceEndPeriod>;
@@ -56,7 +54,6 @@ type SearchListActionProps = {
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
-    /** The report data */
     report?: Report;
 };
 
@@ -85,6 +82,9 @@ type TransactionListItemType = ListItem &
 
         /** The date the report was exported */
         exported?: string;
+
+        /** Names of the integrations/templates the report was exported to, used for sorting the "Exported to" column */
+        exportedTo?: string;
 
         /** Policy to which the transaction belongs */
         policy: Policy | undefined;
@@ -162,6 +162,9 @@ type TransactionListItemType = ListItem &
         /** Key used internally by React */
         keyForList: string;
 
+        /** Parent selection key when this transaction is rendered inside a lazily loaded group. */
+        selectionGroupKey?: string;
+
         /** The name of the file used for a receipt */
         filename?: string;
 
@@ -206,7 +209,6 @@ type TransactionGroupListItemType = ListItem & {
     /** Whether the report has a single transaction */
     isOneTransactionReport?: boolean;
 
-    /** The hash of the query to get the transactions data */
     transactionsQueryJSON?: SearchQueryJSON;
 
     /** Whether the report has visible violations for user */
@@ -246,10 +248,12 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** The date the report was exported */
         exported?: string;
 
+        /** Names of the integrations/templates the report was exported to, used for sorting the "Exported to" column */
+        exportedTo?: string;
+
         /** The date of the report's first approval (created date of the earliest APPROVED/FORWARDED report action) */
         firstApproved?: string;
 
-        /** The avatar of the first approver */
         firstApproverAvatar?: AvatarSource;
 
         /** Account ID of the first approver (actor on the earliest APPROVED/FORWARDED report action) */
@@ -258,7 +262,15 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** Final and formatted "first approver" value used for displaying and sorting */
         formattedFirstApprover?: string;
 
-        /** Whether the status field should be shown in a pending state */
+        /** The avatar of the user the report was paid by */
+        paidByAvatar?: AvatarSource;
+
+        /** Account ID of the user the report was paid by (actor on the latest payment report action) */
+        paidByAccountID?: number;
+
+        /** Final and formatted "paid by" value used for displaying and sorting */
+        formattedPaidBy?: string;
+
         shouldShowStatusAsPending?: boolean;
 
         /**
@@ -335,7 +347,6 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Whether the item's action is loading */
     isLoading?: boolean;
 
-    /** All the data of the report collection */
     allReports?: OnyxCollection<Report>;
 };
 
@@ -386,7 +397,6 @@ type ReportActionListItemType = ListItem &
         /** Key used internally by React */
         keyForList: string;
 
-        /** The name of the report */
         reportName: string;
     };
 
@@ -407,11 +417,19 @@ type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupe
         formattedFrom?: string;
     };
 
+type TransactionDayGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.DAY} & SearchDayGroup & {
+        formattedDay: string;
+
+        /** Compact "day" value used where space is tight, e.g. chart axis labels */
+        shortFormattedDay: string;
+    };
+
 type TransactionMonthGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MONTH} & SearchMonthGroup & {
-        /** Final and formatted "month" value used for displaying */
         formattedMonth: string;
 
-        /** Key used for sorting */
+        /** Compact "month" value used where space is tight, e.g. chart axis labels */
+        shortFormattedMonth: string;
+
         sortKey: number;
     };
 
@@ -439,23 +457,23 @@ type TransactionTagGroupListItemType = TransactionGroupListItemType & {groupedBy
     };
 
 type TransactionWeekGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WEEK} & SearchWeekGroup & {
-        /** Final and formatted "week" value used for displaying */
         formattedWeek: string;
+
+        /** Compact "week" value used where space is tight, e.g. chart axis labels */
+        shortFormattedWeek: string;
     };
 
 type TransactionYearGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.YEAR} & SearchYearGroup & {
-        /** Final and formatted "year" value used for displaying */
         formattedYear: string;
-
-        /** Key used for sorting */
         sortKey: number;
     };
 
 type TransactionQuarterGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.QUARTER} & SearchQuarterGroup & {
-        /** Final and formatted "quarter" value used for displaying */
         formattedQuarter: string;
 
-        /** Sort key for sorting */
+        /** Compact "quarter" value used where space is tight, e.g. chart axis labels */
+        shortFormattedQuarter: string;
+
         sortKey: number;
     };
 
@@ -468,7 +486,6 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
         nonPersonalAndWorkspaceCards?: CardList;
         /** All policies' tag lists, drilled from the list level so each row can resolve its policy's tags without an Onyx subscription per row */
         policyTags?: OnyxCollection<PolicyTagLists>;
-        /** Callback to undelete a transaction */
         onUndelete?: (transaction: Transaction) => void;
     };
 
@@ -481,7 +498,6 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
         newTransactionID?: string;
         /** Non-personal and workspace cards for company card display */
         nonPersonalAndWorkspaceCards?: CardList;
-        /** Callback to undelete a transaction */
         onUndelete?: (transaction: Transaction) => void;
     };
 
@@ -502,6 +518,9 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     searchTransactions: (pageSize?: number) => void;
     onLongPress: (transaction: TransactionListItemType) => void;
     hideSearchTableHeader?: boolean;
+
+    /** Sync key that ties these rows' horizontal scroll to the group's column header, which lives in a sibling row. */
+    syncScrollKey?: string;
 };
 
 const GROUP_ITEM_TYPES = {
@@ -509,7 +528,7 @@ const GROUP_ITEM_TYPES = {
     CHILDREN_CONTAINER: 'children_container',
 } as const;
 
-type GroupHeaderListItemType = {listItemType: typeof GROUP_ITEM_TYPES.GROUP_HEADER};
+type GroupHeaderListItemType = {listItemType: typeof GROUP_ITEM_TYPES.GROUP_HEADER; groupKeyForList: string};
 
 type GroupHeaderItemType =
     | (TransactionReportGroupListItemType & GroupHeaderListItemType)
@@ -519,6 +538,7 @@ type GroupHeaderItemType =
     | (TransactionCategoryGroupListItemType & GroupHeaderListItemType)
     | (TransactionMerchantGroupListItemType & GroupHeaderListItemType)
     | (TransactionTagGroupListItemType & GroupHeaderListItemType)
+    | (TransactionDayGroupListItemType & GroupHeaderListItemType)
     | (TransactionMonthGroupListItemType & GroupHeaderListItemType)
     | (TransactionWeekGroupListItemType & GroupHeaderListItemType)
     | (TransactionYearGroupListItemType & GroupHeaderListItemType)
@@ -527,6 +547,7 @@ type GroupHeaderItemType =
 
 type GroupChildrenContainerItemType = TransactionGroupListItemType & {
     listItemType: typeof GROUP_ITEM_TYPES.CHILDREN_CONTAINER;
+    groupKeyForList: string;
 };
 
 function isGroupHeaderItem(item: SearchListItem): item is GroupHeaderItemType {
@@ -550,9 +571,6 @@ type GroupChildrenContentProps = {
     nonPersonalAndWorkspaceCards?: CardList;
     onUndelete?: (transaction: Transaction) => void;
     newTransactionID?: string;
-    bankAccountList?: OnyxEntry<BankAccountList>;
-    cardFeeds?: OnyxCollection<CardFeeds>;
-    conciergeReportID?: string;
 };
 
 type UnreportedExpenseListItemType = Transaction & {
@@ -574,6 +592,7 @@ export type {
     TransactionListItemType,
     TransactionCardGroupListItemType,
     TransactionMemberGroupListItemType,
+    TransactionDayGroupListItemType,
     TransactionMonthGroupListItemType,
     TransactionCategoryGroupListItemType,
     TransactionMerchantGroupListItemType,

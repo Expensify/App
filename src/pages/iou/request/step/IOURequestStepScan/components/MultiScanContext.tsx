@@ -1,4 +1,5 @@
 import useOnyx from '@hooks/useOnyx';
+import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 
 import {dismissProductTraining} from '@libs/actions/Welcome';
 
@@ -59,12 +60,13 @@ function MultiScanProvider({children}: MultiScanProviderProps) {
     const [showEducationalPopup, setShowEducationalPopup] = useState(false);
     const [dismissedProductTrainingResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
 
     const isStartingScan = routeName === SCREENS.MONEY_REQUEST.CREATE;
     const canUseMultiScan = isStartingScan && iouType !== CONST.IOU.TYPE.SPLIT;
 
     function toggleMultiScan() {
-        if (!dismissedProductTrainingResult?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL]) {
+        if (!shouldSuppressPromotionalUI && !dismissedProductTrainingResult?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL]) {
             setShowEducationalPopup(true);
         }
         removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);

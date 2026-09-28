@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback} from 'react';
+import React, {useState} from 'react';
 
 type PriorityModeItem = {
     value: ValueOf<typeof CONST.PRIORITY_MODE>;
@@ -30,28 +30,36 @@ function PriorityModePage() {
     const {translate} = useLocalize();
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const styles = useThemeStyles();
+
+    const [selectedPriorityMode, setSelectedPriorityMode] = useState<ValueOf<typeof CONST.PRIORITY_MODE>>();
+    const currentPriorityMode = selectedPriorityMode ?? priorityMode;
+
     const priorityModes = Object.values(CONST.PRIORITY_MODE).map<PriorityModeItem>((mode) => ({
         value: mode,
         text: translate(`priorityModePage.priorityModes.${mode}.label`),
         alternateText: translate(`priorityModePage.priorityModes.${mode}.description`),
         keyForList: mode,
-        isSelected: priorityMode === mode,
+        isSelected: currentPriorityMode === mode,
     }));
 
-    const updateMode = useCallback(
-        (mode: PriorityModeItem) => {
-            if (mode.value === priorityMode) {
-                Navigation.goBack();
-                return;
-            }
-            updateChatPriorityMode(mode.value);
-        },
-        [priorityMode],
-    );
+    const updateMode = (mode: PriorityModeItem) => {
+        setSelectedPriorityMode(mode.value);
+    };
+
+    const savePriorityMode = () => {
+        updateChatPriorityMode(currentPriorityMode);
+    };
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: savePriorityMode,
+        isDisabled: currentPriorityMode === priorityMode,
+    };
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
             testID="PriorityModePage"
         >
             <HeaderWithBackButton
@@ -64,7 +72,9 @@ function PriorityModePage() {
                 ListItem={SingleSelectListItem}
                 onSelectRow={updateMode}
                 shouldSingleExecuteRowSelect
+                confirmButtonOptions={confirmButtonOptions}
                 initiallyFocusedItemKey={priorityModes.find((mode) => mode.isSelected)?.keyForList}
+                addBottomSafeAreaPadding
             />
         </ScreenWrapper>
     );

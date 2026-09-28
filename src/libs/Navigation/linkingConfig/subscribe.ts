@@ -1,3 +1,4 @@
+import {hasAuthToken} from '@libs/actions/Session';
 import continuePlaidOAuth from '@libs/continuePlaidOAuth';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
@@ -28,6 +29,13 @@ const skipRules: ReadonlyArray<{urlMatcher: RegExp; focusedScreens: readonly str
     },
 ];
 
+/**
+ * Returns the URL's path, without its query string or fragment.
+ */
+function getPathnameFromURL(url: string): string {
+    return url.split(/[?#]/).at(0) ?? '';
+}
+
 const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener) => {
     const subscription = Linking.addEventListener('url', ({url}: {url: string}) => {
         // Skip deep links to screens where the user is already focused.
@@ -48,6 +56,13 @@ const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener
             // Without this, the native SDK never sees the callback URL and retries OAuth in a loop
             // after app-to-app bank auth returns. See issue #87757.
             continuePlaidOAuth(url);
+            return;
+        }
+        // For an unauthenticated session, a report deep link (`/r/<reportID>`) targets the Report screen,
+        // which lives in AuthScreens and is not mounted while PublicScreens is showing. Dispatching it here
+        // throws "NAVIGATE ... was not handled by any navigator". openReportFromDeepLink() already opens the
+        // public room as an anonymous user and handles navigation, so defer to it instead. See #92672.
+        if (!hasAuthToken() && getPathnameFromURL(url).includes(`/${ROUTES.REPORT}/`)) {
             return;
         }
         listener(url);

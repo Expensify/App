@@ -78,13 +78,14 @@ function UpgradeIntro({onUpgrade, buttonDisabled}: Props) {
                     </View>
                 </View>
                 <Button
-                    text={translate('onboarding.workspace.createWorkspace')}
                     testID="upgrade-button"
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={onUpgrade}
                     isDisabled={buttonDisabled}
-                    large
-                />
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.Text>{translate('onboarding.workspace.createWorkspace')}</Button.Text>
+                </Button>
             </View>
             <View style={[styles.mt6, styles.renderHTML]}>
                 <RenderHTML html={translate('personalCard.note', subscriptionLink)} />

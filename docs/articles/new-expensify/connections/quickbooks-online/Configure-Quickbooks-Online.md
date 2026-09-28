@@ -21,8 +21,9 @@ To choose how data is imported from QuickBooks Online to Expensify:
 - **Classes**: Import as tags to allow expense-level coding.
 - **Customers/Projects**: Import as tags for expense-level coding.
 - **Locations**: Import as tags or report fields.
-  - Note: If you export using the Vendor bill or Check options, then locations must be imported as report fields, which are only available on the [**Control** plan](/articles/new-expensify/billing-and-subscriptions/Billing-Overview#control-plan). When locations are imported as tags, the Vendor bill and Check export options are unavailable.
+  - Note: If you export using the Vendor bill or Check options, then locations must be imported as report fields, which are only available on the [**Control** plan](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Compare-Collect-and-Control-Plans#common-feature-differences-between-collect-and-control). When locations are imported as tags, the Vendor bill and Check export options are unavailable.
 - **Taxes**: Import tax rates and defaults.
+- **Vendors**: When Credit card or Debit card is selected as the company card export type, vendor records are imported from QuickBooks Online and shown in a **Vendors** tab in workspace settings. Learn how vendors are imported, matched, and exported in [QuickBooks Online Vendor Matching](/articles/new-expensify/connections/quickbooks-online/Manage-Vendor-Matching-for-QuickBooks-Online).
 
 ## How to Turn Imported Accounts and Tags Off
 
@@ -55,9 +56,11 @@ To choose how data is exported from Expensify to QuickBooks Online:
 - **Export company card expenses as**:
   - Credit card (default)
   - Debit card
+    - Optionally set a **Default vendor** as a fallback for expenses that don't have a vendor set. Learn how vendors are imported, matched, and exported in [QuickBooks Online Vendor Matching](/articles/new-expensify/connections/quickbooks-online/Manage-Vendor-Matching-for-QuickBooks-Online.md).
   - Vendor bill
     - If exporting as vendor bills, select the AP account and optionally a default vendor
     - Vendor bill is unavailable when locations are imported as tags. To keep it available, import locations as report fields (only available on the **Control** plan)
+- **Export Consolidated Travel Billing expenses as**: This option appears only when [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) is enabled. Travel expenses export as credit card charges. Click it, then select the **Credit card account** where travel expenses will post in QuickBooks Online.
 
 ---
 
@@ -77,6 +80,7 @@ To manage automation and other connection preferences:
   - If reimbursed via ACH in Expensify, the status will sync to paid in QuickBooks
 - **QuickBooks bill payment account**: Select where payments for expense reports are recorded
 - **QuickBooks invoice collections account**: Select where payments for invoices are recorded
+- **Sync Consolidated Travel Billing settlements**: This option appears only when [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) is enabled. Turn on this toggle to continuously reconcile settlements through QuickBooks Online. When enabled, select a **Reconciliation account** to match your settlement account. Auto-sync must be enabled to use this setting.
 
 ---
 
@@ -105,3 +109,6 @@ This is likely due to the **Locations** import setting. Vendor bill and check ex
 - Turn off location imports, or
 - Import locations as report fields, which are only available on the **Control** plan
 
+## Why aren't my Items importing from QuickBooks Online?
+
+Only Items with Purchasing Information configured in QuickBooks Online can be imported into Expensify. Imported Items are created as categories.

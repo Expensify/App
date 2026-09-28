@@ -1,20 +1,23 @@
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import RenderHTML from '@components/RenderHTML';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
+import UserDetailsTooltip from '@components/UserDetailsTooltip';
 
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useShouldSuppressConciergeIndicators from '@hooks/useShouldSuppressConciergeIndicators';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 
@@ -25,11 +28,13 @@ import ReportActionItemMessageHeaderSender from '@pages/inbox/report/ReportActio
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {Easing, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
+
+import ConciergeAnimatedAvatar from './ConciergeAnimatedAvatar';
 
 type ConciergeThinkingMessageProps = {
     /** The report for this thinking message */
@@ -81,13 +86,11 @@ function ConciergeThinkingBubble({reportID, agentAccountID}: {reportID: string; 
 function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLabel}: {accountID: number; reasoningHistory: ReasoningEntry[]; statusLabel: string}) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const StyleUtils = useStyleUtils();
-    const {datetimeToCalendarTime, translate} = useLocalize();
+    const {datetimeToCalendarTime, translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const hasReasoningHistory = useMemo(() => !!reasoningHistory && reasoningHistory.length > 0, [reasoningHistory]);
     const [manuallyCollapsed, setManuallyCollapsed] = useState(true);
     const isExpanded = hasReasoningHistory && !manuallyCollapsed;
-    const [isHovered, setIsHovered] = useState(false);
     const historyLength = (reasoningHistory ?? [])?.length;
 
     const currentTimestamp = DateUtils.getDBTime();
@@ -131,9 +134,13 @@ function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLab
         opacity: statusLabelOpacity.get(),
     }));
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[accountID], translate}) ?? CONST.CONCIERGE_DISPLAY_NAME;
-    const actorIcon = personalDetails?.[accountID]?.avatar ? {source: personalDetails[accountID].avatar, name: displayName, type: CONST.ICON_TYPE_AVATAR} : undefined;
+    const [personalDetail] = usePersonalDetail(accountID);
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, translate, formatPhoneNumber}) ?? CONST.CONCIERGE_DISPLAY_NAME;
+    const actorIcon = personalDetail?.avatar ? {source: personalDetail.avatar, name: displayName, type: CONST.ICON_TYPE_AVATAR} : undefined;
+
+    const showConciergeDetails = () => {
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)));
+    };
 
     const handleToggle = () => {
         if (!hasReasoningHistory) {
@@ -152,24 +159,28 @@ function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLab
     return (
         <View style={[styles.chatItem]}>
             {/* Avatar */}
-            <View
-                style={[styles.alignSelfStart, styles.mr3]}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-            >
-                <OfflineWithFeedback pendingAction={personalDetails?.[accountID]?.pendingFields?.avatar ?? undefined}>
-                    <ReportActionAvatars
-                        singleAvatarContainerStyle={[styles.actionAvatar]}
-                        subscriptAvatarBorderColor={theme.appBG}
-                        noRightMarginOnSubscriptContainer
-                        isInReportAction
-                        shouldShowTooltip
-                        secondaryAvatarContainerStyle={[
-                            StyleUtils.getBackgroundAndBorderStyle(theme.appBG),
-                            isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined,
-                        ]}
-                        accountIDs={[accountID]}
-                    />
+            <View style={[styles.alignSelfStart, styles.mr3]}>
+                <OfflineWithFeedback pendingAction={personalDetail?.pendingFields?.avatar ?? undefined}>
+                    {accountID === CONST.ACCOUNT_ID.CONCIERGE ? (
+                        <UserDetailsTooltip accountID={accountID}>
+                            <PressableWithoutFeedback
+                                style={[styles.actionAvatar]}
+                                onPressIn={ControlSelection.block}
+                                onPressOut={ControlSelection.unblock}
+                                onPress={showConciergeDetails}
+                                accessibilityLabel={displayName}
+                                role={CONST.ROLE.BUTTON}
+                                sentryLabel={CONST.SENTRY_LABEL.REPORT.CONCIERGE_THINKING_AVATAR_BUTTON}
+                            >
+                                <ConciergeAnimatedAvatar />
+                            </PressableWithoutFeedback>
+                        </UserDetailsTooltip>
+                    ) : (
+                        <AccountAvatar
+                            containerStyle={styles.actionAvatar}
+                            accountID={accountID}
+                        />
+                    )}
                 </OfflineWithFeedback>
             </View>
 

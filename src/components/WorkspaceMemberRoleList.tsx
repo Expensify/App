@@ -34,9 +34,12 @@ type WorkspaceMemberRoleListProps = {
     navigateBackTo?: Route;
     isLoading?: boolean;
     onSelectRole?: (value: ListItemType) => void;
+
+    /** When provided, restricts the selectable roles to this set (e.g. an Authorized Payer may only be an Admin or Payments Admin) */
+    allowedRoles?: Array<ValueOf<typeof CONST.POLICY.ROLE>>;
 };
 
-function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLoading = false, onSelectRole = () => {}}: WorkspaceMemberRoleListProps) {
+function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLoading = false, onSelectRole = () => {}, allowedRoles = undefined}: WorkspaceMemberRoleListProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
@@ -86,7 +89,9 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
         },
     ];
 
-    const availableRoleItems: ListItemType[] = workspaceRoles.filter((item) => canMemberAssignRole(policy, currentUserLogin, item.value));
+    const availableRoleItems: ListItemType[] = workspaceRoles.filter(
+        (item) => canMemberAssignRole(policy, currentUserLogin, item.value) && (!allowedRoles || allowedRoles.includes(item.value)),
+    );
 
     return (
         <>

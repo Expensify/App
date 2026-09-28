@@ -67,7 +67,7 @@ const run = function (): Promise<void> {
         });
 };
 
-if (require.main === module) {
+if (import.meta.main) {
     run();
 }
 

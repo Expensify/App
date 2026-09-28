@@ -3,6 +3,8 @@ import TestToolRow from '@components/TestToolRow';
 
 import useLocalize from '@hooks/useLocalize';
 
+import CONST from '@src/CONST';
+
 import {NativeModules} from 'react-native';
 
 export default function SoftKillTestToolRow() {
@@ -11,10 +13,11 @@ export default function SoftKillTestToolRow() {
     return (
         <TestToolRow title={translate('initialSettingsPage.troubleshoot.softKillTheApp')}>
             <Button
-                small
-                text={translate('initialSettingsPage.troubleshoot.kill')}
+                size={CONST.BUTTON_SIZE.SMALL}
                 onPress={() => NativeModules.TestToolsBridge.softKillApp()}
-            />
+            >
+                <Button.Text>{translate('initialSettingsPage.troubleshoot.kill')}</Button.Text>
+            </Button>
         </TestToolRow>
     );
 }

@@ -1,4 +1,5 @@
 import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import FixedFooter from '@components/FixedFooter';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -9,6 +10,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -56,6 +58,7 @@ function DynamicExitSurveyReasonPage() {
     const StyleUtils = useStyleUtils();
     const {keyboardHeight} = useKeyboardState();
     const {windowHeight} = useWindowDimensions();
+    const {contentHeaderHeight} = useContentHeaderHeight();
     const {inputCallbackRef} = useAutoFocusInput(true);
 
     // Device safe area top and bottom insets.
@@ -98,7 +101,7 @@ function DynamicExitSurveyReasonPage() {
             keyboardHeight -
             safeAreaInsetsTop -
             // Minus the height of HeaderWithBackButton
-            variables.contentHeaderHeight -
+            contentHeaderHeight -
             // Minus the top margins on the form
             formTopMarginsStyle.marginTop,
     );
@@ -150,21 +153,21 @@ function DynamicExitSurveyReasonPage() {
                 )}
             </FormProvider>
             <FixedFooter>
-                <Button
-                    large
-                    text={translate('exitSurvey.goToExpensifyClassic')}
+                <ButtonDisabledWhenOffline
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={switchToClassic}
-                    isDisabled={isOffline}
-                />
-                <Button
-                    success
-                    large
-                    pressOnEnter
-                    text={translate('exitSurvey.goBackJustOnce')}
+                >
+                    <Button.Text>{translate('exitSurvey.goToExpensifyClassic')}</Button.Text>
+                </ButtonDisabledWhenOffline>
+                <ButtonDisabledWhenOffline
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={goBackJustOnce}
-                    isDisabled={isOffline}
                     style={styles.mt3}
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('exitSurvey.goBackJustOnce')}</Button.Text>
+                </ButtonDisabledWhenOffline>
             </FixedFooter>
         </ScreenWrapper>
     );

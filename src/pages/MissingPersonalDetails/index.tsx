@@ -5,7 +5,6 @@ import useOnyx from '@hooks/useOnyx';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -26,12 +25,11 @@ function MissingPersonalDetails({route: {params: {cardID = ''} = {}}}) {
     const isLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, draftValuesMetadata);
 
     const handleComplete = useCallback(() => {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE.getRoute(cardID), basePath), {forceReplace: true});
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE.getRoute(cardID), basePath), {forceReplace: true});
     }, [cardID, basePath]);
 
     if (isLoading) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'MissingPersonalDetails'};
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

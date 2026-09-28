@@ -1,6 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import DateUtils from '@libs/DateUtils';
+import fileURIToPath from '@libs/fileURIToPath';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import saveLastRoute from '@libs/saveLastRoute';
@@ -157,6 +158,23 @@ const splitExtensionFromFileName: SplitExtensionFromFileName = (fullFileName) =>
     const fileExtension = splitFileName.length > 1 ? splitFileName.pop() : '';
     return {fileName: splitFileName.join('.'), fileExtension: fileExtension ?? ''};
 };
+
+/**
+ * Returns the file name, reading it from the URI when the picker returns none, as the iOS document picker can.
+ * Falls back to `defaultFileName` only when the URI has no extension either, as with Android's `content://` URIs.
+ */
+function getFileNameWithFallback(fileName: string | null | undefined, uri: string, defaultFileName: string): string {
+    if (fileName) {
+        return fileName;
+    }
+
+    const fileNameFromURI = getFileName(uri);
+    if (!splitExtensionFromFileName(fileNameFromURI).fileExtension) {
+        return defaultFileName;
+    }
+
+    return fileNameFromURI;
+}
 
 /**
  * Returns the MIME type for a given file extension.
@@ -407,7 +425,7 @@ function verifyFileFormat({fileUri, formatSignatures}: {fileUri: string; formatS
         return Promise.resolve(false);
     }
 
-    const cleanUri = fileUri.replace('file://', '');
+    const cleanUri = fileURIToPath(fileUri);
 
     if (Platform.OS === 'ios') {
         return ReactNativeBlobUtil.fs.readFile(cleanUri, 'base64').then((fullBase64Data: string) => {
@@ -562,7 +580,7 @@ function getFileResolution(targetFile: FileObject | undefined): Promise<{width: 
 }
 
 function isHighResolutionImage(resolution: {width: number; height: number} | null): boolean {
-    return resolution !== null && (resolution.width > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD || resolution.height > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD);
+    return resolution !== null && resolution.width * resolution.height > CONST.MAX_IMAGE_PIXEL_COUNT;
 }
 
 /**
@@ -734,9 +752,9 @@ const normalizeFileObject = async (file: FileObject): Promise<FileObject> => {
 
     const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
     const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
-    const isNativePlatform = isAndroidNative || isIOSNative;
+    const isNative = isAndroidNative || isIOSNative;
 
-    if (!isNativePlatform || 'size' in file) {
+    if (!isNative || 'size' in file) {
         return file;
     }
 
@@ -789,12 +807,8 @@ const getFileValidationErrorText = (
                     title: translate('attachmentPicker.someFilesCantBeUploaded'),
                     reason: translate('attachmentPicker.sizeLimitExceeded', maxSize / 1024 / 1024),
                 };
-            case CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED:
-                return {
-                    title: translate('attachmentPicker.attachmentError'),
-                    reason: translate('attachmentPicker.folderNotAllowedMessage'),
-                };
             case CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED:
+                // This error can only occur for a multi-file selection, so it intentionally has no single-file case below.
                 return {
                     title: translate('attachmentPicker.someFilesCantBeUploaded'),
                     reason: translate('attachmentPicker.maxFileLimitExceeded'),
@@ -805,6 +819,11 @@ const getFileValidationErrorText = (
     }
 
     switch (validationError.error) {
+        case CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED:
+            return {
+                title: translate(validationError.isValidatingMultipleFiles ? 'attachmentPicker.someFilesCantBeUploaded' : 'attachmentPicker.attachmentError'),
+                reason: translate('attachmentPicker.folderNotAllowedMessage'),
+            };
         case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE:
             return {
                 title: translate('attachmentPicker.wrongFileType'),
@@ -824,6 +843,11 @@ const getFileValidationErrorText = (
             return {
                 title: translate('attachmentPicker.attachmentError'),
                 reason: translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
+            };
+        case CONST.FILE_VALIDATION_ERRORS.HEIC_CONVERSION_FAILED:
+            return {
+                title: translate('attachmentPicker.attachmentError'),
+                reason: translate('attachmentPicker.errorWhileConvertingHeic'),
             };
         case CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE:
             return {
@@ -939,6 +963,7 @@ export {
     splitExtensionFromFileName,
     getMimeType,
     getFileName,
+    getFileNameWithFallback,
     getFileType,
     cleanFileName,
     getExportFileName,

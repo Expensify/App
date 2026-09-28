@@ -1,5 +1,6 @@
-import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import ActivityIndicator from '@components/ActivityIndicator';
+import type {ActiveSorting, CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
@@ -9,11 +10,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
 
 import type {WorkspaceRoomRowData} from './WorkspaceRoomsTableRow';
 
@@ -30,16 +33,31 @@ type WorkspaceRoomsTableProps = {
 
     /** The reportID of the room that should play the highlight animation (e.g. when it was just created) */
     highlightedReportID?: string;
+
+    /** Callback when the active search string changes */
+    onSearchStringChange?: (searchString: string) => void;
+
+    /** Callback when scrolling to the bottom of the list */
+    onEndReached?: () => void;
+
+    /** Callback when the active sorting configuration changes */
+    onSortingChange?: (sorting: ActiveSorting<WorkspaceRoomsTableColumnKey>) => void;
+
+    /** Content rendered above the table header inside the scrollable list */
+    headerComponent?: React.ReactElement;
 };
 
-function WorkspaceRoomsTable({rooms, policyID, highlightedReportID}: WorkspaceRoomsTableProps) {
+function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStringChange, onEndReached, onSortingChange, headerComponent}: WorkspaceRoomsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const tableRef = useRef<TableHandle<WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey>>(null);
-    const [isPolicyRoomDataLoaded] = useOnyx(ONYXKEYS.ARE_POLICY_ROOMS_LOADED, {
+    const [roomsMetadata] = useOnyx(ONYXKEYS.POLICY_ROOMS_METADATA, {
         selector: (value) => value?.[policyID],
     });
+
+    // A page beyond the first one is loading, so the rows already on screen stay and the footer reports the progress.
+    const isLoadingMoreRooms = !!roomsMetadata?.isLoading && (roomsMetadata?.pageNumber ?? 1) > 1;
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
@@ -57,8 +75,19 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID}: WorkspaceRo
         if (!highlightedRoom) {
             return;
         }
-        tableRef.current?.scrollToItem({item: highlightedRoom, animated: false});
-        tableRef.current?.highlightItems([highlightedRoom.keyForList]);
+        // The room has to be looked up in the table's processed data: an active search can filter it out
+        // (in which case there is nothing to scroll to and the FlashList is not even mounted), and FlashList
+        // matches the scroll target by reference, so the row instance must come from the data the list renders.
+        const highlightedRow = tableRef.current?.getProcessedData().find((row) => row.keyForList === highlightedRoom.keyForList);
+        if (!highlightedRow) {
+            return;
+        }
+        tableRef.current?.scrollToItem({
+            item: highlightedRow,
+            animated: false,
+            viewPosition: 0.5,
+        });
+        tableRef.current?.highlightItems([highlightedRow.keyForList]);
     }, [highlightedReportID, rooms]);
 
     const columns: Array<TableColumn<WorkspaceRoomsTableColumnKey>> = [
@@ -87,9 +116,26 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID}: WorkspaceRo
         />
     );
 
-    if (!isPolicyRoomDataLoaded) {
-        return <Table.LoadingState context="WorkspaceRoomsTable" />;
+    const listFooterComponent = isLoadingMoreRooms ? (
+        <View style={[styles.pv3, styles.alignItemsCenter]}>
+            <ActivityIndicator
+                size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
+                extraLoadingContext={{context: 'WorkspaceRoomsTable.loadMore'}}
+            />
+        </View>
+    ) : undefined;
+
+    if (!roomsMetadata?.isLoaded) {
+        // The page header stays visible above the loading skeleton so the layout doesn't jump once the table renders.
+        return (
+            <>
+                {headerComponent}
+                <Table.LoadingState />
+            </>
+        );
     }
+
+    const tableHeaderComponent = composeTableListHeader(headerComponent, <Table.FilterBar label={translate('workspace.common.findRoom')} />);
 
     return (
         <Table
@@ -102,8 +148,12 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID}: WorkspaceRo
             initialSortColumn="name"
             title={translate('workspace.common.rooms')}
             keyExtractor={(row, index) => `${row.reportID}-${index}`}
+            onSearchStringChange={onSearchStringChange}
+            onSortingChange={onSortingChange}
+            onEndReached={onEndReached}
+            ListFooterComponent={listFooterComponent}
         >
-            <Table.FilterBar label={translate('workspace.common.findRoom')} />
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />

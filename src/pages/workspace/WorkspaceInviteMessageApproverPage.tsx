@@ -4,6 +4,7 @@ import ApproverSelectionList from '@components/ApproverSelectionList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 
 import {setWorkspaceInviteApproverDraft} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
@@ -50,7 +51,8 @@ function WorkspaceInviteMessageApproverPage({policy, personalDetails, isLoadingR
         Navigation.goBack(backTo);
     };
 
-    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(employeeList ?? {}));
+    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, employeePersonalDetails);
 
     const allApprovers: SelectionListApprover[] = (() => {
         if (!employeeList) {
@@ -87,6 +89,7 @@ function WorkspaceInviteMessageApproverPage({policy, personalDetails, isLoadingR
                     keyForList: email,
                     isSelected: selectedApprover === email,
                     login: email,
+                    value: email,
                     icons: [{source: avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
                     rightElement: (
                         <MemberRightIcon
@@ -124,7 +127,6 @@ function WorkspaceInviteMessageApproverPage({policy, personalDetails, isLoadingR
                 policy={policy}
                 isLoadingReportData={isLoadingReportData}
                 onBackButtonPress={goBack}
-                initiallyFocusedOptionKey={selectedApprover}
                 allApprovers={allApprovers}
                 onSelectApprover={handleOnSelectApprover}
                 shouldRequirePolicyAdmin={false}

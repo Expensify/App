@@ -6,6 +6,8 @@ import useLocalize from '@hooks/useLocalize';
 
 import type {RequireFieldsTableItem} from '@libs/RequireFieldsRulesUtils';
 
+import variables from '@styles/variables';
+
 import React from 'react';
 
 import WorkspaceRequireFieldsTableRow from './WorkspaceRequireFieldsTableRow';
@@ -16,14 +18,15 @@ type WorkspaceRequireFieldsTableProps = {
     selectedKeys: string[];
     emptyState: TableEmptyStateProps;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    headerComponent?: React.ReactElement;
 };
 
-function WorkspaceRequireFieldsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, emptyState}: WorkspaceRequireFieldsTableProps) {
+function WorkspaceRequireFieldsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent, emptyState}: WorkspaceRequireFieldsTableProps) {
     const {translate} = useLocalize();
 
     const renderRow = ({item, rowIndex, shouldUseNarrowTableLayout}: TableRenderRowProps<RequireFieldsTableItem>) => (
         <WorkspaceRequireFieldsTableRow
-            key={item.ruleID}
+            key={item.keyForList}
             item={item}
             rowIndex={rowIndex}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
@@ -36,6 +39,7 @@ function WorkspaceRequireFieldsTable({rulesData, selectionEnabled, selectedKeys,
             selectionEnabled={selectionEnabled}
             selectedKeys={selectedKeys}
             onRowSelectionChange={onRowSelectionChange}
+            headerComponent={headerComponent}
             emptyState={emptyState}
             tableTitle={translate('workspace.rules.tabs.requireFields')}
             findRuleLabel={translate('workspace.rules.requireFieldsTable.findRule')}
@@ -43,6 +47,7 @@ function WorkspaceRequireFieldsTable({rulesData, selectionEnabled, selectedKeys,
             conditionColumnLabel={translate('workspace.rules.requireFieldsTable.tableColumnCondition')}
             ruleColumnLabel={translate('workspace.rules.requireFieldsTable.tableColumnRule')}
             renderRow={renderRow}
+            typeColumnWidth={variables.tableRequireFieldsTypeColumnWidth}
         />
     );
 }

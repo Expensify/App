@@ -1,5 +1,6 @@
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import {usePopoverActions} from '@components/PopoverProvider';
+import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
 
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -107,23 +108,25 @@ function PopoverWithoutOverlay({
     }
 
     return (
-        <View
-            style={modalStyle}
-            ref={viewRef(withoutOverlayRef)}
-            // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
-            onClick={(e) => e.stopPropagation()}
-            dataSet={{dragArea: false}}
-        >
+        <ScreenWrapperOfflineIndicatorContext.Provider value={{}}>
             <View
-                style={{
-                    ...styles.defaultModalContainer,
-                    ...modalContainerStyle,
-                    ...modalPaddingStyles,
-                }}
+                style={modalStyle}
+                ref={viewRef(withoutOverlayRef)}
+                // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
+                onClick={(e) => e.stopPropagation()}
+                dataSet={{dragArea: false}}
             >
-                <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
+                <View
+                    style={{
+                        ...styles.defaultModalContainer,
+                        ...modalContainerStyle,
+                        ...modalPaddingStyles,
+                    }}
+                >
+                    <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
+                </View>
             </View>
-        </View>
+        </ScreenWrapperOfflineIndicatorContext.Provider>
     );
 }
 

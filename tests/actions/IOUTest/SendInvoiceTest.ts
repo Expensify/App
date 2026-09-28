@@ -12,7 +12,7 @@ import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags, Report} from '@src/types/onyx';
 import type {Participant as IOUParticipant} from '@src/types/onyx/IOU';
-import type {InvoiceReceiver} from '@src/types/onyx/Report';
+import type {InvoiceReceiver, Participant as ReportParticipant, Participants} from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -25,9 +25,10 @@ import type {MockFetch} from '../../utils/TestHelper';
 import * as InvoiceData from '../../data/Invoice';
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
-import {getGlobalFetchMock} from '../../utils/TestHelper';
+import {createGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -50,22 +51,45 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
 
+function isRecord(input: unknown): input is Record<string, unknown> {
+    return typeof input === 'object' && input !== null;
+}
+
 OnyxUpdateManager();
+/**
+ * Spies on both API write entry points and funnels their calls into `sink`. `sendInvoice` goes out through
+ * `writeWhenReady`, but the surrounding flows still reach `write`, and leaving either unmocked would let a
+ * real request through. Only the first three arguments are forwarded, so the assertions below stay written
+ * against `(command, params, onyxData)` and do not have to match the trailing barrier argument.
+ *
+ * Split into two functions at module scope because `no-multiple-api-calls` counts `API` tokens per function body.
+ */
+function spyOnApiWrites(sink: jest.Mock): jest.SpyInstance[] {
+    return [spyOnWrite(sink), spyOnWriteWhenReady(sink)];
+}
+
+function spyOnWrite(sink: jest.Mock) {
+    return jest.spyOn(API, 'write').mockImplementation((command, params, onyxData) => {
+        sink(command, params, onyxData);
+        return Promise.resolve();
+    });
+}
+
+function spyOnWriteWhenReady(sink: jest.Mock) {
+    return jest.spyOn(API, 'writeWhenReady').mockImplementation((command, params, onyxData) => {
+        sink(command, params, onyxData);
+        return Promise.resolve();
+    });
+}
+
 describe('actions/SendInvoice', () => {
     let currencyListProvider: RenderAPI;
+    let mockFetch: MockFetch;
 
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -74,11 +98,10 @@ describe('actions/SendInvoice', () => {
         return waitForBatchedUpdates();
     });
 
-    let mockFetch: MockFetch;
     beforeEach(async () => {
         jest.clearAllTimers();
-        global.fetch = getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = createGlobalFetchMock();
+        global.fetch = mockFetch;
         await Onyx.clear();
         currencyListProvider = await initCurrencyListContext({
             keys: ONYXKEYS,
@@ -144,7 +167,7 @@ describe('actions/SendInvoice', () => {
             baseSenderPolicyTags = (await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${baseSenderPolicyID}`)) ?? {};
         });
 
-        const baseTransaction = {
+        const baseTransaction = createMock<Transaction>({
             transactionID: 'transaction_base',
             reportID: 'report_base',
             amount: 100,
@@ -152,7 +175,29 @@ describe('actions/SendInvoice', () => {
             created: '2024-02-01',
             merchant: 'Test Merchant',
             participants: baseParticipants,
-        };
+        });
+
+        const existingInvoiceChatReportFixture = createMock<Report>({
+            reportID: 'invoice_chat_123',
+            chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+            type: CONST.REPORT.TYPE.CHAT,
+            participants: createMock<Participants>({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                123: createMock<ReportParticipant>({
+                    role: CONST.REPORT.ROLE.MEMBER,
+                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                }),
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                456: createMock<ReportParticipant>({
+                    role: CONST.REPORT.ROLE.MEMBER,
+                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                }),
+            }),
+            invoiceReceiver: createMock<InvoiceReceiver>({
+                type: 'individual',
+                accountID: 456,
+            }),
+        });
 
         it('should merge policyRecentlyUsedCategories when provided', () => {
             const currentUserAccountID = 123;
@@ -160,7 +205,7 @@ describe('actions/SendInvoice', () => {
 
             // When: Call getSendInvoiceInformation with policyRecentlyUsedCategories
             const result = getSendInvoiceInformation({
-                transaction: baseTransaction as OnyxEntry<Transaction>,
+                transaction: baseTransaction,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
@@ -172,6 +217,9 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: existingRecentlyUsedCategories,
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: Verify optimistic data is generated when policyRecentlyUsedCategories are provided
@@ -185,7 +233,7 @@ describe('actions/SendInvoice', () => {
             const currentUserAccountID = 123;
 
             const result = getSendInvoiceInformation({
-                transaction: {...baseTransaction, currency: CONST.CURRENCY.EUR} as OnyxEntry<Transaction>,
+                transaction: {...baseTransaction, currency: CONST.CURRENCY.EUR},
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: initialCurrencies,
                 invoiceChatReport: undefined,
@@ -197,6 +245,9 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: undefined,
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(result.onyxData.optimisticData).toBeDefined();
@@ -220,7 +271,7 @@ describe('actions/SendInvoice', () => {
                 },
             };
 
-            const mockPolicyTagList = {
+            const mockPolicyTagList = createMock<PolicyTagLists>({
                 tagList: {
                     name: 'tagList',
                     orderWeight: 0,
@@ -232,22 +283,25 @@ describe('actions/SendInvoice', () => {
                         },
                     },
                 },
-            };
+            });
 
             // When: Call getSendInvoiceInformation
             const result = getSendInvoiceInformation({
-                transaction: baseTransaction as OnyxEntry<Transaction>,
+                transaction: baseTransaction,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
                 receiptFile: undefined,
                 policy: mockPolicy,
-                policyTagList: mockPolicyTagList as OnyxEntry<PolicyTagLists>,
+                policyTagList: mockPolicyTagList,
                 policyCategories: mockPolicyCategories,
                 companyName: 'Test Company Inc.',
                 companyWebsite: 'https://testcompany.com',
                 policyRecentlyUsedCategories: ['Services', 'Consulting'],
-                senderPolicyTags: mockPolicyTagList as PolicyTagLists,
+                senderPolicyTags: mockPolicyTagList,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: Verify the result structure and key values
@@ -278,45 +332,55 @@ describe('actions/SendInvoice', () => {
             expect(result.onyxData.failureData).toBeDefined();
         });
 
-        it('should return correct invoice information with existing chat report', () => {
-            // Given: Existing invoice chat report
-            const existingInvoiceChatReport = {
-                reportID: 'invoice_chat_123',
-                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
-                type: CONST.REPORT.TYPE.CHAT,
-                participants: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '123': {
-                        accountID: 123,
-                        role: CONST.REPORT.ROLE.MEMBER,
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '456': {
-                        accountID: 456,
-                        role: CONST.REPORT.ROLE.MEMBER,
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
-                },
-                invoiceReceiver: {
-                    type: 'individual',
-                    accountID: 456,
-                    displayName: 'Client Company',
-                    login: 'client@example.com',
-                },
-            };
-
+        it('should set report loading state in failure data for new invoice chat report', () => {
             const currentUserAccountID = 123;
 
-            // When: Call getSendInvoiceInformation with existing chat report
             const result = getSendInvoiceInformation({
-                transaction: {
-                    ...baseTransaction,
-                    participants: [{...baseParticipants.at(0), policyID: 'workspace_456'}, baseParticipants.at(1)],
-                } as OnyxEntry<Transaction>,
+                transaction: baseTransaction,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
-                invoiceChatReport: existingInvoiceChatReport as OnyxEntry<Report>,
+                invoiceChatReport: undefined,
+                receiptFile: undefined,
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                companyName: undefined,
+                companyWebsite: undefined,
+                policyRecentlyUsedCategories: [],
+                senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            const reportLoadingStateUpdate = result.onyxData.failureData?.find(
+                (update) => update.key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${result.invoiceRoom.reportID}`,
+            );
+
+            expect(reportLoadingStateUpdate).toMatchObject({
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    hasOnceLoadedReportActions: true,
+                    isLoadingInitialReportActions: false,
+                },
+            });
+        });
+
+        it('should not set report loading state in failure data for existing invoice chat report', () => {
+            const currentUserAccountID = 123;
+            const transaction = createMock<Transaction>({
+                ...baseTransaction,
+                participants: [
+                    {accountID: 123, isSender: true, policyID: 'workspace_456'},
+                    {accountID: 456, isSender: false},
+                ],
+            });
+
+            const result = getSendInvoiceInformation({
+                transaction,
+                currentUserAccountID,
+                policyRecentlyUsedCurrencies: [],
+                invoiceChatReport: existingInvoiceChatReportFixture,
                 receiptFile: undefined,
                 policy: undefined,
                 policyTagList: undefined,
@@ -325,6 +389,90 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: 'https://clientcompany.com',
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            const reportLoadingStateUpdate = result.onyxData.failureData?.find(
+                (update) => update.key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${result.invoiceRoom.reportID}`,
+            );
+
+            expect(reportLoadingStateUpdate).toBeUndefined();
+            // Then: both reports are stamped as "actions already loaded" so they never hang on an infinite skeleton once online
+            const optimisticData = result.onyxData.optimisticData ?? [];
+            const invoiceReportLoadingState = optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${result.invoiceReportID}`);
+            const invoiceRoomLoadingState = optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${result.invoiceRoom.reportID}`);
+
+            expect(invoiceReportLoadingState?.value).toMatchObject({hasOnceLoadedReportActions: true});
+            expect(invoiceRoomLoadingState).toBeUndefined();
+        });
+
+        describe('delegateAccountID forwarding', () => {
+            it('sets delegateAccountID on the IOU action when delegateAccountID is provided', () => {
+                const DELEGATE_ACCOUNT_ID = 999;
+                const mockPolicy = createRandomPolicy(0);
+                mockPolicy.id = 'workspace_test';
+
+                const result = getSendInvoiceInformation({
+                    transaction: baseTransaction,
+                    currentUserAccountID: 123,
+                    policyRecentlyUsedCurrencies: [],
+                    invoiceChatReport: undefined,
+                    receiptFile: undefined,
+                    policy: mockPolicy,
+                    policyTagList: undefined,
+                    policyCategories: undefined,
+                    companyName: 'Test Company Inc.',
+                    companyWebsite: 'https://testcompany.com',
+                    policyRecentlyUsedCategories: [],
+                    senderPolicyTags: baseSenderPolicyTags,
+                    formatPhoneNumber,
+                    delegateAccountID: DELEGATE_ACCOUNT_ID,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                });
+
+                const reportActionsUpdate = result.onyxData.optimisticData?.find((update) => String(update.key) === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${result.invoiceReportID}`);
+                const reportActionValue: unknown = reportActionsUpdate?.value;
+                let delegateAccountID: number | undefined;
+                if (isRecord(reportActionValue) && result.reportActionID in reportActionValue) {
+                    const action = reportActionValue[result.reportActionID];
+                    if (isRecord(action) && typeof action.delegateAccountID === 'number') {
+                        delegateAccountID = action.delegateAccountID;
+                    }
+                }
+                expect(delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+            });
+        });
+
+        it('should return correct invoice information with existing chat report', () => {
+            const currentUserAccountID = 123;
+
+            const transaction = createMock<Transaction>({
+                ...baseTransaction,
+                participants: [
+                    {accountID: 123, isSender: true, policyID: 'workspace_456'},
+                    {accountID: 456, isSender: false},
+                ],
+            });
+
+            // When: Call getSendInvoiceInformation with existing chat report
+            const result = getSendInvoiceInformation({
+                transaction,
+                currentUserAccountID,
+                policyRecentlyUsedCurrencies: [],
+                invoiceChatReport: existingInvoiceChatReportFixture,
+                receiptFile: undefined,
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                companyName: 'Client Company Ltd.',
+                companyWebsite: 'https://clientcompany.com',
+                policyRecentlyUsedCategories: [],
+                senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: Verify the result uses existing chat report
@@ -349,7 +497,7 @@ describe('actions/SendInvoice', () => {
 
             // When: Call getSendInvoiceInformation with receipt
             const result = getSendInvoiceInformation({
-                transaction: baseTransaction as OnyxEntry<Transaction>,
+                transaction: baseTransaction,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
@@ -361,6 +509,9 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: Verify receipt handling
@@ -375,7 +526,7 @@ describe('actions/SendInvoice', () => {
 
         it('should handle missing transaction data gracefully', () => {
             // Given: Minimal transaction data
-            const mockTransaction = {
+            const mockTransaction = createMock<Transaction>({
                 transactionID: 'transaction_minimal',
                 reportID: 'report_minimal',
                 amount: 100,
@@ -392,13 +543,13 @@ describe('actions/SendInvoice', () => {
                         isSender: false,
                     },
                 ],
-            };
+            });
 
             const currentUserAccountID = 123;
 
             // When: Call getSendInvoiceInformation with minimal data
             const result = getSendInvoiceInformation({
-                transaction: mockTransaction as OnyxEntry<Transaction>,
+                transaction: mockTransaction,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
@@ -410,6 +561,9 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: Verify function handles missing data gracefully
@@ -427,7 +581,7 @@ describe('actions/SendInvoice', () => {
             const currentUserAccountID = 123;
 
             const result = getSendInvoiceInformation({
-                transaction: baseTransaction as OnyxEntry<Transaction>,
+                transaction: baseTransaction,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
@@ -440,6 +594,9 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(result.invoiceRoom).toBeDefined();
@@ -452,37 +609,35 @@ describe('actions/SendInvoice', () => {
             const existingReportID = 'existing_invoice_chat';
             const receiverAccountID = 456;
 
-            const existingInvoiceChatReport = {
+            const existingInvoiceChatReport = createMock<Report>({
                 reportID: existingReportID,
                 chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
                 type: CONST.REPORT.TYPE.CHAT,
-                participants: {
+                participants: createMock<Participants>({
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '123': {
-                        accountID: 123,
+                    123: createMock<ReportParticipant>({
                         role: CONST.REPORT.ROLE.MEMBER,
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    }),
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '456': {
-                        accountID: receiverAccountID,
+                    456: createMock<ReportParticipant>({
                         role: CONST.REPORT.ROLE.MEMBER,
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
-                },
+                    }),
+                }),
                 invoiceReceiver: {
                     type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
                     accountID: receiverAccountID,
                 },
-            };
+            });
 
             const currentUserAccountID = 123;
 
             const result = getSendInvoiceInformation({
-                transaction: baseTransaction as OnyxEntry<Transaction>,
+                transaction: baseTransaction,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
-                invoiceChatReport: existingInvoiceChatReport as OnyxEntry<Report>,
+                invoiceChatReport: existingInvoiceChatReport,
                 invoiceChatReportID: preGeneratedReportID,
                 receiptFile: undefined,
                 policy: undefined,
@@ -492,6 +647,9 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(result.invoiceRoom).toBeDefined();
@@ -524,7 +682,7 @@ describe('actions/SendInvoice', () => {
                 [tagListName]: ['Marketing'],
             };
 
-            const mockTransaction = {
+            const mockTransaction = createMock<Transaction>({
                 transactionID: 'transaction_tags_test',
                 reportID: 'report_tags_test',
                 amount: 100,
@@ -536,15 +694,18 @@ describe('actions/SendInvoice', () => {
                     {accountID: 123, isSender: true, policyID},
                     {accountID: 456, isSender: false},
                 ],
-            };
+            });
 
             // When: Call getSendInvoiceInformation with senderPolicyTags read from Onyx
             const result = getSendInvoiceInformation({
-                transaction: mockTransaction as OnyxEntry<Transaction>,
+                transaction: mockTransaction,
                 currentUserAccountID: 123,
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags,
                 senderPolicyTags: senderPolicyTags ?? {},
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: optimisticData should contain a POLICY_RECENTLY_USED_TAGS update with the transaction tag prepended
@@ -573,7 +734,7 @@ describe('actions/SendInvoice', () => {
 
             const senderPolicyTags = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
 
-            const mockTransaction = {
+            const mockTransaction = createMock<Transaction>({
                 transactionID: 'transaction_no_tags',
                 reportID: 'report_no_tags',
                 amount: 100,
@@ -584,14 +745,17 @@ describe('actions/SendInvoice', () => {
                     {accountID: 123, isSender: true, policyID},
                     {accountID: 456, isSender: false},
                 ],
-            };
+            });
 
             // When: Call getSendInvoiceInformation without a tag on the transaction
             const result = getSendInvoiceInformation({
-                transaction: mockTransaction as OnyxEntry<Transaction>,
+                transaction: mockTransaction,
                 currentUserAccountID: 123,
                 policyRecentlyUsedCurrencies: [],
                 senderPolicyTags: senderPolicyTags ?? {},
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: No POLICY_RECENTLY_USED_TAGS update should be in optimisticData
@@ -602,8 +766,8 @@ describe('actions/SendInvoice', () => {
     });
     describe('sendInvoice', () => {
         it('creates a new invoice chat when one has been converted from individual to business', async () => {
-            // Mock API.write for this test
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.fn();
+            const apiSpies = spyOnApiWrites(writeSpy);
 
             // Given a convertedInvoiceReport is stored in Onyx
             const {policy, transaction, convertedInvoiceChat}: InvoiceTestData = InvoiceData;
@@ -624,44 +788,102 @@ describe('actions/SendInvoice', () => {
                 companyName,
                 companyWebsite,
                 senderPolicyTags: undefined,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then a new invoice chat is created instead of incorrectly using the invoice chat which has been converted from individual to business
             expect(writeSpy).toHaveBeenCalledWith(
                 expect.anything(),
                 expect.objectContaining({
-                    invoiceRoomReportID: expect.not.stringMatching(convertedInvoiceChat.reportID) as string,
+                    invoiceRoomReportID: expect.not.stringMatching(convertedInvoiceChat.reportID),
                 }),
                 expect.anything(),
             );
-            writeSpy.mockRestore();
+            for (const spy of apiSpies) {
+                spy.mockRestore();
+            }
+        });
+
+        it('should send a phone receiver as an SMS login and store it that way in the optimistic personal details', () => {
+            const phoneNumber = '+12025550123';
+            const smsLogin = `${phoneNumber}${CONST.SMS.DOMAIN}`;
+            const receiverAccountID = 456;
+
+            const writeSpy = jest.fn();
+            const apiSpies = spyOnApiWrites(writeSpy);
+
+            const transaction = createMock<Transaction>({
+                transactionID: 'transaction_phone_receiver',
+                reportID: 'report_phone_receiver',
+                amount: 100,
+                currency: 'USD',
+                created: '2024-02-01',
+                merchant: 'Phone Invoice',
+                participants: [
+                    {accountID: 123, isSender: true, policyID: 'workspace_test'},
+                    {accountID: receiverAccountID, isSender: false, login: phoneNumber},
+                ],
+            });
+
+            sendInvoice({
+                currentUserAccountID: 123,
+                transaction,
+                policyRecentlyUsedCurrencies: [],
+                senderPolicyTags: undefined,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SEND_INVOICE,
+                expect.objectContaining({
+                    receiverEmail: smsLogin,
+                }),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                            value: {[receiverAccountID]: expect.objectContaining({login: smsLogin, displayName: formatPhoneNumber(phoneNumber)})},
+                        }),
+                    ]),
+                }),
+            );
+
+            for (const spy of apiSpies) {
+                spy.mockRestore();
+            }
         });
 
         it('should not clear transaction pending action when send invoice fails', async () => {
             const testCurrency = CONST.CURRENCY.EUR;
-            const transaction = {
+            const transaction: Transaction = {
                 ...createRandomTransaction(1),
                 currency: testCurrency,
-            } as unknown as OnyxEntry<Transaction>;
+            };
             const initialCurrencies: string[] = [];
             await Onyx.set(ONYXKEYS.RECENTLY_USED_CURRENCIES, initialCurrencies);
 
-            mockFetch?.pause?.();
+            mockFetch.pause();
             sendInvoice({
                 currentUserAccountID: 1,
                 transaction,
                 policyRecentlyUsedCurrencies: initialCurrencies,
                 senderPolicyTags: undefined,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
-            mockFetch?.fail?.();
-            mockFetch?.resume?.();
+            mockFetch.fail();
+            mockFetch.resume();
             await waitForBatchedUpdates();
 
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
                     callback: (allTransactions) => {
                         Onyx.disconnect(connection);
                         const transactionValue = Object.values(allTransactions).at(0);
@@ -678,12 +900,12 @@ describe('actions/SendInvoice', () => {
 
         it('should handle policyRecentlyUsedCategories when provided', () => {
             // Given a basic transaction and policyRecentlyUsedCategories
-            const transaction = createRandomTransaction(1) as unknown as OnyxEntry<Transaction>;
+            const transaction = createRandomTransaction(1);
             const currentUserAccountID = 1;
             const policyRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories> = [];
 
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.fn();
+            const apiSpies = spyOnApiWrites(writeSpy);
 
             // When sending an invoice
             sendInvoice({
@@ -692,6 +914,9 @@ describe('actions/SendInvoice', () => {
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedCategories,
                 senderPolicyTags: undefined,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then onyxData should be passed to API.write
@@ -703,7 +928,9 @@ describe('actions/SendInvoice', () => {
                 }),
             );
 
-            writeSpy.mockRestore();
+            for (const spy of apiSpies) {
+                spy.mockRestore();
+            }
         });
 
         it('should update policyRecentlyUsedTags when tag is provided', async () => {
@@ -733,6 +960,9 @@ describe('actions/SendInvoice', () => {
                         orderWeight: 0,
                     },
                 },
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();
 
@@ -744,7 +974,7 @@ describe('actions/SendInvoice', () => {
 
         it('should use invoiceChatReportID when creating new invoice chat via sendInvoice', () => {
             const preGeneratedReportID = 'pre_generated_report_id_456';
-            const transaction = {
+            const transaction: Transaction = {
                 ...createRandomTransaction(1),
                 participants: [
                     {
@@ -757,10 +987,10 @@ describe('actions/SendInvoice', () => {
                         isSender: false,
                     },
                 ],
-            } as unknown as OnyxEntry<Transaction>;
+            };
 
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.fn();
+            const apiSpies = spyOnApiWrites(writeSpy);
 
             sendInvoice({
                 currentUserAccountID: 123,
@@ -768,6 +998,9 @@ describe('actions/SendInvoice', () => {
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReportID: preGeneratedReportID,
                 senderPolicyTags: undefined,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(writeSpy).toHaveBeenCalledWith(
@@ -778,7 +1011,9 @@ describe('actions/SendInvoice', () => {
                 expect.anything(),
             );
 
-            writeSpy.mockRestore();
+            for (const spy of apiSpies) {
+                spy.mockRestore();
+            }
         });
     });
 });

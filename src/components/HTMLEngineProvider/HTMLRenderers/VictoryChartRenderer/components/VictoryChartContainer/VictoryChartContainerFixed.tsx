@@ -1,5 +1,6 @@
-import {CHART_TYPE} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
+import {CHART_TYPE, POLAR_CONTAINER_HEIGHT_RATIO} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import {VictoryChartLayoutScaleProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartLayoutContext';
 import {resolveChartContainerBgColor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
 
 import useTheme from '@hooks/useTheme';
@@ -10,14 +11,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 import type {VictoryChartContainerLayout, VictoryChartContainerThemeStyles} from './types';
-
-/**
- * Polar charts are circular but their design canvas is often taller than the
- * visible content, leaving dead space at the bottom. We clip the container
- * (not the content) so the chart renders at full fidelity while the unused
- * bottom portion is hidden.
- */
-const POLAR_CONTAINER_HEIGHT_RATIO = 0.9;
 
 type VictoryChartContainerFixedProps = {
     children: React.ReactNode;
@@ -33,6 +26,7 @@ function VictoryChartContainerFixed({children, layout, themeStyles}: VictoryChar
     const layoutKind = layout.kind;
     const fixedWidth = layout.kind === 'fixed' ? layout.width : undefined;
     const fixedHeight = layout.kind === 'fixed' ? layout.height : undefined;
+    const scaledDesignWidth = layout.kind === 'scaled' ? layout.designWidth : undefined;
     const scaledDesignHeight = layout.kind === 'scaled' ? layout.designHeight : undefined;
     const scaledScale = layout.kind === 'scaled' ? layout.scale : undefined;
     const isPolar = type === CHART_TYPE.POLAR;
@@ -42,9 +36,12 @@ function VictoryChartContainerFixed({children, layout, themeStyles}: VictoryChar
 
     if (layoutKind === 'fixed' && fixedWidth !== undefined && fixedHeight !== undefined) {
         containerStyle = [...containerStyleBase, {width: fixedWidth, height: fixedHeight, borderRadius: 0, overflow: 'hidden'}];
-    } else if (layoutKind === 'scaled' && scaledDesignHeight !== undefined && scaledScale !== undefined) {
+    } else if (layoutKind === 'scaled' && scaledDesignWidth !== undefined && scaledDesignHeight !== undefined && scaledScale !== undefined) {
         const effectiveHeight = isPolar ? scaledDesignHeight * POLAR_CONTAINER_HEIGHT_RATIO : scaledDesignHeight;
-        containerStyle = [...containerStyleBase, {borderRadius: isPolar ? borderRadius : 0, height: effectiveHeight * scaledScale, overflow: 'hidden'}];
+        containerStyle = [
+            ...containerStyleBase,
+            {borderRadius: isPolar ? borderRadius : 0, width: scaledDesignWidth * scaledScale, height: effectiveHeight * scaledScale, overflow: 'hidden'},
+        ];
     }
 
     const contentStyle: ViewStyle[] = [];
@@ -61,7 +58,9 @@ function VictoryChartContainerFixed({children, layout, themeStyles}: VictoryChar
 
     return (
         <View style={containerStyle}>
-            <View style={contentStyle}>{children}</View>
+            <VictoryChartLayoutScaleProvider scale={scaledScale ?? 1}>
+                <View style={contentStyle}>{children}</View>
+            </VictoryChartLayoutScaleProvider>
         </View>
     );
 }

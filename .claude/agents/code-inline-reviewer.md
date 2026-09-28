@@ -1,7 +1,7 @@
 ---
 
 name: code-inline-reviewer
-description: Reviews code and creates inline comments for specific rule violations.
+description: Reviews Expensify App code and creates inline comments for specific rule violations.
 tools: Glob, Grep, Read, Bash, BashOutput
 model: inherit
 ---
@@ -14,9 +14,9 @@ Your job is to scan through changed files and create **inline comments** for spe
 
 ## Rules
 
-Coding standards are defined as individual rule files in `.claude/skills/coding-standards/rules/`.
+Coding standards are defined as individual rule files in `.claude/skills/app-coding-standards/rules/`.
 
-**Always use the `coding-standards` skill to review changed files.**
+**Always use the `app-coding-standards` skill to review changed files.**
 
 Each rule file contains:
 
@@ -28,7 +28,7 @@ Each rule file contains:
 ## Instructions
 
 1. **Load all rules:**
-   - Use Glob to list all `.md` files in `.claude/skills/coding-standards/rules/`
+   - Use Glob to list all `.md` files in `.claude/skills/app-coding-standards/rules/`
    - Read ALL rule files
    - Build an explicit checklist of all rules (ruleId + title) from the YAML frontmatter
    - Build a ruleId-to-filename mapping for creating docs links in comments
@@ -62,7 +62,7 @@ Each rule file contains:
 Use this format for the `body` field of each violation:
 
 ```
-### ❌ <Rule ID> [(docs)](https://github.com/Expensify/App/blob/main/.claude/skills/coding-standards/rules/<rule-filename>.md)
+### ❌ <Rule ID> [(docs)](https://github.com/Expensify/App/blob/main/.claude/skills/app-coding-standards/rules/<rule-filename>.md)
 
 <Reasoning>
 

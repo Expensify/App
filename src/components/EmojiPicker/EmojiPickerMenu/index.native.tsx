@@ -9,6 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -19,6 +20,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 import type {ListRenderItem} from '@shopify/flash-list';
+import type {ComponentRef} from 'react';
 
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
@@ -32,6 +34,7 @@ import useEmojiPickerMenu from './useEmojiPickerMenu';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -55,13 +58,13 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
     const {paddingLeft: safeAreaPaddingLeft, paddingRight: safeAreaPaddingRight} = StyleUtils.getPlatformSafeAreaPadding(insets);
     const [searchText, setSearchText] = useState('');
 
-    const headerRefs = useRef<Record<number, React.RefObject<View | null>>>({});
+    const headerRefs = useRef<Record<number, React.RefObject<ComponentRef<typeof View> | null>>>({});
     const pendingHeaderFocusIndexRef = useRef<number | null>(null);
     const [selectedHeaderIndex, setSelectedHeaderIndex] = useState<number | null>(null);
 
     const getHeaderRef = useCallback((index: number) => {
         if (!headerRefs.current[index]) {
-            headerRefs.current[index] = React.createRef<View>();
+            headerRefs.current[index] = React.createRef<ComponentRef<typeof View>>();
         }
         return headerRefs.current[index];
     }, []);
@@ -190,13 +193,19 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         <View style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(shouldUseNarrowLayout)]}>
             <View style={[styles.p4, styles.pb3]}>
                 <TextInput
-                    label={translate('common.search')}
+                    placeholder={translate('common.search')}
+                    placeholderTextColor={theme.textSupporting}
                     accessibilityLabel={translate('common.search')}
                     role={CONST.ROLE.PRESENTATION}
+                    touchableInputWrapperStyle={styles.listSearchInputNarrowWrapper}
+                    textInputContainerStyles={[styles.pb0, styles.ph3]}
+                    inputStyle={[styles.lineHeightUndefined]}
                     onChangeText={(text: string) => {
                         setSearchText(text);
                         filterEmojis(text);
                     }}
+                    value={searchText}
+                    shouldHideClearButton={false}
                     submitBehavior={filteredEmojis.length > 0 ? 'blurAndSubmit' : 'submit'}
                     sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.SEARCH_INPUT}
                 />

@@ -1,4 +1,4 @@
-import type {IconSize} from '@components/Icon/utils/resolveIconSize';
+import type IconSize from '@components/Icon/types';
 import ImageSVG from '@components/ImageSVG';
 
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -16,7 +16,6 @@ import {View} from 'react-native';
 import IconWrapperStyles from './IconWrapperStyles';
 
 type InlineIconProps = {
-    /** Icon asset to render. */
     src: IconAsset;
 
     /** Preset size that resolves to square pixel dimensions, matching `Icon`. */

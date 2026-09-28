@@ -2,6 +2,8 @@ import LoadingIndicator from '@components/LoadingIndicator';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {PDFDocumentProxy} from 'pdfjs-dist';
+
 // eslint-disable-next-line import/extensions
 import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs';
 import React, {useMemo, useState} from 'react';
@@ -58,7 +60,16 @@ function PDFThumbnail({previewSourceURL, style, enabled = true, onPassword, onLo
 
     return (
         <View style={[style, styles.overflowHidden, failedToLoad && styles.h100]}>
-            <View style={[styles.w100, styles.h100, !failedToLoad && {...styles.alignItemsCenter, ...styles.justifyContentCenter}]}>
+            <View
+                style={[
+                    styles.w100,
+                    styles.h100,
+                    !failedToLoad && {
+                        ...styles.alignItemsCenter,
+                        ...styles.justifyContentCenter,
+                    },
+                ]}
+            >
                 {enabled && !failedToLoad && thumbnail}
                 {failedToLoad && <PDFThumbnailError />}
             </View>
@@ -69,3 +80,8 @@ function PDFThumbnail({previewSourceURL, style, enabled = true, onPassword, onLo
 PDFThumbnail.displayName = 'PDFThumbnail';
 
 export default React.memo(PDFThumbnail);
+
+// Re-exported so other PDF-rendering components reuse this file's worker setup
+// instead of importing pdfjs-dist/react-pdf directly.
+export {Document, Thumbnail};
+export type {PDFDocumentProxy};

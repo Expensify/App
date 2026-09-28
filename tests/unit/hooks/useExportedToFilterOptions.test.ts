@@ -1,14 +1,17 @@
 import {renderHook} from '@testing-library/react-native';
 
-import useExportedToFilterOptions from '@hooks/useExportedToFilterOptions';
+import useExportedToFilterOptions, {exportedToPoliciesSelector} from '@hooks/useExportedToFilterOptions';
+
+import {isAdminOfCardEnabledPolicy} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExportTemplate} from '@src/types/onyx';
+import type {ExportTemplate, Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
 import Onyx from 'react-native-onyx';
 
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const mockGetExportTemplates = jest.fn();
@@ -23,6 +26,11 @@ function buildPolicyWithConnection(policyID: string, connectionName: ConnectionN
     return {id: policyID, connections: {[connectionName]: {lastSync: {isConnected: true}}}} as const;
 }
 
+/** Narrows the policy argument recorded by the getExportTemplates mock, whose arguments are typed as unknown. */
+function isPolicy(value: unknown): value is Policy {
+    return typeof value === 'object' && value !== null && 'id' in value;
+}
+
 describe('useExportedToFilterOptions', () => {
     const expenseLevelLabel = CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT;
     const quickBooksDisplayName = 'QuickBooks Online';
@@ -35,7 +43,7 @@ describe('useExportedToFilterOptions', () => {
         await Onyx.clear();
         await waitForBatchedUpdates();
         jest.clearAllMocks();
-        mockGetExportTemplates.mockReturnValue([]);
+        mockGetExportTemplates.mockReturnValue({customTemplates: [], defaultTemplates: []});
     });
 
     it('returns empty options and templates when no policies and no export templates', () => {
@@ -65,7 +73,10 @@ describe('useExportedToFilterOptions', () => {
 
     it('includes integration custom template name from options when getExportTemplates returns integration template', () => {
         const customName = 'Export Layout';
-        mockGetExportTemplates.mockReturnValue([{templateName: customName, name: customName, type: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS} as ExportTemplate]);
+        mockGetExportTemplates.mockReturnValue({
+            customTemplates: [createMock<ExportTemplate>({templateName: customName, name: customName, type: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS})],
+            defaultTemplates: [],
+        });
 
         const {result} = renderHook(() => useExportedToFilterOptions());
 
@@ -74,7 +85,10 @@ describe('useExportedToFilterOptions', () => {
 
     it('excludes in-app custom templates from options', () => {
         const templateName = 'Custom Export Format from OD';
-        mockGetExportTemplates.mockReturnValue([{templateName, name: templateName, type: CONST.EXPORT_TEMPLATE_TYPES.IN_APP} as ExportTemplate]);
+        mockGetExportTemplates.mockReturnValue({
+            customTemplates: [createMock<ExportTemplate>({templateName, name: templateName, type: CONST.EXPORT_TEMPLATE_TYPES.IN_APP})],
+            defaultTemplates: [],
+        });
 
         const {result} = renderHook(() => useExportedToFilterOptions());
 
@@ -84,7 +98,10 @@ describe('useExportedToFilterOptions', () => {
     it('excludes templates whose templateName matches integration connection key', () => {
         const templateName = CONST.POLICY.CONNECTIONS.NAME.QBO;
         const templateDisplayName = 'QBO Custom Template';
-        mockGetExportTemplates.mockReturnValue([{templateName, name: templateDisplayName, type: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS} as ExportTemplate]);
+        mockGetExportTemplates.mockReturnValue({
+            customTemplates: [createMock<ExportTemplate>({templateName, name: templateDisplayName, type: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS})],
+            defaultTemplates: [],
+        });
 
         const {result} = renderHook(() => useExportedToFilterOptions());
 
@@ -92,7 +109,10 @@ describe('useExportedToFilterOptions', () => {
     });
 
     it('includes standard export label in options when getExportTemplates returns standard template', () => {
-        mockGetExportTemplates.mockReturnValue([{templateName: CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, name: expenseLevelLabel} as ExportTemplate]);
+        mockGetExportTemplates.mockReturnValue({
+            customTemplates: [],
+            defaultTemplates: [createMock<ExportTemplate>({templateName: CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, name: expenseLevelLabel})],
+        });
 
         const {result} = renderHook(() => useExportedToFilterOptions());
 
@@ -101,9 +121,9 @@ describe('useExportedToFilterOptions', () => {
 
     it('returns one template per templateName in combinedUniqueExportTemplates', async () => {
         const sameName = 'SharedTemplate';
-        const template = {templateName: sameName, name: sameName} as ExportTemplate;
+        const template = createMock<ExportTemplate>({templateName: sameName, name: sameName});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {});
-        mockGetExportTemplates.mockReturnValueOnce([template]).mockReturnValueOnce([template]);
+        mockGetExportTemplates.mockReturnValueOnce({customTemplates: [template], defaultTemplates: []}).mockReturnValueOnce({customTemplates: [template], defaultTemplates: []});
 
         const {result} = renderHook(() => useExportedToFilterOptions());
 
@@ -117,5 +137,27 @@ describe('useExportedToFilterOptions', () => {
         const {result} = renderHook(() => useExportedToFilterOptions());
 
         expect(result.current.connectedIntegrationNames).toEqual(new Set([CONST.POLICY.CONNECTIONS.NAME.XERO]));
+    });
+
+    it('keeps a card enabled admin policy eligible for the reconciliation template after the selector trims it', () => {
+        const policy = createMock<Policy>({id: '1', role: CONST.POLICY.ROLE.ADMIN, areCompanyCardsEnabled: true});
+
+        const trimmedPolicy = exportedToPoliciesSelector({[`${ONYXKEYS.COLLECTION.POLICY}1`]: policy})?.[`${ONYXKEYS.COLLECTION.POLICY}1`];
+
+        expect(isAdminOfCardEnabledPolicy(trimmedPolicy)).toBe(true);
+    });
+
+    it('passes a card enabled admin policy to getExportTemplates with its card product flags intact', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {id: '1', role: CONST.POLICY.ROLE.CARD_ADMIN, areExpensifyCardsEnabled: true});
+
+        renderHook(() => useExportedToFilterOptions());
+
+        const policiesPassedToGetExportTemplates = mockGetExportTemplates.mock.calls.flatMap((call: unknown[]) => {
+            const policy = call.at(4);
+            return isPolicy(policy) ? [policy] : [];
+        });
+
+        expect(policiesPassedToGetExportTemplates).toHaveLength(1);
+        expect(isAdminOfCardEnabledPolicy(policiesPassedToGetExportTemplates.at(0))).toBe(true);
     });
 });

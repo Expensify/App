@@ -1,28 +1,29 @@
 ---
 title: Close Your Expensify Account
-description: Learn how to close your Expensify account. 
+description: Learn how to permanently close your Expensify account, what happens after you close it, and how to resolve common issues that can prevent account closure.
 keywords: [New Expensify, delete Expensify account, delete account, remove user, deactivate account, cancel account, cancel Expensify, terminate, how to delete Expensify, how to cancel Expensify, remove account, close account, terminate account, delete Expensify, how to delete, how to cancel]
 internalScope: Audience is all members. Covers how to close an Expensify account and resolve common errors that block account closure. Does not cover how to delete workspaces or how to remove members from the domain. 
 ---
 
 # Close Your Expensify Account
   
-Closing an Expensify account permanently deletes all unsubmitted expenses and personal data tied to the account. 
+Closing your Expensify account permanently deletes your personal account and any unsubmitted expenses associated with it. Before you close your account, make sure you no longer need access to your personal data or any outstanding expenses.
 
-Instead of closing your account, you can downgrade to a free account to retain access to your historical data. [Learn how to downgrade to a free account](/articles/new-expensify/billing-and-subscriptions/Changing-Your-Workspace-Plan#how-to-downgrade-an-annual-subscription-to-a-free-account). 
-
-**Note:** If you are the Billing Owner of a Workspace on an Annual Subscription, you can’t close your account directly. You may be able to downgrade to a free account if you meet eligibility criteria, or you must transfer billing ownership before closing your account.
+If your goal is to stop paying for Expensify while keeping access to your historical expense data, you may want to delete your workspace instead of closing your account. [Learn how to delete a workspace](/articles/new-expensify/workspaces/Delete-a-Workspace). 
 
 ---
 
 ## Who can close an Expensify account 
 
-Any member can close their own Expensify account, if: 
- - They have a verified account 
- - They are not a member of a controlled domain.
- - They are not the Billing Owner of a Workspace
- - They do not have any outstanding balance due on their Expensify account.
- - They do not have a bank account which is currently locked. 
+You can close your own account if all of the following are true:
+
+ - Your account is verified.
+ - Your account isn't managed by a Domain.
+ - You aren't the owner of a workspace.
+ - You don't have an outstanding balance owed on your account.
+ - You don't have a locked bank account.
+
+If you are the owner of a workspace on an Annual subscription, you can’t close your account until the end of the subscription term. Depending on your eligibility, you may be able to cancel the subscription or transfer Workspace ownership first.
 
 ---
 
@@ -31,17 +32,20 @@ Any member can close their own Expensify account, if:
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account > Security**.
 2. Under **Security**, click **Close account**.
 3. Follow the prompts and answer the required questions.
-4. Click **Close Account** to confirm.
+4. Click **Close account** to confirm.
 
-If you don't see the option to close your account, your account may be domain-controlled. Contact your Domain Admin and ask them to [deactivate your account](/articles/new-expensify/domains/Manage-Domain-Members#how-to-close-or-deactivate-a-domain-members-account). 
+If you don't see **Close account**, your account may be domain-controlled. Contact a domain admin and ask them to [deactivate your account](/articles/new-expensify/domains/Manage-Domain-Members#how-to-close-or-deactivate-a-domain-members-account). 
 
 ---
 
 ## What happens when you close your Expensify account 
 
-All unsubmitted expenses and personal data tied to the account are deleted. 
+After you confirm the account closure:
 
-Expenses shared with others, such as expenses submitted on a Workspace, may be retained for regulatory compliance. Submitted expenses remain visible to approvers and Admins on the Workspace where the expenses were submitted. 
+- Your Expensify account is permanently deleted and can't be recovered.
+- All Unreported, Draft and Deleted expense data and personal data associated with your account are deleted.
+- Expense data shared with others, including Outstanding, Approved, Paid, and Done expenses submitted to a Workspace, remains visible to workspace admins, approvers, and auditors as needed for legal and regulatory compliance.
+- Shared expense data may be retained to meet legal and regulatory requirements.
 
 ---
 
@@ -49,20 +53,24 @@ Expenses shared with others, such as expenses submitted on a Workspace, may be r
 
 ## Can I close my account if I have an outstanding balance? 
 
-No. To proceed with closing your account, you must first pay the balance owed. [Learn how to add a payment method](/articles/new-expensify/billing-and-subscriptions/Add-a-payment-card-and-view-your-subscription#how-to-update-your-expensify-billing-card).
+No. To proceed with closing your account, you must first pay the balance owed. [Learn how to add a payment method](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Add-or-Update-a-Payment-Card#how-to-add-a-payment-card).
 
 ## Can I close my account if I own workspaces shared with other members?
 
 No. To proceed with closing your account, you must first delete any workspaces shared with other members, or have another Workspace Admin take ownership of them. 
 
-[Learn how to delete a Workspace](/articles/new-expensify/billing-and-subscriptions/Add-a-payment-card-and-view-your-subscription#how-to-delete-a-workspace-in-expensify). 
-[Learn how to transfer billing ownership](/articles/new-expensify/billing-and-subscriptions/Add-a-payment-card-and-view-your-subscription#how-to-transfer-billing-ownership-in-expensify)).
-## Can I close my account if I am the Primary Contact on a domain? 
+ - [Learn how to delete a Workspace](/articles/new-expensify/workspaces/Delete-a-Workspace)
+ - [Learn how to transfer billing ownership](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Transfer-Workspace-Ownership#how-to-transfer-workspace-ownership).
+
+## Can I close my account if I am the primary contact on a domain?  
+
 No. To proceed with closing your account, you must first set a new Primary Contact on the domain. You can set a new Primary Contact on a domain under **Domain admins > Settings > Primary Contact**. 
 
+## How can I close my account if I own a workspace on an Annual subscription?
 
-## Can I close my account if I own a Workspace on an Annual Subscription?
+If you own a workspace on an Annual subscription, you may not be able to close your account until the subscription term ends. 
 
-- [Downgrade to a free account](a/rticles/new-expensify/billing-and-subscriptions/Add-a-payment-card-and-view-your-subscription#how-to-request-early-cancellation-of-an-annual-subscription) (if eligible), or
-- [Transfer billing ownership to another Workspace Admin](/articles/new-expensify/billing-and-subscriptions/Add-a-payment-card-and-view-your-subscription#how-to-transfer-billing-ownership-in-expensify).
+To close your account: 
+- [Request to cancel your Annual subscription](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Cancel-an-Annual-Subscription#how-to-request-annual-subscription-cancellation) (if eligible), or
+- [Transfer workspace ownership to another workspace Admin](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Transfer-Workspace-Ownership#how-to-transfer-workspace-ownership).
 

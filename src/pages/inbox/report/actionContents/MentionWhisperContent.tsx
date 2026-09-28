@@ -1,5 +1,5 @@
+import Button from '@components/Button';
 import RenderHTML from '@components/RenderHTML';
-import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -24,7 +24,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 
 type MentionWhisperContentProps = {
-    /** All the data of the action item */
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER>;
 
     /** ID of the original report from which the given reportAction is first created */
@@ -33,7 +32,6 @@ type MentionWhisperContentProps = {
     /** Report that owns this action for mutations (thread / merged-list cases use originalReport). This is a stable projection (heartbeat fields stripped). */
     actionOwnerReportStable: OnyxEntry<Report>;
 
-    /** Parent report from which the given reportAction is first created */
     parentReport?: OnyxEntry<Report>;
 
     /** Policy ID for the current report */
@@ -55,44 +53,43 @@ function MentionWhisperContent({action, actionOwnerReportStable, parentReport, o
     const isReportInPolicy = !!policyID && policyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== policyID;
     const hasMentionedPolicyMembers = getOriginalMessage(action)?.inviteeEmails?.every((login) => isPolicyMember(policy, login));
 
-    const buttons: ActionableItem[] = [];
-    if ((isPolicyAdmin(policy) || isPolicyOwner(policy, currentUserAccountID)) && isReportInPolicy && !isSystemUserMentioned(action) && !hasMentionedPolicyMembers) {
-        buttons.push({
-            text: 'actionableMentionWhisperOptions.inviteToSubmitExpense',
-            key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE}`,
-            onPress: () =>
-                resolveActionableMentionWhisper(
-                    actionOwnerReport,
-                    action,
-                    CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE,
-                    isOriginalReportArchived,
-                    parentReport,
-                ),
-        });
-    }
-    buttons.push(
-        {
-            text: 'actionableMentionWhisperOptions.inviteToChat',
-            key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
-            onPress: () => resolveActionableMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, isOriginalReportArchived, parentReport),
-        },
-        {
-            text: 'actionableMentionWhisperOptions.nothing',
-            key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-            onPress: () => resolveActionableMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, isOriginalReportArchived, parentReport),
-        },
-    );
+    const canInviteToSubmitExpense =
+        (isPolicyAdmin(policy) || isPolicyOwner(policy, currentUserAccountID)) && isReportInPolicy && !isSystemUserMentioned(action) && !hasMentionedPolicyMembers;
 
     return (
         <ReportActionItemBasicMessage>
             <RenderHTML html={getActionableMentionWhisperMessage(translate, action, targetAccountDetails)} />
-            {buttons.length > 0 && (
-                <ActionableItemButtons
-                    items={buttons}
-                    shouldUseLocalization
-                    layout="vertical"
-                />
-            )}
+            <ActionableItemButtons layout="vertical">
+                {canInviteToSubmitExpense && (
+                    <Button
+                        onPress={() =>
+                            resolveActionableMentionWhisper(
+                                actionOwnerReport,
+                                action,
+                                CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE,
+                                isOriginalReportArchived,
+                                parentReport,
+                            )
+                        }
+                    >
+                        <Button.Text>{translate('actionableMentionWhisperOptions.inviteToSubmitExpense')}</Button.Text>
+                    </Button>
+                )}
+                <Button
+                    onPress={() =>
+                        resolveActionableMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, isOriginalReportArchived, parentReport)
+                    }
+                >
+                    <Button.Text>{translate('actionableMentionWhisperOptions.inviteToChat')}</Button.Text>
+                </Button>
+                <Button
+                    onPress={() =>
+                        resolveActionableMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, isOriginalReportArchived, parentReport)
+                    }
+                >
+                    <Button.Text>{translate('actionableMentionWhisperOptions.nothing')}</Button.Text>
+                </Button>
+            </ActionableItemButtons>
         </ReportActionItemBasicMessage>
     );
 }

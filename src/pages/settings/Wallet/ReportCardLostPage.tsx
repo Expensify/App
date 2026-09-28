@@ -1,6 +1,6 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import RadioButtons from '@components/RadioButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -108,7 +108,7 @@ function ReportCardLostPage({
             return;
         }
         startWithLoading(() => {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE.getRoute(cardID, reason?.key ?? OPTIONS_KEYS.DAMAGED, !!isFromDomainCardDetail));
+            Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE.getRoute(cardID, reason?.key ?? OPTIONS_KEYS.DAMAGED, !!isFromDomainCardDetail));
         });
     };
 
@@ -152,12 +152,11 @@ function ReportCardLostPage({
                     <>
                         <View>
                             <Text style={[styles.textHeadline, styles.mb3, styles.mh5]}>{translate('reportCardLostOrDamaged.confirmAddressTitle')}</Text>
-                            <MenuItemWithTopDescription
-                                title={formattedAddress}
-                                description={translate('reportCardLostOrDamaged.address')}
-                                shouldShowRightIcon
+                            <MenuItemField
+                                name={translate('reportCardLostOrDamaged.address')}
+                                value={formattedAddress}
+                                numberOfLinesValue={2}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADDRESS)}
-                                numberOfLinesTitle={2}
                             />
                             {isDamaged ? (
                                 <Text style={[styles.mt3, styles.mh5]}>{translate('reportCardLostOrDamaged.cardDamagedInfo')}</Text>

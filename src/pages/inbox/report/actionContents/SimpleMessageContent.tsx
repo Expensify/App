@@ -1,3 +1,4 @@
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 
 import {
@@ -50,6 +51,7 @@ function isSimpleMessageAction(action: OnyxTypes.ReportAction): boolean {
 
 function SimpleMessageContent({action}: SimpleMessageContentProps) {
     const {translate} = useLocalize();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
         return <ReportActionItemBasicMessage message={getMarkedReimbursedMessage(translate, action)} />;
@@ -79,7 +81,7 @@ function SimpleMessageContent({action}: SimpleMessageContentProps) {
         return <ReportActionItemBasicMessage message={getPolicyChangeMessage(translate, action)} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION)) {
-        return <ReportActionItemBasicMessage message={getDeletedTransactionMessage(translate, action)} />;
+        return <ReportActionItemBasicMessage message={getDeletedTransactionMessage(translate, action, convertToDisplayString)} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION)) {
         return <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
@@ -100,7 +102,7 @@ function SimpleMessageContent({action}: SimpleMessageContentProps) {
         return <ReportActionItemBasicMessage message={getDemotedFromWorkspaceMessage(translate, action)} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL)) {
-        return <ReportActionItemBasicMessage message={getActionableCard3DSTransactionApprovalMessage(translate, action)} />;
+        return <ReportActionItemBasicMessage message={getActionableCard3DSTransactionApprovalMessage(translate, action, convertToDisplayString, convertToDisplayStringWithoutCurrency)} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION)) {
         return <ReportActionItemBasicMessage message={getMessageOfOldDotReportAction(translate, action)} />;

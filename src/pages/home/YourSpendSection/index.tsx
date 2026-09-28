@@ -21,7 +21,7 @@ import SpendSummaryRow from './SpendSummaryRow';
 import {useYourSpendData, YOUR_SPEND_ROW_STATE} from './useYourSpendData';
 
 function YourSpendSection() {
-    const {approvalRowState, approvalTotals, paymentRowState, paymentTotals, cardRows, awaitingApprovalQuery, repaidLast30DaysQuery} = useYourSpendData();
+    const {approvalRowState, approvalTotals, paymentRowState, paymentTotals, cardRows, awaitingApprovalQuery, repaidLast30DaysQuery, isApprovalStale, isPaymentStale} = useYourSpendData();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -52,7 +52,7 @@ function YourSpendSection() {
         <View testID="your-spend-section">
             <WidgetContainer
                 title={translate('homePage.yourSpend.title')}
-                containerStyles={[shouldUseNarrowLayout ? styles.pb2 : styles.pb5]}
+                containerStyles={styles.getWidgetContainerBottomPaddingStyle(shouldUseNarrowLayout)}
             >
                 <SpendSummaryRow
                     state={approvalRowState}
@@ -60,9 +60,10 @@ function YourSpendSection() {
                     description={translate('homePage.yourSpend.awaitingApproval')}
                     totals={approvalTotals}
                     iconSrc={icons.ThumbsUpHourglass}
-                    onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: awaitingApprovalQuery}))}
+                    onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: awaitingApprovalQuery, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}))}
                     wrapperStyle={wrapperStyle}
                     skeletonRowIndex={0}
+                    isStale={isApprovalStale}
                 />
 
                 <SpendSummaryRow
@@ -71,9 +72,10 @@ function YourSpendSection() {
                     description={translate('homePage.yourSpend.repaidLast30Days')}
                     totals={paymentTotals}
                     iconSrc={icons.MoneyBag}
-                    onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: repaidLast30DaysQuery}))}
+                    onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: repaidLast30DaysQuery, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}))}
                     wrapperStyle={wrapperStyle}
                     skeletonRowIndex={1}
+                    isStale={isPaymentStale}
                 />
 
                 {visibleCardRows.map((cardRow) => (

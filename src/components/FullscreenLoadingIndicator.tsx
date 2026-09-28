@@ -3,8 +3,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ExtraLoadingContext} from '@libs/AppState';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 
@@ -20,37 +18,31 @@ import Text from './Text';
 type FullScreenLoadingIndicatorIconSize = ActivityIndicatorProps['size'];
 
 type FullScreenLoadingIndicatorProps = {
-    /** Styles of the outer view */
     style?: StyleProp<ViewStyle>;
-
-    /** Size of the icon */
     iconSize?: FullScreenLoadingIndicatorIconSize;
 
     /** Whether the "Go Back" button appears after a timeout. */
     shouldUseGoBackButton?: boolean;
 
-    /** The ID of the test to be used for testing */
+    onGoBack?: () => void;
+
     testID?: string;
 
     /** Extra loading context to be passed to the logAppStateOnLongLoading function */
     extraLoadingContext?: ExtraLoadingContext;
-
-    /** Reason attributes for skeleton span telemetry */
-    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 function FullScreenLoadingIndicator({
     style,
     iconSize = CONST.ACTIVITY_INDICATOR_SIZE.LARGE,
     shouldUseGoBackButton = false,
+    onGoBack = Navigation.goBack,
     testID = '',
     extraLoadingContext,
-    reasonAttributes,
 }: FullScreenLoadingIndicatorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [showGoBackButton, setShowGoBackButton] = useState(false);
-    useSkeletonSpan('FullScreenLoadingIndicator', reasonAttributes);
 
     useEffect(() => {
         if (!shouldUseGoBackButton) {
@@ -70,17 +62,15 @@ function FullScreenLoadingIndicator({
                     size={iconSize}
                     testID={testID}
                     extraLoadingContext={extraLoadingContext}
-                    reasonAttributes={reasonAttributes}
                 />
                 {showGoBackButton && shouldUseGoBackButton && (
                     <View style={styles.loadingMessage}>
                         <View style={styles.pv4}>
                             <Text>{translate('common.thisIsTakingLongerThanExpected')}</Text>
                         </View>
-                        <Button
-                            text={translate('common.goBack')}
-                            onPress={() => Navigation.goBack()}
-                        />
+                        <Button onPress={() => onGoBack()}>
+                            <Button.Text>{translate('common.goBack')}</Button.Text>
+                        </Button>
                     </View>
                 )}
             </View>
