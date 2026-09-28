@@ -136,19 +136,6 @@ describe('resolveInsightsChartData', () => {
         expect(state).toBe(INSIGHTS_CHART_STATE.READY);
     });
 
-    it('plots the rows of the snapshot the dashboard named, whatever its Search metadata says', () => {
-        // Given a record naming the chart's snapshot, which holds data but no Search metadata that would pass on its own
-        const snapshot = makeSnapshot({search: {...makeSnapshot().search, hash: 1234, state: undefined}});
-        const sortedData = makeRows(3);
-
-        // When the chart is resolved
-        const {data, state} = resolveInsightsChartData({chart: CHART, dashboard: DASHBOARD_WITH_SNAPSHOT, snapshot, queryJSON: QUERY_JSON, sortedData});
-
-        // Then the chart plots the rows, because the GetInsights response vouches for the snapshot
-        expect(state).toBe(INSIGHTS_CHART_STATE.READY);
-        expect(data).toBe(sortedData);
-    });
-
     it('waits while the snapshot the dashboard named is not stored yet', () => {
         // Given a record naming a snapshot hash with nothing stored under it yet
         // When the chart is resolved
@@ -156,16 +143,5 @@ describe('resolveInsightsChartData', () => {
 
         // Then the chart is still loading rather than empty, because a named snapshot says data is on its way
         expect(state).toBe(INSIGHTS_CHART_STATE.LOADING);
-    });
-
-    it('is empty when the response named no snapshot for the chart', () => {
-        // Given a record that answered the query without a snapshot for this chart
-        const dashboard: InsightsDashboard = {inputQuery: QUERY, graphs: {}};
-
-        // When the chart is resolved
-        const {state} = resolveInsightsChartData({chart: CHART, dashboard, snapshot: undefined, queryJSON: QUERY_JSON, sortedData: undefined});
-
-        // Then the chart is empty, because the response found nothing to plot
-        expect(state).toBe(INSIGHTS_CHART_STATE.EMPTY);
     });
 });

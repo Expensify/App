@@ -45,8 +45,6 @@ function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters
 
 type InsightsChartQuery = {
     chart: InsightsChartSpec;
-
-    /** The chart's own query, whose hash its snapshot is stored under */
     queryJSON: Readonly<SearchQueryJSON> | undefined;
 };
 
@@ -64,7 +62,7 @@ type InsightsQuery = {
     supportingCharts: InsightsChartQuery[];
 };
 
-/** Builds one request for the whole dashboard: the shared filters query plus the query of each chart, whose hash its data is stored under. */
+/** Builds one request for the whole dashboard, naming each graph's snapshot by its chart's query hash, and returns those chart queries to read the snapshots back with. */
 function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: InsightsFilters): InsightsQuery | undefined {
     const inputQuery = buildInsightsQueryString(filters);
     const queryJSON = buildSearchQueryJSON(inputQuery);
