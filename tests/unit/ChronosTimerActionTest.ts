@@ -80,12 +80,13 @@ describe('startOrStopChronosTimer', () => {
 
     it('restores the last message the acting user could see when the send fails', async () => {
         const WHISPER_TARGET_ACCOUNT_ID = 777;
+        const COMMENT_ACTOR_ACCOUNT_ID = 888;
 
         const comment: ReportAction = {
             reportActionID: 'chronosComment',
             reportID: TEST_REPORT.reportID,
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-            actorAccountID: 888,
+            actorAccountID: COMMENT_ACTOR_ACCOUNT_ID,
             created: '2026-07-13 09:00:00.000',
             message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
             originalMessage: {html: 'Older comment'},
@@ -115,7 +116,7 @@ describe('startOrStopChronosTimer', () => {
         jest.clearAllMocks();
 
         // When somebody the whisper does not target starts the timer
-        startOrStopChronosTimer(TEST_REPORT, comment.actorAccountID ?? 0, null);
+        startOrStopChronosTimer(TEST_REPORT, COMMENT_ACTOR_ACCOUNT_ID, null);
 
         // Then the whisper is invisible to them, so the older comment's message is restored instead
         expect(getRestoredLastMessageText(getWriteOptions().failureData, TEST_REPORT.reportID)).toBe('Older comment');
