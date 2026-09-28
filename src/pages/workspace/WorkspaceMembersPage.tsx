@@ -743,7 +743,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             return null;
         }
         const bulkActionOptions = getBulkActionsButtonOptions();
-        return (shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0) ? (
+
+        // The wide layout offers these actions in the floating bar over the table instead, so its header keeps the
+        // page's own buttons no matter what is selected.
+        return shouldUseNarrowLayout && canSelectMultiple ? (
             <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 shouldAlwaysShowDropdownMenu
@@ -854,6 +857,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         shouldShowCustomField2Column={shouldShowCustomField2Column}
                         onRowSelectionChange={setSelectedEmployees}
                         headerComponent={tableHeaderComponent}
+                        bulkActionOptions={canWriteMembers ? getBulkActionsButtonOptions() : undefined}
                     />
                 </>
             )}

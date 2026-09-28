@@ -117,6 +117,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         noResultsStateElement,
         tableListMetadata,
         isEmptyResult,
+        isBulkActionBarVisible,
     } = useTableContext<TableData>();
     const {
         ListEmptyComponent,
@@ -399,6 +400,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                     listContentContainerStyle,
                     tableBodyContentContainerStyle,
                     contentContainerStyle,
+                    isBulkActionBarVisible && styles.bulkActionBarListSpacing,
                     shouldRenderEmptyStateInList && styles.flexGrow1,
                     shouldUseNarrowTableLayout &&
                         typeof contentMinHeight === 'number' &&

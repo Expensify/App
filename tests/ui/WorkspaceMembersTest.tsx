@@ -1,6 +1,5 @@
 import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -53,6 +52,21 @@ const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.MEMBERS, initialP
             </PortalProvider>
         </ComposeProviders>,
     );
+};
+
+/**
+ * The wide layout offers the bulk actions in the floating bar over the table, which gives the first few an inline
+ * button and moves the rest behind "More". Opening that menu puts every action on screen at once, whichever half of
+ * the bar it landed in. Only the bar's button carries this label, so the page's own "More" button is not matched.
+ */
+const openBulkActions = async () => {
+    const moreButton = screen.queryByLabelText(TestHelper.translateLocal('common.more'));
+    if (!moreButton) {
+        return;
+    }
+
+    fireEvent.press(moreButton);
+    await waitForBatchedUpdatesWithAct();
 };
 
 const selectCheckboxByMemberName = (memberName: string) => {
@@ -144,46 +158,25 @@ describe('WorkspaceMembers', () => {
 
             // Select admin option by clicking the checkbox
             selectCheckboxByMemberName('Admin');
-            const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
 
-            // Wait for selection mode to be active and click the dropdown menu button
-            await waitFor(() => {
-                expect(screen.getByTestId(dropdownMenuButtonTestID)).toBeOnTheScreen();
-            });
+            // Open the actions the bar moved behind "More", so every action the selection supports is on screen
+            await openBulkActions();
 
-            // Click the "1 selected" button to open the menu
-            const dropdownButton = screen.getByTestId(dropdownMenuButtonTestID);
-            const bulkActionsDropdown = screen.UNSAFE_getAllByType(ButtonWithDropdownMenu).find(({props}) => props.testID === dropdownMenuButtonTestID);
-            expect(bulkActionsDropdown?.props.shouldPopoverUseScrollView).toBe(true);
-            fireEvent.press(dropdownButton);
-
-            await waitForBatchedUpdatesWithAct();
-
-            // Wait for menu items to be visible
-            await waitFor(() => {
-                const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
-                expect(screen.getByText(makeMemberText)).toBeOnTheScreen();
-            });
-
-            // Find and verify "Make member" dropdown menu item
+            // Find and verify the "Make member" action
             const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
-            const makeMemberMenuItem = screen.getByTestId(`PopoverMenuItem-${makeMemberText}`);
-            expect(makeMemberMenuItem).toBeOnTheScreen();
+            expect(screen.getByText(makeMemberText)).toBeOnTheScreen();
 
-            // Find and verify "Make auditor" dropdown menu item
+            // Find and verify the "Make auditor" action
             const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
-            const makeAuditorMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAuditorText}`);
-            expect(makeAuditorMenuItem).toBeOnTheScreen();
+            expect(screen.getByText(makeAuditorText)).toBeOnTheScreen();
 
-            // Find and verify "Make card admin" dropdown menu item
+            // Find and verify the "Make card admin" action
             const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
-            const makeCardAdminMenuItem = screen.getByTestId(`PopoverMenuItem-${makeCardAdminText}`);
-            expect(makeCardAdminMenuItem).toBeOnTheScreen();
+            expect(screen.getByText(makeCardAdminText)).toBeOnTheScreen();
 
-            // Find and verify "Make admin" dropdown menu item is not present
+            // Find and verify the "Make admin" action is not present
             const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
-            const makeAdminMenuItem = screen.queryByTestId(`PopoverMenuItem-${makeAdminText}`);
-            expect(makeAdminMenuItem).not.toBeOnTheScreen();
+            expect(screen.queryByText(makeAdminText)).not.toBeOnTheScreen();
 
             unmount();
             await waitForBatchedUpdatesWithAct();
@@ -200,44 +193,25 @@ describe('WorkspaceMembers', () => {
 
             // Select member option by clicking the checkbox
             selectCheckboxByMemberName('Member');
-            const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
 
-            // Wait for selection mode to be active and click the dropdown menu button
-            await waitFor(() => {
-                expect(screen.getByTestId(dropdownMenuButtonTestID)).toBeOnTheScreen();
-            });
+            // Open the actions the bar moved behind "More", so every action the selection supports is on screen
+            await openBulkActions();
 
-            // Click the "1 selected" button to open the menu
-            const dropdownButton = screen.getByTestId(dropdownMenuButtonTestID);
-            fireEvent.press(dropdownButton);
-
-            await waitForBatchedUpdatesWithAct();
-
-            // Wait for menu items to be visible
-            await waitFor(() => {
-                const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
-                expect(screen.getByText(makeAdminText)).toBeOnTheScreen();
-            });
-
-            // Find and verify "Make admin" dropdown menu item
+            // Find and verify the "Make admin" action
             const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
-            const makeAdminMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAdminText}`);
-            expect(makeAdminMenuItem).toBeOnTheScreen();
+            expect(screen.getByText(makeAdminText)).toBeOnTheScreen();
 
-            // Find and verify "Make auditor" dropdown menu item
+            // Find and verify the "Make auditor" action
             const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
-            const makeAuditorMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAuditorText}`);
-            expect(makeAuditorMenuItem).toBeOnTheScreen();
+            expect(screen.getByText(makeAuditorText)).toBeOnTheScreen();
 
-            // Find and verify "Make card admin" dropdown menu item
+            // Find and verify the "Make card admin" action
             const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
-            const makeCardAdminMenuItem = screen.getByTestId(`PopoverMenuItem-${makeCardAdminText}`);
-            expect(makeCardAdminMenuItem).toBeOnTheScreen();
+            expect(screen.getByText(makeCardAdminText)).toBeOnTheScreen();
 
-            // Find and verify "Make member" dropdown menu item is not present
+            // Find and verify the "Make member" action is not present
             const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
-            const makeMemberMenuItem = screen.queryByTestId(`PopoverMenuItem-${makeMemberText}`);
-            expect(makeMemberMenuItem).not.toBeOnTheScreen();
+            expect(screen.queryByText(makeMemberText)).not.toBeOnTheScreen();
 
             unmount();
             await waitForBatchedUpdatesWithAct();
@@ -254,44 +228,25 @@ describe('WorkspaceMembers', () => {
 
             // Select auditor option by clicking the checkbox
             selectCheckboxByMemberName('Auditor');
-            const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
 
-            // Wait for selection mode to be active and click the dropdown menu button
-            await waitFor(() => {
-                expect(screen.getByTestId(dropdownMenuButtonTestID)).toBeOnTheScreen();
-            });
+            // Open the actions the bar moved behind "More", so every action the selection supports is on screen
+            await openBulkActions();
 
-            // Click the "1 selected" button to open the menu
-            const dropdownButton = screen.getByTestId(dropdownMenuButtonTestID);
-            fireEvent.press(dropdownButton);
-
-            await waitForBatchedUpdatesWithAct();
-
-            // Wait for menu items to be visible
-            await waitFor(() => {
-                const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
-                expect(screen.getByText(makeMemberText)).toBeOnTheScreen();
-            });
-
-            // Find and verify "Make member" dropdown menu item
+            // Find and verify the "Make member" action
             const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
-            const makeMemberMenuItem = screen.getByTestId(`PopoverMenuItem-${makeMemberText}`);
-            expect(makeMemberMenuItem).toBeOnTheScreen();
+            expect(screen.getByText(makeMemberText)).toBeOnTheScreen();
 
-            // Find and verify "Make admin" dropdown menu item
+            // Find and verify the "Make admin" action
             const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
-            const makeAdminMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAdminText}`);
-            expect(makeAdminMenuItem).toBeOnTheScreen();
+            expect(screen.getByText(makeAdminText)).toBeOnTheScreen();
 
-            // Find and verify "Make card admin" dropdown menu item
+            // Find and verify the "Make card admin" action
             const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
-            const makeCardAdminMenuItem = screen.getByTestId(`PopoverMenuItem-${makeCardAdminText}`);
-            expect(makeCardAdminMenuItem).toBeOnTheScreen();
+            expect(screen.getByText(makeCardAdminText)).toBeOnTheScreen();
 
-            // Find and verify "Make auditor" dropdown menu item is not present
+            // Find and verify the "Make auditor" action is not present
             const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
-            const makeAuditorMenuItem = screen.queryByTestId(`PopoverMenuItem-${makeAuditorText}`);
-            expect(makeAuditorMenuItem).not.toBeOnTheScreen();
+            expect(screen.queryByText(makeAuditorText)).not.toBeOnTheScreen();
 
             unmount();
             await waitForBatchedUpdatesWithAct();
@@ -312,44 +267,25 @@ describe('WorkspaceMembers', () => {
             // Select options by clicking the checkboxes
             selectCheckboxByMemberName('Auditor');
             selectCheckboxByMemberName('Admin');
-            const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
 
-            // Wait for selection mode to be active and click the dropdown menu button
-            await waitFor(() => {
-                expect(screen.getByTestId(dropdownMenuButtonTestID)).toBeOnTheScreen();
-            });
+            // Open the actions the bar moved behind "More", so every action the selection supports is on screen
+            await openBulkActions();
 
-            // Click the "2 selected" button to open the menu
-            const dropdownButton = screen.getByTestId(dropdownMenuButtonTestID);
-            fireEvent.press(dropdownButton);
-
-            await waitForBatchedUpdatesWithAct();
-
-            // Wait for menu items to be visible
-            await waitFor(() => {
-                const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 2});
-                expect(screen.getByText(makeMemberText)).toBeOnTheScreen();
-            });
-
-            // Find and verify "Make members" dropdown menu item (plural form for 2 selected items)
+            // Find and verify the "Make members" action (plural form for 2 selected items)
             const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 2});
-            const makeMemberMenuItem = screen.getByTestId(`PopoverMenuItem-${makeMemberText}`);
-            expect(makeMemberMenuItem).toBeOnTheScreen();
+            expect(screen.getByText(makeMemberText)).toBeOnTheScreen();
 
-            // Find and verify "Make admins" dropdown menu item (plural form for 2 selected items)
+            // Find and verify the "Make admins" action (plural form for 2 selected items)
             const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 2});
-            const makeAdminMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAdminText}`);
-            expect(makeAdminMenuItem).toBeOnTheScreen();
+            expect(screen.getByText(makeAdminText)).toBeOnTheScreen();
 
-            // Find and verify "Make auditors" dropdown menu item (plural form for 2 selected items)
+            // Find and verify the "Make auditors" action (plural form for 2 selected items)
             const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 2});
-            const makeAuditorMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAuditorText}`);
-            expect(makeAuditorMenuItem).toBeOnTheScreen();
+            expect(screen.getByText(makeAuditorText)).toBeOnTheScreen();
 
-            // Find and verify "Make card admins" dropdown menu item (plural form for 2 selected items)
+            // Find and verify the "Make card admins" action (plural form for 2 selected items)
             const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 2});
-            const makeCardAdminMenuItem = screen.getByTestId(`PopoverMenuItem-${makeCardAdminText}`);
-            expect(makeCardAdminMenuItem).toBeOnTheScreen();
+            expect(screen.getByText(makeCardAdminText)).toBeOnTheScreen();
 
             unmount();
             await waitForBatchedUpdatesWithAct();
@@ -376,23 +312,22 @@ describe('WorkspaceMembers', () => {
             });
 
             selectCheckboxByMemberName('Member');
-            fireEvent.press(screen.getByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
-            await waitForBatchedUpdatesWithAct();
+            await openBulkActions();
 
             const removeText = TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 1});
-            expect(screen.getByTestId(`PopoverMenuItem-${removeText}`)).toBeOnTheScreen();
+            expect(screen.getByText(removeText)).toBeOnTheScreen();
 
             const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
-            expect(screen.getByTestId(`PopoverMenuItem-${makeAuditorText}`)).toBeOnTheScreen();
+            expect(screen.getByText(makeAuditorText)).toBeOnTheScreen();
 
             const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
-            expect(screen.queryByTestId(`PopoverMenuItem-${makeAdminText}`)).not.toBeOnTheScreen();
+            expect(screen.queryByText(makeAdminText)).not.toBeOnTheScreen();
 
             const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
-            expect(screen.queryByTestId(`PopoverMenuItem-${makeCardAdminText}`)).not.toBeOnTheScreen();
+            expect(screen.queryByText(makeCardAdminText)).not.toBeOnTheScreen();
 
             const makePeopleAdminText = TestHelper.translateLocal('workspace.people.makePeopleAdmin', {count: 1});
-            expect(screen.queryByTestId(`PopoverMenuItem-${makePeopleAdminText}`)).not.toBeOnTheScreen();
+            expect(screen.queryByText(makePeopleAdminText)).not.toBeOnTheScreen();
 
             unmount();
             await waitForBatchedUpdatesWithAct();
@@ -419,14 +354,13 @@ describe('WorkspaceMembers', () => {
             });
 
             selectCheckboxByMemberName('Auditor');
-            fireEvent.press(screen.getByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
-            await waitForBatchedUpdatesWithAct();
+            await openBulkActions();
 
             const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
-            expect(screen.getByTestId(`PopoverMenuItem-${makeMemberText}`)).toBeOnTheScreen();
+            expect(screen.getByText(makeMemberText)).toBeOnTheScreen();
 
             const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
-            expect(screen.queryByTestId(`PopoverMenuItem-${makeAdminText}`)).not.toBeOnTheScreen();
+            expect(screen.queryByText(makeAdminText)).not.toBeOnTheScreen();
 
             unmount();
             await waitForBatchedUpdatesWithAct();
@@ -452,28 +386,27 @@ describe('WorkspaceMembers', () => {
 
             // When that payer is bulk-selected and the actions dropdown is opened
             selectCheckboxByMemberName('Admin');
-            fireEvent.press(await screen.findByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
-            await waitForBatchedUpdatesWithAct();
+            await openBulkActions();
 
             // Then the Remove option is still available
             const removeText = TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 1});
             await waitFor(() => {
-                expect(screen.getByTestId(`PopoverMenuItem-${removeText}`)).toBeOnTheScreen();
+                expect(screen.getByText(removeText)).toBeOnTheScreen();
             });
 
             // ...the demotions that would strip the payer of pay capability are hidden
             const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
-            expect(screen.queryByTestId(`PopoverMenuItem-${makeMemberText}`)).not.toBeOnTheScreen();
+            expect(screen.queryByText(makeMemberText)).not.toBeOnTheScreen();
 
             const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
-            expect(screen.queryByTestId(`PopoverMenuItem-${makeAuditorText}`)).not.toBeOnTheScreen();
+            expect(screen.queryByText(makeAuditorText)).not.toBeOnTheScreen();
 
             const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
-            expect(screen.queryByTestId(`PopoverMenuItem-${makeCardAdminText}`)).not.toBeOnTheScreen();
+            expect(screen.queryByText(makeCardAdminText)).not.toBeOnTheScreen();
 
-            // ...but Make payments admin IS offered — Payments Admin is a valid payer role
+            // ...but Make payments admin IS offered, since Payments Admin is a valid payer role
             const makePaymentsAdminText = TestHelper.translateLocal('workspace.people.makePaymentsAdmin', {count: 1});
-            expect(screen.getByTestId(`PopoverMenuItem-${makePaymentsAdminText}`)).toBeOnTheScreen();
+            expect(screen.getByText(makePaymentsAdminText)).toBeOnTheScreen();
 
             unmount();
             await waitForBatchedUpdatesWithAct();
@@ -502,25 +435,24 @@ describe('WorkspaceMembers', () => {
 
             // When that payer is bulk-selected and the actions dropdown is opened
             selectCheckboxByMemberName('Member');
-            fireEvent.press(await screen.findByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
-            await waitForBatchedUpdatesWithAct();
+            await openBulkActions();
 
             // Then the Remove option is still available
             const removeText = TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 1});
             await waitFor(() => {
-                expect(screen.getByTestId(`PopoverMenuItem-${removeText}`)).toBeOnTheScreen();
+                expect(screen.getByText(removeText)).toBeOnTheScreen();
             });
 
-            // ...and "Make workspace admin" IS offered — Admin is a valid payer role
+            // ...and "Make workspace admin" IS offered, since Admin is a valid payer role
             const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
-            expect(screen.getByTestId(`PopoverMenuItem-${makeAdminText}`)).toBeOnTheScreen();
+            expect(screen.getByText(makeAdminText)).toBeOnTheScreen();
 
             // ...but the demotions that would strip the payer of pay capability stay hidden
             const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
-            expect(screen.queryByTestId(`PopoverMenuItem-${makeMemberText}`)).not.toBeOnTheScreen();
+            expect(screen.queryByText(makeMemberText)).not.toBeOnTheScreen();
 
             const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
-            expect(screen.queryByTestId(`PopoverMenuItem-${makeAuditorText}`)).not.toBeOnTheScreen();
+            expect(screen.queryByText(makeAuditorText)).not.toBeOnTheScreen();
 
             unmount();
             await waitForBatchedUpdatesWithAct();
@@ -537,9 +469,8 @@ describe('WorkspaceMembers', () => {
             // Select all
             fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('workspace.common.selectAll')));
 
-            // Open dropdown
-            fireEvent.press(await screen.findByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
-            await waitForBatchedUpdatesWithAct();
+            // Open the bulk actions
+            await openBulkActions();
 
             // Click "Remove members"
             const removeText = TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 3});
@@ -582,11 +513,10 @@ describe('WorkspaceMembers', () => {
             });
         };
 
-        const selectAdminAndOpenDropdown = async () => {
+        const selectAdminAndOpenBulkActions = async () => {
             await screen.findByText(ADMIN_OPTION);
             selectCheckboxByMemberName('Admin');
-            fireEvent.press(await screen.findByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
-            await waitForBatchedUpdatesWithAct();
+            await openBulkActions();
         };
 
         it('should show the unable-to-remove modal when removing a RuleBot enforcing agent rules', async () => {
@@ -595,7 +525,7 @@ describe('WorkspaceMembers', () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
 
-            await selectAdminAndOpenDropdown();
+            await selectAdminAndOpenBulkActions();
 
             const removeMenuItem = screen.getByText(TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 1}));
             fireEvent.press(removeMenuItem, {
@@ -620,7 +550,7 @@ describe('WorkspaceMembers', () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
 
-            await selectAdminAndOpenDropdown();
+            await selectAdminAndOpenBulkActions();
 
             const makeMemberMenuItem = screen.getByText(TestHelper.translateLocal('workspace.people.makeMember', {count: 1}));
             fireEvent.press(makeMemberMenuItem, {
@@ -690,13 +620,14 @@ describe('WorkspaceMembers', () => {
             };
             fireEvent.press(getSelectAllCheckbox());
             await waitForBatchedUpdatesWithAct();
-            expect(screen.getByTestId('WorkspaceMembersPage-header-dropdown-menu-button')).toBeOnTheScreen();
+            const selectedLabel = TestHelper.translateLocal('workspace.common.selected', {count: 1});
+            expect(screen.getByText(selectedLabel)).toBeOnTheScreen();
 
             // Then clearing the search drops the selection, because it only ever applied to the searched rows
             fireEvent.changeText(searchInput, '');
             await waitForBatchedUpdatesWithAct();
             expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
-            expect(screen.queryByTestId('WorkspaceMembersPage-header-dropdown-menu-button')).not.toBeOnTheScreen();
+            expect(screen.queryByText(selectedLabel)).not.toBeOnTheScreen();
             expect(getSelectAllCheckbox()).not.toBeChecked();
 
             unmount();
