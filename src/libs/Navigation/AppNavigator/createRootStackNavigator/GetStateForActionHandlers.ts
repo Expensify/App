@@ -6,7 +6,12 @@ import buildTabNavigatorNestedState from '@libs/Navigation/helpers/buildTabNavig
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import hasNativeSwipeBackGesture from '@libs/Navigation/helpers/hasNativeSwipeBackGesture';
 import {isFullScreenName, isPreMountBufferHostName} from '@libs/Navigation/helpers/isNavigatorName';
-import {clearPreMountedUnderCurrentFullscreenRouteKey, setPreMountedUnderCurrentFullscreenRouteKey} from '@libs/Navigation/helpers/preMountedUnderCurrentFullscreenRouteKey';
+import {
+    clearPreMountedUnderCurrentFullscreenRouteKey,
+    isStalePreMountedRouteKey,
+    markPreMountedRouteKeyRevealed,
+    setPreMountedUnderCurrentFullscreenRouteKey,
+} from '@libs/Navigation/helpers/preMountedUnderCurrentFullscreenRouteKey';
 import {SIDEBAR_TO_SPLIT, SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isRecord} from '@libs/ObjectUtils';
@@ -17,6 +22,7 @@ import SCREENS from '@src/SCREENS';
 
 import type {CommonActions, NavigationState, PartialState, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import type {ParamListBase, Router} from '@react-navigation/routers';
+import type {TupleToUnion} from 'type-fest';
 
 import {StackActions} from '@react-navigation/native';
 
@@ -26,6 +32,7 @@ import type {
     RemoveFullscreenUnderRHPActionType,
     ReplaceActionType,
     ReplaceFullscreenUnderRHPActionType,
+    RootStackNavigatorAction,
     ToggleMfaModalNavigatorWithHistoryActionType,
     ToggleModalWithHistoryActionType,
     ToggleSidePanelWithHistoryActionType,
@@ -549,6 +556,7 @@ function handleReplaceFullscreenUnderRHP(
         // From here the pre-mount is revealed or already visible, so history must include it again.
         if (action.payload.preMountedRouteKey) {
             clearPreMountedUnderCurrentFullscreenRouteKey();
+            markPreMountedRouteKeyRevealed(action.payload.preMountedRouteKey);
             if (preMountedIndex < 0) {
                 Log.hmmm('[Navigation] Wide pre-mount missing on reveal, falling back to the tab replace', {preMountedRouteKey: action.payload.preMountedRouteKey});
             }
@@ -820,6 +828,23 @@ function handleToggleModalWithHistoryAction(state: StackNavigationState<ParamLis
     return {...state, history: [...state.history.slice(0, indexToRemove), ...state.history.slice(indexToRemove + 1)]};
 }
 
+/** Drops pre-mounts nobody owns from a RESET, e.g. restored by browser back/forward from a saved history entry. */
+function removeStalePreMountsFromResetAction(action: RootStackNavigatorAction): RootStackNavigatorAction {
+    if (action.type !== CONST.NAVIGATION.ACTION_TYPE.RESET || !action.payload) {
+        return action;
+    }
+    const {routes, index} = action.payload;
+    const isStale = (route: TupleToUnion<typeof routes>) => 'key' in route && isStalePreMountedRouteKey(route.key);
+    if (!routes.some(isStale)) {
+        return action;
+    }
+    const payload = {...action.payload, routes: routes.filter((route) => !isStale(route))};
+    if (index !== undefined) {
+        payload.index = index - routes.slice(0, index).filter(isStale).length;
+    }
+    return {...action, payload};
+}
+
 export {
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
@@ -827,6 +852,7 @@ export {
     handleReplaceFullscreenUnderRHP,
     handleRemoveFullscreenUnderRHP,
     handlePreMountUnderCurrentFullscreen,
+    removeStalePreMountsFromResetAction,
     handleReplaceReportsSplitNavigatorAction,
     screensWithEnteringAnimation,
     handleToggleSidePanelWithHistoryAction,

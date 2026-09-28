@@ -11,6 +11,7 @@ import {DeviceEventEmitter} from 'react-native';
 
 import hasNativeSwipeBackGesture from './hasNativeSwipeBackGesture';
 import {isPreMountBufferHostName} from './isNavigatorName';
+import {clearPreMountedUnderCurrentFullscreenRouteKey} from './preMountedUnderCurrentFullscreenRouteKey';
 
 // Always set and cleared together - the route name is only meaningful while the flag is true.
 let isFullscreenPreInsertedUnderRHP = false;
@@ -281,6 +282,11 @@ function removePreInsertedFullscreenIfNeeded() {
 
     // Wide layout: the destination sits under the current fullscreen, so dropping that route is the whole cleanup.
     if (preMountedRouteKey) {
+        // Browser back can already have reset to a state without it; the key must still stop counting as live.
+        if (!navigationRef.getRootState()?.routes.some((route) => route.key === preMountedRouteKey)) {
+            clearPreMountedUnderCurrentFullscreenRouteKey();
+            return;
+        }
         navigationRef.current?.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP,
             payload: {expectedRouteName: routeNameToRemove ?? '', preMountedRouteKey},

@@ -1,4 +1,5 @@
 import {takePreMountedFullscreenForReveal} from '@libs/Navigation/helpers/preMountBuffer';
+import {isPreMountedUnderCurrentFullscreenRouteKey, setPreMountedUnderCurrentFullscreenRouteKey} from '@libs/Navigation/helpers/preMountedUnderCurrentFullscreenRouteKey';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -464,6 +465,23 @@ describe('Navigation pre-mount buffer', () => {
         expect(Navigation.getIsFullscreenPreInsertedUnderRHP()).toBe(false);
         expect(Navigation.getPreMountedFullscreenRouteKey()).toBeUndefined();
         restoreAnimationSpy.mockRestore();
+    });
+
+    it('wide layout: cancel after browser back skips the remove and stops treating the key as live', () => {
+        // Given a wide pre-mount whose route browser back already reset away, with its key still registered as live
+        preMountOnWide();
+        const preMountedRouteKey = Navigation.getPreMountedFullscreenRouteKey() ?? '';
+        setPreMountedUnderCurrentFullscreenRouteKey(preMountedRouteKey);
+        mockRootState = mockRootState && {...mockRootState, routes: mockRootState.routes.filter((route) => route.key !== preMountedRouteKey), index: mockRootState.index - 1};
+        mockDispatch.mockClear();
+
+        // When the cleanup runs on unmount
+        Navigation.removePreInsertedFullscreenIfNeeded();
+
+        // Then nothing is dispatched for the missing route, and a later browser forward restoring it sees a stale key
+        expect(mockDispatch).not.toHaveBeenCalled();
+        expect(isPreMountedUnderCurrentFullscreenRouteKey(preMountedRouteKey)).toBe(false);
+        expect(Navigation.getIsFullscreenPreInsertedUnderRHP()).toBe(false);
     });
 
     it('wide layout: clearFullscreenPreInsertedFlag drops a pre-mount that was never revealed', () => {

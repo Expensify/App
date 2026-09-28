@@ -2,6 +2,7 @@ import getPlatform from '@libs/getPlatform';
 import {
     clearPreInsertedOriginalTabRoute,
     handlePreMountUnderCurrentFullscreen,
+    removeStalePreMountsFromResetAction,
     handleRemoveFullscreenUnderRHP,
     handleReplaceFullscreenUnderRHP,
 } from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
@@ -10,7 +11,12 @@ import type {
     RemoveFullscreenUnderRHPActionType,
     ReplaceFullscreenUnderRHPActionType,
 } from '@libs/Navigation/AppNavigator/createRootStackNavigator/types';
-import {isPreMountedUnderCurrentFullscreenRouteKey, setPreMountedUnderCurrentFullscreenRouteKey} from '@libs/Navigation/helpers/preMountedUnderCurrentFullscreenRouteKey';
+import {
+    clearPreMountedUnderCurrentFullscreenRouteKey,
+    isPreMountedUnderCurrentFullscreenRouteKey,
+    markPreMountedRouteKeyRevealed,
+    setPreMountedUnderCurrentFullscreenRouteKey,
+} from '@libs/Navigation/helpers/preMountedUnderCurrentFullscreenRouteKey';
 import type {NavigationPartialRoute, NavigationStateRoute, ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
@@ -18,9 +24,9 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import type {CommonActions, NavigationState, ParamListBase, PartialState, Router, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
+import type {NavigationState, ParamListBase, PartialState, Router, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 
-import {StackRouter} from '@react-navigation/native';
+import {CommonActions, StackRouter} from '@react-navigation/native';
 
 import createMock from '../../../utils/createMock';
 
@@ -659,6 +665,54 @@ describe('handleRemoveFullscreenUnderRHP — wide pre-mounted route', () => {
 
         // Then the router reports nothing to change
         expect(result).toBeNull();
+    });
+});
+
+describe('removeStalePreMountsFromResetAction', () => {
+    const staleKey = 'TabNavigator-pre-mount-1';
+    const liveKey = 'TabNavigator-pre-mount-2';
+
+    afterEach(() => {
+        clearPreMountedUnderCurrentFullscreenRouteKey();
+    });
+
+    it('drops a pre-mount restored from a saved browser history entry and keeps the index on the same route', () => {
+        // Given browser forward resetting to a saved state that still holds an old pre-mount under the visible tab navigator
+        const action = CommonActions.reset({
+            index: 2,
+            routes: [makeRoute(NAVIGATORS.TAB_NAVIGATOR, undefined, undefined, staleKey), makeRoute(NAVIGATORS.TAB_NAVIGATOR), makeRHPRoute()],
+        });
+
+        // When the root router sanitizes the RESET
+        const result = removeStalePreMountsFromResetAction(action);
+        const payload = result.type === CONST.NAVIGATION.ACTION_TYPE.RESET ? result.payload : undefined;
+
+        // Then the stale pre-mount is gone, so it cannot stay mounted and hidden with nothing left to remove it
+        expect(payload?.routes.map((route) => ('key' in route ? route.key : undefined))).toEqual(['TabNavigator-key', 'rhp-key']);
+        expect(payload?.index).toBe(1);
+    });
+
+    it('keeps the live pre-mount and leaves other actions untouched', () => {
+        // Given a RESET that holds the pre-mount the current flow still owns
+        setPreMountedUnderCurrentFullscreenRouteKey(liveKey);
+        const action = CommonActions.reset({index: 1, routes: [makeRoute(NAVIGATORS.TAB_NAVIGATOR, undefined, undefined, liveKey), makeRoute(NAVIGATORS.TAB_NAVIGATOR)]});
+        const goBack = CommonActions.goBack();
+
+        // When both go through the sanitizer
+        // Then neither changes, because only pre-mounts nobody owns anymore are dropped
+        expect(removeStalePreMountsFromResetAction(action)).toBe(action);
+        expect(removeStalePreMountsFromResetAction(goBack)).toBe(goBack);
+    });
+
+    it('keeps a revealed pre-mount, which is the visible tab navigator after submit', () => {
+        // Given a pre-mount that a submit revealed, so browser forward can restore it as the only tab navigator
+        const revealedKey = 'TabNavigator-pre-mount-3';
+        markPreMountedRouteKeyRevealed(revealedKey);
+        const action = CommonActions.reset({index: 0, routes: [makeRoute(NAVIGATORS.TAB_NAVIGATOR, undefined, undefined, revealedKey)]});
+
+        // When the root router sanitizes the RESET
+        // Then the route survives, or the restored page would lose the navigator it shows
+        expect(removeStalePreMountsFromResetAction(action)).toBe(action);
     });
 });
 
