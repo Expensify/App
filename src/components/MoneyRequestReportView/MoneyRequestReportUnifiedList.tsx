@@ -285,7 +285,7 @@ function MoneyRequestReportUnifiedList({
                 return;
             }
 
-            listRef?.current?.scrollToIndex({index: dataIndex, animated: false});
+            listRef?.current?.scrollToIndex({index: dataIndex, animated: false, viewPosition: 0.5});
         },
     });
 

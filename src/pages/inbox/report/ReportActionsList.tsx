@@ -281,7 +281,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                 return;
             }
 
-            reportScrollManager.scrollToIndex(index);
+            reportScrollManager.scrollToIndex(index, {viewPosition: 0.5});
         },
     });
 
