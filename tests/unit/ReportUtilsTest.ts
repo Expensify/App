@@ -15586,6 +15586,60 @@ describe('ReportUtils', () => {
                 reportAction: reportActionWithError,
             });
         });
+        it('should count an errored deleted report preview so the chat still requires attention', async () => {
+            // Given a report preview the server marked deleted, still carrying the error left by a payment that was
+            // rejected because the expense was deleted while it sat in the offline queue. Errors are keyed by microtime.
+            const errorKey = 1737000000000;
+            const deletedPreviewWithError: ReportAction = {
+                ...createRandomReportAction(5),
+                reportID: report.reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                message: [{html: 'owes $10.00', type: 'COMMENT', text: 'owes $10.00', deleted: '2025-09-30 10:00:00.000'}],
+                errors: {[errorKey]: 'This payment failed because the expense was deleted.'},
+            };
+            const reportActionsWithDeletedPreview = {
+                ...reportActions,
+                [deletedPreviewWithError.reportActionID]: deletedPreviewWithError,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [deletedPreviewWithError.reportActionID]: deletedPreviewWithError,
+            });
+            await waitForBatchedUpdates();
+
+            // When the chat's errors are aggregated
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActionsWithDeletedPreview, allTransactions, currentUserAccountID);
+
+            // Then the error counts, so the DM gets an RBR pointing the payer at the failure. Deleted actions are
+            // normally filtered out, which would have hidden the only feedback the payer gets.
+            expect(errors).toEqual({[errorKey]: 'This payment failed because the expense was deleted.'});
+        });
+
+        it('should keep ignoring a deleted action that is not an errored report preview', async () => {
+            // Given an ordinary deleted comment whose stale error should not nag the user
+            const errorKey = 1737000000001;
+            const deletedCommentWithError: ReportAction = {
+                ...createRandomReportAction(6),
+                reportID: report.reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [{html: '', type: 'COMMENT', text: ''}],
+                errors: {[errorKey]: 'Stale error'},
+            };
+            const reportActionsWithDeletedComment = {
+                ...reportActions,
+                [deletedCommentWithError.reportActionID]: deletedCommentWithError,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [deletedCommentWithError.reportActionID]: deletedCommentWithError,
+            });
+            await waitForBatchedUpdates();
+
+            // When the chat's errors are aggregated
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActionsWithDeletedComment, allTransactions, currentUserAccountID);
+
+            // Then it is still ignored, i.e. the fix did not widen the filter beyond report previews
+            expect(errors).toEqual({});
+        });
+
         it('should return smart scan error for the top-most parent report with smart scan error', async () => {
             const transactionID = '12345';
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction1.reportID}`, {

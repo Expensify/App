@@ -425,7 +425,8 @@ function getPayMoneyRequestParams({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction,
+                // Clear any error left by a previous failed payment so a retry does not keep showing a stale RBR.
+                [optimisticReportPreviewAction.reportActionID]: {...optimisticReportPreviewAction, errors: null},
             },
         });
         onyxData.failureData?.push({
@@ -434,6 +435,9 @@ function getPayMoneyRequestParams({
             value: {
                 [optimisticReportPreviewAction.reportActionID]: {
                     created: optimisticReportPreviewAction.created,
+                    // The error above lands on the pay action inside the expense report, which the payer cannot reach
+                    // once that report is deleted. Mirror it here so they always have a dismissible RBR in the chat.
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
                 },
             },
         });

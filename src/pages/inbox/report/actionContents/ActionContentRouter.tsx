@@ -41,6 +41,7 @@ import {
     isCardBrokenConnectionAction,
     isCardIssuedAction,
     isCreatedTaskReportAction,
+    isDeletedReportPreviewWithError,
     isIOURequestReportAction,
     isMemberChangeAction,
     isMoneyRequestAction,
@@ -207,7 +208,9 @@ function ActionContentRouter({
             />
         );
     }
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
+    // A preview kept alive only by its error has no report left to show, so render the deleted placeholder instead
+    // of pointing MoneyRequestReportPreview at a report that is gone.
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && (isClosedExpenseReportWithNoExpenses || isDeletedReportPreviewWithError(action))) {
         return <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedReport')}</deleted-action>`} />;
     }
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {

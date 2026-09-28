@@ -39,7 +39,7 @@ import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, PolicyChangeLogCopyReportActionNames, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
@@ -1271,6 +1271,14 @@ function isResolvedConciergeDescriptionOptions(reportAction: OnyxEntry<ReportAct
 }
 
 /**
+ * A deleted report preview stays visible while it carries an error: that error is the payer's only feedback when a
+ * delete races the payment they queued. See https://github.com/Expensify/App/issues/100676.
+ */
+function isDeletedReportPreviewWithError(reportAction: OnyxEntry<ReportAction>): boolean {
+    return isReportPreviewAction(reportAction) && isDeletedAction(reportAction) && !isEmptyValueObject(reportAction?.errors);
+}
+
+/**
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
@@ -1364,6 +1372,10 @@ function shouldReportActionBeVisible(
 
     if (!isVisiblePreviewOrMoneyRequest(reportAction)) {
         return false;
+    }
+
+    if (isDeletedReportPreviewWithError(reportAction)) {
+        return true;
     }
 
     // All other actions are displayed except thread parents, deleted, or non-pending actions
@@ -5273,6 +5285,7 @@ export {
     isCurrentActionUnread,
     isDeletedAction,
     isDeletedParentAction,
+    isDeletedReportPreviewWithError,
     isMemberChangeAction,
     isLeavePolicyAction,
     isExportIntegrationAction,

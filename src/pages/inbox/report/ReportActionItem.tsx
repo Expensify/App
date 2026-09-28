@@ -48,6 +48,7 @@ import {
     isCreatedTaskReportAction,
     isActionOfType,
     isDeletedParentAction as isDeletedParentActionUtils,
+    isDeletedReportPreviewWithError,
     isMessageDeleted,
     isMoneyRequestAction,
     isPendingRemove,
@@ -411,6 +412,12 @@ function ReportActionItem({
 
     const isContextMenuDisabled = hasDraft || (hasActionErrors && !hasOnlyReceiptErrors) || !shouldDisplayContextMenuValue;
 
+    const latestActionErrors = getLatestErrorMessageField(action as OnyxDataWithErrors);
+
+    // Once the previewed expense is deleted there is nothing left to retry, so say what happened instead of the
+    // generic "try again later" copy PayMoneyRequest's failureData wrote.
+    const displayedActionErrors = isDeletedReportPreviewWithError(action) ? mapValues(latestActionErrors, () => translate('iou.error.payFailedExpenseDeleted')) : latestActionErrors;
+
     /**
      * Show the ReportActionContextMenu modal popover.
      *
@@ -609,7 +616,7 @@ function ReportActionItem({
                                                     hasDraft ? undefined : (action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined))
                                                 }
                                                 shouldHideOnDelete={!isDeletedParentAction}
-                                                errors={(linkedTransactionRouteError ?? !isOnSearch) ? getLatestErrorMessageField(action as OnyxDataWithErrors) : {}}
+                                                errors={(linkedTransactionRouteError ?? !isOnSearch) ? displayedActionErrors : {}}
                                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                                 needsOffscreenAlphaCompositing={isMoneyRequestAction(action)}
                                                 shouldDisableStrikeThrough

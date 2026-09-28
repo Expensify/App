@@ -2836,6 +2836,96 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('isDeletedReportPreviewWithError', () => {
+        // Errors are keyed by the microtime they were recorded at.
+        const errorKey = 1737000000000;
+
+        /** A report preview marked deleted the way the server marks one when its report is removed. */
+        function buildDeletedReportPreview(errors?: ReportAction['errors']): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
+            return {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'owes $10.00', type: 'COMMENT', text: 'owes $10.00', deleted: '2025-09-30 10:00:00.000'}],
+                originalMessage: {linkedReportID: '2'},
+                errors,
+            };
+        }
+
+        it('should return true for a deleted report preview that still carries an error', () => {
+            // Given a report preview whose report was deleted while the payer's payment sat in the offline queue,
+            // leaving the payment failure error behind on the preview
+            const reportAction = buildDeletedReportPreview({[errorKey]: 'This payment failed because the expense was deleted.'});
+
+            // When we ask whether it is an errored deleted preview
+            const actual = ReportActionsUtils.isDeletedReportPreviewWithError(reportAction);
+
+            // Then it is, because that error is the payer's only feedback and needs somewhere to render
+            expect(actual).toBe(true);
+        });
+
+        it('should return false for a deleted report preview with no error', () => {
+            // Given an ordinary deleted report preview, i.e. the expense was deleted and nothing failed
+            const reportAction = buildDeletedReportPreview();
+
+            // When we ask whether it is an errored deleted preview
+            const actual = ReportActionsUtils.isDeletedReportPreviewWithError(reportAction);
+
+            // Then it is not, so it stays hidden as before
+            expect(actual).toBe(false);
+        });
+
+        it('should return false for a deleted report preview whose errors were dismissed', () => {
+            // Given a preview whose error the payer already dismissed, which clears the values rather than the keys
+            const reportAction = buildDeletedReportPreview({[errorKey]: null});
+
+            // When we ask whether it is an errored deleted preview
+            const actual = ReportActionsUtils.isDeletedReportPreviewWithError(reportAction);
+
+            // Then it is not, so dismissing removes the row instead of leaving an empty one behind
+            expect(actual).toBe(false);
+        });
+
+        it('should return false for a non-preview deleted action that carries an error', () => {
+            // Given a deleted comment with an error, which must not be revived by this rule
+            const reportAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: '', type: 'COMMENT', text: ''}],
+                errors: {[errorKey]: 'Some error'},
+            };
+
+            // When we ask whether it is an errored deleted preview
+            const actual = ReportActionsUtils.isDeletedReportPreviewWithError(reportAction);
+
+            // Then it is not, because the rule is scoped to report previews
+            expect(actual).toBe(false);
+        });
+
+        it('should keep an errored deleted report preview visible', () => {
+            // Given a deleted report preview carrying a payment failure error
+            const reportAction = buildDeletedReportPreview({[errorKey]: 'This payment failed because the expense was deleted.'});
+
+            // When the report view decides whether to render it
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+
+            // Then it is rendered, so the RBR beneath it has a preview to attach to
+            expect(actual).toBe(true);
+        });
+
+        it('should keep hiding a deleted report preview with no error', () => {
+            // Given the same preview without an error
+            const reportAction = buildDeletedReportPreview();
+
+            // When the report view decides whether to render it
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+
+            // Then it stays hidden, i.e. this fix did not make every deleted preview visible
+            expect(actual).toBe(false);
+        });
+    });
+
     describe('getPolicyChangeLogUpdateEmployee', () => {
         it('should remove SMS domain when the email is a phone number', () => {
             const email = '+919383833920@expensify.sms';
