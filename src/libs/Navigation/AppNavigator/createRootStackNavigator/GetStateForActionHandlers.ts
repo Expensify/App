@@ -702,7 +702,9 @@ function handlePreMountUnderCurrentFullscreen(
     // Only meaningful while a modal (the submit RHP) covers the top fullscreen; otherwise there is nothing to pre-mount behind.
     const topRoute = state.routes.at(-1);
     const tabNavIndex = state.routes.findLastIndex((r) => r.name === NAVIGATORS.TAB_NAVIGATOR);
-    if (!topRoute || isFullScreenName(topRoute.name) || tabNavIndex < 0) {
+    // Another fullscreen (e.g. a Workspace split) covering the tab navigator would hide the pre-mount, so skip it.
+    const topFullscreenIndex = state.routes.findLastIndex((r) => isFullScreenName(r.name));
+    if (!topRoute || isFullScreenName(topRoute.name) || tabNavIndex < 0 || tabNavIndex !== topFullscreenIndex) {
         return null;
     }
     setPreMountedUnderCurrentFullscreenRouteKey(action.payload.routeKey);

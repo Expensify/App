@@ -397,6 +397,23 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
         expect(result?.index).toBe(2);
     });
 
+    it('skips the wide pre-mount when another fullscreen covers the tab navigator', () => {
+        // Given a Workspace split navigator above the TAB_NAVIGATOR, with the RHP on top
+        const existing = makeExistingReportsState([makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key')], 0);
+        const routes = [...existing.routes.slice(0, -1), makeRoute(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR), ...existing.routes.slice(-1)];
+        const covered = {...existing, routes, index: routes.length - 1};
+        const action: PreMountUnderCurrentFullscreenActionType = {
+            type: CONST.NAVIGATION.ACTION_TYPE.PRE_MOUNT_UNDER_CURRENT_FULLSCREEN,
+            payload: {routeKey: 'tab-nav-pre-mounted', tabState: {index: 0, routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}]}},
+        };
+
+        // When the destination is pre-mounted
+        const result = handlePreMountUnderCurrentFullscreen(covered, action, CONFIG_OPTIONS, stackRouter);
+
+        // Then nothing is inserted, because the pre-mount would never be visible under the Workspace split
+        expect(result).toBeNull();
+    });
+
     it('reveals the wide pre-mounted TAB_NAVIGATOR by dropping the current instance instead of rebuilding tab state', () => {
         // Given a wide layout with a TAB_NAVIGATOR pre-mounted under the current one for report B
         mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
