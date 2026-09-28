@@ -102,3 +102,4 @@ function FieldAutoSelector({
 FieldAutoSelector.displayName = 'FieldAutoSelector';
 
 export default FieldAutoSelector;
+export type {FieldAutoSelectorProps};

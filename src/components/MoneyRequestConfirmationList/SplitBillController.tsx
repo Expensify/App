@@ -89,3 +89,4 @@ function SplitBillController({transaction, isTypeSplit, iouAmount, iouCurrencyCo
 SplitBillController.displayName = 'SplitBillController';
 
 export default SplitBillController;
+export type {SplitBillControllerProps};

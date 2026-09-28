@@ -110,3 +110,4 @@ function TaxController({
 TaxController.displayName = 'TaxController';
 
 export default TaxController;
+export type {TaxControllerProps};

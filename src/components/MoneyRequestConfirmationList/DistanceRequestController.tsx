@@ -332,3 +332,4 @@ function DistanceRequestController({
 DistanceRequestController.displayName = 'DistanceRequestController';
 
 export default DistanceRequestController;
+export type {DistanceRequestControllerProps};
