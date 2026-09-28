@@ -28,11 +28,6 @@ function DistanceMapFooter({
     return (
         <ExpenseFormLayoutContext.Provider value={dropdownRowsExpenseFormLayout}>
             <View>
-                {/*
-                    Separates the workspace row above from the expense details, so the two read as distinct sections.
-                    Its 8px of margin is what puts an even 16px between every pair of items in the form, since each
-                    field already carries 8px of its own.
-                */}
                 {visibilityFlags.hasParticipantSection && <View style={[styles.dividerLine, styles.mv2]} />}
 
                 <DistanceMapSection />

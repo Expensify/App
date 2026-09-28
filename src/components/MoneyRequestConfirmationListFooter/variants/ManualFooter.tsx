@@ -27,11 +27,6 @@ function ManualFooter({policy, policyTags, selectedParticipants, amountDisplay, 
     return (
         <ExpenseFormLayoutContext.Provider value={expenseFormLayout}>
             <View>
-                {/*
-                    Separates the workspace row above from the expense details, so the two read as distinct sections.
-                    Its 8px of margin is what puts an even 16px between every pair of items in the form, since each
-                    field already carries 8px of its own.
-                */}
                 {visibilityFlags.hasParticipantSection && <View style={[styles.dividerLine, styles.mv2]} />}
 
                 {/* The receipt preview carries no margin of its own, so the 8px that keeps it clear of the divider

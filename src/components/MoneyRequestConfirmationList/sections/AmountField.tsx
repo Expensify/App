@@ -349,10 +349,6 @@ function AmountField({
                                 setIsAmountInputFocused(false);
                             }}
                             leadingRightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
-                            // Borderless on every confirmation form, not only the one that borders its rows, so
-                            // the flip and currency buttons read the same way in Manual, Scan and the rest. The prop
-                            // stays because `ChronosScheduleOOOPage` reaches the same buttons through `AmountForm`
-                            // for its duration-unit picker, where the bordered button is the intended look.
                             shouldUseBorderlessButtons
                             disabled={isAmountFieldDisabled}
                         />
