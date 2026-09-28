@@ -13,12 +13,15 @@ import type * as ReactNavigation from '@react-navigation/native';
 
 import React from 'react';
 
+// Capture the latest focus-effect callback so a test can simulate the page regaining focus (e.g. returning after toggling a setting).
+const mockFocus: {callback?: () => void} = {};
 jest.mock('@react-navigation/native', () => {
     const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
     return {
         ...actualNavigation,
-        // No-op focus effect: useInitialSelection still freezes via its useState seed, which is what we assert on.
-        useFocusEffect: jest.fn(),
+        useFocusEffect: jest.fn((callback: () => void) => {
+            mockFocus.callback = callback;
+        }),
     };
 });
 
@@ -162,6 +165,28 @@ describe('WorkspaceWorkflowsPayerPage', () => {
         expect(props?.sections.at(0)?.data.at(0)?.keyForList).toBe('2');
         expect(props?.sections.at(0)?.data.at(0)?.isSelected).toBe(false);
         // ...and the newly picked admin only got the checkmark, staying in the admins section.
+        const admin = props?.sections.at(1)?.data.find((member) => member.keyForList === '3');
+        expect(admin?.isSelected).toBe(true);
+    });
+
+    it('keeps the saved payer in the top section (not the unsaved pick) when the page regains focus', () => {
+        render(pageElement());
+
+        // Pick a different admin without saving.
+        act(() => {
+            getListProps()?.onSelectRow({keyForList: '3', accountID: 3});
+        });
+
+        // Simulate returning to the page (e.g. after toggling a setting), which fires the focus effect.
+        act(() => {
+            mockFocus.callback?.();
+        });
+
+        const props = getListProps();
+        // The saved payer stays alone at the top section; the unsaved pick must not jump there.
+        expect(props?.sections.at(0)?.data.at(0)?.keyForList).toBe('2');
+        expect(props?.sections.at(0)?.data.at(0)?.isSelected).toBe(false);
+        // The unsaved pick keeps only the checkmark, still in the admins section.
         const admin = props?.sections.at(1)?.data.find((member) => member.keyForList === '3');
         expect(admin?.isSelected).toBe(true);
     });

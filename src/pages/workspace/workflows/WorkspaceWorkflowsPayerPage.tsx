@@ -91,9 +91,9 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const [searchTerm, setSearchTerm] = useState('');
     const [sharedBankAccountData] = useOnyx(ONYXKEYS.SHARE_BANK_ACCOUNT);
-    const [selectedPayer, setSelectedPayer] = useState<string | undefined>(policy?.achAccount?.reimburser ?? policy?.owner);
-    // Freeze the payer selected when the page opened so its row stays pinned to the top section for the whole open/focus cycle, even as the live selection changes.
-    const initialPayer = useInitialSelection(selectedPayer, {resetOnFocus: true});
+    const savedPayer = policy?.achAccount?.reimburser ?? policy?.owner;
+    const [selectedPayer, setSelectedPayer] = useState<string | undefined>(savedPayer);
+    const initialPayer = useInitialSelection(savedPayer, {resetOnFocus: true});
     const shouldShowSuccess = sharedBankAccountData?.shouldShowSuccess ?? false;
     const styles = useThemeStyles();
     const {showConfirmModal, closeModal} = useConfirmModal();
