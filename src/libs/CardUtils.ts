@@ -136,6 +136,7 @@ type CardConnectionStatusDisplayParams = {
     isCardBroken: boolean;
     shouldShowRBR: boolean;
     isCardInactive: boolean;
+    isCardPending: boolean;
     isExpensifyCard: boolean;
     isPersonalCard: boolean;
     isAdminForCardPolicy: boolean;
@@ -1439,6 +1440,7 @@ function getCardConnectionStatusDisplay({
     isCardBroken,
     shouldShowRBR,
     isCardInactive: isCardInactiveStatus,
+    isCardPending: isCardPendingStatus,
     isExpensifyCard: isExpensifyCardStatus,
     isPersonalCard: isPersonalCardStatus,
     isAdminForCardPolicy,
@@ -1454,10 +1456,15 @@ function getCardConnectionStatusDisplay({
     // is right for it in any state. It still reports its status so the row keeps the background, hover and press
     // styling every other row in the list gets, which hangs off the status being present rather than the message.
     if (isExpensifyCardStatus) {
-        return {
-            statusKey: isCardInactiveStatus ? 'walletPage.cardStatus.inactive' : 'walletPage.cardStatus.active',
-            statusTone: isCardInactiveStatus ? 'default' : 'success',
-        };
+        if (isCardInactiveStatus) {
+            return {statusKey: 'walletPage.cardStatus.inactive', statusTone: 'default'};
+        }
+        // A card waiting to be issued or activated cannot be spent on yet. It shares the tone with a pending bank
+        // account, so the wallet reads the same way whichever kind of row the status is on.
+        if (isCardPendingStatus) {
+            return {statusKey: 'walletPage.cardStatus.pending', statusTone: 'danger'};
+        }
+        return {statusKey: 'walletPage.cardStatus.active', statusTone: 'success'};
     }
 
     const shouldShowMessage = isCardBroken || shouldShowRBR || isCardInactiveStatus;
@@ -1724,20 +1731,54 @@ function isCardPendingActivate(card?: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED;
 }
 
+/** The two states a card passes through before it can be spent on, whether or not the cardholder can act on them. */
+function isCardPendingIssueOrActivation(card?: Card) {
+    return isCardPendingIssue(card) || isCardPendingActivate(card);
+}
+
+/**
+ * True when an Expensify Card is waiting to be issued or activated and so cannot be spent on yet.
+ *
+ * Those two states describe a physical card on its way to the cardholder. A virtual card is issued and spendable as
+ * soon as it is assigned and has no activation step, so it is never waiting on either, which is why
+ * `isExpensifyCardPendingAction` leaves virtual cards out as well.
+ */
+function isExpensifyCardPending(card?: Card) {
+    return card?.bank === CONST.EXPENSIFY_CARD.BANK && !card.nameValuePairs?.isVirtual && isCardPendingIssueOrActivation(card);
+}
+
 /** True when this card has a wallet addition waiting for the cardholder to confirm or deny. */
 function isCardPendingDigitalWalletApproval(card?: Card) {
     return !!card?.nameValuePairs?.pendingDigitalWalletApproval;
 }
 
-/** Maps the card provider's wallet name. Google Wallet comes back as ANDROID_PAY. */
-function getWalletProviderNameKey(walletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>): 'appleWallet' | 'googleWallet' | 'digitalWallet' {
+/** An Expensify Card in a state the Wallet and Home surfaces display. */
+function isActiveExpensifyCard(card: Card) {
+    return isCard(card) && isExpensifyCard(card) && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0);
+}
+
+/** True when the user holds an Expensify Card. */
+function hasActiveExpensifyCard(cards: CardList | undefined) {
+    return hasAssignedCardMatching(cards, isActiveExpensifyCard);
+}
+
+/** True when one of the user's Expensify Cards has a wallet addition waiting to be confirmed or denied. */
+function hasCardPendingDigitalWalletApproval(cards: CardList | undefined) {
+    return hasAssignedCardMatching(cards, (card) => isActiveExpensifyCard(card) && isCardPendingDigitalWalletApproval(card));
+}
+
+/** Maps the card provider's wallet name. Google Wallet comes back as ANDROID_PAY. Only the generic name needs a capitalized variant. */
+function getWalletProviderNameKey(
+    walletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>,
+    shouldStartSentence = false,
+): 'appleWallet' | 'googleWallet' | 'digitalWallet' | 'digitalWalletCapitalized' {
     if (walletProvider === CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY) {
         return 'appleWallet';
     }
     if (walletProvider === CONST.EXPENSIFY_CARD.WALLET_PROVIDER.ANDROID_PAY) {
         return 'googleWallet';
     }
-    return 'digitalWallet';
+    return shouldStartSentence ? 'digitalWalletCapitalized' : 'digitalWallet';
 }
 
 function isCardWithCustomZeroLimit(card: Card): boolean {
@@ -1754,7 +1795,7 @@ function isCardWithPotentialFraud(card: Card): boolean {
 
 function isCardPendingReplace(card?: Card) {
     return (
-        (isCardPendingActivate(card) || isCardPendingIssue(card)) &&
+        isCardPendingIssueOrActivation(card) &&
         !!card?.nameValuePairs?.terminationReason &&
         card?.nameValuePairs?.statusChanges?.at(-1)?.status === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED
     );
@@ -1766,14 +1807,18 @@ function isCardPendingReplace(card?: Card) {
  * @param card personal card to check
  */
 function isPersonalCardBrokenConnection(card?: Card) {
-    return card?.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card?.lastScrapeResult);
+    if (card?.pendingFields?.lastScrape) {
+        return false;
+    }
+
+    return !!card?.lastScrapeResult && (isCardConnectionBroken(card) || card.lastScrapeResult === CONST.PERSONAL_CARDS.ACCOUNT_NOT_FOUND_SCRAPE_STATUS);
 }
 
 function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: PrivatePersonalDetails): boolean {
     return (
         card?.bank === CONST.EXPENSIFY_CARD.BANK &&
         !card.nameValuePairs?.isVirtual &&
-        (isCardPendingIssue(card) || isCardPendingActivate(card) || isCardPendingReplace(card) || arePersonalDetailsMissing(privatePersonalDetails)) &&
+        (isCardPendingIssueOrActivation(card) || isCardPendingReplace(card) || arePersonalDetailsMissing(privatePersonalDetails)) &&
         (!card.lastScrapeResult || CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card.lastScrapeResult))
     );
 }
@@ -2296,7 +2341,11 @@ export {
     getPersonalBankCardDetailsImage,
     isCardPendingIssue,
     isCardPendingActivate,
+    isExpensifyCardPending,
     isCardPendingDigitalWalletApproval,
+    isActiveExpensifyCard,
+    hasActiveExpensifyCard,
+    hasCardPendingDigitalWalletApproval,
     getWalletProviderNameKey,
     isCardPendingReplace,
     isCardWithCustomZeroLimit,

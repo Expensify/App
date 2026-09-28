@@ -1,15 +1,20 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import getStoredDefaultP2PMileageRate from '@libs/getStoredDefaultP2PMileageRate';
 
 import CONST from '@src/CONST';
 import en from '@src/languages/en';
-import type {Unit} from '@src/types/onyx/Policy';
+import type {Rate, Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type Transaction from '@src/types/onyx/Transaction';
 
 import createRandomTransaction from '../utils/collections/transaction';
 import {translateLocal} from '../utils/TestHelper';
+
+// Auto-mocked so it returns undefined by default, which is the "default P2P rate not loaded yet" state the
+// getRateForP2P tests below rely on. Individual tests override it when they need a loaded default.
+jest.mock('@libs/getStoredDefaultP2PMileageRate');
 
 const customUnitRateIDWithTaxClaimablePercentage = 'FG515011039A4';
 const rateWithTaxClaimablePercentage = 100;
@@ -940,6 +945,223 @@ describe('DistanceRequestUtils', () => {
 
         it('should treat a DB timestamp after the end date as ineligible', () => {
             expect(DistanceRequestUtils.isRateEligibleForDate(boundedRate, '2026-01-01 00:00:00')).toBe(false);
+        });
+    });
+
+    describe('getRateForPolicyChange', () => {
+        const expenseDate = '2026-03-15';
+        const currentRate = {customUnitRateID: 'SOURCE_RATE_ID', rate: 70, currency: 'USD', unit: distanceUnit};
+
+        const buildRate = (customUnitRateID: string, rate: number, overrides: Partial<Rate> = {}): Rate => ({
+            attributes: {},
+            currency: 'USD',
+            customUnitRateID,
+            enabled: true,
+            name: customUnitRateID,
+            rate,
+            subRates: [],
+            ...overrides,
+        });
+
+        const buildDestinationPolicy = (rates: Record<string, Rate>, unit: Unit = distanceUnit): Policy => ({
+            ...FAKE_POLICY,
+            id: 'DESTINATION_POLICY_ID',
+            customUnits: {
+                C9031B6F4725D: {
+                    ...distanceCustomUnitBase,
+                    attributes: {taxEnabled: true, unit},
+                    rates,
+                },
+            },
+        });
+
+        const buildTransaction = (overrides: Partial<Transaction> = {}): Transaction =>
+            ({
+                ...createRandomTransaction(1),
+                created: expenseDate,
+                modifiedCreated: '',
+                currency: 'USD',
+                modifiedCurrency: '',
+                comment: {customUnit: {customUnitRateID: 'SOURCE_RATE_ID', distanceUnit}},
+                ...overrides,
+            }) as Transaction;
+
+        const defaultRate = buildRate('DEFAULT_RATE_ID', 67, {index: 0});
+
+        afterEach(() => {
+            jest.mocked(getStoredDefaultP2PMileageRate).mockReset();
+        });
+
+        it('prefers a rate matching the current value, currency and unit over the default rate', () => {
+            // Given a destination policy that has a rate equivalent to the expense's current rate
+            const policy = buildDestinationPolicy({
+                DEFAULT_RATE_ID: defaultRate,
+                MATCHING_RATE_ID: buildRate('MATCHING_RATE_ID', 70, {index: 1}),
+            });
+
+            // When selecting the rate for the policy change
+            const result = DistanceRequestUtils.getRateForPolicyChange({transaction: buildTransaction(), policy, currentRate});
+
+            // Then the equivalent rate is chosen so the expense is not repriced
+            expect(result?.customUnitRateID).toBe('MATCHING_RATE_ID');
+        });
+
+        it('does not match a disabled rate and falls back to the default rate', () => {
+            // Given the only value-matching rate on the destination policy is disabled
+            const policy = buildDestinationPolicy({
+                DEFAULT_RATE_ID: defaultRate,
+                MATCHING_RATE_ID: buildRate('MATCHING_RATE_ID', 70, {index: 1, enabled: false}),
+            });
+
+            // When selecting the rate for the policy change
+            const result = DistanceRequestUtils.getRateForPolicyChange({transaction: buildTransaction(), policy, currentRate});
+
+            // Then the default rate is used instead
+            expect(result?.customUnitRateID).toBe('DEFAULT_RATE_ID');
+        });
+
+        it('does not match a rate with the same value in a different currency', () => {
+            // Given a destination rate with the same value but a different currency
+            const policy = buildDestinationPolicy({
+                DEFAULT_RATE_ID: defaultRate,
+                MATCHING_RATE_ID: buildRate('MATCHING_RATE_ID', 70, {index: 1, currency: 'GBP'}),
+            });
+
+            // When selecting the rate for the policy change
+            const result = DistanceRequestUtils.getRateForPolicyChange({transaction: buildTransaction(), policy, currentRate});
+
+            // Then it is not treated as a match
+            expect(result?.customUnitRateID).toBe('DEFAULT_RATE_ID');
+        });
+
+        it('does not match any rate when the destination policy uses a different distance unit', () => {
+            // Given a destination policy measured in kilometers while the expense is in miles
+            const policy = buildDestinationPolicy(
+                {
+                    DEFAULT_RATE_ID: defaultRate,
+                    MATCHING_RATE_ID: buildRate('MATCHING_RATE_ID', 70, {index: 1}),
+                },
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            );
+
+            // When selecting the rate for the policy change
+            const result = DistanceRequestUtils.getRateForPolicyChange({transaction: buildTransaction(), policy, currentRate});
+
+            // Then the unit mismatch disqualifies the whole policy from matching and the default rate is used
+            expect(result?.customUnitRateID).toBe('DEFAULT_RATE_ID');
+        });
+
+        it('does not match a value-matching rate whose date range excludes the expense date', () => {
+            // Given a value-matching rate that expired before the expense date
+            const policy = buildDestinationPolicy({
+                DEFAULT_RATE_ID: defaultRate,
+                MATCHING_RATE_ID: buildRate('MATCHING_RATE_ID', 70, {index: 1, startDate: '2025-01-01', endDate: '2025-12-31'}),
+            });
+
+            // When selecting the rate for the policy change
+            const result = DistanceRequestUtils.getRateForPolicyChange({transaction: buildTransaction(), policy, currentRate});
+
+            // Then the default rate is used
+            expect(result?.customUnitRateID).toBe('DEFAULT_RATE_ID');
+        });
+
+        it('picks the narrowest date range when several rates match the current value', () => {
+            // Given two value-matching rates covering the expense date, one with a narrower range
+            const policy = buildDestinationPolicy({
+                DEFAULT_RATE_ID: defaultRate,
+                MATCHING_YEAR_RATE_ID: buildRate('MATCHING_YEAR_RATE_ID', 70, {index: 1, startDate: '2026-01-01', endDate: '2026-12-31'}),
+                MATCHING_H1_RATE_ID: buildRate('MATCHING_H1_RATE_ID', 70, {index: 2, startDate: '2026-01-01', endDate: '2026-06-30'}),
+            });
+
+            // When selecting the rate for the policy change
+            const result = DistanceRequestUtils.getRateForPolicyChange({transaction: buildTransaction(), policy, currentRate});
+
+            // Then the narrower range wins, matching the date ranking used everywhere else
+            expect(result?.customUnitRateID).toBe('MATCHING_H1_RATE_ID');
+        });
+
+        it('returns undefined when the destination policy has no enabled rate', () => {
+            // Given a destination policy whose only rate is disabled
+            const policy = buildDestinationPolicy({
+                DEFAULT_RATE_ID: buildRate('DEFAULT_RATE_ID', 67, {index: 0, enabled: false}),
+            });
+
+            // When selecting the rate for the policy change
+            const result = DistanceRequestUtils.getRateForPolicyChange({transaction: buildTransaction(), policy, currentRate});
+
+            // Then nothing is selected so the caller keeps the out of policy violation
+            expect(result).toBeUndefined();
+        });
+
+        it('derives the current rate from a P2P expense when no current rate is passed', () => {
+            // Given a P2P expense that stores its own rate value on the transaction
+            const transaction = buildTransaction({
+                comment: {customUnit: {customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID, defaultP2PRate: 70, distanceUnit}},
+            });
+            const policy = buildDestinationPolicy({
+                DEFAULT_RATE_ID: defaultRate,
+                MATCHING_RATE_ID: buildRate('MATCHING_RATE_ID', 70, {index: 1}),
+            });
+
+            // When selecting the rate for the policy change without an explicit current rate
+            const result = DistanceRequestUtils.getRateForPolicyChange({transaction, policy});
+
+            // Then the P2P rate value is matched against the destination policy
+            expect(result?.customUnitRateID).toBe('MATCHING_RATE_ID');
+        });
+
+        it('matches a P2P expense against the unit saved on the transaction, not the loaded global default unit', () => {
+            // Given the global default P2P rate is loaded in miles while the expense itself was saved in kilometers
+            jest.mocked(getStoredDefaultP2PMileageRate).mockReturnValue({rate: 67, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES});
+            const transaction = buildTransaction({
+                comment: {customUnit: {customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID, defaultP2PRate: 70, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}},
+            });
+            const policy = buildDestinationPolicy(
+                {
+                    DEFAULT_RATE_ID: defaultRate,
+                    MATCHING_RATE_ID: buildRate('MATCHING_RATE_ID', 70, {index: 1}),
+                },
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            );
+
+            // When selecting the rate for the policy change
+            const result = DistanceRequestUtils.getRateForPolicyChange({transaction, policy});
+
+            // Then the kilometer rate still matches, so the expense is not repriced by the fallback rate
+            expect(result?.customUnitRateID).toBe('MATCHING_RATE_ID');
+        });
+
+        it('does not match a P2P expense against a destination policy whose unit differs from the transaction unit', () => {
+            // Given the global default P2P rate is loaded in miles and the destination policy is in miles, but the expense was saved in kilometers
+            jest.mocked(getStoredDefaultP2PMileageRate).mockReturnValue({rate: 67, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES});
+            const transaction = buildTransaction({
+                comment: {customUnit: {customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID, defaultP2PRate: 70, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}},
+            });
+            const policy = buildDestinationPolicy({
+                DEFAULT_RATE_ID: defaultRate,
+                MATCHING_RATE_ID: buildRate('MATCHING_RATE_ID', 70, {index: 1}),
+            });
+
+            // When selecting the rate for the policy change
+            const result = DistanceRequestUtils.getRateForPolicyChange({transaction, policy});
+
+            // Then the unit mismatch disqualifies the match and the destination's default rate is used
+            expect(result?.customUnitRateID).toBe('DEFAULT_RATE_ID');
+        });
+
+        it('uses the modified date over the created date when checking rate eligibility', () => {
+            // Given an expense created in 2026 but backdated to 2025
+            const transaction = buildTransaction({modifiedCreated: '2025-06-15'});
+            const policy = buildDestinationPolicy({
+                DEFAULT_RATE_ID: defaultRate,
+                MATCHING_2025_RATE_ID: buildRate('MATCHING_2025_RATE_ID', 70, {index: 1, startDate: '2025-01-01', endDate: '2025-12-31'}),
+            });
+
+            // When selecting the rate for the policy change
+            const result = DistanceRequestUtils.getRateForPolicyChange({transaction, policy, currentRate});
+
+            // Then the rate valid for the modified date is matched
+            expect(result?.customUnitRateID).toBe('MATCHING_2025_RATE_ID');
         });
     });
 });

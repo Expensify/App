@@ -9,7 +9,6 @@ import Tooltip from '@components/Tooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -79,7 +78,6 @@ function ReportActionItemSingle({
     const {latestDecision, hasBeenFlagged} = getModerationFlagState(action);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate, dateFnsLocale} = useLocalize();
     const isOnSearch = useIsOnSearch();
 
@@ -123,7 +121,7 @@ function ReportActionItemSingle({
         }
     };
 
-    const optimisticCheckAccountID = action?.delegateAccountID ? Number(action.delegateAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID);
+    const optimisticCheckAccountID = delegateAccountID ? Number(delegateAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const [isOptimistic] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: isOptimisticPersonalDetailSelector(optimisticCheckAccountID)});
     const shouldDisableDetailPage = CONST.RESTRICTED_ACCOUNT_IDS.includes(details.accountID ?? CONST.DEFAULT_NUMBER_ID) || (!details.isWorkspaceActor && !!isOptimistic);
 
@@ -163,14 +161,10 @@ function ReportActionItemSingle({
             >
                 <OfflineWithFeedback pendingAction={details.pendingFields?.avatar ?? undefined}>
                     <ReportActionAvatars
-                        singleAvatarContainerStyle={[styles.actionAvatar]}
-                        subscriptAvatarBorderColor={getBackgroundColor()}
-                        noRightMarginOnSubscriptContainer
+                        singleAvatarContainerStyle={styles.actionAvatar}
+                        subscriptAvatarContainerStyle={styles.mr0}
+                        backdropColor={getBackgroundColor()}
                         isInReportAction
-                        secondaryAvatarContainerStyle={[
-                            StyleUtils.getBackgroundAndBorderStyle(theme.appBG),
-                            isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined,
-                        ]}
                         reportID={iouReportID}
                         chatReportID={source.iouReport?.chatReportID ?? reportID}
                         action={action}
@@ -197,7 +191,7 @@ function ReportActionItemSingle({
                                     key={`person-${action?.reportActionID}-${index}`}
                                     accountID={Number(details.delegateAccountID ?? primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
                                     fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
-                                    delegateAccountID={action?.delegateAccountID}
+                                    delegateAccountID={delegateAccountID}
                                     isSingleLine
                                     actorIcon={primaryAvatar}
                                     moderationDecision={latestDecision}

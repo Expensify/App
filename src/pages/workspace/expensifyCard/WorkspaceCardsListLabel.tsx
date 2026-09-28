@@ -76,7 +76,6 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`, {selector: Boolean});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
@@ -136,7 +135,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
         if (isGuidedSetupPending && !conciergeReportID) {
             // No Concierge chat exists yet: navigateToConciergeChat creates it and enqueues the onboarding OpenReport on
             // its create path. Wait for that promise so the limit-increase write lands after it in the queue.
-            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false}).then(() => {
+            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false}).then(() => {
                 requestExpensifyCardLimitIncrease(settings?.paymentBankAccountID, defaultFundID);
             });
             return;
@@ -152,7 +151,6 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                 reportID: conciergeReportID,
                 introSelected,
                 conciergeChat,
-                betas,
                 hasReportActions,
                 currentUserAccountID,
                 isSelfTourViewed,
@@ -160,7 +158,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
             });
         }
         requestExpensifyCardLimitIncrease(settings?.paymentBankAccountID, defaultFundID);
-        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false});
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false});
     };
 
     const isCurrentBalanceType = type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE;
@@ -192,7 +190,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
             feed: [feedKey],
             withdrawalStatus: [CONST.SEARCH.SETTLEMENT_STATUS.NEVER, CONST.SEARCH.SETTLEMENT_STATUS.PENDING],
         });
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     };
 
     return (

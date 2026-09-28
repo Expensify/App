@@ -1,6 +1,6 @@
 import ReportAvatar from '@components/Avatar/connected/ReportAvatar';
 import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
-import {useListItemSecondaryAvatarContainerStyle, useListItemSubscriptAvatarBorderColor} from '@components/SelectionList/ListItemComposed/hooks/useListItemAvatarColors';
+import useListItemBackdropColor from '@components/SelectionList/ListItemComposed/hooks/useListItemBackdropColor';
 import {useListItemContext} from '@components/SelectionList/ListItemContext';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,19 +15,17 @@ type ListItemReportAvatarProps = {
     fallbackDisplayName?: string;
 };
 
-/** A report's avatar(s) sized and colored for a list row. The subscript border follows the row's focus/hover state. */
+/** A report's avatar(s) sized and colored for a list row. The backdrop follows the row's focus/hover state. */
 function ListItemReportAvatar({reportID, fallbackDisplayName}: ListItemReportAvatarProps) {
     const styles = useThemeStyles();
     const {shouldShowTooltip} = useListItemContext();
-    const subscriptAvatarBorderColor = useListItemSubscriptAvatarBorderColor();
-    const secondaryAvatarContainerStyle = useListItemSecondaryAvatarContainerStyle();
+    const backdropColor = useListItemBackdropColor();
 
     return (
         <AvatarTooltipsProvider isEnabled={shouldShowTooltip}>
             <ReportAvatar
                 reportID={reportID}
-                subscriptAvatarBorderColor={subscriptAvatarBorderColor}
-                secondaryAvatarContainerStyle={secondaryAvatarContainerStyle}
+                backdropColor={backdropColor}
                 singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
                 fallbackDisplayName={fallbackDisplayName}
             />

@@ -17,10 +17,12 @@ on:
         type: boolean
       app_pull_request_url:
         description: 'The Expensify/App pull request URL.'
+        type: string
         required: false
         default: ''
       mobile_expensify_pull_request_url:
         description: 'The Expensify/Mobile-Expensify pull request URL to check out the submodule.'
+        type: string
         required: false
         default: ''
       reviewed_code:

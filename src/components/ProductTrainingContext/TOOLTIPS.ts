@@ -6,8 +6,17 @@ import type {TranslationPaths} from '@src/languages/types';
 
 import type {ValueOf} from 'type-fest';
 
-const {CONCIERGE_LHN_GBR, OUTSTANDING_FILTER, ACCOUNT_SWITCHER, SCAN_TEST_DRIVE_CONFIRMATION, GPS_TOOLTIP, HAS_FILTER_NEGATION, MILEAGE_RATE_AUTO_UPDATED, MARK_ALL_AS_READ} =
-    CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
+const {
+    CONCIERGE_LHN_GBR,
+    OUTSTANDING_FILTER,
+    ACCOUNT_SWITCHER,
+    SCAN_TEST_DRIVE_CONFIRMATION,
+    GPS_TOOLTIP,
+    HAS_FILTER_NEGATION,
+    MILEAGE_RATE_AUTO_UPDATED,
+    MARK_ALL_AS_READ,
+    ACCOUNT_MOVED_TO_TOP_BAR,
+} = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 type ProductTrainingTooltipName = Exclude<
     ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>,
@@ -97,6 +106,13 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         priority: 900,
         shouldShow: () => true,
         reappearsAfterMs: CONST.PRODUCT_TRAINING_TOOLTIP_REAPPEAR_WINDOW.SEVEN_DAYS,
+    },
+    [ACCOUNT_MOVED_TO_TOP_BAR]: {
+        content: 'productTrainingTooltip.accountMovedToTopBar',
+        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(ACCOUNT_MOVED_TO_TOP_BAR, isDismissedUsingCloseButton),
+        name: ACCOUNT_MOVED_TO_TOP_BAR,
+        priority: 1700,
+        shouldShow: () => true,
     },
 };
 

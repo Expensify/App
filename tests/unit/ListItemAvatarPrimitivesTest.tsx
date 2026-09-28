@@ -17,9 +17,9 @@ jest.mock('@components/Avatar/connected/PolicyAvatar', () => jest.fn(() => null)
 jest.mock('@components/Avatar/tooltips/AvatarTooltipContext', () => ({
     AvatarTooltipsProvider: jest.fn(({children}: {children: ReactNode}) => children),
 }));
-jest.mock('@components/SelectionList/ListItemComposed/hooks/useListItemAvatarColors', () => ({
-    useListItemSubscriptAvatarBorderColor: jest.fn(() => '#border'),
-    useListItemSecondaryAvatarContainerStyle: jest.fn(() => [{backgroundColor: '#secondary'}]),
+jest.mock('@components/SelectionList/ListItemComposed/hooks/useListItemBackdropColor', () => ({
+    __esModule: true,
+    default: jest.fn(() => '#backdrop'),
 }));
 
 const mockReportAvatar = jest.mocked(ReportAvatar);
@@ -29,7 +29,7 @@ const mockAvatarTooltipsProvider = jest.mocked(AvatarTooltipsProvider);
 
 const renderWithContext = (children: ReactNode, shouldShowTooltip = true) =>
     render(
-        <ListItemContext.Provider value={{shouldShowTooltip, isFocusVisible: false, isDisabled: false, isInteractive: true, shouldDisableAccessibleGrouping: false}}>
+        <ListItemContext.Provider value={{shouldShowTooltip, isFocused: false, isFocusVisible: false, isDisabled: false, isInteractive: true, shouldDisableAccessibleGrouping: false}}>
             {children}
         </ListItemContext.Provider>,
     );
@@ -39,7 +39,7 @@ describe('ListItemComposed avatar primitives', () => {
         jest.clearAllMocks();
     });
 
-    it('ReportAvatar forwards the report and the context-driven colors to the connected avatar', () => {
+    it('ReportAvatar forwards the report and the context-driven backdrop color to the connected avatar', () => {
         renderWithContext(
             <ListItemComposed.ReportAvatar
                 reportID="42"
@@ -51,8 +51,7 @@ describe('ListItemComposed avatar primitives', () => {
             expect.objectContaining({
                 reportID: '42',
                 fallbackDisplayName: 'Report row',
-                subscriptAvatarBorderColor: '#border',
-                secondaryAvatarContainerStyle: [{backgroundColor: '#secondary'}],
+                backdropColor: '#backdrop',
             }),
         );
     });
@@ -68,7 +67,7 @@ describe('ListItemComposed avatar primitives', () => {
         expect(mockAccountAvatar.mock.calls.at(0)?.at(0)).toEqual(expect.objectContaining({accountID: 7, fallbackDisplayName: 'User row'}));
     });
 
-    it('WorkspaceAvatar forwards the policy, subscript account, and the context-driven border color to the connected avatar', () => {
+    it('WorkspaceAvatar forwards the policy, subscript account, and the context-driven backdrop color to the connected avatar', () => {
         renderWithContext(
             <ListItemComposed.WorkspaceAvatar
                 policyID="policy-1"
@@ -78,7 +77,7 @@ describe('ListItemComposed avatar primitives', () => {
         );
 
         expect(mockPolicyAvatar.mock.calls.at(0)?.at(0)).toEqual(
-            expect.objectContaining({policyID: 'policy-1', accountID: 7, fallbackDisplayName: 'Workspace row', subscriptAvatarBorderColor: '#border'}),
+            expect.objectContaining({policyID: 'policy-1', accountID: 7, fallbackDisplayName: 'Workspace row', backdropColor: '#backdrop'}),
         );
     });
 
