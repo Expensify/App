@@ -16,7 +16,7 @@ Learn more about supported AI clients, permissions, and security in [Use the Exp
 
 ## Who can connect ChatGPT to Expensify using MCP
 
-Any member with an Expensify account and access to ChatGPT can connect using the Expensify connector in the ChatGPT connector directory.
+Any member with an Expensify account and access to ChatGPT can connect using the Expensify plugin in the ChatGPT plugin directory.
 
 Requirements:
 
