@@ -69,11 +69,26 @@ function useGPSTripStateChecker() {
     const gpsDraftDetailsRef = useRef(gpsDraftDetails);
     const isOfflineRef = useRef(isOffline);
     const reportIDRef = useRef(reportID);
+    const closeModalByIDRef = useRef(closeModalByID);
     useEffect(() => {
         gpsDraftDetailsRef.current = gpsDraftDetails;
         isOfflineRef.current = isOffline;
         reportIDRef.current = reportID;
+        closeModalByIDRef.current = closeModalByID;
     });
+
+    // The prompt lives on the app-level modal stack, which outlives AuthScreens. Take it down when the session ends
+    // (logout, expiry) so it does not stay over the public screens and run trip actions once answered there.
+    useEffect(
+        () => () => {
+            if (!isContinueTripModalOpenRef.current) {
+                return;
+            }
+            hasAutoClosedContinueTripModalRef.current = true;
+            closeModalByIDRef.current(CONTINUE_TRIP_MODAL_ID);
+        },
+        [],
+    );
 
     useEffect(() => {
         if (!isTripFromDifferentUser) {

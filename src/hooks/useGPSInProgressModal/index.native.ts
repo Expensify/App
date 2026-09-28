@@ -14,6 +14,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import {useEffect, useRef} from 'react';
 
+const GPS_IN_PROGRESS_MODAL_ID = 'gpsInProgress';
+
 /**
  * Pushes the "a trip is in progress" prompt onto the global modal stack.
  *
@@ -26,10 +28,30 @@ function useGPSInProgressModal() {
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {showConfirmModal} = useConfirmModal();
+    const {showConfirmModal, closeModalByID} = useConfirmModal();
 
     // Keeps a re-render from stacking a second prompt on top of the one that is already open.
     const isPromptShownRef = useRef(false);
+
+    // Set when the unmount cleanup below took the prompt down, so the handler knows the user never answered.
+    const hasAutoClosedPromptRef = useRef(false);
+    const closeModalByIDRef = useRef(closeModalByID);
+    useEffect(() => {
+        closeModalByIDRef.current = closeModalByID;
+    });
+
+    // The prompt lives on the app-level modal stack, which outlives AuthScreens. Take it down when the session ends
+    // (logout, expiry) so it does not stay over the public screens and stop the trip / switch apps once answered there.
+    useEffect(
+        () => () => {
+            if (!isPromptShownRef.current) {
+                return;
+            }
+            hasAutoClosedPromptRef.current = true;
+            closeModalByIDRef.current(GPS_IN_PROGRESS_MODAL_ID);
+        },
+        [],
+    );
 
     // The trip keeps recording points while the prompt is open, so what gets submitted has to be read when the user
     // answers rather than when the prompt is shown. Reading the render-time values inside the handler below would
@@ -47,6 +69,7 @@ function useGPSInProgressModal() {
         isPromptShownRef.current = true;
 
         showConfirmModal({
+            id: GPS_IN_PROGRESS_MODAL_ID,
             title: translate('gps.switchToODWarningTripInProgress.title'),
             prompt: translate('gps.switchToODWarningTripInProgress.prompt'),
             confirmText: translate('gps.switchToODWarningTripInProgress.confirm'),
@@ -55,6 +78,11 @@ function useGPSInProgressModal() {
         }).then(async (result) => {
             isPromptShownRef.current = false;
             setIsGPSInProgressModalOpen(false);
+
+            if (hasAutoClosedPromptRef.current) {
+                hasAutoClosedPromptRef.current = false;
+                return;
+            }
 
             if (result.action !== ModalActions.CONFIRM) {
                 return;
