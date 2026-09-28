@@ -169,7 +169,10 @@ const mockReportActionItemCreated: jest.Mock = jest.requireMock('@pages/inbox/re
 const getCapturedVisibleActions = (): OnyxTypes.ReportAction[] | undefined => mockInvertedFlashList.mock.calls.at(-1)?.at(0)?.data;
 const getCapturedListProps = (): MockInvertedFlashListProps | undefined => mockInvertedFlashList.mock.calls.at(-1)?.at(0);
 
-const getRenderedReportActionsListItemProps = (reportAction: OnyxTypes.ReportAction, index = 0): {shouldDisableContextMenuForConciergeDraft?: boolean} => {
+const getRenderedReportActionsListItemProps = (
+    reportAction: OnyxTypes.ReportAction,
+    index = 0,
+): {shouldDisableContextMenuForConciergeDraft?: boolean; isLatestConciergeFeedbackAction?: boolean} => {
     const renderedItem = getCapturedListProps()?.renderItem?.({item: reportAction, index});
 
     if (!React.isValidElement<{children: React.ReactNode}>(renderedItem)) {
@@ -243,6 +246,32 @@ const renderReportActionsList = (props: {reportID?: string} = {}) => {
     );
 };
 
+// useReportActionsListModel derives app-load state from the request queue via useIsAppLoadPending,
+// which reads these queue keys through selectors that resolve to a boolean. Returning that boolean
+// directly mirrors what useOnyx yields once the selector runs. The legacy IS_LOADING_APP flag is kept
+// in the fixture for any component still reading it directly.
+const getMockOnyxValue: Parameters<typeof mockUseOnyx.mockImplementation>[0] = (key: string, options) => {
+    if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
+        return [false, {status: 'loaded'}];
+    }
+    if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
+        return [false, {status: 'loaded'}];
+    }
+    if (key.includes('reportLoadingState')) {
+        return [getMockReportLoadingState(options?.selector), {status: 'loaded'}];
+    }
+    if (key.includes('reportActions')) {
+        return [[], {status: 'loaded'}];
+    }
+    if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
+        return [mockReport, {status: 'loaded'}];
+    }
+    if (key.includes('report')) {
+        return [undefined, {status: 'loaded'}];
+    }
+    return [undefined, {status: 'loaded'}];
+};
+
 describe('ReportActionsList (body)', () => {
     beforeAll(() => {
         Onyx.init({
@@ -302,31 +331,7 @@ describe('ReportActionsList (body)', () => {
         mockUseConciergeSessionState.mockReturnValue({sessionStartTime: null, showFullHistory: false, hadMessagesAtSessionStart: false});
         mockUseConciergeSessionActions.mockReturnValue({startSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
 
-        mockUseOnyx.mockImplementation((key: string, options) => {
-            // useReportActionsListModel derives app-load state from the request queue via useIsAppLoadPending,
-            // which reads these queue keys through selectors that resolve to a boolean. Returning that boolean
-            // directly mirrors what useOnyx yields once the selector runs. The legacy IS_LOADING_APP flag is kept
-            // in the fixture for any component still reading it directly.
-            if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
-                return [false, {status: 'loaded'}];
-            }
-            if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
-                return [false, {status: 'loaded'}];
-            }
-            if (key.includes('reportLoadingState')) {
-                return [getMockReportLoadingState(options?.selector), {status: 'loaded'}];
-            }
-            if (key.includes('reportActions')) {
-                return [[], {status: 'loaded'}];
-            }
-            if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
-                return [mockReport, {status: 'loaded'}];
-            }
-            if (key.includes('report')) {
-                return [undefined, {status: 'loaded'}];
-            }
-            return [undefined, {status: 'loaded'}];
-        });
+        mockUseOnyx.mockImplementation(getMockOnyxValue);
     });
 
     afterEach(async () => {
@@ -334,7 +339,111 @@ describe('ReportActionsList (body)', () => {
         await Onyx.clear();
     });
 
+    describe('Concierge Feedback Prompt', () => {
+        beforeEach(() => {
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUseConciergeDraft.mockReturnValue({
+                draftReportAction: null,
+                hasActiveDraft: false,
+                isDraftPendingCompletion: false,
+            });
+        });
+
+        const conciergeReply: OnyxTypes.ReportAction = {
+            reportID: mockReport.reportID,
+            reportActionID: 'concierge-reply',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            created: '2023-01-04',
+            actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+            message: [{type: 'COMMENT', html: 'Here you go', text: 'Here you go'}],
+            originalMessage: {html: 'Here you go', whisperedTo: []},
+            shouldShow: true,
+            person: [{type: 'TEXT', style: 'strong', text: CONST.CONCIERGE_DISPLAY_NAME}],
+            pendingAction: null,
+            errors: {},
+        };
+
+        it('marks the newest Concierge reply as the feedback target', () => {
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [...mockReportActions, conciergeReply],
+            });
+
+            renderReportActionsList();
+
+            expect(getRenderedReportActionsListItemProps(conciergeReply).isLatestConciergeFeedbackAction).toBe(true);
+        });
+
+        it('marks nothing while a Concierge answer is still streaming', () => {
+            mockUseConciergeDraft.mockReturnValue({
+                draftReportAction: {...conciergeReply, message: [{type: 'COMMENT', html: 'Here', text: 'Here'}]},
+                hasActiveDraft: true,
+                isDraftPendingCompletion: true,
+            });
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [...mockReportActions, conciergeReply],
+            });
+
+            renderReportActionsList();
+
+            expect(getRenderedReportActionsListItemProps(conciergeReply).isLatestConciergeFeedbackAction).toBe(false);
+        });
+
+        it('marks the reply once streaming finishes even when the draft HTML differs from the saved comment', () => {
+            // The draft keeps HTML entities that the saved comment does not have, so the draft can stay in the list after it completes
+            const completedDraft: OnyxTypes.ReportAction = {...conciergeReply, message: [{type: 'COMMENT', html: 'Here&apos;s it', text: "Here's it"}]};
+            mockUseConciergeDraft.mockReturnValue({
+                draftReportAction: completedDraft,
+                hasActiveDraft: true,
+                isDraftPendingCompletion: false,
+            });
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [...mockReportActions, {...conciergeReply, message: [{type: 'COMMENT', html: "Here's it", text: "Here's it"}]}],
+            });
+
+            renderReportActionsList();
+
+            expect(getCapturedVisibleActions()).toContain(completedDraft);
+            expect(getRenderedReportActionsListItemProps(completedDraft).isLatestConciergeFeedbackAction).toBe(true);
+        });
+
+        it('marks nothing inside the feedback thread the backend opens after a thumbs down', () => {
+            mockUseOnyx.mockImplementation((key, options) => {
+                if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS)) {
+                    return [{conciergeFeedbackForReportActionID: conciergeReply.reportActionID}, {status: 'loaded'}];
+                }
+                return getMockOnyxValue(key, options);
+            });
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [...mockReportActions, conciergeReply],
+            });
+
+            renderReportActionsList();
+
+            expect(getRenderedReportActionsListItemProps(conciergeReply).isLatestConciergeFeedbackAction).toBe(false);
+        });
+
+        it('marks nothing while newer pages are still unloaded', () => {
+            // A deep link can open an older page where the newest loaded reply is not the newest in the report
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [...mockReportActions, conciergeReply],
+                hasNewerActions: true,
+            });
+
+            renderReportActionsList();
+
+            expect(getRenderedReportActionsListItemProps(conciergeReply).isLatestConciergeFeedbackAction).toBe(false);
+        });
+    });
+
     describe('Concierge Draft Context Menu', () => {
+        // extraData is an array, so isDraftPendingCompletion is read by its position
+        const DRAFT_PENDING_EXTRA_DATA_INDEX = 4;
+
         const conciergeDraftReportAction: OnyxTypes.ReportAction = {
             reportID: mockReport.reportID,
             reportActionID: 'concierge-draft',
@@ -364,7 +473,7 @@ describe('ReportActionsList (body)', () => {
 
             expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === conciergeDraftReportAction.reportActionID)).toBe(true);
             expect(getRenderedReportActionsListItemProps(conciergeDraftReportAction).shouldDisableContextMenuForConciergeDraft).toBe(true);
-            expect((getCapturedListProps()?.extraData as unknown[]).at(-1)).toBe(true);
+            expect((getCapturedListProps()?.extraData as unknown[]).at(DRAFT_PENDING_EXTRA_DATA_INDEX)).toBe(true);
         });
 
         it('enables the context menu after the Concierge draft finishes streaming', () => {
@@ -378,7 +487,7 @@ describe('ReportActionsList (body)', () => {
 
             expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === conciergeDraftReportAction.reportActionID)).toBe(true);
             expect(getRenderedReportActionsListItemProps(conciergeDraftReportAction).shouldDisableContextMenuForConciergeDraft).toBe(false);
-            expect((getCapturedListProps()?.extraData as unknown[]).at(-1)).toBe(false);
+            expect((getCapturedListProps()?.extraData as unknown[]).at(DRAFT_PENDING_EXTRA_DATA_INDEX)).toBe(false);
         });
     });
 
@@ -785,7 +894,31 @@ describe('ReportActionsList (body)', () => {
             },
         ];
 
-        const setupMainDMConciergeMocks = (sessionStartTime: string | null = SESSION_START, showFullHistory = false, hasOnceLoadedReportActions = true) => {
+        // The session filter keys off the child* fields the backend stamps on a task's parent action.
+        const buildTaskAction = (
+            reportActionID: string,
+            created: string,
+            stateNum: OnyxTypes.ReportAction['childStateNum'],
+            statusNum: OnyxTypes.ReportAction['childStatusNum'],
+        ): OnyxTypes.ReportAction => ({
+            reportActionID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            created,
+            actorAccountID: 456,
+            message: [{type: 'COMMENT', html: 'Take a test drive', text: 'Take a test drive'}],
+            originalMessage: {},
+            childType: CONST.REPORT.TYPE.TASK,
+            childReportID: `task-${reportActionID}`,
+            childManagerAccountID: CURRENT_USER_ACCOUNT_ID,
+            childStateNum: stateNum,
+            childStatusNum: statusNum,
+            shouldShow: true,
+            person: [{type: 'TEXT', style: 'strong', text: 'Concierge'}],
+            pendingAction: null,
+            errors: {},
+        });
+
+        const setupMainDMConciergeMocks = (sessionStartTime: string | null = SESSION_START, showFullHistory = false, hasOnceLoadedReportActions = true, hasOutstandingChildTask = false) => {
             jest.spyOn(ReportActionsUtils, 'shouldReportActionBeVisible').mockReturnValue(true);
             mockUseNetwork.mockReturnValue({isOffline: false});
             mockUseIsInSidePanel.mockReturnValue(false);
@@ -810,7 +943,7 @@ describe('ReportActionsList (body)', () => {
                     return [[], {status: 'loaded'}];
                 }
                 if (key === `${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`) {
-                    return [{...mockReport, reportID: CONCIERGE_REPORT_ID}, {status: 'loaded'}];
+                    return [{...mockReport, reportID: CONCIERGE_REPORT_ID, hasOutstandingChildTask}, {status: 'loaded'}];
                 }
                 if (key.includes('report')) {
                     return [undefined, {status: 'loaded'}];
@@ -833,6 +966,85 @@ describe('ReportActionsList (body)', () => {
             expect(mockInvertedFlashList).toHaveBeenCalled();
             const passedActions = getCapturedVisibleActions();
             expect(passedActions?.some((a) => a.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID)).toBe(true);
+            expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
+            expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(false);
+        });
+
+        it('should keep read history hidden when the Concierge DM still has an outstanding child task', () => {
+            // Regression guard: an incomplete onboarding task used to force `showFullHistory` on permanently,
+            // which both un-hid the history and suppressed the "Show history" button.
+            setupMainDMConciergeMocks(SESSION_START, false, true, true);
+
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: oldReportActions,
+                hasOlderActions: false,
+            });
+
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
+
+            expect(mockInvertedFlashList).toHaveBeenCalled();
+            const passedActions = getCapturedVisibleActions();
+            expect(passedActions?.some((a) => a.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID)).toBe(true);
+            expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
+            expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(false);
+        });
+
+        it('should keep a still-open child task visible while the rest of the read history stays hidden', () => {
+            setupMainDMConciergeMocks(SESSION_START, false, true, true);
+
+            // An in-session message keeps the list out of welcome mode, so the session filter actually runs.
+            const newUserMessage: OnyxTypes.ReportAction = {
+                reportActionID: 'new-user-msg',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2024-06-01 12:05:00.000',
+                actorAccountID: CURRENT_USER_ACCOUNT_ID,
+                message: [{type: 'COMMENT', html: 'Hello', text: 'Hello'}],
+                originalMessage: {},
+                shouldShow: true,
+                person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
+                pendingAction: null,
+                errors: {},
+            };
+
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [
+                    ...oldReportActions,
+                    buildTaskAction('open-task', '2023-06-15 10:02:00.000', CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN),
+                    buildTaskAction('completed-task', '2023-06-15 10:03:00.000', CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED),
+                    newUserMessage,
+                ],
+                hasOlderActions: false,
+            });
+
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
+
+            expect(mockInvertedFlashList).toHaveBeenCalled();
+            const passedActions = getCapturedVisibleActions();
+            expect(passedActions?.some((a) => a.reportActionID === 'new-user-msg')).toBe(true);
+            expect(passedActions?.some((a) => a.reportActionID === 'open-task')).toBe(true);
+            expect(passedActions?.some((a) => a.reportActionID === 'completed-task')).toBe(false);
+            expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
+            expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(false);
+        });
+
+        it('should keep a still-open child task visible in the fresh-session welcome view', () => {
+            // Opening the DM without sending anything puts the list in welcome mode, which returns early before the
+            // session filter runs. An open task must still survive that path, or it stays hidden until "Show history".
+            setupMainDMConciergeMocks(SESSION_START, false, true, true);
+
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [...oldReportActions, buildTaskAction('open-task', '2023-06-15 10:02:00.000', CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN)],
+                hasOlderActions: false,
+            });
+
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
+
+            expect(mockInvertedFlashList).toHaveBeenCalled();
+            const passedActions = getCapturedVisibleActions();
+            expect(passedActions?.some((a) => a.reportActionID === 'open-task')).toBe(true);
             expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
             expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(false);
         });

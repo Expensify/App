@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 import type {View} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -24,7 +24,6 @@ type CountrySelectorProps = {
     /** Callback called when the country changes. */
     onInputChange?: (value?: string) => void;
 
-    /** Current selected country  */
     value?: Country | '';
 
     /** inputID used by the Form component */
@@ -34,8 +33,7 @@ type CountrySelectorProps = {
     /** Callback to call when the picker modal is dismissed */
     onBlur?: () => void;
 
-    /** Reference to the outer element */
-    ref?: ForwardedRef<View>;
+    ref?: ForwardedRef<ComponentRef<typeof View>>;
 };
 
 function CountrySelector({errorText = '', value: countryCode, onInputChange = () => {}, onBlur, ref}: CountrySelectorProps) {

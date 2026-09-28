@@ -1,4 +1,4 @@
-import type {ReactNode, RefObject} from 'react';
+import type {ComponentRef, ReactNode, RefObject} from 'react';
 import type {View} from 'react-native';
 
 /** Shared hover state passed to children so overlays (e.g. the distance e-receipt flip) stay in sync with the zoom. */
@@ -18,7 +18,7 @@ type ReceiptHoverZoomProps = {
     scale?: number;
 
     /** Outer element the listeners should attach to. Lets the zoom stay engaged while the cursor crosses overlay buttons. Falls back to the wrapper element. */
-    hoverContainerRef?: RefObject<View | null>;
+    hoverContainerRef?: RefObject<ComponentRef<typeof View> | null>;
 };
 
 export default ReceiptHoverZoomProps;

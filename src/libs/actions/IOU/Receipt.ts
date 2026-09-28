@@ -42,6 +42,7 @@ type ReplaceReceipt = {
     transactionPolicyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
     transactionViolations?: OnyxEntry<OnyxTypes.TransactionViolations>;
     transactionReport: OnyxEntry<OnyxTypes.Report>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 type ReplaceReceiptRetryParams = Omit<ReplaceReceipt, 'transaction' | 'transactionReport'> & {transactionID: string};
 
@@ -51,6 +52,7 @@ function detachReceipt(
     transactionPolicyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
     transactionReport: OnyxEntry<OnyxTypes.Report>,
+    isVendorMatchingBetaEnabled: boolean | undefined,
     transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionID = transaction?.transactionID;
@@ -117,6 +119,7 @@ function detachReceipt(
             hasDependentTags: hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
             isInvoiceTransaction: isInvoiceReportReportUtils(transactionReport),
             ownerLogin: undefined,
+            isVendorMatchingBetaEnabled,
         });
         optimisticData.push(violationsOnyxData);
         failureData.push({
@@ -192,6 +195,7 @@ function replaceReceipt({
     transactionPolicyTagList,
     transactionViolations,
     transactionReport,
+    isVendorMatchingBetaEnabled,
 }: ReplaceReceipt) {
     const transactionID = transaction?.transactionID;
 
@@ -209,6 +213,8 @@ function replaceReceipt({
         state: state ?? CONST.IOU.RECEIPT_STATE.OPEN,
         filename: file.name,
         receiptTraceId,
+        // Clear the old count while the replacement is pending.
+        pageCount: null,
     };
     const newTransaction = transaction && {...transaction, receipt: receiptOptimistic};
     const retryParams: ReplaceReceiptRetryParams = {
@@ -219,6 +225,7 @@ function replaceReceipt({
         transactionPolicyCategories,
         transactionPolicyTagList,
         transactionViolations,
+        isVendorMatchingBetaEnabled,
     };
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
@@ -273,6 +280,7 @@ function replaceReceipt({
             hasDependentTags: hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
             isInvoiceTransaction: isInvoiceReportReportUtils(transactionReport),
             ownerLogin: undefined,
+            isVendorMatchingBetaEnabled,
         });
         optimisticData.push(violationsOnyxData);
         failureData.push({
@@ -389,5 +397,29 @@ function checkIfLocalFileIsAccessible(
     return readFileAsync(ReceiptStorage.resolve(receiptPath) ?? receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
 
-export {checkIfLocalFileIsAccessible, detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt};
+function clearReceiptUploadError({
+    transactionID,
+    reportID,
+    reportActionID,
+    reportIDWithCreationError,
+}: {
+    transactionID: string | undefined;
+    reportID: string | undefined;
+    reportActionID: string | undefined;
+    reportIDWithCreationError: string | undefined;
+}): Promise<unknown> {
+    const writes: Array<Promise<void>> = [];
+    if (transactionID) {
+        writes.push(Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null}));
+    }
+    if (reportID && reportActionID) {
+        writes.push(Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: {errors: null}}));
+    }
+    if (reportIDWithCreationError) {
+        writes.push(Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportIDWithCreationError}`, {errorFields: {addWorkspaceRoom: null, createChat: null, createReport: null}}));
+    }
+    return Promise.all(writes);
+}
+
+export {checkIfLocalFileIsAccessible, clearReceiptUploadError, detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt};
 export type {ReplaceReceiptRetryParams};

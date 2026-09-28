@@ -51,6 +51,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(),
     navigationRef: {
         getRootState: jest.fn(),
+        getCurrentRoute: jest.fn(),
     },
 }));
 
@@ -334,12 +335,14 @@ describe('PerDiem', () => {
                 report: parentChatReport,
                 participantParams,
                 existingIOUReport: undefined,
-                betas: [CONST.BETAS.ALL],
+                isASAPSubmitBetaEnabled: true,
                 currentUserAccountIDParam: 123,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -347,17 +350,17 @@ describe('PerDiem', () => {
                 participantParams,
                 recentlyUsedParams: {},
                 policyTags,
-                isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'payee@example.com',
                 hasViolations: false,
                 policyRecentlyUsedCurrencies: initialCurrencies,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
+                isASAPSubmitBetaEnabled: true,
                 personalDetails: {[mockParticipantParams.payeeAccountID]: {accountID: mockParticipantParams.payeeAccountID, login: 'payee@example.com'}},
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             expect(result.onyxData).toBeDefined();
@@ -439,12 +442,14 @@ describe('PerDiem', () => {
                 report: parentChatReport,
                 participantParams: mockParticipantParams,
                 existingIOUReport: undefined,
-                betas: [CONST.BETAS.ALL],
+                isASAPSubmitBetaEnabled: true,
                 currentUserAccountIDParam: 123,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -454,17 +459,17 @@ describe('PerDiem', () => {
                 recentlyUsedParams: {},
                 moneyRequestReportID: '1',
                 policyTags,
-                isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 hasViolations: false,
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
+                isASAPSubmitBetaEnabled: true,
                 personalDetails: {[mockParticipant.accountID]: {accountID: mockParticipant.accountID, login: 'existing@example.com'}},
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             // Then: Verify the result structure and key values
@@ -544,12 +549,14 @@ describe('PerDiem', () => {
                 report: undefined,
                 participantParams: mockParticipantParams,
                 existingIOUReport: undefined,
-                betas: [CONST.BETAS.ALL],
+                isASAPSubmitBetaEnabled: true,
                 currentUserAccountIDParam: 123,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 parentChatReport: undefined,
@@ -557,17 +564,17 @@ describe('PerDiem', () => {
                 participantParams: mockParticipantParams,
                 recentlyUsedParams: {},
                 policyTags,
-                isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'payee@example.com',
                 hasViolations: false,
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
+                isASAPSubmitBetaEnabled: true,
                 personalDetails: {[mockParticipantParams.payeeAccountID]: {accountID: mockParticipantParams.payeeAccountID, login: 'payee@example.com'}},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             // The builder must not produce a transaction thread — the backend creates it lazily when first needed.
@@ -662,12 +669,14 @@ describe('PerDiem', () => {
                 report: parentChatReport,
                 participantParams,
                 existingIOUReport: undefined,
-                betas: [CONST.BETAS.ALL],
+                isASAPSubmitBetaEnabled: true,
                 currentUserAccountIDParam: 123,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -675,17 +684,17 @@ describe('PerDiem', () => {
                 participantParams,
                 recentlyUsedParams: {},
                 policyTags,
-                isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 hasViolations: false,
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
+                isASAPSubmitBetaEnabled: true,
                 personalDetails: {[mockParticipant.accountID]: {accountID: mockParticipant.accountID, login: 'existing@example.com'}},
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             // Then: Verify the result uses existing chat report
@@ -767,12 +776,14 @@ describe('PerDiem', () => {
                 report: parentChatReport,
                 participantParams,
                 existingIOUReport: undefined,
-                betas: [CONST.BETAS.ALL],
+                isASAPSubmitBetaEnabled: true,
                 currentUserAccountIDParam: 123,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -781,17 +792,17 @@ describe('PerDiem', () => {
                 policyParams: mockPolicyParams,
                 recentlyUsedParams: {},
                 policyTags,
-                isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 hasViolations: false,
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
+                isASAPSubmitBetaEnabled: true,
                 personalDetails: {[mockParticipant.accountID]: {accountID: mockParticipant.accountID, login: 'existing@example.com'}},
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             // Then: Verify policy expense chat handling
@@ -801,6 +812,161 @@ describe('PerDiem', () => {
             expect(result.transaction.hasEReceipt).toBe(true);
             expect(result.billable).toBe(true);
             expect(result.reimbursable).toBe(true);
+        });
+
+        describe('destination report when the chat has no iouReportID', () => {
+            const PER_DIEM_POLICY_ID = 'per-diem-policy-1';
+            const PER_DIEM_CHAT_REPORT_ID = 'per-diem-chat-1';
+            const PAYER_ACCOUNT_ID = 777;
+            const OLDER_REPORT_ID = 'per-diem-outstanding-older';
+            const NEWER_REPORT_ID = 'per-diem-outstanding-newer';
+            const OTHER_OWNER_REPORT_ID = 'per-diem-outstanding-other-owner';
+            const PENDING_REPORT_ID = 'per-diem-report-not-in-onyx-yet';
+            const SUBMITTED_REPORT_ID = 'per-diem-report-awaiting-approval';
+            const APPROVER_ACCOUNT_ID = 888;
+            const APPROVER_EMAIL = 'approver@example.com';
+
+            // The chat deliberately has no `iouReportID`, which is the state left behind when the report it pointed at is deleted.
+            const perDiemChatReport: Report = {
+                reportID: PER_DIEM_CHAT_REPORT_ID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: PER_DIEM_POLICY_ID,
+                isOwnPolicyExpenseChat: true,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            function buildOutstandingExpenseReport(reportID: string, created: string, ownerAccountID = RORY_ACCOUNT_ID): Report {
+                return {
+                    reportID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    policyID: PER_DIEM_POLICY_ID,
+                    chatReportID: PER_DIEM_CHAT_REPORT_ID,
+                    ownerAccountID,
+                    managerID: ownerAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    currency: 'USD',
+                    total: 0,
+                    created,
+                };
+            }
+
+            function getPerDiemInformation(parentChatReport: Report) {
+                return getPerDiemExpenseInformation({
+                    dateFnsLocale: undefined,
+                    parentChatReport,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    transactionParams: createMock<PerDiemExpenseTransactionParams>({
+                        comment: 'Per diem',
+                        currency: 'USD',
+                        created: '2024-01-25',
+                        customUnit: {
+                            customUnitID: 'per_diem_unit',
+                            customUnitRateID: 'per_diem_rate',
+                            name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                            attributes: {dates: {start: '2024-01-25', end: '2024-01-25'}},
+                            subRates: [{id: 'lodging_1', name: 'Lodging', rate: 150, quantity: 1}],
+                            quantity: 1,
+                        },
+                        attendees: [],
+                    }),
+                    participantParams: createMock<RequestMoneyParticipantParams>({
+                        payeeAccountID: RORY_ACCOUNT_ID,
+                        payeeEmail: RORY_EMAIL,
+                        participant: {
+                            accountID: PAYER_ACCOUNT_ID,
+                            login: 'payer@example.com',
+                            isPolicyExpenseChat: true,
+                            reportID: PER_DIEM_CHAT_REPORT_ID,
+                        },
+                    }),
+                    policyParams: {},
+                    recentlyUsedParams: {},
+                    policyTags: {},
+                    isASAPSubmitBetaEnabled: false,
+                    isVendorMatchingBetaEnabled: false,
+                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                    currentUserEmailParam: RORY_EMAIL,
+                    hasViolations: false,
+                    policyRecentlyUsedCurrencies: [],
+                    quickAction: undefined,
+                    personalDetails: {},
+                    formatPhoneNumber,
+                    delegateAccountID: undefined,
+                    isTrackIntentUser: false,
+                    rules: undefined,
+                });
+            }
+
+            beforeEach(async () => {
+                // `canAddTransaction` requires the submitter to own the report and the policy to be a group policy.
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${PER_DIEM_POLICY_ID}`, {id: PER_DIEM_POLICY_ID, type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.USER});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${PER_DIEM_CHAT_REPORT_ID}`, perDiemChatReport);
+                await waitForBatchedUpdates();
+            });
+
+            it('adds the per diem expense to the submitter outstanding report instead of creating a new one', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OLDER_REPORT_ID}`, buildOutstandingExpenseReport(OLDER_REPORT_ID, '2024-01-02'));
+                await waitForBatchedUpdates();
+
+                expect(getPerDiemInformation(perDiemChatReport).iouReport.reportID).toBe(OLDER_REPORT_ID);
+            });
+
+            it('picks the newest outstanding report when the submitter has more than one', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OLDER_REPORT_ID}`, buildOutstandingExpenseReport(OLDER_REPORT_ID, '2024-01-02'));
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${NEWER_REPORT_ID}`, buildOutstandingExpenseReport(NEWER_REPORT_ID, '2024-03-04'));
+                await waitForBatchedUpdates();
+
+                expect(getPerDiemInformation(perDiemChatReport).iouReport.reportID).toBe(NEWER_REPORT_ID);
+            });
+
+            it('creates a new report when the only outstanding report belongs to someone else', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OTHER_OWNER_REPORT_ID}`, buildOutstandingExpenseReport(OTHER_OWNER_REPORT_ID, '2024-01-02', PAYER_ACCOUNT_ID));
+                await waitForBatchedUpdates();
+
+                expect(getPerDiemInformation(perDiemChatReport).iouReport.reportID).not.toBe(OTHER_OWNER_REPORT_ID);
+            });
+
+            it('creates a new report when the submitter has no outstanding report', () => {
+                const iouReportID = getPerDiemInformation(perDiemChatReport).iouReport.reportID;
+
+                expect(iouReportID).toBeTruthy();
+                expect(iouReportID).not.toBe(OLDER_REPORT_ID);
+            });
+
+            it('reuses an outstanding report when the chat points at a report that cannot be resolved', async () => {
+                // A missing report key means either "deleted or moved away" or "not hydrated yet", and Onyx cannot tell
+                // the two apart. Reusing the submitter's own open report beats creating a duplicate.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OLDER_REPORT_ID}`, buildOutstandingExpenseReport(OLDER_REPORT_ID, '2024-01-02'));
+                await waitForBatchedUpdates();
+
+                expect(getPerDiemInformation({...perDiemChatReport, iouReportID: PENDING_REPORT_ID}).iouReport.reportID).toBe(OLDER_REPORT_ID);
+            });
+
+            it('creates a new report when the submitter only has a report that is awaiting approval', async () => {
+                // Submitting a report clears the chat's `iouReportID`, so this fallback runs right after a submit too.
+                // The submitted report must never be reused — the next expense belongs on a fresh report.
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                    [APPROVER_ACCOUNT_ID]: {accountID: APPROVER_ACCOUNT_ID, login: APPROVER_EMAIL},
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${PER_DIEM_POLICY_ID}`, {
+                    approver: APPROVER_EMAIL,
+                    owner: APPROVER_EMAIL,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SUBMITTED_REPORT_ID}`, {
+                    ...buildOutstandingExpenseReport(SUBMITTED_REPORT_ID, '2024-01-02'),
+                    // Awaiting first-level approval, which is what makes `canAddTransaction` true for this report.
+                    managerID: APPROVER_ACCOUNT_ID,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                });
+                await waitForBatchedUpdates();
+
+                expect(getPerDiemInformation(perDiemChatReport).iouReport.reportID).not.toBe(SUBMITTED_REPORT_ID);
+            });
         });
     });
 
@@ -843,24 +1009,25 @@ describe('PerDiem', () => {
                 payeeAccountID: currentUserPersonalDetails.accountID,
                 participant: {},
             };
-            const betas = [CONST.BETAS.ALL];
 
             const earlyPolicyID = getPerDiemExpensePolicyID({
                 report,
                 participantParams,
                 existingIOUReport: undefined,
-                betas,
+                isASAPSubmitBetaEnabled: true,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             submitPerDiemExpense({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 hasViolations: false,
-                isASAPSubmitBetaEnabled: false,
+                isASAPSubmitBetaEnabled: true,
                 participantParams,
                 report,
                 transactionParams: {
@@ -881,12 +1048,12 @@ describe('PerDiem', () => {
                     policyRecentlyUsedTags,
                 },
                 quickAction: undefined,
-                betas,
                 personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                 policyTags,
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -932,24 +1099,25 @@ describe('PerDiem', () => {
                 payeeAccountID: currentUserPersonalDetails.accountID,
                 participant: {},
             };
-            const betas = [CONST.BETAS.ALL];
 
             const earlyPolicyID = getPerDiemExpensePolicyID({
                 report,
                 participantParams,
                 existingIOUReport: undefined,
-                betas,
+                isASAPSubmitBetaEnabled: true,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             submitPerDiemExpense({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 hasViolations: false,
-                isASAPSubmitBetaEnabled: false,
+                isASAPSubmitBetaEnabled: true,
                 participantParams,
                 report,
                 transactionParams: {
@@ -968,13 +1136,13 @@ describe('PerDiem', () => {
                     policy: {...createRandomPolicy(1)},
                 },
                 quickAction: undefined,
-                betas,
                 personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                 policyTags,
                 optimisticTransactionID,
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1041,12 +1209,14 @@ describe('PerDiem', () => {
                 report: parentChatReport,
                 participantParams,
                 existingIOUReport: undefined,
-                betas: [CONST.BETAS.ALL],
+                isASAPSubmitBetaEnabled: true,
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -1054,17 +1224,17 @@ describe('PerDiem', () => {
                 participantParams,
                 recentlyUsedParams: {},
                 policyTags,
-                isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 hasViolations: false,
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
+                isASAPSubmitBetaEnabled: true,
                 personalDetails: personalDetailsList,
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             // Then the result should be valid (personalDetails is correctly passed through the chain)
@@ -1106,24 +1276,25 @@ describe('PerDiem', () => {
                 payeeAccountID: currentUserPersonalDetails.accountID,
                 participant: {},
             };
-            const betas = [CONST.BETAS.ALL];
 
             const earlyPolicyID = getPerDiemExpensePolicyID({
                 report,
                 participantParams,
                 existingIOUReport: undefined,
-                betas,
+                isASAPSubmitBetaEnabled: true,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             submitPerDiemExpense({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 hasViolations: false,
-                isASAPSubmitBetaEnabled: false,
+                isASAPSubmitBetaEnabled: true,
                 participantParams,
                 report,
                 transactionParams: {
@@ -1142,12 +1313,12 @@ describe('PerDiem', () => {
                     policy: {...createRandomPolicy(1)},
                 },
                 quickAction: undefined,
-                betas,
                 personalDetails: personalDetailsList,
                 policyTags,
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();

@@ -4,7 +4,7 @@ import SidebarRightIcon from '@assets/images/sidebar-right.svg';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
-import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext} from '@components/Search/SearchContext';
+import {useSearchResultsActions, useSearchResultsContext} from '@components/Search/SearchContext';
 import Tooltip from '@components/Tooltip';
 
 import {useLoadingBarVisibility} from '@hooks/useInFlightRequests';
@@ -57,7 +57,6 @@ function SearchSidebar({state}: SearchSidebarProps) {
 
     const route = state.routes.at(-1);
     const {lastSearchType, currentSearchResults} = useSearchResultsContext();
-    const {currentSearchQueryJSON} = useSearchQueryContext();
     const {setLastSearchType} = useSearchResultsActions();
 
     const searchType = currentSearchResults?.search?.type;
@@ -122,7 +121,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
                         </TopBar>
                         <Hoverable onHoverIn={startPeek}>
                             <View style={styles.flex1}>
-                                <SearchTypeMenuWide queryJSON={currentSearchQueryJSON} />
+                                <SearchTypeMenuWide />
                             </View>
                         </Hoverable>
                     </View>

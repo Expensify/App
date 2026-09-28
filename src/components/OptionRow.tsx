@@ -11,6 +11,7 @@ import type {OptionData} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import {deepEqual} from 'fast-equals';
@@ -31,28 +32,19 @@ import Text from './Text';
 type OptionDataWithOptionalReportID = Omit<OptionData, 'reportID'> & {reportID?: string};
 
 type OptionRowProps = {
-    /** Style for hovered state */
     hoverStyle?: StyleProp<ViewStyle>;
 
     /** Option to allow the user to choose from can be type 'report' or 'user' */
     option: OptionDataWithOptionalReportID;
 
-    /** Whether this option is currently in focus so we can modify its style */
     optionIsFocused?: boolean;
-
-    /** A function that is called when an option is selected */
     onSelectRow?: () => void;
-
-    /** Whether this item is selected */
     isSelected?: boolean;
 
     /** Display the text of the option in bold font style */
     boldStyle?: boolean;
 
-    /** Whether to show the title tooltip */
     showTitleTooltip?: boolean;
-
-    /** Whether this option should be disabled */
     isDisabled?: boolean;
 
     /** Whether to show a line separating options in list */
@@ -61,7 +53,6 @@ type OptionRowProps = {
     /** Whether to remove the lateral padding and align the content with the margins */
     shouldDisableRowInnerPadding?: boolean;
 
-    /** Whether to prevent default focusing on select */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
 
     /** Whether to wrap large text up to 2 lines */
@@ -100,7 +91,7 @@ function OptionRow({
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark']);
-    const pressableRef = useRef<View | HTMLDivElement>(null);
+    const pressableRef = useRef<ComponentRef<typeof View> | HTMLDivElement>(null);
     const [isDisabled, setIsDisabled] = useState(isOptionDisabled);
 
     useEffect(() => {
@@ -210,12 +201,9 @@ function OptionRow({
                                             />
                                         ) : (
                                             <ReportAvatar
-                                                subscriptAvatarBorderColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
+                                                backdropColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
                                                 reportID={reportID}
                                                 size={CONST.AVATAR_SIZE.DEFAULT}
-                                                secondaryAvatarContainerStyle={[
-                                                    StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor),
-                                                ]}
                                             />
                                         )}
                                     </AvatarTooltipsProvider>

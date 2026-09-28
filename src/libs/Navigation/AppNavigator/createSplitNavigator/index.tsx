@@ -41,10 +41,11 @@ function getCustomSplitNavigatorState({state, shouldUseNarrowLayout}: CustomStat
 const SplitNavigatorComponent = createPlatformStackNavigatorComponent('SplitNavigator', {
     createRouter: SplitRouter,
     Effects: SplitNavigatorEffects,
-    defaultScreenOptions: defaultPlatformStackScreenOptions,
+    // Covered split screens stay frozen, as they were before this option existed. Their migration to 'activity'
+    // is a per-screen decision left to the rollout in https://github.com/Expensify/App/issues/98254.
+    defaultScreenOptions: {...defaultPlatformStackScreenOptions, nonTopScreenBehavior: 'freeze'},
     getCustomState: getCustomSplitNavigatorState,
     NavigationContentWrapper: SidebarSpacerWrapper,
-    freezeNonTopScreens: true,
 });
 
 function createSplitNavigator<

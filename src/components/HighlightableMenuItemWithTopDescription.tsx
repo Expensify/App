@@ -8,7 +8,6 @@ import type {MenuItemProps} from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 type HighlightableMenuItemWithTopDescriptionProps = MenuItemProps & {
-    /** Should the menu item be highlighted? */
     highlighted?: boolean;
 };
 

@@ -1,14 +1,10 @@
-import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
-
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import React from 'react';
-import {View} from 'react-native';
 
-import type {ListItem, MultiSelectListItemProps} from './types';
+import type {ListItem, ListItemProps} from './types';
 
 import BaseSelectListItem from './BaseSelectListItem';
 
@@ -34,20 +30,15 @@ function MultiSelectListItem<TItem extends ListItem>({
     titleStyles,
     shouldHighlightSelectedItem,
     titleNumberOfLines,
-}: MultiSelectListItemProps<TItem>) {
+}: ListItemProps<TItem>) {
     const styles = useThemeStyles();
     const icon = item.icons?.at(0);
 
-    const itemWithAvatar = {
-        ...item,
-        leftElement: icon ? <AvatarLeftElement icon={icon} /> : item.leftElement,
-    };
     const computedWrapperStyle = [icon ? [styles.pv0, styles.mnh13] : styles.optionRowCompact, wrapperStyle];
 
     return (
         <BaseSelectListItem
-            item={itemWithAvatar}
-            keyForList={item.keyForList}
+            item={item}
             isFocused={isFocused}
             isFocusVisible={isFocusVisible}
             showTooltip={showTooltip}
@@ -67,19 +58,6 @@ function MultiSelectListItem<TItem extends ListItem>({
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
             titleNumberOfLines={titleNumberOfLines}
         />
-    );
-}
-
-function AvatarLeftElement({icon}: {icon: Icon}) {
-    const styles = useThemeStyles();
-
-    return (
-        <View style={[styles.mentionSuggestionsAvatarContainer, styles.mr3]}>
-            <AvatarFromIcon
-                icon={icon}
-                size={CONST.AVATAR_SIZE.X_SMALL}
-            />
-        </View>
     );
 }
 

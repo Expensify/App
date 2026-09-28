@@ -1,5 +1,6 @@
 import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
+import EnableGlobalReimbursementsPayModal from '@components/EnableGlobalReimbursementsPayModal';
 import ExportDownloadStatusManager from '@components/ExportDownloadStatusManager';
 import GPSInProgressModal from '@components/GPSInProgressModal';
 import GPSTripStateChecker from '@components/GPSTripStateChecker';
@@ -73,6 +74,7 @@ import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import SubmitPlanWelcomeModalNavigator from './Navigators/SubmitPlanWelcomeModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import {loadRightModalNavigator, loadSearchRouterPage} from './searchRouterLazyLoaders';
+import SubmitIntentDeeplinkHandler from './SubmitIntentDeeplinkHandler';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
 import ThreeDSAuthHandler from './ThreeDSAuthHandler';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
@@ -87,6 +89,7 @@ const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../..
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
 const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages/TrackExpensePage').default;
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
+const loadPreMountBufferPage = () => require<ReactComponentModule>('../../../pages/PreMountBufferPage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
@@ -162,9 +165,10 @@ function AuthScreens() {
     };
 
     return (
-        <>
+        <PersonalDetailsByLoginProvider>
             <AuthScreensInitHandler />
             <SearchRouterWarmup />
+            <SubmitIntentDeeplinkHandler />
             <ThreeDSAuthHandler />
             <UserStatusHandler />
             <SupportalPermissionDeniedModal />
@@ -172,7 +176,6 @@ function AuthScreens() {
             <DelegatorConnectGuard>
                 <ComposeProviders
                     components={[
-                        PersonalDetailsByLoginProvider,
                         AttachmentModalContextProvider,
                         PlaybackContextProvider,
                         VolumeContextProvider,
@@ -228,6 +231,13 @@ function AuthScreens() {
                             name={SCREENS.SUBMIT_EXPENSE}
                             options={defaultScreenOptions}
                             getComponent={loadSubmitExpensePage}
+                        />
+                        {/* Internal placeholder screen, not reachable via a URL/deep link. animation: none so it
+                            appears and disappears instantly instead of sliding in. */}
+                        <RootStack.Screen
+                            name={SCREENS.PRE_MOUNT_BUFFER}
+                            options={{...defaultScreenOptions, animation: 'none'}}
+                            getComponent={loadPreMountBufferPage}
                         />
                         <RootStack.Screen
                             name={SCREENS.REPORT_ATTACHMENTS}
@@ -396,10 +406,11 @@ function AuthScreens() {
                     <GPSTripStateChecker />
                     <GPSInProgressModal />
                     <OpenAppFailureModal />
+                    <EnableGlobalReimbursementsPayModal />
                     <PriorityModeController />
                 </ComposeProviders>
             </DelegatorConnectGuard>
-        </>
+        </PersonalDetailsByLoginProvider>
     );
 }
 
