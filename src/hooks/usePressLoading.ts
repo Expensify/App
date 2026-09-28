@@ -1,5 +1,5 @@
 import {NavigationContext} from '@react-navigation/core';
-import {useContext, useEffect, useState} from 'react';
+import {useContext, useEffect, useRef, useState} from 'react';
 
 type UsePressLoadingOptions = {
     /**
@@ -32,6 +32,10 @@ type UsePressLoadingReturn = {
  */
 function usePressLoading({isLoading, resetOnFocus = true}: UsePressLoadingOptions = {}): UsePressLoadingReturn {
     const [isPressed, setIsPressed] = useState(false);
+    // Bumped on every press and focus reset, so a stale invocation cannot clear the loading state of a newer one.
+    const invocationRef = useRef(0);
+    // Set synchronously on press, so a second press landing before React commits isPressed is ignored instead of running the work twice.
+    const isRunningRef = useRef(false);
 
     const hasExternalLoading = isLoading !== undefined;
 
@@ -40,17 +44,32 @@ function usePressLoading({isLoading, resetOnFocus = true}: UsePressLoadingOption
     }
     // Defer the work by one macrotask so React can commit isPressed and paint the spinner before the consumer code that may block the JS thread runs.
     const startWithLoading: StartWithLoading = async (runAfterPaint) => {
+        if (isRunningRef.current) {
+            return;
+        }
+        isRunningRef.current = true;
+        invocationRef.current += 1;
+        const invocation = invocationRef.current;
         setIsPressed(true);
         await new Promise((resolve) => {
             setTimeout(resolve, 0);
         });
+        let result: void | Promise<void>;
         try {
-            await runAfterPaint();
+            result = runAfterPaint();
+            await result;
         } catch (error) {
-            setIsPressed(false);
+            if (invocation === invocationRef.current) {
+                isRunningRef.current = false;
+                setIsPressed(false);
+            }
             throw error;
         }
-        if (!hasExternalLoading) {
+        if (invocation !== invocationRef.current) {
+            return;
+        }
+        isRunningRef.current = false;
+        if (!hasExternalLoading && result instanceof Promise) {
             setIsPressed(false);
         }
     };
@@ -61,7 +80,11 @@ function usePressLoading({isLoading, resetOnFocus = true}: UsePressLoadingOption
         if (!resetOnFocus || !isPressed || !navigationContext) {
             return;
         }
-        return navigationContext.addListener('focus', () => setIsPressed(false));
+        return navigationContext.addListener('focus', () => {
+            invocationRef.current += 1;
+            isRunningRef.current = false;
+            setIsPressed(false);
+        });
     }, [resetOnFocus, isPressed, navigationContext]);
 
     return {isLoading: isPressed || !!isLoading, startWithLoading};
