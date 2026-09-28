@@ -31,7 +31,7 @@ type LabelLayoutConfig = {
     /** Measurements of the label text. */
     measurements: ReturnType<typeof useChartLabelMeasurements>;
 
-    /** When true, labels that don't fit at 45° request horizontal bars (`shouldUseHorizontalBars`) instead of 90°. Bar charts opt in; line charts keep 90°. */
+    /** When true, labels that don't fit at 45° request horizontal bars (`shouldUseHorizontalBars`) instead of 90°. Bar charts opt in. Line charts keep 90°. */
     canFallBackToHorizontalBars?: boolean;
 };
 
