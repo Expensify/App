@@ -12,6 +12,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings';
@@ -32,7 +33,14 @@ import {
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
-import {createFilteredMemberCountSelector, createInvoiceConfigurationTextSelector, getDistanceRateCustomUnit, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
+import {
+    createFilteredMemberCountSelector,
+    createInvoiceConfigurationTextSelector,
+    getDistanceRateCustomUnit,
+    getPerDiemCustomUnit,
+    isCollectPolicy,
+    isInvoiceFieldsEnabled,
+} from '@libs/PolicyUtils';
 import {formatAddressToString} from '@libs/ReportActionsUtils';
 import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
 
@@ -89,8 +97,9 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const sourceHasAddress = !isEmptyObject(sourcePolicy?.address);
     const hasTargetWithoutAddress = targetPolicies.some((policy) => isEmptyObject(policy?.address));
 
+    const sourceEmployeePersonalDetails = usePersonalDetailsByLogins(Object.keys(sourcePolicy?.employeeList ?? {}));
     const [memberCount = 0] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: createFilteredMemberCountSelector(sourcePolicy?.employeeList, sourcePolicy?.owner, currentUserPersonalDetails.login),
+        selector: createFilteredMemberCountSelector(sourcePolicy?.employeeList, sourcePolicy?.owner, currentUserPersonalDetails.login, sourceEmployeePersonalDetails),
     });
     const invoiceCompany = [sourcePolicy?.invoice?.companyName, sourcePolicy?.invoice?.companyWebsite].filter(Boolean).join(', ');
     const [invoiceConfigurationText = ''] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
@@ -135,7 +144,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         hasWorkflowRules: !!workflows?.length,
         hasWorkspaceRules: !!rules?.length,
         codingRulesCount,
-        hasInvoiceConfiguration: !!sourcePolicy?.areInvoicesEnabled && (!!invoiceConfigurationText || invoiceFieldsCount > 0),
+        hasInvoiceConfiguration: !!sourcePolicy?.areInvoicesEnabled && (!!invoiceConfigurationText || invoiceFieldsCount > 0 || isInvoiceFieldsEnabled(sourcePolicy)),
         isCollectPolicy: isCollectPolicy(sourcePolicy),
     };
 

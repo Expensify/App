@@ -71,7 +71,7 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
@@ -283,11 +283,26 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         ],
     );
 
+    // `startIntegrationFlow` changes identity whenever `policy` does, which re-runs this effect. The
+    // Navigation.setParams below clears newConnectionName through a navigation state update that lands in a later
+    // render, so that re-run can still see the param set. Key the guard on the value to start the flow only once.
+    const startedIntegrationFlowForRef = useRef<ConnectionName | undefined>(undefined);
+
     useFocusEffect(
         useCallback(() => {
             if (!newConnectionName || !isControlPolicy(policy) || !canWriteAccounting) {
+                // Re-arm the guard once the param is gone, so a later round-trip that asks for the same integration
+                // again is not mistaken for the re-run this guard exists to swallow.
+                if (!newConnectionName) {
+                    startedIntegrationFlowForRef.current = undefined;
+                }
                 return;
             }
+
+            if (startedIntegrationFlowForRef.current === newConnectionName) {
+                return;
+            }
+            startedIntegrationFlowForRef.current = newConnectionName;
 
             startIntegrationFlow({
                 name: newConnectionName,
