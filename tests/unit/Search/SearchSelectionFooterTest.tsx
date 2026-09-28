@@ -13,8 +13,7 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-const mockIsOffline = {current: false};
-jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: mockIsOffline.current})));
+jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 
 jest.mock('@hooks/useSearchShouldCalculateTotals', () => jest.fn(() => true));
 
@@ -51,7 +50,6 @@ type CapturedFooterProps = {
     total?: number;
     defaultCurrency?: string;
     currency?: string;
-    isTotalLoading?: boolean;
     onCurrencyChange?: (currency: string) => void;
 };
 const mockCapturedFooterProps: {current: CapturedFooterProps | undefined} = {current: undefined};
@@ -147,7 +145,6 @@ describe('SearchSelectionFooter', () => {
         mockExcludedTransactions.current = {};
         mockSelectedReports.current = [];
         mockAreAllMatchingItemsSelected.current = false;
-        mockIsOffline.current = false;
         mockCapturedFooterProps.current = undefined;
         // Clear here rather than in afterEach: Onyx.clear() there re-renders the previous test's still-mounted
         // component (testing-library only unmounts it afterwards), and those renders can record mock calls.
@@ -172,41 +169,6 @@ describe('SearchSelectionFooter', () => {
         await waitForBatchedUpdates();
 
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 171, total: 35900, currency: CONST.CURRENCY.USD}));
-    });
-
-    it('shows the loaded selection total when all matching items are selected offline', async () => {
-        // Given the user is offline, so the server count for the all-matching selection never arrives and the totals
-        // request that was in flight when the connection dropped is left loading
-        mockIsOffline.current = true;
-        mockSelectedTransactions.current = {
-            transaction1: buildSelectedTransaction(CONST.CURRENCY.USD),
-            transaction2: buildSelectedTransaction(CONST.CURRENCY.USD),
-        };
-        mockAreAllMatchingItemsSelected.current = true;
-        const searchResults = buildSearchResults(CONST.CURRENCY.USD);
-        searchResults.search = {...searchResults.search, count: undefined, total: undefined, isLoading: true};
-
-        // When the footer renders the all-matching selection
-        render(<SearchSelectionFooter searchResults={searchResults} />);
-        await waitForBatchedUpdates();
-
-        // Then it falls back to the loaded selection's count and total instead of hiding or showing a skeleton forever
-        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 2, total: 200, currency: CONST.CURRENCY.USD, isTotalLoading: false}));
-    });
-
-    it('keeps waiting for the server count when all matching items are selected online', async () => {
-        // Given the user is online and the server count for the all-matching selection hasn't arrived yet
-        mockSelectedTransactions.current = {transaction1: buildSelectedTransaction(CONST.CURRENCY.USD)};
-        mockAreAllMatchingItemsSelected.current = true;
-        const searchResults = buildSearchResults(CONST.CURRENCY.USD);
-        searchResults.search = {...searchResults.search, count: undefined, total: undefined, isLoading: true};
-
-        // When the footer renders the all-matching selection
-        render(<SearchSelectionFooter searchResults={searchResults} />);
-        await waitForBatchedUpdates();
-
-        // Then it stays hidden, because the loaded rows don't cover every matching expense and the count can still arrive
-        expect(mockCapturedFooterProps.current).toBeUndefined();
     });
 
     it("subtracts an excluded report's expenses and total from the all-matching footer", async () => {

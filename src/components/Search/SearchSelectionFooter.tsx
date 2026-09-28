@@ -348,10 +348,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         !hasConversionFailed &&
         hasCustomFooterCurrency &&
         (shouldUseClientTotal ? hasConvertibleSelection && !areAllSelectedConverted : !isSearchTotalFresh || ((hasExcludedExpenses || hasExcludedReports) && !areAllExcludedConverted));
-    // Offline, the server count for an all-matching selection never arrives, so fall back to the client total of the
-    // loaded selection (like SearchBulkActionsButton does for its count) instead of hiding the footer.
-    const shouldUseOfflineAllMatchingTotal = isOffline && areAllMatchingItemsSelected && !metadataCount && selectedTransactionsKeys.length > 0;
-    const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || shouldUseOfflineAllMatchingTotal || (shouldAllowFooterTotals && !!metadata?.count);
+    const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
 
     // Fetch converted figures whenever a custom currency is chosen and no request has covered what the footer needs.
     // Each request stamps the source figures it converts, so the requested checks keep this to one request per
@@ -617,9 +614,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
 
     // A partial selection shows a client-side subtotal that is ready immediately, so only show the search-loading
     // skeleton when the footer is displaying the whole-search total. (Load-more requests also set metadata.isLoading
-    // but don't recalculate totals, so gate on offset 0.) The offline all-matching fallback is also ready immediately,
-    // and a totals request that was in flight when the connection dropped would otherwise leave it stuck loading.
-    const isFooterTotalLoading = isFooterTotalConverting || (!hasPartialSelection && !shouldUseOfflineAllMatchingTotal && !!metadata?.isLoading && metadata?.offset === 0);
+    // but don't recalculate totals, so gate on offset 0.)
+    const isFooterTotalLoading = isFooterTotalConverting || (!hasPartialSelection && !!metadata?.isLoading && metadata?.offset === 0);
 
     return (
         <SearchPageFooter
