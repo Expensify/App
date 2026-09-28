@@ -101,7 +101,7 @@ function RequireTwoFactorAuthenticationOverlay() {
             return;
         }
         setIsEscapeInFlight(true);
-        const escapeAction = isActingAsDelegate ? leaveDelegateAccount({gpsDraftDetailsRef}) : signOut({shouldAlwaysConfirm: true});
+        const escapeAction = isActingAsDelegate ? leaveDelegateAccount({gpsDraftDetailsRef}) : signOut();
         escapeAction.finally(() => {
             setIsEscapeInFlight(false);
         });
@@ -117,50 +117,52 @@ function RequireTwoFactorAuthenticationOverlay() {
     }
 
     return (
-        <FocusTrapForModal active>
+        <>
             {isActingAsDelegate && isTrackingGPS && <GpsDraftDetailsRefSync gpsDraftDetailsRef={gpsDraftDetailsRef} />}
-            <View
-                style={[StyleSheet.absoluteFill, styles.twoFARequiredOverlay]}
-                testID="RequireTwoFactorAuthenticationOverlay"
-            >
-                <View style={[styles.flex1, styles.appBG]}>
-                    <View style={styles.twoFARequiredContainer}>
-                        <View style={[styles.twoFAIllustration, styles.alignItemsCenter]}>
-                            <Icon
-                                src={illustrations.Encryption}
-                                width={variables.twoFAIconHeight}
-                                height={variables.twoFAIconHeight}
-                            />
-                        </View>
-                        <View style={[styles.mt2, styles.mh5, styles.dFlex, styles.alignItemsCenter]}>
-                            <View style={styles.mb5}>
-                                <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mv2]}>{translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsHeader')}</Text>
-                                <Text style={[styles.textSupporting, styles.textAlignCenter]}>
-                                    {translate(is2FARequiredBecauseOfXero ? 'twoFactorAuth.twoFactorAuthIsRequiredXero' : 'twoFactorAuth.twoFactorAuthIsRequiredCompany')}
-                                </Text>
+            <FocusTrapForModal active>
+                <View
+                    style={[StyleSheet.absoluteFill, styles.twoFARequiredOverlay]}
+                    testID="RequireTwoFactorAuthenticationOverlay"
+                >
+                    <View style={[styles.flex1, styles.appBG]}>
+                        <View style={styles.twoFARequiredContainer}>
+                            <View style={[styles.twoFAIllustration, styles.alignItemsCenter]}>
+                                <Icon
+                                    src={illustrations.Encryption}
+                                    width={variables.twoFAIconHeight}
+                                    height={variables.twoFAIconHeight}
+                                />
                             </View>
-                            <View style={[styles.flexRow, styles.gap2, styles.justifyContentCenter, styles.alignSelfCenter]}>
-                                <Button
-                                    size={CONST.BUTTON_SIZE.LARGE}
-                                    isLoading={isEscapeInFlight}
-                                    onPress={onEscapePress}
-                                >
-                                    <Button.Text>{translate(isActingAsDelegate ? 'delegate.leaveAccount' : 'initialSettingsPage.signOut')}</Button.Text>
-                                </Button>
-                                <Button
-                                    size={CONST.BUTTON_SIZE.LARGE}
-                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                    onPress={enableTwoFactorAuth}
-                                >
-                                    <Button.KeyboardShortcut />
-                                    <Button.Text>{translate('twoFactorAuth.enable2FA')}</Button.Text>
-                                </Button>
+                            <View style={[styles.mt2, styles.mh5, styles.dFlex, styles.alignItemsCenter]}>
+                                <View style={styles.mb5}>
+                                    <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mv2]}>{translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsHeader')}</Text>
+                                    <Text style={[styles.textSupporting, styles.textAlignCenter]}>
+                                        {translate(is2FARequiredBecauseOfXero ? 'twoFactorAuth.twoFactorAuthIsRequiredXero' : 'twoFactorAuth.twoFactorAuthIsRequiredCompany')}
+                                    </Text>
+                                </View>
+                                <View style={[styles.flexRow, styles.gap2, styles.justifyContentCenter, styles.alignSelfCenter]}>
+                                    <Button
+                                        size={CONST.BUTTON_SIZE.LARGE}
+                                        isLoading={isEscapeInFlight}
+                                        onPress={onEscapePress}
+                                    >
+                                        <Button.Text>{translate(isActingAsDelegate ? 'delegate.leaveAccount' : 'initialSettingsPage.signOut')}</Button.Text>
+                                    </Button>
+                                    <Button
+                                        size={CONST.BUTTON_SIZE.LARGE}
+                                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                        onPress={enableTwoFactorAuth}
+                                    >
+                                        <Button.KeyboardShortcut />
+                                        <Button.Text>{translate('twoFactorAuth.enable2FA')}</Button.Text>
+                                    </Button>
+                                </View>
                             </View>
                         </View>
                     </View>
                 </View>
-            </View>
-        </FocusTrapForModal>
+            </FocusTrapForModal>
+        </>
     );
 }
 
