@@ -49,7 +49,7 @@ The [preDeploy workflow](https://github.com/Expensify/App/blob/main/.github/work
 The [`deploy` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/deploy.yml) runs when code is pushed to the `staging` or `production` branches. It creates a tag matching the new version, runs the deployment on all three platforms (iOS, Android, Web), creates or updates the `StagingDeployCash` checklist (staging only), and creates a GitHub Release for the new version.
 
 ### lockDeploys
-The [`lockDeploys` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/lockDeploys.yml) executes when a person adds the lock label to the `StagingDeployCash` (it does not run for the label OSBotify adds at creation), and it waits for any currently running staging deploys to finish, then gives Applause the :green_circle: to begin QA by commenting in the `StagingDeployCash` checklist.
+The [`lockDeploys` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/lockDeploys.yml) executes when a person re-adds the lock label to the `StagingDeployCash` after removing it (it does not run for the label OSBotify adds at creation), and it waits for any currently running staging deploys to finish, then gives Applause the :green_circle: to begin QA by commenting in the `StagingDeployCash` checklist.
 
 ### finishReleaseCycle
 The [`finishReleaseCycle` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/finishReleaseCycle.yml) executes when the `StagingDeployCash` is closed. It updates the `production` branch from `staging` (triggering a production deploy), deploys `main` to staging (with a new `PATCH` version), which creates a new `StagingDeployCash` deploy checklist.
