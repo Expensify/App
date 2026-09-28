@@ -1222,6 +1222,7 @@ const DYNAMIC_ROUTES = {
         path: 'workspace-tag-settings/:orderWeight/:tagName',
         entryScreens: [SCREENS.WORKSPACE.TAGS, SCREENS.WORKSPACE.DYNAMIC_TAG_LIST_VIEW],
         getRoute: (orderWeight: number, tagName: string) => `workspace-tag-settings/${orderWeight}/${encodeURIComponent(tagName)}`,
+        queryParams: ['parentTagsFilter'],
     },
     WORKSPACE_TAG_APPROVER: {
         path: 'workspace-tag-approver',
@@ -1445,6 +1446,7 @@ const DYNAMIC_ROUTES = {
         path: 'tag-settings/:orderWeight/:tagName',
         entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT, SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW],
         getRoute: (orderWeight: number, tagName: string) => `tag-settings/${orderWeight}/${encodeURIComponent(tagName)}`,
+        queryParams: ['parentTagsFilter'],
     },
     SETTINGS_TAGS_EDIT: {
         path: 'settings-tags-edit/:orderWeight',
@@ -3551,6 +3553,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/recruiting/merge/import-settings',
         getRoute: (policyID: string) => `workspaces/${policyID}/recruiting/merge/import-settings` as const,
     },
+    WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS_FILTER: {
+        route: 'workspaces/:policyID/recruiting/merge/import-settings/:filterType',
+        getRoute: (policyID: string, filterType: ValueOf<typeof CONST.MERGE.ATS_FILTER_TYPE>) => `workspaces/${policyID}/recruiting/merge/import-settings/${filterType}` as const,
+    },
     WORKSPACE_RECRUITING_MERGE_APPROVAL_MODE: {
         route: 'workspaces/:policyID/recruiting/merge/approval-mode',
         getRoute: (policyID: string) => `workspaces/${policyID}/recruiting/merge/approval-mode` as const,
@@ -5082,6 +5088,30 @@ const ROUTES = {
     POLICY_ACCOUNTING_CAMPFIRE_COMPANY_CARD_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/campfire/export/company-card-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/company-card-account` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_ADVANCED: {
+        route: 'workspaces/:policyID/accounting/campfire/advanced',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/advanced` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_EXPORT_METHOD: {
+        route: 'workspaces/:policyID/accounting/campfire/advanced/export-method',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/advanced/export-method` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_BILL_PAYMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/campfire/advanced/bill-payment-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/advanced/bill-payment-account` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/campfire/advanced/expensify-card-settlement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/advanced/expensify-card-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_TRAVEL_BILLING_SETTLEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/campfire/advanced/travel-invoicing-settlement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/advanced/travel-invoicing-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_TRAVEL_BILLING_PAYABLE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/campfire/advanced/travel-invoicing-payable-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/advanced/travel-invoicing-payable-account` as const,
     },
     POLICY_ACCOUNTING_BUSINESS_CENTRAL_PREREQUISITES: {
         route: 'workspaces/:policyID/accounting/business-central/prerequisites',

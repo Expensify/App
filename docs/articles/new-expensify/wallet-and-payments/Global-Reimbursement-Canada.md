@@ -37,8 +37,9 @@ To comply with financial regulations, you’ll need:
 
 - Government-issued photo ID  
 - Proof of address (utility bill or bank statement)  
-- A recent bank statement for the connected account  
+- A recent bank statement, dated within the last three months, for the business bank account you're connecting  
 - Beneficial ownership information (for anyone owning 25% or more)  
+- Your Schedule 50 (Shareholder Information) from your most recent T2 corporate income tax return  
 
 Accepted file types: PDF, PNG, JPEG. Each file must be 2 MB or less.
 
@@ -114,14 +115,10 @@ Regulations require Expensify to verify the identity of any beneficial owner, de
    - Ownership percentage  
    - Residential address  
    - Date of birth  
-3. Upload documentation to verify ownership. This must include:
-   - A signed attestation  
-   - An organizational chart  
-   - Verification from a public accountant, notary, or lawyer  
+   - Social Security Number, if their country of citizenship is the United States  
+3. Under **Proof of beneficial owner**, select **Choose file** and upload your Schedule 50 (Shareholder Information) from your most recent T2 corporate income tax return, showing every individual who owns 25% or more of the business.
 
-The documentation must:
-- Be dated within the last three months  
-- Include the signer’s license number  
+If a beneficial owner's country of citizenship is the United States, Expensify asks for their complete Social Security Number in the **Full 9 digits of SSN** field. The last four digits are not enough. Expensify does not run a personal credit check.
 
 Confirm the information is accurate, then select **Confirm**.
 
@@ -143,6 +140,18 @@ If you are not a Director or Senior Officer:
 - They will receive instructions to complete identity verification  
 
 **Note:** The designated Director or Senior Officer will also see a **Signer info needed** task in the **Time sensitive** section of their **Home** page. They can select **Begin** to enter their information directly from there.
+
+---
+
+## How to accept the agreements and upload a bank statement for Global Reimbursement in Canada (CAD)
+
+Canadian accounts must upload a bank statement before they can continue to the authorization form.
+
+1. On the **Agreements** screen, confirm each agreement.
+2. Under **Bank statement**, select **Choose file** and upload a recent bank statement, dated within the last three months, for the business bank account you're connecting.
+3. Select **Accept and add bank account**.
+
+If you started setup before the bank statement was required, resuming setup returns you to the **Agreements** screen so you can upload one.
 
 ---
 
