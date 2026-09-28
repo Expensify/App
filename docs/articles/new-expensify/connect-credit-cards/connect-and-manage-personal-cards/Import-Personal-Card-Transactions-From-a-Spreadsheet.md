@@ -1,8 +1,8 @@
 ---
 title: Import Personal Card Transactions From a Spreadsheet
-description: Learn how members can manually import personal card transactions using a spreadsheet or bank statement file in Wallet.
+description: Learn how members can manually import personal card transactions, including categories and tags, using a spreadsheet or bank statement file in Wallet.
 keywords: [New Expensify, import personal card, upload file, import spreadsheet, CSV, TXT, XLS, XLSX, OFX, QFX, bank statement, Wallet, card feed, reimbursable, bring your own card, BYOC, csv import, import csv, upload csv, spreadsheet import, import transactions, csv file, excel import, xls import, ofx import, qfx import, upload bank statement, import tags, tag column, import categories, category column]
-internalScope: Audience is all members. Covers how to import, update, and delete personal card transactions from a spreadsheet or an .ofx/.qfx bank statement file. Does not cover company cards or Plaid connections.
+internalScope: Audience is all members. Covers how to import, update, and delete personal card transactions from a spreadsheet or an .ofx/.qfx bank statement file, including mapping optional Category and Tag columns and the 255-character tag limit. Does not cover company cards or Plaid connections.
 order: 3
 ---
 
@@ -98,9 +98,9 @@ You can also map optional **Category** and **Tag** columns.
 
 ## How do I import tags with personal card transactions?
 
-Add a column with the tag for each transaction to your spreadsheet, then map it to **Tag** when you map your columns. Columns with the header Tag, Tags, Label, or Labels are mapped to **Tag** automatically.
+Add a column with the tag for each transaction to your spreadsheet, then map it to **Tag** when you map your columns. Columns with the header `Tag`, `Tags`, `Label`, or `Labels` are mapped to **Tag** automatically.
 
-Expensify doesn't check imported tags against a workspace's tag list, so review each tag before you submit the expense.
+Expensify doesn't check imported tags against a Workspace's tag list, so review each tag before you submit the expense.
 
 ## Why can't I import a spreadsheet with long tags?
 
