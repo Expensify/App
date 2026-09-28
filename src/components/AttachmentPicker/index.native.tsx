@@ -145,7 +145,7 @@ const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
  * TIFFs are an accepted receipt format, and `.heic` documents keep the existing HEIC-through-validation flow.
  *
  * Files are converted one at a time (see `processPickedAssetsSequentially`) and failures are collected so a
- * multi-selection produces at most one alert; a file that can't be decoded is dropped from the result, since the
+ * multi-selection produces at most one alert. A file that can't be decoded is dropped from the result, since the
  * backend rejects DNG and it must never be uploaded unconverted.
  */
 async function transcodeDngFiles(files: LocalCopy[], showGeneralAlert: (message?: string) => void, translate: LocaleContextProps['translate']): Promise<LocalCopy[]> {
@@ -179,7 +179,7 @@ async function transcodeDngFiles(files: LocalCopy[], showGeneralAlert: (message?
         results.push({
             name: convertedAsset.fileName ?? file.name,
             uri: convertedAsset.uri,
-            // The JPEG's size differs from the DNG's and isn't reported by the transcode; `getDataForUpload` reads it from disk.
+            // The JPEG's size differs from the DNG's and isn't reported by the transcode. `getDataForUpload` reads it from disk.
             size: null,
             type: convertedAsset.type ?? file.type,
         });

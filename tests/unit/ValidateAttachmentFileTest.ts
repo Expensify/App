@@ -16,7 +16,7 @@ jest.mock('@src/libs/fileDownload/FileUtils', () => {
     };
 });
 
-// Whether the platform can turn a DNG into a JPEG: true on native, false on web. Defaults to web; native cases flip it.
+// Whether the platform can turn a DNG into a JPEG: true on native, false on web. Defaults to web, and native cases flip it.
 let mockCanConvertDngToJpeg = false;
 jest.mock('@libs/fileDownload/canConvertDngToJpeg', () => ({
     __esModule: true,
@@ -161,7 +161,7 @@ describe('validateAttachmentFile', () => {
             // When validated on native
             const error = await validateAttachmentFile(file, undefined, false);
 
-            // Then it goes to conversion; the size limit is checked against the converted JPEG
+            // Then it goes to conversion and the size limit is checked against the converted JPEG
             if (error.isValid) {
                 throw new Error('validateAttachmentFile should return an invalid result');
             }

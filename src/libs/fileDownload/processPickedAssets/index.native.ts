@@ -99,7 +99,7 @@ function getConvertedFileName(originalFileName: string | undefined, convertedUri
  * signature instead and cannot go through `convertHeicImage`.
  *
  * Decoding is left to the OS image loader (ImageIO on iOS, BitmapFactory/ImageDecoder on Android), which
- * handles DNG on current OS versions; where it doesn't, the render fails and the asset is skipped.
+ * handles DNG on current OS versions. Where it doesn't, the render fails and the asset is skipped.
  */
 async function convertToJpeg(uri: string, formatName: TranscodedFormat['name'], originalFileName: string | undefined): Promise<Asset | undefined> {
     const imageManipulatorContext = ImageManipulator.manipulate(uri);

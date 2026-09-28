@@ -29,7 +29,7 @@ jest.mock('@libs/ReceiptStorage', () => ({
     },
 }));
 
-// The transcode itself is covered by AttachmentPickerAssetProcessingTest; here it is stubbed so each test can dictate
+// The transcode itself is covered by AttachmentPickerAssetProcessingTest. Here it is stubbed so each test can dictate
 // whether the DNG converts, fails, or comes back without a URI.
 jest.mock('@libs/fileDownload/processPickedAssets', () => jest.fn());
 
@@ -205,7 +205,7 @@ describe('AttachmentPicker document picker DNG transcoding', () => {
         // When the picker resolves
         const {onPicked} = await openDocumentPicker();
 
-        // Then only the PDF is delivered; there is no alert since the transcoder reported no failure
+        // Then only the PDF is delivered. There is no alert since the transcoder reported no failure
         expect(alertSpy).not.toHaveBeenCalled();
         expect(onPicked).toHaveBeenCalledTimes(1);
         const [files] = onPicked.mock.calls.at(0) ?? [];
@@ -217,7 +217,7 @@ describe('AttachmentPicker document picker DNG transcoding', () => {
         // Given a DNG whose copy into the caches directory fails, so there is no local file to transcode
         pickDocuments([DNG_DOCUMENT]);
         mockKeepLocalCopy.mockResolvedValue([{status: 'error', sourceUri: DNG_DOCUMENT.uri, copyError: 'disk full'}]);
-        // The picker re-throws after alerting and logs the error via `console.error`; keep that expected log out of the test output.
+        // The picker re-throws after alerting and logs the error via `console.error`. Keep that expected log out of the test output.
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
         // When the picker resolves

@@ -731,7 +731,7 @@ const hasHeicOrHeifExtension = (file: FileObject) => {
  *
  * Android's gallery picker keeps the real file name and resolves the MIME type from it, and the document picker does
  * the same on both platforms, so for those the label is enough. iOS gallery picks arrive as `<uuid>.jpg` / `image/jpg`
- * and never match here; they have to be recognized from `CONST.TIFF_SIGNATURES` instead.
+ * and never match here. They have to be recognized from `CONST.TIFF_SIGNATURES` instead.
  *
  * Use `isLabelledDng` to decide what to transcode: plain TIFFs are an accepted receipt format and are uploaded as-is.
  */
