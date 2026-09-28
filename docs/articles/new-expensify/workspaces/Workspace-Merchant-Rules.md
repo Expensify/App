@@ -47,7 +47,7 @@ Instead of creating Merchant Rules one at a time, you can import multiple Mercha
 4. Click **More**, then select **Import merchant rules**.
 5. Select **Choose file** and upload your completed spreadsheet.
 6. Map each spreadsheet column to the corresponding Merchant Rule field:
-   - For **Merchant**, choose how the merchant name should match. **Merchant is** requires an exact match, while **Merchant contains** atches merchants whose names contain the value.
+   - For **Merchant**, choose how the merchant name should match. **Merchant is** requires an exact match, while **Merchant contains** matches merchants whose names contain the value.
 7. Click **Import**.
    
 ---
