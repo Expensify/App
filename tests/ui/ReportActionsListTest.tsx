@@ -468,6 +468,23 @@ describe('ReportActionsList (body)', () => {
 
             expect(getCapturedSystemActionIDs()).toEqual(['system-newer', 'system-older', 'chat-boundary']);
         });
+
+        it('keeps the unread target aligned with a synthetic draft in ordinary chats', () => {
+            // Given an unread action whose rendered index shifts when a newer draft is inserted.
+            mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: 'system-older', unreadMarkerReportActionIndex: 1});
+            mockUseConciergeDraft.mockReturnValue({
+                draftReportAction: {...getSystemAction(2), reportActionID: 'draft-before-unread', created: '2023-01-01 00:04:00.000'},
+                hasActiveDraft: true,
+                isDraftPendingCompletion: true,
+            });
+
+            // When an ordinary chat uses the same list without system-message collapsing.
+            renderSystemActions(CONST.REPORT.TYPE.CHAT);
+
+            // Then scrolling uses the rendered index rather than the canonical index from before the draft.
+            expect(getCapturedVisibleActions()?.at(2)?.reportActionID).toBe('system-older');
+            expect(mockUseReportActionsScroll.mock.calls.at(-1)?.at(0)).toMatchObject({unreadMarkerReportActionIndex: 2});
+        });
     });
 
     describe('Concierge Feedback Prompt', () => {

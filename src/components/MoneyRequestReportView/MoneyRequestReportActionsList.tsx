@@ -7,20 +7,17 @@ import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
 
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
-import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
-import {getFilteredReportActionsForReportView, getLatestConciergeFeedbackActionID, getOneTransactionThreadReportID, hasNextActionMadeBySameActor} from '@libs/ReportActionsUtils';
+import {getLatestConciergeFeedbackActionID, getOneTransactionThreadReportID, hasNextActionMadeBySameActor} from '@libs/ReportActionsUtils';
 import {
     canUserPerformWriteAction,
     chatIncludesChronosWithID,
@@ -40,7 +37,6 @@ import {ReportActionPositionContextProvider, ReportActionScrollToNewestContext} 
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 import useReportActionsPresentation from '@pages/inbox/report/useReportActionsPresentation';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
@@ -50,16 +46,18 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {LayoutChangeEvent} from 'react-native';
 
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import isEmpty from 'lodash/isEmpty';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import MoneyRequestReportEmptyStateView from './MoneyRequestReportEmptyStateView';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
 import SelectionToolbar from './SelectionToolbar';
+import useMoneyRequestReportData from './useMoneyRequestReportData';
 import useMoneyRequestReportPagination from './useMoneyRequestReportPagination';
 import useMoneyRequestReportScroll from './useMoneyRequestReportScroll';
 import useMoneyRequestReportVisibleActions from './useMoneyRequestReportVisibleActions';
+import useShouldShowReportBulkActionBar from './useShouldShowReportBulkActionBar';
 
 /**
  * In this view we are not handling the special single transaction case, we're just handling the report
@@ -89,6 +87,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     // The table is visible whenever it's wide, or — on narrow — only when focused (the RHP has closed).
     const isReportVisible = shouldUseNarrowLayout ? isFocused : true;
+    const shouldReserveBulkActionBarSpace = useShouldShowReportBulkActionBar();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
     const isReportLoadPending = useIsReportLoadPending(reportIDFromRoute);
@@ -103,19 +102,13 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const reportID = report?.reportID;
 
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, linkedReportActionID);
-    const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
     const {draftReportAction, isDraftPendingCompletion} = useConciergeDraft();
     const draftReportActionID = draftReportAction?.reportActionID;
 
-    const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
-    const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true), [allReportTransactions, reportActions, isOffline]);
-    const transactions = useMemo(
-        () => reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) ?? [],
-        [reportTransactions, isOffline],
-    );
-    const hasPendingDeletionTransaction = useMemo(
-        () => Object.values(allReportTransactions ?? {}).some((transaction) => transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
-        [allReportTransactions],
+    const {reportActions, reportTransactions, transactions, hasPendingDeletionTransaction, reportTransactionIDs, reportActionIDs} = useMoneyRequestReportData(
+        reportIDFromRoute,
+        unfilteredReportActions,
+        isOffline,
     );
     const [pendingNewTransactionIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
         selector: pendingNewTransactionIDsSelector,
@@ -123,7 +116,6 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const newTransactions = useNewTransactions(reportLoadingState?.hasOnceLoadedReportActions, reportTransactions, pendingNewTransactionIDs, reportIDFromRoute, isFocused);
     const showReportActionsLoadingState = reportLoadingState?.isLoadingInitialReportActions && !reportLoadingState?.hasOnceLoadedReportActions;
     const isInitialReportLoadPending = !isOffline && isReportLoadPending && !reportLoadingState?.hasOnceLoadedReportActions;
-    const reportTransactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
     // Set when the report is opened from an "X Replies" link, which should land on the latest message
@@ -131,10 +123,9 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const scrolledToLatestOnOpenForReportIDRef = useRef<string | undefined>(undefined);
 
     const parentReportAction = useParentReportAction(report);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], false, reportTransactionIDs);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions, false, reportTransactionIDs);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
 
     const isReportArchived = useReportIsArchived(reportID);
@@ -142,7 +133,6 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
     const shouldShowHarvestCreatedAction = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
-    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const {visibleReportActions, visibleReportActionsNewestFirst, lastAction, firstVisibleReportActionID} = useMoneyRequestReportVisibleActions({
         reportID,
@@ -159,20 +149,11 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
 
-    const reportActionIDs = useMemo(() => {
-        return reportActions?.map((action) => action.reportActionID) ?? [];
-    }, [reportActions]);
-
     const conciergeFeedbackForReportActionID = reportNameValuePairs?.conciergeFeedbackForReportActionID;
 
     // Skip inside the thread the backend opens after a thumbs down, while a Concierge answer is still streaming, and while newer actions are not loaded because the newest reply may not be in the list yet
-    const latestConciergeFeedbackActionID = useMemo(
-        () =>
-            conciergeFeedbackForReportActionID || isDraftPendingCompletion || hasNewerActions
-                ? undefined
-                : getLatestConciergeFeedbackActionID(visibleReportActionsNewestFirst, reportActionIDs),
-        [conciergeFeedbackForReportActionID, isDraftPendingCompletion, hasNewerActions, visibleReportActionsNewestFirst, reportActionIDs],
-    );
+    const latestConciergeFeedbackActionID =
+        conciergeFeedbackForReportActionID || isDraftPendingCompletion || hasNewerActions ? undefined : getLatestConciergeFeedbackActionID(visibleReportActionsNewestFirst, reportActionIDs);
 
     const {onStartReached, onEndReached} = useMoneyRequestReportPagination({
         reportID,
@@ -202,7 +183,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         linkedReportActionID,
         unreadMarkerReportActionID,
     });
-    const canonicalIndexByReportActionID = useMemo(() => new Map(visibleReportActions.map((action, index) => [action.reportActionID, index])), [visibleReportActions]);
+    const canonicalIndexByReportActionID = new Map(visibleReportActions.map((action, index) => [action.reportActionID, index]));
 
     const {markNewestActionAsRead, completeSkippedMarkAsRead} = useMarkAsRead({
         reportID: reportID ?? reportIDFromRoute ?? '',
@@ -252,90 +233,65 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         Navigation.setParams({[REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST]: undefined});
     }, [shouldScrollToLatestOnOpen, visibleReportActions.length, scrollToLatestMessages, reportIDFromRoute]);
 
-    const renderReportAction = useCallback(
-        (reportAction: OnyxTypes.ReportAction, indexWithinReportActions: number) => {
-            const canonicalIndex = canonicalIndexByReportActionID.get(reportAction.reportActionID) ?? indexWithinReportActions;
-            const systemMessageRun = runsByAnchorReportActionID.get(reportAction.reportActionID);
-            const previousReportAction = indexWithinReportActions > 0 ? displayReportActions.at(indexWithinReportActions - 1) : undefined;
-            const previousRun = previousReportAction ? runsByAnchorReportActionID.get(previousReportAction.reportActionID) : undefined;
-            const isAfterCollapsedRun = indexWithinReportActions > 0 && !!previousRun && !previousRun.isExpanded;
-            const displayAsGroup =
-                !isAfterCollapsedRun &&
-                !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, canonicalIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
-                hasNextActionMadeBySameActor(visibleReportActions, canonicalIndex, isOffline);
-            const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
-            const isNewestReportAction = indexWithinReportActions === displayReportActions.length - 1;
+    const renderReportAction = (reportAction: OnyxTypes.ReportAction, indexWithinReportActions: number) => {
+        const canonicalIndex = canonicalIndexByReportActionID.get(reportAction.reportActionID) ?? indexWithinReportActions;
+        const systemMessageRun = runsByAnchorReportActionID.get(reportAction.reportActionID);
+        const previousReportAction = indexWithinReportActions > 0 ? displayReportActions.at(indexWithinReportActions - 1) : undefined;
+        const previousRun = previousReportAction ? runsByAnchorReportActionID.get(previousReportAction.reportActionID) : undefined;
+        const isAfterCollapsedRun = indexWithinReportActions > 0 && !!previousRun && !previousRun.isExpanded;
+        const displayAsGroup =
+            !isAfterCollapsedRun &&
+            !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, canonicalIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
+            hasNextActionMadeBySameActor(visibleReportActions, canonicalIndex, isOffline);
+        const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
+        const isNewestReportAction = indexWithinReportActions === displayReportActions.length - 1;
 
-            return (
-                <ReportActionScrollToNewestContext.Provider value={scrollToBottom}>
-                    <ReportActionPositionContextProvider
-                        index={indexWithinReportActions}
-                        isNewest={isNewestReportAction}
-                    >
-                        {systemMessageRun && !systemMessageRun.isExpanded ? (
-                            <CollapsedSystemMessages
-                                count={systemMessageRun.reportActionIDs.length}
-                                earliestReportAction={systemMessageRun.earliestReportAction}
-                                report={reportStable}
-                                onPress={() => expandSystemMessageRun(systemMessageRun.reportActionIDs)}
-                                unreadMarkerReportActionID={
-                                    unreadMarkerReportActionID && systemMessageRun.reportActionIDs.includes(unreadMarkerReportActionID) ? unreadMarkerReportActionID : undefined
-                                }
-                            />
-                        ) : (
-                            <ReportActionsListItemRenderer
-                                reportAction={reportAction}
-                                parentReportAction={parentReportAction}
-                                parentReportActionForTransactionThread={EmptyParentReportActionForTransactionThread}
-                                report={reportStable}
-                                transactionThreadReport={transactionThreadReport}
-                                chatReport={chatReport}
-                                displayAsGroup={displayAsGroup}
-                                shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
-                                shouldDisplayReplyDivider={visibleReportActions.length > 1}
-                                isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
-                                shouldHideThreadDividerLine
-                                linkedReportActionID={linkedReportActionID}
-                                isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
-                                shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
-                                isLatestConciergeFeedbackAction={!!latestConciergeFeedbackActionID && latestConciergeFeedbackActionID === reportAction.reportActionID}
-                            />
-                        )}
-                    </ReportActionPositionContextProvider>
-                </ReportActionScrollToNewestContext.Provider>
-            );
-        },
-        [
-            visibleReportActions,
-            displayReportActions,
-            canonicalIndexByReportActionID,
-            runsByAnchorReportActionID,
-            expandSystemMessageRun,
-            parentReportAction,
-            reportStable,
-            chatReport,
-            isOffline,
-            transactionThreadReport,
-            unreadMarkerReportActionID,
-            firstVisibleReportActionID,
-            linkedReportActionID,
-            shouldShowHarvestCreatedAction,
-            draftReportActionID,
-            isDraftPendingCompletion,
-            latestConciergeFeedbackActionID,
-            scrollToBottom,
-        ],
-    );
+        return (
+            <ReportActionScrollToNewestContext.Provider value={scrollToBottom}>
+                <ReportActionPositionContextProvider
+                    index={indexWithinReportActions}
+                    isNewest={isNewestReportAction}
+                >
+                    {systemMessageRun && !systemMessageRun.isExpanded ? (
+                        <CollapsedSystemMessages
+                            count={systemMessageRun.reportActionIDs.length}
+                            earliestReportAction={systemMessageRun.earliestReportAction}
+                            report={reportStable}
+                            onPress={() => expandSystemMessageRun(systemMessageRun.reportActionIDs)}
+                            unreadMarkerReportActionID={
+                                unreadMarkerReportActionID && systemMessageRun.reportActionIDs.includes(unreadMarkerReportActionID) ? unreadMarkerReportActionID : undefined
+                            }
+                        />
+                    ) : (
+                        <ReportActionsListItemRenderer
+                            reportAction={reportAction}
+                            parentReportAction={parentReportAction}
+                            parentReportActionForTransactionThread={EmptyParentReportActionForTransactionThread}
+                            report={reportStable}
+                            transactionThreadReport={transactionThreadReport}
+                            chatReport={chatReport}
+                            displayAsGroup={displayAsGroup}
+                            shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
+                            shouldDisplayReplyDivider={visibleReportActions.length > 1}
+                            isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
+                            shouldHideThreadDividerLine
+                            linkedReportActionID={linkedReportActionID}
+                            isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
+                            shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
+                            isLatestConciergeFeedbackAction={!!latestConciergeFeedbackActionID && latestConciergeFeedbackActionID === reportAction.reportActionID}
+                        />
+                    )}
+                </ReportActionPositionContextProvider>
+            </ReportActionScrollToNewestContext.Provider>
+        );
+    };
 
-    const reportActionsExtraData = useMemo(
-        () => [draftReportActionID, isDraftPendingCompletion, latestConciergeFeedbackActionID, expandedSystemMessageReportActionIDs, unreadMarkerReportActionID],
-        [draftReportActionID, isDraftPendingCompletion, latestConciergeFeedbackActionID, expandedSystemMessageReportActionIDs, unreadMarkerReportActionID],
-    );
+    const reportActionsExtraData = [draftReportActionID, isDraftPendingCompletion, latestConciergeFeedbackActionID, expandedSystemMessageReportActionIDs, unreadMarkerReportActionID];
 
     /**
      * Runs when the FlatList finishes laying out
      */
-    const recordTimeToMeasureItemLayout = useCallback(() => {
+    const recordTimeToMeasureItemLayout = () => {
         if (didLayout.current || !reportIDFromRoute) {
             return;
         }
@@ -343,14 +299,14 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         didLayout.current = true;
 
         markOpenReportEnd(reportIDFromRoute, report, {warm: true});
-    }, [reportIDFromRoute, report]);
+    };
 
     const onListLayout = (event: LayoutChangeEvent) => {
         syncBottomOffsetFromLayout(event);
         recordTimeToMeasureItemLayout();
     };
 
-    const isReportEmpty = isEmpty(visibleReportActions) && isEmpty(transactions) && !isInitialReportLoadPending;
+    const isReportEmpty = visibleReportActions.length === 0 && transactions.length === 0 && !isInitialReportLoadPending;
     const showEmptyState = isReportEmpty;
 
     if (!report) {
@@ -414,7 +370,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                         onViewableItemsChanged={onViewableItemsChanged}
                         onEndReached={onEndReached}
                         onStartReached={onStartReached}
-                        contentContainerStyle={shouldUseNarrowLayout ? styles.pt4 : styles.pt3}
+                        contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt3, shouldReserveBulkActionBarSpace && styles.bulkActionBarListSpacing]}
                         isLoadingInitialActions={isInitialReportLoadPending}
                         /* This list is not inverted, so the footer is the bottom of the message feed —
                            the same position the indicator occupies in the inverted ReportActionsList. */

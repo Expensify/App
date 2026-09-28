@@ -192,7 +192,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => getScrollOffset() >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
 
-    const {unreadMarkerReportActionID, unreadMarkerReportActionIndex: canonicalUnreadMarkerIndex} = useUnreadMarker({
+    const {unreadMarkerReportActionID} = useUnreadMarker({
         reportID,
         sortedVisibleReportActions,
         sortedReportActions,
@@ -255,7 +255,9 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         });
     const displayedReportActions = shouldCollapseSystemMessages ? displayReportActions : renderedVisibleReportActions;
     const canonicalIndexByReportActionID = new Map(renderedVisibleReportActions.map((action, index) => [action.reportActionID, index]));
-    const displayedUnreadMarkerIndex = shouldCollapseSystemMessages ? unreadMarkerReportActionIndex : canonicalUnreadMarkerIndex;
+    const displayedUnreadMarkerIndex = shouldCollapseSystemMessages
+        ? unreadMarkerReportActionIndex
+        : renderedVisibleReportActions.findIndex((action) => action.reportActionID === unreadMarkerReportActionID);
 
     const draftMessageHTML = draftReportAction ? getReportActionMessage(draftReportAction)?.html : undefined;
     const draftReportActionID = draftReportAction?.reportActionID;

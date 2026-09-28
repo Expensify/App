@@ -1127,6 +1127,9 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether we should export to the most recent open period if the current one is closed  */
         exportToNextOpenPeriod: boolean;
 
+        /** Whether non-reimbursable exports are split into one transaction per calendar month */
+        splitExportsByPostingPeriod?: boolean;
+
         /** Whether we will include the original foreign amount of a transaction to NetSuite */
         allowForeignCurrency?: boolean;
 
@@ -1448,8 +1451,8 @@ type FinancialForceSyncedEntity = {
 
 /** Data synced from Certinia (parent sync service); arrays may be empty until sync completes */
 type FinancialForceConnectionData = {
-    /** Salesforce Accounts used as Default Vendor options (FFA) */
-    vendors: FinancialForceSyncedEntity[];
+    /** Salesforce Accounts used as Default Vendor options (FFA); undefined means the sync has not written the list yet */
+    vendors?: FinancialForceSyncedEntity[];
 
     /** Certinia companies (c2g__codaCompany__c); FFA validates presence when applicable */
     companies: FinancialForceSyncedEntity[];
@@ -2201,7 +2204,7 @@ type DualEntryConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
  * A subsidiary (entity) configured in Campfire.
  */
 type CampfireSubsidiary = {
-    /** Unique identifier of the account. */
+    /** Unique identifier of the subsidiary. */
     id: string;
 
     /** Name of the account. */
@@ -2251,7 +2254,7 @@ type CampfireAccount = {
  * Field retrieved from Campfire.
  */
 type CampfireField = {
-    /** Unique identifier of the account. */
+    /** Unique identifier of the field. */
     id: string;
 
     /** Name of the field. */
@@ -3792,6 +3795,7 @@ export type {
     MergeHRConnectionConfig,
     MergeConnectionLastSync,
     MergeATSConnectionConfig,
+    MergeATSConnectionData,
     MergeATSFilters,
     MergeATSApproverField,
     GustoConnectionConfig,
@@ -3817,6 +3821,7 @@ export type {
     DualEntryExport,
     DualEntryAutoSync,
     DualEntrySync,
+    FinancialForceSyncedEntity,
     CampfireConnectionsConfig,
     CampfireSubsidiary,
     CampfireCoding,
@@ -3824,6 +3829,8 @@ export type {
     CampfireVendor,
     CampfireAccount,
     CampfireExport,
+    CampfireAutoSync,
+    CampfireSync,
     BusinessCentralCompany,
     BusinessCentralCoding,
     BusinessCentralCodingOfflineFeedbackKeys,
