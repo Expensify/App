@@ -129,6 +129,15 @@ function CardSection() {
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     };
 
+    const navigateToPaymentHistory = () => {
+        if (isBetaEnabled(CONST.BETAS.PAYMENT_HISTORY)) {
+            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_PAYMENT_HISTORY);
+            return;
+        }
+
+        viewPurchases();
+    };
+
     const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() =>
         CardSectionUtils.getBillingStatus({
             translate,
@@ -293,7 +302,7 @@ function CardSection() {
 
             {!!account?.hasPurchases && (
                 <MenuItemSectionRoot
-                    onPress={isBetaEnabled(CONST.BETAS.PAYMENT_HISTORY) ? () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_PAYMENT_HISTORY) : viewPurchases}
+                    onPress={navigateToPaymentHistory}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.VIEW_PAYMENT_HISTORY}
                 >
                     <MenuItem.Row>

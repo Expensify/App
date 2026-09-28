@@ -26,8 +26,11 @@ function PaymentHistoryPage() {
 
     useFocusEffect(
         useCallback(() => {
+            if (!isBetaEnabled(CONST.BETAS.PAYMENT_HISTORY)) {
+                return;
+            }
             openPaymentHistoryPage();
-        }, []),
+        }, [isBetaEnabled]),
     );
 
     if (!isBetaEnabled(CONST.BETAS.PAYMENT_HISTORY)) {
