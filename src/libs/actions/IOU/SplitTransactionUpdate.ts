@@ -71,6 +71,7 @@ import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -90,6 +91,8 @@ import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
 type UpdateSplitTransactionsParams = {
     allTransactionsList: OnyxCollection<OnyxTypes.Transaction>;
     allReportsList: OnyxCollection<OnyxTypes.Report>;
+    /** Draft reports, so chats that only exist in REPORT_DRAFT (e.g. a not-yet-created workspace chat) still resolve */
+    reportDrafts: OnyxCollection<OnyxTypes.Report>;
     allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
     allReportNameValuePairsList: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
     allSnapshots?: OnyxCollection<OnyxTypes.SearchResults>;
@@ -127,6 +130,10 @@ type UpdateSplitTransactionsParams = {
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
 };
+
+function getReportDraft(reportDrafts: OnyxCollection<OnyxTypes.Report>, reportID: string | undefined): OnyxEntry<OnyxTypes.Report> | EmptyObject {
+    return reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`] ?? {};
+}
 
 /**
  * Picks the transaction in `snapshotData` whose conversion can be reused for `transaction`: candidates are
@@ -181,6 +188,7 @@ function rescaleSnapshotGroupAmount<T extends OnyxTypes.Transaction>(transaction
 function updateSplitTransactions({
     allTransactionsList,
     allReportsList,
+    reportDrafts,
     allReportActionsList,
     allReportNameValuePairsList,
     allSnapshots,
@@ -212,7 +220,7 @@ function updateSplitTransactions({
     rules,
     isVendorMatchingBetaEnabled,
 }: UpdateSplitTransactionsParams) {
-    const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
+    const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID, undefined, undefined, getReportDraft(reportDrafts, transactionReport?.parentReportID));
     // For selfDM-origin splits the caller can't resolve a real `expenseReport` (the draft/source
     // transaction lives in a selfDM chat whose parent isn't an expense report), so it ends up `undefined`
     let expenseReport: OnyxEntry<OnyxTypes.Report> = expenseReportFromParams;
@@ -248,7 +256,7 @@ function updateSplitTransactions({
         originalSelfDMReportID = chatReport?.reportID;
     }
 
-    const expenseReportParentChat = getReportOrDraftReport(chatReport?.parentReportID);
+    const expenseReportParentChat = getReportOrDraftReport(chatReport?.parentReportID, undefined, undefined, getReportDraft(reportDrafts, chatReport?.parentReportID));
     const originalTransactionID = transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const originalTransactionDetails = getTransactionDetails(originalTransaction);
@@ -572,7 +580,9 @@ function updateSplitTransactions({
         // splitExpense.reportID may have been set to the selfDM report ID for navigation purposes
         // (see initSplitExpense), so we must not rely on it to detect workspace splits.
         const existingTransactionReport =
-            splitTransaction?.reportID && splitTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? getReportOrDraftReport(splitTransaction.reportID) : undefined;
+            splitTransaction?.reportID && splitTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID
+                ? getReportOrDraftReport(splitTransaction.reportID, undefined, undefined, getReportDraft(reportDrafts, splitTransaction.reportID))
+                : undefined;
         const isConfirmedWorkspaceTransaction = !!existingTransactionReport && !isSelfDM(existingTransactionReport);
         if (isConfirmedWorkspaceTransaction) {
             isSelfDMSplit = false;
@@ -583,9 +593,14 @@ function updateSplitTransactions({
         // check the report hierarchy. Skip this check for confirmed workspace transactions
         // because splitExpense.reportID may point to selfDM for navigation reasons only.
         if (!isSelfDMSplit && !isConfirmedWorkspaceTransaction) {
-            const splitExpenseReport = getReportOrDraftReport(splitExpense.reportID);
-            const splitExpenseParentReport = getReportOrDraftReport(splitExpenseReport?.parentReportID);
-            const splitExpenseChatReport = getReportOrDraftReport(splitExpenseReport?.chatReportID);
+            const splitExpenseReport = getReportOrDraftReport(splitExpense.reportID, undefined, undefined, getReportDraft(reportDrafts, splitExpense.reportID));
+            const splitExpenseParentReport = getReportOrDraftReport(
+                splitExpenseReport?.parentReportID,
+                undefined,
+                undefined,
+                getReportDraft(reportDrafts, splitExpenseReport?.parentReportID),
+            );
+            const splitExpenseChatReport = getReportOrDraftReport(splitExpenseReport?.chatReportID, undefined, undefined, getReportDraft(reportDrafts, splitExpenseReport?.chatReportID));
 
             if (isSelfDM(splitExpenseReport)) {
                 isSelfDMSplit = true;
@@ -676,7 +691,8 @@ function updateSplitTransactions({
                 selfDMReportID,
             },
             // For selfDM, use the selfDM report as the parent chat report so report actions are stored there
-            parentChatReport: isSelfDMSplit && selfDMReportID ? getReportOrDraftReport(selfDMReportID) : fallbackPolicyParentChatReport,
+            parentChatReport:
+                isSelfDMSplit && selfDMReportID ? getReportOrDraftReport(selfDMReportID, undefined, undefined, getReportDraft(reportDrafts, selfDMReportID)) : fallbackPolicyParentChatReport,
             existingTransaction: originalTransaction,
             isASAPSubmitBetaEnabled,
             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,

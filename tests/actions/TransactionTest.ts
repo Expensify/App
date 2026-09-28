@@ -945,6 +945,7 @@ describe('actions/Transaction', () => {
                     rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
+                    reportDrafts: {},
                     allReportActionsList: undefined,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
@@ -1131,6 +1132,7 @@ describe('actions/Transaction', () => {
                     rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
+                    reportDrafts: {},
                     allReportActionsList: undefined,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
@@ -1331,6 +1333,7 @@ describe('actions/Transaction', () => {
                     rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
+                    reportDrafts: {},
                     allReportActionsList: undefined,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
@@ -1560,6 +1563,7 @@ describe('actions/Transaction', () => {
                     rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
+                    reportDrafts: {},
                     allReportActionsList: allReportActions,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
