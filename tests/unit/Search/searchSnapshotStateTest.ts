@@ -280,4 +280,39 @@ describe('search snapshot terminal state', () => {
         // classify them after a reload. NO_RESPONSE records "failed without a usable code" rather than leaving a gap.
         expect(snapshot?.search?.responseJsonCode).toBe(CONST.JSON_CODE.NO_RESPONSE);
     });
+
+    it('records the query string on the snapshot even when the response replaces the search info', async () => {
+        // Given a search with a non-empty query. IOU optimistic updates read `search.inputQuery` to decide
+        // which loaded snapshots a new expense belongs in, so every searched snapshot must carry it.
+        const queryJSON = buildSearchQueryJSON('type:expense from:3');
+        if (!queryJSON) {
+            throw new Error('Query JSON should be defined for test setup');
+        }
+        await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+
+        // When only the optimistic data has been applied, as when the request is still queued offline
+        const {optimisticData} = getCapturedSearchOnyxData();
+        await Onyx.update(optimisticData ?? []);
+        await waitForBatchedUpdates();
+
+        // Then the query is already on the snapshot
+        const optimisticSnapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
+        expect(optimisticSnapshot?.search?.inputQuery).toBe(queryJSON.inputQuery);
+
+        // When the server response replaces the whole snapshot, dropping the client-only query
+        await simulateResolvedRequest({
+            jsonCode: CONST.JSON_CODE.SUCCESS,
+            serverOnyxData: [
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`,
+                    value: {search: {hasResults: true}},
+                },
+            ],
+        });
+
+        // Then finallyData writes the query back
+        const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
+        expect(snapshot?.search?.inputQuery).toBe(queryJSON.inputQuery);
+    });
 });

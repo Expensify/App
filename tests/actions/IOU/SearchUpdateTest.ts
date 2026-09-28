@@ -556,7 +556,7 @@ describe('actions/IOU', () => {
             expect(result).toBeUndefined();
         });
 
-        it('patches the default Spend > Expenses snapshot even when the page was never visited', async () => {
+        it('patches the default Spend > Expenses snapshot even when the page was never visited', () => {
             // Compute the real canned Expenses hash from the unmocked helpers.
             const actualSearchQueryUtils = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
             const cannedExpensesQuery = actualSearchQueryUtils.buildCannedSearchQuery();
@@ -566,11 +566,8 @@ describe('actions/IOU', () => {
             // register the canned hashes (the mock returns undefined by default).
             jest.mocked(buildCannedSearchQuery).mockImplementation(actualSearchQueryUtils.buildCannedSearchQuery);
 
-            // Simulate a never-visited Spend > Expenses page: SEARCH_QUERY_BY_HASH holds no entry for the
-            // canned hash and the active search (mocked) is a different hash.
-            await Onyx.set(ONYXKEYS.SEARCH_QUERY_BY_HASH, {});
-            await waitForBatchedUpdates();
-
+            // Simulate a never-visited Spend > Expenses page: no snapshot records a query for the
+            // canned hash (Onyx is cleared before each test) and the active search (mocked) is a different hash.
             const iouReport: Report = {
                 ...createRandomReport(2, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
@@ -598,7 +595,7 @@ describe('actions/IOU', () => {
             expect(cannedUpdate?.value).toHaveProperty('search.hash', cannedExpensesHash);
         });
 
-        it('writes the group-by:from drill-down snapshot under a hash that excludes the group limit', async () => {
+        it('writes the group-by:from drill-down snapshot under a hash that excludes the group limit', () => {
             // Given an active `group-by:from` search whose `limit` is meant to bound how many member groups show.
             // `limit` is part of the query hash, so if the optimistic per-member snapshot kept it, the snapshot
             // would land on a hash the group row never reads and expanding the row would show nothing.
@@ -630,10 +627,8 @@ describe('actions/IOU', () => {
             expect(hashWithoutLimit).toBeDefined();
             expect(hashWithoutLimit).not.toBe(hashWithLimit);
 
-            // Only the active search should be patched, so no other recorded query can write the same hash.
-            await Onyx.set(ONYXKEYS.SEARCH_QUERY_BY_HASH, {});
-            await waitForBatchedUpdates();
-
+            // Only the active search should be patched. Onyx is cleared before each test, so no snapshot
+            // records another query that could write the same hash.
             const iouReport: Report = {
                 ...createRandomReport(2, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
@@ -811,7 +806,6 @@ describe('actions/IOU', () => {
                 }),
             );
 
-            await Onyx.set(ONYXKEYS.SEARCH_QUERY_BY_HASH, {});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupHash}`, {
                 search: {hash: groupHash, type: CONST.SEARCH.DATA_TYPES.EXPENSE, hasResults: true},
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- fixture mixes transaction + group keys; TS widens computed keys into one signature
@@ -840,6 +834,37 @@ describe('actions/IOU', () => {
             expect(snapshotUpdate).toBeDefined();
             expect(snapshotUpdate?.value).not.toHaveProperty(['data', groupKey]);
             expect(snapshotUpdate?.value).toHaveProperty(['data', transactionKey, 'reportID'], CONST.REPORT.UNREPORTED_REPORT_ID);
+        });
+
+        it('patches a loaded snapshot that is not the active search using the query recorded on it', async () => {
+            // Given a loaded `from:<me>` snapshot that is not the active search, with its query recorded on the
+            // snapshot by the search() action, and a second loaded snapshot for the same query that has no recorded query
+            jest.mocked(buildCannedSearchQuery).mockReturnValue('');
+            const actualSearchQueryUtils = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
+            const fromMeQuery = `type:expense from:${RORY_ACCOUNT_ID}`;
+            const fromMeHash = actualSearchQueryUtils.buildSearchQueryJSON(fromMeQuery)?.hash;
+            const unrecordedHash = 515151;
+            if (fromMeHash === undefined) {
+                throw new Error('Failed to parse the from:<me> search query');
+            }
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${fromMeHash}`, {search: {hash: fromMeHash, type: CONST.SEARCH.DATA_TYPES.EXPENSE, inputQuery: fromMeQuery}});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${unrecordedHash}`, {search: {hash: unrecordedHash, type: CONST.SEARCH.DATA_TYPES.EXPENSE}});
+            await waitForBatchedUpdates();
+
+            // When the user creates an expense from a chat
+            const result = getSearchOnyxUpdate({
+                transaction: {...createRandomTransaction(1), reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+                participant: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                iouReport: undefined,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+            });
+
+            // Then the snapshot with a recorded query receives the expense, and the one without a recorded query is left alone
+            const optimisticKeys = result?.optimisticData?.map((update) => update.key) ?? [];
+            expect(optimisticKeys).toContain(`${ONYXKEYS.COLLECTION.SNAPSHOT}${fromMeHash}`);
+            expect(optimisticKeys).not.toContain(`${ONYXKEYS.COLLECTION.SNAPSHOT}${unrecordedHash}`);
         });
     });
 

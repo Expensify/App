@@ -48,6 +48,11 @@ type SearchResultsInfo = {
     /** The hash of the current search */
     hash: number;
 
+    /** The query string this snapshot was searched with. Client-only: written by the `search()` action so IOU optimistic
+     * updates can match a new expense against every loaded snapshot. Optional because snapshots persisted before this
+     * field existed (and snapshots written by non-search actions) may not carry it. */
+    inputQuery?: string;
+
     /** Whether the user can fetch more search results */
     hasMoreResults: boolean;
 

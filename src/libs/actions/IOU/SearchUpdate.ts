@@ -18,7 +18,7 @@ import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import {getAllSnapshots, getCurrentUserPersonalDetails, getSearchQueryByHash} from './index';
+import {getAllSnapshots, getCurrentUserPersonalDetails} from './index';
 
 type ExpenseReportStatusPredicate = (expenseReport: OnyxEntry<OnyxTypes.Report>, transactionReportID?: string) => boolean;
 
@@ -124,9 +124,9 @@ function shouldOptimisticallyUpdateSearch(
 
 /**
  * The default Spend > Expenses and Reports pages render from the canned suggested-search snapshots
- * (`type:expense` / `type:expense_report`). Those hashes are normally added to SEARCH_QUERY_BY_HASH
- * only as a side effect of the `search()` action when the page is actually opened (see Search.ts).
- * If the user never opened the page before going offline, that hash is absent from the map, so the
+ * (`type:expense` / `type:expense_report`). Those snapshots normally get their `search.inputQuery`
+ * only from the `search()` action when the page is actually opened (see Search.ts).
+ * If the user never opened the page before going offline, that snapshot has no recorded query, so the
  * fan-out loop in `getSearchOnyxUpdate` never patches the snapshot the page reads and it stays empty.
  *
  * These canned queries are deterministic and don't depend on a visit, so we register their hashes here
@@ -339,12 +339,19 @@ function getSearchOnyxUpdate({
 
     // 2. Update every other loaded snapshot whose recorded query also matches this transaction.
     //    This catches cases like creating an expense from a chat while a `from:<me>` filter or
-    //    `groupBy:from` view is loaded but not the currently active search. The hash→query map is
-    //    stored in a dedicated Onyx key (not on the snapshot) so SEARCH API responses can't wipe it.
+    //    `groupBy:from` view is loaded but not the currently active search. Each snapshot records the
+    //    query it was searched with in `search.inputQuery` (see Search.ts), so an evicted snapshot drops out on its own.
     //    The deterministic default canned hashes (see getDefaultSearchQueriesByHash) are merged in so the
-    //    default Spend > Expenses / Reports pages are patched even when they were never visited. Onyx-recorded
+    //    default Spend > Expenses / Reports pages are patched even when they were never visited. Recorded
     //    queries take precedence so a real visited entry is never shadowed by the canned default.
-    const queryByHash = {...getDefaultSearchQueriesByHash(), ...getSearchQueryByHash()};
+    const queryByHash = getDefaultSearchQueriesByHash();
+    const snapshotPrefixLength = ONYXKEYS.COLLECTION.SNAPSHOT.length;
+    for (const [snapshotKey, snapshot] of Object.entries(allSnapshots)) {
+        const inputQuery = snapshot?.search?.inputQuery;
+        if (inputQuery) {
+            queryByHash[snapshotKey.slice(snapshotPrefixLength)] = inputQuery;
+        }
+    }
     for (const [hashString, queryString] of Object.entries(queryByHash)) {
         if (!queryString) {
             continue;
