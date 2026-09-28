@@ -136,4 +136,3 @@ function ListField({rows, addTitle, addDescription, canAddMore = true, errorText
 }
 
 export default ListField;
-export type {ListFieldProps, ListFieldRow};
