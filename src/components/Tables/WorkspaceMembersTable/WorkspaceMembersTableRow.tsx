@@ -114,6 +114,7 @@ export default function WorkspaceMembersTableRow({
                                 <>
                                     <AccountAvatar
                                         accountID={item.approverAccountID}
+                                        accountEmail={item.approverLogin}
                                         fallbackDisplayName={item.approverDisplayName}
                                         size={CONST.AVATAR_SIZE.XXX_SMALL}
                                         containerStyle={StyleUtils.getWidthAndHeightStyle(variables.avatarSizeXxxSmall)}

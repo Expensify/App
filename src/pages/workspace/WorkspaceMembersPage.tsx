@@ -411,6 +411,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             return {
                 approverAccountID,
                 approverDisplayName,
+                approverLogin: approver?.email,
                 keyForList: login,
                 role,
                 login,

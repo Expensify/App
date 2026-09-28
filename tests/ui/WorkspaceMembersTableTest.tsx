@@ -107,6 +107,7 @@ describe('WorkspaceMembersTable', () => {
                     approverDisplayName: 'Zoe Manager',
                 }),
                 buildMember({keyForList: 'carol', login: 'carol@example.com', email: 'carol@example.com', name: 'Carol', accountID: 3}),
+                buildMember({keyForList: 'brian', login: 'brian@example.com', email: 'brian@example.com', name: 'Brian', accountID: 5}),
                 buildMember({
                     keyForList: 'adam',
                     login: 'adam@example.com',
@@ -128,18 +129,20 @@ describe('WorkspaceMembersTable', () => {
             const [approverHeader] = screen.getAllByLabelText(TestHelper.translateLocal('workflowsPage.approver'));
             fireEvent.press(approverHeader);
 
-            // Ascending: Ann's members first (tie broken by member name: Adam before Walter), then Zoe's member,
-            // then Carol last since she has no approver.
-            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'approver', order: 'asc'});
-            expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Adam', 'Walter', 'Nina', 'Carol']);
+            // Descending, because pressing a header flips whichever order the table was already in, and it starts
+            // on the member column ascending. Zoe's member comes first, then Ann's (the member-name tiebreak
+            // reverses too, since it reuses the same order-multiplied comparison: Walter before Adam). Brian and
+            // Carol have no approver, so they stay at the end and order by member name among themselves.
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'approver', order: 'desc'});
+            expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Nina', 'Walter', 'Adam', 'Carol', 'Brian']);
 
             fireEvent.press(approverHeader);
 
-            // Descending: Zoe's member first, then Ann's (the member-name tiebreak reverses too, since it reuses
-            // the same order-multiplied comparison: Walter before Adam), and Carol stays last, not first, since
-            // members without an approver sort last in both directions.
-            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'approver', order: 'desc'});
-            expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Nina', 'Walter', 'Adam', 'Carol']);
+            // Ascending: Ann's members first (tie broken by member name: Adam before Walter), then Zoe's member.
+            // Brian and Carol stay last rather than moving to the front, since members without an approver sort
+            // last in both directions.
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'approver', order: 'asc'});
+            expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Adam', 'Walter', 'Nina', 'Brian', 'Carol']);
         });
     });
 });
