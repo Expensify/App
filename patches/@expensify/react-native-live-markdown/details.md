@@ -6,4 +6,4 @@
 - Depends on: `react-native+0.86.0+044+run-insertion-effect-cleanup-in-hidden-subtree.patch`. Without it Fabric skips the insertion cleanup for an input removed while its `<Activity>` is hidden, and the worklet leaks in the native registry. Formatting stays correct either way because ids are never reused.
 - Upstream PR/issue: https://github.com/Expensify/react-native-live-markdown/pull/776 (on hold until the library can rely on React Native 0.88; drop this patch once the app upgrades to a release that contains it)
 - E/App issue: https://github.com/Expensify/App/issues/98254
-- PR introducing patch: this PR.
+- PR introducing patch: https://github.com/Expensify/App/pull/102415
