@@ -37,14 +37,12 @@ function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: b
             hasRows: isLoaded && Object.keys(snapshot?.data ?? {}).some(isGroupEntry),
         };
     });
-    const hasChartData = chartStates.some(({isLoaded}) => isLoaded);
-    const isWaitingForData = !hasDashboardResponse && !hasChartData;
+    const isWaitingForData = !hasDashboardResponse && !chartStates.some(({isLoaded}) => isLoaded);
 
     if (isOffline && isWaitingForData) {
         return INSIGHTS_DASHBOARD_STATE.OFFLINE;
     }
-    // A failed refresh leaves the stored charts on screen, so only a page with nothing to show reports the failure.
-    if (!isOffline && !hasChartData && Object.keys(dashboard?.errors ?? {}).length > 0) {
+    if (!isOffline && Object.keys(dashboard?.errors ?? {}).length > 0) {
         return INSIGHTS_DASHBOARD_STATE.ERROR;
     }
     if (isWaitingForData) {

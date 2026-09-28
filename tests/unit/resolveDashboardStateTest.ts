@@ -83,17 +83,6 @@ describe('getDashboardState', () => {
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.ERROR);
     });
 
-    it('keeps the stored charts on screen when a refresh fails', () => {
-        // Given a stored dashboard whose charts hold rows, and a later request for it that failed, as when the page is revisited after a long idle
-        const dashboard: InsightsDashboard = {...LOADED_DASHBOARD, errors: ERRORS};
-
-        // When the page's state is resolved
-        const state = getDashboardState(dashboard, false, makeCharts(SNAPSHOT_WITH_ROWS, SNAPSHOT_WITH_ROWS));
-
-        // Then the charts stay on screen instead of the page being replaced by the error state
-        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.READY);
-    });
-
     it('waits while the request is in flight', () => {
         // Given a record holding nothing but the cleared errors the request wrote optimistically
         // When the page's state is resolved
