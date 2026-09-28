@@ -1,5 +1,5 @@
+import Header from '@components/Header';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
-import HeaderThreeDotsMenu from '@components/Header/primitives/HeaderThreeDotsMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';

@@ -1,6 +1,6 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import Header from '@components/Header';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
-import HeaderIconButton from '@components/Header/primitives/HeaderIconButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import FieldRequirementSettingRow from '@components/RequireFieldsRules/FieldRequirementSettingRow';
 import ScreenWrapper from '@components/ScreenWrapper';

@@ -1,8 +1,7 @@
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import Header from '@components/Header';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
-import HeaderActions from '@components/Header/layout/HeaderActions';
-import HeaderIconButton from '@components/Header/primitives/HeaderIconButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -742,8 +741,8 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
                         {/* Only while a condition is set, and only on an unsaved rule: resetting a saved one would let it
                             switch condition type, which the two storage shapes can't express as one edit. */}
                         {canWriteRules && !isEditingSavedRule && (hasMerchantCondition || hasCategoryCondition) && <TextLink onPress={resetRule}>{translate('common.reset')}</TextLink>}
-                    </HeaderActions>
-                    {!!deleteIconButtonProps && <HeaderIconButton {...deleteIconButtonProps} />}
+                    </Header.Actions>
+                    {!!deleteIconButtonProps && <Header.IconButton {...deleteIconButtonProps} />}
                 </HeaderWithBackButtonAndTitle>
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.ph5, styles.pv3, styles.gap6]}>
