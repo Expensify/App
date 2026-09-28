@@ -405,7 +405,7 @@ function updateSplitTransactions({
     const expenseReportNameValuePairs = allReportNameValuePairsList?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
     const isArchivedExpenseReport = isArchivedReport(expenseReportNameValuePairs);
     const canUserPerformWriteAction = chatReport ? !!canUserPerformWriteActionReportUtils(chatReport, isArchivedExpenseReport) : true;
-    const lastVisibleAction = getLastVisibleAction(expenseReport?.reportID, canUserPerformWriteAction);
+    const lastVisibleAction = getLastVisibleAction(expenseReport?.reportID, canUserPerformWriteAction, {}, undefined, undefined, currentUserPersonalDetails.accountID);
     const isTransactionOnHold = isOnHold(originalTransaction);
     const holdReportAction = getReportAction(firstIOU?.childReportID, `${originalTransaction?.comment?.hold ?? ''}`);
 
