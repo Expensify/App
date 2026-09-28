@@ -170,7 +170,7 @@ function ToggleSettingOptionRow({
         if (typeof subtitle === 'string') {
             if (!!subtitle && shouldParseSubtitle) {
                 return (
-                    <View style={[styles.flexRow, styles.renderHTML, styles.textAlignLeft, subtitleSpacingStyle]}>
+                    <View style={[styles.flexRow, styles.renderHTML, styles.textAlignLeft, subtitleSpacingStyle, subtitleStyle]}>
                         <RenderHTML html={processedSubtitle} />
                     </View>
                 );
