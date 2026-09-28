@@ -2195,6 +2195,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         if (!hash || !queryJSON) {
                             return;
                         }
+                        if (isOffline) {
+                            setIsOfflineModalVisible(true);
+                            return;
+                        }
                         clearSelectedTransactions();
                         queueBulkMarkAsExported(serializeQueryJSONForBackend(queryJSON), integration);
                         playSound(SOUNDS.SUCCESS);

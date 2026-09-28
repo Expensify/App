@@ -141,9 +141,10 @@ jest.mock('@hooks/useTheme', () => ({
     default: () => ({icon: ''}),
 }));
 
+let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => ({
     __esModule: true,
-    default: () => ({isOffline: false}),
+    default: () => ({isOffline: mockIsOffline}),
 }));
 
 jest.mock('@hooks/useEnvironment', () => ({
@@ -475,6 +476,7 @@ describe('useSearchBulkActions - export options', () => {
         // tests override with mockResolvedValueOnce to exercise the cancel path.
         mockShowConfirmModal.mockResolvedValue({action: 'CONFIRM'});
         mockAreAllMatchingItemsSelected = false;
+        mockIsOffline = false;
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
         // A policy connected to NetSuite so the integration export branch is reachable.
@@ -1233,6 +1235,37 @@ describe('useSearchBulkActions - export options', () => {
         });
         expect(markAsManuallyExported).not.toHaveBeenCalled();
         expect(mockClearSelectedTransactions).toHaveBeenCalled();
+    });
+
+    it('opens the offline modal instead of queuing when all matching items are selected and offline', async () => {
+        /**
+         * Given: "Select all" is checked and the user is offline.
+         *
+         * When: the user clicks "Mark as exported".
+         *
+         * Then: the offline modal opens and nothing is queued, matching bulk pay's offline behavior.
+         */
+        mockAreAllMatchingItemsSelected = true;
+        mockIsOffline = true;
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === 'workspace.common.markAsExported')).toBe(true);
+        });
+
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === 'workspace.common.markAsExported')
+            ?.onSelected?.();
+
+        await waitFor(() => {
+            expect(result.current.isOfflineModalVisible).toBe(true);
+        });
+        expect(queueBulkMarkAsExported).not.toHaveBeenCalled();
+        expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
     });
 
     it('marks the specific selected report IDs, not the search query, for a limited (non-select-all) selection', async () => {
