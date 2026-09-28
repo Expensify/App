@@ -5519,7 +5519,7 @@ function canEditFieldOfMoneyRequest({
                     moneyRequestReport?.policyID,
                     moneyRequestReport?.ownerAccountID,
                     rules,
-                    reportNameValuePairs,
+                    reportNameValuePairs ?? {},
                     outstandingReportsByPolicyID?.[moneyRequestReport?.policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
                 ).length > 0
             );
@@ -5544,7 +5544,7 @@ function canEditFieldOfMoneyRequest({
                 currentPolicy.id,
                 moneyRequestReport?.ownerAccountID,
                 rules,
-                reportNameValuePairs,
+                reportNameValuePairs ?? {},
                 outstandingReportsByPolicyID?.[currentPolicy?.id] ?? {},
             );
             outstandingReportsCount += reports.length;
@@ -12215,8 +12215,7 @@ function getOutstandingReportsForUser(
     policyID: string | undefined,
     reportOwnerAccountID: number | undefined,
     rules: OnyxCollection<Rule>,
-    // Temporarily optional while archived report checks are migrated in smaller PRs. Remove this fallback as part of https://github.com/Expensify/App/issues/66422.
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     reports: OnyxCollection<Report> = deprecatedAllReports,
     allowSubmitted = true,
 ): Array<OnyxEntry<Report>> {
@@ -12250,7 +12249,7 @@ function getNewestOutstandingReportForUser(
     policyID: string | undefined,
     reportOwnerAccountID: number | undefined,
     rules: OnyxCollection<Rule>,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     reports: OnyxCollection<Report> = deprecatedAllReports,
 ): OnyxInputValue<Report> {
     const openReports = getOutstandingReportsForUser(policyID, reportOwnerAccountID, rules, reportNameValuePairs, reports, false).filter(isOpenExpenseReport);
