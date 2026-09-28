@@ -26,6 +26,7 @@ const PAYER_ACCOUNT_ID = 200;
 const TAG_LIST = 'Department';
 const EMPTY_TAG_LIST = '';
 const TAG_NAME = 'Engineering';
+const OPTIMISTIC_REPORT_PREVIEW_ACTION_ID = 'preview-action-id';
 
 const parentChatReport: Report = {
     reportID: CHAT_REPORT_ID,
@@ -240,6 +241,93 @@ describe('getMoneyRequestInformation', () => {
             expect(result.onyxData.optimisticData ?? []).not.toEqual(
                 expect.arrayContaining([expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[newTxID]: true})})})]),
             );
+        });
+    });
+
+    describe('report preview action ID', () => {
+        const buildScanTransaction = (transactionID: string): Transaction => ({
+            transactionID,
+            reportID: CHAT_REPORT_ID,
+            amount: 0,
+            currency: CONST.CURRENCY.USD,
+            created: '2024-01-01',
+            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+        });
+
+        const buildRequest = (transactionID: string, isASAPSubmitBetaEnabled: boolean, existingIOUReport?: Report, optimisticIOUReportID?: string) =>
+            getMoneyRequestInformation({
+                ...baseParams,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                action: CONST.IOU.ACTION.CREATE,
+                existingTransaction: buildScanTransaction(transactionID),
+                existingIOUReport,
+                optimisticIOUReportID,
+                optimisticReportPreviewActionID: OPTIMISTIC_REPORT_PREVIEW_ACTION_ID,
+                isASAPSubmitBetaEnabled,
+            });
+
+        beforeEach(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: PAYEE_ACCOUNT_ID, email: 'payee@example.com'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+                id: POLICY_ID,
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.USER,
+            });
+            await waitForBatchedUpdates();
+        });
+
+        it('generates a different preview action ID when ASAP Submit creates another report', () => {
+            // Given an ASAP scan that already created an optimistic expense report with the batch preview ID
+            const firstRequest = buildRequest('scan-1', true);
+
+            // When another scan is submitted and the builder creates a different expense report
+            const secondRequest = buildRequest('scan-2', true, firstRequest.iouReport);
+
+            // Then each expense report has its own preview action ID
+            expect(secondRequest.iouReport.reportID).not.toBe(firstRequest.iouReport.reportID);
+            expect(firstRequest.reportPreviewAction.reportActionID).toBe(OPTIMISTIC_REPORT_PREVIEW_ACTION_ID);
+            expect(secondRequest.reportPreviewAction.reportActionID).not.toBe(firstRequest.reportPreviewAction.reportActionID);
+            expect(secondRequest.iouReport.parentReportActionID).toBe(secondRequest.reportPreviewAction.reportActionID);
+        });
+
+        it('reuses the existing report preview action ID when another expense joins the report', () => {
+            // Given a scan that created an optimistic expense report with the batch preview ID
+            const firstRequest = buildRequest('scan-1', false);
+
+            // When another expense is added to that same report
+            const secondRequest = buildRequest('scan-2', false, firstRequest.iouReport);
+
+            // Then it keeps one preview action for the report, even when the preview is not in the Onyx cache yet
+            expect(secondRequest.iouReport.reportID).toBe(firstRequest.iouReport.reportID);
+            expect(secondRequest.reportPreviewAction.reportActionID).toBe(firstRequest.reportPreviewAction.reportActionID);
+        });
+
+        it('reuses the new report preview action ID when an expense joins after a split', () => {
+            // Given a batch where the second scan was split from report A into report B
+            const firstRequest = buildRequest('scan-1', false);
+            const secondRequest = buildRequest('scan-2', true, firstRequest.iouReport);
+
+            // When a third expense joins report B
+            const thirdRequest = buildRequest('scan-3', false, secondRequest.iouReport);
+
+            // Then it reuses report B's preview instead of falling back to report A's batch preview ID
+            expect(secondRequest.iouReport.reportID).not.toBe(firstRequest.iouReport.reportID);
+            expect(thirdRequest.iouReport.reportID).toBe(secondRequest.iouReport.reportID);
+            expect(thirdRequest.reportPreviewAction.reportActionID).toBe(secondRequest.reportPreviewAction.reportActionID);
+            expect(thirdRequest.reportPreviewAction.reportActionID).not.toBe(firstRequest.reportPreviewAction.reportActionID);
+        });
+
+        it('keeps the reserved preview action ID when the caller pins the same report ID', () => {
+            // Given an existing report whose ID and preview action ID are pinned by the caller
+            const firstRequest = buildRequest('scan-1', false);
+
+            // When the builder rebuilds the report under that same ID even though the new-report condition is true
+            const secondRequest = buildRequest('scan-2', true, firstRequest.iouReport, firstRequest.iouReport.reportID);
+
+            // Then it keeps the caller's reserved preview instead of creating another preview for the same report
+            expect(secondRequest.iouReport.reportID).toBe(firstRequest.iouReport.reportID);
+            expect(secondRequest.reportPreviewAction.reportActionID).toBe(firstRequest.reportPreviewAction.reportActionID);
         });
     });
 
