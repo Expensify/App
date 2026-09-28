@@ -2655,15 +2655,16 @@ describe('actions/IOU/TrackExpense', () => {
                 message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
                 originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
             };
-            // The tracked-expense action being deleted; it lives on the chat report too, so it is excluded by its own DELETE pending action.
-            const trackedExpenseAction = {
-                ...REPORT_ACTION,
+            // The tracked-expense action being deleted. It lives on the chat report too, so it is excluded by its own DELETE pending action.
+            const trackedExpenseAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: 'trackedExpense',
                 reportID: CHAT_REPORT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: TEST_USER_ACCOUNT_ID,
                 created: '2026-11-01 09:00:00.000',
+                message: [{type: 'COMMENT', html: 'tracked expense', text: 'tracked expense'}],
                 originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.TRACK, IOUTransactionID: '80102', amount, currency: 'USD'},
-            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+            };
 
             // Given a chat report whose newest action is a whisper aimed at one account
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, chatReport);
