@@ -243,6 +243,29 @@ describe('usePreMountDestination', () => {
             expect(Navigation.removePreInsertedFullscreenIfNeeded).toHaveBeenCalledTimes(1);
         });
 
+        it('drops a wide pre-mount on unmount after submit when no reveal consumed it', () => {
+            // Given a submitted form whose wide pre-mount is still registered, as after a plain dismiss (e.g. staying on Search)
+            const {finishOpenTransition} = mockOpenTransitionWait();
+            mockSuccessfulPreInsert();
+            const {unmount} = renderHook(() =>
+                usePreMountDestination(route, {
+                    shouldPreservePreInsertedRouteOnUnmount: () => true,
+                }),
+            );
+            act(() => {
+                finishOpenTransition();
+                flushPendingIdlePreInserts();
+            });
+            jest.mocked(Navigation.getIsFullscreenPreInsertedUnderRHP).mockReturnValue(true);
+            jest.mocked(Navigation.getPreMountedFullscreenRouteKey).mockReturnValue('tab-nav-pre-mounted');
+
+            // When the RHP unmounts
+            unmount();
+
+            // Then the hidden pre-mount is removed, since only a reveal would ever show it
+            expect(Navigation.removePreInsertedFullscreenIfNeeded).toHaveBeenCalledTimes(1);
+        });
+
         it('does not clean up a pre-inserted route when the preserve callback identity changes while mounted', () => {
             const {finishOpenTransition} = mockOpenTransitionWait();
             mockSuccessfulPreInsert();

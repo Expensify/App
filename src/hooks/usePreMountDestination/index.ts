@@ -121,7 +121,8 @@ function usePreMountDestination(route: Route | undefined, options?: UsePreMountD
         return () => {
             cancelPreInsert();
 
-            if (hasRevealBeenCalledRef.current || shouldPreservePreInsertedRouteOnUnmountRef.current?.()) {
+            // A wide pre-mount is only shown by a reveal, which takes its key; a plain dismiss would leave it hidden in the stack.
+            if (hasRevealBeenCalledRef.current || (shouldPreservePreInsertedRouteOnUnmountRef.current?.() && !Navigation.getPreMountedFullscreenRouteKey())) {
                 return;
             }
 
