@@ -20,11 +20,11 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-import type {InitialState, NavigatorScreenParams, RouteProp} from '@react-navigation/native';
+import type {EventArg, InitialState, NavigationAction, NavigatorScreenParams, ParamListBase, RouteProp} from '@react-navigation/native';
 
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {NavigationContainer} from '@react-navigation/native';
-import React from 'react';
+import {NavigationContainer, useNavigation, useRoute} from '@react-navigation/native';
+import React, {createContext, useContext, useEffect} from 'react';
 
 /** Test-specific param list with split navigators at root level for simplified test setup */
 type TestRootParamList = AuthScreensParamList & {
@@ -48,11 +48,36 @@ const RightModalNavigatorStack = createSplitNavigator<RightModalNavigatorParamLi
 
 const getEmptyComponent = () => jest.fn();
 
-type TestNavigationContainerProps = {initialState: InitialState};
+type BeforeRemoveEvent = EventArg<'beforeRemove', true, {action: NavigationAction}>;
+
+type BeforeRemoveListener = (event: BeforeRemoveEvent, route: RouteProp<ParamListBase>) => void;
+
+type TestNavigationContainerProps = {
+    initialState: InitialState;
+
+    /** Called on `beforeRemove` of every tab navigator, the right modal and every workspace split, so a test can stand in for a guard */
+    onBeforeRemove?: BeforeRemoveListener;
+};
+
+const BeforeRemoveListenerContext = createContext<BeforeRemoveListener | undefined>(undefined);
+
+function useTestBeforeRemoveListener() {
+    const navigation = useNavigation();
+    const route = useRoute();
+    const onBeforeRemove = useContext(BeforeRemoveListenerContext);
+
+    useEffect(() => {
+        if (!onBeforeRemove) {
+            return undefined;
+        }
+        return navigation.addListener('beforeRemove', (event) => onBeforeRemove(event, route));
+    }, [navigation, route, onBeforeRemove]);
+}
 
 // `usePreserveNavigatorState` keys off `parentRoute.key`, so the workspace and domain splits get their real route:
 // a shared placeholder key would make sibling splits of different scopes share one preserved state.
 function TestWorkspaceSplitNavigator({route}: {route: RouteProp<WorkspaceNavigatorParamList, typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR>}) {
+    useTestBeforeRemoveListener();
     return (
         <WorkspaceSplit.Navigator
             sidebarScreen={SCREENS.WORKSPACE.INITIAL}
@@ -195,6 +220,7 @@ function TestSearchFullscreenNavigator() {
 }
 
 function TestRightModalNavigator() {
+    useTestBeforeRemoveListener();
     return (
         <RightModalNavigatorStack.Navigator
             defaultCentralScreen={SCREENS.RIGHT_MODAL.SETTINGS}
@@ -209,6 +235,7 @@ function TestRightModalNavigator() {
 }
 
 function TestTabNavigator() {
+    useTestBeforeRemoveListener();
     return (
         <TabNav.Navigator screenOptions={{headerShown: false}}>
             <TabNav.Screen
@@ -239,27 +266,29 @@ function TestTabNavigator() {
     );
 }
 
-function TestNavigationContainer({initialState}: TestNavigationContainerProps) {
+function TestNavigationContainer({initialState, onBeforeRemove}: TestNavigationContainerProps) {
     return (
-        <NavigationContainer
-            ref={navigationRef}
-            initialState={initialState}
-        >
-            <RootStack.Navigator>
-                <RootStack.Screen
-                    name={NAVIGATORS.TAB_NAVIGATOR}
-                    component={TestTabNavigator}
-                />
-                <RootStack.Screen
-                    name={SCREENS.VALIDATE_LOGIN}
-                    component={getEmptyComponent()}
-                />
-                <RootStack.Screen
-                    name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
-                    component={TestRightModalNavigator}
-                />
-            </RootStack.Navigator>
-        </NavigationContainer>
+        <BeforeRemoveListenerContext.Provider value={onBeforeRemove}>
+            <NavigationContainer
+                ref={navigationRef}
+                initialState={initialState}
+            >
+                <RootStack.Navigator>
+                    <RootStack.Screen
+                        name={NAVIGATORS.TAB_NAVIGATOR}
+                        component={TestTabNavigator}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.VALIDATE_LOGIN}
+                        component={getEmptyComponent()}
+                    />
+                    <RootStack.Screen
+                        name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
+                        component={TestRightModalNavigator}
+                    />
+                </RootStack.Navigator>
+            </NavigationContainer>
+        </BeforeRemoveListenerContext.Provider>
     );
 }
 export default TestNavigationContainer;

@@ -111,6 +111,44 @@ describe('actions/CompanyCards importCSVCompanyCards', () => {
         apiWriteSpy.mockRestore();
     });
 
+    it('counts every row that has a card identity when the Card number column is not mapped', () => {
+        // Given an import that maps Card name (not Card number) plus a mapped Unique ID and a trailing optional column
+        const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+        // When rows leave that trailing optional column empty
+        importCSVCompanyCards({
+            policyID: POLICY_ID,
+            domainAccountID: DOMAIN_ACCOUNT_ID,
+            layoutName: 'My Layout',
+            layoutType: CSV_FEED,
+            columnMappings: ['externalID', 'cardName', 'postedDate', 'merchant', 'amount', 'currency', 'tag'],
+            csvData: [
+                ['Unique ID', 'Card Name', 'Date', 'Merchant', 'Amount', 'Currency', 'Tag'],
+                ['txn-1', 'Finance Card', '08/05/2026', 'Coffee Shop', '-6.25', 'USD', ''],
+                ['txn-2', 'Finance Card', '08/06/2026', 'Book Store', '-14.00', 'USD', ''],
+                ['txn-3', 'Travel Card', '08/07/2026', 'Grocery Mart', '-28.40', 'USD', 'Travel'],
+            ],
+            workspaceCardFeeds: undefined,
+        });
+
+        // Then all three rows are counted, because the card identity comes from Card name rather than the last cell in the row
+        expect(apiWriteSpy).toHaveBeenCalledWith(
+            WRITE_COMMANDS.IMPORT_CSV_COMPANY_CARDS,
+            expect.anything(),
+            expect.objectContaining({
+                successData: [
+                    expect.objectContaining({
+                        value: expect.objectContaining({
+                            importFinalModal: expect.objectContaining({promptKeyParams: {count: 3}}),
+                        }),
+                    }),
+                ],
+            }),
+        );
+
+        apiWriteSpy.mockRestore();
+    });
+
     describe('externalID', () => {
         const sentImports: ImportCSVCompanyCardsParams[] = [];
 
