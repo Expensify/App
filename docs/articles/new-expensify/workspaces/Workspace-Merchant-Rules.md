@@ -1,7 +1,7 @@
 ---
 title: Merchant Rules
 description: Learn how to enable and use Merchant Rules to automatically apply consistent expense coding based on the expense merchant name.
-keywords: [New Expensify, workspace merchant rules, merchant rules, auto-categorize by merchant, expense automation, expense rules, workspace settings, import merchant rules, bulk import merchant rules, merchant rules spreadsheet, merchant rule deleted tag, tag missing from merchant rule]
+keywords: [New Expensify, workspace merchant rules, merchant rules, auto-categorize by merchant, expense automation, expense rules, workspace settings, import merchant rules, bulk import merchant rules, merchant rules spreadsheet, merchant rule deleted tag, tag missing from merchant rule, merchant rule vendor]
 internalScope: Audience is Workspace Admins on the Control plan. Covers creating, using, and bulk-importing Merchant Rules to apply consistent expense coding based on merchant name. Does not cover personal expense rules, Category Rules, Tag Rules, or troubleshooting rule conflicts.
 ---
 
@@ -24,8 +24,9 @@ To create a Merchant Rule:
    - **Contains**
    - **Matches exactly**
 5. Select the fields you want the rule to update. 
-6. Optionally apply the rule to existing unsubmitted expenses and review matching expenses using **Preview matches**.
-7. Click **Save rule**.
+6. (Optional) Enable **Apply to existing unsubmitted expenses** to also apply the rule to matching expenses that haven't been submitted yet.
+7. (Optional) Click **Preview matches** to review which unsubmitted expenses match the rule.
+8. Click **Save rule**.
 
 ---
 
@@ -41,6 +42,7 @@ Instead of creating Merchant Rules one at a time, you can import multiple Mercha
    - **Updated description** — Apply a description (optional).
    - **Reimbursable** — Set reimbursable status to **True** or **False** (optional).
    - **Billable** — Set billable status to **True** or **False** (optional).
+   - **Updated vendor** — Apply a vendor by name (optional).
 2. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [workspace name]**.
 3. Click **Rules**, then open the **Expense defaults** tab.
 4. Click **More**, then select **Import merchant rules**.
@@ -123,7 +125,7 @@ Common reasons include:
 - The rule is disabled.
 - Another rule matched first.
 - A field was manually set during expense creation.
-- The rule was created after the expense and wasn't applied retroactively, unless you select "apply to existing expenses" when creating the rule.
+- The rule was created after the expense and wasn't applied retroactively, unless you enabled **Apply to existing unsubmitted expenses** when saving the rule. Expenses that have already been submitted are never updated by a rule.
 - The tag the rule applies was deleted from the workspace, so only that update is skipped.
 
 ## How do I clear a Category, Tag, or Tax value from a Merchant Rule?
@@ -160,4 +162,5 @@ Merchant Rules can update:
    - Reimbursable status
    - Billable status
    - Tax
+   - Vendor
 

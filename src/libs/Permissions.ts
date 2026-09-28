@@ -29,7 +29,8 @@ function canUseLinkPreviews(): boolean {
     return false;
 }
 
-function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration?: OnyxEntry<BetaConfiguration>, betaOverrides?: OnyxEntry<BetaOverrides>): boolean {
+/** The configuration and the overrides are required so that no call site can skip them by accident. */
+function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration: OnyxEntry<BetaConfiguration>, betaOverrides: OnyxEntry<BetaOverrides>): boolean {
     if (!isProductionEnvironment) {
         const override = betaOverrides?.[beta];
         if (override !== undefined) {

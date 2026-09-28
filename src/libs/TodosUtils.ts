@@ -4,7 +4,7 @@ import type {BankAccountList, PersonalDetailsList, Policy, Report, ReportActions
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import type {SearchKey} from './SearchUIUtils';
+import type {SearchKey} from './SearchKeyUtils';
 
 import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {isGroupPolicy} from './PolicyUtils';

@@ -19,6 +19,7 @@ import {
     isTimeTrackingEnabled,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
+import type {BillingRestrictionPolicy} from '@libs/SubscriptionUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
@@ -278,6 +279,29 @@ const createPoliciesForDomainCardsSelector = (domainNames: string[]) => {
     };
 };
 
+/**
+ * Creates a selector returning only the policies for the given IDs, so a consumer interested in a
+ * known handful of workspaces doesn't re-render when unrelated policies change.
+ */
+const createPoliciesByIDsSelector = (policyIDs: string[]) => {
+    const policyKeys = new Set(policyIDs.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`));
+
+    return (policies: OnyxCollection<Policy>): NonNullable<OnyxCollection<Policy>> => {
+        if (policyKeys.size === 0) {
+            return {};
+        }
+
+        const filtered: NonNullable<OnyxCollection<Policy>> = {};
+        for (const key of policyKeys) {
+            const policy = policies?.[key];
+            if (policy) {
+                filtered[key] = policy;
+            }
+        }
+        return filtered;
+    };
+};
+
 const policyTimeTrackingSelector = (policy: OnyxEntry<Policy>) =>
     policy && {
         outputCurrency: policy.outputCurrency,
@@ -355,28 +379,32 @@ type FilteredPoliciesInfo = {
     /** Number of policies that should be shown to the user (short-circuited at 2) */
     filteredPoliciesCount: number;
 
-    /** ID of the first policy that should be shown to the user */
-    firstPolicyID: string | undefined;
+    /** The first policy to show the user, projected to the billing-gate fields — see `BillingRestrictionPolicy`. */
+    firstPolicy: BillingRestrictionPolicy | undefined;
 };
 
+/** Projects a policy down to just the fields the billing gate reads — see `BillingRestrictionPolicy`. */
+const billingRestrictionPolicySelector = (policy: OnyxEntry<Policy>): BillingRestrictionPolicy | undefined => (policy ? {id: policy.id, ownerAccountID: policy.ownerAccountID} : undefined);
+
+// Fixed-size output: same shape on 5 workspaces or 5000, so no employeeList/customUnits deepEqual
 const createFilteredPoliciesInfoSelector =
     (email: string | undefined) =>
     (policies: OnyxCollection<Policy>): FilteredPoliciesInfo => {
         let filteredPoliciesCount = 0;
-        let firstPolicyID: string | undefined;
+        let firstPolicy: BillingRestrictionPolicy | undefined;
         for (const policy of Object.values(policies ?? {})) {
             if (!policy || !shouldShowPolicy(policy, false, email) || isTeachersUnitePolicyID(policy.id)) {
                 continue;
             }
             if (filteredPoliciesCount === 0) {
-                firstPolicyID = policy.id;
+                firstPolicy = billingRestrictionPolicySelector(policy);
             }
             filteredPoliciesCount++;
             if (filteredPoliciesCount > 1) {
                 break;
             }
         }
-        return {filteredPoliciesCount, firstPolicyID};
+        return {filteredPoliciesCount, firstPolicy};
     };
 
 const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): boolean => {
@@ -524,6 +552,7 @@ export {
     createOwnedPaidPoliciesCountsSelector,
     createCopySettingsEligibleTargetsSelector,
     createFilteredPoliciesInfoSelector,
+    billingRestrictionPolicySelector,
     createWorkspaceListPoliciesSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
@@ -531,6 +560,7 @@ export {
     createTimeSensitiveAdminPoliciesSelector,
     createHasWorkspaceToSubmitToSelector,
     createPoliciesForDomainCardsSelector,
+    createPoliciesByIDsSelector,
     policyTimeTrackingSelector,
     createIOURequestStartPoliciesSelector,
     policyMapper,

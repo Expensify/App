@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 
 import {searchInServer} from '@libs/actions/Report';
@@ -49,6 +50,7 @@ function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): O
 
 function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: InSelectorProps) {
     const {translate, dateFnsLocale} = useLocalize();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const {convertToDisplayString} = useCurrencyListActions();
     const personalDetails = usePersonalDetails();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -98,6 +100,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                     conciergeReportID,
                     reportAttributesDerived,
                     isTrackIntentUser,
+                    currentUserAccountID,
                 }),
             ),
             isSelected,
@@ -118,6 +121,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                 policyTags: reportPolicyTags,
                 conciergeReportID,
                 isTrackIntentUser,
+                currentUserAccountID,
                 rules,
             },
         );
@@ -139,7 +143,8 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                   convertToDisplayString,
                   options,
                   draftComments,
-                  betas: undefined,
+                  // This list never had the beta, it used to pass no betas at all, so it stays off on purpose
+                  isDefaultRoomsBetaEnabled: false,
                   isUsedInChatFinder: false,
                   countryCode,
                   loginList,
@@ -167,6 +172,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
             convertToDisplayString,
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            currentUserAccountID,
         },
         rules,
     );
@@ -264,6 +270,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                 shouldShowTextInput
                 style={selectionListStyle}
                 footerContent={footer}
+                shouldFooterBeInsideList={shouldFooterBeInsideList}
             />
         </ListFilterView>
     );

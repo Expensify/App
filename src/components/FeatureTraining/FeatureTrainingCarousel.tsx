@@ -2,8 +2,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
+import type {ViewabilityConfig, ViewToken} from '@src/types/utils/ReactNativeCompat';
+
 import type {ReactElement, ReactNode} from 'react';
-import type {LayoutChangeEvent, FlatList as RNFlatList, ViewabilityConfig, ViewStyle, ViewToken} from 'react-native';
+import type {LayoutChangeEvent, FlatList as RNFlatList, ViewStyle} from 'react-native';
 
 import React, {cloneElement, isValidElement, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, Platform, View} from 'react-native';

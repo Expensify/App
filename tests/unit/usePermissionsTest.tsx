@@ -158,8 +158,8 @@ describe('usePermissions', () => {
         expect(result.current.isBetaEnabled(CONST.BETAS.PER_DIEM)).toBe(true);
         expect(result.current.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL)).toBe(false);
 
-        expect(Permissions.isBetaEnabled(CONST.BETAS.PER_DIEM, [])).toBe(false);
-        expect(Permissions.isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS, [CONST.BETAS.DEFAULT_ROOMS])).toBe(true);
+        expect(Permissions.isBetaEnabled(CONST.BETAS.PER_DIEM, [], undefined, undefined)).toBe(false);
+        expect(Permissions.isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS, [CONST.BETAS.DEFAULT_ROOMS], undefined, undefined)).toBe(true);
 
         // When: The overrides are cleared
         Onyx.set(ONYXKEYS.BETA_OVERRIDES, null);
@@ -187,5 +187,53 @@ describe('usePermissions', () => {
         // Then: That beta is disabled while the others granted by 'all' stay enabled
         expect(result.current.isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS)).toBe(false);
         expect(result.current.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL)).toBe(true);
+    });
+
+    describe('isBetaEnabledOrUnknown', () => {
+        it('should return undefined while the account betas have not loaded yet', async () => {
+            // Given: An account whose betas have not arrived from the server yet
+            const {result} = renderHook(() => usePermissions(), {wrapper: Wrapper});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then: The caller can tell "not loaded" apart from "off", while isBetaEnabled collapses both to false
+            expect(result.current.isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING)).toBeUndefined();
+            expect(result.current.isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)).toBe(false);
+        });
+
+        it('should return false once the betas have loaded without the beta', async () => {
+            // Given: An account whose betas have loaded and do not include the beta
+            Onyx.set(ONYXKEYS.BETAS, []);
+            await waitForBatchedUpdatesWithAct();
+
+            const {result} = renderHook(() => usePermissions(), {wrapper: Wrapper});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then: It resolves to a definite false rather than undefined
+            expect(result.current.isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING)).toBe(false);
+        });
+
+        it('should return true once the betas have loaded with the beta', async () => {
+            // Given: An account whose betas have loaded and include the beta
+            Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
+            await waitForBatchedUpdatesWithAct();
+
+            const {result} = renderHook(() => usePermissions(), {wrapper: Wrapper});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING)).toBe(true);
+        });
+
+        it('should apply a local override once the betas have loaded', async () => {
+            // Given: An account without the beta that pinned it on locally
+            Onyx.set(ONYXKEYS.BETAS, []);
+            Onyx.set(ONYXKEYS.BETA_OVERRIDES, {[CONST.BETAS.VENDOR_MATCHING]: true});
+            await waitForBatchedUpdatesWithAct();
+
+            const {result} = renderHook(() => usePermissions(), {wrapper: Wrapper});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then: The override wins, the same way it does for isBetaEnabled
+            expect(result.current.isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING)).toBe(true);
+        });
     });
 });

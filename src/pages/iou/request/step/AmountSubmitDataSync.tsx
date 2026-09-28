@@ -2,6 +2,7 @@ import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 
@@ -10,6 +11,7 @@ import type {SubmitAmountArgs} from '@libs/IOUAmountSubmission';
 import {getExistingTransactionID} from '@libs/IOUUtils';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -39,8 +41,7 @@ type AmountSubmitData = Pick<
     | 'duplicateTransactions'
     | 'duplicateTransactionViolations'
     | 'reportAttributesDerivedValue'
-    | 'betas'
-    | 'betaConfiguration'
+    | 'isASAPSubmitBetaEnabled'
     | 'quickAction'
     | 'onboarding'
     | 'introSelected'
@@ -92,8 +93,7 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
     const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
     const [isDraftChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`, {selector: isDraftReportSelector});
     const [reportAttributesDerivedValue] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [betaConfiguration] = useOnyx(ONYXKEYS.BETA_CONFIGURATION);
+    const {isBetaEnabled} = usePermissions();
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -130,8 +130,7 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
             duplicateTransactions,
             duplicateTransactionViolations,
             reportAttributesDerivedValue,
-            betas,
-            betaConfiguration,
+            isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
             quickAction,
             onboarding,
             introSelected,
@@ -162,8 +161,7 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
         duplicateTransactions,
         duplicateTransactionViolations,
         reportAttributesDerivedValue,
-        betas,
-        betaConfiguration,
+        isBetaEnabled,
         quickAction,
         onboarding,
         introSelected,

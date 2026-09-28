@@ -67,7 +67,8 @@ function DynamicIOURequestStepAttendees({
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const delegateAccountID = useDelegateAccountID();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {isOffline} = useNetwork();
 
@@ -85,6 +86,7 @@ function DynamicIOURequestStepAttendees({
         if (!deepEqual(previousAttendees, attendees)) {
             if (isEditing) {
                 updateMoneyRequestAttendees({
+                    isVendorMatchingBetaEnabled,
                     transactionID,
                     transactionThreadReport: report,
                     parentReport,
@@ -112,6 +114,7 @@ function DynamicIOURequestStepAttendees({
 
         Navigation.goBack(backPathRef.current, {shouldSkipFocusRestore: true});
     }, [
+        isVendorMatchingBetaEnabled,
         attendees,
         previousAttendees,
         isEditing,
