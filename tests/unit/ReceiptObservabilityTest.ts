@@ -112,6 +112,19 @@ describe('ReceiptObservability', () => {
             expect(snapshots.map((snapshot) => snapshot.params.transactionID)).toEqual(expect.arrayContaining(['100', '200']));
         });
 
+        it('should include a pending distance request with a receipt', () => {
+            // Given a queued odometer expense carrying its receipt photo
+            getAllSpy.mockReturnValue([{command: WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, data: {transactionID: '300', receipt: {source: 'file://300.png', receiptTraceId: 'trace-D'}}}]);
+
+            // When we snapshot the queue
+            logReceiptQueueSnapshot('background');
+
+            // Then the distance receipt is reported like any other receipt, instead of being invisible to the pipeline
+            const snapshots = logLines.filter((line) => line.params.event === 'snapshot');
+            expect(snapshots).toHaveLength(1);
+            expect(snapshots.at(0)?.params).toEqual(expect.objectContaining({command: WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, receiptTraceId: 'trace-D'}));
+        });
+
         it('emits nothing when no receipt-bearing request is pending', () => {
             // Given a queue with no receipt-bearing requests
             getAllSpy.mockReturnValue([nonReceiptRequest]);

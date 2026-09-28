@@ -16,6 +16,16 @@ let authTokenType: ValueOf<typeof CONST.AUTH_TOKEN_TYPES> | null;
 let accountID: number | null | undefined;
 let authenticating = false;
 
+type AuthTokenDrop = {
+    source: 'setAuthToken' | 'session';
+    droppedAt: number;
+    stack?: string;
+};
+
+let lastAuthTokenDrop: AuthTokenDrop | undefined;
+
+const AUTH_TOKEN_DROP_STACK_FRAMES = 8;
+
 let resolveIsReadyPromise: (args?: unknown[]) => void;
 let isReadyPromise = new Promise((resolve) => {
     resolveIsReadyPromise = resolve;
@@ -44,7 +54,12 @@ function resetHasReadRequiredDataFromStorage() {
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        authToken = val?.authToken ?? null;
+        const newAuthToken = val?.authToken ?? null;
+        if (authToken && !newAuthToken) {
+            lastAuthTokenDrop = {source: 'session', droppedAt: Date.now()};
+            Log.warn('[NetworkStore] authToken dropped', {source: 'session', hasEmail: !!val?.email, accountID: val?.accountID});
+        }
+        authToken = newAuthToken;
         authTokenType = val?.authTokenType ?? null;
         accountID = val?.accountID ?? null;
         checkRequiredData();
@@ -86,7 +101,16 @@ function isSupportAuthToken(): boolean {
 }
 
 function setAuthToken(newAuthToken: string | null) {
+    if (authToken && !newAuthToken) {
+        const stack = new Error().stack?.split('\n').slice(0, AUTH_TOKEN_DROP_STACK_FRAMES).join('\n');
+        lastAuthTokenDrop = {source: 'setAuthToken', droppedAt: Date.now(), stack};
+        Log.warn('[NetworkStore] authToken dropped', {source: 'setAuthToken', stack});
+    }
     authToken = newAuthToken;
+}
+
+function getLastAuthTokenDrop(): AuthTokenDrop | undefined {
+    return lastAuthTokenDrop;
 }
 
 function hasReadRequiredDataFromStorage(): Promise<unknown> {
@@ -115,4 +139,5 @@ export {
     isSupportAuthToken,
     getLastShortAuthToken,
     setLastShortAuthToken,
+    getLastAuthTokenDrop,
 };
