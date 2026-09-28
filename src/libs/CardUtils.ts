@@ -597,11 +597,22 @@ function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAcco
 }
 
 type ExpensifyCardEnrollmentRouteParams = {
+    /** Policy to do the enrollment on */
     policyID: string;
+
+    /** Selected policy's outputCurrency */
     currencyCode: string | undefined;
+
+    /** Return value from useCanEnrollNewExpensifyCardProgram */
     isUkEuCurrencySupported: boolean;
+
+    /** ONYXKEYS.BANK_ACCOUNT_LIST */
     bankAccountsList: OnyxEntry<BankAccountList>;
+
+    /** ONYXKEYS.CARD_SUPPORTED_COUNTRIES */
     supportedCountriesByCurrency: OnyxEntry<Record<string, string[]>>;
+
+    /** ONYXKEYS.REIMBURSEMENT_ACCOUNT ACH data, to know if the user should be shown the bank account setup flow */
     achData: ACHDataReimbursementAccount | undefined;
 };
 
