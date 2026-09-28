@@ -8,9 +8,9 @@ import ROUTES from '@src/ROUTES';
 /**
  * Returns the report route to pre-mount behind skip-confirmation RHP steps, or undefined when pre-insert is not eligible.
  *
- * Applies to both layouts. Skip-confirmation callers never invoke reveal(); submitWithDismissFirst shows the pre-mount instead,
+ * Applies to both layouts. Skip-confirmation callers never invoke reveal(). submitWithDismissFirst shows the pre-mount instead,
  * by dismissing over it on narrow and revealing the destination report on wide. On wide the pre-mount copies the whole tab
- * navigator, so it is skipped when the destination is already the report on screen; an existing pre-mount keeps the result stable.
+ * navigator, so it is skipped when the destination is already the report on screen. An existing pre-mount keeps the result stable.
  *
  * Callers pass the result straight to usePreMountDestination without manual memoization (the React Compiler compiles those
  * screens). The impure isSearchTopmostFullScreenRoute() read is safe to run per render: the topmost fullscreen route can't

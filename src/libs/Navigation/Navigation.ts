@@ -1251,7 +1251,7 @@ function removeUnconsumedPreMount(preMountedRouteKey: string | undefined) {
 
 /**
  * Wide layout counterpart of the narrow pre-insert. The destination is visible next to the RHP on wide, so it cannot go
- * under the RHP; instead it is mounted as a second TAB_NAVIGATOR directly under the current one, where the root stack
+ * under the RHP. Instead, it is mounted as a second TAB_NAVIGATOR directly under the current one, where the root stack
  * keeps it laid out and painted. revealRouteBeforeDismissingModal later drops the current instance via REPLACE.
  */
 function preMountFullscreenOnWide(route: Route, outermostFullScreen: NavigationPartialRoute | undefined, targetRouteName: string | undefined) {

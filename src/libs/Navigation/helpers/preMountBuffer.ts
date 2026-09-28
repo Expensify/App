@@ -217,7 +217,7 @@ function getPreMountedFullscreenRouteKey(route?: Route) {
     return route === undefined || preMountedFullscreen.route === route ? preMountedFullscreen.routeKey : undefined;
 }
 
-/** Hands the wide-layout pre-mount to a reveal of `route` and returns its key; a pre-mount for another route is dropped. */
+/** Hands the wide-layout pre-mount to a reveal of `route` and returns its key. A pre-mount for another route is dropped. */
 function takePreMountedFullscreenForReveal(route: Route): string | undefined {
     if (!preMountedFullscreen) {
         return undefined;
@@ -251,7 +251,7 @@ function getPreInsertedFullscreenRouteName() {
 
 /** Called once the pre-inserted destination is confirmed, so it should stay - only the Buffer route in front of it needs cleaning up. */
 function clearFullscreenPreInsertedFlag() {
-    // A wide pre-mount is only shown by a reveal, which takes it first; left here it would stay hidden in the stack.
+    // A wide pre-mount is only shown by a reveal, which takes it first. Left here it would stay hidden in the stack.
     if (preMountedFullscreen) {
         removePreInsertedFullscreenIfNeeded();
     }
@@ -282,7 +282,7 @@ function removePreInsertedFullscreenIfNeeded() {
 
     // Wide layout: the destination sits under the current fullscreen, so dropping that route is the whole cleanup.
     if (preMountedRouteKey) {
-        // Browser back can already have reset to a state without it; the key must still stop counting as live.
+        // Browser back can already have reset to a state without it. The key must still stop counting as live.
         if (!navigationRef.getRootState()?.routes.some((route) => route.key === preMountedRouteKey)) {
             clearPreMountedUnderCurrentFullscreenRouteKey();
             return;

@@ -989,7 +989,7 @@ function Search({
             // stays mounted (the original hasPendingWriteOnMountRef only covers the first).
             if (hasPendingSearchWrite() && !showPendingExpensePlaceholder) {
                 wasRearmedRef.current = true;
-                // A revealed wide pre-mount focuses mid RHP slide; a transition keeps the slide painting.
+                // A revealed wide pre-mount focuses mid RHP slide. A transition keeps the slide painting.
                 if (Navigation.getIsRevealingPreMountedFullscreen()) {
                     startTransition(() => {
                         rearmTracking();

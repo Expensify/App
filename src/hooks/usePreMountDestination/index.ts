@@ -21,7 +21,7 @@ type TransitionCancelHandle = {
  * Pre-mounts a fullscreen destination behind an open RHP so modal dismissal reveals an already-rendered screen.
  *
  * Use this for RHP-to-fullscreen flows where the destination route is known at mount time. The pre-insert is scheduled
- * after the RHP open transition; narrow layout inserts the route under the RHP, wide layout pre-mounts it under the
+ * after the RHP open transition. Narrow layout inserts the route under the RHP, wide layout pre-mounts it under the
  * current fullscreen (see Navigation.preInsertFullscreenUnderRHP).
  * Without pre-mounting, dismiss creates a visible gap (narrow) or flashes the previous page (wide) while React mounts
  * the destination tree.
@@ -121,7 +121,7 @@ function usePreMountDestination(route: Route | undefined, options?: UsePreMountD
         return () => {
             cancelPreInsert();
 
-            // A wide pre-mount is only shown by a reveal, which takes its key; a plain dismiss would leave it hidden in the stack.
+            // A wide pre-mount is only shown by a reveal, which takes its key. A plain dismiss would leave it hidden in the stack.
             if (hasRevealBeenCalledRef.current || (shouldPreservePreInsertedRouteOnUnmountRef.current?.() && !Navigation.getPreMountedFullscreenRouteKey())) {
                 return;
             }
