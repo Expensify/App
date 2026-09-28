@@ -4,6 +4,8 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {BankAccountList} from '@src/types/onyx';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
@@ -28,7 +30,8 @@ import type {ValueOf} from 'type-fest';
 import {Str} from 'expensify-common';
 
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
-import {getHRAdvancedModeFinalApprover, getHRFinalApprover} from './merge/HRUtils';
+import {getConnectedHRProvider, getHRAdvancedModeFinalApprover, getHRFinalApprover, isAnyHRConnected, isAnyHRReadOnlyWorkflowMode} from './merge/HRUtils';
+import {getConnectedATSProvider, isAnyRecruitingReadOnlyWorkflowMode} from './merge/RecruitingUtils';
 import {rand64} from './NumberUtils';
 import {getDefaultApprover, isExpensifyTeam, shouldFilterExpensifyTeam} from './PolicyUtils';
 
@@ -42,6 +45,35 @@ const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     originalApprovers: [],
     isInitialFlow: true,
 };
+
+/** The integration a policy's approval workflow comes from, when it comes from one instead of being built here. */
+type ApprovalWorkflowSource = {
+    /** Provider to name as the workflow's source (e.g. `'Workday'`, `'Greenhouse'`). */
+    providerName: string;
+
+    /** That connection's own settings page, where the routing is actually configured. */
+    settingsRoute: Route;
+};
+
+function getApprovalWorkflowSource(policy: OnyxEntry<Policy>, policyID: string | undefined): ApprovalWorkflowSource | undefined {
+    if (isAnyHRConnected(policy)) {
+        return {
+            providerName: getConnectedHRProvider(policy)?.displayName ?? '',
+            settingsRoute: ROUTES.WORKSPACE_HR.getRoute(policyID),
+        };
+    }
+    if (isAnyRecruitingReadOnlyWorkflowMode(policy)) {
+        return {
+            providerName: getConnectedATSProvider(policy)?.displayName ?? '',
+            settingsRoute: ROUTES.WORKSPACE_RECRUITING.getRoute(policyID),
+        };
+    }
+    return undefined;
+}
+
+function isApprovalWorkflowLockedByIntegration(policy: OnyxEntry<Policy>): boolean {
+    return isAnyHRReadOnlyWorkflowMode(policy) || isAnyRecruitingReadOnlyWorkflowMode(policy);
+}
 
 type GetApproversParams = {
     /**
@@ -463,6 +495,12 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
     const ownerDisplayName = ownerDetails.displayName ?? '';
 
     return approvalWorkflows.flatMap((workflow) => {
+        // Drop any workflow that has no approvers. There is nothing to update on it, and passing it to
+        // `convertApprovalWorkflowToPolicyEmployees` (which every caller does) would throw.
+        if (workflow.approvers.length === 0) {
+            return [];
+        }
+
         const [currentApprover] = workflow.approvers;
         const isSingleApprover = workflow.approvers.length === 1;
         const isMultipleApprovers = workflow.approvers.length > 1;
@@ -765,9 +803,13 @@ function buildToComparison(email: string): ApprovalWorkflowFilterComparison {
     return buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, email);
 }
 
-/** The index-keyed object shape the rules API uses for lists (`['a', 'b'] -> {'0': 'a', '1': 'b'}`). */
+/**
+ * The index-keyed object shape the rules API uses for lists (`['a', 'b'] -> {'1': 'a', '2': 'b'}`). The indices
+ * start at 1 because PHP decodes a 0-keyed JSON object as a list and re-encodes it as a JSON array, which loses
+ * the object shape the rules API expects.
+ */
 function toIndexMap<T>(values: T[]): Record<string, T> {
-    return Object.fromEntries(values.map((value, index) => [String(index), value]));
+    return Object.fromEntries(values.map((value, index) => [String(index + 1), value]));
 }
 
 function buildSubmitTriggers(): ApprovalWorkflowTriggers {
@@ -1730,11 +1772,13 @@ export {
     extractSubmitterEmails,
     getApprovalLimitDescription,
     getApprovalWorkflowRulesForPolicy,
+    getApprovalWorkflowSource,
     filterRulesForPolicy,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
     getWorkflowMemberEmails,
     hasRuleBasedDefaultWorkflow,
+    isApprovalWorkflowLockedByIntegration,
     getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,
     getOverLimitForwardsToDisplayName,

@@ -2,6 +2,7 @@ import type {ComposerRef} from '@components/Composer/types';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 
@@ -44,7 +45,7 @@ function useEditMessage({
 
     const {email} = useCurrentUserPersonalDetails();
     const actionOwnerReportID = originalReportID ?? reportID;
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${actionOwnerReportID}`);
     const isOriginalReportArchived = useReportIsArchived(actionOwnerReportID);
 

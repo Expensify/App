@@ -50,15 +50,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
-
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
 jest.mock('@libs/PolicyUtils', () => ({
@@ -709,7 +700,7 @@ describe('actions/IOU/Hold', () => {
                         recipient: {accountID: 1},
                         policy: undefined,
                         delegateAccountID: undefined,
-                        betas: [],
+                        isASAPSubmitBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         rules: undefined,
                     });
@@ -737,7 +728,7 @@ describe('actions/IOU/Hold', () => {
                         recipient: {accountID: 1},
                         policy: undefined,
                         delegateAccountID: undefined,
-                        betas: [],
+                        isASAPSubmitBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         rules: undefined,
                     });
@@ -783,8 +774,8 @@ describe('actions/IOU/Hold', () => {
                         iouReport,
                         recipient: {accountID: 1},
                         policy: undefined,
+                        isASAPSubmitBetaEnabled: false,
                         delegateAccountID: undefined,
-                        betas: [],
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         rules: undefined,
                     });
@@ -824,7 +815,7 @@ describe('actions/IOU/Hold', () => {
                         recipient: {accountID: 1},
                         policy: undefined,
                         delegateAccountID: undefined,
-                        betas: [],
+                        isASAPSubmitBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         rules: undefined,
                     });
@@ -858,7 +849,7 @@ describe('actions/IOU/Hold', () => {
                         recipient: {accountID: 1},
                         policy: undefined,
                         delegateAccountID: undefined,
-                        betas: [],
+                        isASAPSubmitBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         rules: undefined,
                     });
@@ -963,7 +954,7 @@ describe('actions/IOU/Hold', () => {
                         iouReport,
                         recipient: {accountID: 1},
                         policy: undefined,
-                        betas: [],
+                        isASAPSubmitBetaEnabled: false,
                         delegateAccountID: undefined,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         shouldMoveHeldTransactions: false,
@@ -1006,7 +997,7 @@ describe('actions/IOU/Hold', () => {
                         iouReport,
                         recipient: {accountID: 1},
                         policy: undefined,
-                        betas: [],
+                        isASAPSubmitBetaEnabled: false,
                         delegateAccountID: undefined,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         shouldMoveHeldTransactions: false,
@@ -1036,7 +1027,7 @@ describe('actions/IOU/Hold', () => {
                         iouReport,
                         recipient: {accountID: 1},
                         policy: undefined,
-                        betas: [],
+                        isASAPSubmitBetaEnabled: false,
                         delegateAccountID: undefined,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         rules: undefined,
@@ -1059,7 +1050,7 @@ describe('actions/IOU/Hold', () => {
                         iouReport,
                         recipient: {accountID: 1},
                         policy: undefined,
-                        betas: [],
+                        isASAPSubmitBetaEnabled: false,
                         delegateAccountID: undefined,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         rules: undefined,
@@ -1081,7 +1072,7 @@ describe('actions/IOU/Hold', () => {
                         iouReport,
                         recipient: {accountID: 1},
                         policy: undefined,
-                        betas: [],
+                        isASAPSubmitBetaEnabled: false,
                         delegateAccountID: undefined,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         shouldMoveHeldTransactions: false,

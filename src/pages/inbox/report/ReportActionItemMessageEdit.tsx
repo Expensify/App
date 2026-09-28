@@ -18,7 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearActive, isActive as isEmojiPickerActive} from '@libs/actions/EmojiPickerAction';
 import {composerFocusKeepFocusOn} from '@libs/actions/InputFocus';
-import {clearAllReportActionDrafts, saveReportActionDraft} from '@libs/actions/Report';
+import {clearAllReportActionDrafts} from '@libs/actions/Report';
 import {isMobileChrome} from '@libs/Browser';
 import {canSkipTriggerHotkeys, insertText} from '@libs/ComposerUtils';
 import DomUtils from '@libs/DomUtils';
@@ -36,6 +36,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
+import type {ComponentRef} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
@@ -51,7 +52,7 @@ import useEditMessage from './ReportActionCompose/useEditMessage';
 import {useReportActionActiveEdit, useReportActionActiveEditActions} from './ReportActionEditMessageContext';
 import ReportActionIndexContext, {ReportActionScrollToNewestContext} from './ReportActionIndexContext';
 import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
-import useDebouncedSaveDraft from './useDebouncedSaveDraft';
+import useDebouncedSaveReportActionDraft from './useDebouncedSaveReportActionDraft';
 import useDraftMessageVideoAttributeCache from './useDraftMessageVideoAttributeCache';
 
 type ReportActionItemMessageEditProps = {
@@ -90,7 +91,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
     const shouldDisableEmojiPicker = (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isArchivedRoom);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const containerRef = useRef<View>(null);
+    const containerRef = useRef<ComponentRef<typeof View>>(null);
     const reportScrollManager = useReportScrollManager();
     const {translate, preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
@@ -145,7 +146,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
 
     // Save the draft of the comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
     // allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
-    const {saveDraft, isSavePending: isDraftSavePending} = useDebouncedSaveDraft(saveReportActionDraft);
+    const {saveDraft, isSavePending: isDraftSavePending} = useDebouncedSaveReportActionDraft();
 
     useDraftMessageVideoAttributeCache({
         draftMessage: editingMessage ?? '',

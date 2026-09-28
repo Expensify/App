@@ -10,12 +10,13 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {BaseSelectListItemProps, ListItem} from './types';
+import type {ListItem, ListItemProps} from './types';
 
 import SelectableListItem from './SelectableListItem';
 
 /**
  * A text-only row with a title and optional subtitle. Serves as the base for SingleSelectListItem and MultiSelectListItem.
+ * The text column is preceded by `item.leftElement`, or by a compact avatar of the item's first icon when there is none.
  */
 function BaseSelectListItem<TItem extends ListItem>({
     item,
@@ -25,7 +26,6 @@ function BaseSelectListItem<TItem extends ListItem>({
     onSelectRow,
     onDismissError,
     shouldPreventEnterKeySubmit,
-    rightHandSideComponent,
     isMultilineSupported = false,
     isAlternateTextMultilineSupported = false,
     alternateTextNumberOfLines = 2,
@@ -39,11 +39,10 @@ function BaseSelectListItem<TItem extends ListItem>({
     isFocusVisible,
     accessibilityRole,
     selectionButtonPosition,
-    leftElement,
-}: BaseSelectListItemProps<TItem>) {
+}: ListItemProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const rowLeftElement = leftElement ?? item.leftElement;
+    const icon = item.icons?.at(0);
     const fullTitle = isMultilineSupported ? item.text?.trimStart() : item.text;
     const indentsLength = (item.text?.length ?? 0) - (fullTitle?.length ?? 0);
     const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
@@ -75,7 +74,6 @@ function BaseSelectListItem<TItem extends ListItem>({
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            rightHandSideComponent={rightHandSideComponent}
             canSelectMultiple={canSelectMultiple}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
@@ -84,7 +82,13 @@ function BaseSelectListItem<TItem extends ListItem>({
             selectionButtonPosition={selectionButtonPosition}
         >
             <>
-                {rowLeftElement}
+                {item.leftElement ??
+                    (icon ? (
+                        <ListItemComposed.CompactAvatar
+                            icon={icon}
+                            style={styles.mr3}
+                        />
+                    ) : undefined)}
                 <View style={[styles.flex1, styles.alignItemsStart, !!item.rightElement && styles.pr3]}>
                     <ListItemComposed.Title
                         text={fullTitle ?? ''}
