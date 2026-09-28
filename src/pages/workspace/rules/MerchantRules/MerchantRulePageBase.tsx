@@ -738,7 +738,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
                 includeSafeAreaPaddingBottom
             >
                 <HeaderWithBackButtonAndTitle title={translate('workspace.rules.merchantRules.expenseDefaultsTitle')}>
-                    <HeaderActions>
+                    <Header.Actions>
                         {/* Only while a condition is set, and only on an unsaved rule: resetting a saved one would let it
                             switch condition type, which the two storage shapes can't express as one edit. */}
                         {canWriteRules && !isEditingSavedRule && (hasMerchantCondition || hasCategoryCondition) && <TextLink onPress={resetRule}>{translate('common.reset')}</TextLink>}
