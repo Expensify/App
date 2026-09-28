@@ -374,6 +374,7 @@ function getTabStateWithFreshTarget(
         if (route.name === focusedTargetTab.name) {
             return getTargetTabRoute(undefined, focusedTargetTab);
         }
+        // Keys are kept on purpose: tab history references them, so fresh keys would drop it after the reveal.
         return existingTabState?.routes.find((r) => r.name === route.name) ?? route;
     });
 
