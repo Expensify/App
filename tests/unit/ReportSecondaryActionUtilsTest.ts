@@ -139,6 +139,35 @@ describe('getSecondaryAction', () => {
         Onyx.clear();
     });
 
+    it.each([
+        [CONST.REPORT.TYPE.EXPENSE, 1, true],
+        [CONST.REPORT.TYPE.EXPENSE, 2, false],
+        [CONST.REPORT.TYPE.EXPENSE, 0, false],
+        [CONST.REPORT.TYPE.IOU, 1, false],
+    ] as const)('offers Customize fields for report type %s with %s transactions: %s', (type, count, expected) => {
+        // Given a report that may render either a single expense or a transaction table.
+        const report = createMock<Report>({reportID: REPORT_ID, type});
+        const reportTransactions = Array.from({length: count}, (_, index) => createMock<Transaction>({transactionID: String(index), reportID: REPORT_ID}));
+
+        // When the More menu is built for that report.
+        const actions = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions,
+            originalTransaction: undefined,
+            violations: {},
+            bankAccountList: {},
+            policy: createMock<Policy>({}),
+            rules: undefined,
+        });
+
+        // Then only a single-expense report offers field customization from this menu.
+        expect(actions.includes(CONST.REPORT.SECONDARY_ACTIONS.CUSTOMIZE_FIELDS)).toBe(expected);
+    });
+
     it('should always return default options', () => {
         const report = createMock<Report>({});
         const policy = createMock<Policy>({});
@@ -5181,6 +5210,27 @@ describe('getSecondaryTransactionThreadActions', () => {
         await Onyx.merge(ONYXKEYS.SESSION, SESSION);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, null);
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
+    });
+
+    it.each([CONST.REPORT.TYPE.EXPENSE, CONST.REPORT.TYPE.IOU, CONST.REPORT.TYPE.CHAT])('scopes Customize fields to an expense in a report (%s)', (type) => {
+        // Given an expense opened from a workspace report, a personal request, or a self chat.
+        const parentReport = createMock<Report>({reportID: REPORT_ID, type});
+
+        // When the individual expense More menu is built.
+        const actions = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport,
+            reportTransaction: createMock<Transaction>({}),
+            reportAction: undefined,
+            originalTransaction: undefined,
+            policy: createMock<Policy>({}),
+            isChatReportArchived: false,
+            rules: undefined,
+        });
+
+        // Then customization is available only for the report-backed expense.
+        expect(actions.includes(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.CUSTOMIZE_FIELDS)).toBe(type === CONST.REPORT.TYPE.EXPENSE);
     });
 
     it('should always return VIEW_DETAILS', () => {

@@ -135,6 +135,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         'DocumentMerge',
         'ExpenseCopy',
         'Info',
+        'Table',
         'Send',
         'Stopwatch',
         'ThumbsDown',
@@ -535,6 +536,17 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 duplicateTransaction([transaction]);
             },
             shouldCloseModalOnSelect: shouldDuplicateCloseModalOnSelect,
+        },
+        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.CUSTOMIZE_FIELDS]: {
+            value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.CUSTOMIZE_FIELDS,
+            text: translate('search.customizeFields'),
+            icon: expensifyIcons.Table,
+            onSelected: () => {
+                if (!parentReport?.reportID) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.REPORT_SETTINGS_COLUMNS.getRoute(parentReport.reportID, true));
+            },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,

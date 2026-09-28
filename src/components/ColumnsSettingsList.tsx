@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getSearchColumnTranslationKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {ComponentRef} from 'react';
@@ -48,6 +49,9 @@ type ColumnItem = {
 };
 
 type ColumnsSettingsListProps = {
+    /** Heading for the surface sharing the column preferences */
+    titleKey?: TranslationPaths;
+
     allColumns: SearchCustomColumnIds[];
 
     /** The default set of selected columns when no customization has been applied */
@@ -76,6 +80,7 @@ type ColumnsSettingsListProps = {
 };
 
 function ColumnsSettingsList({
+    titleKey = 'search.columns',
     allColumns,
     defaultSelectedColumns,
     currentColumns,
@@ -250,9 +255,7 @@ function ColumnsSettingsList({
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
         >
-            <HeaderWithBackButton title={translate('search.columns')}>
-                {!isDefaultState && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
-            </HeaderWithBackButton>
+            <HeaderWithBackButton title={translate(titleKey)}>{!isDefaultState && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}</HeaderWithBackButton>
             <View style={styles.flex1}>
                 <ScrollView
                     style={styles.flex1}

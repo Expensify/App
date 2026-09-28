@@ -9738,6 +9738,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             staleResults: {title: 'Actualisation requise', subtitle: 'Cette page n’est plus à jour, actualisez-la pour voir les dernières informations', buttonText: 'Actualiser'},
         },
         columns: 'Colonnes',
+        customizeFields: 'Personnaliser les champs',
         editColumns: 'Modifier les colonnes',
         resetColumns: 'Réinitialiser les colonnes',
         groupColumns: 'Regrouper les colonnes',

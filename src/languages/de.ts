@@ -9713,6 +9713,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             staleResults: {title: 'Aktualisierung erforderlich', subtitle: 'Diese Seite ist veraltet, aktualisieren Sie sie, um die neuesten Inhalte zu sehen', buttonText: 'Aktualisieren'},
         },
         columns: 'Spalten',
+        customizeFields: 'Felder anpassen',
         editColumns: 'Spalten bearbeiten',
         resetColumns: 'Spalten zurücksetzen',
         groupColumns: 'Spalten gruppieren',

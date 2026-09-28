@@ -58,3 +58,18 @@ it('filters unsupported saved columns, defaults invalid-only storage, and preser
     expect(jest.mocked(setReportDetailsColumns)).toHaveBeenCalledWith([CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT], mockSavedColumns);
     expect(jest.mocked(Navigation.goBack)).toHaveBeenCalledTimes(2);
 });
+
+it('uses the expense heading while saving the same report column preference', () => {
+    // Given the picker opened through an expense's Customize fields action.
+    jest.mocked(useRoute).mockReturnValue({key: 'columns', name: 'columns', params: {reportID: 'report-1', isExpenseView: true}});
+    const savedColumns = [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.MERCHANT];
+
+    // When the user adds an accounting field and saves.
+    const props = renderColumns(savedColumns);
+    const selectedColumns = [...savedColumns, CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE];
+    props.onSave(selectedColumns);
+
+    // Then the heading matches the entry point and the existing NVP action receives the new selection and rollback value.
+    expect(props.titleKey).toBe('search.customizeFields');
+    expect(setReportDetailsColumns).toHaveBeenLastCalledWith(selectedColumns, savedColumns);
+});

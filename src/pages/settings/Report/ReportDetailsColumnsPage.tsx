@@ -6,6 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
 import {setReportDetailsColumns} from '@libs/actions/ReportLayout';
+import getMoneyRequestViewFields from '@libs/getMoneyRequestViewFields';
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -42,10 +43,12 @@ const REPORT_DETAILS_DEFAULT_COLUMNS: SearchCustomColumnIds[] = [
 ];
 
 const ALL_REPORT_DETAILS_CUSTOM_COLUMNS = Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS).filter(isReportDetailsCustomColumn);
+const EXPENSE_DEFAULT_FIELDS = [CONST.SEARCH.TABLE_COLUMNS.RECEIPT, ...getMoneyRequestViewFields()].filter(isReportDetailsCustomColumn);
 
 function ReportDetailsColumnsPage() {
     const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.COLUMNS>>();
     const reportID = route.params.reportID;
+    const isExpenseView = route.params.isExpenseView ?? false;
     const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
@@ -81,7 +84,7 @@ function ReportDetailsColumnsPage() {
         }
 
         if (!reportTransactions?.length) {
-            return REPORT_DETAILS_DEFAULT_COLUMNS;
+            return isExpenseView ? EXPENSE_DEFAULT_FIELDS : REPORT_DETAILS_DEFAULT_COLUMNS;
         }
 
         const visibleColumns = getColumnsToShow({
@@ -96,9 +99,11 @@ function ReportDetailsColumnsPage() {
             isPolicyTaxEnabled: isPolicyTaxEnabled(policy),
         });
 
-        // Filter to only columns available in the custom columns list (drops RECEIPT/TYPE/COMMENTS etc.)
-        return visibleColumns.filter(isReportDetailsCustomColumn);
-    }, [reportDetailsColumns, reportTransactions, currentUserDetails?.accountID, report, policy]);
+        // The untouched expense editor has its own field order. Opening and saving the picker
+        // without changes must not hide its editors or overwrite the shared table preference.
+        const columns = isExpenseView ? [CONST.SEARCH.TABLE_COLUMNS.RECEIPT, ...getMoneyRequestViewFields(visibleColumns)] : visibleColumns;
+        return columns.filter(isReportDetailsCustomColumn);
+    }, [reportDetailsColumns, reportTransactions, currentUserDetails?.accountID, report, policy, isExpenseView]);
 
     const allColumns = ALL_REPORT_DETAILS_CUSTOM_COLUMNS.filter(isColumnAvailable);
     const currentColumns = effectiveColumns.filter(isColumnAvailable);
@@ -119,8 +124,9 @@ function ReportDetailsColumnsPage() {
 
     return (
         <ColumnsSettingsList
+            titleKey={isExpenseView ? 'search.customizeFields' : 'search.columns'}
             allColumns={allColumns}
-            defaultSelectedColumns={REPORT_DETAILS_DEFAULT_COLUMNS}
+            defaultSelectedColumns={isExpenseView ? EXPENSE_DEFAULT_FIELDS : REPORT_DETAILS_DEFAULT_COLUMNS}
             currentColumns={currentColumns}
             requiredColumns={requiredColumns}
             onSave={handleSave}

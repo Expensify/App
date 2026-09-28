@@ -2732,7 +2732,7 @@ const ROUTES = {
     },
     REPORT_SETTINGS_COLUMNS: {
         route: 'r/:reportID/settings/columns',
-        getRoute: (reportID: string) => `r/${reportID}/settings/columns` as const,
+        getRoute: (reportID: string, isExpenseView = false) => `r/${reportID}/settings/columns${isExpenseView ? '?isExpenseView=true' : ''}` as const,
     },
     CHRONOS_SCHEDULE_OOO: {
         route: 'r/:reportID/chronos/schedule-ooo',
