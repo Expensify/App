@@ -83,6 +83,7 @@ jest.mock('@hooks/useLocalize', () => ({
 
 const mockClearSelectedTransactions = jest.fn();
 let mockSelectedTransactions: SelectedTransactions = {};
+let mockExcludedTransactions: SelectedTransactions = {};
 let mockSelectedReports: SelectedReports[] = [];
 let mockCurrentSearchResults: SearchResults | undefined;
 let mockAreAllMatchingItemsSelected = false;
@@ -91,6 +92,7 @@ let mockCurrentSearchKey: string | undefined;
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
         selectedTransactions: mockSelectedTransactions,
+        excludedTransactions: mockExcludedTransactions,
         selectedReports: mockSelectedReports,
         areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected,
     }),
@@ -234,6 +236,7 @@ describe('useSearchBulkActions - Download report', () => {
         mockIsOffline = false;
         await Onyx.clear();
         mockSelectedTransactions = {};
+        mockExcludedTransactions = {};
         mockSelectedReports = [];
         mockCurrentSearchResults = undefined;
         mockAreAllMatchingItemsSelected = false;
@@ -468,7 +471,7 @@ describe('useSearchBulkActions - Download report', () => {
             },
         };
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
 
         await waitFor(() => {
             expect(getDownloadPDFOption(result.current.headerButtonsOptions)).toBeDefined();
@@ -494,7 +497,7 @@ describe('useSearchBulkActions - Download report', () => {
             tx1: makeSelectedTransaction({reportID: '1'}),
         };
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
 
         await waitFor(() => {
             expect(getDownloadPDFOption(result.current.headerButtonsOptions)).toBeDefined();
@@ -515,6 +518,77 @@ describe('useSearchBulkActions - Download report', () => {
         expect(exportReportToPDF).not.toHaveBeenCalled();
     });
 
+    it('should exclude unchecked reports from an all-matching PDF export', async () => {
+        // Given all matching reports are selected and two reports have been explicitly unchecked
+        mockCurrentSearchKey = CONST.SEARCH.SEARCH_KEYS.REPORTS;
+        mockAreAllMatchingItemsSelected = true;
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction({reportID: '1'}),
+        };
+        mockExcludedTransactions = {
+            excludedTx1: makeSelectedTransaction({reportID: 'excluded-report-1'}),
+            excludedTx2: makeSelectedTransaction({reportID: 'excluded-report-2'}),
+        };
+
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+
+        await waitFor(() => {
+            expect(getDownloadPDFOption(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        // When the Download reports action is triggered
+        act(() => {
+            getDownloadPDFOption(result.current.headerButtonsOptions)?.onSelected?.();
+        });
+
+        // Then the backend query excludes every unchecked report while retaining the current search key
+        expect(exportReportsToPDF).toHaveBeenCalledTimes(1);
+        const [reportIDs, serializedQuery] = jest.mocked(exportReportsToPDF).mock.calls.at(0) ?? [];
+        expect(reportIDs).toEqual([]);
+        expect(JSON.parse(serializedQuery ?? '{}')).toEqual(
+            expect.objectContaining({
+                searchKey: CONST.SEARCH.SEARCH_KEYS.REPORTS,
+                flatFilters: expect.arrayContaining([
+                    {
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+                        filters: [
+                            {operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: 'excluded-report-1'},
+                            {operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: 'excluded-report-2'},
+                        ],
+                    },
+                ]),
+            }),
+        );
+    });
+
+    it('should stop an all-matching PDF export when an exclusion has no report ID', async () => {
+        // Given malformed exclusion state that cannot be represented by a report filter
+        mockAreAllMatchingItemsSelected = true;
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction({reportID: '1'}),
+        };
+        mockExcludedTransactions = {
+            excludedTx: makeSelectedTransaction({reportID: undefined}),
+        };
+
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+
+        await waitFor(() => {
+            expect(getDownloadPDFOption(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        // When the Download reports action is triggered
+        act(() => {
+            getDownloadPDFOption(result.current.headerButtonsOptions)?.onSelected?.();
+        });
+
+        // Then no incomplete export is started and the existing download error is shown
+        expect(exportReportsToPDF).not.toHaveBeenCalled();
+        expect(result.current.isDownloadErrorModalVisible).toBe(true);
+    });
+
     it('should show Export as PDF for selected Expensify Card settlement groups', async () => {
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
         mockSelectedTransactions = {
@@ -528,7 +602,7 @@ describe('useSearchBulkActions - Download report', () => {
         // The settlement is backend-marked exportable (makeSettlementGroup defaults canExportStatement), so the action shows.
         expect(getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, mockSelectedTransactions, mockCurrentSearchResults?.data)).toBeDefined();
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
         await waitFor(() => {
             expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();
@@ -545,7 +619,7 @@ describe('useSearchBulkActions - Download report', () => {
             [groupKey]: makeSettlementGroup({count: 2}),
         });
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
         await waitFor(() => {
             expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();
@@ -578,7 +652,7 @@ describe('useSearchBulkActions - Download report', () => {
             [groupKey]: makeSettlementGroup(),
         });
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
         await waitFor(() => {
             expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();
@@ -616,7 +690,7 @@ describe('useSearchBulkActions - Download report', () => {
             .mockReturnValueOnce(Promise.resolve({statementKey: 'statement-key-456'}));
 
         mockSelectedTransactions = {firstTxn: makeSelectedTransaction({groupKey: firstGroupKey, reportID: undefined})};
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
         await waitFor(() => {
             expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();
         });
@@ -661,7 +735,7 @@ describe('useSearchBulkActions - Download report', () => {
             [secondGroupKey]: makeSettlementGroup({entryID: 456, total: 200, accountNumber: '5678', debitPosted: '2026-05-30', feedCountry: 'US', fundID: 2}),
         });
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
         await waitFor(() => {
             expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();
@@ -687,7 +761,7 @@ describe('useSearchBulkActions - Download report', () => {
             [groupKey]: makeSettlementGroup({total: 100, policyID: undefined}),
         });
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: unscopedExpensifyCardStatementQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: unscopedExpensifyCardStatementQueryJSON}));
 
         await waitFor(() => {
             expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();
@@ -713,7 +787,7 @@ describe('useSearchBulkActions - Download report', () => {
         // Select-all-matching only loads the visible rows, so the statement would be incomplete.
         mockAreAllMatchingItemsSelected = true;
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions).toBeDefined();
@@ -734,7 +808,7 @@ describe('useSearchBulkActions - Download report', () => {
             [secondGroupKey]: makeSettlementGroup({entryID: 456, count: 2, total: 2000, accountNumber: '5678', debitPosted: '2026-05-30'}),
         });
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
         await waitFor(() => {
             expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();
@@ -780,7 +854,7 @@ describe('useSearchBulkActions - Download report', () => {
             [groupKey]: makeSettlementGroup({count: 2}),
         });
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
 
         await waitFor(() => {
             expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();

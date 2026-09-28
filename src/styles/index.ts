@@ -5158,10 +5158,6 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
         },
 
-        onboardingSmallIcon: {
-            padding: 10,
-        },
-
         sidebarStatusAvatarContainer: {
             backgroundColor: theme.componentBG,
             alignItems: 'center',
@@ -5729,12 +5725,35 @@ const staticStyles = (theme: ThemeColors) =>
         onboardingAccountingItem: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusNormal,
-            paddingHorizontal: 16,
+            // Keeps "Intuit Enterprise Suite" on one line in narrow tiles.
+            paddingHorizontal: 8,
             paddingVertical: 20,
+            alignItems: 'center',
+            justifyContent: 'center',
             flexGrow: 1,
             flexShrink: 1,
+        },
 
-            flexBasis: '35%',
+        // Three 32% tiles plus gaps overflow the 576px row, so wrap at 30% and cap the width instead.
+        onboardingAccountingItemWide: {
+            flexBasis: '30%',
+            maxWidth: '32%',
+        },
+
+        onboardingAccountingItemNarrow: {
+            flexBasis: '45%',
+            maxWidth: '48.5%',
+        },
+
+        onboardingAccountingItemSelected: {
+            backgroundColor: theme.selectedOptionBG,
+        },
+
+        // Positioned via the wrapper, since `SelectionButton` applies `style` to the inner pressable.
+        onboardingAccountingItemSelectionButton: {
+            position: 'absolute',
+            top: 12,
+            left: 12,
         },
 
         onboardingInterestedFeaturesItem: {
@@ -6777,6 +6796,9 @@ const staticStyles = (theme: ThemeColors) =>
             width: 12,
             height: 12,
         },
+        chartInlineTable: {
+            marginTop: 20,
+        },
         homeWidgetIconContainer: {
             width: variables.iconSizeExtraLarge,
             height: variables.iconSizeExtraLarge,
@@ -7455,17 +7477,13 @@ const plainStyles = (theme: ThemeColors) =>
 
         insightsChartGrid: {
             flexDirection: 'row',
-            flexWrap: 'wrap',
-            alignItems: 'stretch',
-            marginHorizontal: -variables.insightsCardGap / 2,
-            marginVertical: -variables.insightsCardGap / 2,
+            alignItems: 'flex-start',
+            gap: variables.insightsCardGap,
         } satisfies ViewStyle,
 
-        insightsChartGridCell: (shouldUseNarrowLayout: boolean) =>
-            ({
-                flexBasis: shouldUseNarrowLayout ? '100%' : '50%',
-                padding: variables.insightsCardGap / 2,
-            }) satisfies ViewStyle,
+        insightsChartColumn: {
+            gap: variables.insightsCardGap,
+        } satisfies ViewStyle,
 
         insightsEmptyStateIllustration: {
             width: variables.insightsEmptyStateIllustrationSize,
