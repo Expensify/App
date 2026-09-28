@@ -37,6 +37,7 @@ jest.mock('@pages/Share/ShareRootPage', () => ({showErrorAlert: jest.fn()}));
 jest.mock('@pages/Share/useShareFileSizeValidation', () => jest.fn());
 
 const SHARED_REPORT_ID = 'report-share-1';
+const PREVIOUS_REPORT_ID = 'report-share-0';
 const POLICY_ID = 'policy-1';
 const ACCOUNT_ID = 1;
 
@@ -157,5 +158,39 @@ describe('SubmitDetailsPage — manually entered Scan fields', () => {
         expect(draft?.created).toBe('2026-01-15');
         expect(draft?.isCreatedSet).toBe(true);
         expect(screen.getByLabelText(translateLocal('common.date'))).toHaveDisplayValue('2026-01-15');
+    });
+
+    it('re-seeds the destination on mount while keeping an already-entered merchant and currency', async () => {
+        // Given a leftover draft the user already typed a merchant and a non-policy currency into, still pointing at
+        // the chat they picked before backing out
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+                id: POLICY_ID,
+                name: 'Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+                outputCurrency: 'USD',
+                role: CONST.POLICY.ROLE.ADMIN,
+            });
+            await Onyx.merge<`${typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${string}`>(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
+                transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                reportID: PREVIOUS_REPORT_ID,
+                amount: 1000,
+                currency: 'EUR',
+                merchant: 'Starbucks',
+                isAmountSet: true,
+                isMerchantSet: true,
+            });
+        });
+
+        // When the Submit page mounts for the newly picked chat
+        await renderShareConfirmationAndShowMore();
+
+        // Then the draft follows the new destination, and neither the merchant nor the currency the user entered is
+        // overwritten by the policy's output currency.
+        const draft = await getDraft();
+        expect(draft?.reportID).toBe(SHARED_REPORT_ID);
+        expect(draft?.currency).toBe('EUR');
+        expect(draft?.merchant).toBe('Starbucks');
     });
 });
