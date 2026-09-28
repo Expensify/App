@@ -450,7 +450,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                 includeSafeAreaPaddingBottom
             >
                 <HeaderWithBackButtonAndTitle title={translate('workspace.rules.requireFieldsRule.title')}>
-                    {!!deleteIconButtonProps && <HeaderIconButton {...deleteIconButtonProps} />}
+                    {!!deleteIconButtonProps && <Header.IconButton {...deleteIconButtonProps} />}
                 </HeaderWithBackButtonAndTitle>
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.ph5, styles.pv3, styles.gap6]}>
