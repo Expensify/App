@@ -2718,6 +2718,29 @@ describe('actions/Report', () => {
             expect(requests.at(0)?.data?.reportComment).toBe('hello removed');
         });
 
+        it('drops an edit superseded before its deferral was echoed back from Onyx', async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            setHasRadio(false);
+            await seedUploadingComment();
+            const action = await getAction();
+
+            // Given an edit deferred on the upload, and a second edit removing the attachment before Onyx
+            // echoed the deferral back, which is the only thing the clear is allowed to read
+            Report.editReportComment({reportID}, action, editKeepingAttachment, undefined, '', undefined);
+            Report.editReportComment({reportID}, action, 'hello removed', undefined, '', undefined);
+            await waitForBatchedUpdates();
+
+            // Then the superseded edit is not left armed
+            expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]).toBeUndefined();
+
+            await syncAttachment();
+
+            // And the removal is the only thing that reaches the server
+            const requests = getUpdateCommentRequests();
+            expect(requests).toHaveLength(1);
+            expect(requests.at(0)?.data?.reportComment).toBe('hello removed');
+        });
+
         it('replays an edit restored from Onyx once the attachment has synced', async () => {
             global.fetch = TestHelper.createGlobalFetchMock();
             setHasRadio(false);

@@ -19,6 +19,7 @@ let deferredAttachmentEdits: OnyxEntry<DeferredAttachmentEdits>;
 let replayDeferredAttachmentEdit: ReplayDeferredAttachmentEdit | undefined;
 
 function deferAttachmentEdit(reportActionID: string, deferredEdit: DeferredAttachmentEdit) {
+    deferredAttachmentEdits = {...deferredAttachmentEdits, [reportActionID]: deferredEdit};
     Onyx.merge(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS, {[reportActionID]: deferredEdit});
 }
 
@@ -27,6 +28,9 @@ function clearDeferredAttachmentEdit(reportActionID: string) {
     if (!deferredAttachmentEdits?.[reportActionID]) {
         return;
     }
+    const remainingEdits = {...deferredAttachmentEdits};
+    delete remainingEdits[reportActionID];
+    deferredAttachmentEdits = remainingEdits;
     Onyx.merge(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS, {[reportActionID]: null});
 }
 
