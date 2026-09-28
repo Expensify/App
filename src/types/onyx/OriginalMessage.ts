@@ -79,6 +79,9 @@ type OriginalMessageIOU = {
     /** Masked number (e.g., 'XXXXXX1234') of the bank account used to fund the payment */
     accountNumber?: string;
 
+    /** Estimated date the reimbursement will reach the recipient's bank account */
+    expectedDate?: string;
+
     /** True when the submitter marked the report as payment received outside Expensify */
     isSubmitterMarkedPaymentReceived?: boolean;
 
@@ -1518,6 +1521,8 @@ type OriginalMessageTakeControl = {
     mentionedAccountIDs: number[];
     /** Whether this action was triggered automatically (e.g., during auto-pay) */
     automaticAction?: boolean;
+    /** Whether the new approver became the final approver, bypassing the remaining approvers in the chain */
+    isFinalApprover?: boolean;
     /** Account ID of the new approver. Absent on OldDot take control actions, where the actor is the new approver */
     newApproverID?: number;
     /** Whether the new approver replaced the report's current approver instead of being added to the workflow */

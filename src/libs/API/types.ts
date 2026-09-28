@@ -459,6 +459,7 @@ const WRITE_COMMANDS = {
     UPDATE_NETSUITE_TAX_POSTING_ACCOUNT: 'UpdateNetSuiteTaxPostingAccount',
     UPDATE_NETSUITE_ALLOW_FOREIGN_CURRENCY: 'UpdateNetSuiteAllowForeignCurrency',
     UPDATE_NETSUITE_EXPORT_TO_NEXT_OPEN_PERIOD: 'UpdateNetSuiteExportToNextOpenPeriod',
+    UPDATE_NETSUITE_SPLIT_EXPORTS_BY_POSTING_PERIOD: 'UpdateNetSuiteSplitExportsByPostingPeriod',
     UPDATE_NETSUITE_CUSTOM_SEGMENTS: 'UpdateNetSuiteCustomSegments',
     UPDATE_NETSUITE_CUSTOM_LISTS: 'UpdateNetSuiteCustomLists',
     UPDATE_NETSUITE_AUTO_SYNC: 'UpdateNetSuiteAutoSync',
@@ -585,6 +586,15 @@ const WRITE_COMMANDS = {
     UPDATE_CAMPFIRE_EXPORT_DATE: 'UpdateCampfireExportDate',
     UPDATE_CAMPFIRE_DEFAULT_VENDOR: 'UpdateCampfireDefaultVendor',
     UPDATE_CAMPFIRE_CREDIT_CARD_ACCOUNT: 'UpdateCampfireCreditCardAccount',
+    UPDATE_CAMPFIRE_AUTO_SYNC: 'UpdateCampfireAutoSync',
+    UPDATE_CAMPFIRE_ACCOUNTING_METHOD: 'UpdateCampfireAccountingMethod',
+    UPDATE_CAMPFIRE_SYNC_REIMBURSED_REPORTS: 'UpdateCampfireSyncReimbursedReports',
+    UPDATE_CAMPFIRE_BILL_PAYMENT_ACCOUNT: 'UpdateCampfireBillPaymentAccount',
+    UPDATE_CAMPFIRE_SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'UpdateCampfireSyncExpensifyCardSettlements',
+    UPDATE_CAMPFIRE_SETTLEMENTS_ACCOUNT: 'UpdateCampfireSettlementsAccount',
+    UPDATE_CAMPFIRE_SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'UpdateCampfireSyncTravelInvoicingSettlements',
+    UPDATE_CAMPFIRE_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT: 'UpdateCampfireTravelInvoicingSettlementsAccount',
+    UPDATE_CAMPFIRE_TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'UpdateCampfireTravelInvoicingPayableAccount',
 
     SET_PROMO_CODE: 'User_SetPromoCode',
     REQUEST_TAX_EXEMPTION: 'RequestTaxExemption',
@@ -1279,6 +1289,15 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_CAMPFIRE_EXPORT_DATE]: Parameters.UpdateCampfireExportDateParams;
     [WRITE_COMMANDS.UPDATE_CAMPFIRE_DEFAULT_VENDOR]: Parameters.UpdateCampfireDefaultVendorParams;
     [WRITE_COMMANDS.UPDATE_CAMPFIRE_CREDIT_CARD_ACCOUNT]: Parameters.UpdateCampfireCreditCardAccountParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_AUTO_SYNC]: Parameters.UpdateCampfireAutoSyncParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_ACCOUNTING_METHOD]: Parameters.UpdateCampfireAccountingMethodParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateCampfireSyncReimbursedReportsParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_BILL_PAYMENT_ACCOUNT]: Parameters.UpdateCampfireBillPaymentAccountParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_SYNC_EXPENSIFY_CARD_SETTLEMENTS]: Parameters.UpdateCampfireSyncExpensifyCardSettlementsParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_SETTLEMENTS_ACCOUNT]: Parameters.UpdateCampfireSettlementsAccountParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_SYNC_TRAVEL_INVOICING_SETTLEMENTS]: Parameters.UpdateCampfireSyncTravelInvoicingSettlementsParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT]: Parameters.UpdateCampfireTravelInvoicingSettlementsAccountParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_TRAVEL_INVOICING_PAYABLE_ACCOUNT]: Parameters.UpdateCampfireTravelInvoicingPayableAccountParams;
 
     [WRITE_COMMANDS.UPGRADE_TO_CORPORATE]: Parameters.UpgradeToCorporateParams;
     [WRITE_COMMANDS.DOWNGRADE_TO_TEAM]: Parameters.DowngradeToTeamParams;
@@ -1323,6 +1342,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_NETSUITE_TAX_POSTING_ACCOUNT]: Parameters.UpdateNetSuiteGenericTypeParams<'bankAccountID', string>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_ALLOW_FOREIGN_CURRENCY]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_EXPORT_TO_NEXT_OPEN_PERIOD]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_SPLIT_EXPORTS_BY_POSTING_PERIOD]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_SEGMENTS]: Parameters.UpdateNetSuiteGenericTypeParams<'customSegments', string>; // JSON string NetSuiteCustomSegment[]
     [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_LISTS]: Parameters.UpdateNetSuiteGenericTypeParams<'customLists', string>; // JSON string NetSuiteCustomList[]
     [WRITE_COMMANDS.UPDATE_NETSUITE_AUTO_SYNC]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;

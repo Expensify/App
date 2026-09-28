@@ -300,6 +300,7 @@ function getAccountingIntegrationData(
                     ...(!shouldHideTaxPostingAccountSelect(canUseNetSuiteUSATax, netsuiteSelectedSubsidiary, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.TAX_POSTING_ACCOUNT] : []),
                     ...(!shouldHideExportForeignCurrencyAmount(netsuiteConfig) ? [CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY] : []),
                     CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD,
+                    CONST.NETSUITE_CONFIG.SPLIT_EXPORTS_BY_POSTING_PERIOD,
                 ],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.NETSUITE)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID)),
@@ -622,7 +623,7 @@ function getAccountingIntegrationData(
                     cardList ?? {},
                     CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_CAMPFIRE_EXPORT_ACCOUNT,
                 ),
-                onAdvancedPagePress: () => null,
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_ADVANCED.getRoute(policyID)),
                 subscribedAdvancedSettings: [
                     CONST.CAMPFIRE_CONFIG.ACCOUNTING_METHOD,
                     CONST.CAMPFIRE_CONFIG.AUTO_SYNC,
