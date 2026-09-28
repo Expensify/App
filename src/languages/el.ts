@@ -1685,7 +1685,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Παρακαλούμε εισαγάγετε ένα μη μηδενικό ποσό για τη διαίρεσή σας',
             noParticipantSelected: 'Παρακαλούμε επιλέξτε έναν συμμετέχοντα',
             other: 'Απρόσμενο σφάλμα. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
-            payFailedExpenseDeleted: 'Αυτή η πληρωμή απέτυχε επειδή η δαπάνη διαγράφηκε.',
+            payFailedExpenseDeleted: 'Η πληρωμή απέτυχε επειδή η έκθεση εξόδων διαγράφηκε.',
             genericCreateFailureMessage: 'Μη αναμενόμενο σφάλμα κατά την αποστολή αυτής της δαπάνης. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
             genericCreateInvoiceFailureMessage: 'Προέκυψε απροσδόκητο σφάλμα κατά την αποστολή αυτού του τιμολογίου. Παρακαλούμε προσπαθήστε ξανά αργότερα.',
             genericHoldExpenseFailureMessage: 'Προέκυψε απρόσμενο σφάλμα κατά την κράτηση αυτής της δαπάνης. Δοκιμάστε ξανά αργότερα.',

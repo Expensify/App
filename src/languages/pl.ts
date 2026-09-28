@@ -1648,7 +1648,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Wprowadź niezerową kwotę dla swojego podziału',
             noParticipantSelected: 'Wybierz uczestnika',
             other: 'Nieoczekiwany błąd. Spróbuj ponownie później.',
-            payFailedExpenseDeleted: 'Ta płatność nie powiodła się, ponieważ wydatek został usunięty.',
+            payFailedExpenseDeleted: 'Płatność nie powiodła się, ponieważ raport wydatków został usunięty.',
             genericCreateFailureMessage: 'Niespodziewany błąd podczas przesyłania tego wydatku. Spróbuj ponownie później.',
             genericCreateInvoiceFailureMessage: 'Nieoczekiwany błąd podczas wysyłania tej faktury. Spróbuj ponownie później.',
             genericHoldExpenseFailureMessage: 'Nieoczekiwany błąd podczas wstrzymywania tego wydatku. Spróbuj ponownie później.',

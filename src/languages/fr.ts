@@ -1624,7 +1624,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Veuillez saisir un montant non nul pour votre répartition',
             noParticipantSelected: 'Veuillez sélectionner un participant',
             other: 'Erreur inattendue. Veuillez réessayer plus tard.',
-            payFailedExpenseDeleted: 'Ce paiement a échoué car la dépense a été supprimée.',
+            payFailedExpenseDeleted: 'Le paiement a échoué car la note de frais a été supprimée.',
             genericCreateFailureMessage: 'Erreur inattendue lors de la soumission de cette dépense. Veuillez réessayer plus tard.',
             genericCreateInvoiceFailureMessage: 'Erreur inattendue lors de l’envoi de cette facture. Veuillez réessayer plus tard.',
             genericHoldExpenseFailureMessage: 'Erreur inattendue lors de la mise en attente de cette dépense. Veuillez réessayer ultérieurement.',
