@@ -81,7 +81,7 @@ function ValidateCodeActionContent({
                 onBackButtonPress={hide}
             >
                 {threeDotsMenuItems.length > 0 && (
-                    <HeaderThreeDotsMenu
+                    <Header.ThreeDotsMenu
                         items={threeDotsMenuItems}
                         onIconPress={onThreeDotsButtonPress}
                         shouldOverlay
