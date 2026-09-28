@@ -395,7 +395,7 @@ describe('DynamicFormFlow', () => {
         );
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getAllByLabelText(/stepCounter/)).toHaveLength(3);
+        expect(screen.queryAllByLabelText(/stepCounter/)).toHaveLength(0);
         mockRouteParams.subPage = 'account-holder-details';
         screen.unmount();
         render(

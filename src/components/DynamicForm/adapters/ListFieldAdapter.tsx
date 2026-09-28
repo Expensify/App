@@ -24,7 +24,6 @@ import type {ReactNode} from 'react';
 
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
-import {View} from 'react-native';
 
 const ITEM_FORM_ID = ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM;
 
