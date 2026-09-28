@@ -147,12 +147,13 @@ This document lists all implemented telemetry metrics in the Expensify App.
 
 **Constant**: `CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE`
 **Sentry Name**: `ManualSubmitToDestinationVisible`
+**Threshold**: 400ms (P90)
 **What's Measured**: Time from submitting an expense to its destination (the report or Search) being on screen
 **Start**: The user submits an expense, from the confirmation step or a flow that skips it (`startTracking` in `src/libs/telemetry/submitFollowUpAction.ts`, called from `SubmitExpenseOrchestrator.tsx`, `submitWithDismissFirst.ts`, `SendMoney.ts` and `DynamicIOURequestStepCompanyInfo.tsx`)
 **End**:
 - User sees: The destination report or Search, possibly with deferred parts still showing placeholders
 - Technical: Destination focus or layout, depending on the follow-up action (`useSubmitToDestinationVisible`, `useEndSubmitNavigationSpans`, the deferred Search skeleton layout in `SearchWithNavigationDeferredMount.tsx`). For `dismiss_modal_only`, the span ends in the dismiss `afterTransition` callback (`submitDismissStrategies.ts`, `dismissModalAndOpenReportInInboxTab.ts`)
-**Attributes**: `scenario`, `iou_type`, `iou_request_type`, `has_receipt`, `is_from_global_create`, `submit_follow_up_action`, `report_id`, `fast_path_handler`, `is_warm`, `was_list_empty`
+**Attributes**: `scenario`, `iou_type`, `iou_request_type`, `has_receipt`, `is_from_global_create`, `submit_follow_up_action`, `report_id`, `fast_path_handler`, `is_warm`, `was_list_empty`, `canceled`
 **Notes**: Measures perceived ready, not fully mounted. See [DEFER_AFTER_PAINT.md](DEFER_AFTER_PAINT.md#telemetry) for how deferred and pre-mounted destinations affect it. Spans still open after 60s are canceled and not sent.
 
 ### Send Message

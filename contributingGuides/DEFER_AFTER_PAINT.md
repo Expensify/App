@@ -23,7 +23,8 @@ The first two decide **what mounts when**. The last two decide **when work runs*
 // Default barrier: waits for an in-flight navigation to end, or for the next transition of any kind to start and end.
 API.writeWhenReady(WRITE_COMMANDS.SOME_COMMAND, params, onyxData);
 
-// Only the start of a screen transition (or the ~1 s start timeout) releases the wait, so a keyboard or modal animation can't release it early.
+// Only a screen transition starting (or the ~1 s start timeout) ends the start wait, so a keyboard or modal animation can't end it early.
+// The write then runs once active transitions end.
 API.writeWhenReady(WRITE_COMMANDS.SOME_COMMAND, params, onyxData, API.createTransitionBarrier('navigation'));
 ```
 
@@ -50,7 +51,7 @@ A barrier is any `(signal: AbortSignal) => PromiseLike<unknown>`, so a flow can 
 
 These were tried or proposed. Do not reintroduce them:
 
-- **Inline deferral in screen components** (`useState` flags plus a `useFocusEffect` flush, `setTimeout` with a guessed delay, `requestAnimationFrame` chains). This spreads flow-specific timing into screens that should not know about it. `ReportScreen` had a `useFocusEffect` flush for one submit case, which was removed when the submit flow moved to write barriers. Use one of the primitives above. Flagged by [PERF-20](../.claude/skills/app-coding-standards/rules/perf-20-no-ad-hoc-deferral.md).
+- **Inline deferral in screen components** (`useState` flags plus a `useFocusEffect` flush, `setTimeout` with a guessed delay, `requestAnimationFrame` chains). This spreads flow-specific timing into screens that should not know about it. `ReportScreen` had a `useFocusEffect` flush for one submit case, which was removed when the submit flow moved to write barriers. `useDeferNonEssentials`, which `ReportScreen` uses to hold back non-essential UI after a submit, still defers inline and is planned to move to `NavigationDeferredMount`. Use one of the primitives above. Flagged by [PERF-20](../.claude/skills/app-coding-standards/rules/perf-20-no-ad-hoc-deferral.md).
 - **`deferredLayoutWrite`**, a channel that held writes until the destination screen flushed them on focus. Every destination screen had to flush it, and it was replaced by `API.writeWhenReady` barriers.
 - **`InteractionManager.runAfterInteractions`**. Deprecated, see [INTERACTION_MANAGER.md](INTERACTION_MANAGER.md).
 - **Compute-on-open for dropdowns and popovers** (subscribe to data only when the menu opens). It moves the cost to the moment the user taps, which hurts INP and makes the menu feel slow. Defer the mount with `NavigationDeferredMount` instead, so the work runs after the transition but before the tap.

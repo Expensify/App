@@ -98,4 +98,4 @@ For reference, here's how the available timing primitives compare:
 | ---------------------- | ------------------------- | ------------------------- | --------------------- |
 | `rAF`                  | Next frame (~16ms)        | None — just "next paint"  | Web + RN              |
 | `requestIdleCallback`  | When idle (unpredictable) | None — "whenever free"    | Web + RN (polyfilled) |
-| `runAfterInteractions` | Same as `setImmediate` (stubbed) | None - nothing blocks the queue | RN only          |
+| `runAfterInteractions` | Same as `setImmediate` (stubbed) | None - nothing blocks the queue | Web + RN (stubbed on native only) |
