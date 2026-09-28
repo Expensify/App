@@ -4,11 +4,11 @@ import ListItemComposed from '@components/SelectionList/ListItemComposed';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -66,11 +66,9 @@ function SplitListItem<TItem extends ListItem>({
     const {inputCallbackRef: autoFocusCallbackRef} = useAutoFocusInput();
 
     // Animated highlight style for selected item
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: variables.componentBorderRadius,
+    const animatedHighlightStyle = useRowHighlightAnimation({
         shouldHighlight: splitItem.isSelected ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: splitItem.isSelected ? theme.activeComponentBG : theme.highlightBG,
+        isSelected: splitItem.isSelected,
         skipInitialFade: true,
         itemEnterDelay: 0,
     });
