@@ -3368,9 +3368,8 @@ function canDeleteReportAction(
             Object.values(transactions ?? {}).filter((t): t is Transaction => !!t),
             Object.values(childReportActions ?? {}).filter((action): action is ReportAction => !!action),
             currentUserAccountID,
-            policy,
             rules,
-            policy ?? undefined,
+            policy,
             true,
         );
     }
