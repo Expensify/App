@@ -1886,6 +1886,90 @@ describe('getTransactionsForMerging', () => {
         expect(mergeTransaction?.eligibleTransactions?.some((t) => t.transactionID === candidateTransaction.transactionID)).toBe(true);
     });
 
+    it('should allow admin to see cash candidates from a submitted report pending final approval in the same workspace (offline)', async () => {
+        // Given an admin user, an open draft report, and a submitted report awaiting approval in the same workspace
+        const adminLogin = 'admin@test.com';
+        const submitterAccountID = 42;
+
+        const policy = {
+            ...createRandomPolicy(1),
+            id: 'workspace-1',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+        };
+
+        const targetReport = {
+            ...createExpenseReport(1),
+            reportID: 'target-report-1',
+            policyID: 'workspace-1',
+            ownerAccountID: submitterAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        const submittedReport = {
+            ...createExpenseReport(2),
+            reportID: 'submitted-report-2',
+            policyID: 'workspace-1',
+            ownerAccountID: submitterAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        };
+
+        const targetTransaction = {
+            ...createRandomTransaction(1),
+            transactionID: 'card-tx-1',
+            reportID: 'target-report-1',
+            cardNumber: '1234',
+            bank: undefined,
+        };
+
+        const candidateTransaction = {
+            ...createRandomTransaction(2),
+            transactionID: 'cash-tx-2',
+            reportID: 'submitted-report-2',
+            cardNumber: undefined,
+            bank: undefined,
+            managedCard: false,
+            amount: 500,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`, targetReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${submittedReport.reportID}`, submittedReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        await waitForBatchedUpdates();
+
+        const allTransactions = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`]: targetTransaction,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${candidateTransaction.transactionID}`]: candidateTransaction,
+        };
+        const allPolicies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy,
+        };
+        const allReports = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`]: targetReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${submittedReport.reportID}`]: submittedReport,
+        };
+
+        // When the admin requests merge candidates offline
+        getTransactionsForMerging({
+            isOffline: true,
+            targetTransaction,
+            transactions: allTransactions,
+            reportTransactions: [],
+            policy,
+            report: targetReport,
+            currentUserLogin: adminLogin,
+            rules: undefined,
+            allPolicies,
+            allReports,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the cash candidate from the submitted report appears in eligible transactions, because admins can still edit reports before final approval
+        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
+        expect(mergeTransaction?.eligibleTransactions?.some((t) => t.transactionID === candidateTransaction.transactionID)).toBe(true);
+    });
+
     it('should NOT allow admin to see candidates from another workspace where they are not an admin (offline)', async () => {
         // Given an admin in workspace-1 but only a member in workspace-2
         const adminLogin = 'admin@test.com';
