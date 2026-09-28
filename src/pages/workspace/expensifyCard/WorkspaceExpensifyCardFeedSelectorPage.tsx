@@ -202,7 +202,8 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     };
 
     // Membership rather than inequality, because with no primary feeds the default fund resolves to the workspace account ID rather than to any listed feed.
-    const isSaveDisabled = !isStagedFeedOnPage;
+    // Linking an other-workspace feed has to be something the user picked, and it needs a connection because the link request never settles offline.
+    const isSaveDisabled = !isStagedFeedOnPage || (isOtherWorkspaceFeedStaged && (draftFundID === undefined || isOffline));
 
     const confirmButtonOptions = {
         showButton: true,

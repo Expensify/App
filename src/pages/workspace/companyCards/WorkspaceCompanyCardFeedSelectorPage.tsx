@@ -196,7 +196,8 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         goBack();
     };
 
-    const isSaveDisabled = !isStagedFeedOnPage;
+    // Linking an other-workspace feed has to be something the user picked, and it needs a connection because the link request never settles offline.
+    const isSaveDisabled = !isStagedFeedOnPage || (!!stagedOtherWorkspaceFeed && (draftFeed === undefined || isOffline));
 
     const confirmButtonOptions = {
         showButton: true,
