@@ -67,7 +67,7 @@ If you click **Save** without turning on **Job stages** or **Tags**, you'll see 
 
 Saving your import settings starts a sync. After that, Expensify checks Greenhouse for new matching candidates about once a day. If a candidate has more than one application in Greenhouse, they're imported as long as any one of their applications matches your filters. Expensify doesn't remove candidates automatically, even after they move to a different stage or have their tag removed in Greenhouse.
 
-### Example: Invite candidates only after you've told them they're moving forward
+**Example: Using Job stages and Tags to filter candidate imports**
 
 You can combine a job stage and a tag so candidates don't get an Expensify invite before they hear from you.
 
@@ -83,7 +83,7 @@ Then, for each candidate:
 
 Because candidates must match both the stage and the tag, no one is invited until you've tagged them. 
 
-### Example: Import candidates into different workspaces by office
+**Example: Using Job stages, Tags and Offices to filter candidate imports**
 
 If you use separate workspaces for different entities, you can use **Offices** to send each candidate to the workspace that exports to the right entity.
 
