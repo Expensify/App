@@ -2372,5 +2372,80 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             expect(result.optimisticData.some((entry) => entry.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))).toBe(false);
             expect(result.failureData.some((entry) => entry.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))).toBe(false);
         });
+
+        it("resolves the report preview's last visible action from the acting user's own visibility", async () => {
+            const CHAT_REPORT_ID = '70001';
+            const IOU_REPORT_ID = '70002';
+            const WHISPER_TARGET_ACCOUNT_ID = 808;
+
+            const olderIOUAction: ReportAction = {
+                ...createRandomReportAction(10),
+                reportActionID: 'deleteOlderAction',
+                reportID: IOU_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-10-01 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+                originalMessage: {html: 'Older comment'},
+            };
+            /** Newer than `olderIOUAction`, and only the whispered-to account can see it. */
+            const whisper: ReportAction = {
+                ...createRandomReportAction(11),
+                reportActionID: 'deleteWhisper',
+                reportID: IOU_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                created: '2026-10-01 12:00:00.000',
+                message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            };
+            const previewAction: ReportAction = {
+                ...createRandomReportAction(12),
+                reportActionID: 'deletePreview',
+                reportID: CHAT_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childVisibleActionCount: 2,
+                originalMessage: {linkedReportID: IOU_REPORT_ID},
+            };
+            // The money-request action being deleted; its reportID is what resolves the IOU report below.
+            const deletedIOUAction: ReportAction = {
+                ...createRandomReportAction(13),
+                reportActionID: 'deletedIOU',
+                reportID: IOU_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childVisibleActionCount: 1,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: '70003', amount: 100, currency: 'USD', IOUReportID: IOU_REPORT_ID},
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, {...createRandomReport(70001, undefined), reportID: CHAT_REPORT_ID, type: CONST.REPORT.TYPE.CHAT});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`, {
+                ...createRandomReport(70002, undefined),
+                reportID: IOU_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: CHAT_REPORT_ID,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`, {[previewAction.reportActionID]: previewAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`, {
+                [olderIOUAction.reportActionID]: olderIOUAction,
+                [whisper.reportActionID]: whisper,
+                [deletedIOUAction.reportActionID]: deletedIOUAction,
+            });
+            await waitForBatchedUpdates();
+
+            const getPreviewCreated = (currentUserAccountID: number) => {
+                const result = getCleanUpTransactionThreadReportOnyxData({
+                    shouldDeleteTransactionThread: false,
+                    reportAction: deletedIOUAction,
+                    currentUserAccountID,
+                });
+                const entry = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`);
+                const value = entry?.value as Record<string, Partial<ReportAction>> | undefined;
+                return value?.[previewAction.reportActionID]?.childLastVisibleActionCreated;
+            };
+
+            // Given the whisper targets the deleting user, it is the newest action they can see
+            expect(getPreviewCreated(WHISPER_TARGET_ACCOUNT_ID)).toBe(whisper.created);
+
+            // Given the whisper targets somebody else, it is invisible and the older comment wins
+            expect(getPreviewCreated(WHISPER_TARGET_ACCOUNT_ID + 1)).toBe(olderIOUAction.created);
+        });
     });
 });

@@ -737,7 +737,7 @@ function getCleanUpTransactionThreadReportOnyxData({
 
             canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport, isChatIOUReportArchived ?? isArchivedExpenseReport);
         }
-        const lastVisibleAction = getLastVisibleAction(iouReportID, canUserPerformWriteAction);
+        const lastVisibleAction = getLastVisibleAction(iouReportID, canUserPerformWriteAction, {}, undefined, undefined, currentUserAccountID);
 
         const {childVisibleActionCount, childCommenterCount, childLastVisibleActionCreated, childOldestFourAccountIDs} = updateOptimisticParentReportAction(
             reportPreviewAction,
