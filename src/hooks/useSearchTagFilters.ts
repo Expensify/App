@@ -64,7 +64,7 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     const hasMore = isPolicyScopeMismatch ? false : searchQuery === '' ? (paginationState?.baseHasMore ?? paginationState?.hasMore ?? false) : (paginationState?.hasMore ?? false);
     const nextCursor = isPolicyScopeMismatch ? '' : searchQuery === '' ? (paginationState?.baseCursor ?? paginationState?.nextCursor ?? '') : (paginationState?.nextCursor ?? '');
 
-    // For empty query or offline, show base cached tags if available so user always sees full list
+    // Show base tags when empty or offline so results include all cached tags instead of partial search matches
     const effectiveBaseResults = baseResults ?? searchResults;
     const scopedSearchResults = isPolicyScopeMismatch ? undefined : searchQuery === '' || isOffline ? effectiveBaseResults : searchResults;
 
