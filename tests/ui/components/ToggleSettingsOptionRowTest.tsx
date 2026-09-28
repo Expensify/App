@@ -19,6 +19,7 @@ function renderRow(shouldParseSubtitle: boolean) {
             title="Auto-pay approved reports"
             subtitle="Auto-pay is only available on the Control plan."
             subtitleStyle={SUBTITLE_STYLE}
+            parsedSubtitleContainerStyle={SUBTITLE_STYLE}
             switchAccessibilityLabel="Auto-pay approved reports"
             shouldPlaceSubtitleBelowSwitch
             shouldParseSubtitle={shouldParseSubtitle}
@@ -40,7 +41,7 @@ describe('ToggleSettingOptionRow', () => {
         expect(subtitle).toHaveStyle(SUBTITLE_STYLE);
     });
 
-    it('applies subtitleStyle to a parsed HTML subtitle so the row is as tall as with a plain-text subtitle', () => {
+    it('applies parsedSubtitleContainerStyle to a parsed HTML subtitle so the row is as tall as with a plain-text subtitle', () => {
         // Given a row with a parsed HTML subtitle (e.g. one with an upgrade link) and a custom subtitle style
         renderRow(true);
 

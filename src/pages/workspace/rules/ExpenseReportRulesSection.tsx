@@ -203,6 +203,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                         shouldPlaceSubtitleBelowSwitch
                         titleStyle={styles.pv2}
                         subtitleStyle={styles.pt1}
+                        parsedSubtitleContainerStyle={styles.pt1}
                         isActive={!!isActive}
                         showLockIcon={showLockIcon}
                         disabled={disabled}
