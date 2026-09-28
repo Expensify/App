@@ -2,6 +2,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -41,7 +42,6 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import {clearCategoryErrors, deleteWorkspaceCategories, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -311,26 +311,17 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                     {categoryRulesEnabled && (
                         <>
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
-                                <MenuItem.Root
+                                <MenuItemFieldHTML
+                                    name={translate('workspace.rules.categoryRules.descriptionHint')}
+                                    value={policyCategory?.commentHint}
                                     onPress={
                                         canWriteCategories
-                                            ? callFunctionIfActionIsAllowed(() => {
+                                            ? () => {
                                                   navigateToCategoryRule(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.path);
-                                              })
+                                              }
                                             : undefined
                                     }
-                                >
-                                    <MenuItem.Row>
-                                        <MenuItemField.Content name={translate('workspace.rules.categoryRules.descriptionHint')}>
-                                            {!!policyCategory?.commentHint && <MenuItem.FieldValueHTML>{policyCategory.commentHint}</MenuItem.FieldValueHTML>}
-                                        </MenuItemField.Content>
-                                        {canWriteCategories && (
-                                            <MenuItem.Trailing>
-                                                <MenuItem.Chevron />
-                                            </MenuItem.Trailing>
-                                        )}
-                                    </MenuItem.Row>
-                                </MenuItem.Root>
+                                />
                             </OfflineWithFeedback>
                             <MenuItemField
                                 name={translate('workspace.rules.categoryRules.approver')}

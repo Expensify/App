@@ -6,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import {useMenuItemConfig, useMenuItemInteraction} from '@components/MenuItem/MenuItemContext';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -211,29 +212,18 @@ function DynamicNewTaskPage() {
                 >
                     <View style={styles.flex1}>
                         <View style={styles.mb5}>
-                            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_TITLE.path)))}>
-                                <MenuItem.Row>
-                                    <MenuItemField.Content name={translate('task.title')}>
-                                        {!!task?.title && (
-                                            <MenuItem.FieldValueHTML>{Parser.replace(task.title, {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]})}</MenuItem.FieldValueHTML>
-                                        )}
-                                    </MenuItemField.Content>
-                                    <MenuItem.Trailing>
-                                        {!task?.title && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
-                                        <MenuItem.Chevron />
-                                    </MenuItem.Trailing>
-                                </MenuItem.Row>
-                            </MenuItem.Root>
-                            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_DESCRIPTION.path)))}>
-                                <MenuItem.Row>
-                                    <MenuItemField.Content name={translate('task.description')}>
-                                        {!!task?.description && <MenuItem.FieldValueHTML>{Parser.replace(task.description)}</MenuItem.FieldValueHTML>}
-                                    </MenuItemField.Content>
-                                    <MenuItem.Trailing>
-                                        <MenuItem.Chevron />
-                                    </MenuItem.Trailing>
-                                </MenuItem.Row>
-                            </MenuItem.Root>
+                            <MenuItemFieldHTML
+                                name={translate('task.title')}
+                                value={task?.title ? Parser.replace(task.title, {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]}) : undefined}
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_TITLE.path))}
+                            >
+                                {!task?.title && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
+                            </MenuItemFieldHTML>
+                            <MenuItemFieldHTML
+                                name={translate('task.description')}
+                                value={task?.description ? Parser.replace(task.description) : undefined}
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_DESCRIPTION.path))}
+                            />
                             {assignee?.displayName ? (
                                 <MenuItem.Root
                                     accessibilityLabel={`${translate('task.assignee')}, ${assignee.displayName}`}

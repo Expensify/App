@@ -1,5 +1,4 @@
-import MenuItem from '@components/MenuItem';
-import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -10,8 +9,6 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportName} from '@libs/ReportNameUtils';
 import {generateReportID, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
-
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -115,31 +112,22 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     const shouldReportBeEditable = (isUnreported ? outstandingReports.length >= 1 : outstandingReports.length > 1) && !isMoneyRequestReport(reportID);
 
     return (
-        <MenuItem.Root
+        <MenuItemFieldHTML
+            name={translate('common.report')}
+            value={reportName}
             onPress={
                 shouldReportBeEditable
-                    ? callFunctionIfActionIsAllowed(() => {
+                    ? () => {
                           if (!transactionID || !selectedReportID) {
                               return;
                           }
                           Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, iouType, transactionID, selectedReportID, reportActionID)));
-                      })
+                      }
                     : undefined
             }
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.REPORT_FIELD}
             testID="menu-item-Report"
-        >
-            <MenuItem.Row>
-                <MenuItemField.Content name={translate('common.report')}>
-                    <MenuItem.FieldValueHTML>{reportName}</MenuItem.FieldValueHTML>
-                </MenuItemField.Content>
-                {shouldReportBeEditable && (
-                    <MenuItem.Trailing>
-                        <MenuItem.Chevron />
-                    </MenuItem.Trailing>
-                )}
-            </MenuItem.Row>
-        </MenuItem.Root>
+        />
     );
 }
 

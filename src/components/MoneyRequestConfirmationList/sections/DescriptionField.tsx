@@ -1,6 +1,6 @@
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import MenuItem from '@components/MenuItem';
-import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import TextInput from '@components/TextInput';
@@ -118,21 +118,14 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
                                 />
                             </View>
                         ) : (
-                            <MenuItem.Root
+                            <MenuItemFieldHTML
+                                name={translate('common.description')}
+                                value={iouComment ? Parser.replace(iouComment, {disabledRules: !policy ? ['reportMentions'] : []}) : undefined}
                                 isDisabled={didConfirm}
                                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
                             >
-                                <MenuItem.Row>
-                                    <MenuItemField.Content name={translate('common.description')}>
-                                        {!!iouComment && <MenuItem.FieldValueHTML>{Parser.replace(iouComment, {disabledRules: !policy ? ['reportMentions'] : []})}</MenuItem.FieldValueHTML>}
-                                    </MenuItemField.Content>
-                                    {!iouComment && isDescriptionRequired && (
-                                        <MenuItem.Trailing>
-                                            <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>
-                                        </MenuItem.Trailing>
-                                    )}
-                                </MenuItem.Row>
-                            </MenuItem.Root>
+                                {!iouComment && isDescriptionRequired && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
+                            </MenuItemFieldHTML>
                         )}
                     </MentionReportContext.Provider>
                 </ShowContextMenuActionsContext.Provider>

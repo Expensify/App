@@ -1,7 +1,7 @@
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -36,8 +36,6 @@ import {
     isPerDiemRequest,
     isTimeRequest,
 } from '@libs/TransactionUtils';
-
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -318,16 +316,11 @@ function SearchEditMultiplePage() {
                         onPress={isAmountDisabled ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_AMOUNT_RHP)}
                         isDisabled={isAmountDisabled}
                     />
-                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_DESCRIPTION_RHP))}>
-                        <MenuItem.Row>
-                            <MenuItemField.Content name={translate('common.description')}>
-                                {!!description && <MenuItem.FieldValueHTML>{Parser.replace(description)}</MenuItem.FieldValueHTML>}
-                            </MenuItemField.Content>
-                            <MenuItem.Trailing>
-                                <MenuItem.Chevron />
-                            </MenuItem.Trailing>
-                        </MenuItem.Row>
-                    </MenuItem.Root>
+                    <MenuItemFieldHTML
+                        name={translate('common.description')}
+                        value={description ? Parser.replace(description) : undefined}
+                        onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_DESCRIPTION_RHP)}
+                    />
                     <MenuItemField
                         name={translate('common.merchant')}
                         value={draftTransaction?.merchant}
