@@ -20,7 +20,6 @@ type MessageEditCancelButtonProps = ViewProps & {
     /** Handle clicking on cancel button */
     onCancel: () => void;
 
-    /** The test ID to use for the button */
     testID?: string;
 };
 

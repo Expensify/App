@@ -16,14 +16,19 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 import {View} from 'react-native';
 
+type ExpenseDefaultsSection = ValueOf<typeof CONST.POLICY.EXPENSE_DEFAULTS_SECTION>;
+
 type ExpenseDefaultTableItem = TableData & {
     ruleID: string;
-    isMerchantType: boolean;
+    section: ExpenseDefaultsSection;
     isRename: boolean;
     groupID?: string;
     typeLabel: string;
@@ -35,6 +40,18 @@ type ExpenseDefaultTableItem = TableData & {
     onCloseError?: () => void;
     action: () => void;
 };
+
+const SECTION_HEADER_TRANSLATION_KEYS = {
+    [CONST.POLICY.EXPENSE_DEFAULTS_SECTION.CATEGORIES]: 'workspace.rules.spendRules.categories',
+    [CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANTS]: 'workspace.rules.spendRules.merchants',
+    [CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANT_TYPES]: 'workspace.rules.spendRules.merchantTypes',
+} as const satisfies Record<ExpenseDefaultsSection, TranslationPaths>;
+
+const SECTION_SENTRY_LABELS = {
+    [CONST.POLICY.EXPENSE_DEFAULTS_SECTION.CATEGORIES]: CONST.SENTRY_LABEL.WORKSPACE.RULES.CATEGORY_TAX_RULE_ITEM,
+    [CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANTS]: CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_ITEM,
+    [CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANT_TYPES]: CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_TYPE_RULE_ITEM,
+} as const satisfies Record<ExpenseDefaultsSection, string>;
 
 type WorkspaceExpenseDefaultsTableRowProps = {
     item: ExpenseDefaultTableItem;
@@ -58,10 +75,12 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
     const badgeColors = item.isRename ? theme.reportStatusBadge.approved : theme.reportStatusBadge.draft;
 
     const prevItem = rowIndex > 0 ? processedData.at(rowIndex - 1) : undefined;
-    const hasMultipleSections = processedData.some((rule) => rule.isMerchantType) && processedData.some((rule) => !rule.isMerchantType);
-    const showSectionHeader = hasMultipleSections && (rowIndex === 0 || !!prevItem?.isMerchantType !== !!item.isMerchantType);
+    const isMerchantType = item.section === CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANT_TYPES;
+    // A single section stays a flat list. The headers only earn their place once there is more than one group to tell apart.
+    const hasMultipleSections = new Set(processedData.map((rule) => rule.section)).size > 1;
+    const showSectionHeader = hasMultipleSections && (rowIndex === 0 || prevItem?.section !== item.section);
 
-    const lockIcon = item.isMerchantType ? (
+    const lockIcon = isMerchantType ? (
         <Tooltip text={translate('workspace.rules.spendRules.defaultRulesCannotBeDeleted')}>
             <View>
                 <Icon
@@ -79,7 +98,7 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
             {!!showSectionHeader && (
                 <View style={[styles.mh5, styles.pv2, styles.ph3, StyleUtils.getBackgroundColorStyle(theme.hoverComponentBG), rowIndex === 0 ? styles.borderBottom : styles.borderTop]}>
                     <TextWithTooltip
-                        text={item.isMerchantType ? translate('workspace.rules.spendRules.merchantTypes') : translate('workspace.rules.spendRules.merchants')}
+                        text={translate(SECTION_HEADER_TRANSLATION_KEYS[item.section])}
                         style={[styles.textMicroBoldSupporting, styles.lh14]}
                     />
                 </View>
@@ -89,7 +108,7 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
                 rowIndex={rowIndex}
                 disabled={isDeleting}
                 accessibilityLabel={accessibilityLabel}
-                sentryLabel={item.isMerchantType ? CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_TYPE_RULE_ITEM : CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_ITEM}
+                sentryLabel={SECTION_SENTRY_LABELS[item.section]}
                 offlineWithFeedback={{
                     pendingAction: item.pendingAction,
                     shouldHideOnDelete: false,

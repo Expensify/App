@@ -3,7 +3,8 @@ import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import type useReportScrollManager from '@hooks/useReportScrollManager';
 
 import type {OpenReportActionParams} from '@libs/actions/Report';
-import {openReport, pruneReportActionPagesToNewestWindow, subscribeToNewActionEvent} from '@libs/actions/Report';
+import {openReport, pruneReportActionPagesToNewestWindow} from '@libs/actions/Report';
+import {subscribeToNewActionEvent} from '@libs/actions/Report/reportActionSubscribers';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -36,8 +37,9 @@ type RAMOnlyReportLoadingState = OnyxEntry<{
 type UseReportActionsNewActionLiveTailParams = {
     reportID: string;
     introSelected: OpenReportActionParams['introSelected'];
-    betas: OpenReportActionParams['betas'];
     conciergeChat: OpenReportActionParams['conciergeChat'];
+    isSelfTourViewed: OpenReportActionParams['isSelfTourViewed'];
+    hasCompletedGuidedSetupFlow: OpenReportActionParams['hasCompletedGuidedSetupFlow'];
     isOffline: boolean;
     reportScrollManager: ReportScrollManager;
     setIsFloatingMessageCounterVisible: (visible: boolean) => void;
@@ -67,7 +69,8 @@ function useReportActionsNewActionLiveTail({
     conciergeChat,
     reportID,
     introSelected,
-    betas,
+    isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
     isOffline,
     reportScrollManager,
     setIsFloatingMessageCounterVisible,
@@ -118,9 +121,10 @@ function useReportActionsNewActionLiveTail({
                             reportID,
                             introSelected,
                             conciergeChat,
-                            betas,
                             hasReportActions: true,
                             currentUserAccountID,
+                            isSelfTourViewed,
+                            hasCompletedGuidedSetupFlow,
                         });
                     }
                     return;

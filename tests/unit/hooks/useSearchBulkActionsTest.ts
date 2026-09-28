@@ -1,5 +1,6 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
@@ -111,7 +112,7 @@ jest.mock('@hooks/useConfirmModal', () => ({
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: () => false}),
+    default: () => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false}),
 }));
 
 jest.mock('@hooks/useSelfDMReport', () => ({
@@ -138,7 +139,6 @@ jest.mock('@hooks/usePaymentContext', () => ({
     __esModule: true,
     default: () => ({
         introSelected: undefined,
-        betas: undefined,
         isSelfTourViewed: false,
         activePolicyID: undefined,
         activePolicy: undefined,
@@ -231,6 +231,7 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
         reportID: 'report1',
         policyID: 'policy1',
         amount: 100,
+        displayAmount: 100,
         currency: 'USD',
         isFromOneTransactionReport: false,
         ...overrides,
@@ -239,6 +240,16 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
 
 function hasSearchFlatFilters(value: unknown): value is {flatFilters: SearchQueryJSON['flatFilters']} {
     return typeof value === 'object' && value !== null && 'flatFilters' in value && Array.isArray(value.flatFilters);
+}
+
+/**
+ * The export options take one of two shapes: normally they sit inside the Export entry's `subMenuItems`, but when
+ * Export is the only bulk action available the dropdown opens straight onto them, so they sit at the top level of
+ * `headerButtonsOptions` with the EXPORT value on each one.
+ */
+function getExportMenuItems(headerButtonsOptions: ReturnType<typeof useSearchBulkActions>['headerButtonsOptions']) {
+    const exportOptions = headerButtonsOptions.filter((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
+    return exportOptions.at(0)?.subMenuItems ?? exportOptions;
 }
 
 describe('useSearchBulkActions - CSV export flow', () => {
@@ -269,16 +280,14 @@ describe('useSearchBulkActions - CSV export flow', () => {
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
         mockExcludedTransactions = {tx2: makeSelectedTransaction()};
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
-        const exportOption = result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        expect(exportOption).toBeDefined();
-
-        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.basicExport')?.onSelected ?? exportOption?.onSelected;
+        const onSelected = getExportMenuItems(result.current.headerButtonsOptions).find((item) => item.text === 'export.currentView')?.onSelected;
+        expect(onSelected).toBeDefined();
 
         await act(async () => {
             onSelected?.();
@@ -300,14 +309,13 @@ describe('useSearchBulkActions - CSV export flow', () => {
             },
         };
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
-        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.currentView')?.onSelected ?? exportOption?.onSelected;
+        const onSelected = getExportMenuItems(result.current.headerButtonsOptions).find((item) => item.text === 'export.currentView')?.onSelected;
 
         await act(async () => {
             onSelected?.();
@@ -353,14 +361,13 @@ describe('useSearchBulkActions - CSV export flow', () => {
             },
         };
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: filteredGroupedExpenseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: filteredGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
-        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.currentView')?.onSelected ?? exportOption?.onSelected;
+        const onSelected = getExportMenuItems(result.current.headerButtonsOptions).find((item) => item.text === 'export.currentView')?.onSelected;
 
         await act(async () => {
             onSelected?.();
@@ -393,14 +400,13 @@ describe('useSearchBulkActions - CSV export flow', () => {
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
         mockExcludedTransactions = {[excludedGroupKey]: makeSelectedTransaction()};
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
-        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.currentView')?.onSelected ?? exportOption?.onSelected;
+        const onSelected = getExportMenuItems(result.current.headerButtonsOptions).find((item) => item.text === 'export.currentView')?.onSelected;
 
         await act(async () => {
             onSelected?.();
@@ -414,36 +420,37 @@ describe('useSearchBulkActions - CSV export flow', () => {
         mockSelectedTransactions = {};
         mockExcludedTransactions = {tx1: makeSelectedTransaction()};
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)).toBe(true);
         });
     });
 
-    it('keeps the original expense-report export guard when no loaded transaction is selected', async () => {
+    it('keeps expense-report export available when unloaded matching reports remain selected', async () => {
         mockAreAllMatchingItemsSelected = true;
         mockSelectedTransactions = {};
         mockExcludedTransactions = {tx1: makeSelectedTransaction()};
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
-        expect(result.current.headerButtonsOptions).toEqual([]);
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)).toBe(true);
+        });
     });
 
-    it('does not send exclusions for an expense-report export', async () => {
+    it('excludes a deselected report from an all-matching expense-report export query', async () => {
         mockAreAllMatchingItemsSelected = true;
-        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
-        mockExcludedTransactions = {tx2: makeSelectedTransaction()};
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({reportID: 'report1'})};
+        mockExcludedTransactions = {tx2: makeSelectedTransaction({reportID: 'report2'})};
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
-        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.basicExport')?.onSelected ?? exportOption?.onSelected;
+        const onSelected = getExportMenuItems(result.current.headerButtonsOptions).find((item) => item.text === 'export.currentView')?.onSelected;
 
         await act(async () => {
             onSelected?.();
@@ -452,13 +459,22 @@ describe('useSearchBulkActions - CSV export flow', () => {
         const exportPayload = mockQueueExportSearchItemsToCSV.mock.calls.at(-1)?.at(0);
         expect(exportPayload).toBeDefined();
         expect(exportPayload).not.toHaveProperty('excludedTransactionIDList');
+        expect(exportPayload?.jsonQuery).toContain('-reportID:report2');
+        const exportQueryJSON: unknown = JSON.parse(exportPayload?.jsonQuery ?? '{}');
+        if (!hasSearchFlatFilters(exportQueryJSON)) {
+            throw new Error('Expected the exported query to contain flat filters');
+        }
+        expect(exportQueryJSON.flatFilters).toContainEqual({
+            key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+            filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: 'report2'}],
+        });
     });
 
     it('handleBasicExport with manual selection does not track any export', async () => {
         mockAreAllMatchingItemsSelected = false;
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
@@ -475,14 +491,13 @@ describe('useSearchBulkActions - CSV export flow', () => {
             defaultTemplates: [],
         });
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
-        const exportOption = result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        const templateSubItem = exportOption?.subMenuItems?.find((item) => item.text !== 'export.basicExport' && item.text !== 'export.currentView');
+        const templateSubItem = getExportMenuItems(result.current.headerButtonsOptions).find((item) => item.text !== 'export.basicExport' && item.text !== 'export.currentView');
 
         expect(templateSubItem).toBeDefined();
         act(() => {
@@ -510,14 +525,13 @@ describe('useSearchBulkActions - CSV export flow', () => {
             ],
         });
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
-        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        const exportItems = exportOption?.subMenuItems ?? [];
+        const exportItems = getExportMenuItems(result.current.headerButtonsOptions);
 
         expect(exportItems.some((item) => item.text === 'Custom template')).toBe(false);
         expect(exportItems.some((item) => item.text === 'Default template')).toBe(false);

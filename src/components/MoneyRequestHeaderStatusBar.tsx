@@ -14,7 +14,6 @@ type MoneyRequestHeaderStatusBarProps = {
     /** Banner Description */
     description: string | ReactElement;
 
-    /** Whether we style flex grow */
     shouldStyleFlexGrow?: boolean;
 };
 

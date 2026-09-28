@@ -1,9 +1,10 @@
 import Log from '@libs/Log';
-import Navigation from '@libs/Navigation/Navigation';
+import getActiveRoute from '@libs/Navigation/helpers/getActiveRoute';
 
 import type {Route} from '@src/ROUTES';
 
 import isDynamicRouteSuffix from './isDynamicRouteSuffix';
+import joinPathSegments from './joinPathSegments';
 import splitPathAndQuery from './splitPathAndQuery';
 
 /**
@@ -50,13 +51,16 @@ const combinePathAndSuffix = (basePath: string, suffixWithQuery: string): Route 
         return suffixWithQuery as Route;
     }
 
-    const combinedPath = normalizedBasePath === '/' ? `/${suffixPath}` : `${normalizedBasePath}/${suffixPath}`;
+    const combinedPath = joinPathSegments(normalizedBasePath, `${suffixPath}`);
     const mergedQuery = mergeQueryStrings(baseQuery, suffixQuery);
 
     return `${combinedPath}${mergedQuery}` as Route;
 };
 
 /** Adds dynamic route name (with optional query params) to the current URL and returns it
+ *
+ * Without `basePath` this resolves against whatever route is active when it runs, which is only correct at
+ * interaction time. For a route built during render and followed later, use `useScreenBoundDynamicRoute`.
  *
  * @param dynamicRouteSuffixWithParams - The dynamic route suffix with optional query params
  * @param basePath - The base path to use for the dynamic route
@@ -70,7 +74,7 @@ const createDynamicRoute = (dynamicRouteSuffixWithParams: string, basePath?: str
         throw new Error(`The route name ${suffixPath} is not supported in createDynamicRoute`);
     }
 
-    const routePath = basePath ?? Navigation.getActiveRoute();
+    const routePath = basePath ?? getActiveRoute();
     return combinePathAndSuffix(routePath, dynamicRouteSuffixWithParams);
 };
 

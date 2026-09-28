@@ -31,30 +31,6 @@ function formatDefaultTaxRateText(translate: LocaleContextProps['translate'], ta
     return `${taxRateText}${suffix ? ` ${CONST.DOT_SEPARATOR} ${suffix}` : ``}`;
 }
 
-function formatRequireReceiptsOverText(
-    translate: LocaleContextProps['translate'],
-    policy: Policy,
-    categoryMaxAmountNoReceipt: number | null | undefined,
-    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
-) {
-    const isAlwaysSelected = categoryMaxAmountNoReceipt === 0;
-    const isNeverSelected = categoryMaxAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
-
-    if (isAlwaysSelected) {
-        return translate(`workspace.rules.categoryRules.requireReceiptsOverList.always`);
-    }
-
-    if (isNeverSelected) {
-        return translate(`workspace.rules.categoryRules.requireReceiptsOverList.never`);
-    }
-
-    if (policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || policy?.maxExpenseAmountNoReceipt === undefined) {
-        return translate(`workspace.rules.categoryRules.requireReceiptsOverList.never`);
-    }
-
-    return translate(`workspace.rules.categoryRules.requireReceiptsOverList.default`, convertToDisplayString(policy.maxExpenseAmountNoReceipt, policy?.outputCurrency ?? CONST.CURRENCY.USD));
-}
-
 function formatRequireItemizedReceiptsOverText(
     translate: LocaleContextProps['translate'],
     policy: Policy,
@@ -97,7 +73,10 @@ function getCategoryExpenseRule(expenseRules: ExpenseRule[], categoryName: strin
 }
 
 function getCategoryDefaultTaxRate(expenseRules: ExpenseRule[], categoryName: string, defaultTaxRate?: string) {
-    const categoryDefaultTaxRate = expenseRules?.find((rule) => rule.applyWhen.some((when) => when.value === categoryName))?.tax?.field_id_TAX?.externalID;
+    // Matched the same way the rules are written: on a `category matches <name>` condition rather than on the value
+    // alone. Matching any condition carrying the name could read a rule that a save or delete never targets, so the
+    // rate an expense picks up would not be the one the admin set.
+    const categoryDefaultTaxRate = getCategoryExpenseRule(expenseRules, categoryName)?.tax?.field_id_TAX?.externalID;
 
     // If the default taxRate is not found in expenseRules, use the default value for policy
     if (!categoryDefaultTaxRate) {
@@ -246,10 +225,8 @@ function hasAnyCategoryRules(categories: PolicyCategories | undefined): boolean 
 
 export {
     formatDefaultTaxRateText,
-    formatRequireReceiptsOverText,
     formatRequireItemizedReceiptsOverText,
     getCategoryApproverRule,
-    getCategoryExpenseRule,
     getCategoryDefaultTaxRate,
     updateCategoryInMccGroup,
     getEnabledCategoriesCount,

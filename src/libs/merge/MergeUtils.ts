@@ -1,8 +1,10 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type useConfirmModal from '@hooks/useConfirmModal';
 
 import DateUtils from '@libs/DateUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -42,13 +44,31 @@ function hasMergeSyncError(policy: OnyxEntry<Policy>, connectionName: MergeConne
 }
 
 /** Returns the given Merge connection's finalApprover when it is in basic or advanced (manager) approval mode, or null otherwise. */
-function getMergeFinalApprover(policy: OnyxEntry<Policy>, connectionName: MergeConnectionName): string | null {
+function getMergeFinalApprover(policy: OnyxEntry<Policy>, connectionName: MergeConnectionName): string | undefined {
     const config = policy?.connections?.[connectionName]?.config;
-    if ((config?.approvalMode === CONST.MERGE.APPROVAL_MODE.BASIC || config?.approvalMode === CONST.MERGE.APPROVAL_MODE.MANAGER) && config?.finalApprover) {
-        return config.finalApprover;
+    if (config?.approvalMode === CONST.MERGE.APPROVAL_MODE.CUSTOM || !config?.finalApprover) {
+        return;
     }
 
-    return null;
+    return config.finalApprover;
+}
+
+function getMergeFinalApproverDisplayName(
+    finalApprover: string | undefined | null,
+    policyEmployeePersonalDetails: PersonalDetailsByLogin,
+    translate: LocaleContextProps['translate'],
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): string {
+    if (!finalApprover) {
+        return translate('workspace.merge.notSet');
+    }
+    return temporaryGetDisplayNameOrDefault({
+        passedPersonalDetails: policyEmployeePersonalDetails[finalApprover],
+        defaultValue: finalApprover,
+        shouldFallbackToHidden: false,
+        translate,
+        formatPhoneNumber,
+    });
 }
 
 /**
@@ -92,6 +112,7 @@ function showMergeManualSyncLimitModalIfReached(
 
 export {
     getMergeFinalApprover,
+    getMergeFinalApproverDisplayName,
     hasMergeAuthenticationError,
     hasMergeSyncError,
     isMergeConnected,

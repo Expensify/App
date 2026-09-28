@@ -6,7 +6,7 @@ import AttachmentView, {checkIsFileImage} from '@components/Attachments/Attachme
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
@@ -214,7 +214,7 @@ function AttachmentModalBaseContent({
 
     const {isAttachmentLoaded} = useContext(AttachmentStateContext);
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
-    const isFileImage = typeof source !== 'function' && checkIsFileImage(source, fileToDisplay?.name);
+    const isFileImage = typeof source !== 'function' && checkIsFileImage(source, fileToDisplay?.name, fileToDisplay?.type);
     const isSourceLoaded = isAttachmentLoaded?.(source) || (!!currentPreviewSource && isAttachmentLoaded?.(currentPreviewSource));
     const shouldShowDownloadButton = useMemo(() => {
         const isValidContext = !isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH || shouldAllowDownloadOutsideReportContext;

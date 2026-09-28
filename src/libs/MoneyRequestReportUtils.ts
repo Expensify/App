@@ -4,11 +4,12 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportLoadingState, Transaction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {hasDeferredWriteForReport} from './deferredLayoutWrite';
+import {hasPendingSubmitWriteForReport} from './pendingSubmitWrite';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
 import {
@@ -95,6 +96,11 @@ function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>,
             return true;
         }
 
+        // A reject the server refused leaves the expense on the report with an error the user has to dismiss.
+        if (!isEmptyObject(transaction.errorFields?.reject ?? {})) {
+            return true;
+        }
+
         const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
         if (!action && includeOrphanedTransactions) {
             return true;
@@ -151,10 +157,10 @@ function shouldWaitForTransactions(
 
     const isTransactionDataReady = transactions !== undefined;
     const isTransactionThreadView = isReportTransactionThread(report);
-    // Scope the dismiss-write check to *this* report so an unrelated submit flow that's
-    // mid-dismiss doesn't make every empty money-request/invoice report look like it's loading.
-    const hasPendingDismissWrite = hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, report?.reportID);
-    const isStillLoadingData = transactions?.length === 0 && ((isReportLoadPending && !reportLoadingState?.hasOnceLoadedReportActions) || report?.total !== 0 || hasPendingDismissWrite);
+    // Scope the pending-submit-write check to *this* report so an unrelated submit flow that's
+    // mid-submit doesn't make every empty money-request/invoice report look like it's loading.
+    const hasPendingSubmitWrite = hasPendingSubmitWriteForReport(report?.reportID);
+    const isStillLoadingData = transactions?.length === 0 && ((isReportLoadPending && !reportLoadingState?.hasOnceLoadedReportActions) || report?.total !== 0 || hasPendingSubmitWrite);
     return (
         (isMoneyRequestReport(report) || isInvoiceReport(report)) &&
         (!isTransactionDataReady || isStillLoadingData) &&

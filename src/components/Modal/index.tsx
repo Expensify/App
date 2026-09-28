@@ -61,8 +61,9 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     const [previousStatusBarColor, setPreviousStatusBarColor] = useState<string>();
 
     const webAnimation = getWebModalAnimation(type, isSmallScreenWidth);
+    const defaultStatusBarColor = theme.appBG;
 
-    const setStatusBarColor = (color = theme.appBG) => {
+    const setStatusBarColor = (color = defaultStatusBarColor) => {
         if (!fullscreen) {
             return;
         }

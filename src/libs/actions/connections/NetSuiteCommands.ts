@@ -813,6 +813,16 @@ function updateNetSuiteExportToNextOpenPeriod(policyID: string, value: boolean, 
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_EXPORT_TO_NEXT_OPEN_PERIOD, parameters, onyxData);
 }
 
+function updateNetSuiteSplitExportsByPostingPeriod(policyID: string, value: boolean, oldValue: boolean) {
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.SPLIT_EXPORTS_BY_POSTING_PERIOD, value, oldValue);
+
+    const parameters = {
+        policyID,
+        enabled: value,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_SPLIT_EXPORTS_BY_POSTING_PERIOD, parameters, onyxData);
+}
+
 function updateNetSuiteAutoSync(policyID: string | undefined, value: boolean) {
     if (!policyID) {
         return;
@@ -1043,6 +1053,16 @@ function updateNetSuiteApprovalAccount(policyID: string, value: string, oldValue
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_APPROVAL_ACCOUNT, parameters, onyxData);
 }
 
+function updateNetSuiteFxExpenseAccount(policyID: string, value: string, oldValue?: string) {
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.FX_EXPENSE_ACCOUNT, value, oldValue);
+
+    const parameters = {
+        policyID,
+        value,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_FX_EXPENSE_ACCOUNT, parameters, onyxData);
+}
+
 function updateNetSuiteCustomFormIDOptions(
     policyID: string,
     value: string,
@@ -1113,6 +1133,7 @@ export {
     updateNetSuiteProvincialTaxPostingAccount,
     updateNetSuiteAllowForeignCurrency,
     updateNetSuiteExportToNextOpenPeriod,
+    updateNetSuiteSplitExportsByPostingPeriod,
     updateNetSuiteImportMapping,
     updateNetSuiteCrossSubsidiaryCustomersConfiguration,
     updateNetSuiteCustomSegments,
@@ -1129,6 +1150,7 @@ export {
     updateNetSuiteExportVendorBillsTo,
     updateNetSuiteExportJournalsTo,
     updateNetSuiteApprovalAccount,
+    updateNetSuiteFxExpenseAccount,
     updateNetSuiteCustomFormIDOptions,
     updateNetSuiteCustomersJobsMapping,
     updateNetSuiteAccountingMethod,
