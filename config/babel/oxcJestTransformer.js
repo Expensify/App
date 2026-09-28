@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
+const remapping = require('@jridgewell/remapping');
 const babelJest = require('babel-jest');
 const oxcReactCompilerConfig = require('./oxcReactCompilerConfig');
 
@@ -120,11 +121,15 @@ function processWithOxc(sourceText, sourcePath) {
         sourcemap: true,
     });
 
-    return {code: patchEsbuildHelpers(cjs.code, sourcePath), map: cjs.map};
+    // esbuild's map points at OXC's output, so chain it onto OXC's map to reach the original file.
+    const map = remapping([cjs.map, oxcResult.map], () => null).toString();
+
+    return {code: patchEsbuildHelpers(cjs.code, sourcePath), map};
 }
 
 module.exports = {
-    canInstrument: false,
+    // Coverage runs go to babel-jest, which instruments them itself, so Jest must not instrument again.
+    canInstrument: true,
     getCacheKey(sourceText, sourcePath, transformOptions) {
         if (!shouldUseOxc(sourcePath, transformOptions)) {
             return babelTransformer.getCacheKey(sourceText, sourcePath, transformOptions);
