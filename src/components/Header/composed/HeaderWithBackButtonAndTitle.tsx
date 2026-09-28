@@ -13,48 +13,21 @@ import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 type HeaderWithBackButtonAndTitleProps = Partial<ChildrenProps> & {
     title?: string;
-    subtitle?: string;
-    subTitleLink?: string;
     style?: StyleProp<ViewStyle>;
     titleStyles?: StyleProp<TextStyle>;
     onBackButtonPress?: () => void;
 
     /** Whether to use the taller headline style bar with the larger title font. */
     isHeadline?: boolean;
-
-    /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'. */
-    backIconFill?: string;
-
-    /** Whether to skip focus of the first interactive element inside the header after the RHP transition for screen reader announcement.  */
-    shouldSkipFocusAfterTransition?: boolean;
 };
 
-function HeaderWithBackButtonAndTitle({
-    children,
-    backIconFill,
-    onBackButtonPress,
-    isHeadline = false,
-    subtitle = '',
-    title = '',
-    titleStyles,
-    style,
-    subTitleLink = '',
-    shouldSkipFocusAfterTransition = false,
-}: HeaderWithBackButtonAndTitleProps) {
+function HeaderWithBackButtonAndTitle({children, onBackButtonPress, isHeadline = false, title = '', titleStyles, style}: HeaderWithBackButtonAndTitleProps) {
     return (
-        <Header
-            style={style}
-            shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
-        >
-            <HeaderBackButton
-                onPress={onBackButtonPress}
-                iconFill={backIconFill}
-            />
+        <Header style={style}>
+            <HeaderBackButton onPress={onBackButtonPress} />
             <HeaderTitle
                 title={title}
-                subtitle={subtitle}
                 titleStyles={titleStyles}
-                subTitleLink={subTitleLink}
                 isHeadline={isHeadline}
             />
             <HeaderRight>{children}</HeaderRight>
