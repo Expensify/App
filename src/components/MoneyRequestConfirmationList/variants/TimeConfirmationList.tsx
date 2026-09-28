@@ -1,4 +1,3 @@
-import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import ConfirmationListLayout from '@components/MoneyRequestConfirmationList/ConfirmationListLayout';
 import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
 import useConfirmationListData from '@components/MoneyRequestConfirmationList/hooks/useConfirmationListData';
@@ -6,7 +5,6 @@ import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestCo
 import TimeFooter from '@components/MoneyRequestConfirmationListFooter/variants/TimeFooter';
 
 import React from 'react';
-import {View} from 'react-native';
 
 /**
  * Confirms a time expense being created.
@@ -17,25 +15,14 @@ import {View} from 'react-native';
 function TimeConfirmationList(props: MoneyRequestConfirmationListProps) {
     const data = useConfirmationListData({...props, isTimeRequest: true});
 
-    const listFooterContent = (
-        <ConfirmationFieldsProvider
-            {...data.confirmationFieldsProviderProps}
-            isTimeRequest
-        >
-            <View>
-                <TimeFooter {...data.footerProps} />
-            </View>
-        </ConfirmationFieldsProvider>
-    );
-
     return (
-        <>
+        <ConfirmationListLayout
+            {...data.layoutProps}
+            fieldFlags={{isTimeRequest: true}}
+            listFooterContent={<TimeFooter {...data.footerProps} />}
+        >
             <FieldAutoSelector {...data.fieldAutoSelectProps} />
-            <ConfirmationListLayout
-                {...data.layoutProps}
-                listFooterContent={listFooterContent}
-            />
-        </>
+        </ConfirmationListLayout>
     );
 }
 

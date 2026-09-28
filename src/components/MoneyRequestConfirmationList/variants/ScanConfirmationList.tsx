@@ -1,4 +1,3 @@
-import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import ConfirmationListLayout from '@components/MoneyRequestConfirmationList/ConfirmationListLayout';
 import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
 import useConfirmationListData, {INLINE_FIELD_ERROR_KEYS} from '@components/MoneyRequestConfirmationList/hooks/useConfirmationListData';
@@ -8,17 +7,14 @@ import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestCo
 import ScanFooter from '@components/MoneyRequestConfirmationListFooter/variants/ScanFooter';
 
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 
 /**
  * Confirms a scanned expense. The only variant that reaches the compact layout, where the receipt fills the
  * screen and the optional fields collapse behind a show-more button, so it owns that state.
  */
 function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
-    const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
 
     const [showMoreFields, setShowMoreFields] = useState(false);
@@ -39,32 +35,23 @@ function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
 
     const isCompactMode = !showMoreFields && !isInLandscapeMode;
 
-    const listFooterContent = (
-        <ConfirmationFieldsProvider
-            {...data.confirmationFieldsProviderProps}
-            isScanRequest
-        >
-            <View style={isCompactMode ? styles.flex1 : undefined}>
+    return (
+        <ConfirmationListLayout
+            {...data.layoutProps}
+            fieldFlags={{isScanRequest: true}}
+            isCompactMode={isCompactMode}
+            listFooterContent={
                 <ScanFooter
                     {...data.footerProps}
                     isCompactMode={isCompactMode}
                     compactControls={{showMoreFields, setShowMoreFields}}
                 />
-            </View>
-        </ConfirmationFieldsProvider>
-    );
-
-    return (
-        <>
+            }
+        >
             <TaxController {...data.taxControllerProps} />
             <SplitBillController {...data.splitBillControllerProps} />
             <FieldAutoSelector {...data.fieldAutoSelectProps} />
-            <ConfirmationListLayout
-                {...data.layoutProps}
-                isCompactMode={isCompactMode}
-                listFooterContent={listFooterContent}
-            />
-        </>
+        </ConfirmationListLayout>
     );
 }
 

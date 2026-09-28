@@ -1,4 +1,3 @@
-import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import ConfirmationListLayout from '@components/MoneyRequestConfirmationList/ConfirmationListLayout';
 import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
 import useConfirmationListData from '@components/MoneyRequestConfirmationList/hooks/useConfirmationListData';
@@ -8,7 +7,6 @@ import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestCo
 import ManualFooter from '@components/MoneyRequestConfirmationListFooter/variants/ManualFooter';
 
 import React from 'react';
-import {View} from 'react-native';
 
 /**
  * Confirms a manually entered expense.It also serves pay, per diem being moved off a track expense,
@@ -19,28 +17,16 @@ function ManualConfirmationList(props: MoneyRequestConfirmationListProps) {
 
     const data = useConfirmationListData(props);
 
-    const listFooterContent = (
-        <ConfirmationFieldsProvider
-            {...data.confirmationFieldsProviderProps}
-            isPerDiemRequest={isPerDiemRequest}
-            isTimeRequest={isTimeRequest}
-        >
-            <View>
-                <ManualFooter {...data.footerProps} />
-            </View>
-        </ConfirmationFieldsProvider>
-    );
-
     return (
-        <>
+        <ConfirmationListLayout
+            {...data.layoutProps}
+            fieldFlags={{isPerDiemRequest, isTimeRequest}}
+            listFooterContent={<ManualFooter {...data.footerProps} />}
+        >
             <TaxController {...data.taxControllerProps} />
             <SplitBillController {...data.splitBillControllerProps} />
             <FieldAutoSelector {...data.fieldAutoSelectProps} />
-            <ConfirmationListLayout
-                {...data.layoutProps}
-                listFooterContent={listFooterContent}
-            />
-        </>
+        </ConfirmationListLayout>
     );
 }
 

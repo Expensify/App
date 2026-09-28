@@ -1,3 +1,5 @@
+import type {ProviderProps} from '@components/MoneyRequestConfirmationFields/Provider';
+import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
@@ -5,15 +7,22 @@ import type {Section, SelectionListWithSectionsHandle} from '@components/Selecti
 import {MouseProvider} from '@hooks/useMouseContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {RefObject} from 'react';
+import type {ReactNode, RefObject} from 'react';
 
 import React from 'react';
+import {View} from 'react-native';
 
 import type {ConfirmationFooterContentProps} from './ConfirmationFooterContent';
 import type {MoneyRequestConfirmationListItem} from './types';
 
 import ConfirmationFooterContent from './ConfirmationFooterContent';
 import ConfirmationTelemetry from './ConfirmationTelemetry';
+
+/** The expense-type flags a variant sets on `ConfirmationFieldsProvider`. Everything else on it is shared and comes from the hook. */
+type ConfirmationFieldFlags = Pick<
+    ProviderProps,
+    'isScanRequest' | 'isDistanceRequest' | 'isPerDiemRequest' | 'isTimeRequest' | 'isTypeInvoice' | 'isManualDistanceRequest' | 'isOdometerDistanceRequest' | 'isGPSDistanceRequest'
+>;
 
 type ConfirmationListLayoutProps = {
     /** ID of the transaction being confirmed. Closes the list-ready telemetry span once it is available. */
@@ -28,8 +37,22 @@ type ConfirmationListLayoutProps = {
     /** Read-only list: no confirm button */
     isReadOnly: boolean;
 
-    /** The expense fields for the type being confirmed */
+    /** The footer for the expense type, rendered inside the fields context below the participant rows */
     listFooterContent: React.JSX.Element | null | undefined;
+
+    /** Inputs of the fields context that are the same for every expense type */
+    confirmationFieldsProviderProps: Omit<ProviderProps, keyof ConfirmationFieldFlags | 'children'>;
+
+    /** The expense-type flags a variant sets on the fields context */
+    fieldFlags?: ConfirmationFieldFlags;
+
+    /**
+     * Side-effect controllers. They render before the list on purpose: their effects flush before the footer fields'
+     * effects, so for example `TaxController` seeds `taxCode`/`taxAmount` before `TaxFields` reads them. They are
+     * components rather than hooks in the variant because a hook's effect would run after the children's, and because
+     * fields can be unmounted (the compact scan layout hides them behind "Show more") while the seeding must still run.
+     */
+    children?: ReactNode;
 
     /** Whether the receipt is shown with the fields collapsed behind "Show more". Only a scan expense reaches this. */
     isCompactMode?: boolean;
@@ -53,6 +76,9 @@ function ConfirmationListLayout({
     listRef,
     isReadOnly,
     listFooterContent,
+    confirmationFieldsProviderProps,
+    fieldFlags,
+    children,
     isCompactMode = false,
     onSelectRow,
     onDismissError,
@@ -64,6 +90,15 @@ function ConfirmationListLayout({
     // `undefined` rather than a footer that renders nothing.
     const footerContent = isReadOnly ? undefined : <ConfirmationFooterContent {...footerContentProps} />;
 
+    const fieldsContent = (
+        <ConfirmationFieldsProvider
+            {...confirmationFieldsProviderProps}
+            {...fieldFlags}
+        >
+            <View style={isCompactMode ? styles.flex1 : undefined}>{listFooterContent}</View>
+        </ConfirmationFieldsProvider>
+    );
+
     const selectionListStyle = {
         containerStyle: [styles.flexBasisAuto],
         contentContainerStyle: isCompactMode ? [styles.flexGrow1] : undefined,
@@ -72,6 +107,8 @@ function ConfirmationListLayout({
 
     return (
         <MouseProvider>
+            {/* Controllers go before the list so their effects run before the fields' effects */}
+            {children}
             <ConfirmationTelemetry transactionID={transactionID} />
             <SelectionListWithSections<MoneyRequestConfirmationListItem>
                 ref={listRef}
@@ -83,7 +120,7 @@ function ConfirmationListLayout({
                 shouldPreventDefaultFocusOnSelectRow
                 shouldShowListEmptyContent={false}
                 footerContent={footerContent}
-                listFooterContent={listFooterContent}
+                listFooterContent={fieldsContent}
                 style={selectionListStyle}
                 disableKeyboardShortcuts
             />
@@ -92,3 +129,4 @@ function ConfirmationListLayout({
 }
 
 export default ConfirmationListLayout;
+export type {ConfirmationFieldFlags, ConfirmationListLayoutProps};

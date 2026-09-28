@@ -290,7 +290,7 @@ function useConfirmationListDataWithPolicy({
     const errorState = {shouldDisplayFieldError, formError, clearFormErrors, setFormError};
 
     return {
-        /** Handed straight to `ConfirmationListLayout`. Only `listFooterContent` differs per expense type. */
+        /** Handed straight to `ConfirmationListLayout`. The variant adds its `listFooterContent`, its `fieldFlags`, and its controllers as children. */
         layoutProps: {
             transactionID,
             sections,
@@ -320,27 +320,27 @@ function useConfirmationListDataWithPolicy({
                 isPerDiemRequest,
                 isDistanceRequestWithPendingRoute,
             },
-        },
 
-        /**
-         * The `ConfirmationFieldsProvider` props that are the same for every expense type. A variant spreads these
-         * and adds only the expense-type flags (`isScanRequest`, `isDistanceRequest`, etc.) that are true for it.
-         */
-        confirmationFieldsProviderProps: {
-            transactionID,
-            reportID,
-            reportActionID,
-            action,
-            iouType,
-            policyID,
-            isReadOnly,
-            didConfirm: !!didConfirm,
-            canEnterScanFieldsManually,
-            isPolicyExpenseChat,
-            isEditingSplitBill,
-            scrollFocusedInputIntoView,
-            onSubmitForm: confirm,
-            onTaxAmountEmptyChange: setIsTaxAmountEmpty,
+            /**
+             * The `ConfirmationFieldsProvider` props that are the same for every expense type. `ConfirmationListLayout` spreads
+             * these and adds the variant's `fieldFlags` (`isScanRequest`, `isDistanceRequest`, etc.).
+             */
+            confirmationFieldsProviderProps: {
+                transactionID,
+                reportID,
+                reportActionID,
+                action,
+                iouType,
+                policyID,
+                isReadOnly,
+                didConfirm: !!didConfirm,
+                canEnterScanFieldsManually,
+                isPolicyExpenseChat,
+                isEditingSplitBill,
+                scrollFocusedInputIntoView,
+                onSubmitForm: confirm,
+                onTaxAmountEmptyChange: setIsTaxAmountEmpty,
+            },
         },
 
         /** The props every variant's footer takes. A variant spreads these and adds only its footer-specific extras. */

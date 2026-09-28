@@ -1,4 +1,3 @@
-import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import ConfirmationListLayout from '@components/MoneyRequestConfirmationList/ConfirmationListLayout';
 import DistanceRequestController from '@components/MoneyRequestConfirmationList/DistanceRequestController';
 import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
@@ -14,7 +13,6 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getCreated, getRateID, isGPSDistanceRequest as isGPSDistanceRequestUtil, isManualDistanceRequest as isManualDistanceRequestUtil} from '@libs/TransactionUtils';
 
 import React from 'react';
-import {View} from 'react-native';
 
 /**
  * Confirms a distance expense, for all three of its shapes: a mapped route, a manually entered distance, and an
@@ -75,20 +73,12 @@ function DistanceConfirmationList(props: MoneyRequestConfirmationListProps) {
         );
     };
 
-    const listFooterContent = (
-        <ConfirmationFieldsProvider
-            {...data.confirmationFieldsProviderProps}
-            isDistanceRequest
-            isManualDistanceRequest={isManualDistanceRequest}
-            isOdometerDistanceRequest={isOdometerDistanceRequest}
-            isGPSDistanceRequest={isGPSDistanceRequest}
-        >
-            <View>{renderFooter()}</View>
-        </ConfirmationFieldsProvider>
-    );
-
     return (
-        <>
+        <ConfirmationListLayout
+            {...data.layoutProps}
+            fieldFlags={{isDistanceRequest: true, isManualDistanceRequest, isOdometerDistanceRequest, isGPSDistanceRequest}}
+            listFooterContent={renderFooter()}
+        >
             <TaxController
                 {...data.taxControllerProps}
                 distanceState={distanceState}
@@ -99,11 +89,7 @@ function DistanceConfirmationList(props: MoneyRequestConfirmationListProps) {
             />
             <SplitBillController {...data.splitBillControllerProps} />
             <FieldAutoSelector {...data.fieldAutoSelectProps} />
-            <ConfirmationListLayout
-                {...data.layoutProps}
-                listFooterContent={listFooterContent}
-            />
-        </>
+        </ConfirmationListLayout>
     );
 }
 
