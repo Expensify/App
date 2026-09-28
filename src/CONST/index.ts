@@ -1142,6 +1142,7 @@ const CONST = {
         REPORT_MERGE: 'reportMerge',
         INSIGHTS_PAGE: 'insightsPage',
         INSIGHTS_COMPARE: 'insightsCompare',
+        NL_FILTERS: 'nlFilters',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',

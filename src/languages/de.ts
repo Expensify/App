@@ -9783,6 +9783,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 },
                 customDay: 'Benutzerdefinierter Tag',
             },
+            describeSearch: {
+                title: 'Describe your search',
+                description: "Describe what expenses you want to see in plain English, and we'll apply the right filters automatically.",
+                inputLabel: 'Describe your search',
+                buttonText: 'Apply',
+            },
             status: 'Status',
             keyword: 'Schlüsselwort',
             keywords: 'Schlüsselwörter',

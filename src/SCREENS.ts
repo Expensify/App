@@ -50,6 +50,7 @@ const SCREENS = {
         COLUMNS_RHP: 'Search_Columns_RHP',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
         ADVANCED_FILTERS_CONTENT_RHP: 'Search_Advanced_Filters_Content_RHP',
+        NL_FILTER_RHP: 'Search_NL_Filter_RHP',
         SAVED_SEARCH_RENAME_RHP: 'Search_Saved_Search_Rename_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
         TRANSACTION_HOLD_REASON_SEARCH: 'Search_Transaction_Hold_Reason_Search',
