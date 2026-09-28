@@ -19,13 +19,13 @@ type ButtonStateContextValue = {
     /** Whether the Button is disabled — `ButtonKeyboardShortcut` uses it to block the Enter shortcut. */
     isDisabled: boolean;
 
-    /** Whether the Button is loading (external or from the immediate-press mechanism) — `ButtonKeyboardShortcut` uses it to block the Enter shortcut. */
+    /** Whether the Button is loading, either external or from the immediate-press mechanism. `ButtonKeyboardShortcut` uses it to block the Enter shortcut. */
     isLoading: boolean;
 };
 
 /** Actions (functions) published by the parent `Button`, consumed via `useButtonActions` */
 type ButtonActionsContextValue = {
-    /** The Button's press handler — `ButtonKeyboardShortcut` fires it when Enter is pressed. */
+    /** The Button's press handler. `ButtonKeyboardShortcut` fires it when Enter is pressed. */
     onPress: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 };
 

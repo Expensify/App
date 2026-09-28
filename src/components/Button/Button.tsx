@@ -73,7 +73,7 @@ function Button({
         return onPress(event, startWithLoading);
     };
 
-    // Entry point for a pointer press: drops focus from the pressed element and fires haptic feedback before the shared press logic.
+    // Entry point for a pointer press
     const handlePress = (event?: GestureResponderEvent | KeyboardEvent) => {
         if (event?.type === 'click' && event.currentTarget instanceof HTMLElement) {
             event.currentTarget.blur();
@@ -86,7 +86,7 @@ function Button({
         return runPress(event);
     };
 
-    // Entry point for the Enter shortcut: same press logic as a pointer press, without the mouse-only blur and haptic feedback.
+    // Entry point for the Enter shortcut
     const handleEnterPress = () => runPress();
 
     const buttonVariantStyles = useMemo(() => {
