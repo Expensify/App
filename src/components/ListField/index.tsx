@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getLetterAvatarURL} from '@libs/UserAvatarUtils';
+import {getLetterAvatarURLForName} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import variables from '@src/styles/variables';
@@ -77,15 +77,12 @@ function ListField({rows, addTitle, addDescription, canAddMore = true, errorText
     return (
         <>
             {rows.map((row) => {
-                const [firstName = '', ...otherNames] = row.title.trim().split(/\s+/);
-                const colorSeed = [...row.title].reduce((sum, character) => sum + character.charCodeAt(0), 0);
-                const letterAvatarURL = getLetterAvatarURL(colorSeed, firstName, otherNames.at(-1) ?? '', '');
                 return (
                     <MenuItem.Root key={row.id}>
                         <MenuItem.Row>
                             <MenuItem.Leading>
                                 <UserAvatar
-                                    source={letterAvatarURL || undefined}
+                                    source={getLetterAvatarURLForName(row.title)}
                                     accountID={CONST.DEFAULT_NUMBER_ID}
                                 />
                             </MenuItem.Leading>

@@ -95,7 +95,7 @@ function PushRowWithModal(props: PushRowWithModalProps) {
         }
     };
 
-    const handleConfirm = () => {
+    const commitSelection = () => {
         if (props.canSelectMultiple) {
             props.onInputChange?.(pendingSelection);
         }
@@ -119,7 +119,7 @@ function PushRowWithModal(props: PushRowWithModalProps) {
                 canSelectMultiple={!!props.canSelectMultiple}
                 selectedOptions={props.canSelectMultiple ? pendingSelection : committedSelection}
                 onOptionChange={handleOptionChange}
-                onConfirm={handleConfirm}
+                onConfirm={commitSelection}
                 onClose={handleModalClose}
                 optionsList={optionsList}
                 headerTitle={modalHeaderTitle}

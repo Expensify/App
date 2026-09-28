@@ -72,7 +72,7 @@ The `adapters/` folder holds prop mappers that give existing components the `val
 />
 ```
 
-The route must accept a `subPage` segment and an optional `action=edit` parameter, as the existing `useSubPage` routes do. Pages that mount before their draft has loaded must wait for it (`isLoadingOnyxValue` on the draft metadata); the flow does this, and any page that uses `DynamicFormFields` directly must too, because `AmountForm` reads its value only on mount.
+The route must accept a `subPage` segment and an optional `action=edit` parameter, as the existing `useSubPage` routes do. Pages that mount before their draft has loaded must wait for it (`isLoadingOnyxValue` on the draft metadata); the flow does this, and any page that uses `DynamicFormFields` directly must too, because `AmountForm` reads its value only on mount. Mount the flow only once the schema has at least one field, since a page list with nothing in it has nothing to route to. Pass `isSubmitting` and `submitError` when the submission is asynchronous, so a rejected submission keeps the sensitive answers for the retry; without them the flow treats `onSubmit` as final.
 
 Inside the flow a list edits its items on their own page (route `<listKey>~<itemID>`, `~new` to add), with the list's step highlighted. Rows show a letter avatar, an Edit button and a remove control that asks for confirmation. Sensitive item answers stay out of the draft and are merged back into the item on submit. Outside the flow the list falls back to a modal editor.
 

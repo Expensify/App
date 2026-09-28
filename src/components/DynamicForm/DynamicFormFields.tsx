@@ -26,6 +26,7 @@ type DynamicFormFieldsProps = {
     /** Currency for amount fields when the form has no `currency` answer */
     currency?: string;
 
+    /** Defaults to true. Sensitive fields, and lists whose items have sensitive fields edited in a modal, are never drafted regardless. */
     shouldSaveDraft?: boolean;
 
     /** Opens the flow's editor page for a list item. Without it, lists edit items in a modal. */

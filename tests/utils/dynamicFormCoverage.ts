@@ -12,7 +12,7 @@ function flattenFields(fields: DynamicFormField[]): DynamicFormField[] {
 
 const context: DynamicFieldContext = {values: {}, translate: translateLocal, renderFields: () => null, isAloneOnPage: false};
 
-/** Asserts every field in a schema, nested ones included, maps to a registered input; a new server shape fails here first */
+/** Asserts every field in a schema, nested ones included, maps to a registered input. A new server shape fails here first. */
 function expectSchemaRenders(fields: DynamicFormField[]) {
     for (const field of flattenFields(fields)) {
         const {InputComponent} = getInputComponentForField(field, context);

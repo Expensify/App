@@ -46,7 +46,7 @@ type ListFieldAdapterProps = {
     /** Hint shown under the add row */
     addItemDescription?: string;
 
-    /** The fields of one item */
+    /** Schema of one item. Fields marked sensitive are kept out of the item draft. */
     itemFields: DynamicFormField[];
 
     maxItems?: number;

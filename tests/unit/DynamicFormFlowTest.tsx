@@ -713,6 +713,53 @@ describe('DynamicFormFlow', () => {
         expect(onSubmit).toHaveBeenCalledWith({owners: [{id: 'owner-1', name: 'Alice Webb', ssn: '123456789'}]});
     });
 
+    it('keeps carried sensitive answers for a retry after a rejected submission and clears them once it succeeds', async () => {
+        const fields: DynamicFormField[] = [
+            {key: 'ssn', label: 'SSN', group: 'Identity', type: 'text', required: true, sensitive: true, refreshOnChange: false},
+            {key: 'nickname', label: 'Nickname', group: 'Profile', type: 'text', required: true, refreshOnChange: false},
+        ];
+        const onSubmit = jest.fn();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM_DRAFT, {nickname: 'Ali'});
+        });
+        carriedAnswersByForm.set(FORM_ID, {ssn: '123456789'});
+        mockRouteParams.subPage = 'confirm';
+        const renderConfirmation = (isSubmitting: boolean, submitError?: string) => (
+            <DynamicFormFlow
+                fields={fields}
+                formID={FORM_ID}
+                headerTitle="Identity"
+                testID="DynamicFormFlowRetry"
+                hasConfirmation
+                buildRoute={buildRoute}
+                onSubmit={onSubmit}
+                onBack={jest.fn()}
+                confirmationTitle="Confirm"
+                isSubmitting={isSubmitting}
+                submitError={submitError}
+            />
+        );
+        render(renderConfirmation(false));
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByText('common.confirm'));
+        await waitForBatchedUpdatesWithAct();
+        screen.rerender(renderConfirmation(true));
+        screen.rerender(renderConfirmation(false, 'Rejected'));
+        await waitForBatchedUpdatesWithAct();
+        expect(carriedAnswersByForm.get(FORM_ID)).toEqual({ssn: '123456789'});
+
+        fireEvent.press(screen.getByText('common.confirm'));
+        await waitForBatchedUpdatesWithAct();
+        screen.rerender(renderConfirmation(true, undefined));
+        screen.rerender(renderConfirmation(false, undefined));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(onSubmit).toHaveBeenCalledTimes(2);
+        expect(onSubmit).toHaveBeenLastCalledWith({ssn: '123456789', nickname: 'Ali'});
+        expect(carriedAnswersByForm.get(FORM_ID)).toBeUndefined();
+    });
+
     it('submits a sensitive answer typed on the last page of a form with no confirmation page', async () => {
         const fields: DynamicFormField[] = [
             {key: 'nickname', label: 'Nickname', group: 'Profile', type: 'text', required: true, refreshOnChange: false},

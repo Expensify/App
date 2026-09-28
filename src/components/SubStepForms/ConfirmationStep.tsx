@@ -44,7 +44,7 @@ type SummaryItemRow = {
 
 type SummaryGroupRow = (SummaryItem & {kind: 'field'}) | SummaryItemRow;
 
-/** Answers under one heading; used instead of `summaryItems` when the confirmation is split by section */
+/** Answers under one heading. Used instead of `summaryItems` when the confirmation is split by section. */
 type SummaryGroup = {
     name: string;
     rows: SummaryGroupRow[];
