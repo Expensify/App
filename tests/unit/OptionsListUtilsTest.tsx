@@ -5624,6 +5624,52 @@ describe('OptionsListUtils', () => {
             expect(result).toBe('hello');
         });
 
+        /**
+         * Writes an expense report whose last visible action reimburses `ownerAccountID`, and returns the
+         * alternate text getAlternateText builds for `currentUserAccountID`. Each case needs its own
+         * reportID because the module-level report-action caches survive Onyx.clear().
+         */
+        const getReimbursedAlternateText = async (reportID: string, ownerAccountID: number, currentUserAccountID: number) => {
+            const report: Report = {
+                reportID,
+                reportName: 'Expense Report',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID,
+                // Empty so getAlternateText falls through to getLastMessageTextForReport instead of reusing lastMessageText.
+                lastMessageText: '',
+                lastActionType: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                lastVisibleActionCreated: '2024-01-01 10:00:00.000',
+            };
+            const reimbursed = buildAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSED, 3, {
+                paymentMethod: 'Fast_ACH',
+                creditBankAccountLast4: '1111',
+                expectedDate: '2025-03-15',
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reimbursed.reportActionID]: reimbursed});
+            await waitForBatchedUpdates();
+
+            const option: OptionData = {reportID, keyForList: '', isMoneyRequestReport: true};
+            return getAlternateText(option, {showChatPreviewLine: true}, buildConfig(reimbursed, reportID, {currentUserAccountID}));
+        };
+
+        it('should address the current user directly when they own the reimbursed report', async () => {
+            // Given a reimbursement paid to account 42, previewed by account 42
+            const alternateText = await getReimbursedAlternateText('alternate-text-reimbursed-own', 42, 42);
+
+            // Then the preview names their own account rather than spelling out whose it is
+            expect(alternateText).toContain('your bank account ending in 1111');
+        });
+
+        it('should name the report owner in the reimbursed preview when someone else owns the report', async () => {
+            // Given the same reimbursement paid to account 3, previewed by account 999
+            const alternateText = await getReimbursedAlternateText('alternate-text-reimbursed-other', 3, 999);
+
+            // Then the preview names the owner instead of addressing the viewer
+            expect(alternateText).toContain("peterparker@expensify.com's bank account ending in 1111");
+            expect(alternateText).not.toContain('your bank account');
+        });
+
         it('should omit the actor prefix when the last action is a report preview', async () => {
             await setReport(buildRoomReport({lastActionType: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, lastMessageText: 'owes $10'}));
             const preview = buildAction(CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, 3);
