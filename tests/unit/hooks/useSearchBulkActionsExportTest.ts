@@ -6,7 +6,7 @@ import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@comp
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 
 import {markAsManuallyExported} from '@libs/actions/Report';
-import {exportSearchItemsToCSV, exportToIntegrationOnSearch, getExportTemplates} from '@libs/actions/Search';
+import {exportSearchItemsToCSV, exportToIntegrationOnSearch, getExportTemplates, queueBulkMarkAsExported} from '@libs/actions/Search';
 import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryActionUtils';
 
 import CONST from '@src/CONST';
@@ -56,6 +56,7 @@ jest.mock('@libs/actions/Search', () => ({
     })),
     exportSearchItemsToCSV: jest.fn(),
     exportToIntegrationOnSearch: jest.fn(),
+    queueBulkMarkAsExported: jest.fn(),
     queueExportSearchItemsToCSV: jest.fn(),
     queueExportSearchWithTemplate: jest.fn(),
     getSearchApproveOnyxData: jest.fn(() => ({})),
@@ -1200,6 +1201,68 @@ describe('useSearchBulkActions - export options', () => {
         });
 
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
+    });
+
+    it('queues a server-side bulk mark-as-exported instead of marking specific report IDs when all matching items are selected', async () => {
+        /**
+         * Given: "Select all" is checked, so the selection can span more reports than are loaded on the
+         *        current page.
+         *
+         * When: the user clicks "Mark as exported".
+         *
+         * Then: the connection and search query are handed to the backend, which resolves every matching
+         *       report itself, instead of looping markAsManuallyExported over the loaded report IDs.
+         */
+        mockAreAllMatchingItemsSelected = true;
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === 'workspace.common.markAsExported')).toBe(true);
+        });
+
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === 'workspace.common.markAsExported')
+            ?.onSelected?.();
+
+        await waitFor(() => {
+            expect(queueBulkMarkAsExported).toHaveBeenCalledWith(expect.any(String), CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
+        });
+        expect(markAsManuallyExported).not.toHaveBeenCalled();
+        expect(mockClearSelectedTransactions).toHaveBeenCalled();
+    });
+
+    it('marks the specific selected report IDs, not the search query, for a limited (non-select-all) selection', async () => {
+        /**
+         * Given: a finite selection of specific reports ("Select all" is NOT checked).
+         *
+         * When: the user clicks "Mark as exported".
+         *
+         * Then: the existing per-report flow runs (markAsManuallyExported with the loaded report IDs), and
+         *       the select-all backend command is never called.
+         */
+        mockAreAllMatchingItemsSelected = false;
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === 'workspace.common.markAsExported')).toBe(true);
+        });
+
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === 'workspace.common.markAsExported')
+            ?.onSelected?.();
+
+        await waitFor(() => {
+            expect(markAsManuallyExported).toHaveBeenCalledWith([REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, expect.anything());
+        });
+        expect(queueBulkMarkAsExported).not.toHaveBeenCalled();
     });
 
     it('shows templates when reports are selected through their report groups', async () => {
