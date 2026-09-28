@@ -6,6 +6,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import searchOptions from '@libs/searchOptions';
@@ -44,6 +45,8 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const initialSelectedValue = useInitialSelection(selectedCountry ?? undefined, {resetOnFocus: true});
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
+
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
 
     const onSelectionChange = (country: Option) => {
         onCountrySelected(country.value);
@@ -97,6 +100,7 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
                 shouldUpdateFocusedIndex
                 shouldSingleExecuteRowSelect
                 shouldScrollToFocusedIndexOnMount={false}
+                shouldFooterBeInsideList={shouldFooterBeInsideList}
                 shouldStopPropagation
             />
         </FullPageOfflineBlockingView>
