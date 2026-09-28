@@ -325,6 +325,43 @@ describe('ProfilePage - agent account', () => {
         expect(screen.getByText('Private')).toBeDefined();
     });
 
+    it('opens the member picker from the vacation delegate row when no delegate is set', async () => {
+        // Given a user with no vacation delegate
+        await setupUser('user@expensify.com');
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        // When the vacation delegate row is pressed
+        // MenuItem only forwards the press to onPress when it receives an event, so pass a minimal one.
+        fireEvent.press(screen.getByTestId('vacation-delegate-menu-item'), {nativeEvent: {}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the member picker opens directly, since the form has nothing to show until a member is picked
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_VACATION_DELEGATE_SELECT);
+    });
+
+    it('shows the vacation delegate and when it clears, and opens the form from the row', async () => {
+        // Given a user whose vacation delegate clears in the future
+        await setupUser('user@expensify.com');
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {creator: 'user@expensify.com', delegate: 'delegate@expensify.com', clearAfter: '2999-01-02 07:59:59'});
+        });
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the row shows the delegate and the end date, so the user can see reports are routed elsewhere
+        expect(screen.getByText(/delegate@expensify\.com · Until/)).toBeDefined();
+
+        // When the row is pressed
+        fireEvent.press(screen.getByTestId('vacation-delegate-menu-item'), {nativeEvent: {}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the form opens, where the date can be changed or the delegate removed
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_VACATION_DELEGATE);
+    });
+
     it('shows AI prompt section with prompt text for agent account', async () => {
         const accountID = 123;
         await setupUser('testbot_123@expensify.ai', true);

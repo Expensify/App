@@ -2,14 +2,14 @@
 title: Delegate When Out of Office
 description: Set a vacation delegate to approve reports on your behalf while you're away.
 keywords: [New Expensify, delegate approvals, out-of-office approver, vacation, out of office, approval delegation, temporary delegate, vacation delegate, copilot vs delegate, copilot, shared access, proxy, behalf of]
-internalScope: Audience is all members. Covers assigning and removing your own vacation delegate from your profile status. Does not cover Copilot access or Expensify Classic delegates.
+internalScope: Audience is all members. Covers assigning, scheduling the end of, and removing your own vacation delegate from your profile. Does not cover Copilot access or Expensify Classic delegates.
 ---
 
 # Delegate When Out of Office 
 
 If you're out of the office or on vacation, you can assign a vacation delegate to handle your approvals while you're away.
 
-A vacation delegate can approve reports on your behalf. Once assigned, any reports sent to you for approval will be automatically redirected to your delegate. When you're back, just remove the delegate to resume handling your own reports.
+A vacation delegate can approve reports on your behalf. Once assigned, any reports sent to you for approval will be automatically redirected to your delegate. Pick a **Clear after** date and the delegate is removed automatically at the end of that day, so reports come back to you when you return.
 
 All delegate actions are tracked in the report history for full visibility.
 
@@ -17,19 +17,19 @@ All delegate actions are tracked in the report history for full visibility.
 
 ## How to assign a vacation delegate
 
-1. Go to **Account > Profile > Status**.
-2. Under **Vacation delegate**, enter the email address or phone number of your delegate.
-3. Click **Save**.
+1. Go to **Account > Profile > Vacation delegate**.
+2. Select the member who should approve on your behalf.
+3. Optional (recommended): Under **Clear after**, pick the last day the delegate should cover.
+4. Click **Save**.
 
-Once set, any reports or chats that would normally come to you will be redirected to your delegate. You can view every action they take in the report's history and comments.
+Once set, any reports or chats that would normally come to you will be redirected to your delegate. You can view every action they take in the report's history and comments. The delegate and the date it clears are shown under **Vacation delegate** on your profile.
 
 ## How to remove a vacation delegate
 
-When you're ready to take back control of your reports:
+If you set a **Clear after** date, the delegate is removed automatically. To remove it sooner:
 
-1. Go to **Account > Profile > Status**.
-2. Under **Vacation delegate**, clear the delegate's email or phone number.
-3. Click **Save**.
+1. Go to **Account > Profile > Vacation delegate**.
+2. Click **Remove vacation delegate**.
 
 ---
 
@@ -49,7 +49,7 @@ Your delegate can assign their own vacation delegate too. This ensures approvals
 
 ## If I clear my status, does that remove my vacation delegate?
 
-No. Clearing your status won't affect your delegate. You'll need to manually remove them when you're back.
+No. Clearing your status won't affect your delegate. Set a **Clear after** date on your vacation delegate, or remove them when you're back.
 
 ## What if my delegate isn’t in the same workspace?
 

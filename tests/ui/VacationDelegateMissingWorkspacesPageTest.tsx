@@ -534,6 +534,30 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
         expect(rows.at(1)).toHaveTextContent('Zebra Workspace');
     });
 
+    it('sends the clear after datetime picked on the form again and returns to the profile page', async () => {
+        // Given a 305 that parked a pick made with a clear after date, since the form step is gone by the time this step saves it
+        const clearAfter = '2026-10-02 06:59:59';
+        await seedVacationDelegate({adminPolicies: [], nonAdminPolicies: [MEMBER_POLICY_ID]});
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {pendingClearAfter: clearAfter});
+        });
+        const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When Confirm is pressed
+        fireEvent.press(screen.getByRole('button', {name: TestHelper.translateLocal('common.confirm')}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the date is saved with the delegate instead of being dropped, and the user lands back on the profile page
+        expect(apiWriteSpy).toHaveBeenCalledWith(
+            WRITE_COMMANDS.SET_VACATION_DELEGATE,
+            expect.objectContaining({vacationDelegateEmail: DELEGATE_EMAIL, clearAfter, overridePolicyDiffWarning: true}),
+            expect.anything(),
+        );
+        expect(goBackSpy).toHaveBeenCalledWith(ROUTES.SETTINGS_PROFILE.route);
+    });
+
     it('still asks the backend to email the non-admin workspaces when Skip is pressed on a mixed diff', async () => {
         // Given a mixed policy diff, since Skip only skips the invites the user controls: the owners of the
         // workspaces they don't administer are still emailed, matching Classic

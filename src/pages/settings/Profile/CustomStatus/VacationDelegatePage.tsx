@@ -1,92 +1,38 @@
 import BaseVacationDelegateSelectionComponent from '@components/BaseVacationDelegateSelectionComponent';
 import ScreenWrapper from '@components/ScreenWrapper';
 
-import useConfirmModal from '@hooks/useConfirmModal';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
-import {clearVacationDelegateError, deleteVacationDelegate, setVacationDelegate} from '@libs/actions/VacationDelegate';
+import {setDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {VacationDelegateForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/VacationDelegateForm';
 import type {Participant} from '@src/types/onyx/IOU';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import {useNavigation} from '@react-navigation/native';
-import React, {useRef} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
+const draftDelegateSelector = (draft: OnyxEntry<VacationDelegateForm>) => draft?.[INPUT_IDS.DELEGATE];
 
 function VacationDelegatePage() {
     const {translate} = useLocalize();
-    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const {showConfirmModal} = useConfirmModal();
-    const navigation = useNavigation();
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
-
-    const isSelectingRef = useRef(false);
-
-    const showErrorModal = async (delegateToRestore?: string, message?: string) => {
-        await showConfirmModal({
-            title: translate('statusPage.addVacationDelegate'),
-            prompt: message ?? translate('statusPage.vacationDelegateError'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-        });
-
-        clearVacationDelegateError(delegateToRestore);
-    };
+    const [draftDelegate] = useOnyx(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM_DRAFT, {selector: draftDelegateSelector});
 
     const onSelectRow = (option: Participant) => {
-        if (isSelectingRef.current) {
+        if (!option?.login) {
             return;
         }
 
-        if (option?.login === vacationDelegate?.delegate) {
-            deleteVacationDelegate(vacationDelegate);
-            Navigation.goBack(ROUTES.SETTINGS_STATUS);
-            return;
-        }
-
-        isSelectingRef.current = true;
-        const hasUnconfirmedChange = !!vacationDelegate?.pendingAction || !isEmptyObject(vacationDelegate?.errors) || !!vacationDelegate?.policyDiff;
-        const currentDelegate = hasUnconfirmedChange ? vacationDelegate?.previousDelegate : vacationDelegate?.delegate;
-        setVacationDelegate({creator: currentUserLogin, delegate: option?.login ?? '', currentDelegate})
-            .then((response) => {
-                if (!navigation.isFocused()) {
-                    if (response?.data?.policyDiff) {
-                        clearVacationDelegateError(currentDelegate);
-                    }
-                    return;
-                }
-
-                if (response?.data?.policyDiff) {
-                    Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE_MISSING_WORKSPACES);
-                    return;
-                }
-
-                // The action leaves the failure on the NVP for the profile page's red brick road, but the user is still on this screen,
-                // so report it where they are. Dismissing the modal restores the previous delegate, exactly as dismissing that error would.
-                if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                    showErrorModal(currentDelegate, response?.jsonCode === CONST.JSON_CODE.EXP_ERROR ? response.message : undefined);
-                    return;
-                }
-
-                Navigation.goBack(ROUTES.SETTINGS_STATUS);
-            })
-            .catch(() => {
-                if (!navigation.isFocused()) {
-                    clearVacationDelegateError(currentDelegate);
-                    return;
-                }
-
-                showErrorModal(currentDelegate);
-            })
-            .finally(() => {
-                isSelectingRef.current = false;
-            });
+        // The pick is only saved from the form, where the clear after date is chosen too.
+        setDraftValues(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM, {[INPUT_IDS.DELEGATE]: option.login});
+        Navigation.goBack(ROUTES.SETTINGS_VACATION_DELEGATE);
     };
 
     return (
@@ -96,10 +42,10 @@ function VacationDelegatePage() {
             shouldShowOfflineIndicator={false}
         >
             <BaseVacationDelegateSelectionComponent
-                vacationDelegate={vacationDelegate}
+                vacationDelegate={draftDelegate ? {...vacationDelegate, delegate: draftDelegate} : vacationDelegate}
                 onSelectRow={onSelectRow}
                 headerTitle={translate('common.vacationDelegate')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS)}
+                onBackButtonPress={() => Navigation.goBack()}
                 cannotSetDelegateMessage={translate('statusPage.cannotSetVacationDelegate')}
                 includeCurrentUser={false}
             />

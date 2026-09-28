@@ -1,9 +1,11 @@
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useVacationDelegatePersonalDetails from '@hooks/useVacationDelegatePersonalDetails';
 
 import getVacationDelegateDisplayName from '@libs/getVacationDelegateDisplayName';
+import {formatVacationDelegateClearDate, getVacationDelegateClearDate, isVacationDelegateExpired} from '@libs/VacationDelegateUtils';
 
 import CONST from '@src/CONST';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -29,7 +31,7 @@ type VacationDelegateSectionProps = {
     /**
      * Callback used to clear/reset errors related to the vacation delegate
      */
-    onCloseError: () => void;
+    onCloseError?: () => void;
 
     /**
      * Callback triggered when the section is pressed.
@@ -40,15 +42,18 @@ type VacationDelegateSectionProps = {
 
 function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCloseError, onPress}: VacationDelegateSectionProps) {
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+    const {timezone} = useCurrentUserPersonalDetails();
 
-    const hasVacationDelegate = !!vacationDelegate?.delegate;
+    const hasVacationDelegate = !!vacationDelegate?.delegate && !isVacationDelegateExpired(vacationDelegate?.clearAfter);
     const vacationDelegatePersonalDetails = useVacationDelegatePersonalDetails(vacationDelegate?.delegate);
 
     const rawDelegateLogin = vacationDelegatePersonalDetails?.login ?? vacationDelegate?.delegate ?? '';
     const delegateDisplayName = getVacationDelegateDisplayName(rawDelegateLogin, vacationDelegatePersonalDetails?.displayName, formatPhoneNumber);
-    const delegateDescription = formatPhoneNumber(rawDelegateLogin);
+    const clearDate = formatVacationDelegateClearDate(getVacationDelegateClearDate(vacationDelegate?.clearAfter, timezone?.selected), dateFnsLocale);
+    const untilText = clearDate ? translate('statusPage.vacationDelegate.until', clearDate) : '';
+    const delegateDescription = [formatPhoneNumber(rawDelegateLogin), untilText].filter(Boolean).join('\n');
 
     return (
         <OfflineWithFeedback
@@ -73,7 +78,7 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
                         </MenuItem.Leading>
                         <MenuItem.Content>
                             <MenuItem.Title>{delegateDisplayName}</MenuItem.Title>
-                            {!!delegateDescription && <MenuItem.Description numberOfLines={1}>{delegateDescription}</MenuItem.Description>}
+                            {!!delegateDescription && <MenuItem.Description numberOfLines={untilText ? 2 : 1}>{delegateDescription}</MenuItem.Description>}
                         </MenuItem.Content>
                         <MenuItem.Trailing>
                             <MenuItem.Chevron />

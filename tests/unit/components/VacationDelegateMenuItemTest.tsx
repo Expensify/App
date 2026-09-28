@@ -246,4 +246,37 @@ describe('VacationDelegateMenuItem', () => {
         // Then the empty state shows at once instead of a blank field for the duration of the request
         expect(screen.getByText('common.vacationDelegate')).toBeTruthy();
     });
+
+    it('shows the empty state for a delegate whose clear after datetime has passed', () => {
+        // Given a delegate whose clear after datetime is in the past, before the backend's clear has reached the client
+        mockUseVacationDelegatePersonalDetails.mockReturnValue({accountID: 42, login: EMAIL_DELEGATE, displayName: 'Jane Doe'});
+
+        // When the menu item renders it
+        render(
+            <VacationDelegateMenuItem
+                vacationDelegate={{delegate: EMAIL_DELEGATE, clearAfter: '2000-01-01 00:00:00'}}
+                onPress={jest.fn()}
+            />,
+        );
+
+        // Then it is not shown as an active delegate, since approvals no longer go to them
+        expect(screen.queryByText('Jane Doe')).toBeNull();
+        expect(screen.getByText('common.vacationDelegate')).toBeTruthy();
+    });
+
+    it('shows when the delegate clears', () => {
+        // Given a delegate that clears in the future
+        mockUseVacationDelegatePersonalDetails.mockReturnValue({accountID: 42, login: EMAIL_DELEGATE, displayName: 'Jane Doe'});
+
+        // When the menu item renders it
+        render(
+            <VacationDelegateMenuItem
+                vacationDelegate={{delegate: EMAIL_DELEGATE, clearAfter: '2999-01-02 07:59:59'}}
+                onPress={jest.fn()}
+            />,
+        );
+
+        // Then the "until" line is shown under the login, so the vacationer and admins can see when it ends
+        expect(screen.getByText(`${EMAIL_DELEGATE}\nstatusPage.vacationDelegate.until`)).toBeTruthy();
+    });
 });
