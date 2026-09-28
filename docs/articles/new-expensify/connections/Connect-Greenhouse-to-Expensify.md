@@ -97,9 +97,7 @@ London candidates are imported only into the UK workspace, and New York candidat
 
 ## What happens after you connect Greenhouse to Expensify
 
-After each sync finishes:
-
-- The **Greenhouse sync complete** screen opens with the **Added**, **Removed**, and **Skipped** candidate counts. Click **Skipped** to see each skipped candidate and the reason they were skipped, then click **Got it** to close the screen.
+- If you're on the **Recruiting** or **Members** page when a sync finishes, the **Greenhouse sync complete** screen opens with the **Added**, **Removed**, and **Skipped** candidate counts. Click **Skipped** to see each skipped candidate and the reason they were skipped, then click **Got it** to close the screen. This screen doesn't open for syncs that finish in the background, such as the daily automatic sync, or if you leave the page before the sync finishes.
 - The Greenhouse connection displays the **Last synced** timestamp.
 - Candidates who match your import settings are added to the workspace and appear on the **Members** page.
 - Candidates who don't already have an Expensify account receive an email invitation to finish setting up their account.
