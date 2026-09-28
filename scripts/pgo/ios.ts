@@ -4,7 +4,7 @@
 
 import {isRecord} from '@libs/ObjectUtils';
 
-import {cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync} from 'node:fs';
+import {cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {dirname, join} from 'node:path';
 
@@ -21,6 +21,7 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
     const benchmarkDirectory = join(rootDirectory, '.pgo/ios/benchmarks');
     const markerDirectory = join(profileDirectory, 'markers');
     const iosDirectory = join(rootDirectory, 'Mobile-Expensify/iOS');
+    const projectPath = join(iosDirectory, 'Expensify.xcodeproj/project.pbxproj');
     const hermesVersionPath = join(rootDirectory, 'node_modules/react-native/sdks/.hermesv1version');
     const remotePgoDirectory = 'Library/Caches/ExpensifyPGO';
     const profileStatusPath = `${remotePgoDirectory}/profile-status.txt`;
@@ -134,22 +135,23 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
         return capture('xcrun', ['--find', name]).trim();
     }
 
-    function sourceBuildEnvironment(mode: PgoMode): string[] {
+    function sourceBuildEnvironment(mode: PgoMode, profilePath = mergedProfilePath): string[] {
         const environment = [
             'BUILD_RN_FROM_SOURCE=1',
             'RCT_USE_RN_DEP=0',
             'RCT_USE_PREBUILT_RNCORE=0',
             'RCT_BUILD_HERMES_FROM_SOURCE=true',
             BENCHMARK_SPANS_ENVIRONMENT,
+            'SENTRY_DISABLE_AUTO_UPLOAD=true',
             `EXPENSIFY_PGO_MODE=${mode}`,
         ];
         if (mode === 'use') {
-            environment.push(`EXPENSIFY_PGO_PROFILE=${mergedProfilePath}`);
+            environment.push(`EXPENSIFY_PGO_PROFILE=${profilePath}`);
         }
         return environment;
     }
 
-    function prepareSourcePods(mode: PgoMode): void {
+    function prepareSourcePods(mode: PgoMode, profilePath: string): void {
         if (!existsSync(hermesVersionPath)) {
             fail(`Missing React Native's pinned Hermes version file at ${hermesVersionPath}.`);
         }
@@ -164,7 +166,7 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
                 rmSync(directory, {recursive: true, force: true});
             }
         }
-        run('/usr/bin/env', [...sourceBuildEnvironment(mode), 'bundle', 'exec', 'pod', 'install', '--silent'], iosDirectory);
+        run('/usr/bin/env', [...sourceBuildEnvironment(mode, profilePath), 'bundle', 'exec', 'pod', 'install', '--silent'], iosDirectory);
         for (const {directory, requiredFile} of requiredPodSources) {
             if (!existsSync(join(directory, requiredFile))) {
                 fail(`CocoaPods did not install the required source file ${join(directory, requiredFile)}.`);
@@ -173,7 +175,7 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
         rmSync(join(iosDirectory, 'Pods/hermes-engine/build'), {recursive: true, force: true});
     }
 
-    function pgoBuildSettings(kind: BuildKind): string[] {
+    function pgoBuildSettings(kind: BuildKind, profilePath: string): string[] {
         const baseSettings = ['ENABLE_CODE_COVERAGE=NO', 'CLANG_COVERAGE_MAPPING=NO', 'CLANG_USE_OPTIMIZATION_PROFILE=NO'];
         if (kind === 'instrumented') {
             return [
@@ -186,23 +188,24 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
             ];
         }
         if (kind === 'optimized') {
-            const clangProfileFlags = `-fprofile-instr-use=${mergedProfilePath} -Wno-error=profile-instr-unprofiled`;
+            const clangProfileFlags = `-fprofile-instr-use=${profilePath} -Wno-error=profile-instr-unprofiled`;
             return [
                 ...baseSettings,
                 `OTHER_CFLAGS=$(inherited) ${clangProfileFlags}`,
                 `OTHER_CPLUSPLUSFLAGS=$(inherited) ${clangProfileFlags}`,
-                `OTHER_SWIFT_FLAGS=$(inherited) -ir-profile-use=${mergedProfilePath}`,
+                `OTHER_SWIFT_FLAGS=$(inherited) -ir-profile-use=${profilePath}`,
             ];
         }
         return baseSettings;
     }
 
-    function build(kind: BuildKind): void {
-        if (kind === 'optimized' && !existsSync(mergedProfilePath)) {
-            fail(`Missing ${mergedProfilePath}. Run merge first.`);
+    function build(kind: BuildKind, profileOverride?: string): void {
+        const profilePath = profileOverride ?? mergedProfilePath;
+        if (kind === 'optimized' && !existsSync(profilePath)) {
+            fail(`Missing ${profilePath}. Run merge first or pass --profile.`);
         }
         if (kind === 'optimized') {
-            const profileFormatPath = `${mergedProfilePath}.format`;
+            const profileFormatPath = `${profilePath}.format`;
             const recordedFormat = existsSync(profileFormatPath) ? readFileSync(profileFormatPath, 'utf8').trim() : undefined;
             if (recordedFormat !== profileFormat) {
                 fail('The merged iOS profile predates the current Swift IR instrumentation. Install the latest instrumented app and run record-startups again.');
@@ -215,7 +218,7 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
         } else if (kind === 'optimized') {
             mode = 'use';
         }
-        prepareSourcePods(mode);
+        prepareSourcePods(mode, profilePath);
         const derivedDataDirectory = join(profileDirectory, `derived-data/${kind}`);
         const builtAppPath = join(derivedDataDirectory, 'Build/Products/Release-iphoneos/Expensify.app');
         const signingSettings = codeSigningAllowed
@@ -246,9 +249,9 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
             'ONLY_ACTIVE_ARCH=YES',
             'COMPILER_INDEX_STORE_ENABLE=NO',
             ...signingSettings,
-            ...pgoBuildSettings(kind),
+            ...pgoBuildSettings(kind, profilePath),
         ];
-        run('/usr/bin/env', [...sourceBuildEnvironment(mode), ...xcodeArguments], iosDirectory);
+        withLocalUploadPhasesDisabled(() => run('/usr/bin/env', [...sourceBuildEnvironment(mode, profilePath), ...xcodeArguments], iosDirectory));
         if (!existsSync(builtAppPath)) {
             fail(`Missing built iOS app at ${builtAppPath}.`);
         }
@@ -256,6 +259,59 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
         rmSync(artifactPaths[kind], {recursive: true, force: true});
         cpSync(builtAppPath, artifactPaths[kind], {recursive: true, preserveTimestamps: true});
         console.log(`Copied release app: ${artifactPaths[kind]}`);
+    }
+
+    /** Prevent local release builds from publishing source maps or FullStory assets; restore the existing project text even if Xcode fails. */
+    function withLocalUploadPhasesDisabled(buildApp: () => void): void {
+        const replacements = [
+            // Xcode expands these literal variables inside the project build phase.
+            {
+                // eslint-disable-next-line no-template-curly-in-string
+                command: '\\"${PODS_ROOT}/FullStory/tools/FullStoryCommandLine\\" \\"${CONFIGURATION_BUILD_DIR}/${WRAPPER_NAME}\\"',
+                disabled: 'echo Skipping FullStory upload for local PGO build',
+            },
+            {command: 'source \\"$PROJECT_ROOT/tools/upload-sentry-source-maps.sh\\"', disabled: 'echo Skipping Sentry source-map upload for local PGO build'},
+        ];
+        const originalProject = readFileSync(projectPath, 'utf8');
+        const guardedProject = replacements.reduce((content, {command, disabled}) => replaceOnce(content, command, disabled), originalProject);
+        let restored = false;
+        let guarded = false;
+        const restoreProject = () => {
+            if (restored) {
+                return;
+            }
+            if (!guarded) {
+                writeFileSync(projectPath, originalProject);
+                restored = true;
+                return;
+            }
+            const currentProject = readFileSync(projectPath, 'utf8');
+            const restoredProject = replacements.reduce((content, {command, disabled}) => replaceOnce(content, disabled, command), currentProject);
+            writeFileSync(projectPath, restoredProject);
+            restored = true;
+        };
+        const onInterrupt = () => {
+            restoreProject();
+            process.exit(130);
+        };
+        const onTermination = () => {
+            restoreProject();
+            process.exit(143);
+        };
+        process.once('SIGINT', onInterrupt);
+        process.once('SIGTERM', onTermination);
+        try {
+            writeFileSync(projectPath, guardedProject);
+            guarded = true;
+            buildApp();
+        } finally {
+            try {
+                restoreProject();
+            } finally {
+                process.off('SIGINT', onInterrupt);
+                process.off('SIGTERM', onTermination);
+            }
+        }
     }
 
     function install(kind: BuildKind): void {
@@ -406,6 +462,14 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
         pullProfiles,
         llvmTool,
     };
+}
+
+function replaceOnce(content: string, previous: string, next: string): string {
+    const offset = content.indexOf(previous);
+    if (offset < 0 || content.indexOf(previous, offset + previous.length) >= 0) {
+        fail('The iOS project upload phases changed. Refusing to build until the local PGO upload guard is updated.');
+    }
+    return `${content.slice(0, offset)}${next}${content.slice(offset + previous.length)}`;
 }
 
 export default createIOSPgoAdapter;

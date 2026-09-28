@@ -77,3 +77,27 @@ Use an exclusive device lease on a persistent runner: Linux or macOS with an arm
 Run these steps for each staging or production release candidate before publication. Pin the compiler, SDK, dependencies, architecture, build settings, and automation version; retain them alongside the profile. The current runner records source revisions but does not validate binary provenance. The release pipeline must enforce that the training artifact and optimized build match, and keep simultaneous jobs from sharing a device or profile output directory. Store signing credentials separately from the fixture.
 
 This change supplies the journey and profile collection hook for local and CI execution. Connecting it to the store release workflows and measuring held-out interactive performance remain separate integration steps.
+
+## Held-out interaction benchmark
+
+The PGO workflow has a shorter, read-only benchmark that is separate from the six-minute profile-collection journey. Each sample relaunches the signed-in app, selects Spend → Expenses, returns to Inbox, then times a warm Inbox → Spend → Inbox switch. The app's existing first-paint, content-load, and Inbox navigation spans measure the UI work. One complete warm-up is discarded for each build, followed by the requested number of fresh-process samples. The benchmark checks the same approved account and #focus preference, but sends no messages.
+
+```bash
+scripts/pgo/pgo.ts android benchmark-journey 20 30 --device DEVICE_SERIAL --app-id APP_ID --fixture .pgo/journey-fixture.json
+scripts/pgo/pgo.ts ios benchmark-journey 20 30 --device DEVICE_UDID --app-id BUNDLE_ID --fixture .pgo/journey-fixture.json
+```
+
+Build both the release and optimized artifacts with the current span allowlist first. `build-optimized --profile /absolute/path/to/merged.profdata` selects an immutable archived profile; without `--profile`, it uses `newdot.profdata`. The output uses the existing startup benchmark's raw-sample and summary CSV format in a unique `.pgo/<platform>/benchmarks/journey/<batch>/` directory. The two phases run together, so a failed or repeated phase cannot silently pair with stale data. Compare each interactive span separately; adding their durations together does not give a full journey time because there is automation time between taps. Keep this benchmark out of the profile-training batch, and avoid using its result as a release gate until build-order drift and device temperature have been characterized.
+
+## Heavy report benchmark
+
+Use a separate read-only benchmark for a populated report. Each sample starts a fresh signed-in process, finds the fixture's report through Search, measures the app-defined `/r/*` span from report navigation to the report list's first layout, then makes four fast swipes toward older messages and four back toward recent messages. It checks that content changes after each direction; there is no accessibility snapshot between individual flings. The search, device commands, settling, and swipes are **not** included in the report-open latency sample. The span can end when a skeleton is laid out, so treat it as first report render, not complete message or network loading.
+
+```bash
+scripts/pgo/pgo.ts android benchmark-heavy-journey 20 30 --device DEVICE_SERIAL --app-id APP_ID --fixture .pgo/journey-fixture.json
+scripts/pgo/pgo.ts ios benchmark-heavy-journey 20 30 --device DEVICE_UDID --app-id BUNDLE_ID --fixture .pgo/journey-fixture.json
+```
+
+Rebuild both app variants after adding the `/r/*` span to the build-time benchmark allowlist. The earlier artifacts cannot emit this metric. Each batch goes to `.pgo/<platform>/benchmarks/heavy-journey/<batch>/` with raw and summary CSVs, artifact hashes, and a run manifest. On Android, an additional frame CSV counts rendered and missed-deadline frames during the fast-scroll window. Compare its missed-frame share separately from report-open latency; it is not elapsed scroll time. The current physical-iPhone frame probe could not consistently attach Xcode's Animation Hitches trace to the app process, so the iOS runner validates scroll movement but deliberately reports no scroll-frame score. A reliable iOS scrolling claim needs an XCTest performance test with a signposted scroll interval or another native frame trace that works on the CI device.
+
+Neither the six-minute collector nor this benchmark's total execution time measures app speed. Android frame counts still include any app rendering triggered during the capture window, and the report-open span can be affected by cached data, network, and device load. Keep the account dataset and device state stable, and warm both variants the same way. Run at least two batches with opposite phase orders by passing `--benchmark-order optimized-first` to the second batch; the default is `release-first`. Report distributions and confidence intervals, and only claim a benefit for the specified device and workload when the improvement exceeds run-to-run variation. No PGO profile can guarantee every launch or interaction will be faster.

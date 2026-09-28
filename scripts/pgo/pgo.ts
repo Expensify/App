@@ -5,10 +5,12 @@
 import type {TupleToUnion} from 'type-fest';
 
 import CLI from 'expensify-common/CLI';
-import {existsSync, mkdirSync, writeFileSync} from 'node:fs';
+import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {resolve} from 'node:path';
 
 import type {BenchmarkStats} from '../lib/benchmarkStatistics';
 import type {NativeAppBenchmarkAdapter, PlatformName} from '../lib/nativeAppBenchmark';
+import type {BenchmarkOrder} from './journeyBenchmark';
 import type {BenchmarkKind, PlatformAdapter} from './shared';
 
 import {benchmarkStartups as runBenchmarkStartups} from '../lib/benchmarkAppStartup';
@@ -17,10 +19,13 @@ import {PLATFORM_NAMES, createNativeAppBenchmarkAdapter} from '../lib/nativeAppB
 import {capture, fail, findFiles, parseChoice, parsePositiveInteger, requirePositiveInteger, rootDirectory, run} from '../lib/scriptUtils';
 import createAndroidPgoAdapter from './android';
 import createIOSPgoAdapter from './ios';
+import {benchmarkHeavyJourneyAll, benchmarkJourneyAll} from './journeyBenchmark';
+import {parseJourneyFixture} from './journeyConfig';
 import {STARTUP_SPAN_NAME} from './shared';
 
 const DEFAULT_STARTUP_RUNS = 10;
 const DEFAULT_STARTUP_WAIT_SECONDS = 30;
+const BENCHMARK_ORDERS = ['release-first', 'optimized-first'] as const;
 const WORKFLOW_COMMANDS = [
     'build-release',
     'build-instrumented',
@@ -34,6 +39,8 @@ const WORKFLOW_COMMANDS = [
     'benchmark-optimized',
     'benchmark',
     'compare-benchmarks',
+    'benchmark-journey',
+    'benchmark-heavy-journey',
     'dump',
     'pull',
     'merge',
@@ -58,15 +65,15 @@ async function main(): Promise<void> {
             },
             {
                 name: 'runs',
-                description: 'Number of measured startup runs',
+                description: 'Number of measured startup or journey runs',
                 default: DEFAULT_STARTUP_RUNS,
-                parse: (value) => parsePositiveInteger(value, 'Startup run count'),
+                parse: (value) => parsePositiveInteger(value, 'Run count'),
             },
             {
                 name: 'timeout',
-                description: `Seconds to wait for the ${STARTUP_SPAN_NAME} benchmark span`,
+                description: `Seconds to wait for the ${STARTUP_SPAN_NAME} or journey benchmark spans`,
                 default: DEFAULT_STARTUP_WAIT_SECONDS,
-                parse: (value) => parsePositiveInteger(value, 'Startup span timeout'),
+                parse: (value) => parsePositiveInteger(value, 'Span timeout'),
             },
         ],
         namedArgs: {
@@ -78,6 +85,18 @@ async function main(): Promise<void> {
                 description: 'Device identifier to use (adb serial on Android; CoreDevice identifier, UDID, serial number, or device name on iOS)',
                 required: false,
             },
+            fixture: {
+                description: 'Approved account fixture for journey benchmarks',
+                required: false,
+            },
+            'benchmark-order': {
+                description: 'Journey phase order; alternate it across paired batches to check build-order drift',
+                required: false,
+            },
+            profile: {
+                description: 'Immutable merged profile to use when building the optimized app',
+                required: false,
+            },
         },
     });
     /* eslint-enable @typescript-eslint/naming-convention */
@@ -86,14 +105,27 @@ async function main(): Promise<void> {
     await runWorkflow(
         parseChoice(String(platformName), PLATFORM_NAMES, 'Platform'),
         parseChoice(String(workflow), WORKFLOW_COMMANDS, 'Workflow'),
-        requirePositiveInteger(Number(runs), 'Startup run count'),
-        requirePositiveInteger(Number(timeout), 'Startup span timeout'),
+        requirePositiveInteger(Number(runs), 'Run count'),
+        requirePositiveInteger(Number(timeout), 'Span timeout'),
         cli.namedArgs['app-id'],
         cli.namedArgs.device,
+        cli.namedArgs.fixture,
+        cli.namedArgs.profile,
+        cli.namedArgs['benchmark-order'],
     );
 }
 
-async function runWorkflow(platformName: PlatformName, workflow: WorkflowCommand, runs: number, timeoutSeconds: number, appID?: string, deviceIdentifier?: string): Promise<void> {
+async function runWorkflow(
+    platformName: PlatformName,
+    workflow: WorkflowCommand,
+    runs: number,
+    timeoutSeconds: number,
+    appID?: string,
+    deviceIdentifier?: string,
+    fixturePath?: string,
+    profilePath?: string,
+    benchmarkOrder?: string,
+): Promise<void> {
     const adapter = getAdapter(platformName, appID, deviceIdentifier);
 
     switch (workflow) {
@@ -104,7 +136,7 @@ async function runWorkflow(platformName: PlatformName, workflow: WorkflowCommand
             adapter.build('instrumented');
             return;
         case 'build-optimized':
-            adapter.build('optimized');
+            adapter.build('optimized', profilePath ? resolve(profilePath) : undefined);
             return;
         case 'verify-instrumented':
             adapter.verifyInstrumentation();
@@ -135,6 +167,16 @@ async function runWorkflow(platformName: PlatformName, workflow: WorkflowCommand
         case 'compare-benchmarks':
             await compareBenchmarks(adapter);
             return;
+        case 'benchmark-journey': {
+            const benchmarkAdapter = await createBenchmarkAdapter(adapter, deviceIdentifier);
+            await benchmarkJourneyAll(adapter, benchmarkAdapter.deviceIdentifier, readJourneyFixture(fixturePath), runs, timeoutSeconds, readBenchmarkOrder(benchmarkOrder));
+            return;
+        }
+        case 'benchmark-heavy-journey': {
+            const benchmarkAdapter = await createBenchmarkAdapter(adapter, deviceIdentifier);
+            await benchmarkHeavyJourneyAll(adapter, benchmarkAdapter.deviceIdentifier, readJourneyFixture(fixturePath), runs, timeoutSeconds, readBenchmarkOrder(benchmarkOrder));
+            return;
+        }
         case 'dump':
             await adapter.dumpProfiles();
             return;
@@ -147,6 +189,18 @@ async function runWorkflow(platformName: PlatformName, workflow: WorkflowCommand
         default:
             fail('Unsupported workflow.');
     }
+}
+
+function readBenchmarkOrder(value?: string): BenchmarkOrder {
+    return value ? parseChoice(value, BENCHMARK_ORDERS, 'Journey benchmark order') : 'release-first';
+}
+
+function readJourneyFixture(fixturePath?: string): ReturnType<typeof parseJourneyFixture> {
+    if (!fixturePath) {
+        fail('Journey benchmarks require --fixture with the approved signed-in account.');
+    }
+    const input: unknown = JSON.parse(readFileSync(resolve(fixturePath), 'utf8'));
+    return parseJourneyFixture(input);
 }
 
 function mergeProfiles(adapter: PlatformAdapter): void {

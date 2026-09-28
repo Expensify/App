@@ -1,8 +1,25 @@
 import {describe, expect, it} from 'bun:test';
 
+import {journeyBenchmarkPaths, sha256Artifact} from '@scripts/pgo/journeyBenchmark';
 import {parseJourneyFixture} from '@scripts/pgo/journeyConfig';
 import {assertSignedIn, normalizeLabel, parseJourneySnapshot} from '@scripts/pgo/journeyDevice';
-import {allFilterTapPoint, contentSignature, findReportResult, findTabNode, inAppBackTapPoint, scrollDistance, spendSectionTapPoint} from '@scripts/pgo/journeyWorkload';
+import {
+    allFilterTapPoint,
+    contentSignature,
+    findReportResult,
+    findTabNode,
+    inAppBackTapPoint,
+    scrollDistance,
+    scrollFastBothWays,
+    showTab,
+    spendSectionTapPoint,
+    waitForTab,
+} from '@scripts/pgo/journeyWorkload';
+import {BENCHMARK_SPANS_ENVIRONMENT, HEAVY_JOURNEY_SPAN_NAMES, JOURNEY_SPAN_NAMES, STARTUP_SPAN_NAME} from '@scripts/pgo/shared';
+
+import {mkdirSync, mkdtempSync, rmSync, writeFileSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 
 const fixture = {
     accountEmail: 'heavy@example.com',
@@ -13,6 +30,35 @@ const fixture = {
 };
 
 describe('PGO journey safeguards', () => {
+    it('logs the held-out navigation spans in both PGO builds without replacing startup samples', () => {
+        // Given release and optimized artifacts share one build-time benchmark allowlist.
+        const enabledSpans = BENCHMARK_SPANS_ENVIRONMENT.split('=').at(1)?.split(',');
+        // When / Then the startup span and every short-journey span remain available.
+        expect(enabledSpans).toEqual([STARTUP_SPAN_NAME, ...JOURNEY_SPAN_NAMES, ...HEAVY_JOURNEY_SPAN_NAMES]);
+        expect(journeyBenchmarkPaths({benchmarkDirectory: '/pgo/ios/benchmarks'}, 'batch-1')).toEqual({
+            release: '/pgo/ios/benchmarks/journey/batch-1/release.csv',
+            optimized: '/pgo/ios/benchmarks/journey/batch-1/pgo-optimized.csv',
+        });
+        expect(journeyBenchmarkPaths({benchmarkDirectory: '/pgo/ios/benchmarks'}, 'batch-1', 'heavy-journey')).toEqual({
+            release: '/pgo/ios/benchmarks/heavy-journey/batch-1/release.csv',
+            optimized: '/pgo/ios/benchmarks/heavy-journey/batch-1/pgo-optimized.csv',
+        });
+    });
+
+    it('hashes iOS bundle resources as well as the app executable', async () => {
+        const app = mkdtempSync(join(tmpdir(), 'pgo-test-app-'));
+        try {
+            mkdirSync(join(app, 'Frameworks'));
+            writeFileSync(join(app, 'Expensify'), 'same executable');
+            writeFileSync(join(app, 'main.jsbundle'), 'first bundle');
+            const before = await sha256Artifact(app);
+            writeFileSync(join(app, 'main.jsbundle'), 'second bundle');
+            expect(await sha256Artifact(app)).not.toBe(before);
+        } finally {
+            rmSync(app, {recursive: true, force: true});
+        }
+    });
+
     it('requires explicit message approval in the fixture', () => {
         // Given account approval alone does not authorize a particular message destination.
         for (const allowMessages of [undefined, false, 'true']) {
@@ -128,9 +174,33 @@ describe('PGO journey safeguards', () => {
             const distance = scrollDistance(nodes);
             expect(distance).toBeGreaterThan(0);
             expect(distance).toBeLessThanOrEqual((height ?? 0) / 2);
+            expect(scrollDistance(nodes, true)).toBeGreaterThan(distance);
         }
         // Then missing viewport information must fail instead of falling back to a screen-edge gesture.
         expect(() => scrollDistance([])).toThrow('scroll bounds');
+    });
+
+    it('uses fixed rapid swipes and validates movement in both directions', () => {
+        // Given a report with distinct content at the recent and older scroll positions.
+        const snapshots = ['recent', 'older', 'recent'].map((label) =>
+            parseJourneySnapshot({appBundleId: 'test.app', nodes: [{type: 'ScrollView', rect: {width: 390, height: 844}}, {label}]}, 'test.app'),
+        );
+        const commands: string[][] = [];
+        let read = 0;
+        // When the heavy benchmark scrolls in both directions.
+        scrollFastBothWays(
+            {
+                snapshot: () => snapshots.at(read++) ?? [],
+                command: (...args) => commands.push(args),
+            },
+            4,
+        );
+        // Then it sends fixed-duration gestures and checks content after each direction.
+        expect(commands).toHaveLength(8);
+        expect(commands.every((args) => args.includes('120'))).toBe(true);
+        expect(commands.filter((args) => args.includes('--settle'))).toHaveLength(2);
+        expect(commands.at(0)?.at(1)).toBe('up');
+        expect(commands.at(-1)?.at(1)).toBe('down');
     });
 
     it('selects iOS status-bearing bottom tabs without confusing them with page headings', () => {
@@ -149,6 +219,55 @@ describe('PGO journey safeguards', () => {
         );
         expect(findTabNode(nodes, 'Inbox')?.label).toBe('Inbox. Your review is required');
         expect(findTabNode(nodes, 'Account')?.label).toBe('Account, My settings. Your review is required.');
+    });
+
+    it('waits for a status-bearing iOS Account tab without requiring an exact label', async () => {
+        const nodes = parseJourneySnapshot(
+            {
+                appBundleId: 'test.app',
+                nodes: [
+                    {type: 'Application', rect: {width: 390, height: 844, y: 0}},
+                    {label: 'Account, My settings. Your review is required.', rect: {width: 78, height: 71, y: 749}},
+                ],
+            },
+            'test.app',
+        );
+        const device = {snapshot: () => nodes};
+        await expect(waitForTab(device, 'Account')).resolves.toBeUndefined();
+    });
+
+    it('waits through Android relaunch loading before navigating from a restored page', async () => {
+        // Given a loading view, then a restored nested page, then the Inbox tab after app Back.
+        const screen = {type: 'android.widget.ScrollView', rect: {x: 0, y: 0, width: 1080, height: 2280}};
+        const snapshots = [
+            [screen],
+            [screen, {type: 'android.widget.Button', label: 'Back', rect: {x: 21, y: 144, width: 67, height: 105}}],
+            [screen, {type: 'android.view.View', label: 'Inbox. Your review is required', rect: {x: 216, y: 1968, width: 216, height: 186}}],
+        ].map((nodes) => parseJourneySnapshot({appBundleId: 'test.app', nodes}, 'test.app'));
+        const commands: string[][] = [];
+        let read = 0;
+        const device: Parameters<typeof showTab>[0] = {
+            platform: 'android',
+            snapshot: () => snapshots[Math.min(read++, snapshots.length - 1)],
+            command: (...args: string[]) => commands.push(args),
+            wait: () => {},
+            press: () => {},
+            hasLabel: () => false,
+            pressLabel: () => {},
+            waitLabel: () => {},
+            fill: () => {},
+            back: () => commands.push(['hardware back']),
+            open: () => {},
+        };
+
+        // When the benchmark navigates to Inbox after relaunch.
+        await showTab(device, 'Inbox');
+
+        // Then loading does not trigger Back, and the app's Back control is used once.
+        expect(commands).toEqual([
+            ['press', '55', '197', '--settle'],
+            ['press', '324', '2061', '--settle'],
+        ]);
     });
 
     it('accepts a duplicated Android navigation subtree but rejects distinct tab targets', () => {

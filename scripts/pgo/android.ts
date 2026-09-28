@@ -23,7 +23,7 @@ function createAndroidPgoAdapter(configuredAppID?: string, configuredDeviceIdent
     const benchmarkDirectory = join(rootDirectory, '.pgo/android/benchmarks');
     const androidDirectory = join(rootDirectory, 'Mobile-Expensify/Android');
     const buildGradlePath = join(androidDirectory, 'build.gradle');
-    const gradleReleaseApkPath = join(androidDirectory, 'build/outputs/apk/release/Expensify-release.apk');
+    const gradleReleaseApkPath = join(androidDirectory, 'build/intermediates/apk/release/packageRelease/Expensify-release.apk');
     const profileDumpTimeoutSeconds = 5;
 
     const artifactPaths: BuildArtifactPaths = {
@@ -77,18 +77,26 @@ function createAndroidPgoAdapter(configuredAppID?: string, configuredDeviceIdent
         console.log(`Copied release APK: ${destination}`);
     }
 
-    function build(kind: BuildKind): void {
-        if (kind === 'optimized' && !existsSync(join(profileDirectory, 'newdot.profdata'))) {
-            fail(`Missing ${join(profileDirectory, 'newdot.profdata')}. Run merge first.`);
+    function build(kind: BuildKind, profileOverride?: string): void {
+        const profilePath = profileOverride ?? join(profileDirectory, 'newdot.profdata');
+        if (kind === 'optimized' && !existsSync(profilePath)) {
+            fail(`Missing ${profilePath}. Run merge first or pass --profile.`);
         }
 
         const pgoModes: Record<BuildKind, string> = {release: 'off', instrumented: 'generate', optimized: 'use'};
-        const gradleArguments = [':assembleRelease', '-PpatchedArtifacts.forceBuildFromSource=true', '-PreactNativeArchitectures=arm64-v8a', `-PpgoMode=${pgoModes[kind]}`];
+        const gradleArguments = [
+            ':packageRelease',
+            '-PpatchedArtifacts.forceBuildFromSource=true',
+            '-PreactNativeArchitectures=arm64-v8a',
+            `-PpgoMode=${pgoModes[kind]}`,
+            '-x',
+            'fullstoryRelease',
+        ];
         if (kind === 'optimized') {
-            gradleArguments.push(`-PpgoProfile=${join(profileDirectory, 'newdot.profdata')}`);
+            gradleArguments.push(`-PpgoProfile=${profilePath}`);
         }
 
-        run('/usr/bin/env', [BENCHMARK_SPANS_ENVIRONMENT, './gradlew', ...gradleArguments], androidDirectory);
+        run('/usr/bin/env', [BENCHMARK_SPANS_ENVIRONMENT, 'SENTRY_DISABLE_AUTO_UPLOAD=true', './gradlew', ...gradleArguments], androidDirectory);
         archiveReleaseApk(artifactPaths[kind]);
     }
 

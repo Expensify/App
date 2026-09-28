@@ -4,7 +4,7 @@
 
 This directory contains the local LLVM PGO workflow for Android and iOS. The `pgo.ts` command builds release, instrumented, and profile-optimized apps, retrieves native profiles, merges them, and compares startup performance. On Android, the current flags cover source-built React Native, Hermes, and ExpensifyNitroUtils libraries. On iOS, the workflow forces React Native and Hermes source builds and instruments the app and source-based CocoaPods targets. Precompiled frameworks do not participate.
 
-The command enables the existing `ManualAppStartup` benchmark span in every app it builds. Profile collection waits for that span to finish, then explicitly writes the LLVM counters before the app process is stopped. Benchmarking uses the same native span tooling as the repository's general startup benchmark.
+The command enables `ManualAppStartup` and the existing Spend/Inbox navigation spans in every app it builds. Startup profile collection waits for `ManualAppStartup` to finish, then explicitly writes the LLVM counters before the app process is stopped. Both benchmark modes use app-defined span durations rather than device-automation wall time.
 
 ## Prepare local release identifiers
 
@@ -99,7 +99,20 @@ scripts/pgo/pgo.ts android build-release
 scripts/pgo/pgo.ts android benchmark 20 45
 ```
 
+Pass `--profile /absolute/path/to/merged.profdata` to `build-optimized` when comparing an archived profile. The path becomes part of the compiler input; keep the file immutable for the build. Without it, the command uses the platform's `newdot.profdata`. Local PGO builds disable Sentry uploads. iOS temporarily skips the FullStory and Sentry upload phases and restores the original Xcode project afterward. Android excludes `fullstoryRelease` and archives the pre-FullStory APK, so its local benchmarks are internally paired but do not represent the fully post-processed production APK. Do not compare their absolute timings directly with earlier or store builds that used FullStory processing.
+
 The benchmark installs the archived baseline, runs one warm-up and the requested `ManualAppStartup` samples, then repeats the process with the optimized app. Both builds use the same application identifier, so installing the second artifact preserves the seeded account and data. Results are stored under `.pgo/<platform>/benchmarks/` in the repository benchmark CSV format.
+
+For a separate, read-only interaction benchmark, use the approved signed-in account fixture described in [JOURNEY.md](./JOURNEY.md):
+
+```bash
+scripts/pgo/pgo.ts android benchmark-journey 20 30 --device DEVICE_SERIAL --app-id com.chrispader.expensify.pgo --fixture .pgo/journey-fixture.json
+scripts/pgo/pgo.ts ios benchmark-journey 20 30 --device DEVICE_UDID --app-id com.chrispader.expensify.expensifylite.pgo --fixture .pgo/journey-fixture.json
+```
+
+Each variant gets one discarded warm-up and 20 measured fresh-process journeys. Before each sample, the runner selects Spend → Expenses and returns to Inbox; it then times a warm Inbox → Spend → Inbox tab switch. Expenses can restore the account's saved query and filters, so keep that state fixed across both phases. The CSVs under a unique `.pgo/<platform>/benchmarks/journey/<batch>/` directory contain `ManualNavigateToReportsFirstPaint`, `ManualNavigateToReportsContentLoad`, and `ManualNavigateToInboxTab` samples, alongside a run manifest with artifact hashes. These are app-defined tap-to-paint timings, so automation overhead is outside the measurement. The journey sends no messages and leaves account data unchanged. Both phases run in one command and are compared only within that batch. Rebuild both archived variants with this version of the tooling before benchmarking; older PGO builds only logged startup.
+
+For a populated-chat, fast-scroll benchmark, use `benchmark-heavy-journey` with the same arguments. It records the app's report-open span on both platforms and Android's rendered/missed scroll frames in a separate CSV. iOS scroll-frame measurement is not currently reliable on the connected phone; the runner verifies that scrolling moves through real content but does not report a scroll performance number. See [JOURNEY.md](./JOURNEY.md) for the exact measured interval, setup, and limitations. Both variants must be rebuilt to include the additional report-open marker.
 
 The stages can also run independently:
 

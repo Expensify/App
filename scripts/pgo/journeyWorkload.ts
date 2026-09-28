@@ -109,7 +109,7 @@ async function ensureFocusDisabled(device: JourneyDevice, allowChange: boolean):
     device.waitLabel('Priority mode, Most recent');
 }
 
-async function openReport(device: JourneyDevice, report: JourneyReport, isPersonalChat = false): Promise<void> {
+async function openReport(device: JourneyDevice, report: JourneyReport, isPersonalChat = false, beforePress?: () => void): Promise<void> {
     await showTab(device, 'Inbox');
     device.press(idSelector('searchButton'));
     device.fill('search-autocomplete-text-input', report.query);
@@ -124,6 +124,7 @@ async function openReport(device: JourneyDevice, report: JourneyReport, isPerson
     if (!resultLabel) {
         throw new Error(`No search result matched ${report.resultLabelPrefix}.`);
     }
+    beforePress?.();
     device.pressLabel(resultLabel);
     device.wait(idSelector('composer'));
     if (!device.hasLabel(report.title)) {
@@ -132,17 +133,41 @@ async function openReport(device: JourneyDevice, report: JourneyReport, isPerson
 }
 
 async function showTab(device: JourneyDevice, tab: string): Promise<void> {
-    // Use app back navigation instead of Android's hardware Back, which can dismiss the keyboard or leave the app.
-    for (let attempt = 0; attempt < 5; attempt += 1) {
-        const tabNode = findTabNode(device.snapshot(), tab);
+    const deadline = Date.now() + 30_000;
+    let backPresses = 0;
+    while (Date.now() < deadline) {
+        const nodes = device.snapshot();
+        const tabNode = findTabNode(nodes, tab);
         if (tabNode) {
             device.command('press', String(Math.round(tabNode.x + tabNode.width / 2)), String(Math.round(tabNode.y + tabNode.height / 2)), '--settle');
             return;
         }
-        pressInAppBack(device);
-        await sleep(300);
+        // A relaunch can expose a loading view before tabs mount. Only navigate back from a real nested page.
+        if (backPresses < 5 && inAppBackTapPoint(nodes)) {
+            pressInAppBack(device, nodes);
+            backPresses += 1;
+        }
+        await sleep(500);
     }
     throw new Error(`Cannot return to the ${tab} tab.`);
+}
+
+/** Wait for a mounted bottom tab without navigating away from a partially loaded screen. */
+async function waitForTab(device: Pick<JourneyDevice, 'snapshot'>, tab: string): Promise<void> {
+    const deadline = Date.now() + 30_000;
+    while (Date.now() < deadline) {
+        try {
+            if (findTabNode(device.snapshot(), tab)) {
+                return;
+            }
+        } catch (error) {
+            if (!(error instanceof Error) || !error.message.includes('insufficient foreground app content')) {
+                throw error;
+            }
+        }
+        await sleep(300);
+    }
+    throw new Error(`Timed out waiting for the ${tab} bottom tab to mount.`);
 }
 
 function selectAllInboxFilter(device: JourneyDevice): void {
@@ -164,26 +189,29 @@ function pressPreferences(device: JourneyDevice): void {
     device.pressLabel('Preferences');
 }
 
-function pressInAppBack(device: JourneyDevice): void {
-    if (device.platform === 'ios') {
-        const tapPoint = inAppBackTapPoint(device.snapshot());
-        if (tapPoint) {
-            device.command('press', String(tapPoint.x), String(tapPoint.y), '--settle');
-            return;
-        }
+function pressInAppBack(device: JourneyDevice, nodes = device.snapshot()): void {
+    const tapPoint = inAppBackTapPoint(nodes);
+    if (tapPoint) {
+        device.command('press', String(tapPoint.x), String(tapPoint.y), '--settle');
+        return;
     }
     device.back();
 }
 
-/** The iOS search Back button remains visible but is reported non-hittable while the keyboard is open. */
+/** Use the app's top-left Back control; it can be non-hittable on iOS while the keyboard is open. */
 function inAppBackTapPoint(nodes: JourneyNode[]): {x: number; y: number} | undefined {
-    const screen = nodes.find((node) => node.type === 'Application');
+    const screen =
+        nodes.find((node) => node.type === 'Application') ??
+        nodes
+            .filter((node) => node.x === 0 && node.y === 0 && node.width > 0 && node.height > 0)
+            .toSorted((left, right) => right.width * right.height - left.width * left.height)
+            .at(0);
     if (!screen) {
         return undefined;
     }
     const candidates = nodes.filter(
         (node) =>
-            node.type === 'Button' &&
+            (node.type === 'Button' || node.type === 'android.widget.Button') &&
             normalizeLabel(node.label) === 'Back' &&
             node.enabled &&
             node.width > 0 &&
@@ -194,7 +222,7 @@ function inAppBackTapPoint(nodes: JourneyNode[]): {x: number; y: number} | undef
             node.y < screen.height * 0.2,
     );
     if (candidates.length > 1) {
-        throw new Error('Ambiguous in-app Back control on iOS.');
+        throw new Error('Ambiguous in-app Back control.');
     }
     const back = candidates.at(0);
     return back ? {x: Math.round(back.x + back.width / 2), y: Math.round(back.y + back.height / 2)} : undefined;
@@ -293,6 +321,23 @@ async function scrollBothWays(device: JourneyDevice, count: number, requireMovem
     }
 }
 
+/** Fixed rapid swipes with one movement check per direction, keeping accessibility polling out of each fling. */
+function scrollFastBothWays(device: Pick<JourneyDevice, 'snapshot' | 'command'>, count: number): void {
+    const initialNodes = device.snapshot();
+    const pixels = String(scrollDistance(initialNodes, true));
+    let previous = contentSignature(initialNodes);
+    for (const direction of ['up', 'down']) {
+        for (let scroll = 0; scroll < count; scroll += 1) {
+            device.command('scroll', direction, '--pixels', pixels, '--duration-ms', '120', ...(scroll === count - 1 ? ['--settle'] : []));
+        }
+        const current = contentSignature(device.snapshot());
+        if (current === previous) {
+            throw new Error(`The populated report did not move during fast ${direction} scrolling. Discard this benchmark run.`);
+        }
+        previous = current;
+    }
+}
+
 async function waitForMessage(device: JourneyDevice, token: string): Promise<void> {
     const deadline = Date.now() + 30_000;
     while (Date.now() < deadline) {
@@ -317,13 +362,13 @@ function contentSignature(nodes: JourneyNode[]): string {
 }
 
 /** Keep both ends of the gesture inside the center of portrait lists, below Spend's fixed header. */
-function scrollDistance(nodes: JourneyNode[]): number {
+function scrollDistance(nodes: JourneyNode[], fast = false): number {
     const scrollAreas = nodes.filter((node) => /ScrollView|RecyclerView|ScrollArea/i.test(node.type) && node.width > 0 && node.height > 0);
     const viewport = scrollAreas.toSorted((left, right) => right.width * right.height - left.width * left.height).at(0);
     if (!viewport) {
         throw new Error('Cannot determine scroll bounds on this device.');
     }
-    return Math.round(Math.min(viewport.height * 0.25, viewport.width * 0.6));
+    return Math.round(Math.min(viewport.height * (fast ? 0.65 : 0.25), viewport.width * (fast ? 1.5 : 0.6)));
 }
 
 /** Match stable report identity while allowing the last-message preview to change. */
@@ -347,9 +392,15 @@ export {
     findReportResult,
     findTabNode,
     inAppBackTapPoint,
+    openReport,
     prepareJourney,
     runJourneyWorkload,
+    scrollBothWays,
+    scrollFastBothWays,
     scrollDistance,
+    selectSpendSection,
+    showTab,
     spendSectionTapPoint,
     verifyJourneyAccount,
+    waitForTab,
 };
