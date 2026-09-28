@@ -5,6 +5,7 @@ import {spawnSync} from 'node:child_process';
 import {mkdtempSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {basename, join, resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
 
 import {packageRoot} from './testUtils';
 
@@ -37,7 +38,7 @@ let probeOutput: ProbeOutput;
 describe('cartesian plot bounds', () => {
     beforeAll(async () => {
         const buildResult = await Bun.build({
-            entrypoints: [join(import.meta.dir, 'probes/plotBoundsProbe.tsx')],
+            entrypoints: [fileURLToPath(import.meta.resolve('./probes/plotBoundsProbe.tsx'))],
             target: 'bun',
             packages: 'bundle',
             conditions: ['react-native'],
