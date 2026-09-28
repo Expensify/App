@@ -231,6 +231,9 @@ function getTransactionsForMergingLocally(
         // the local cache we cannot verify access, so we exclude the candidate rather than assuming
         // admin rights.
         const candidateReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] ?? getReportOrDraftReport(transaction.reportID);
+        if (!candidateReport) {
+            return false;
+        }
         const candidatePolicyKey = `${ONYXKEYS.COLLECTION.POLICY}${candidateReport?.policyID}`;
         const candidatePolicy = candidateReport?.policyID ? (allPolicies?.[candidatePolicyKey] ?? null) : null;
         const isCandidatePolicyMissing = !!candidateReport?.policyID && candidatePolicy === null;
@@ -255,6 +258,7 @@ function getTransactionsForMerging({
     isOffline,
     targetTransaction,
     transactions,
+    reportTransactions,
     policy,
     report,
     currentUserLogin,
@@ -265,6 +269,7 @@ function getTransactionsForMerging({
     isOffline: boolean;
     targetTransaction: Transaction;
     transactions: OnyxCollection<Transaction>;
+    reportTransactions: Transaction[];
     policy: OnyxEntry<Policy>;
     report: OnyxEntry<Report>;
     currentUserLogin: string | undefined;
@@ -293,7 +298,6 @@ function getTransactionsForMerging({
 
     // Managers (non-admin approvers) reviewing a processing report still see only same-report transactions.
     if (isPaidGroupPolicy(policy) && isManager && !isAdmin && !isCurrentUserSubmitter(report)) {
-        const reportTransactions = getReportTransactions(report?.reportID);
         const eligibleTransactions = reportTransactions.filter((transaction): transaction is Transaction => {
             if (!transaction || transaction.transactionID === transactionID) {
                 return false;
@@ -309,7 +313,7 @@ function getTransactionsForMerging({
     }
 
     if (isOffline) {
-        getTransactionsForMergingLocally(transactionID, targetTransaction, transactions, rules, allPolicies ?? null, currentUserLogin, allReports);
+        getTransactionsForMergingLocally(transactionID, targetTransaction, transactions, rules, allPolicies, currentUserLogin, allReports);
     } else {
         getTransactionsForMergingFromAPI(transactionID);
     }
@@ -334,7 +338,9 @@ function getOnyxTargetTransactionData({
     getCurrencyDecimals,
     getCurrencySymbol,
     rules,
+    isVendorMatchingBetaEnabled,
 }: {
+    isVendorMatchingBetaEnabled: boolean | undefined;
     targetTransaction: Transaction;
     targetTransactionViolations: OnyxEntry<TransactionViolations>;
     mergeTransaction: MergeTransaction;
@@ -386,6 +392,7 @@ function getOnyxTargetTransactionData({
         });
     } else {
         data = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled,
             transactionID: targetTransaction.transactionID,
             transactionThreadReport: targetTransactionThreadReport,
             iouReport: targetTransactionThreadParentReport,
@@ -469,6 +476,7 @@ type MergeTransactionRequestParams = {
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     sourceIOUActionThreadReport: OnyxEntry<Report>;
     rules: OnyxCollection<Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 /**
  * Merges two transactions by updating the target transaction with selected fields and deleting the source transaction.
@@ -505,6 +513,7 @@ function mergeTransactionRequest({
     getCurrencySymbol,
     sourceIOUActionThreadReport,
     rules,
+    isVendorMatchingBetaEnabled,
 }: MergeTransactionRequestParams) {
     // For both unreported expenses and expense reports, negate the display amount when storing
     // This preserves the user's chosen sign while following the storage convention
@@ -540,6 +549,7 @@ function mergeTransactionRequest({
         reportID: mergeTransaction.reportID,
     };
     const onyxTargetTransactionData = getOnyxTargetTransactionData({
+        isVendorMatchingBetaEnabled,
         targetTransaction,
         targetTransactionViolations: allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + targetTransaction.transactionID] ?? [],
         mergeTransaction,

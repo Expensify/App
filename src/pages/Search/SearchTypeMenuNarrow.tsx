@@ -2,7 +2,7 @@ import type BaseModalProps from '@components/Modal/types';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {useSearchQueryActions, useSearchQueryContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
@@ -15,7 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
-import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
+import {useSearchTypeMenuSectionsForNavigation} from '@hooks/useSearchTypeMenuSections';
 import useShareSavedSearch, {MENU_CLOSE_DELAY_MS} from '@hooks/useShareSavedSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTodoCounts from '@hooks/useTodoCounts';
@@ -23,21 +23,16 @@ import useTodoCounts from '@hooks/useTodoCounts';
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 import {getValidLastQuery} from '@libs/SearchQueryUtils';
-import {
-    getItemBadgeText,
-    getLastSearchQuery,
-    getOverflowMenu,
-    savedSearchIDToSearchKey,
-    SAVED_SEARCH_FALLBACK_ICON_NAME,
-    SAVED_SEARCH_ICON_NAMES,
-    SEARCH_TYPE_MENU_ICON_NAMES,
-} from '@libs/SearchUIUtils';
-import type {SearchKey} from '@libs/SearchUIUtils';
+import {getItemBadgeText, getLastSearchQuery, getOverflowMenu, SAVED_SEARCH_FALLBACK_ICON_NAME, SAVED_SEARCH_ICON_NAMES, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {accountIDSelector} from '@src/selectors/Session';
+
+import type {ComponentRef} from 'react';
 
 // NOTE: This component has a static twin in SearchPageNarrow/StaticSearchTypeMenu.tsx
 // used for fast perceived performance. If you change the UI here, verify the
@@ -60,7 +55,7 @@ type SearchTypeMenuNarrowContentProps = {
     onActiveTabPress?: (key: SearchKey) => void;
     onTabPress?: (key: SearchKey) => void;
     onLongTabPress?: (key: SearchKey) => void;
-    containerRef?: React.RefObject<View | null>;
+    containerRef?: React.RefObject<ComponentRef<typeof View> | null>;
     children?: React.ReactNode;
 };
 
@@ -70,7 +65,7 @@ function SearchTypeMenuNarrowContent({tabs, activeTabKey, onActiveTabPress, onTa
     return (
         <View
             ref={containerRef}
-            style={[styles.appBG]}
+            style={[styles.appBG, styles.pt1]}
         >
             <TabSelectorContextProvider activeTabKey={activeTabKey}>
                 <TabSelectorBase
@@ -92,7 +87,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
-    const typeMenuSections = useSearchTypeMenuSections(isFocused);
+    const typeMenuSections = useSearchTypeMenuSectionsForNavigation(isFocused);
     const personalDetails = usePersonalDetails();
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
@@ -109,7 +104,6 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const reportAttributes = useReportAttributes();
     const {currentSearchKey} = useSearchQueryContext();
-    const {setCurrentSearchKey} = useSearchQueryActions();
 
     const taxRates = getAllTaxRates(allPolicies);
     const cardsForSavedSearchDisplay = mergeCardListWithWorkspaceFeeds(workspaceCardList ?? CONST.EMPTY_OBJECT, cardList);
@@ -131,7 +125,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     });
 
     const [savedSearchToModifyKey, setSavedSearchToModifyKey] = useState<SearchKey | null>(null);
-    const menuAnchorRef = useRef<View>(null);
+    const menuAnchorRef = useRef<ComponentRef<typeof View>>(null);
     const {showDeleteModal} = useDeleteSavedSearch();
 
     const {copiedID, handleShare} = useShareSavedSearch();
@@ -208,7 +202,6 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
             return;
         }
         onTabPress?.();
-        setCurrentSearchKey(tabKey);
         setSearchContext(false);
     };
 
@@ -219,12 +212,11 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         }
         onTabPress?.();
         const query = getValidLastQuery(getLastSearchQuery(searchFilters, tabKey), searchData.query);
-        setCurrentSearchKey(tabKey, query);
         setSearchContext(false);
         navigation.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
             payload: {
-                params: {q: query, name: searchData.name, rawQuery: undefined},
+                params: {q: query, name: searchData.name, rawQuery: undefined, searchKey: tabKey},
             },
         });
     };

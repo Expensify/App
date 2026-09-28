@@ -10,7 +10,8 @@ import prefixes from './prefixes';
 import subscribe from './subscribe';
 
 const linkingConfig: LinkingOptions<RootNavigatorParamList> = {
-    getStateFromPath: getAdaptedStateFromPath,
+    // Resolve the parser when called: circular navigation imports can leave it uninitialized while this config is created.
+    getStateFromPath: (path, options) => getAdaptedStateFromPath(path, options),
     getPathFromState,
     prefixes,
     config,

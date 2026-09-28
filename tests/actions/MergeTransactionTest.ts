@@ -193,6 +193,7 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
     const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetReport, sourceIOUAction} = fixtures;
 
     mergeTransactionRequest({
+        isVendorMatchingBetaEnabled: false,
         iouReportOwnerLogin: undefined,
         mergeTransactionID,
         mergeTransaction,
@@ -316,6 +317,7 @@ describe('mergeTransactionRequest', () => {
         // When: The merge transaction request is initiated
         // This should immediately update the UI with optimistic values
         mergeTransactionRequest({
+            isVendorMatchingBetaEnabled: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
@@ -440,6 +442,7 @@ describe('mergeTransactionRequest', () => {
 
         // When the merge fires
         mergeTransactionRequest({
+            isVendorMatchingBetaEnabled: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
@@ -547,6 +550,7 @@ describe('mergeTransactionRequest', () => {
 
         // When: The Merge Expense flow is executed
         mergeTransactionRequest({
+            isVendorMatchingBetaEnabled: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
@@ -704,6 +708,7 @@ describe('mergeTransactionRequest', () => {
         mockFetch?.fail?.();
 
         mergeTransactionRequest({
+            isVendorMatchingBetaEnabled: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
@@ -816,6 +821,7 @@ describe('mergeTransactionRequest', () => {
         // - Optimistically remove DUPLICATED_TRANSACTION violations since transactions are being merged
         // - Keep other violations like MISSING_CATEGORY intact
         mergeTransactionRequest({
+            isVendorMatchingBetaEnabled: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
@@ -1051,6 +1057,7 @@ describe('mergeTransactionRequest', () => {
 
             // When: The merge request is executed
             mergeTransactionRequest({
+                isVendorMatchingBetaEnabled: false,
                 iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
@@ -1203,7 +1210,6 @@ describe('mergeTransactionRequest', () => {
                 introSelected: undefined,
                 participants,
                 personalDetails: allPersonalDetails,
-                betas: undefined,
                 newReportObject: thread,
                 parentReportActionID: sourceIOUAction.reportActionID,
                 currentUserAccountID: TEST_ACCOUNT_ID,
@@ -1261,6 +1267,7 @@ describe('mergeTransactionRequest', () => {
 
             // When: The merge request is executed
             mergeTransactionRequest({
+                isVendorMatchingBetaEnabled: false,
                 iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
@@ -1398,7 +1405,6 @@ describe('mergeTransactionRequest', () => {
                 introSelected: undefined,
                 participants,
                 personalDetails: allPersonalDetails,
-                betas: undefined,
                 newReportObject: thread,
                 parentReportActionID: sourceIOUAction.reportActionID,
                 currentUserAccountID: TEST_ACCOUNT_ID,
@@ -1420,6 +1426,7 @@ describe('mergeTransactionRequest', () => {
 
             // When: The merge request is executed
             mergeTransactionRequest({
+                isVendorMatchingBetaEnabled: false,
                 iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
@@ -1554,6 +1561,7 @@ describe('mergeTransactionRequest', () => {
 
             // When: The merge request is executed for the unreported source transaction
             mergeTransactionRequest({
+                isVendorMatchingBetaEnabled: false,
                 iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
@@ -1698,6 +1706,7 @@ describe('mergeTransactionRequest', () => {
 
             // When: The merge request is executed
             mergeTransactionRequest({
+                isVendorMatchingBetaEnabled: false,
                 iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
@@ -1775,6 +1784,7 @@ describe('getTransactionsForMerging', () => {
             isOffline: true,
             targetTransaction,
             transactions: {},
+            reportTransactions: [],
             policy: undefined,
             report: undefined,
             currentUserLogin: undefined,
@@ -1861,10 +1871,11 @@ describe('getTransactionsForMerging', () => {
             isOffline: true,
             targetTransaction,
             transactions: allTransactions,
+            reportTransactions: [],
             policy,
             report: targetReport,
             currentUserLogin: adminLogin,
-            rules: null,
+            rules: undefined,
             allPolicies,
             allReports,
         });
@@ -1950,10 +1961,11 @@ describe('getTransactionsForMerging', () => {
             isOffline: true,
             targetTransaction,
             transactions: allTransactions,
+            reportTransactions: [],
             policy: adminPolicy,
             report: targetReport,
             currentUserLogin: adminLogin,
-            rules: null,
+            rules: undefined,
             allPolicies,
             allReports,
         });
@@ -2032,10 +2044,11 @@ describe('getTransactionsForMerging', () => {
             isOffline: true,
             targetTransaction,
             transactions: allTransactions,
+            reportTransactions: [],
             policy: adminPolicy,
             report: targetReport,
             currentUserLogin: adminLogin,
-            rules: null,
+            rules: undefined,
             allPolicies,
             allReports,
         });
@@ -2107,7 +2120,6 @@ describe('getTransactionsForMerging', () => {
             amount: 600,
         };
 
-        // Set individual transactions in Onyx so the module-level getReportTransactions can find them
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sameReportCandidate.transactionID}`, sameReportCandidate);
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${otherReportCandidate.transactionID}`, otherReportCandidate);
@@ -2134,10 +2146,11 @@ describe('getTransactionsForMerging', () => {
             isOffline: true,
             targetTransaction,
             transactions: allTransactions,
+            reportTransactions: [targetTransaction, sameReportCandidate],
             policy,
             report: processingReport,
             currentUserLogin: managerLogin,
-            rules: null,
+            rules: undefined,
             allPolicies,
             allReports,
         });
@@ -2225,10 +2238,11 @@ describe('getTransactionsForMerging', () => {
             isOffline: true,
             targetTransaction,
             transactions: allTransactions,
+            reportTransactions: [],
             policy,
             report: ownReport,
             currentUserLogin: adminLogin,
-            rules: null,
+            rules: undefined,
             allPolicies,
             allReports,
         });
@@ -2236,6 +2250,42 @@ describe('getTransactionsForMerging', () => {
 
         const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
         expect(mergeTransaction?.eligibleTransactions?.some((t) => t.transactionID === candidateTransaction.transactionID)).toBe(true);
+    });
+
+    it('builds the eligible list from reportTransactions when a workspace approver merges from a report they did not submit', async () => {
+        // Given a non-admin workspace approver reviewing a report submitted by someone else (TEST_ACCOUNT_ID
+        // is the signed-in user for this file, so ownerAccountID must differ from it for isCurrentUserSubmitter to be false)
+        const policy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.USER};
+        const report = {...createRandomReport(1), ownerAccountID: TEST_ACCOUNT_ID + 1, managerID: TEST_ACCOUNT_ID};
+        const targetTransaction = {...createRandomTransaction(1), reportID: report.reportID, managedCard: false, cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME, amount: 1000};
+        const eligibleTransaction = {...createRandomTransaction(2), reportID: report.reportID, managedCard: false, cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME, amount: 2000};
+        const pendingDeleteTransaction = {
+            ...createRandomTransaction(3),
+            reportID: report.reportID,
+            managedCard: false,
+            cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+            amount: 3000,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        };
+
+        // When we request merge candidates, passing the report's already-loaded transactions via reportTransactions
+        // (the collect/control workspace path no longer falls back to the deprecated getReportTransactions global lookup)
+        getTransactionsForMerging({
+            isOffline: false,
+            targetTransaction,
+            transactions: {},
+            reportTransactions: [targetTransaction, eligibleTransaction, pendingDeleteTransaction],
+            policy,
+            report,
+            currentUserLogin: 'approver@example.com',
+            rules: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the eligible list is built from reportTransactions: it excludes the target transaction itself and the
+        // pending-delete transaction, keeping only the transaction that is actually eligible for merge
+        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
+        expect(mergeTransaction?.eligibleTransactions).toStrictEqual([eligibleTransaction]);
     });
 });
 

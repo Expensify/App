@@ -85,5 +85,7 @@ const Dimensions = {
     get: () => ({width: 680, height: 530, scale: 1, fontScale: 1}),
 };
 
+const codegenNativeComponent = () => passThroughComponent;
+
 export type {LayoutChangeEvent, ViewStyle, ImageStyle, TextStyle, StyleProp, TransformsStyle};
-export {AppRegistry, AppState, Dimensions, NativeModules, View, Image, Text, Platform, PixelRatio, StyleSheet, findNodeHandle, TurboModuleRegistry};
+export {AppRegistry, AppState, Dimensions, NativeModules, View, Image, Text, Platform, PixelRatio, StyleSheet, codegenNativeComponent, findNodeHandle, TurboModuleRegistry};

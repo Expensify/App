@@ -11,6 +11,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -67,6 +68,8 @@ type RequireFieldsRulePageBaseProps = {
 function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName, isCategoryLocked: isCategoryLockedProp, testID}: RequireFieldsRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const policyData = usePolicyData(policyID);
     const {policy} = policyData;
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
@@ -358,11 +361,11 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         }
 
         if (didChangeCategory && originalCategoryName) {
-            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(originalCategoryName));
+            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(originalCategoryName), isVendorMatchingBetaEnabled);
             // Old category is fully removed; clearedFields belonged to that rule, not the new category.
-            saveRequireFieldsRule(policyData, formToSave, touchedFields);
+            saveRequireFieldsRule(policyData, formToSave, isVendorMatchingBetaEnabled, touchedFields);
         } else {
-            saveRequireFieldsRule(policyData, formToSave, touchedFields, clearedFields);
+            saveRequireFieldsRule(policyData, formToSave, isVendorMatchingBetaEnabled, touchedFields, clearedFields);
         }
 
         clearDraftRequireFieldsRule();
@@ -403,7 +406,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
     const {deleteHeaderProps} = useRuleDeleteHeaderProps({
         canDelete: canWriteRules && isEditing && !!category && categoryHasAnyRequireFieldsRule(category) && !isRuleBeingDeleted,
         onDelete: () => {
-            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(categoryName ?? ''));
+            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(categoryName ?? ''), isVendorMatchingBetaEnabled);
             return true;
         },
         sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_DELETE,

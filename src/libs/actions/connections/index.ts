@@ -16,15 +16,9 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {differenceInMinutes, isValid, parseISO} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
-import {syncMerge} from './merge';
+import {MERGE_INITIAL_SYNC_MODAL_SHOWN_KEYS, syncMerge} from './merge';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
-
-/** Client-side "initial sync modal shown" flag for each Merge connection, cleared when the connection is removed. */
-const MERGE_INITIAL_SYNC_MODAL_SHOWN_KEYS = {
-    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN,
-    [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: ONYXKEYS.COLLECTION.POLICY_MERGE_ATS_INITIAL_SYNC_MODAL_SHOWN,
-} as const;
 
 function removePolicyConnection(policy: Policy, connectionName: PolicyConnectionName) {
     const policyID = policy.id;
@@ -168,6 +162,12 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
         }
         case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_CAMPFIRE, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.CAMPFIRE_SYNC_CONNECTION};
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL: {
+            return {
+                readCommand: READ_COMMANDS.SYNC_POLICY_TO_BUSINESS_CENTRAL,
+                stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.BUSINESS_CENTRAL_SYNC_CONNECTION,
+            };
         }
         default:
             return undefined;

@@ -94,8 +94,7 @@ const baseActions = {
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
     setSortedReportIDs: jest.fn(),
-    setCurrentSearchKey: jest.fn(),
-    resetSearchKey: jest.fn(),
+    getSearchKeyForQuery: jest.fn(),
 } satisfies SearchActionsContextValue;
 
 /** Wide enough that the sub-header's column widths never exceed it, so no horizontal scroller is involved here. */

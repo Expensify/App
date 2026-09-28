@@ -98,7 +98,6 @@ function ReportSubmitToContent({
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {isOffline} = useNetwork();
@@ -125,7 +124,7 @@ function ReportSubmitToContent({
             return [];
         }
         const prepopulatedEmailLower = prepopulatedEmail?.trim().toLowerCase();
-        const emailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, true, false);
+        const emailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, undefined, true, false);
         return Object.values(employeeList).flatMap((employee): WorkspaceMemberItem[] => {
             const email = employee.email?.trim();
             if (!email || employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -217,6 +216,7 @@ function ReportSubmitToContent({
             personalDetails,
             loginList,
             currentUserEmail: currentUserDetails.email ?? '',
+            currentUserAccountID: currentUserDetails.accountID,
             countryCode,
             selectedOptions: [],
             loginsToExclude: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -234,7 +234,19 @@ function ReportSubmitToContent({
             keyForList: `nonWorkspace:${login}`,
             isSelected: managerEmail.trim().toLowerCase() === login.trim().toLowerCase(),
         };
-    }, [countryCode, currentUserDetails.email, searchTerm, filteredWorkspaceMembers.length, loginList, managerEmail, personalDetails, dateFnsLocale, convertToDisplayString, rules]);
+    }, [
+        countryCode,
+        currentUserDetails.email,
+        searchTerm,
+        filteredWorkspaceMembers.length,
+        loginList,
+        managerEmail,
+        personalDetails,
+        dateFnsLocale,
+        convertToDisplayString,
+        rules,
+        currentUserDetails.accountID,
+    ]);
 
     const submitToSelectionData = useMemo(() => {
         if (!nonWorkspaceInviteRow) {
@@ -311,7 +323,6 @@ function ReportSubmitToContent({
             currentUserEmailParam: currentUserDetails.email ?? '',
             hasViolations,
             isASAPSubmitBetaEnabled,
-            betas,
             userBillingGracePeriodEnds,
             amountOwed,
             ownerBillingGracePeriodEnd,
@@ -348,7 +359,6 @@ function ReportSubmitToContent({
         currentUserDetails.email,
         hasViolations,
         isASAPSubmitBetaEnabled,
-        betas,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,

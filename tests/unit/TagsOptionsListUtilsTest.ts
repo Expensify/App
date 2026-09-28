@@ -1,7 +1,8 @@
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 
+import {getTagLists} from '@libs/PolicyUtils';
 import type {SelectedTagOption, TagOption} from '@libs/TagsOptionsListUtils';
-import {getEnabledTags, getTagListSections, getTagVisibility, getUpdatedTransactionTag, sortTags} from '@libs/TagsOptionsListUtils';
+import {getDependentTagVisibility, getEnabledTags, getTagListSections, getTagVisibility, getUpdatedTransactionTag, hasEnabledTags, sortTags} from '@libs/TagsOptionsListUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -1185,6 +1186,272 @@ describe('TagsOptionsListUtils', () => {
             });
 
             expect(result).toBe('Acme Corp');
+        });
+    });
+
+    describe('getDependentTagVisibility', () => {
+        const companyTags: PolicyTags = {
+            acme: {name: 'Acme Corp', enabled: true},
+            other: {name: 'Other Co', enabled: true},
+        };
+        const departmentTags: PolicyTags = {
+            admin: {name: 'Acme Corp:Admin', enabled: true, rules: {parentTagsFilter: '^Acme Corp$'}},
+            sales: {name: 'Acme Corp:Sales', enabled: false, rules: {parentTagsFilter: '^Acme Corp$'}},
+            support: {name: 'Other Co:Support', enabled: true, rules: {parentTagsFilter: '^Other Co$'}},
+            legacy: {name: 'Closed Co:Legacy', enabled: false, rules: {parentTagsFilter: '^Closed Co$'}},
+        };
+        const glCodeTags: PolicyTags = {
+            gl100: {name: 'Acme Corp:Admin:GL-100', enabled: true, rules: {parentTagsFilter: '^Acme Corp:Admin$'}},
+            gl200: {name: 'Acme Corp:Sales:GL-200', enabled: true, rules: {parentTagsFilter: '^Acme Corp:Sales$'}},
+        };
+        const tagLists = getTagLists({
+            company: {name: 'Company', required: true, orderWeight: 0, tags: companyTags},
+            department: {name: 'Department', required: false, orderWeight: 1, tags: departmentTags},
+            glCode: {name: 'GL code', required: false, orderWeight: 2, tags: glCodeTags},
+        });
+
+        it('returns one entry per tag list, in the order the lists are given', () => {
+            expect(getDependentTagVisibility(tagLists, 'Acme Corp')).toHaveLength(3);
+            expect(getDependentTagVisibility([], 'Acme Corp')).toEqual([]);
+        });
+
+        it('shows the first tag list, which has no parent to wait for', () => {
+            expect(getDependentTagVisibility(tagLists, undefined).at(0)).toBe(true);
+            expect(getDependentTagVisibility(tagLists, '').at(0)).toBe(true);
+        });
+
+        it('hides a deeper tag list until its parent level has a value', () => {
+            expect(getDependentTagVisibility(tagLists, undefined)).toEqual([true, false, false]);
+            expect(getDependentTagVisibility(tagLists, 'Acme Corp').at(2)).toBe(false);
+        });
+
+        it('shows a deeper tag list once an enabled tag matches the selected parent tag', () => {
+            expect(getDependentTagVisibility(tagLists, 'Other Co').at(1)).toBe(true);
+
+            // "Acme Corp" still has an enabled tag below it, even though its other tag is disabled
+            expect(getDependentTagVisibility(tagLists, 'Acme Corp').at(1)).toBe(true);
+        });
+
+        it('hides a deeper tag list when every tag below the selected parent tag is disabled', () => {
+            expect(getDependentTagVisibility(tagLists, 'Closed Co').at(1)).toBe(false);
+        });
+
+        it('hides a deeper tag list when no tag matches the selected parent tag', () => {
+            expect(getDependentTagVisibility(tagLists, 'Unknown Co').at(1)).toBe(false);
+        });
+
+        it('matches a deeper tag list on the whole parent tag path', () => {
+            expect(getDependentTagVisibility(tagLists, 'Acme Corp:Admin').at(2)).toBe(true);
+            expect(getDependentTagVisibility(tagLists, 'Acme Corp:Other').at(2)).toBe(false);
+        });
+
+        it('shows a deeper tag list for a tag without a parent filter, under any parent tag', () => {
+            const unfilteredTagLists = getTagLists({
+                company: {name: 'Company', required: true, orderWeight: 0, tags: companyTags},
+                department: {
+                    name: 'Department',
+                    required: false,
+                    orderWeight: 1,
+                    tags: {...departmentTags, freebie: {name: 'Unknown Co:Freebie', enabled: true}},
+                },
+            });
+
+            expect(getDependentTagVisibility(unfilteredTagLists, 'Unknown Co').at(1)).toBe(true);
+        });
+
+        it('falls back to the top-level parent filter when a tag has no rules', () => {
+            // Given a deeper tag list whose tags carry only the top-level parentTagsFilter, which the tag picker also honors
+            const topLevelFilterTagLists = getTagLists({
+                company: {name: 'Company', required: true, orderWeight: 0, tags: companyTags},
+                department: {
+                    name: 'Department',
+                    required: false,
+                    orderWeight: 1,
+                    tags: {admin: {name: 'Acme Corp:Admin', enabled: true, parentTagsFilter: '^Acme Corp$'}},
+                },
+            });
+
+            // When resolving visibility under a matching and a non-matching parent tag
+            // Then the row only shows where the picker would have a tag to offer
+            expect(getDependentTagVisibility(topLevelFilterTagLists, 'Acme Corp').at(1)).toBe(true);
+            expect(getDependentTagVisibility(topLevelFilterTagLists, 'Other Co').at(1)).toBe(false);
+        });
+
+        it('hides a deeper tag list when its only matching tag is pending deletion', () => {
+            // Given a deeper tag list whose only enabled tag below the parent is being deleted offline
+            const pendingDeleteTagLists = getTagLists({
+                company: {name: 'Company', required: true, orderWeight: 0, tags: companyTags},
+                department: {
+                    name: 'Department',
+                    required: false,
+                    orderWeight: 1,
+                    tags: {
+                        admin: {name: 'Acme Corp:Admin', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, rules: {parentTagsFilter: '^Acme Corp$'}},
+                    },
+                },
+            });
+
+            // When resolving visibility under that parent tag
+            // Then the row hides, matching how independent tag lists treat pending deletions
+            expect(getDependentTagVisibility(pendingDeleteTagLists, 'Acme Corp').at(1)).toBe(false);
+        });
+
+        it('hides a deeper tag list that has no tags', () => {
+            const emptySecondList = getTagLists({
+                company: {name: 'Company', required: true, orderWeight: 0, tags: companyTags},
+                department: {name: 'Department', required: false, orderWeight: 1, tags: {}},
+            });
+
+            expect(getDependentTagVisibility(emptySecondList, 'Acme Corp').at(1)).toBe(false);
+        });
+    });
+
+    describe('hasEnabledTags', () => {
+        type TagListValue = PolicyTagLists[keyof PolicyTagLists];
+        const buildTagLists = (...tagLists: PolicyTagLists[]): TagListValue[] => {
+            const result: TagListValue[] = [];
+            for (const tagList of tagLists) {
+                result.push(...Object.values(tagList));
+            }
+            return result;
+        };
+
+        it('returns true when at least one tag is enabled', () => {
+            // Given a tag list where one tag is disabled and one is enabled
+            const tagLists = buildTagLists({
+                list1: {
+                    name: 'List 1',
+                    required: false,
+                    orderWeight: 0,
+                    tags: {
+                        disabled: {name: 'Disabled', enabled: false},
+                        enabled: {name: 'Enabled', enabled: true},
+                    },
+                },
+            });
+
+            // When checking whether the policy has a selectable tag
+            const result = hasEnabledTags(tagLists);
+
+            // Then true, the disabled tag must not mask the selectable one behind it
+            expect(result).toBe(true);
+        });
+
+        it('returns false when every tag is disabled', () => {
+            // Given a tag list an admin has fully disabled
+            const tagLists = buildTagLists({
+                list1: {
+                    name: 'List 1',
+                    required: false,
+                    orderWeight: 0,
+                    tags: {
+                        a: {name: 'A', enabled: false},
+                        b: {name: 'B', enabled: false},
+                    },
+                },
+            });
+
+            // When checking whether the policy has a selectable tag
+            const result = hasEnabledTags(tagLists);
+
+            // Then false, callers hide the tag row instead of opening an empty picker
+            expect(result).toBe(false);
+        });
+
+        it('returns false when the only enabled tag is pending deletion', () => {
+            // Given a still-enabled tag that is optimistically being deleted offline
+            const tagLists = buildTagLists({
+                list1: {
+                    name: 'List 1',
+                    required: false,
+                    orderWeight: 0,
+                    tags: {
+                        enabled: {name: 'Enabled', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                        disabled: {name: 'Disabled', enabled: false},
+                    },
+                },
+            });
+
+            // When checking whether the policy has a selectable tag
+            const result = hasEnabledTags(tagLists);
+
+            // Then false, a tag on its way out should not look selectable
+            expect(result).toBe(false);
+        });
+
+        it('returns true when an enabled tag is pending an action other than deletion', () => {
+            // Given an enabled tag pending an update, so it survives once the request settles
+            const tagLists = buildTagLists({
+                list1: {
+                    name: 'List 1',
+                    required: false,
+                    orderWeight: 0,
+                    tags: {
+                        enabled: {name: 'Enabled', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    },
+                },
+            });
+
+            // When checking whether the policy has a selectable tag
+            const result = hasEnabledTags(tagLists);
+
+            // Then true, only a pending deletion disqualifies a tag
+            expect(result).toBe(true);
+        });
+
+        it('finds an enabled tag across multiple tag lists', () => {
+            // Given multi-level tags where only the second list has an enabled tag
+            const tagLists = buildTagLists(
+                {
+                    list1: {
+                        name: 'List 1',
+                        required: false,
+                        orderWeight: 0,
+                        tags: {a: {name: 'A', enabled: false}},
+                    },
+                },
+                {
+                    list2: {
+                        name: 'List 2',
+                        required: false,
+                        orderWeight: 1,
+                        tags: {b: {name: 'B', enabled: true}},
+                    },
+                },
+            );
+
+            // When checking whether the policy has a selectable tag
+            const result = hasEnabledTags(tagLists);
+
+            // Then true, the search must not stop at the first list it finds nothing in
+            expect(result).toBe(true);
+        });
+
+        it('returns false for an empty list of tag lists', () => {
+            // Given a policy with no tag lists
+            // When checking whether the policy has a selectable tag
+            const result = hasEnabledTags([]);
+
+            // Then false rather than a throw, callers pass whatever Onyx currently holds
+            expect(result).toBe(false);
+        });
+
+        it('ignores a tag list that has no tags', () => {
+            // Given a tag list an admin just created and never populated
+            const tagLists = buildTagLists({
+                list1: {
+                    name: 'List 1',
+                    required: false,
+                    orderWeight: 0,
+                    tags: {},
+                },
+            });
+
+            // When checking whether the policy has a selectable tag
+            const result = hasEnabledTags(tagLists);
+
+            // Then false, an empty list offers nothing to select
+            expect(result).toBe(false);
         });
     });
 });
