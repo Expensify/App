@@ -62,11 +62,13 @@ import {
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
     getReimburserEmail,
+    getReimbursementChoice,
     isControlPolicy,
     isDeletedPolicyEmployee,
     isExpensifyTeam,
     isGroupPolicy,
     isPaidGroupPolicy,
+    isPolicyAdmin,
     isPolicyApprover,
     isSubmitPolicy,
     shouldFilterExpensifyTeam,
@@ -375,6 +377,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const hasAnyCustomField2 = useMemo(() => filteredMembers.some(({policyEmployee}) => !!policyEmployee.employeePayrollID), [filteredMembers]);
     const shouldShowCustomField1Column = isControlPolicyWithWideLayout && hasAnyCustomField1;
     const shouldShowCustomField2Column = isControlPolicyWithWideLayout && hasAnyCustomField2;
+    const shouldShowBankAccountColumn = !shouldUseNarrowLayout && isPolicyAdmin(policy) && getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
 
     // Submit workspaces have a flat role model where every member, including the owner, is an Editor.
     const isSubmitWorkspace = isSubmitPolicy(policy);
@@ -398,6 +401,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 email: memberEmail,
                 employeeUserID: policyEmployee.employeeUserID,
                 employeePayrollID: policyEmployee.employeePayrollID,
+                bankAccountLastFour: policyEmployee.bankAccount?.bankAccountLastFour,
                 isInteractive: !details.isOptimisticPersonalDetail,
                 isSelectionDisabled:
                     !canWriteMembers ||
@@ -852,6 +856,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         selectedKeys={selectedEmployees}
                         shouldShowCustomField1Column={shouldShowCustomField1Column}
                         shouldShowCustomField2Column={shouldShowCustomField2Column}
+                        shouldShowBankAccountColumn={shouldShowBankAccountColumn}
                         onRowSelectionChange={setSelectedEmployees}
                         headerComponent={tableHeaderComponent}
                     />

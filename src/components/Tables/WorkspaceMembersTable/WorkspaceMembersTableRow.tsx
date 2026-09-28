@@ -29,9 +29,19 @@ type WorkspaceMembersTableRowProps = {
 
     /** Whether the custom field 2 column is visible on web screens or not */
     shouldShowCustomField2Column: boolean;
+
+    /** Whether the bank account column is visible on web screens or not */
+    shouldShowBankAccountColumn: boolean;
 };
 
-export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCustomField1Column, shouldShowCustomField2Column, shouldUseNarrowTableLayout}: WorkspaceMembersTableRowProps) {
+export default function WorkspaceMembersTableRow({
+    item,
+    rowIndex,
+    shouldShowCustomField1Column,
+    shouldShowCustomField2Column,
+    shouldShowBankAccountColumn,
+    shouldUseNarrowTableLayout,
+}: WorkspaceMembersTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -112,6 +122,22 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
                                     shouldShowTooltip
                                     numberOfLines={1}
                                     text={item.employeePayrollID}
+                                    style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                                />
+                            )}
+                        </View>
+                    )}
+
+                    {!shouldUseNarrowTableLayout && shouldShowBankAccountColumn && (
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            {!!item.bankAccountLastFour && (
+                                <TextWithTooltip
+                                    shouldShowTooltip
+                                    numberOfLines={1}
+                                    text={`${translate('paymentMethodList.accountLastFour')} ${item.bankAccountLastFour}`}
                                     style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                                 />
                             )}
