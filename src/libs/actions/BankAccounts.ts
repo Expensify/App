@@ -187,6 +187,7 @@ function openWalletPersonalBankAccountSetup({personalBankAccount, personalDraft,
     const setPersonalBankAccount = Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
         source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
         currentPage: personalBankAccount.currentPage,
+        currentPageAction: personalBankAccount.currentPageAction,
     });
 
     if (!isUserValidated) {
@@ -405,8 +406,8 @@ function updateAddPersonalBankAccountDraft(bankData: Partial<PersonalBankAccount
     Onyx.merge(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, bankData);
 }
 
-function updatePersonalBankAccountCurrentPage(currentPage: string) {
-    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {currentPage});
+function updatePersonalBankAccountCurrentPage(currentPage: string, currentPageAction?: 'edit') {
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {currentPage, currentPageAction: currentPageAction ?? null});
 }
 
 /**

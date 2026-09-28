@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
 
-import {clearInternationalBankAccount, clearPersonalBankAccount} from '@userActions/BankAccounts';
+import {clearInternationalBankAccount, clearPersonalBankAccount, setBankAccountSubStep} from '@userActions/BankAccounts';
 import {clearDraftValues} from '@userActions/FormActions';
 import {clearReimbursementAccount, clearReimbursementAccountDraft, navigateToBankAccountRoute, updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
 
@@ -93,9 +93,27 @@ function CountrySelection() {
                 reimbursementAccountDraft?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET &&
                 reimbursementAccountDraft?.country === resolvedSelectedCountry &&
                 reimbursementAccountDraft?.currency === selectedCurrency;
+            const policyID = shouldResume ? reimbursementAccount?.achData?.policyID : undefined;
+            const bankAccountID = shouldResume ? (reimbursementAccount?.achData?.bankAccountID ?? reimbursementAccountDraft?.bankAccountID) : undefined;
+            const savedUSBankInfoSubPage =
+                reimbursementAccountDraft?.currentSubPage === CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES.MANUAL ||
+                reimbursementAccountDraft?.currentSubPage === CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES.PLAID
+                    ? reimbursementAccountDraft.currentSubPage
+                    : undefined;
+            const shouldResumeUSBankInfo =
+                shouldResume &&
+                !bankAccountID &&
+                selectedCurrency === CONST.CURRENCY.USD &&
+                reimbursementAccountDraft?.currentPage === CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT &&
+                !!savedUSBankInfoSubPage;
+            const shouldPreservePlaidData = shouldResumeUSBankInfo && savedUSBankInfoSubPage === CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES.PLAID;
 
-            clearPersonalBankAccount();
-            clearInternationalBankAccount();
+            // Both personal setup cleanups reset shared Plaid data. Preserve it only when returning to the
+            // unfinished Plaid account-selection screen so the selected account remains available.
+            if (!shouldPreservePlaidData) {
+                clearPersonalBankAccount();
+                clearInternationalBankAccount();
+            }
             clearDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
             if (!shouldResume) {
                 clearReimbursementAccount();
@@ -103,8 +121,12 @@ function CountrySelection() {
                 updateReimbursementAccountDraft({country: resolvedSelectedCountry as Country, currency: selectedCurrency, source: CONST.BANK_ACCOUNT.SOURCE.WALLET});
             }
 
-            const policyID = shouldResume ? reimbursementAccount?.achData?.policyID : undefined;
-            const bankAccountID = shouldResume ? (reimbursementAccount?.achData?.bankAccountID ?? reimbursementAccountDraft?.bankAccountID) : undefined;
+            if (shouldResumeUSBankInfo && savedUSBankInfoSubPage) {
+                return setBankAccountSubStep(savedUSBankInfoSubPage).then(() => {
+                    navigateToBankAccountRoute({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+                });
+            }
+
             navigateToBankAccountRoute({
                 ...(policyID ? {policyID} : {}),
                 ...(bankAccountID ? {bankAccountID} : {}),

@@ -5,6 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import CountrySelection from '@pages/settings/Wallet/BankAccountPurposePage/substeps/CountrySelection';
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
 
+import {clearInternationalBankAccount, clearPersonalBankAccount, setBankAccountSubStep} from '@userActions/BankAccounts';
 import {clearReimbursementAccount, clearReimbursementAccountDraft, navigateToBankAccountRoute, updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
 
 import CONST from '@src/CONST';
@@ -40,6 +41,7 @@ jest.mock('@userActions/ReimbursementAccount', () => ({
 jest.mock('@userActions/BankAccounts', () => ({
     clearInternationalBankAccount: jest.fn(),
     clearPersonalBankAccount: jest.fn(),
+    setBankAccountSubStep: jest.fn(() => Promise.resolve()),
 }));
 jest.mock('@userActions/FormActions', () => ({
     clearDraftValues: jest.fn(),
@@ -53,6 +55,9 @@ describe('BankAccountPurpose CountrySelection', () => {
     const mockedClearReimbursementAccountDraft = jest.mocked(clearReimbursementAccountDraft);
     const mockedNavigateToBankAccountRoute = jest.mocked(navigateToBankAccountRoute);
     const mockedUpdateReimbursementAccountDraft = jest.mocked(updateReimbursementAccountDraft);
+    const mockedClearInternationalBankAccount = jest.mocked(clearInternationalBankAccount);
+    const mockedClearPersonalBankAccount = jest.mocked(clearPersonalBankAccount);
+    const mockedSetBankAccountSubStep = jest.mocked(setBankAccountSubStep);
     const mockedUseOnyx = jest.mocked(useOnyx);
 
     let mockMountCount = 0;
@@ -67,6 +72,9 @@ describe('BankAccountPurpose CountrySelection', () => {
         mockedClearReimbursementAccountDraft.mockClear();
         mockedNavigateToBankAccountRoute.mockClear();
         mockedUpdateReimbursementAccountDraft.mockClear();
+        mockedClearInternationalBankAccount.mockClear();
+        mockedClearPersonalBankAccount.mockClear();
+        mockedSetBankAccountSubStep.mockClear();
         mockedUseOnyx.mockImplementation(() => [undefined, {status: 'loaded'}]);
         mockedCountrySelectionList.mockImplementation(() => {
             React.useEffect(() => {
@@ -193,6 +201,99 @@ describe('BankAccountPurpose CountrySelection', () => {
         expect(mockedClearReimbursementAccount).not.toHaveBeenCalled();
         expect(mockedClearReimbursementAccountDraft).not.toHaveBeenCalled();
         expect(mockedNavigateToBankAccountRoute).toHaveBeenCalledWith({bankAccountID: 456, backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+    });
+
+    it('resumes pre-account Plaid selection directly after country confirmation', async () => {
+        // Given an unfinished Wallet USD Plaid flow dismissed from the account-selection screen
+        mockedUseOnyx.mockImplementation((key) => {
+            if (key === ONYXKEYS.REIMBURSEMENT_ACCOUNT) {
+                return [CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA, {status: 'loaded'}];
+            }
+            if (key === ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT) {
+                return [
+                    {
+                        country: CONST.COUNTRY.US,
+                        currency: CONST.CURRENCY.USD,
+                        source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                        currentPage: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT,
+                        currentSubPage: CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES.PLAID,
+                        plaidAccountID: 'plaid-account-id',
+                    },
+                    {status: 'loaded'},
+                ];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
+
+        render(
+            <NavigationContainer>
+                <Stack.Navigator>
+                    <Stack.Screen
+                        name={SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE}
+                        component={CountrySelection}
+                    />
+                </Stack.Navigator>
+            </NavigationContainer>,
+        );
+
+        // When the preselected US country is confirmed
+        await act(async () => {
+            mockedCountrySelectionList.mock.lastCall?.[0]?.onConfirm();
+            jest.runOnlyPendingTimers();
+        });
+
+        // Then it bypasses the Continue setup entry point and returns to Plaid account selection
+        expect(mockedClearPersonalBankAccount).not.toHaveBeenCalled();
+        expect(mockedClearInternationalBankAccount).not.toHaveBeenCalled();
+        expect(mockedSetBankAccountSubStep).toHaveBeenCalledWith(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
+        expect(mockedNavigateToBankAccountRoute).toHaveBeenCalledWith({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+    });
+
+    it('resumes pre-account manual bank information directly after country confirmation', async () => {
+        // Given an unfinished Wallet USD manual flow dismissed from the routing and account number screen
+        mockedUseOnyx.mockImplementation((key) => {
+            if (key === ONYXKEYS.REIMBURSEMENT_ACCOUNT) {
+                return [CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA, {status: 'loaded'}];
+            }
+            if (key === ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT) {
+                return [
+                    {
+                        country: CONST.COUNTRY.US,
+                        currency: CONST.CURRENCY.USD,
+                        source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                        currentPage: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT,
+                        currentSubPage: CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES.MANUAL,
+                        routingNumber: '021000021',
+                        accountNumber: '123456789',
+                    },
+                    {status: 'loaded'},
+                ];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
+
+        render(
+            <NavigationContainer>
+                <Stack.Navigator>
+                    <Stack.Screen
+                        name={SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE}
+                        component={CountrySelection}
+                    />
+                </Stack.Navigator>
+            </NavigationContainer>,
+        );
+
+        // When the preselected US country is confirmed
+        await act(async () => {
+            mockedCountrySelectionList.mock.lastCall?.[0]?.onConfirm();
+            jest.runOnlyPendingTimers();
+        });
+
+        // Then it bypasses the Continue setup entry point and returns to manual bank information
+        expect(mockedClearPersonalBankAccount).toHaveBeenCalled();
+        expect(mockedClearInternationalBankAccount).toHaveBeenCalled();
+        expect(mockedSetBankAccountSubStep).toHaveBeenCalledWith(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+        expect(mockedNavigateToBankAccountRoute).toHaveBeenCalledWith({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
     });
 
     it('keeps the child list mounted while persisting the selected country and navigating', async () => {

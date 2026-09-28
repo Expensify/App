@@ -309,7 +309,11 @@ describe('actions/BankAccounts', () => {
 
         test('preserves cached Corpay fields and an international Wallet draft until compatibility is checked', async () => {
             // Given unfinished international progress and cached fields from an incompatible Corpay request
-            const personalBankAccount = {source: CONST.BANK_ACCOUNT.SOURCE.WALLET};
+            const personalBankAccount = {
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                currentPage: CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION,
+                currentPageAction: 'edit' as const,
+            };
             const internationalDraft = {bankCountry: 'DE', bankCurrency: 'EUR', accountNumber: '12345678'};
             await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, personalBankAccount);
             await Onyx.set(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, internationalDraft);
@@ -344,6 +348,7 @@ describe('actions/BankAccounts', () => {
             // Then the destination can validate compatibility without losing either persisted value
             expect(await getOnyxValue(ONYXKEYS.CORPAY_FIELDS)).toEqual(expect.objectContaining({isWithdrawal: true, isBusinessBankAccount: true}));
             expect(await getOnyxValue(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT)).toEqual(internationalDraft);
+            expect(await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT)).toEqual(personalBankAccount);
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute('settings/wallet'));
         });
 

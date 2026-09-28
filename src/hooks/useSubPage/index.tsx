@@ -12,12 +12,21 @@ import type {SubPageProps, UseSubPageProps} from './types';
  * Non-generic implementation so OXC's React Compiler can memoize the hook.
  * OXC bails on type params inside hooks ("Unsupported declaration type for hoisting").
  */
-function useSubPageImpl({pages, onFinished, startFrom = 0, skipPages = [], onPageChange = () => {}, buildRoute, shouldReplaceRoute = false}: UseSubPageProps<SubPageProps, string>) {
+function useSubPageImpl({
+    pages,
+    onFinished,
+    startFrom = 0,
+    startAction,
+    skipPages = [],
+    onPageChange = () => {},
+    buildRoute,
+    shouldReplaceRoute = false,
+}: UseSubPageProps<SubPageProps, string>) {
     const navigation = useNavigation();
     const route = useRoute();
     const params = route.params as {subPage?: string; action?: 'edit'} | undefined;
     const urlPageName = params?.subPage;
-    const isEditing = params?.action === 'edit';
+    const isEditing = params?.action === 'edit' || (!urlPageName && startAction === 'edit');
 
     const startPageName = startFrom >= 0 ? pages.at(startFrom)?.pageName : undefined;
     const isRedirecting = !urlPageName && !!startPageName;
@@ -27,8 +36,8 @@ function useSubPageImpl({pages, onFinished, startFrom = 0, skipPages = [], onPag
             return;
         }
 
-        navigation.setParams({subPage: startPageName} as Record<string, unknown>);
-    }, [isRedirecting, startPageName, navigation]);
+        navigation.setParams({subPage: startPageName, ...(startAction ? {action: startAction} : {})} as Record<string, unknown>);
+    }, [isRedirecting, startAction, startPageName, navigation]);
 
     const currentPageName = urlPageName ?? startPageName ?? pages.at(0)?.pageName;
     const pageIndex = findPageIndex(pages, currentPageName);

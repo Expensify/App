@@ -32,6 +32,9 @@ type PersonalBankAccount = {
     /** Last non-terminal page visited while adding a personal bank account from Wallet */
     currentPage?: string;
 
+    /** Whether the saved Wallet page was opened from the confirmation page for editing */
+    currentPageAction?: 'edit';
+
     /** If set, continue with the KYC flow after adding a PBA. This specifies the fallback route to use. */
     onSuccessFallbackRoute?: Route;
 

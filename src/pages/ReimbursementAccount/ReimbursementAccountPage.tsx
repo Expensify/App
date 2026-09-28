@@ -78,6 +78,7 @@ import ConnectedVerifiedBankAccount from './ConnectedVerifiedBankAccount';
 import getStartPageForContinueSetup from './NonUSD/utils/getStartPageForContinueSetup';
 import getFieldsForStep from './USD/utils/getFieldsForStep';
 import getStepToOpenFromRouteParams from './USD/utils/getStepToOpenFromRouteParams';
+import getWalletBusinessResumeRoute from './utils/getWalletBusinessResumeRoute';
 import VerifiedBankAccountFlowEntryPoint from './VerifiedBankAccountFlowEntryPoint';
 
 type ReimbursementAccountPageProps = WithPolicyOnyxProps & PlatformStackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
@@ -90,6 +91,29 @@ const OFFLINE_ACCESSIBLE_STEPS = [
     CONST.BANK_ACCOUNT.STEP.REQUESTOR,
     CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS,
     CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT,
+] as const;
+
+const USD_WALLET_RESUME_PAGES = [
+    {pageName: CONST.BANK_ACCOUNT.PAGE_NAMES.COUNTRY},
+    {pageName: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT, subPages: Object.values(CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES)},
+    {pageName: CONST.BANK_ACCOUNT.PAGE_NAMES.REQUESTOR, subPages: Object.values(CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.SUB_PAGE_NAMES)},
+    {pageName: CONST.BANK_ACCOUNT.PAGE_NAMES.VERIFY_IDENTITY},
+    {pageName: CONST.BANK_ACCOUNT.PAGE_NAMES.COMPANY, subPages: Object.values(CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.SUB_PAGE_NAMES)},
+    {pageName: CONST.BANK_ACCOUNT.PAGE_NAMES.BENEFICIAL_OWNERS, subPages: Object.values(CONST.BANK_ACCOUNT.BENEFICIAL_OWNERS_STEP.SUB_PAGE_NAMES)},
+    {pageName: CONST.BANK_ACCOUNT.PAGE_NAMES.ACH_CONTRACT, subPages: Object.values(CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION_STEP.SUB_PAGE_NAMES)},
+    {pageName: CONST.BANK_ACCOUNT.PAGE_NAMES.KYB_DOCS},
+    {pageName: CONST.BANK_ACCOUNT.PAGE_NAMES.VALIDATION},
+] as const;
+
+const NON_USD_WALLET_RESUME_PAGES = [
+    {pageName: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.CURRENCY_AND_COUNTRY},
+    {pageName: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.BANK_INFO, subPages: Object.values(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES)},
+    {pageName: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.BUSINESS_INFO, subPages: Object.values(CONST.NON_USD_BANK_ACCOUNT.BUSINESS_INFO_STEP.SUB_PAGE_NAMES)},
+    {pageName: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.BENEFICIAL_OWNER_INFO, subPages: Object.values(CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.SUB_PAGE_NAMES)},
+    {pageName: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.SIGNER_INFO, subPages: Object.values(CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SUB_PAGE_NAMES)},
+    {pageName: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.AGREEMENTS},
+    {pageName: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.DOCUSIGN},
+    {pageName: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.FINISH},
 ] as const;
 
 function ReimbursementAccountPage({route, policy, isLoadingPolicy}: ReimbursementAccountPageProps) {
@@ -122,11 +146,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const isChangingBankAccountRef = useRef(isChangingBankAccount);
     const hasShownConnectedBankAccountRef = useRef(false);
     const shouldPreserveWalletSetupRef = useRef(isWalletSetup);
-    const reimbursementAccountDraftRef = useRef(reimbursementAccountDraft);
     const walletResumeBankAccountIDRef = useRef(reimbursementAccount?.achData?.bankAccountID ?? (bankAccountIDParam ? Number(bankAccountIDParam) : undefined));
     // Latches the pending-USD redirect below so the effect dispatches the navigation at most once per mount, even
     // though its dependencies change again while the transition is in flight.
     const hasRedirectedToPendingValidationRef = useRef(false);
+    const hasRedirectedToLocalWalletSetupRef = useRef(false);
     // Set once this page has actually been covered by the validation step. The redirect ref alone cannot tell that
     // apart from the redirect still being in flight, because it flips while this page is still focused.
     const hasBlurredAfterPendingRedirectRef = useRef(false);
@@ -197,10 +221,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     }, [isConnectedVerifiedBankAccountData, isWalletSetup]);
 
     useEffect(() => {
-        reimbursementAccountDraftRef.current = reimbursementAccountDraft;
-    }, [reimbursementAccountDraft]);
-
-    useEffect(() => {
         const bankAccountID = achData?.bankAccountID ?? (bankAccountIDParam ? Number(bankAccountIDParam) : undefined);
         if (bankAccountID) {
             walletResumeBankAccountIDRef.current = bankAccountID;
@@ -214,13 +234,13 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             const shouldPreserveWalletSetup = shouldPreserveWalletSetupRef.current;
 
             if (!isChangingBankAccountInstance && shouldPreserveWalletSetup) {
-                const walletResumeDraft = reimbursementAccountDraftRef.current;
-                clearReimbursementAccountDraft();
+                // Preserve the live Wallet draft instead of replacing it from a render snapshot, while removing
+                // limited-attempt micro-deposit values that must never be reused for another validation attempt.
                 setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {
-                    bankAccountID: walletResumeBankAccountIDRef.current,
-                    country: walletResumeDraft?.country,
-                    currency: walletResumeDraft?.currency,
-                    source: walletResumeDraft?.source,
+                    [INPUT_IDS.AMOUNT1]: null,
+                    [INPUT_IDS.AMOUNT2]: null,
+                    [INPUT_IDS.AMOUNT3]: null,
+                    ...(walletResumeBankAccountIDRef.current ? {bankAccountID: walletResumeBankAccountIDRef.current} : {}),
                 });
             } else if (!isChangingBankAccountInstance) {
                 // The draft is always safe to clear. Nothing in the validation step branches on it, while the
@@ -273,6 +293,20 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const shouldShowContinueSetupButtonValue = useMemo(() => {
         return hasInProgressVBBA(achData, isNonUSDWorkspace, policyIDParam);
     }, [achData, isNonUSDWorkspace, policyIDParam]);
+
+    const isLocalUSDWalletSetup = reimbursementAccountDraft?.currency === CONST.CURRENCY.USD;
+    const preAccountResumePage = isLocalUSDWalletSetup ? CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT : CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.BANK_INFO;
+    const preAccountResumeSubPages: readonly string[] = isLocalUSDWalletSetup
+        ? Object.values(CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES)
+        : Object.values(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES);
+    const hasLocalWalletBankInfoProgress =
+        isWalletSetup &&
+        reimbursementAccountDraft?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET &&
+        !achData?.bankAccountID &&
+        !reimbursementAccountDraft?.bankAccountID &&
+        reimbursementAccountDraft?.currentPage === preAccountResumePage &&
+        !!reimbursementAccountDraft.currentSubPage &&
+        preAccountResumeSubPages.includes(reimbursementAccountDraft.currentSubPage);
 
     const isDefaultReimbursementAccountData = deepEqual(reimbursementAccount, CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
     const hasLoadedData = reimbursementAccount?.achData && !isDefaultReimbursementAccountData && !reimbursementAccount?.isLoading;
@@ -421,9 +455,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             clearReimbursementAccountDraft();
         }
 
-        // If the step to open is empty, we want to clear the sub step, so the connect option view is shown to the user
+        // Wallet country confirmation owns its setup selection. Keep it intact while this root mounts underneath the
+        // resumed bank-info route so dismissal can run the usual cleanup and refresh the Wallet payment-method list.
+        // Other entry points still clear an empty step so their connect-option view is shown.
         const isStepToOpenEmpty = getStepToOpenFromRouteParams(route, hasConfirmedUSDCurrency) === '';
-        if (isStepToOpenEmpty) {
+        if (isStepToOpenEmpty && !isWalletSetup) {
             setBankAccountSubStep(null);
             setPlaidEvent(null);
         }
@@ -433,6 +469,28 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         fetchData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isPreviousPolicy]); // Only re-run this effect when isPreviousPolicy changes, which happens once when the component first loads
+
+    useEffect(() => {
+        if (!isFocused || !hasLocalWalletBankInfoProgress || hasRedirectedToLocalWalletSetupRef.current || !reimbursementAccountDraft?.currentSubPage) {
+            return;
+        }
+
+        hasRedirectedToLocalWalletSetupRef.current = true;
+        const resumeRoute = isLocalUSDWalletSetup
+            ? ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({
+                  page: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT,
+                  subPage: reimbursementAccountDraft.currentSubPage,
+                  action: reimbursementAccountDraft.currentPageAction,
+                  backTo,
+              })
+            : ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({
+                  page: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.BANK_INFO,
+                  subPage: reimbursementAccountDraft.currentSubPage,
+                  action: reimbursementAccountDraft.currentPageAction,
+                  backTo,
+              });
+        Navigation.navigate(resumeRoute);
+    }, [backTo, hasLocalWalletBankInfoProgress, isFocused, isLocalUSDWalletSetup, reimbursementAccountDraft?.currentPageAction, reimbursementAccountDraft?.currentSubPage]);
 
     useEffect(() => {
         if (policyIDParam && !isPreviousPolicy) {
@@ -566,9 +624,15 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     );
 
     const continueUSDVBBASetup = useCallback(() => {
-        // If user comes back to the flow we never want to allow him to go through plaid again
-        // so we're always showing manual setup with locked numbers he can not change
-        setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
+        const hasBankAccountID = !!(achData?.bankAccountID ?? reimbursementAccountDraft?.bankAccountID);
+        const savedPage = isWalletSetup ? reimbursementAccountDraft?.currentPage : undefined;
+        const savedSubPage = isWalletSetup ? reimbursementAccountDraft?.currentSubPage : undefined;
+        const savedAction = isWalletSetup ? reimbursementAccountDraft?.currentPageAction : undefined;
+        const canResumePlaidBeforeAccountCreation =
+            !hasBankAccountID && savedPage === CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT && savedSubPage === CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES.PLAID;
+        const setupType = canResumePlaidBeforeAccountCreation ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID : CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
+
+        setBankAccountSubStep(setupType).then(() => {
             const stepToPageName: Record<string, string> = {
                 [CONST.BANK_ACCOUNT.STEP.COUNTRY]: CONST.BANK_ACCOUNT.PAGE_NAMES.COUNTRY,
                 [CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT]: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT,
@@ -580,17 +644,49 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 [CONST.BANK_ACCOUNT.STEP.VALIDATION]: CONST.BANK_ACCOUNT.PAGE_NAMES.VALIDATION,
             };
             const page = stepToPageName[currentStep] ?? CONST.BANK_ACCOUNT.PAGE_NAMES.COUNTRY;
-            isNavigatingToPendingValidationRef.current = page === CONST.BANK_ACCOUNT.PAGE_NAMES.VALIDATION;
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID: policyIDParam, page, backTo}));
+            const resumeRoute = getWalletBusinessResumeRoute({
+                savedPage,
+                savedSubPage,
+                savedAction,
+                fallbackPage: page,
+                fallbackSubPage: undefined,
+                pages: USD_WALLET_RESUME_PAGES,
+                hasBankAccountID,
+                preAccountPage: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT,
+            });
+            isNavigatingToPendingValidationRef.current = resumeRoute.page === CONST.BANK_ACCOUNT.PAGE_NAMES.VALIDATION;
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID: policyIDParam, page: resumeRoute.page, subPage: resumeRoute.subPage, action: resumeRoute.action, backTo}));
         });
-    }, [currentStep, policyIDParam, backTo]);
+    }, [
+        achData?.bankAccountID,
+        backTo,
+        currentStep,
+        isWalletSetup,
+        policyIDParam,
+        reimbursementAccountDraft?.bankAccountID,
+        reimbursementAccountDraft?.currentPage,
+        reimbursementAccountDraft?.currentPageAction,
+        reimbursementAccountDraft?.currentSubPage,
+    ]);
 
     const continueNonUSDVBBASetup = () => {
         const {page: startPage, subPage: startSubPage} = getStartPageForContinueSetup(achData, nonUSDCountryDraftValue, policyCurrency, reimbursementAccountDraft);
+        const resumeRoute = getWalletBusinessResumeRoute({
+            savedPage: isWalletSetup ? reimbursementAccountDraft?.currentPage : undefined,
+            savedSubPage: isWalletSetup ? reimbursementAccountDraft?.currentSubPage : undefined,
+            savedAction: isWalletSetup ? reimbursementAccountDraft?.currentPageAction : undefined,
+            fallbackPage: startPage,
+            fallbackSubPage: startSubPage,
+            pages: NON_USD_WALLET_RESUME_PAGES,
+            hasBankAccountID: !!(achData?.bankAccountID ?? reimbursementAccountDraft?.bankAccountID),
+            preAccountPage: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.BANK_INFO,
+        });
         if (isComingFromExpensifyCard) {
             setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {isComingFromExpensifyCard});
         }
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyIDParam ?? '', page: startPage, subPage: startSubPage, backTo}));
+        Navigation.navigate(
+            ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyIDParam ?? '', page: resumeRoute.page, subPage: resumeRoute.subPage, action: resumeRoute.action, backTo}),
+        );
     };
 
     const goBack = useCallback(() => {
@@ -755,7 +851,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     // Keep the loader on screen for a pending USD account so the "Continue setup / Start over" entry point is never
     // painted on the way to the validation step. The back button leaves the flow rather than using goBack, which
     // switches on achData.currentStep and performs no navigation at all for several of its cases.
-    if (shouldRedirectToPendingValidation) {
+    if (shouldRedirectToPendingValidation || hasLocalWalletBankInfoProgress) {
         return <ReimbursementAccountLoadingIndicator onBackButtonPress={leavePendingValidationFlow} />;
     }
 

@@ -14,6 +14,7 @@ import useOnyx from './useOnyx';
 const personalBankAccountSourceSelector = (personalBankAccount: OnyxEntry<PersonalBankAccount>) => personalBankAccount?.source;
 const personalBankAccountShouldShowSuccessSelector = (personalBankAccount: OnyxEntry<PersonalBankAccount>) => personalBankAccount?.shouldShowSuccess;
 const personalBankAccountCurrentPageSelector = (personalBankAccount: OnyxEntry<PersonalBankAccount>) => personalBankAccount?.currentPage;
+const personalBankAccountCurrentPageActionSelector = (personalBankAccount: OnyxEntry<PersonalBankAccount>) => personalBankAccount?.currentPageAction;
 const personalDraftSetupTypeSelector = (personalDraft: OnyxEntry<PersonalBankAccountForm>) => personalDraft?.setupType;
 const internationalDraftBankCountrySelector = (internationalDraft: OnyxEntry<InternationalBankAccountForm>) => internationalDraft?.bankCountry;
 
@@ -21,11 +22,12 @@ function useWalletPersonalBankAccountSetup() {
     const [source, personalBankAccountMetadata] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: personalBankAccountSourceSelector});
     const [shouldShowSuccess] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: personalBankAccountShouldShowSuccessSelector});
     const [currentPage] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: personalBankAccountCurrentPageSelector});
+    const [currentPageAction] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: personalBankAccountCurrentPageActionSelector});
     const [setupType, personalDraftMetadata] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {selector: personalDraftSetupTypeSelector});
     const [bankCountry, internationalDraftMetadata] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, {selector: internationalDraftBankCountrySelector});
 
     const isLoading = isLoadingOnyxValue(personalBankAccountMetadata, personalDraftMetadata, internationalDraftMetadata);
-    const personalBankAccount = {source, shouldShowSuccess, currentPage};
+    const personalBankAccount = {source, shouldShowSuccess, currentPage, currentPageAction};
     const personalDraft = {setupType};
     const internationalDraft = bankCountry ? {bankCountry} : undefined;
 

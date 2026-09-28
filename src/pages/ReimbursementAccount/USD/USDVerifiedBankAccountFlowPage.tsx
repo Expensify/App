@@ -1,3 +1,5 @@
+import FormDraftPersistenceContext from '@components/Form/FormDraftPersistenceContext';
+
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -6,6 +8,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 
+import {setDraftValues} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -13,7 +17,8 @@ import type SCREENS from '@src/SCREENS';
 
 import type {ComponentRef} from 'react';
 
-import React, {useCallback, useMemo, useRef} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
 import type USDPageProps from './types';
@@ -102,9 +107,23 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
     const policyID = route.params?.policyID;
     const currentPage = route.params?.page;
     const currentSubPage = route.params?.subPage;
+    const currentPageAction = route.params?.action;
     const backTo = route.params?.backTo;
+    const isFocused = useIsFocused();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+
+    useEffect(() => {
+        if (!isFocused || backTo !== ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE || !currentPage) {
+            return;
+        }
+
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {
+            currentPage,
+            currentSubPage: currentSubPage ?? null,
+            currentPageAction: currentPageAction ?? null,
+        });
+    }, [backTo, currentPage, currentPageAction, currentSubPage, isFocused]);
 
     const requestorStepRef = useRef<ComponentRef<typeof View>>(null);
     const isOnfidoSetupComplete = reimbursementAccount?.achData?.isOnfidoSetupComplete;
@@ -183,15 +202,17 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
 
     return (
         <View style={[styles.flex1, styles.appBG]}>
-            <CurrentPage
-                onSubmit={onSubmit}
-                onBackButtonPress={onBackButtonPress}
-                policyID={policyID}
-                currentSubPage={currentSubPage}
-                stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
-                ref={isRequestorStep ? requestorStepRef : undefined}
-                backTo={backTo}
-            />
+            <FormDraftPersistenceContext.Provider value={backTo === ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE && currentPageAction === 'edit'}>
+                <CurrentPage
+                    onSubmit={onSubmit}
+                    onBackButtonPress={onBackButtonPress}
+                    policyID={policyID}
+                    currentSubPage={currentSubPage}
+                    stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
+                    ref={isRequestorStep ? requestorStepRef : undefined}
+                    backTo={backTo}
+                />
+            </FormDraftPersistenceContext.Provider>
         </View>
     );
 }

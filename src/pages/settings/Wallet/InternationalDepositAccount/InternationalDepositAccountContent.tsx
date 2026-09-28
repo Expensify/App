@@ -1,3 +1,4 @@
+import FormDraftPersistenceContext from '@components/Form/FormDraftPersistenceContext';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -50,6 +51,7 @@ type InternationalDepositAccountContentProps = {
     isAccountLoading: boolean;
     isWalletSetup: boolean;
     savedPage?: string;
+    savedPageAction?: 'edit';
     backTo?: Route;
 };
 
@@ -83,6 +85,7 @@ function InternationalDepositAccountContent({
     isAccountLoading,
     isWalletSetup,
     savedPage,
+    savedPageAction,
     backTo,
 }: InternationalDepositAccountContentProps) {
     const {translate} = useLocalize();
@@ -100,8 +103,11 @@ function InternationalDepositAccountContent({
     const skipAccountHolderInformationStep = testValidation(initialAccountHolderDetailsValues, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]);
 
     const skippedPages = getSkippedPages(skipAccountTypeStep, skipAccountHolderInformationStep);
-    const savedPageIndex = pages.findIndex((page) => page.pageName === savedPage && !skippedPages.includes(page.pageName));
+    const savedPageIndex = pages.findIndex(
+        (page) => page.pageName === savedPage && (!skippedPages.includes(page.pageName) || (savedPageAction === 'edit' && !isEmptyObject(fieldsMap[page.pageName]))),
+    );
     const startFrom = isWalletSetup && savedPageIndex >= 0 ? Math.min(savedPageIndex, firstIncompletePageIndex) : firstIncompletePageIndex;
+    const startAction = isWalletSetup && savedPageIndex >= 0 && savedPageAction === 'edit' && startFrom === savedPageIndex ? savedPageAction : undefined;
 
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.ADD_BANK_ACCOUNT>>();
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((r) => isFullScreenName(r.name)));
@@ -134,18 +140,25 @@ function InternationalDepositAccountContent({
     const {CurrentPage, isEditing, nextPage, prevPage, pageIndex, currentPageName, moveTo, isRedirecting} = useSubPage<CustomSubPageProps>({
         pages,
         startFrom,
+        startAction,
         onFinished: handleFinishStep,
         skipPages: skippedPages,
         buildRoute: (pageName, action) => ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(route.params?.backTo, pageName, action),
     });
+    const shouldPersistDraft =
+        isWalletSetup &&
+        isEditing &&
+        (currentPageName === CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS ||
+            currentPageName === CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION ||
+            currentPageName === CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS);
     const isFocused = useIsFocused();
 
     useEffect(() => {
         if (!isWalletSetup || !isFocused || isRedirecting || !currentPageName) {
             return;
         }
-        updatePersonalBankAccountCurrentPage(currentPageName);
-    }, [currentPageName, isFocused, isRedirecting, isWalletSetup]);
+        updatePersonalBankAccountCurrentPage(currentPageName, isEditing ? 'edit' : undefined);
+    }, [currentPageName, isEditing, isFocused, isRedirecting, isWalletSetup]);
 
     const goBackToConfirmStep = () => {
         Navigation.goBack(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(route.params?.backTo, CONST.CORPAY_FIELDS.PAGE_NAME.CONFIRM, undefined));
@@ -194,13 +207,15 @@ function InternationalDepositAccountContent({
                         shouldShowBackButton={pageIndex !== CONST.CORPAY_FIELDS.INDEXES.MAPPING.SUCCESS}
                         onBackButtonPress={handleBackButtonPress}
                     />
-                    <CurrentPage
-                        isEditing={isEditing}
-                        onNext={handleNextScreen}
-                        onMove={moveTo}
-                        formValues={values}
-                        fieldsMap={fieldsMap}
-                    />
+                    <FormDraftPersistenceContext.Provider value={shouldPersistDraft}>
+                        <CurrentPage
+                            isEditing={isEditing}
+                            onNext={handleNextScreen}
+                            onMove={moveTo}
+                            formValues={values}
+                            fieldsMap={fieldsMap}
+                        />
+                    </FormDraftPersistenceContext.Provider>
                 </>
             )}
         </ScreenWrapper>
