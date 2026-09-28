@@ -37,7 +37,8 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const autoPayApprovedReportsUnavailable = !isAutoPayApprovedReportsAvailable(policy);
     // Auto-pay that is already on (e.g. kept after a downgrade) stays usable so admins can still turn it off.
-    const autoPayApprovedReportsRequiresUpgrade = !isControlPolicy(policy) && !policy?.shouldShowAutoReimbursementLimitOption;
+    // Users who can't write payments (e.g. on an archived workspace) can't upgrade either, so they don't get the upgrade link.
+    const autoPayApprovedReportsRequiresUpgrade = canWritePayments && !isControlPolicy(policy) && !policy?.shouldShowAutoReimbursementLimitOption;
     const autoPayApprovedReportsUpgradeRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(
         policyID,
         CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.alias,

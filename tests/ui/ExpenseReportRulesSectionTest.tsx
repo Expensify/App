@@ -95,12 +95,12 @@ function getAutoPayProps() {
     return autoPayProps;
 }
 
-function renderSection() {
+function renderSection({canWritePayments = true}: {canWritePayments?: boolean} = {}) {
     return render(
         <ExpenseReportRulesSection
             policyID={POLICY_ID}
             canWriteApprovals
-            canWritePayments
+            canWritePayments={canWritePayments}
             withApprovalsReadOnlyFallback={jest.fn(() => undefined)}
             withPaymentsReadOnlyFallback={jest.fn(() => undefined)}
         />,
@@ -212,6 +212,22 @@ describe('ExpenseReportRulesSection', () => {
             const autoPayProps = getAutoPayProps();
             expect(autoPayProps?.subtitle).toBe('workspace.rules.expenseReportRules.unlockFeatureEnableWorkflowsSubtitle|common.payments');
             expect(autoPayProps?.shouldParseSubtitle).toBe(true);
+            expect(autoPayProps?.showLockIcon).toBe(true);
+            expect(autoPayProps?.disabled).toBe(true);
+        });
+
+        it('does not show the upgrade link on a non-Control workspace the user cannot write payments on', () => {
+            // Given a non-Control workspace with payments set up that the user can't write payments on, e.g. an archived workspace
+            mockedIsControlPolicy.mockReturnValue(false);
+            (mockedUsePolicy as jest.Mock).mockReturnValue(PAYMENTS_ENABLED_POLICY);
+
+            // When the section renders
+            renderSection({canWritePayments: false});
+
+            // Then the auto-pay row shows the regular copy without the upgrade link, and the switch is locked and disabled like the rest of the row
+            const autoPayProps = getAutoPayProps();
+            expect(autoPayProps?.subtitle).toBe('workspace.rules.expenseReportRules.autoPayApprovedReportsSubtitle');
+            expect(autoPayProps?.shouldParseSubtitle).toBe(false);
             expect(autoPayProps?.showLockIcon).toBe(true);
             expect(autoPayProps?.disabled).toBe(true);
         });
