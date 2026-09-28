@@ -1,5 +1,8 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 
+import useOnyx from '@hooks/useOnyx';
+import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
+
 import Pusher from '@libs/Pusher';
 import type {ConciergeDraftEvent, ConciergeDraftEventsEvent} from '@libs/Pusher/types';
 import {getReportActionHtml} from '@libs/ReportActionMessageUtils';
@@ -13,6 +16,7 @@ import type {ReportAction} from '@src/types/onyx';
 
 import type {PropsWithChildren} from 'react';
 
+import {useEffect} from 'react';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
@@ -125,6 +129,25 @@ function triggerVisibilityChange(isVisible: boolean) {
     for (const callback of mockVisibilityCallbacks) {
         callback();
     }
+}
+
+// Exercise the local timer and reconcile every draft update with the saved action,
+// as ReportActionsList does. Both use the real draft provider.
+function useReconciledPendingResponse() {
+    usePendingConciergeResponse(REPORT_ID);
+    const state = useConciergeDraft();
+    const {revealDraftFromReportAction} = useConciergeDraftActions();
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`);
+    const savedAction = reportActions?.[REPORT_ACTION_ID];
+
+    useEffect(() => {
+        if (!state.draftReportAction || !savedAction) {
+            return;
+        }
+        revealDraftFromReportAction(savedAction);
+    }, [state.draftReportAction, savedAction, revealDraftFromReportAction]);
+
+    return {...state, savedAction};
 }
 
 describe('ConciergeDraftContext', () => {
@@ -796,6 +819,67 @@ describe('ConciergeDraftContext', () => {
             // Then followups appear immediately and the answer remains fully visible.
             expect(getReportActionHtml(result.current.state.draftReportAction)).toBe(html);
             expect(result.current.state.isDraftPendingCompletion).toBe(false);
+        } finally {
+            unmount();
+            jest.useRealTimers();
+        }
+    });
+
+    it.each([
+        {name: 'followups added during the reveal', sanitizeLink: false, arrivalMS: 400},
+        {name: 'link attributes changed during the reveal', sanitizeLink: true, arrivalMS: 400},
+        {name: 'link attributes changed near completion', sanitizeLink: true, arrivalMS: 5109},
+    ])('finishes the local reveal when the server reply arrives: $name', async ({sanitizeLink, arrivalMS}) => {
+        // Given a long pregenerated followup running through the real local reveal hook.
+        const html = `<p><a href="https://help.expensify.com/">Help</a> ${'This answer has already started revealing. '.repeat(12)}</p>`;
+        // The API's HTML sanitizer adds these attributes to links before Auth saves the answer.
+        const savedBody = sanitizeLink ? html.replace('href="https://help.expensify.com/"', 'href="https://help.expensify.com/" target="_blank" rel="noreferrer noopener"') : html;
+        const savedHTML = `${savedBody}${FOLLOWUP_LIST_HTML}`;
+        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const {result, unmount} = renderHook(useReconciledPendingResponse, {wrapper});
+        await waitFor(() => expect(Pusher.subscribe).toHaveBeenCalledTimes(6));
+        jest.useFakeTimers();
+
+        try {
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${REPORT_ID}`, {
+                    reportAction: createReportAction(html),
+                    displayAfter: Date.now(),
+                });
+            });
+            act(() => jest.advanceTimersByTime(1));
+            for (let elapsed = 80; elapsed <= arrivalMS; elapsed += 80) {
+                act(() => jest.advanceTimersByTime(80));
+            }
+            act(() => jest.advanceTimersByTime(arrivalMS % 80));
+            let previousLength = getFirstMessageText(result.current.draftReportAction)?.length ?? 0;
+            expect(previousLength).toBeGreaterThan(0);
+
+            // When the matching saved action arrives before the local animation finishes.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[REPORT_ACTION_ID]: createReportAction(savedHTML)});
+            });
+
+            // Then early arrivals keep the visible text and continue at the local timer's cadence.
+            if (arrivalMS === 400) {
+                expect(getFirstMessageText(result.current.draftReportAction)?.length).toBe(previousLength);
+            }
+            for (let elapsed = 80; elapsed <= 2000; elapsed += 80) {
+                act(() => jest.advanceTimersByTime(80));
+                if (arrivalMS !== 400 || !result.current.isDraftPendingCompletion) {
+                    continue;
+                }
+                const visibleLength = getFirstMessageText(result.current.draftReportAction)?.length ?? 0;
+                expect(visibleLength).toBeGreaterThan(previousLength);
+                expect(getReportActionHtml(result.current.draftReportAction)).not.toContain('<followup-list');
+                previousLength = visibleLength;
+            }
+
+            // And even late arrivals finish, retiring the draft so the saved answer and buttons can render.
+            expect(result.current.isDraftPendingCompletion).toBe(false);
+            expect(result.current.draftReportAction).toBeNull();
+            expect(getCachedDraft(REPORT_ID)).toBeNull();
+            expect(getReportActionHtml(result.current.savedAction)).toBe(savedHTML);
         } finally {
             unmount();
             jest.useRealTimers();

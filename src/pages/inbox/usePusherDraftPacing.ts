@@ -1,3 +1,5 @@
+import useOnyx from '@hooks/useOnyx';
+
 import {getReportChannelName} from '@libs/actions/Report';
 import {ACCELERATED_REMAINING_MS, easeOut, getRevealDurationMS, MIN_TRICKLE_TOKEN_COUNT, TICK_INTERVAL_MS, TRICKLE_HARD_CAP_MS} from '@libs/ConciergeRevealUtils';
 import Log from '@libs/Log';
@@ -8,6 +10,7 @@ import tokenizeForReveal from '@libs/ReportActionFollowupUtils/tokenizeForReveal
 import {getReportActionHtml} from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
 import type {Dispatch, SetStateAction} from 'react';
@@ -856,6 +859,9 @@ function resumeCachedPusherDraftPace(runtime: PusherDraftPacingRuntime) {
 }
 
 function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
+    const [pendingLocalReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`, {
+        selector: (pendingResponse) => pendingResponse?.reportAction.reportActionID,
+    });
     // Lazy-init from the module-level cache so a remount (ReportScreen
     // unmount/remount on chat-switch) restores the in-progress draft on the
     // first paint instead of flashing the synthetic bubble away.
@@ -938,6 +944,12 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
         // later edits must not turn it back into a streaming draft.
         if (currentDraft.status === CONCIERGE_DRAFT_STATUS.COMPLETED && !currentDraft.pusherPendingCompletionEvent) {
             clearDraft();
+            return;
+        }
+
+        // The local reveal already accelerates when this saved action arrives. Let it
+        // finish before reconciliation takes over, so two timers cannot advance the same draft.
+        if (pendingLocalReportActionID === reportAction.reportActionID) {
             return;
         }
 
