@@ -4,7 +4,7 @@ import type {BankAccountList, PersonalDetailsList, Policy, Report, ReportActions
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import type {SearchKey} from './SearchUIUtils';
+import type {SearchKey} from './SearchKeyUtils';
 
 import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {isGroupPolicy} from './PolicyUtils';
@@ -157,6 +157,9 @@ function reportMatchesTodoBucket(
                     bankAccountList,
                     policy,
                     reportNameValuePairs: reportNameValuePair,
+                    // A failed export only demotes Pay to a secondary action on the report page. The report is still
+                    // payable, so keep it in the pay to-do to match the server's action:pay results.
+                    isSecondaryAction: true,
                 }) &&
                 !hasOnlyNonReimbursableTransactions(report.reportID, reportTransactions) &&
                 (!allExpensesHeld || currentUserPlacedHold)
