@@ -163,6 +163,49 @@ describe('useSignOut', () => {
         expect(mockSignOutAndRedirectToSignIn).toHaveBeenCalledTimes(1);
     });
 
+    it('should stay in flight until sign-out finishes and ignore a second press', async () => {
+        // Given sign-out has started but the redirect has not finished
+        let resolveSignOut: () => void = () => {};
+        mockSignOutAndRedirectToSignIn.mockImplementationOnce(
+            () =>
+                new Promise((resolve) => {
+                    resolveSignOut = () => {
+                        resolve(undefined);
+                    };
+                }),
+        );
+        const {result} = renderHook(() => useSignOut());
+
+        let firstSignOut: Promise<void> | undefined;
+        act(() => {
+            firstSignOut = result.current.signOut();
+        });
+
+        // When they press Sign out again before the first one finishes
+        await act(async () => {
+            await result.current.signOut();
+        });
+
+        // Then the second press is ignored and the first call is still waiting
+        expect(mockSignOutAndRedirectToSignIn).toHaveBeenCalledTimes(1);
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+
+        let didSettle = false;
+        const trackedSignOut = firstSignOut?.finally(() => {
+            didSettle = true;
+        });
+        await act(async () => {
+            await Promise.resolve();
+        });
+        expect(didSettle).toBe(false);
+
+        await act(async () => {
+            resolveSignOut();
+            await trackedSignOut;
+        });
+        expect(didSettle).toBe(true);
+    });
+
     it('should ignore a second sign-out while the first confirm is still open', async () => {
         // Given the first sign-out confirm is still waiting for the user
         let resolveModal: (value: {action: string}) => void = () => {};
