@@ -26,6 +26,10 @@ const columns: Array<TableColumn<string, Row>> = ['first', 'second', 'third'].ma
     dynamicSizing: {getContentToMeasure: (item) => [{text: `${key}-${item.value}`}]},
 }));
 
+/** The same three columns, with one of them given an extra sizing option to exercise. */
+const columnsWithSizingOn = (key: string, dynamicSizing: Partial<NonNullable<TableColumn<string, Row>['dynamicSizing']>>): Array<TableColumn<string, Row>> =>
+    columns.map((column) => (column.key === key ? {...column, dynamicSizing: {getContentToMeasure: (item: Row) => [{text: `${key}-${item.value}`}], ...dynamicSizing}} : column));
+
 const data: Row[] = [{keyForList: 'row', value: 'cell'}];
 
 /** Turns the width the columns should share into the `tableWidth` the hook has to be handed to produce it. */
@@ -90,6 +94,49 @@ describe('useDynamicColumnWidths', () => {
         const {result} = renderHook(() => useDynamicColumnWidths<Row, string>({columns, data, tableWidth: tableWidthFor(300), isEnabled: true, hasSelectionColumn: false}));
 
         expect(widthsFrom(result.current.gridTemplateColumns).at(0)).toBe(60);
+    });
+
+    it('keeps a column that must not truncate at its full content width', () => {
+        // Given a column whose values come from a fixed set, so an ellipsis would hide part of a value
+        const columnsWithFitContent = columnsWithSizingOn('first', {shouldFitContent: true});
+
+        // When the table is too narrow for every column to have what it wants
+        const {result} = renderHook(() =>
+            useDynamicColumnWidths<Row, string>({columns: columnsWithFitContent, data, tableWidth: tableWidthFor(300), isEnabled: true, hasSelectionColumn: false}),
+        );
+
+        // Then it keeps all 300px of its content while the free-text columns fall back to their floor
+        expect(widthsFrom(result.current.gridTemplateColumns)).toEqual([300, 180, 180]);
+    });
+
+    it('lets a column set a minimum of its own, over both the derived floor and its content', () => {
+        // Given a column that declares the width it needs, narrower than its content and wider than the floor
+        const columnsWithMinWidth = columnsWithSizingOn('first', {minWidth: 250});
+
+        // When the table is too narrow for every column to have what it wants
+        const {result} = renderHook(() =>
+            useDynamicColumnWidths<Row, string>({columns: columnsWithMinWidth, data, tableWidth: tableWidthFor(300), isEnabled: true, hasSelectionColumn: false}),
+        );
+
+        // Then the declared minimum decides, rather than the 180px floor below it or the 300px of content above it
+        expect(widthsFrom(result.current.gridTemplateColumns).at(0)).toBe(250);
+    });
+
+    it('counts a capped column at its cap when predicting whether the table scrolls', () => {
+        // Given a column that caps itself well below the floor the other columns are squeezed to
+        const columnsWithMaxWidth = columnsWithSizingOn('first', {maxWidth: 40});
+
+        // When the table is measured at a width the capped column brings the total under: 40 + 120 + 120 fits in 300,
+        // while the unclamped 120 + 120 + 120 would not
+        const {result} = renderHook(() =>
+            useDynamicColumnWidths<Row, string>({columns: columnsWithMaxWidth, data, tableWidth: tableWidthFor(300), isEnabled: true, hasSelectionColumn: false}),
+        );
+
+        // Then the table lays out in place instead of scrolling, and the capped column is held at its cap
+        const widths = widthsFrom(result.current.gridTemplateColumns);
+        expect(result.current.scrollWidth).toBeUndefined();
+        expect(widths.at(0)).toBe(40);
+        expect(widths.reduce((total, width) => total + width, 0)).toBe(300);
     });
 
     it('adds the cell avatar width on top of the free-text floor', () => {

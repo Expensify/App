@@ -2,6 +2,7 @@
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import type {TranslationPaths} from '@src/languages/types';
 import {
     applyApprovalWorkflowRulesDiff,
     buildApprovalWorkflowRules,
@@ -15,7 +16,10 @@ import {
     getOpenConnectedToPolicyBusinessBankAccounts,
     getApprovalWorkflowSource,
     getOverLimitForwardsToDisplayName,
+    getEnforcedApprovalWorkflows,
+    getEnforcedApprovalWorkflowsForMembers,
     getFirstApproverByMemberEmail,
+    getFirstApproverLabel,
     getRulesSubmitterToFirstApprover,
     hasMultiLevelApprovalWorkflow,
     getRulesSubmitterToWorkflowKey,
@@ -2172,6 +2176,109 @@ describe('WorkflowUtils', () => {
         it('returns an empty collection when there is no policy or no rules', () => {
             expect(filterRulesForPolicy({rules_1: ruleForPolicy('policy1')}, undefined)).toEqual({});
             expect(filterRulesForPolicy(undefined, 'policy1')).toEqual({});
+        });
+    });
+
+    describe('getEnforcedApprovalWorkflows', () => {
+        // One default workflow and one that only an advanced mode would run, which is the shape a downgrade leaves behind.
+        const defaultWorkflow = buildWorkflow([1], [2], {isDefault: true});
+        const inertWorkflow = buildWorkflow([3], [4]);
+        const workflows = [defaultWorkflow, inertWorkflow];
+
+        function buildPolicyWithHRAdvancedMode(): Policy {
+            return createMock<Policy>({
+                connections: {[CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {integration: 'workday', approvalMode: CONST.MERGE.APPROVAL_MODE.MANAGER, groups: []}}},
+            });
+        }
+
+        it('enforces every workflow while the multiple approvers beta is on, whatever the approval mode is', () => {
+            // Given a workspace on an approval mode that runs a single workflow
+            const policy = createMock<Policy>({approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
+
+            // When the beta is enabled
+            // Then the beta decides, so the mode doesn't narrow the workflows down
+            expect(getEnforcedApprovalWorkflows(workflows, policy, true)).toEqual(workflows);
+        });
+
+        it.each([CONST.POLICY.APPROVAL_MODE.ADVANCED, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL])('enforces every workflow in %s mode', (approvalMode) => {
+            // Given a workspace on an approval mode that runs more than one workflow
+            const policy = createMock<Policy>({approvalMode});
+
+            // When the workflows are narrowed to the enforced ones
+            // Then all of them are still in force
+            expect(getEnforcedApprovalWorkflows(workflows, policy, false)).toEqual(workflows);
+        });
+
+        it('enforces every workflow when an HR provider is in advanced mode', () => {
+            // Given a workspace whose workflows come from an HR provider in manager mode
+            // When the workflows are narrowed to the enforced ones
+            // Then the provider runs them all, so none is dropped
+            expect(getEnforcedApprovalWorkflows(workflows, buildPolicyWithHRAdvancedMode(), false)).toEqual(workflows);
+        });
+
+        it.each([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.OPTIONAL])('enforces only the default workflow in %s mode', (approvalMode) => {
+            // Given a workspace on an approval mode that runs a single workflow
+            const policy = createMock<Policy>({approvalMode});
+
+            // When the workflows are narrowed to the enforced ones
+            // Then the workflow a downgrade left behind is dropped, since the workspace no longer runs it
+            expect(getEnforcedApprovalWorkflows(workflows, policy, false)).toEqual([defaultWorkflow]);
+        });
+
+        it('enforces only the default workflow when the policy has not loaded', () => {
+            // Given no policy at all, so there is no approval mode to read
+            // When the workflows are narrowed to the enforced ones
+            // Then the conservative single-workflow reading applies rather than every workflow
+            expect(getEnforcedApprovalWorkflows(workflows, undefined, false)).toEqual([defaultWorkflow]);
+        });
+    });
+
+    describe('getEnforcedApprovalWorkflowsForMembers', () => {
+        const defaultWorkflow = buildWorkflow([1], [2], {isDefault: true});
+        const inertWorkflow = buildWorkflow([3], [4]);
+        const workflows = [defaultWorkflow, inertWorkflow];
+
+        it('moves the members of a dropped workflow onto the default one', () => {
+            // Given a workspace on a mode that runs only the default workflow, with a member left on another one
+            const policy = createMock<Policy>({approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
+
+            // When the workflows are read from a member's side
+            const result = getEnforcedApprovalWorkflowsForMembers(workflows, policy, false);
+
+            // Then that member submits to the default approver like everyone else, rather than to no one
+            expect(result).toEqual([{...defaultWorkflow, members: [...defaultWorkflow.members, ...inertWorkflow.members]}]);
+        });
+
+        it('leaves the workflows alone when every one of them is enforced', () => {
+            // Given a workspace on a mode that runs every workflow
+            const policy = createMock<Policy>({approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED});
+
+            // When the workflows are read from a member's side
+            // Then nobody is reassigned, because no workflow was dropped
+            expect(getEnforcedApprovalWorkflowsForMembers(workflows, policy, false)).toEqual(workflows);
+        });
+    });
+
+    describe('getFirstApproverLabel', () => {
+        // Mirrors the provider, which reads the ordinals from the translations. Only the first is needed, since the
+        // label always names the first approver.
+        const ordinalTranslations: Record<number, TranslationPaths> = {1: 'workflowsPage.frequencies.ordinals.1'};
+        const toLocaleOrdinalWithWords = (number: number) => translateLocal(ordinalTranslations[number]);
+
+        it('numbers the approver when the workflow has more than one', () => {
+            // Given a workflow whose expenses pass through several approvers
+            // When the first one is labelled
+            // Then the label says which of them it is, so the rest are implied
+            expect(getFirstApproverLabel(true, translateLocal, toLocaleOrdinalWithWords)).toBe(
+                `${translateLocal('workflowsPage.frequencies.ordinals.1')} ${translateLocal('workflowsPage.approver').toLowerCase()}`,
+            );
+        });
+
+        it('leaves the approver unnumbered when there is only one', () => {
+            // Given a workflow with a single approver
+            // When that approver is labelled
+            // Then the label is the plain one, since there is no second approver to distinguish it from
+            expect(getFirstApproverLabel(false, translateLocal, toLocaleOrdinalWithWords)).toBe(translateLocal('workflowsPage.approver'));
         });
     });
 
