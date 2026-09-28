@@ -9,7 +9,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {getReimbursementChoice, getWorkflowApprovalsUnavailable, isControlPolicy} from '@libs/PolicyUtils';
+import {getWorkflowApprovalsUnavailable, isAutoPayApprovedReportsAvailable, isControlPolicy} from '@libs/PolicyUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
@@ -35,9 +35,9 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
     const policy = usePolicy(policyID);
     const {environmentURL} = useEnvironment();
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
-    const autoPayApprovedReportsUnavailable =
-        !policy?.areWorkflowsEnabled || getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || !policy?.achAccount?.bankAccountID;
-    const autoPayApprovedReportsRequiresUpgrade = !isControlPolicy(policy);
+    const autoPayApprovedReportsUnavailable = !isAutoPayApprovedReportsAvailable(policy);
+    // Auto-pay that is already on (e.g. kept after a downgrade) stays usable so admins can still turn it off.
+    const autoPayApprovedReportsRequiresUpgrade = !isControlPolicy(policy) && !policy?.shouldShowAutoReimbursementLimitOption;
     const autoPayApprovedReportsUpgradeRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(
         policyID,
         CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.alias,

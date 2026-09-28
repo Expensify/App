@@ -53,8 +53,11 @@ jest.mock('@hooks/useThemeStyles', () =>
 
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
 jest.mock('@libs/PolicyUtils', () => ({
-    getReimbursementChoice: jest.fn((policy?: {reimbursementChoice?: string}) => policy?.reimbursementChoice),
     getWorkflowApprovalsUnavailable: jest.fn(() => false),
+    isAutoPayApprovedReportsAvailable: jest.fn(
+        (policy?: {areWorkflowsEnabled?: boolean; reimbursementChoice?: string; achAccount?: {bankAccountID?: number}}) =>
+            !!policy?.areWorkflowsEnabled && policy?.reimbursementChoice === 'reimburseYes' && !!policy?.achAccount?.bankAccountID,
+    ),
     isControlPolicy: jest.fn(() => true),
 }));
 
@@ -128,45 +131,84 @@ describe('ExpenseReportRulesSection', () => {
 
     describe('auto-pay approved reports', () => {
         it('tells a non-Control workspace with payments set up that auto-pay requires the Control plan', () => {
+            // Given a non-Control workspace with workflows, reimbursements, and a bank account set up
             mockedIsControlPolicy.mockReturnValue(false);
             (mockedUsePolicy as jest.Mock).mockReturnValue(PAYMENTS_ENABLED_POLICY);
 
+            // When the section renders
             renderSection();
 
+            // Then the auto-pay row shows the Control plan copy with an upgrade link, a lock icon, and stays pressable
             const autoPayProps = getAutoPayProps();
             expect(autoPayProps?.subtitle).toBe(`workspace.rules.expenseReportRules.autoPayApprovedReportsControlPlanSubtitle|https://new.expensify.com/${AUTO_PAY_UPGRADE_ROUTE}`);
             expect(autoPayProps?.shouldParseSubtitle).toBe(true);
             expect(autoPayProps?.showLockIcon).toBe(true);
             expect(autoPayProps?.disabled).toBe(false);
 
+            // When the admin turns the switch on
             autoPayProps?.onToggle(true);
+
+            // Then they are sent to the upgrade page instead of enabling auto-pay
             expect(Navigation.navigate).toHaveBeenCalledWith(AUTO_PAY_UPGRADE_ROUTE);
             expect(enablePolicyAutoReimbursementLimit).not.toHaveBeenCalled();
         });
 
         it('shows the Control plan copy instead of the payments copy on a non-Control workspace without payments, and keeps the upgrade path reachable', () => {
+            // Given a non-Control workspace without a bank account
             mockedIsControlPolicy.mockReturnValue(false);
             (mockedUsePolicy as jest.Mock).mockReturnValue({
                 ...PAYMENTS_ENABLED_POLICY,
                 achAccount: undefined,
             });
 
+            // When the section renders
             renderSection();
 
+            // Then the Control plan copy wins over the payments copy and the switch stays pressable
             const autoPayProps = getAutoPayProps();
             expect(autoPayProps?.subtitle).toBe(`workspace.rules.expenseReportRules.autoPayApprovedReportsControlPlanSubtitle|https://new.expensify.com/${AUTO_PAY_UPGRADE_ROUTE}`);
             expect(autoPayProps?.showLockIcon).toBe(true);
             expect(autoPayProps?.disabled).toBe(false);
         });
 
+        it('keeps auto-pay usable on a non-Control workspace that already has it on, so it can be turned off', () => {
+            // Given a non-Control workspace with payments set up that already has auto-pay on, e.g. after a downgrade
+            mockedIsControlPolicy.mockReturnValue(false);
+            (mockedUsePolicy as jest.Mock).mockReturnValue({
+                ...PAYMENTS_ENABLED_POLICY,
+                shouldShowAutoReimbursementLimitOption: true,
+            });
+
+            // When the section renders
+            renderSection();
+
+            // Then the auto-pay row shows as on with the regular copy and no upgrade lock
+            const autoPayProps = getAutoPayProps();
+            expect(autoPayProps?.isActive).toBe(true);
+            expect(autoPayProps?.subtitle).toBe('workspace.rules.expenseReportRules.autoPayApprovedReportsSubtitle');
+            expect(autoPayProps?.shouldParseSubtitle).toBe(false);
+            expect(autoPayProps?.showLockIcon).toBe(false);
+            expect(autoPayProps?.disabled).toBe(false);
+
+            // When the admin turns the switch off
+            autoPayProps?.onToggle(false);
+
+            // Then auto-pay is turned off without going through the upgrade page
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+            expect(enablePolicyAutoReimbursementLimit).toHaveBeenCalledWith(POLICY_ID, false, true, undefined);
+        });
+
         it('keeps the payments copy and locks the toggle on a Control workspace without a bank account', () => {
+            // Given a Control workspace without a bank account
             (mockedUsePolicy as jest.Mock).mockReturnValue({
                 ...PAYMENTS_ENABLED_POLICY,
                 achAccount: undefined,
             });
 
+            // When the section renders
             renderSection();
 
+            // Then the auto-pay row keeps the payments copy and is locked and disabled
             const autoPayProps = getAutoPayProps();
             expect(autoPayProps?.subtitle).toBe('workspace.rules.expenseReportRules.unlockFeatureEnableWorkflowsSubtitle|common.payments');
             expect(autoPayProps?.shouldParseSubtitle).toBe(true);
@@ -175,17 +217,23 @@ describe('ExpenseReportRulesSection', () => {
         });
 
         it('unlocks the toggle on a Control workspace with payments set up', () => {
+            // Given a Control workspace with workflows, reimbursements, and a bank account set up
             (mockedUsePolicy as jest.Mock).mockReturnValue(PAYMENTS_ENABLED_POLICY);
 
+            // When the section renders
             renderSection();
 
+            // Then the auto-pay row shows the regular copy and is unlocked
             const autoPayProps = getAutoPayProps();
             expect(autoPayProps?.subtitle).toBe('workspace.rules.expenseReportRules.autoPayApprovedReportsSubtitle');
             expect(autoPayProps?.shouldParseSubtitle).toBe(false);
             expect(autoPayProps?.showLockIcon).toBe(false);
             expect(autoPayProps?.disabled).toBe(false);
 
+            // When the admin turns the switch on
             autoPayProps?.onToggle(true);
+
+            // Then auto-pay is enabled directly without going through the upgrade page
             expect(Navigation.navigate).not.toHaveBeenCalled();
             expect(enablePolicyAutoReimbursementLimit).toHaveBeenCalledWith(POLICY_ID, true, undefined, undefined);
         });
