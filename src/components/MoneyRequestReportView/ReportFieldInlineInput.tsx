@@ -25,10 +25,11 @@ import EditReportFieldDropdown from '@pages/EditReportFieldDropdown';
 import CONST from '@src/CONST';
 import type {PolicyReportField} from '@src/types/onyx';
 
+import type {GestureResponderEvent} from 'react-native';
+
 import {Str} from 'expensify-common';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {GestureResponderEvent} from 'react-native';
 
 type ReportFieldInlineInputProps = {
     reportField: PolicyReportField;
