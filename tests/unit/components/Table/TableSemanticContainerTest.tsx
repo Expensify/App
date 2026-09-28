@@ -213,6 +213,7 @@ describe('TableSemanticContainer', () => {
                 title="Members"
                 rowCount={3}
                 columnCount={4}
+                hasHeaderRow
                 rendersBodyWhenEmpty={false}
                 shouldUseDynamicColumns
                 scrollWidth={undefined}
