@@ -3957,6 +3957,8 @@ const CONST = {
         LONG_TERM_LIABILITY: 'LONG_TERM_LIABILITY',
         CREDIT_CARD: 'CREDIT_CARD',
         BANK: 'BANK',
+        OTHER_CURRENT_ASSET: 'OTHER_CURRENT_ASSET',
+        OTHER_CURRENT_LIABILITY: 'OTHER_CURRENT_LIABILITY',
     },
 
     CAMPFIRE_VENDOR_TYPE: {
@@ -9322,6 +9324,12 @@ const CONST = {
             SORTABLE_HEADER: 'Search-SortableHeader',
             UNREPORTED_EXPENSE_LIST_ITEM: 'UnreportedExpenseListItem',
             WORKSPACE_SELECTOR_SELECT_ALL: 'Search-WorkspaceSelectorSelectAll',
+        },
+        INSIGHTS: {
+            CONTROL_DATE: 'Insights-ControlDate',
+            CONTROL_WORKSPACE: 'Insights-ControlWorkspace',
+            CONTROL_GROUP_CURRENCY: 'Insights-ControlGroupCurrency',
+            CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',
