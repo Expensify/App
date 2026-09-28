@@ -206,11 +206,7 @@ const restrictedPaidGroupPolicyImportPatterns = [
     },
 ];
 
-// `HeaderWithBackButton` is being migrated to the composed `Header` (`@components/Header`). Existing
-// call-sites are grandfathered via the seatbelt baseline. This only flags NEW imports so migration
-// doesn't regress while it's in progress. Matches both the `@components/...` alias and relative imports
-// of the same file. The `/types` submodule is intentionally left unrestricted since the new composed
-// `HeaderWithBackButton` still reuses that type shape during the transition.
+// `HeaderWithBackButton` is being migrated to the composed `Header` (`@components/Header`).
 const restrictedHeaderImportPatterns = [
     {
         group: ['**/HeaderWithBackButton'],
