@@ -185,6 +185,7 @@ jest.mock('@libs/Navigation/Navigation', () => {
         }),
         setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback()),
         getIsFullscreenPreInsertedUnderRHP: jest.fn(() => false),
+        getPreMountedFullscreenRouteKey: jest.fn(() => undefined),
         getPreInsertedFullscreenRouteName: jest.fn(() => undefined),
         clearFullscreenPreInsertedFlag: jest.fn(),
         revealRouteBeforeDismissingModal: jest.fn((_route: unknown, options?: {afterTransition?: () => void}) => {
