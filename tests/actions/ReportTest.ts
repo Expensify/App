@@ -2807,7 +2807,7 @@ describe('actions/Report', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 1);
     });
 
-    it('should decide whether the edited comment is the last visible action from the passed currentUserAccountID', async () => {
+    it("should update the report's last message only when the edited comment is the newest action the user can see", async () => {
         global.fetch = TestHelper.createGlobalFetchMock();
         const CURRENT_USER_ACCOUNT_ID = 1;
         const OTHER_ACCOUNT_ID = 2;
@@ -2839,7 +2839,7 @@ describe('actions/Report', () => {
             return comment;
         };
 
-        // Given the whisper is aimed at the account we pass in, it stays the last visible action
+        // Given a whisper aimed at the user, which is newer than the comment being edited
         const visibleWhisperReportID = '77001';
         const commentUnderVisibleWhisper = await setUpReport(visibleWhisperReportID, CURRENT_USER_ACCOUNT_ID);
         Report.editReportComment({reportID: visibleWhisperReportID}, commentUnderVisibleWhisper, 'after edit', undefined, '', undefined, CURRENT_USER_ACCOUNT_ID);
@@ -2848,7 +2848,7 @@ describe('actions/Report', () => {
         // Then editing the older comment leaves the report's last message alone
         expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${visibleWhisperReportID}` as const))?.lastMessageText).toBe(ORIGINAL_LAST_MESSAGE);
 
-        // Given the whisper is aimed at somebody else, it is hidden from the account we pass in
+        // Given a whisper aimed at somebody else, which the user cannot see
         const hiddenWhisperReportID = '77002';
         const commentUnderHiddenWhisper = await setUpReport(hiddenWhisperReportID, OTHER_ACCOUNT_ID);
         Report.editReportComment({reportID: hiddenWhisperReportID}, commentUnderHiddenWhisper, 'after edit', undefined, '', undefined, CURRENT_USER_ACCOUNT_ID);

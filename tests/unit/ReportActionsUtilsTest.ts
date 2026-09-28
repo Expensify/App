@@ -1380,7 +1380,7 @@ describe('ReportActionsUtils', () => {
             );
         });
 
-        it('should resolve whisper visibility from the passed currentUserAccountID instead of the session', async () => {
+        it('should skip a whisper that targets somebody else when picking the last visible action', async () => {
             const reportID = '90210';
             const comment: ReportAction = {
                 ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),
@@ -1418,10 +1418,10 @@ describe('ReportActionsUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[comment.reportActionID]: comment, [whisper.reportActionID]: whisper});
             await waitForBatchedUpdates();
 
-            // When the whispered-to account is passed explicitly, the whisper is the last visible action
+            // When the user is the one the whisper targets, the whisper is the last visible action
             expect(ReportActionsUtils.getLastVisibleAction(reportID, true, {}, undefined, undefined, whisperTargetAccountID)?.reportActionID).toBe(whisper.reportActionID);
 
-            // When another account is passed explicitly, the whisper is skipped and the comment wins
+            // When the whisper targets somebody else, it is invisible and the older comment wins
             expect(ReportActionsUtils.getLastVisibleAction(reportID, true, {}, undefined, undefined, whisperTargetAccountID + 1)?.reportActionID).toBe(comment.reportActionID);
         });
     });
