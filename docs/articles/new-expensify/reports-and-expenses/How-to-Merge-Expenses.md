@@ -69,8 +69,8 @@ Use this method when both expenses are inside the same report.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend > Reports** 
 2. Click the report to open it. 
-3. Select the two expenses you want to merge
-4. Choose **Selected**, then select **Merge**.
+3. Select the two expenses you want to merge.
+4. On web, click **Merge** in the bar at the bottom of the expense list. If you don't see it, click **More** > **Merge**. On mobile, tap the **2 selected** button, then tap **Merge**.
 5. If both expenses have receipts, choose which receipt to keep
 6. Choose which expense details to apply to the final expense. 
 7. Select **Merge expenses**.
@@ -78,6 +78,12 @@ Use this method when both expenses are inside the same report.
 ---
 
 ![expenses selected within a report > Selected button > Merge highlighted]({{site.url}}/assets/images/ExpensifyHelp-ResolveDuplicates_01){:width="100%"}
+
+<!-- SCREENSHOT:
+Suggestion: Replace ExpensifyHelp-ResolveDuplicates_01 with web capture of two expenses selected in a report, showing the bar at the bottom of the expense list with 2 selected and Merge highlighted.
+Location: Replaces the existing image under "How to merge duplicate expenses from a report".
+Purpose: The current image shows the old Selected dropdown in the report header, which no longer appears on web and may confuse members looking for Merge.
+-->
 
 ---
 

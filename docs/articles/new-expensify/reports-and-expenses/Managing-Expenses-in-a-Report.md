@@ -42,20 +42,37 @@ You can add expenses in two ways:
 
 You can move expenses to a different report, create a new report, or remove them entirely.
 
-**To move or remove a single expense from a report:**
+**To move or remove a single expense from a report on web:**
 
 1. Open the draft report. 
-2. Click the checkbox next to the expense you want to move. 
-3. Click the green **1 selected** button > **Move to report**.
+2. Click the checkbox next to the expense you want to move. A bar showing **1 selected** appears at the bottom of the expense list.
+3. Click **Move to report** in the bar. If you don't see it, click **More** > **Move to report**.
 4. Choose a destination report, select **Create report** to create a new report, or select **Remove from report** to move the expense to your personal space.
 
-**To move or remove all expenses from a report**
+**To move or remove a single expense from a report on mobile:**
 
-1. In the left side tabs, choose **Spend** > **Reports**
+1. Open the draft report.
+2. Press and hold the expense you want to move, then tap **Select**.
+3. Tap the **1 selected** button > **Move to report**.
+4. Choose a destination report, select **Create report** to create a new report, or select **Remove from report** to move the expense to your personal space.
+
+**To move or remove all expenses from a report on web:**
+
+1. In the navigation tabs on the left, choose **Spend** > **Reports**.
 2. Click the report with the expense(s) you want to move. 
-3. Click the checkbox next to each expense you want to move.
-4. Click the green **1 selected** button > **Move to report**. The count in the button label matches the number of expenses you selected.
+3. Click the checkbox next to each expense you want to move. A bar appears at the bottom of the expense list. The count in the bar matches the number of expenses you selected (for example, **2 selected**).
+4. Click **Move to report** in the bar. If you don't see it, click **More** > **Move to report**.
 5. Choose a destination report, select **Create report** to create a new report, or select **Remove from report** to move the expenses to your personal space.
+
+**To move or remove all expenses from a report on mobile:**
+
+1. In the navigation tabs on the bottom, choose **Spend** > **Reports**.
+2. Tap the report with the expense(s) you want to move.
+3. Press and hold one expense, tap **Select**, then tap each other expense you want to move.
+4. Tap the **X selected** button (for example, **2 selected**) > **Move to report**.
+5. Choose a destination report, select **Create report** to create a new report, or select **Remove from report** to move the expenses to your personal space.
+
+To clear your selection on web, click the **X** on the right side of the bar or press **Esc**.
 
 **Note:** A system message records the move in the expense when you move an expense into a submitted report or select **Remove from report**. Moving an expense into a draft report does not add a system message, because a draft report is not yet part of the audit trail.
 
@@ -67,16 +84,17 @@ You can move expenses to a different report, create a new report, or remove them
 
 ## How to Delete Expenses from a Report
 
-**Delete a single expense**
+**Delete expenses on web**
 
 1. Open the draft report.
-2. Check the box next to the expense.
-3. Click the green **selected** button > **Delete**.
+2. Check the box next to each expense you want to delete. A bar showing the number of selected expenses appears at the bottom of the expense list.
+3. Click **Delete** in the bar. If you don't see it, click **More** > **Delete**.
 
-**Delete multiple expenses**
+**Delete expenses on mobile**
 
-1. Check the boxes for all expenses you want to delete.
-2. Click the green **selected** button > **Delete**.
+1. Open the draft report.
+2. Press and hold one expense, tap **Select**, then tap each other expense you want to delete.
+3. Tap the **X selected** button (for example, **2 selected**) > **Delete**.
 
 ---
 
