@@ -13,6 +13,9 @@ type SearchTagFiltersPaginationState = {
 
     /** The search query that produced this pagination state */
     searchQuery: string;
+
+    /** The policy IDs (comma-separated) that this pagination state and cached results belong to */
+    policyIDs?: string;
 };
 
 export default SearchTagFiltersPaginationState;

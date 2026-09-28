@@ -1,4 +1,4 @@
-import {openSearchTagFiltersPage, setSearchTagFiltersPagination} from '@libs/actions/Search';
+import {clearSearchTagFiltersSearchResults, openSearchTagFiltersPage, setSearchTagFiltersPagination} from '@libs/actions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,13 +51,18 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     const [isSearching, setIsSearching] = useState(false);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-    // Derive pagination state from Onyx
-    const hasMore = paginationState?.hasMore ?? false;
-    const nextCursor = paginationState?.nextCursor ?? '';
-    const searchQuery = paginationState?.searchQuery ?? '';
+    // Check if cached pagination and results belong to the current policy scope
+    const cachedPolicyIDs = paginationState?.policyIDs;
+    const isPolicyScopeMismatch = cachedPolicyIDs !== undefined && cachedPolicyIDs !== policyIDs;
+
+    // Derive pagination state from Onyx (scoped to current policy)
+    const hasMore = isPolicyScopeMismatch ? false : (paginationState?.hasMore ?? false);
+    const nextCursor = isPolicyScopeMismatch ? '' : (paginationState?.nextCursor ?? '');
+    const searchQuery = isPolicyScopeMismatch ? '' : (paginationState?.searchQuery ?? '');
+    const scopedSearchResults = isPolicyScopeMismatch ? undefined : searchResults;
 
     // Track if we have cached data to avoid showing loading state on remount
-    const hasCachedData = !!searchResults && searchResults.length > 0;
+    const hasCachedData = !isPolicyScopeMismatch && !!searchResults && searchResults.length > 0;
     const [prevPolicyIDs, setPrevPolicyIDs] = useState(policyIDs);
     const [isFilteringLocally, setIsFilteringLocally] = useState(false);
 
@@ -71,10 +76,10 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     const hasCompleteEmptyQueryCache = hasCachedData && !hasMore && (searchQuery === '' || isFilteringLocally);
 
     // Keep ref updated with latest values for use in stable callbacks
-    const stateRef = useRef({hasMore, nextCursor, searchQuery, searchResults, hasCachedData, hasCompleteEmptyQueryCache, isSearching, isLoadingMore});
+    const stateRef = useRef({hasMore, nextCursor, searchQuery, searchResults: scopedSearchResults, hasCachedData, hasCompleteEmptyQueryCache, isSearching, isLoadingMore, policyIDs});
     useEffect(() => {
-        stateRef.current = {hasMore, nextCursor, searchQuery, searchResults, hasCachedData, hasCompleteEmptyQueryCache, isSearching, isLoadingMore};
-    }, [hasMore, nextCursor, searchQuery, searchResults, hasCachedData, hasCompleteEmptyQueryCache, isSearching, isLoadingMore]);
+        stateRef.current = {hasMore, nextCursor, searchQuery, searchResults: scopedSearchResults, hasCachedData, hasCompleteEmptyQueryCache, isSearching, isLoadingMore, policyIDs};
+    }, [hasMore, nextCursor, searchQuery, scopedSearchResults, hasCachedData, hasCompleteEmptyQueryCache, isSearching, isLoadingMore, policyIDs]);
 
     // Incremented on every new search so a cancelled request doesn't clear the loading state of its successor
     const requestSeqRef = useRef(0);
@@ -89,7 +94,8 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
         stateRef.current.hasMore = newHasMore;
         stateRef.current.nextCursor = newNextCursor;
         stateRef.current.searchQuery = newSearchQuery;
-        setSearchTagFiltersPagination(newHasMore, newNextCursor, newSearchQuery);
+        stateRef.current.policyIDs = policyIDs;
+        setSearchTagFiltersPagination(newHasMore, newNextCursor, newSearchQuery, policyIDs);
     };
 
     const loadMore = () => {
@@ -164,6 +170,21 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
             });
     };
 
+    // Reset any active search query on unmount so reopening starts with an empty search.
+    // Preserves cached results when the empty-query dataset is intact, but clears partial search results from server queries.
+    useEffect(() => {
+        return () => {
+            const {searchQuery: currentQuery, hasCompleteEmptyQueryCache: currentHasComplete} = stateRef.current;
+            if (currentQuery !== '') {
+                if (currentHasComplete) {
+                    setSearchTagFiltersPagination(false, '', '', policyIDs);
+                } else {
+                    clearSearchTagFiltersSearchResults(policyIDs);
+                }
+            }
+        };
+    }, [policyIDs]);
+
     // Fetch the first page on mount, when the workspace scope changes, and on reconnect.
     // Skips the fetch while offline and re-fetches on reconnect, matching useLoadSearchCategoryData.
     // Reconnect uses the active search query so results stay in sync with the search input.
@@ -201,7 +222,7 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
 
     const isInitialLoading = isSearching && !hasCompletedSearch;
 
-    return {searchResults, isSearching, isLoadingMore, hasMore, loadMore, searchTags, isInitialLoading, searchQuery};
+    return {searchResults: scopedSearchResults, isSearching, isLoadingMore, hasMore, loadMore, searchTags, isInitialLoading, searchQuery};
 }
 
 export default useSearchTagFilters;
