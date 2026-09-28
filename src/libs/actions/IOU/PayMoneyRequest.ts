@@ -406,8 +406,7 @@ function getPayMoneyRequestParams({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
-                    // Shares its key with the copy mirrored onto the chat's report preview below, so that dismissing
-                    // either one clears both — `clearAllRelatedReportActionErrors` only follows matching keys.
+                    // Same key as the preview copy below so dismissing either clears both. Only matching keys are followed.
                     errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY),
                 },
             },
@@ -427,7 +426,7 @@ function getPayMoneyRequestParams({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                // Clear any error left by a previous failed payment so a retry does not keep showing a stale RBR.
+                // Clear a previous failure so a retry does not keep showing a stale RBR.
                 [optimisticReportPreviewAction.reportActionID]: {...optimisticReportPreviewAction, errors: null},
             },
         });
@@ -437,9 +436,8 @@ function getPayMoneyRequestParams({
             value: {
                 [optimisticReportPreviewAction.reportActionID]: {
                     created: optimisticReportPreviewAction.created,
-                    // The error above lands on the pay action inside the expense report, which the payer cannot reach
-                    // once that report is deleted. Mirror it here so they still have a dismissible RBR in the chat.
-                    // Only surfaced once the preview itself is deleted, see getVisibleReportActionErrors.
+                    // The error above sits in the expense report, which the payer cannot reach once it is deleted.
+                    // Mirror it here. Only shown once the preview is deleted, see getVisibleReportActionErrors.
                     errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY),
                 },
             },

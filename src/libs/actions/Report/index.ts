@@ -347,8 +347,8 @@ type OpenReportActionParams = {
     isNewThread?: boolean;
 
     /**
-     * Remove the optimistically created report if the create fails, rather than leaving it with a `createChat` error.
-     * Set it for reports the app creates on the user's behalf: a "Fix" badge on a chat they never asked for is dead weight.
+     * Remove the optimistically created report if the create fails, rather than leaving a `createChat` error on it.
+     * Set it for reports the app creates on the user's behalf, where a "Fix" badge is not actionable.
      */
     shouldRemoveOptimisticReportOnFailure?: boolean;
 
@@ -2553,8 +2553,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         personalDetails,
         newReportObject: optimisticTransactionThread,
         parentReportActionID: iouReportAction?.reportActionID,
-        // The app creates this thread, not the user, so a failed create would leave a "Fix" row they never asked for
-        // and cannot dismiss. Roll it back instead. See https://github.com/Expensify/App/issues/100676.
+        // The app creates this thread, not the user, so a "Fix" row on it is not actionable. Roll it back instead.
         shouldRemoveOptimisticReportOnFailure: true,
         transaction,
         transactionViolations,

@@ -1271,17 +1271,16 @@ function isResolvedConciergeDescriptionOptions(reportAction: OnyxEntry<ReportAct
 }
 
 /**
- * A deleted report preview stays visible while it carries a payment failure: that error is the payer's only feedback
- * when a delete races the payment they queued. See https://github.com/Expensify/App/issues/100676.
+ * A deleted report preview stays visible while it carries a payment failure. That error is the payer's only feedback
+ * when a delete races their queued payment.
  */
 function isDeletedReportPreviewWithError(reportAction: OnyxEntry<ReportAction>): boolean {
     return isReportPreviewAction(reportAction) && isDeletedAction(reportAction) && !!reportAction?.errors?.[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY];
 }
 
 /**
- * The errors a consumer should act on. A payment failure is mirrored onto the chat's report preview so the payer
- * keeps a dismissible RBR once the expense report is deleted, but while that report still exists the error belongs
- * on the pay action inside it, so drop it here rather than red-dotting the chat twice.
+ * The errors a consumer should act on. While the expense report still exists a payment failure belongs on the pay
+ * action inside it, so drop the copy mirrored onto the chat's preview.
  */
 function getVisibleReportActionErrors(reportAction: OnyxEntry<ReportAction>): ReportAction['errors'] {
     const errors = reportAction?.errors ?? {};

@@ -208,8 +208,7 @@ function ActionContentRouter({
             />
         );
     }
-    // A preview kept alive only by its error has no report left to show, so render the deleted placeholder instead
-    // of pointing MoneyRequestReportPreview at a report that is gone.
+    // This preview has no report left to show, so render the placeholder instead of pointing at a report that is gone.
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && (isClosedExpenseReportWithNoExpenses || isDeletedReportPreviewWithError(action))) {
         return <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedReport')}</deleted-action>`} />;
     }

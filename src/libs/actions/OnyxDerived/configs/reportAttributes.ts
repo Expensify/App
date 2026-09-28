@@ -732,8 +732,7 @@ export default createOnyxDerivedValueConfig({
             const parentReportAction = report.parentReportActionID
                 ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID]
                 : undefined;
-            // `isDeletedAction(undefined)` is true, so check the action exists, or a parent that simply hasn't loaded
-            // yet silently suppresses its child's errors.
+            // `isDeletedAction(undefined)` is true, so an unloaded parent would silently suppress its child's errors.
             if (!isEmptyObject(parentReportAction) && isDeletedAction(parentReportAction)) {
                 continue;
             }
