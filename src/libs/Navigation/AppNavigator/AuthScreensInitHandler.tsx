@@ -170,6 +170,11 @@ function AuthScreensInitHandler() {
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
         const isSupportalTransition = currentUrl.includes('authTokenType=support');
         if (isLoggingInAsNewUser && isTransitioning) {
+            Log.info('[AuthScreensInitHandler] Signing out for a transition to another user', false, {
+                isLinkNamingDelegator: SessionUtils.isLoggingInAsDelegate(currentUrl),
+                isDelegateSession: Session.isDelegateSession(session),
+                isSupportalTransition,
+            });
             Session.signOutAndRedirectToSignIn(false, isSupportalTransition, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
             return () => {
                 Session.cleanupSession();
