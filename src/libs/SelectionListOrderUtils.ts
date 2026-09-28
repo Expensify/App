@@ -7,10 +7,10 @@ import CONST from '@src/CONST';
  * By default items are matched on their `value`. Pass `getKey` to match on a different field
  * (e.g. `keyForList` for lists that don't key on `value`).
  */
-function moveInitialSelectionToTop<T extends {value?: number | string}>(
+function moveInitialSelectionToTop<T extends {value?: unknown}>(
     items: T[],
     initialSelectedValues: string[],
-    getKey: (item: T) => number | string | undefined = (item) => item.value,
+    getKey: (item: T) => number | string | undefined = (item) => (typeof item.value === 'string' || typeof item.value === 'number' ? item.value : undefined),
 ): T[] {
     if (initialSelectedValues.length === 0 || items.length < CONST.STANDARD_LIST_ITEM_LIMIT) {
         return items;
