@@ -11,8 +11,7 @@ import type {HRApprovalModeProviderConfig} from '@pages/workspace/hr/HRApprovalM
 
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
-
-import type {ValueOf} from 'type-fest';
+import type {MergeApprovalMode} from '@src/types/onyx/Policy';
 
 import React from 'react';
 
@@ -25,14 +24,15 @@ function MergeHRApprovalModePage({
 }: MergeHRApprovalModePageProps) {
     const {translate} = useLocalize();
 
-    const config: HRApprovalModeProviderConfig<ValueOf<typeof CONST.MERGE.APPROVAL_MODE>> = {
+    const config: HRApprovalModeProviderConfig<MergeApprovalMode> = {
         testID: 'MergeHRApprovalModePage',
         isConnected: (policy) => isMergeConnected(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR),
         approvalModes: CONST.MERGE.APPROVAL_MODE,
-        getCurrentApprovalMode: (policy) => policy?.connections?.merge_hris?.config?.approvalMode ?? null,
+        getCurrentApprovalMode: (policy) => policy?.connections?.merge_hris?.config?.approvalMode ?? undefined,
         getProviderName: (policy) => getConnectedHRProvider(policy)?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.merge_hris,
         getHeaderTitle: (providerName) => translate('workspace.hr.providerApprovalMode', providerName),
-        handleSave: ({draftApprovalMode, currentApprovalMode}) => updateMergeApprovalMode(policyID, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR, draftApprovalMode, currentApprovalMode),
+        handleSave: ({draftApprovalMode, currentApprovalMode}) =>
+            updateMergeApprovalMode({policyID, connectionName: CONST.POLICY.CONNECTIONS.NAME.MERGE_HR, approvalMode: draftApprovalMode, currentApprovalMode}),
     };
 
     return (
