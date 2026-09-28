@@ -2730,7 +2730,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Czy na pewno chcesz usunąć to konto?',
         editNickname: 'Edytuj pseudonim',
         nickname: 'Pseudonim',
-        editNicknameInstruction: 'Nadaj kontu bankowemu pseudonim, który odróżni je od innych.',
+        editNicknameInstruction: 'Nadaj temu rachunkowi bankowemu pseudonim, który odróżni go od innych.',
         deleteCard: 'Usuń kartę',
         deleteCardConfirmation:
             'Wszystkie niewysłane transakcje z karty, w tym te na otwartych raportach, zostaną usunięte. Na pewno chcesz usunąć tę kartę? Tej czynności nie można cofnąć.',
