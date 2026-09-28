@@ -8,6 +8,9 @@ type QueueBulkMarkAsExportedParams = {
 
     /** The accounting connection to scope the bulk action to, since the button is per-integration and must never mix connections */
     connectionName: ConnectionName;
+
+    /** Whether this is the Intuit Enterprise Suite variant of a QuickBooks Online connection, so the backend can tell it apart from a regular QBO connection sharing the same connectionName */
+    isIntuitEnterpriseSuite: boolean;
 };
 
 export default QueueBulkMarkAsExportedParams;

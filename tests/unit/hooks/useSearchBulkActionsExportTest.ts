@@ -1231,10 +1231,43 @@ describe('useSearchBulkActions - export options', () => {
             ?.onSelected?.();
 
         await waitFor(() => {
-            expect(queueBulkMarkAsExported).toHaveBeenCalledWith(expect.any(String), CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
+            expect(queueBulkMarkAsExported).toHaveBeenCalledWith(expect.any(String), CONST.POLICY.CONNECTIONS.NAME.NETSUITE, false);
         });
         expect(markAsManuallyExported).not.toHaveBeenCalled();
         expect(mockClearSelectedTransactions).toHaveBeenCalled();
+    });
+
+    it('passes isIntuitEnterpriseSuite so the backend can tell an IES connection apart from a regular QBO connection sharing the same connectionName', async () => {
+        /**
+         * Given: "Select all" is checked on a workspace connected to QBO with the Intuit Enterprise Suite scope.
+         *
+         * When: the user clicks "Mark as exported".
+         *
+         * Then: isIntuitEnterpriseSuite is sent as true, since connectionName alone can't distinguish IES from
+         *       a regular QBO connection.
+         */
+        mockAreAllMatchingItemsSelected = true;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+            id: POLICY_ID,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {config: {credentials: {scope: CONST.POLICY.CONNECTIONS.INTUIT_ENTERPRISE_SUITE_SCOPE}}}},
+        });
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === 'workspace.common.markAsExported')).toBe(true);
+        });
+
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === 'workspace.common.markAsExported')
+            ?.onSelected?.();
+
+        await waitFor(() => {
+            expect(queueBulkMarkAsExported).toHaveBeenCalledWith(expect.any(String), CONST.POLICY.CONNECTIONS.NAME.QBO, true);
+        });
     });
 
     it('opens the offline modal instead of queuing when all matching items are selected and offline', async () => {

@@ -8,7 +8,7 @@ import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionAction
 import {getSearchGroupCountByKey} from '@components/Search/selectionBuilders';
 import type {BulkPaySelectionData, PaymentData, QueryFilterKey, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
-import {getAccountingIntegrationDisplayName, getExportLabelForConnection} from '@libs/AccountingUtils';
+import {getAccountingIntegrationDisplayName, getExportLabelForConnection, isIntuitEnterpriseSuiteConnection} from '@libs/AccountingUtils';
 import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
 import {exportReceiptsToZip, exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
@@ -2200,7 +2200,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             return;
                         }
                         clearSelectedTransactions();
-                        queueBulkMarkAsExported(serializeQueryJSONForBackend(queryJSON), integration);
+                        queueBulkMarkAsExported(serializeQueryJSONForBackend(queryJSON), integration, isIntuitEnterpriseSuiteConnection(integrationPolicy));
                         playSound(SOUNDS.SUCCESS);
                     };
                     const handleMarkAction = areAllMatchingItemsSelected

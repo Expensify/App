@@ -2109,10 +2109,11 @@ function queueBulkPayReports(jsonQuery: string) {
  * Queues a manual bulk "Mark as exported" for every report matching the given search query on the given connection.
  * The backend pages through all matches itself, so this covers reports beyond the currently loaded page(s) when
  * "Select all" is checked in Search. connectionName scopes the resolved reports to a single accounting connection,
- * since the button is per-integration and must never mix connections.
+ * since the button is per-integration and must never mix connections. isIntuitEnterpriseSuite further disambiguates
+ * an Intuit Enterprise Suite connection from a regular QBO connection, since both share the same connectionName.
  */
-function queueBulkMarkAsExported(jsonQuery: string, connectionName: ConnectionName) {
-    write(WRITE_COMMANDS.QUEUE_BULK_MARK_AS_EXPORTED, {jsonQuery, connectionName});
+function queueBulkMarkAsExported(jsonQuery: string, connectionName: ConnectionName, isIntuitEnterpriseSuite: boolean) {
+    write(WRITE_COMMANDS.QUEUE_BULK_MARK_AS_EXPORTED, {jsonQuery, connectionName, isIntuitEnterpriseSuite});
 }
 
 /** Export templates pre-grouped for the Export menus: each group is sorted alphabetically and rendered with a divider between groups */
