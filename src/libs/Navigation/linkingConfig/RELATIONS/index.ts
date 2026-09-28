@@ -1,6 +1,5 @@
 import DOMAIN_TO_RHP from './DOMAIN_TO_RHP';
 import HOME_TO_RHP from './HOME_TO_RHP';
-import HOME_TO_RHP_DEEPLINK from './HOME_TO_RHP_DEEPLINK';
 import SEARCH_TO_RHP from './SEARCH_TO_RHP';
 import SEARCH_TO_RHP_DEEPLINK from './SEARCH_TO_RHP_DEEPLINK';
 import SETTINGS_TO_RHP from './SETTINGS_TO_RHP';
@@ -42,7 +41,6 @@ const RHP_TO_SEARCH = createInverseRelation(SEARCH_TO_RHP);
 const RHP_TO_SEARCH_DEEPLINK = createInverseRelation(SEARCH_TO_RHP_DEEPLINK);
 const RHP_TO_DOMAIN = createInverseRelation(DOMAIN_TO_RHP);
 const RHP_TO_HOME = createInverseRelation(HOME_TO_RHP);
-const RHP_TO_HOME_DEEPLINK = createInverseRelation(HOME_TO_RHP_DEEPLINK);
 
 export {
     RHP_TO_SETTINGS,
@@ -56,5 +54,4 @@ export {
     RHP_TO_WORKSPACES_LIST,
     RHP_TO_DOMAIN,
     RHP_TO_HOME,
-    RHP_TO_HOME_DEEPLINK,
 };

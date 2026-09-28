@@ -1,10 +1,9 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import WorkspaceOwnerRestrictedActionNative from '@src/pages/RestrictedAction/Workspace/WorkspaceOwnerRestrictedAction/index.native';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 
 import type ReactNative from 'react-native';
 
@@ -24,6 +23,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: () => mockGetActiveRoute(),
     goBack: jest.fn(),
 }));
+
+jest.mock('@libs/Navigation/helpers/getActiveRoute', () => () => mockGetActiveRoute());
 
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: jest.fn((key: string) => key)})));
 
@@ -122,10 +123,13 @@ describe('WorkspaceOwnerRestrictedAction', () => {
     });
 
     it('dismisses modal before navigating to add payment card on web', () => {
+        // Given the web restricted action screen opened over report 123
         render(<WorkspaceOwnerRestrictedActionWeb />);
 
+        // When the owner taps "Add payment card"
         fireEvent.press(screen.getByText('workspace.restrictedAction.addPaymentCard'));
 
+        // Then the modal closes first, and the card form opens over the report so closing it returns there
         expect(Navigation.dismissModal).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).not.toHaveBeenCalled();
 
@@ -135,7 +139,7 @@ describe('WorkspaceOwnerRestrictedAction', () => {
         afterTransition?.();
 
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
-        expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path));
+        expect(Navigation.navigate).toHaveBeenCalledWith('r/123/add-payment-card');
     });
 
     it('navigates to subscription without closing the RHP so swiping back returns to the restricted screen', () => {

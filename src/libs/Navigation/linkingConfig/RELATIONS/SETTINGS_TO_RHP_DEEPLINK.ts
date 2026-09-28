@@ -9,7 +9,7 @@ import SCREENS from '@src/SCREENS';
  */
 const SETTINGS_TO_RHP_DEEPLINK: Partial<Record<keyof SettingsSplitNavigatorParamList, string[]>> = {
     // These RHP screens are also opened from a chat or from Home, so they must not force the settings page underneath on click.
-    [SCREENS.SETTINGS.WALLET.ROOT]: [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_DETAILS, SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT],
+    [SCREENS.SETTINGS.WALLET.ROOT]: [SCREENS.SETTINGS.WALLET.DOMAIN_CARD, SCREENS.SETTINGS.WALLET.CARD_ACTIVATE],
 };
 
 export default SETTINGS_TO_RHP_DEEPLINK;

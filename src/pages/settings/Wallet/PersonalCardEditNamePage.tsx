@@ -7,6 +7,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
@@ -24,7 +25,7 @@ import {updateAssignedCardName} from '@userActions/Card';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditPersonalCardNameForm';
 import type {CardList} from '@src/types/onyx';
@@ -35,10 +36,11 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {cardByIdSelector} from '@selectors/Card';
 import React, {useCallback} from 'react';
 
-type PersonalCardEditNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_NAME>;
+type PersonalCardEditNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_EDIT_NAME>;
 
 function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
     const {cardID} = route.params;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PERSONAL_CARD_EDIT_NAME.path);
     const [customCardNames, customCardNamesMetadata] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const cardSelector = useCallback((cardList: OnyxEntry<CardList>) => cardByIdSelector(cardID)(cardList), [cardID]);
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardSelector});
@@ -53,7 +55,7 @@ function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_PERSONAL_CARD_NAME_FORM>) => {
         updateAssignedCardName(cardID, values[INPUT_IDS.NAME], defaultValue);
-        Navigation.goBack(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(cardID));
+        Navigation.goBack(backPath);
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_PERSONAL_CARD_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_PERSONAL_CARD_NAME_FORM> => {
@@ -79,7 +81,7 @@ function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
         >
             <HeaderWithBackButton
                 title={translate('workspace.moreFeatures.companyCards.cardName')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(cardID))}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
             />
             <Text style={[styles.mh5, styles.mt3, styles.mb5]}>{translate('workspace.moreFeatures.companyCards.giveItNameInstruction')}</Text>
             <FormProvider

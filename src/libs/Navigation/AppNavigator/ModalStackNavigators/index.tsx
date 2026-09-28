@@ -407,7 +407,6 @@ const NewTaskModalStackNavigator = createModalStackNavigator<NewTaskNavigatorPar
 
 const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigatorParamList>({
     [SCREENS.SAVE_THE_WORLD.ROOT]: () => require<ReactComponentModule>('../../../../pages/TeachersUnite/SaveTheWorldPage').default,
-    [SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentCard').default,
     [SCREENS.I_KNOW_A_TEACHER]: () => require<ReactComponentModule>('../../../../pages/TeachersUnite/KnowATeacherPage').default,
     [SCREENS.I_AM_A_TEACHER]: () => require<ReactComponentModule>('../../../../pages/TeachersUnite/ImTeacherPage').default,
 });
@@ -447,9 +446,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.EXPENSIFY_CARD_SPEND_RULES]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/WalletExpensifyCardSpendRulesPage').default,
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_VALIDATE_CODE]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardVerifyAccountPage').default,
-    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_DETAILS]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCardDetailsPage').default,
-    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_NAME]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCardEditNamePage').default,
-    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_TRANSACTION_START_DATE]: () =>
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_DETAILS]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCardDetailsPage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_EDIT_NAME]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCardEditNamePage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_EDIT_TRANSACTION_START_DATE]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCardEditTransactionStartDatePage').default,
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportVirtualCardFraudPage').default,
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRM_VALIDATE_CODE]: () =>
@@ -485,13 +484,13 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ShareBankAccount/ShareBankAccount').default,
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/TravelCVVPage/TravelCVVPage').default,
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/TravelCVVPage/TravelCVVVerifyAccountPage').default,
-    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_FIX_CONNECTION]: () => require<ReactComponentModule>('@pages/settings/Wallet/PersonalCards/FixPersonalCardConnectionPage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_FIX_CONNECTION]: () => require<ReactComponentModule>('@pages/settings/Wallet/PersonalCards/FixPersonalCardConnectionPage').default,
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_ADD_NEW]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCards/AddNewCardPage').default,
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_WARNING]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCards/PersonalCardWarning').default,
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_UPGRADE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCards/upgrade/PersonalCardUpgradePage').default,
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/AddDebitCardPage').default,
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/InternationalDepositAccount').default,
-    [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/AddPersonalBankAccountPage').default,
+    [SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/AddPersonalBankAccountPage').default,
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT_ENTRY_POINT]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/InternationalDepositAccount/subPages/AccountFlowEntryPoint').default,
     [SCREENS.SETTINGS.UPDATE_PERSONAL_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/UpdatePersonalBankAccountPage').default,
@@ -732,7 +731,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.REIMBURSEMENT_ACCOUNT_NON_USD]: () => require<ReactComponentModule>('../../../../pages/ReimbursementAccount/NonUSD/NonUSDVerifiedBankAccountFlowPage').default,
     [SCREENS.DYNAMIC_REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/ReimbursementAccount/DynamicReimbursementAccountVerifyAccountPage').default,
-    [SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: () => require<ReactComponentModule>('../../../../pages/ReimbursementAccount/EnterSignerInfo').default,
+    [SCREENS.DYNAMIC_REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: () => require<ReactComponentModule>('../../../../pages/ReimbursementAccount/EnterSignerInfo').default,
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportCardLostPage').default,
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportCardLostConfirmValidateCodePage').default,

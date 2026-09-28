@@ -123,6 +123,8 @@ import createMock from '../utils/createMock';
 import {formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+jest.mock('@libs/Navigation/helpers/getActiveRoute', () => () => 'r/123');
+
 const shortDate = '0924';
 const shortDateSlashed = '09/24';
 const shortDateHyphen = '09-24';
@@ -4095,12 +4097,17 @@ describe('CardUtils', () => {
             expect(result).toBe(`${environmentURL}/settings/wallet`);
         });
 
-        it('Should return personal card details URL when there is exactly one card', () => {
+        it('Should return personal card details URL over the current page when there is exactly one card', () => {
+            // Given one broken card while report 123 is the active route
             const cards: Record<string, Card> = {
                 '1': createMock<Card>({cardID: 12345}),
             };
+
+            // When the fix link is built
             const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
-            expect(result).toBe(`${environmentURL}/settings/wallet/personal-card/12345`);
+
+            // Then it opens the card details over the report, so the report stays behind it after a reload
+            expect(result).toBe(`${environmentURL}/r/123/personal-card/12345`);
         });
 
         it('Should return wallet URL when there are multiple cards', () => {
@@ -4117,7 +4124,7 @@ describe('CardUtils', () => {
                 cardKey: createMock<Card>({cardID: 99999}),
             };
             const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
-            expect(result).toBe(`${environmentURL}/settings/wallet/personal-card/99999`);
+            expect(result).toBe(`${environmentURL}/r/123/personal-card/99999`);
         });
     });
 

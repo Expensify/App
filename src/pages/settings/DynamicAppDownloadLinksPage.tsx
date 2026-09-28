@@ -28,7 +28,7 @@ function DynamicAppDownloadLinksPage() {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.APP_DOWNLOAD_LINKS.path);
 
     return (
-        <ScreenWrapper testID="AppDownloadLinksPage">
+        <ScreenWrapper testID="DynamicAppDownloadLinksPage">
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.aboutPage.appDownloadLinks')}
                 onBackButtonPress={() => Navigation.goBack(backPath)}

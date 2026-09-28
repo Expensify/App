@@ -3,7 +3,6 @@ import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import {
     RHP_TO_DOMAIN,
     RHP_TO_HOME,
-    RHP_TO_HOME_DEEPLINK,
     RHP_TO_SEARCH,
     RHP_TO_SEARCH_DEEPLINK,
     RHP_TO_SETTINGS,
@@ -154,8 +153,7 @@ function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) 
         return getTabNavigatorState({name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, state: searchState});
     }
 
-    const matchingHomeScreen = RHP_TO_HOME[route.name] ?? (isDeeplink ? RHP_TO_HOME_DEEPLINK[route.name] : undefined);
-    if (matchingHomeScreen) {
+    if (RHP_TO_HOME[route.name]) {
         return {
             ...getTabNavigatorState({name: SCREENS.HOME}),
             path: normalizePath(ROUTES.HOME),

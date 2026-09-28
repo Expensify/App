@@ -2,6 +2,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
@@ -9,6 +10,7 @@ import type {SubPageProps} from '@hooks/useSubPage/types';
 
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
@@ -21,7 +23,7 @@ import {continueSetup} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
@@ -55,6 +57,8 @@ function AddPersonalBankAccountPage() {
     const {translate} = useLocalize();
     const route = useRoute();
     const urlSubPage = (route.params as {subPage?: string} | undefined)?.subPage;
+    const isOpenedFromWalletFlow = route.name === SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT;
+    const basePath = useDynamicBackPath(DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT.path, isOpenedFromWalletFlow);
 
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [personalBankAccount] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
@@ -147,7 +151,7 @@ function AddPersonalBankAccountPage() {
         .filter((pageName): pageName is NonNullable<typeof pageName> => !!pageName);
 
     const buildRoute = (pageName: string, action?: 'edit') =>
-        route.name === SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT ? ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute(pageName, action) : ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(pageName, action);
+        isOpenedFromWalletFlow ? createDynamicRoute(DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT.getRoute(pageName, action), basePath) : ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(pageName, action);
     const onFinished = (data?: unknown) => exitFlow(!!data);
 
     const {CurrentPage, isEditing, nextPage, prevPage, moveTo, pageIndex, currentPageName, isRedirecting} = useSubPage<SubPageProps>({

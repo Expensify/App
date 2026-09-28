@@ -1,32 +1,25 @@
-import {RHP_TO_HOME, RHP_TO_HOME_DEEPLINK, RHP_TO_SETTINGS, RHP_TO_SETTINGS_DEEPLINK} from '@libs/Navigation/linkingConfig/RELATIONS';
+import {RHP_TO_SETTINGS, RHP_TO_SETTINGS_DEEPLINK} from '@libs/Navigation/linkingConfig/RELATIONS';
 
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
 import getFullScreenUnderRHP from '../utils/getFullScreenUnderRHP';
 
-describe('RHP screens opened from a chat or Home', () => {
-    it.each([
-        [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_DETAILS, SCREENS.SETTINGS.WALLET.ROOT],
-        [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT, SCREENS.SETTINGS.WALLET.ROOT],
-    ])('%s is pinned to %s only for a deep link', (screen, settingsScreen) => {
+describe('Wallet card screens opened from Home', () => {
+    it.each([SCREENS.SETTINGS.WALLET.DOMAIN_CARD, SCREENS.SETTINGS.WALLET.CARD_ACTIVATE])('%s is pinned to the wallet only for a deep link', (screen) => {
+        // Given a card screen that Home opens with a click
+        // When the relation maps are read
+        // Then only the deep-link map pins the wallet, so a click keeps Home behind the RHP
         expect(RHP_TO_SETTINGS[screen]).toBeUndefined();
-        expect(RHP_TO_SETTINGS_DEEPLINK[screen]).toBe(settingsScreen);
+        expect(RHP_TO_SETTINGS_DEEPLINK[screen]).toBe(SCREENS.SETTINGS.WALLET.ROOT);
     });
 
-    it('enter signer info is pinned to Home only for a deep link', () => {
-        expect(RHP_TO_HOME[SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]).toBeUndefined();
-        expect(RHP_TO_HOME_DEEPLINK[SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]).toBe(SCREENS.HOME);
-    });
+    it.each(['/settings/wallet/card/123', '/settings/wallet/card/123/activate'])('%s still lands on the wallet on a fresh load', (path) => {
+        // Given a card URL, which does not say which page it was opened from
+        // When it is loaded directly or refreshed
+        const fullScreen = getFullScreenUnderRHP(path);
 
-    it.each([
-        ['/settings/wallet/personal-card/123', SCREENS.SETTINGS.WALLET.ROOT],
-        ['/settings/wallet/add-us-bank-account', SCREENS.SETTINGS.WALLET.ROOT],
-    ])('%s still lands on the settings page on a fresh load', (path, settingsScreen) => {
-        expect(getFullScreenUnderRHP(path)).toEqual({name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, central: settingsScreen});
-    });
-
-    it('enter signer info still lands on Home on a fresh load', () => {
-        expect(getFullScreenUnderRHP('/bank-account/enter-signer-info/name').name).toBe(SCREENS.HOME);
+        // Then the wallet is placed under the RHP
+        expect(fullScreen).toEqual({name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, central: SCREENS.SETTINGS.WALLET.ROOT});
     });
 });

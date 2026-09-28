@@ -1,10 +1,13 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -15,7 +18,7 @@ import {clearErrors} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {emailSelector} from '@selectors/Session';
@@ -29,7 +32,7 @@ import Name from './subSteps/Name';
 import UploadDocuments from './subSteps/UploadDocuments';
 import getSignerDetailsAndSignerFiles from './utils/getSignerDetailsAndSignerFiles';
 
-type EnterSignerInfoProps = PlatformStackScreenProps<ReimbursementAccountEnterSignerInfoNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO>;
+type EnterSignerInfoProps = PlatformStackScreenProps<ReimbursementAccountEnterSignerInfoNavigatorParamList, typeof SCREENS.DYNAMIC_REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO>;
 
 type EnterSignerInfoFormSubPageProps = SubPageProps & {policyID: string};
 
@@ -64,8 +67,9 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
         });
     }, [bankAccountID, enterSignerInfoFormDraft, signerEmail]);
 
+    const basePath = useDynamicBackPath(DYNAMIC_ROUTES.ENTER_SIGNER_INFO.path);
     const buildRoute = (pageName: string, action?: 'edit') =>
-        ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.getRoute(policyID, route.params.bankAccountID, route.params.isCompleted === 'true', pageName, action);
+        createDynamicRoute(DYNAMIC_ROUTES.ENTER_SIGNER_INFO.getRoute(policyID, route.params.bankAccountID, route.params.isCompleted === 'true', pageName, action), basePath);
 
     const {
         CurrentPage: EnterSignerInfoForm,
@@ -106,9 +110,9 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
         if (pageIndex > 0) {
             prevPage();
         } else {
-            Navigation.goBack();
+            Navigation.goBack(basePath);
         }
-    }, [isEditing, moveTo, pageIndex, prevPage]);
+    }, [isEditing, moveTo, pageIndex, prevPage, basePath]);
 
     if (isRedirecting) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;

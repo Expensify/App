@@ -187,18 +187,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_EXPENSIFY_CARD_SPEND_RULES.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_DETAILS]: {
-                            path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_NAME]: {
-                            path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_EDIT_NAME.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_TRANSACTION_START_DATE]: {
-                            path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_EDIT_TRANSACTION_START_DATE.route,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_VALIDATE_CODE]: {
                             path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_VALIDATE_CODE.route,
                             exact: true,
@@ -241,6 +229,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS]: DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.path,
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS]: DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_DETAILS]: DYNAMIC_ROUTES.PERSONAL_CARD_DETAILS.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_EDIT_NAME]: DYNAMIC_ROUTES.PERSONAL_CARD_EDIT_NAME.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_EDIT_TRANSACTION_START_DATE]: DYNAMIC_ROUTES.PERSONAL_CARD_EDIT_TRANSACTION_START_DATE.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_FIX_CONNECTION]: DYNAMIC_ROUTES.PERSONAL_CARD_FIX_CONNECTION.path,
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN]: DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_SIGN.path,
                         [SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT]: {
                             path: ROUTES.SETTINGS_WALLET_SHARE_BANK_ACCOUNT.route,
@@ -248,10 +240,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_ADD_NEW]: {
                             path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_FIX_CONNECTION]: {
-                            path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_WARNING]: {
@@ -336,10 +324,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
                             path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
-                            path: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT_ENTRY_POINT]: {
@@ -1236,10 +1220,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.DYNAMIC_REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT]: DYNAMIC_ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.path,
-                        [SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.route,
+                        [SCREENS.DYNAMIC_REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: DYNAMIC_ROUTES.ENTER_SIGNER_INFO.path,
                         [SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS]: DYNAMIC_ROUTES.KEYBOARD_SHORTCUTS.path,
                         [SCREENS.SETTINGS.DYNAMIC_APP_DOWNLOAD_LINKS]: DYNAMIC_ROUTES.APP_DOWNLOAD_LINKS.path,
                         [SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_ADD_PAYMENT_CARD]: DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path,
+                        [SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT]: DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT.path,
                         [SCREENS.SETTINGS.DYNAMIC_BETA_OVERRIDES]: DYNAMIC_ROUTES.BETA_OVERRIDES.path,
                         [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_OVERVIEW_NAME.route,
                         [SCREENS.SETTINGS.SHARE_CODE]: {
@@ -1784,7 +1769,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: {
                     screens: {
-                        [SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD]: ROUTES.SETTINGS_SAVE_THE_WORLD_ADD_PAYMENT_CARD,
                         [SCREENS.I_KNOW_A_TEACHER]: ROUTES.I_KNOW_A_TEACHER,
                         [SCREENS.I_AM_A_TEACHER]: ROUTES.I_AM_A_TEACHER,
                     },

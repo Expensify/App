@@ -8,7 +8,7 @@ import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {
     BankAccountList,
     Card,
@@ -57,6 +57,7 @@ import lodashSortBy from 'lodash/sortBy';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {CARD_FEED_COLORS, GENERIC_CARD_COLORS} from './CardArtworkColors';
 import DateUtils from './DateUtils';
+import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {areAddressAndPersonalDetailsMissing, arePersonalDetailsMissing, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
 
@@ -2033,7 +2034,7 @@ function getBrokenConnectionUrlToFixPersonalCard(cards: Record<string, Card>, en
     }
     if (Object.keys(cards).length === 1) {
         const card = Object.values(cards).at(0);
-        return `${environmentURL}/${ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(card?.cardID.toString())}`;
+        return `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.PERSONAL_CARD_DETAILS.getRoute(card?.cardID.toString()))}`;
     }
 
     return `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;

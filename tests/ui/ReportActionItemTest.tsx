@@ -3034,7 +3034,7 @@ describe('ReportActionItem', () => {
             fireEvent.press(bankLoginLink);
 
             expect(openLink).toHaveBeenCalledTimes(1);
-            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('settings/wallet/personal-card/100'), expect.anything(), expect.anything());
+            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('/personal-card/100'), expect.anything(), expect.anything());
         });
 
         it('isCardBrokenConnectionAction renders tappable bank login link for personal broken connection 30 days', async () => {
@@ -3058,7 +3058,7 @@ describe('ReportActionItem', () => {
             fireEvent.press(bankLoginLink);
 
             expect(openLink).toHaveBeenCalledTimes(1);
-            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('settings/wallet/personal-card/100'), expect.anything(), expect.anything());
+            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('/personal-card/100'), expect.anything(), expect.anything());
         });
 
         it('isCardBrokenConnectionAction renders no tappable link when card connection is not broken', async () => {

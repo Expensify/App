@@ -427,6 +427,7 @@ describe('Navigate', () => {
         });
 
         it('shows Profile behind the display name RHP when navigating from Reports', () => {
+            // Given a report open in the Reports tab and Profile last seen in Settings
             render(
                 <TestNavigationContainer
                     initialState={{
@@ -463,10 +464,12 @@ describe('Navigate', () => {
                 />,
             );
 
+            // When a static settings RHP is opened, which still uses its relation to pick the page under it
             act(() => {
                 Navigation.navigate(ROUTES.SETTINGS_DISPLAY_NAME);
             });
 
+            // Then the settings split opens behind the RHP with Profile, the page the display name belongs to
             const rootState = navigationRef.current?.getRootState();
             const lastRootRoute = rootState?.routes.at(-1);
             expect(lastRootRoute?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
@@ -480,11 +483,12 @@ describe('Navigate', () => {
 
         it.each([
             ['add payment card', () => createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path)],
-            ['add US bank account', () => ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute()],
-            ['personal card details', () => ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute('123')],
-            ['enter signer info', () => ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.getRoute('1', '2', false)],
+            ['add US bank account', () => createDynamicRoute(DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT.getRoute())],
+            ['personal card details', () => createDynamicRoute(DYNAMIC_ROUTES.PERSONAL_CARD_DETAILS.getRoute('123'))],
+            ['enter signer info', () => createDynamicRoute(DYNAMIC_ROUTES.ENTER_SIGNER_INFO.getRoute('1', '2', false))],
             ['app download links', () => createDynamicRoute(DYNAMIC_ROUTES.APP_DOWNLOAD_LINKS.path)],
         ])('keeps Reports behind the %s RHP when opened in-app', (_label, getRoute) => {
+            // Given a report open in the Reports tab
             render(
                 <TestNavigationContainer
                     initialState={{
@@ -515,10 +519,12 @@ describe('Navigate', () => {
                 />,
             );
 
+            // When the RHP is opened from it
             act(() => {
                 Navigation.navigate(getRoute());
             });
 
+            // Then the RHP opens on top and Reports stays the active tab under it
             const rootState = navigationRef.current?.getRootState();
             expect(rootState?.routes.at(-1)?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
             const tabState = rootState?.routes.at(0)?.state;
