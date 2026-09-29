@@ -1,3 +1,4 @@
+// Mirrors popoverMenuItem's paddingHorizontal, which MenuItemSectionRoot subtracts from the card padding.
 const menuItemHorizontalPadding = 20;
 
 type LayoutSpacingToken = {
