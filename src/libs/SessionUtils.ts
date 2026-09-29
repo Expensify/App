@@ -23,8 +23,8 @@ function isLoggingInAsNewUser(transitionURL?: string, sessionEmail?: string): bo
         return false;
     }
 
-    // If they do not match it might be due to encoding, so check the raw value
-    // Capture the un-encoded text in the email param
+    // If URLSearchParams didn't find it (e.g. transitionURL is a full URL which
+    // mangles the first query-param key), fall back to regex
     const linkedEmail = getEmailFromTransitionURL(transitionURL) ?? null;
 
     if (linkedEmail === sessionEmail) {
