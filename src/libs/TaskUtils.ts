@@ -10,7 +10,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
-import {getReportActionHtml, getReportActionText} from './ReportActionsUtils';
+import {getReportActionHtml, getReportActionText} from './ReportActionMessageUtils';
 
 /**
  * Check if the active route belongs to task edit flow.

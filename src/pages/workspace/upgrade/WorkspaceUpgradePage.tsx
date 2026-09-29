@@ -25,6 +25,7 @@ import {
     getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     getUserFriendlyWorkspaceType,
+    isAutoPayApprovedReportsAvailable,
     isControlPolicy,
     isPaidGroupPolicy,
     isSubmitPolicy,
@@ -66,7 +67,7 @@ import type {Policy} from '@src/types/onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import UpgradeConfirmation from './UpgradeConfirmation';
 import UpgradeIntro from './UpgradeIntro';
@@ -131,7 +132,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const [priorFirstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [priorLastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
 
-    const ownerPoliciesSelectorWithAccountID = useCallback((policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID), [accountID]);
+    const ownerPoliciesSelectorWithAccountID = (policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID);
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: ownerPoliciesSelectorWithAccountID});
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
@@ -151,10 +152,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     const defaultApprover = getDefaultApprover(policy);
 
-    // useCallback is needed here because goBack is passed as a prop to child components;
-    // the rule flags it because the deps could be inlined, but removing useCallback would cause unnecessary re-renders.
-    // eslint-disable-next-line react-hooks/preserve-manual-memoization
-    const goBack = useCallback(() => {
+    const goBack = () => {
         if ((!feature && featureNameAlias !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias) || !policyID) {
             Navigation.dismissModal();
             return;
@@ -195,7 +193,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             default:
                 return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
         }
-    }, [feature, policyID, route.params?.backTo, route.params?.featureName, featureNameAlias]);
+    };
 
     const afterUpgradeAcknowledged = () => {
         if (feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id && policyID) {
@@ -222,10 +220,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         upgradeToCorporate(policy, feature?.name);
     };
 
-    // useCallback is needed here because confirmUpgrade is passed as a prop to child components;
-    // the rule flags it because the deps could be inlined, but removing useCallback would cause unnecessary re-renders.
-
-    const confirmUpgrade = useCallback(() => {
+    const confirmUpgrade = () => {
         if (!policyID) {
             return;
         }
@@ -243,6 +238,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 enableAutoApprovalOptions(policyID, true, policy?.shouldShowAutoApprovalOptions, policy?.autoApproval?.limit, policy?.autoApproval?.auditRate);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.id:
+                // The upgrade is reachable before payments are set up; turning auto-pay on then would silently activate it once a bank account is connected.
+                if (!isAutoPayApprovedReportsAvailable(policy)) {
+                    break;
+                }
                 enablePolicyAutoReimbursementLimit(policyID, true, policy?.shouldShowAutoReimbursementLimitOption, policy?.autoReimbursement?.limit);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
@@ -350,27 +349,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             default:
                 break;
         }
-    }, [
-        isVendorMatchingBetaEnabled,
-        policyID,
-        feature,
-        featureNameAlias,
-        policy,
-        route.params.featureName,
-        perDiemCustomUnit?.customUnitID,
-        distanceRateCustomUnit,
-        governmentMileageRates,
-        defaultApprover,
-        accountID,
-        email,
-        qboConfig?.syncClasses,
-        qboConfig?.syncCustomers,
-        qboConfig?.syncLocations,
-        categoryId,
-        getReviewWorkspaceSettingsTaskCompletion,
-        isTrackIntentUser,
-        rules,
-    ]);
+    };
 
     useWorkspaceUpgradeConfirmation({
         policyID,

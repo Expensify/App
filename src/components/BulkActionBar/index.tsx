@@ -20,10 +20,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Accessibility from '@libs/Accessibility';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 
+import {setDisableDismissOnEscape} from '@userActions/Modal';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorPosition} from '@src/styles';
 
+import type {ComponentRef} from 'react';
+
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
@@ -71,7 +76,7 @@ function BulkActionBarContent<TValueType>({
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'DownArrow', 'UpArrow']);
     const {calculatePopoverPosition} = usePopoverPosition();
 
-    const moreAnchorRef = useRef<View | null>(null);
+    const moreAnchorRef = useRef<ComponentRef<typeof View> | null>(null);
     const [isMoreMenuVisible, setIsMoreMenuVisible] = useState(false);
     const [moreMenuAnchorPosition, setMoreMenuAnchorPosition] = useState<AnchorPosition | null>(defaultPopoverAnchorPosition);
 
@@ -81,11 +86,26 @@ function BulkActionBarContent<TValueType>({
     const inlineOptions = hasMoreMenu ? options.slice(0, inlineActionCount) : options;
     const moreOptions = hasMoreMenu ? options.slice(inlineActionCount) : [];
 
-    // Esc clears the selection, but not while a popover or RHP is open (or opening) over the bar: modals dismiss on
-    // keyup, shortcuts run on keydown, so ordering can't defer to them. `willAlertModalBecomeVisible` covers the open
-    // animation, `isVisible` covers everything after, and an RHP only ever sets the latter.
+    // Esc clears the selection, but not while something is open over the bar. An RHP the bar is rendered inside
+    // reports itself visible too, and is told apart by the screen still being focused.
     const [modal] = useOnyx(ONYXKEYS.MODAL);
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, onClearSelection, {isActive: !modal?.willAlertModalBecomeVisible && !modal?.isVisible});
+    const isFocused = useIsFocused();
+    const isCoveredByModal = !!modal?.isVisible && !(isFocused && modal?.type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED);
+    const shouldClearSelectionOnEscape = !modal?.willAlertModalBecomeVisible && !isCoveredByModal;
+
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, onClearSelection, {isActive: shouldClearSelectionOnEscape});
+
+    // Whichever Esc handler subscribed last runs first, so holding the pane back keeps it from closing out from under
+    // a selection Esc was meant to clear.
+    useEffect(() => {
+        if (!shouldClearSelectionOnEscape) {
+            return;
+        }
+
+        setDisableDismissOnEscape(true);
+
+        return () => setDisableDismissOnEscape(false);
+    }, [shouldClearSelectionOnEscape]);
 
     useEffect(() => {
         if (!moreAnchorRef.current || !isMoreMenuVisible) {
