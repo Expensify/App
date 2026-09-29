@@ -1,8 +1,8 @@
 ---
 title: Import Personal Card Transactions From a Spreadsheet
-description: Learn how members can manually import personal card transactions using a spreadsheet or bank statement file in Wallet.
-keywords: [New Expensify, import personal card, upload file, import spreadsheet, CSV, TXT, XLS, XLSX, OFX, QFX, bank statement, Wallet, card feed, reimbursable, bring your own card, BYOC, csv import, import csv, upload csv, spreadsheet import, import transactions, csv file, excel import, xls import, ofx import, qfx import, upload bank statement]
-internalScope: Audience is all members. Covers how to import, update, and delete personal card transactions from a spreadsheet or an .ofx/.qfx bank statement file. Does not cover company cards or Plaid connections.
+description: Learn how members can manually import personal card transactions, including categories and tags, using a spreadsheet or bank statement file in Wallet.
+keywords: [New Expensify, import personal card, upload file, import spreadsheet, CSV, TXT, XLS, XLSX, OFX, QFX, bank statement, Wallet, card feed, reimbursable, bring your own card, BYOC, csv import, import csv, upload csv, spreadsheet import, import transactions, csv file, excel import, xls import, ofx import, qfx import, upload bank statement, import tags, tag column, import categories, category column]
+internalScope: Audience is all members. Covers how to import, update, and delete personal card transactions from a spreadsheet or an .ofx/.qfx bank statement file, including mapping optional Category and Tag columns and the 255-character tag limit. Does not cover company cards or Plaid connections.
 order: 3
 ---
 
@@ -27,7 +27,8 @@ Anyone can import personal card transactions using a spreadsheet or bank stateme
 3. Enter a **Card display name** and configure the currency, reimbursable state, and amount sign direction, then click **Next**.
 4. Click **Choose file** and select your spreadsheet, or drag and drop it onto the upload area.
 5. Map your spreadsheet columns to the required fields (**Date**, **Merchant**, **Amount**).
-6. Click **Import**.
+6. (Optional) Map columns to **Category** or **Tag** to add a category or tag to each imported expense.
+7. Click **Import**.
 
 <!-- SCREENSHOT:
 Suggestion: The **Upload a spreadsheet** screen with the supported formats line and the **Choose file** button visible.
@@ -54,6 +55,7 @@ Expensify processes the statement after the upload finishes, so the new card and
 ## What happens after you import personal card transactions from a spreadsheet
 
 - Imported transactions appear as **Unreported** expenses.
+- If you mapped a **Category** or **Tag** column, each expense includes the value from that column.
 - You can edit, categorize, and submit these expenses on a report.
 - Imported transactions are available on both web and mobile.
 
@@ -91,6 +93,18 @@ Your file must include at least the following columns:
 - Date  
 - Amount  
 - Merchant  
+
+You can also map optional **Category** and **Tag** columns.
+
+## How do I import tags with personal card transactions?
+
+Add a column with the tag for each transaction to your spreadsheet, then map it to **Tag** when you map your columns. Columns with the header `Tag`, `Tags`, `Label`, or `Labels` are mapped to **Tag** automatically.
+
+Expensify doesn't check imported tags against a Workspace's tag list, so review each tag before you submit the expense.
+
+## Why can't I import a spreadsheet with long tags?
+
+Each tag can be up to 255 characters. If any value in your **Tag** column is longer, you'll see an error and can't import until you shorten it. Edit the values in your spreadsheet, then upload the file again.
 
 ## What happens if I use the same column twice when mapping fields?
 
