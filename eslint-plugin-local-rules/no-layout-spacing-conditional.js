@@ -35,7 +35,10 @@ function unwrap(node) {
 }
 
 function getSpacingClassName(node) {
-    const unwrapped = unwrap(node);
+    let unwrapped = unwrap(node);
+    if (unwrapped.type === 'MemberExpression' && !unwrapped.computed && unwrapped.property.type === 'Identifier' && /^(padding|margin)/.test(unwrapped.property.name)) {
+        unwrapped = unwrap(unwrapped.object);
+    }
     if (unwrapped.type !== 'MemberExpression' || unwrapped.computed || unwrapped.property.type !== 'Identifier') {
         return undefined;
     }

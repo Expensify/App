@@ -121,6 +121,10 @@ describe('no-layout-spacing-conditional', () => {
                 code: 'const style = isLargeScreenWidth ? styles.mr8 : styles.mr5;',
                 errors: [{messageId: 'layoutSpacingConditional'}],
             },
+            {
+                code: 'const padding = shouldUseNarrowLayout ? styles.ph5.paddingHorizontal : styles.ph8.paddingHorizontal;',
+                errors: [{messageId: 'layoutSpacingConditionalKnown'}],
+            },
         ],
     });
 
