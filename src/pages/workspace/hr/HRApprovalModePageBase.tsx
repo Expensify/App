@@ -22,7 +22,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Policy from '@src/types/onyx/Policy';
-import type {PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
+import type {MergeApprovalMode, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -30,16 +30,16 @@ import type {ValueOf} from 'type-fest';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-type ApprovalModeValue = ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | ValueOf<typeof CONST.MERGE.APPROVAL_MODE>;
+type ApprovalModeValue = ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | MergeApprovalMode;
 
 type HRApprovalModeProviderConfig<T extends ApprovalModeValue = ApprovalModeValue> = {
     testID: string;
     isConnected: (policy: OnyxEntry<Policy>) => boolean;
     approvalModes: {BASIC: T; MANAGER: T; CUSTOM: T};
-    getCurrentApprovalMode: (policy: OnyxEntry<Policy>) => T | null;
+    getCurrentApprovalMode: (policy: OnyxEntry<Policy>) => T | undefined;
     getProviderName: (policy: OnyxEntry<Policy>) => string;
     getHeaderTitle: (providerName: string) => string;
-    handleSave: (params: {policyID: string; draftApprovalMode: T; currentApprovalMode: T | null; connectionSyncProgress?: OnyxEntry<PolicyConnectionSyncProgress>}) => void;
+    handleSave: (params: {policyID: string; draftApprovalMode: T; currentApprovalMode: T | undefined; connectionSyncProgress?: OnyxEntry<PolicyConnectionSyncProgress>}) => void;
 };
 
 type ApprovalModeListItem<T extends ApprovalModeValue = ApprovalModeValue> = ListItem & {
@@ -100,13 +100,13 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
 
     const confirmSaveApprovalMode = () => {
         showConfirmModal({
-            title: translate('workspace.hr.approvalModeWarningTitle'),
+            title: translate('workspace.merge.approvalModeWarningTitle'),
             prompt: (
                 <View style={[styles.renderHTML, styles.flexRow]}>
-                    <RenderHTML html={translate('workspace.hr.approvalModeWarningPrompt', providerName, CONST.CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL)} />
+                    <RenderHTML html={translate('workspace.merge.approvalModeWarningPrompt', providerName, CONST.CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL)} />
                 </View>
             ),
-            confirmText: translate('workspace.hr.approvalModeWarningConfirm'),
+            confirmText: translate('workspace.merge.approvalModeWarningConfirm'),
             cancelText: translate('common.cancel'),
         }).then((result) => {
             if (result?.action !== ModalActions.CONFIRM) {
