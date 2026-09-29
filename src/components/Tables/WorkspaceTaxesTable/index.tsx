@@ -76,8 +76,6 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
             sortable: true,
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: item.taxRateValue, fontSize: fontScale.text}],
-                // A rate is a short percentage, so the column always shows it in full.
-                shouldFitContent: true,
             },
         },
         ...(shouldShowTaxCodeCell

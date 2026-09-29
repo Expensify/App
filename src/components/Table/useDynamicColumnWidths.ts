@@ -13,7 +13,7 @@ import type {TableColumn, TableData} from './types';
 
 import calculateDynamicColumnWidths from './calculateDynamicColumnWidths';
 
-const {MIN_FREE_TEXT_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
+const {MAX_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
 
 type UseDynamicColumnWidthsParams<DataType extends TableData, ColumnKey extends string> = {
     /** Column configuration for the table. */
@@ -160,19 +160,13 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         // rather than a separate floor.
         const columnContentWidth = Math.max(contentWidth, headerLabelWidth);
 
-        // A column holding a known, short set of values is never squeezed below its content, so it never truncates.
-        // A free-text column is squeezed no further than a readable width, or its content when that is narrower.
-        const readableWidth = MIN_FREE_TEXT_COLUMN_WIDTH + (column.dynamicSizing?.extraWidth ?? 0);
-        const defaultMinWidth = column.dynamicSizing?.shouldFitContent ? columnContentWidth : Math.min(columnContentWidth, readableWidth);
-
         constraints.push({
             contentWidth: columnContentWidth,
-            minWidth: column.dynamicSizing?.minWidth ?? defaultMinWidth,
-            // Uncapped by default, so the table scrolls rather than truncating. A cap also can't be derived from the
-            // available width without breaking the sizing: a column capped at its equal share looks like it fits in
-            // one, so the columns would be left equal and the long column would stay truncated. Columns that should
-            // truncate rather than widen the table set `maxWidth` themselves.
-            maxWidth: column.dynamicSizing?.maxWidth ?? Number.POSITIVE_INFINITY,
+            // Capped at the width every column shares, so the table scrolls rather than truncating until a value is
+            // long enough that showing it in full would push every column after it out of view. A cap can't be
+            // derived from the available width without breaking the sizing: a column capped at its equal share looks
+            // like it fits in one, so the columns would be left equal and the long column would stay truncated.
+            maxWidth: column.dynamicSizing?.maxWidth ?? MAX_COLUMN_WIDTH,
         });
     }
 

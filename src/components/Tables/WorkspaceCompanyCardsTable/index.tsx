@@ -232,8 +232,6 @@ function WorkspaceCompanyCardsTable({
             },
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: formatMaskedCardName(item.cardName), fontSize: fontScale.text}],
-                shouldFitContent: true,
-                maxWidth: CONST.TABLES.DYNAMIC_COLUMNS.MAX_FREE_TEXT_COLUMN_WIDTH,
             },
         },
         {
@@ -261,7 +259,6 @@ function WorkspaceCompanyCardsTable({
                 ? {
                       dynamicSizing: {
                           getContentToMeasure: (item) => (!item.isAssigned ? [{text: translate('workspace.companyCards.assign'), fontSize: fontScale.text, fontWeight: '700'}] : []),
-                          shouldFitContent: true,
                           extraWidth: styles.ph2.paddingHorizontal * 2 + styles.gap3.gap + variables.iconSizeNormal + styles.pr3.paddingRight,
                       },
                   }

@@ -123,7 +123,7 @@ function SearchListViewLayout({
         const sizing = columnWidths[column];
 
         if (sizing) {
-            columnMinWidths[column] = sizing.minWidth;
+            columnMinWidths[column] = sizing.contentWidth;
             columnContentWidths[column] = sizing.contentWidth;
             continue;
         }
