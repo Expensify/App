@@ -13,6 +13,7 @@ import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsVendorColumnAvailable from '@hooks/useIsVendorColumnAvailable';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -89,12 +90,12 @@ function TransactionGroupListExpandedImpl({
     const {getCurrencyDecimals} = useCurrencyListActions();
     const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const isVendorColumnAvailable = useIsVendorColumnAvailable();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
@@ -147,6 +148,7 @@ function TransactionGroupListExpandedImpl({
                 type: transactionsSnapshot?.search.type,
                 fallbackPolicyID: policyForMovingExpensesID,
                 shouldShowViolationsColumn: queryHasViolationFilter(transactionsQueryJSON),
+                isVendorColumnAvailable,
             });
         }
     }
@@ -217,7 +219,6 @@ function TransactionGroupListExpandedImpl({
                         backTo,
                         currentUserLogin: currentUserDetails.email ?? '',
                         currentUserAccountID: currentUserDetails.accountID,
-                        betas,
                         personalDetails,
                         isSelfTourViewed,
                         hasCompletedGuidedSetupFlow,
@@ -237,7 +238,6 @@ function TransactionGroupListExpandedImpl({
                     backTo,
                     currentUserLogin: currentUserDetails.email ?? '',
                     currentUserAccountID: currentUserDetails.accountID,
-                    betas,
                     personalDetails,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,

@@ -2,7 +2,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -33,6 +33,7 @@ import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
 import {arePolicyRulesEnabled, getWorkflowApprovalsUnavailable, hasTags, isControlPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -48,7 +49,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type CategorySettingsPageProps =
@@ -77,20 +78,16 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const decodedCategoryName = getDecodedCategoryName(policyCategory?.name ?? '');
     const categoryRulesEnabled = arePolicyRulesEnabled(policy, policyCategories);
 
-    const contextualRules = useMemo(() => {
-        if (!policyCategory) {
-            return [];
-        }
-
-        return getCategoryContextualRules({
-            policy,
-            category: policyCategory,
-            categoryName: policyCategory.name,
-            translate,
-            convertToDisplayString,
-            isOffline,
-        });
-    }, [convertToDisplayString, isOffline, policy, policyCategory, translate]);
+    const contextualRules = !policyCategory
+        ? []
+        : getCategoryContextualRules({
+              policy,
+              category: policyCategory,
+              categoryName: policyCategory.name,
+              translate,
+              convertToDisplayString,
+              isOffline,
+          });
 
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyData.categories, [policyCategory]);
     const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS;
@@ -133,49 +130,28 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const approverText = usePersonalDetailByLogin(categoryApprover, (personalDetails) => formatPhoneNumber(personalDetails?.displayName ?? categoryApprover));
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const showCannotDeleteOrDisableLastCategoryModal = useCallback(() => {
+    const showCannotDeleteOrDisableLastCategoryModal = () => {
         showConfirmModal({
             title: translate('workspace.categories.cannotDeleteOrDisableAllCategories.title'),
             prompt: translate('workspace.categories.cannotDeleteOrDisableAllCategories.description'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
-    }, [showConfirmModal, translate]);
+    };
 
-    const updateWorkspaceCategoryEnabled = useCallback(
-        (value: boolean) => {
-            if (shouldPreventDisableOrDelete) {
-                showCannotDeleteOrDisableLastCategoryModal();
-                return;
-            }
-            setWorkspaceCategoryEnabled({
-                isVendorMatchingBetaEnabled,
-                policyData,
-                categoriesToUpdate: {[policyCategory.name]: {name: policyCategory.name, enabled: value}},
-                isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
-                setupCategoryTaskReport,
-                setupCategoryTaskParentReport,
-                currentUserAccountID: currentUserPersonalDetails.accountID,
-                hasOutstandingChildTask,
-                parentReportAction,
-                setupCategoriesAndTagsTaskReport,
-                setupCategoriesAndTagsTaskParentReport,
-                isSetupCategoriesAndTagsTaskParentReportArchived,
-                setupCategoriesAndTagsHasOutstandingChildTask,
-                setupCategoriesAndTagsParentReportAction,
-                policyHasTags,
-            });
-        },
-        [
+    const updateWorkspaceCategoryEnabled = (value: boolean) => {
+        if (shouldPreventDisableOrDelete) {
+            showCannotDeleteOrDisableLastCategoryModal();
+            return;
+        }
+        setWorkspaceCategoryEnabled({
             isVendorMatchingBetaEnabled,
-            showCannotDeleteOrDisableLastCategoryModal,
-            shouldPreventDisableOrDelete,
             policyData,
-            policyCategory?.name,
-            isSetupCategoryTaskParentReportArchived,
+            categoriesToUpdate: {[policyCategory.name]: {name: policyCategory.name, enabled: value}},
+            isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,
-            currentUserPersonalDetails.accountID,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
             hasOutstandingChildTask,
             parentReportAction,
             setupCategoriesAndTagsTaskReport,
@@ -184,8 +160,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
             setupCategoriesAndTagsHasOutstandingChildTask,
             setupCategoriesAndTagsParentReportAction,
             policyHasTags,
-        ],
-    );
+        });
+    };
 
     const navigateToEditCategory = () => {
         Navigation.navigate(isQuickSettingsFlow ? buildDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path) : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_EDIT.path));
@@ -335,33 +311,35 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                     {categoryRulesEnabled && (
                         <>
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
-                                <MenuItemWithTopDescription
-                                    title={policyCategory?.commentHint}
-                                    description={translate('workspace.rules.categoryRules.descriptionHint')}
-                                    onPress={() => {
-                                        navigateToCategoryRule(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.path);
-                                    }}
-                                    interactive={canWriteCategories}
-                                    shouldShowRightIcon={canWriteCategories}
-                                    shouldRenderAsHTML
+                                <MenuItemFieldHTML
+                                    name={translate('workspace.rules.categoryRules.descriptionHint')}
+                                    value={policyCategory?.commentHint}
+                                    onPress={
+                                        canWriteCategories
+                                            ? () => {
+                                                  navigateToCategoryRule(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.path);
+                                              }
+                                            : undefined
+                                    }
                                 />
                             </OfflineWithFeedback>
-                            <MenuItemWithTopDescription
-                                title={approverText}
-                                description={translate('workspace.rules.categoryRules.approver')}
-                                onPress={() => {
-                                    navigateToCategoryRule(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_APPROVER.path);
-                                }}
-                                interactive={canWriteCategories}
-                                shouldShowRightIcon={canWriteCategories}
-                                disabled={approverDisabled}
-                                helperText={
-                                    approverDisabled
-                                        ? translate('workspace.rules.categoryRules.enableWorkflows', `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`)
+                            <MenuItemField
+                                name={translate('workspace.rules.categoryRules.approver')}
+                                value={approverText}
+                                onPress={
+                                    canWriteCategories
+                                        ? () => {
+                                              navigateToCategoryRule(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_APPROVER.path);
+                                          }
                                         : undefined
                                 }
-                                shouldParseHelperText
+                                isDisabled={approverDisabled}
                             />
+                            {approverDisabled && (
+                                <MenuItem.HelpTextHTML>
+                                    {Parser.replace(translate('workspace.rules.categoryRules.enableWorkflows', `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`))}
+                                </MenuItem.HelpTextHTML>
+                            )}
                         </>
                     )}
                     {canWriteCategories && !isThereAnyAccountingConnection && (

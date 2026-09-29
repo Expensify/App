@@ -2,7 +2,6 @@ import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
@@ -27,6 +26,7 @@ import {
     updateSageIntacctSyncReimbursementAccountID,
 } from '@userActions/connections/SageIntacct';
 import {clearSageIntacctErrorField} from '@userActions/Policy/Policy';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -111,23 +111,20 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
         >
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED, CONST.SAGE_INTACCT_CONFIG.ACCOUNTING_METHOD], config?.pendingFields)}>
-                <MenuItemWithTopDescription
-                    title={config?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled')}
-                    description={translate('workspace.accounting.autoSync')}
-                    shouldShowRightIcon
-                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC.path))}
-                    brickRoadIndicator={
-                        areSettingsInErrorFields([CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC, CONST.SAGE_INTACCT_CONFIG.ACCOUNTING_METHOD], config?.errorFields)
-                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                            : undefined
-                    }
-                    hintText={(() => {
-                        if (!config?.autoSync?.enabled) {
-                            return undefined;
-                        }
-                        return translate(`workspace.sageIntacct.accountingMethods.alternateText.${accountingMethod}` as TranslationPaths);
-                    })()}
-                />
+                <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC.path)))}>
+                    <MenuItemField.Row
+                        name={translate('workspace.accounting.autoSync')}
+                        value={config?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled')}
+                    >
+                        {areSettingsInErrorFields([CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC, CONST.SAGE_INTACCT_CONFIG.ACCOUNTING_METHOD], config?.errorFields) && (
+                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                        )}
+                        <MenuItem.Chevron />
+                    </MenuItemField.Row>
+                    {!!config?.autoSync?.enabled && (
+                        <MenuItem.HelpText message={translate(`workspace.sageIntacct.accountingMethods.alternateText.${accountingMethod}` as TranslationPaths)} />
+                    )}
+                </MenuItem.Root>
             </OfflineWithFeedback>
             {toggleSections.map((section) => (
                 <ToggleSettingOptionRow
@@ -167,13 +164,15 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                         key={translate('workspace.sageIntacct.fxExpenseAccount')}
                         pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT], pendingFields)}
                     >
-                        <MenuItemWithTopDescription
-                            title={data?.expenseAccounts?.find((account) => account.id === config?.fxExpenseAccount)?.name}
-                            description={translate('workspace.sageIntacct.fxExpenseAccount')}
-                            shouldShowRightIcon
+                        <MenuItemField
+                            name={translate('workspace.sageIntacct.fxExpenseAccount')}
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_FX_EXPENSE_ACCOUNT.getRoute(policyID))}
-                            brickRoadIndicator={areSettingsInErrorFields([CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        />
+                            value={data?.expenseAccounts?.find((account) => account.id === config?.fxExpenseAccount)?.name}
+                        >
+                            {areSettingsInErrorFields([CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT], errorFields) && (
+                                <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                            )}
+                        </MenuItemField>
                     </OfflineWithFeedback>
                 )}
             </Accordion>

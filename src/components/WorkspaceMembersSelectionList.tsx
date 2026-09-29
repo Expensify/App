@@ -4,6 +4,7 @@ import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 
@@ -56,11 +57,12 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
     const initialSelectedApprovers = initialSelectedApprover ? [initialSelectedApprover] : [];
     const policyOwner = policy?.owner;
     const policyEmployeeList = policy?.employeeList;
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policyEmployeeList ?? {}));
 
     const approvers: SelectionListApprover[] = [];
 
     if (policyEmployeeList) {
-        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policyEmployeeList);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policyEmployeeList, employeePersonalDetails);
 
         for (const employee of Object.values(policyEmployeeList)) {
             const email = employee.email;

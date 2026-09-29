@@ -57,7 +57,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ImageContentFit} from 'expo-image';
-import type {ReactElement, ReactNode, Ref} from 'react';
+import type {ComponentRef, ReactElement, ReactNode, Ref} from 'react';
 import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
@@ -90,7 +90,7 @@ type NoIcon = {
 type MenuItemBaseProps = ForwardedFSClassProps &
     WithSentryLabel &
     Pick<HoverableProps, 'shouldUseNativeHoverEvents'> & {
-        ref?: PressableRef | Ref<View>;
+        ref?: PressableRef | Ref<ComponentRef<typeof View>>;
         onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
         interactive?: boolean;
 
@@ -573,8 +573,8 @@ function MenuItem({
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {isExecuting} = useMenuItemGroupState() ?? {};
     const {singleExecution, waitForNavigate} = useMenuItemGroupActions() ?? {};
-    const popoverAnchor = useRef<View>(null);
-    const pressableRef = useRef<View>(null);
+    const popoverAnchor = useRef<ComponentRef<typeof View>>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
     useRemoveNonInteractiveClickHandler(pressableRef, interactive);
     const deviceHasHoverSupport = hasHoverSupport();
     const isCompactMenu = useIsCompactMenu();
@@ -705,6 +705,9 @@ function MenuItem({
     }, [shouldParseHelperText, helperHtml]);
 
     const hasPressableRightComponent = (iconRight ?? icons.ArrowRight) || (shouldShowRightComponent && rightComponent);
+
+    const hasTrailingElementAfterBrickRoad =
+        (!title && !!rightLabel && !errorText) || shouldShowRightIcon || (shouldShowRightComponent && !!rightComponent) || (copyable && !!copyValue && !interactive);
 
     const renderTitleContent = () => {
         if (title && titleWithTooltips && Array.isArray(titleWithTooltips) && titleWithTooltips.length > 0) {
@@ -1106,7 +1109,7 @@ function MenuItem({
                                                     </View>
                                                 )}
                                                 {!!brickRoadIndicator && (
-                                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1, badgeText ? undefined : styles.mr2]}>
+                                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1, hasTrailingElementAfterBrickRoad && styles.mr2]}>
                                                         <Icon
                                                             src={icons.DotIndicator}
                                                             fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}

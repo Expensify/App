@@ -40,7 +40,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {InternationalBankAccountForm, PersonalBankAccountForm} from '@src/types/form';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountForm, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
-import type {BankAccountList, LastPaymentMethod, LastPaymentMethodType, PersonalBankAccount} from '@src/types/onyx';
+import type {BankAccountList, InitiatingBankAccountUnlock, LastPaymentMethod, LastPaymentMethodType, PersonalBankAccount} from '@src/types/onyx';
 import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
@@ -553,7 +553,8 @@ function addPersonalBankAccount(
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
+                    // Key 0 so a server-sent error always sorts newer than this fallback, even with device clock skew
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure', 0),
                 },
             },
         ],
@@ -1766,7 +1767,9 @@ function openBankAccountSharePage() {
 function initiateBankAccountUnlock(bankAccountID: number, conciergeReportID: string | undefined, optimisticReportActionID: string | null | undefined) {
     const authToken = NetworkStore.getAuthToken();
 
-    const onyxData: OnyxData<typeof ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
+    const nvpUnlockRequestedKey = `${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${bankAccountID}` as const;
+
+    const onyxData: OnyxData<typeof ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1775,6 +1778,11 @@ function initiateBankAccountUnlock(bankAccountID: number, conciergeReportID: str
                     isLoading: true,
                     isSuccess: false,
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: nvpUnlockRequestedKey,
+                value: new Date().toISOString(),
             },
         ],
         successData: [
@@ -1809,6 +1817,11 @@ function initiateBankAccountUnlock(bankAccountID: number, conciergeReportID: str
                     errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: nvpUnlockRequestedKey,
+                value: null,
+            },
             ...(optimisticReportActionID && conciergeReportID
                 ? [
                       {
@@ -1824,7 +1837,17 @@ function initiateBankAccountUnlock(bankAccountID: number, conciergeReportID: str
     return API.write(WRITE_COMMANDS.INITIATE_BANK_ACCOUNT_UNLOCK, {bankAccountID, authToken, optimisticReportActionID}, onyxData);
 }
 
-function pressLockedBankAccount(bankAccountID: number, translate: LocalizedTranslate, conciergeReportID: string | undefined, delegateAccountID: number | undefined) {
+function pressLockedBankAccount(
+    bankAccountID: number,
+    translate: LocalizedTranslate,
+    conciergeReportID: string | undefined,
+    delegateAccountID: number | undefined,
+    initiatingBankAccountUnlock: OnyxEntry<InitiatingBankAccountUnlock>,
+) {
+    if (initiatingBankAccountUnlock?.isLoading && initiatingBankAccountUnlock?.bankAccountIDToUnlock === bankAccountID) {
+        return;
+    }
+
     let optimisticReportActionID: string | undefined;
 
     if (conciergeReportID) {
@@ -1866,6 +1889,9 @@ function pressLockedBankAccount(bankAccountID: number, translate: LocalizedTrans
         bankAccountIDToUnlock: bankAccountID,
         optimisticReportActionID: optimisticReportActionID ?? null,
     });
+
+    // Write the NVP immediately so the "already requested" guard fires on the next press.
+    Onyx.merge(`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${bankAccountID}`, new Date().toISOString());
 }
 
 export {

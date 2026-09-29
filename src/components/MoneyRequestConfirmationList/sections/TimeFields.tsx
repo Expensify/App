@@ -11,10 +11,13 @@ import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 
+import ExpenseFieldRow from './ExpenseFieldRow';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {timeStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
 function TimeFields() {
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const {isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -25,39 +28,61 @@ function TimeFields() {
     const iouTimeRate = timeState?.rate;
     const iouCurrencyCode = timeState?.currency ?? CONST.CURRENCY.USD;
 
+    const hoursValue = `${iouTimeCount}`;
+    const rateValue = translate('iou.timeTracking.ratePreview', convertToDisplayString(iouTimeRate, iouCurrencyCode));
+
+    const openHoursPage = () => {
+        if (!transactionID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_HOURS_EDIT.getRoute(action, iouType, transactionID, reportID, reportActionID));
+    };
+
+    const openTimeRatePage = () => {
+        if (!transactionID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME_RATE.getRoute(action, iouType, transactionID, reportID, reportActionID));
+    };
+
+    if (shouldUseDropdownRows) {
+        return (
+            <>
+                <ExpenseFieldRow
+                    name={translate('iou.timeTracking.hours')}
+                    value={hoursValue}
+                    onPress={openHoursPage}
+                    isDisabled={didConfirm}
+                    isInteractive={!isReadOnly}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.HOURS_FIELD}
+                />
+                <ExpenseFieldRow
+                    name={translate('common.rate')}
+                    value={rateValue}
+                    onPress={openTimeRatePage}
+                    isDisabled={didConfirm}
+                    isInteractive={!isReadOnly}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TIME_RATE_FIELD}
+                />
+            </>
+        );
+    }
+
     return (
         <>
             <MenuItemField
                 key={translate('iou.timeTracking.hours')}
-                value={`${iouTimeCount}`}
+                value={hoursValue}
                 name={translate('iou.timeTracking.hours')}
-                onPress={
-                    !isReadOnly
-                        ? () => {
-                              if (!transactionID) {
-                                  return;
-                              }
-                              Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_HOURS_EDIT.getRoute(action, iouType, transactionID, reportID, reportActionID));
-                          }
-                        : undefined
-                }
+                onPress={!isReadOnly ? openHoursPage : undefined}
                 isDisabled={didConfirm}
                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.HOURS_FIELD}
             />
             <MenuItemField
                 key={`time_${translate('common.rate')}`}
-                value={translate('iou.timeTracking.ratePreview', convertToDisplayString(iouTimeRate, iouCurrencyCode))}
+                value={rateValue}
                 name={translate('common.rate')}
-                onPress={
-                    !isReadOnly
-                        ? () => {
-                              if (!transactionID) {
-                                  return;
-                              }
-                              Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME_RATE.getRoute(action, iouType, transactionID, reportID, reportActionID));
-                          }
-                        : undefined
-                }
+                onPress={!isReadOnly ? openTimeRatePage : undefined}
                 isDisabled={didConfirm}
                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TIME_RATE_FIELD}
             />
