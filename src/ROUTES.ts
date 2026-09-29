@@ -227,11 +227,12 @@ const DYNAMIC_ROUTES = {
     BANK_ACCOUNT_VERIFY_ACCOUNT: {
         path: 'verify-bank-account',
         entryScreens: [SCREENS.REIMBURSEMENT_ACCOUNT],
-        getRoute: (isNonUSDSetup?: boolean) =>
+        getRoute: (setupType: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>, isNonUSDSetup?: boolean) =>
             getUrlWithParams('verify-bank-account', {
+                setupType,
                 isNonUSDSetup: isNonUSDSetup ? 'true' : undefined,
             }),
-        queryParams: ['isNonUSDSetup'],
+        queryParams: ['setupType', 'isNonUSDSetup'],
     },
     OWNER_SELECTOR: {
         path: 'owner-selector',

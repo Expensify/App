@@ -158,7 +158,7 @@ function VerifiedBankAccountFlowEntryPoint({
     /**
      * optionPressed ref indicates what user selected before modal to validate account was displayed
      * In this hook we check if account was validated and then prepare the data for the option user selected.
-     * Navigating to the next step is owned by DynamicReimbursementAccountVerifyAccountPage, so it must not happen here.
+     * Navigation to the next step is done by DynamicReimbursementAccountVerifyAccountPage.
      * note: non USD accounts only have manual option available
      */
     useEffect(() => {
@@ -191,7 +191,7 @@ function VerifiedBankAccountFlowEntryPoint({
     const handleConnectManually = () => {
         if (!isAccountValidated) {
             setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(isNonUSDWorkspace)));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL, isNonUSDWorkspace)));
             return;
         }
 
@@ -215,7 +215,7 @@ function VerifiedBankAccountFlowEntryPoint({
 
         if (!isAccountValidated) {
             setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.path));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)));
             return;
         }
 
