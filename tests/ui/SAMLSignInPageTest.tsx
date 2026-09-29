@@ -46,7 +46,7 @@ jest.mock('@userActions/Session', () => ({
     clearSignInData: jest.fn(),
     setAccountError: jest.fn(),
     setIsAuthenticatingWithShortLivedToken: jest.fn(),
-    signInWithShortLivedAuthToken: jest.fn(),
+    signInWithShortLivedAuthToken: jest.fn().mockResolvedValue(undefined),
 }));
 
 const mockedOpenAuthSessionAsync = jest.mocked(openAuthSessionAsync);
