@@ -1,4 +1,4 @@
-import {filterOutDeprecatedReportActions, getLinkedTransactionID, getOriginalMessage, getSortedReportActions, isActionOfType} from '@libs/ReportActionsUtils';
+import {filterOutDeprecatedReportActions, getIOUActionForTransactionID, getLinkedTransactionID, getOriginalMessage, getSortedReportActions, isActionOfType} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
@@ -138,6 +138,10 @@ function getReceiptScanFailedIOUActionDataSelector(
     };
 }
 
+/** Returns the transaction thread reportID (childReportID of the transaction's IOU action) from the expense report's actions. */
+const transactionThreadReportIDSelector = (transactionID: string | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
+    transactionID ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID)?.childReportID : undefined;
+
 export {
     getParentReportActionSelector,
     getLastClosedReportAction,
@@ -146,5 +150,6 @@ export {
     getReportActionByIDSelector,
     getReceiptScanFailedIOUActionDataSelector,
     reportVisibleActionsSelector,
+    transactionThreadReportIDSelector,
 };
 export type {NewestReportAction};
