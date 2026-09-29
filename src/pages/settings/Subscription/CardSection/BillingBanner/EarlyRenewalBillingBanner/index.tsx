@@ -4,6 +4,7 @@ import Button from '@components/Button';
 import useEarlyRenewalConfirmation from '@hooks/useEarlyRenewalConfirmation';
 import useEarlyRenewalPeriod from '@hooks/useEarlyRenewalPeriod';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
@@ -21,18 +22,17 @@ function EarlyRenewalBillingBanner({fallback}: EarlyRenewalBillingBannerProps) {
     const {isNonIncentivizedPeriod} = useEarlyRenewalPeriod();
     const showEarlyRenewalConfirmation = useEarlyRenewalConfirmation();
     const {isOffline} = useNetwork();
+    const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['MoneyBadge']);
 
     if (eligibilityMetadata.status !== 'loaded' || !eligibility?.canClaim || !isNonIncentivizedPeriod) {
         return fallback;
     }
 
-    const copy = CONST.SUBSCRIPTION.EARLY_RENEWAL.COPY.BILLING_OWNER;
-
     return (
         <BillingBanner
-            title={copy.HOME_TITLE}
-            subtitle={copy.HOME_SUBTITLE}
+            title={translate('earlyRenewal.title')}
+            subtitle={translate('earlyRenewal.subtitle')}
             icon={illustrations.MoneyBadge}
             rightComponent={
                 <Button
@@ -41,7 +41,7 @@ function EarlyRenewalBillingBanner({fallback}: EarlyRenewalBillingBannerProps) {
                     size={CONST.BUTTON_SIZE.SMALL}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                 >
-                    <Button.Text>{copy.CTA}</Button.Text>
+                    <Button.Text>{translate('earlyRenewal.renew')}</Button.Text>
                 </Button>
             }
         />

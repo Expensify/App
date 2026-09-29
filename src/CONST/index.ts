@@ -5519,14 +5519,6 @@ const CONST = {
             NON_INCENTIVIZED_START: '2026-10-01T00:00:00Z',
             INCENTIVIZED_START: '2026-10-15T00:00:00Z',
             CAMPAIGN_END: '2027-01-01T00:00:00Z',
-            COPY: {
-                BILLING_OWNER: {
-                    HOME_TITLE: 'Renew your Expensify subscription',
-                    HOME_SUBTITLE: 'One less thing to do before the new year.',
-                    HEADER_TITLE: 'Confirm renewal',
-                    CTA: 'Renew',
-                },
-            },
             OFFER_ID: {
                 NON_INCENTIVIZED_ONE_YEAR: 'nonIncentivizedOneYear',
             },
