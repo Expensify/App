@@ -19,13 +19,6 @@ import Onyx from 'react-native-onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-/**
- * Locks in the bulk-edit tag deselect fix (issue #100538). A select then deselect of the same tag level
- * is a net no-op, so `saveTag` must drop the recorded per-level intent. `bulkEditTagChanges` is the single
- * source of truth for the save (the flattened `tag` is display-only), so we assert the recorded intent.
- * The apply-time write safety is covered in tests/actions/IOUTest/BulkEditTest.ts.
- */
-
 const POLICY_ID = 'A1B2C3';
 
 type SavedTagPayload = {tag: string | null; bulkEditTagChanges: Record<string, string | null>};
@@ -69,9 +62,7 @@ function makePolicy(hasMultipleTagLists: boolean): Policy {
     return {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), id: POLICY_ID, areTagsEnabled: true, hasMultipleTagLists};
 }
 
-// Numeric-string object keys are built programmatically because a `{0: ...}` literal trips the
-// naming-convention lint rule (same pattern used in tests/actions/IOUTest/BulkEditTest.ts).
-// Seeds carry only real values; expected payloads may include null (a deleted intent).
+// Build numeric-string keys programmatically since a `{0: ...}` literal trips the naming-convention lint rule.
 function seedChanges(entries: Array<[number, string]>): Record<string, string> {
     return Object.fromEntries(entries.map(([index, value]) => [String(index), value]));
 }
@@ -104,8 +95,7 @@ async function renderAndTap({
     policy: Policy;
     policyTags: PolicyTagLists;
     draft: Partial<Transaction>;
-    // Real transactions behind the selected IDs. Only needed when the test exercises first-open auto-selection,
-    // which derives the shared common tag from each transaction's own tag.
+    // Real transactions behind the selected IDs, only needed for the first-open auto-selection tests.
     selectedTransactions?: Record<string, Partial<Transaction>>;
     tagListIndex: number;
     tappedTag: string;
@@ -166,9 +156,7 @@ describe('SearchEditMultipleTagPage saveTag (bulk-edit tag deselect, #100538)', 
     });
 
     it('independent multi-level: picking one list on first open does not auto-fill a sibling list', async () => {
-        // Given two expenses that both already carry the shared independent tag R1:P7, opened for bulk edit
-        // with a clean draft (no level picked yet).
-        // When the user picks R1 in the first list (Region) on first open.
+        // Pick R1 in the first list on first open, with a clean draft and both expenses carrying R1:P7.
         const payload = await renderAndTap({
             policy: makePolicy(true),
             policyTags: INDEPENDENT_TAGS,
@@ -178,8 +166,7 @@ describe('SearchEditMultipleTagPage saveTag (bulk-edit tag deselect, #100538)', 
             tappedTag: 'R1',
         });
 
-        // Then only the Region intent is recorded and the flattened display tag stays R1: the sibling Project
-        // level (P7) is never dragged into the draft, so a later deselect there can't clear an untouched level.
+        // Only the Region intent is recorded; the sibling Project level is never pulled into the draft.
         expect(payload?.bulkEditTagChanges).toEqual(expectChanges([[0, 'R1']]));
         expect(payload?.tag).toBe('R1');
     });
@@ -201,14 +188,13 @@ describe('SearchEditMultipleTagPage saveTag (bulk-edit tag deselect, #100538)', 
         const payload = await renderAndTap({
             policy: makePolicy(true),
             policyTags: DEPENDENT_TAGS,
-            // The parent CostCenterA was picked and auto-selected its only child IndicationX (no child
-            // intent recorded). Deselecting that child is a genuine clear, not an undo.
+            // Parent auto-selected the child (no child intent recorded), so deselecting the child is a real clear, not an undo.
             draft: {selectedTransactionIDs: ['t1'], tag: 'CostCenterA:IndicationX', bulkEditTagChanges: seedChanges([[0, 'CostCenterA']])},
             tagListIndex: 1,
             tappedTag: 'IndicationX',
         });
 
-        // Keeps '' so apply time genuinely trims the child. This preserves the behavior PR #97951 added.
+        // Keeps '' so apply time trims the child, preserving the behavior PR #97951 added.
         expect(payload?.bulkEditTagChanges).toEqual(expectChanges([[1, '']]));
     });
 
@@ -216,15 +202,13 @@ describe('SearchEditMultipleTagPage saveTag (bulk-edit tag deselect, #100538)', 
         const payload = await renderAndTap({
             policy: makePolicy(true),
             policyTags: DEPENDENT_TAGS,
-            // The parent CostCenterA was picked and auto-selected its only child IndicationX; only the
-            // parent intent is recorded. Tapping the parent again undoes that own pick.
+            // Only the parent intent is recorded, so tapping the parent again undoes that own pick.
             draft: {selectedTransactionIDs: ['t1'], tag: 'CostCenterA:IndicationX', bulkEditTagChanges: seedChanges([[0, 'CostCenterA']])},
             tagListIndex: 0,
             tappedTag: 'CostCenterA',
         });
 
-        // isUndoingOwnPick matches at the parent, so the intent is deleted and the whole subtree nets to
-        // nothing: apply time writes no tag and each expense keeps the value it already had.
+        // Undoing the parent deletes the intent and nets the whole subtree back to nothing.
         expect(payload?.bulkEditTagChanges).toEqual(expectChanges([[0, null]]));
     });
 });

@@ -1262,8 +1262,7 @@ describe('actions/IOU/BulkEdit', () => {
                 isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
-                // A collapsed flattened tag with NO per-level intent (e.g. a net no-op deselect). Category is
-                // changed too so a write still fires and we can assert the tag is absent from it.
+                // Change the category so the request is sent. The tag must not be included.
                 changes: {tag: 'CostCenterA', category: 'Food'},
                 bulkEditTagChanges: undefined,
                 policy,

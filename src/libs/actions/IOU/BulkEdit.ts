@@ -329,10 +329,11 @@ function updateMultipleMoneyRequests({
         if (changes.category !== undefined && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.CATEGORY)) {
             transactionChanges.category = changes.category;
         }
-        // We drive the tag write off bulkEditTagChanges, the flattened changes.tag is only there for display.
+
+        // Use bulkEditTagChanges to save tag changes. changes.tag is only for display.
         const editedTagIndexes = bulkEditTagChanges ? Object.keys(bulkEditTagChanges) : [];
         if (editedTagIndexes.length > 0 && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.TAG)) {
-            // Rebuild from each transaction's own tag so the levels nobody touched stick around. Apply the edits in order with an empty currentTag.
+            // Rebuild from each transaction's own tag to keep the unchanged levels. Apply each edited level in order.
             const transactionPolicyTagList = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${transactionPolicy?.id}`];
             const transactionHasDependentTags = hasDependentTags(transactionPolicy, transactionPolicyTagList);
             const transactionHasMultipleTagLists = transactionPolicy?.hasMultipleTagLists ?? false;

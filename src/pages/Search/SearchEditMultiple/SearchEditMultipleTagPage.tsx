@@ -40,9 +40,9 @@ function SearchEditMultipleTagPage() {
     const commonDependentTag = getCommonDependentTag(selectedTransactions);
     const draftTag = draftTransaction?.tag;
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
-    // Dependent tags are one chain, so we seed the shared value on first open to let the child levels filter.
-    // Independent lists are separate, so seeding one would pull an untouched sibling into the draft and a later
-    // deselect there would wipe it (#100538). Leave those empty until the user actually picks something.
+
+    // Only prefill dependent tags. Their child tags need the selected parent.
+    // Leave independent tag lists empty until the user selects a tag.
     const autoSelectedTag = hasDependentTags ? (commonDependentTag ?? '') : '';
     const transactionTag = draftTag === undefined ? autoSelectedTag : draftTag;
     const currentTag = getTagArrayFromName(draftTag ?? '').at(tagListIndex) ?? '';
@@ -52,6 +52,7 @@ function SearchEditMultipleTagPage() {
 
     const saveTag = (item: Partial<OptionData>) => {
         const selectedTagName = item.searchText ?? '';
+
         // Tapping the value that's already set on this level clears it.
         const isDeselecting = selectedTagName === currentTag;
         const recordedTagChanges = draftTransaction?.bulkEditTagChanges ?? {};
@@ -66,10 +67,12 @@ function SearchEditMultipleTagPage() {
             hasMultipleTagLists: policy?.hasMultipleTagLists ?? false,
         });
 
-        // If they're just undoing a pick they made in this same draft, drop the intent so it nets to nothing. Any other deselect is a real clear.
+        // If the user picks and then removes a tag before saving, do not save a change.
+        // Otherwise, remove the tag.
         const isUndoingOwnPick = isDeselecting && recordedTagChanges[tagListIndex] === currentTag;
         const deselectValue = isUndoingOwnPick ? null : '';
         const bulkEditTagChanges: Record<string, string | null> = {[tagListIndex]: isDeselecting ? deselectValue : selectedTagName};
+
         // For dependent tags, changing a level makes the deeper ones stale, so clear any child intents still in the draft before they get replayed.
         if (hasDependentTags) {
             for (const recordedIndex of Object.keys(recordedTagChanges)) {
