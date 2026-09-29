@@ -2396,15 +2396,27 @@ const CONST = {
             REPORT_INTERVAL_MS: 5 * 60_000,
             // How long after a press its frames are attributed to it (the same idle window Sentry uses for ui.action spans).
             PRESS_WINDOW_MS: 1_000,
-            // Upper bound of native queries per flush, so a very busy window can't turn into a long burst of bridge calls.
-            MAX_QUERIES_PER_FLUSH: 20,
+            // Upper bound of native queries per flush. On iOS each one runs on the UI thread, so a very busy window must not
+            // turn into a long burst of them; delay that can't be split within the budget is reported as unattributed.
+            MAX_QUERIES_PER_FLUSH: 12,
+            // A native query that doesn't answer within this time counts as unmeasured, so a stuck query can't stall the monitor.
+            QUERY_TIMEOUT_MS: 2_000,
+            // Flushes wait while the user scrolls or presses, but not longer than this, to stay within the native retention.
+            MAX_FLUSH_DEFER_MS: 90_000,
+            // After this many flushes in a row without native frame data, frame tracking isn't running and the monitor stops.
+            MAX_UNMEASURED_FLUSHES: 3,
             // Upper bound of timeline events kept between flushes, so a runaway caller can't grow memory.
             MAX_EVENTS: 500,
+            // Upper bound of distinct contexts per report; the rest is reported as "overflow".
+            MAX_AGGREGATES: 100,
             // An interval that was never closed (a lost scroll end, a request that never settled) stops owning frames after this long.
             MAX_OPEN_INTERVAL_MS: 60_000,
             MAX_LABEL_LENGTH: 64,
+            // Requests that only carry telemetry, so they'd only hide the operation that is actually running.
+            IGNORED_COMMANDS: ['Log'],
             NONE: 'none',
             UNATTRIBUTED: 'unattributed',
+            OVERFLOW: 'overflow',
             INTERACTION_SCROLL: 'scroll',
             INTERACTION_UNLABELED_PRESS: 'press',
             OPERATION_API_PREFIX: 'api.',
@@ -2414,6 +2426,7 @@ const CONST = {
             METRIC_LONG_TASK_TIME: 'ui.frame_drops.long_task_time',
             METRIC_LONG_TASK_COUNT: 'ui.frame_drops.long_task_count',
             METRIC_INTERACTION_FRAME_DELAY: 'ui.interaction.frame_delay',
+            METRIC_INTERACTION_COUNT: 'ui.interaction.count',
             ATTRIBUTE_SCREEN: 'screen',
             ATTRIBUTE_INTERACTION: 'interaction',
             ATTRIBUTE_OPERATION: 'operation',

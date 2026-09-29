@@ -30,13 +30,18 @@ function makeXHR<TKey extends OnyxKey>(request: Request<TKey>): Promise<Response
     });
 }
 
+const frameDropIgnoredCommands = new Set<string>(CONST.TELEMETRY.FRAME_DROPS.IGNORED_COMMANDS);
+
 function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isFromSequentialQueue = false): Promise<Response<TKey> | void> {
     let result = makeXHR(request);
 
-    // Frames dropped while the response is processed and applied are attributed to this command (see frameDropMonitor).
+    // Frames dropped while the response is processed and applied are attributed to this command (see frameDropMonitor). A 407 is
+    // left out: the Reauthentication middleware waits for a network round trip and retries, and the retry is measured on its own.
     let frameDropOperationID: number | undefined;
     result = result.then((response) => {
-        frameDropOperationID = startOperation(`${CONST.TELEMETRY.FRAME_DROPS.OPERATION_API_PREFIX}${request.command}`);
+        if (response?.jsonCode !== CONST.JSON_CODE.NOT_AUTHENTICATED && !frameDropIgnoredCommands.has(request.command)) {
+            frameDropOperationID = startOperation(`${CONST.TELEMETRY.FRAME_DROPS.OPERATION_API_PREFIX}${request.command}`);
+        }
         return response;
     });
 

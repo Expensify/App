@@ -4,35 +4,33 @@ import type {Interaction, Operation, ScreenChange, Segment} from './types';
 
 type Interval = {start: number; end?: number};
 
-/** Returns the latest-started interval that is active at `time`, i.e. the most specific thing going on. */
-function findActive<T extends Interval>(intervals: T[], time: number): T | undefined {
-    let active: T | undefined;
-    for (const interval of intervals) {
-        if (interval.start > time || (interval.end !== undefined && interval.end <= time)) {
-            continue;
-        }
-        if (!active || interval.start >= active.start) {
-            active = interval;
-        }
-    }
-    return active;
-}
+/**
+ * Tracks which intervals are active while boundaries are visited in increasing order, so each interval is added once
+ * instead of scanning every interval again at every boundary.
+ */
+function createActiveIntervalTracker<T extends Interval>(intervals: T[]) {
+    const byStart = [...intervals].sort((a, b) => a.start - b.start);
+    let nextIndex = 0;
+    let active: T[] = [];
 
-/** `screens` must be sorted by time. */
-function findScreen(screens: ScreenChange[], time: number): string {
-    let screen: string = CONST.TELEMETRY.FRAME_DROPS.NONE;
-    for (const change of screens) {
-        if (change.time > time) {
-            break;
+    /** Returns the latest-started interval active at `time`, i.e. the most specific thing going on. */
+    return (time: number): T | undefined => {
+        let next = byStart.at(nextIndex);
+        while (next && next.start <= time) {
+            active.push(next);
+            nextIndex++;
+            next = byStart.at(nextIndex);
         }
-        screen = change.screen;
-    }
-    return screen;
+        active = active.filter((interval) => interval.end === undefined || interval.end > time);
+        // `active` is in start order, so the last one started latest.
+        return active.at(-1);
+    };
 }
 
 /**
  * Splits [windowStart, windowEnd) into segments during which the screen, interaction and operation didn't change.
  * Adjacent segments with the same context are merged, so a window without context changes is a single segment.
+ * `screens` must be sorted by time.
  */
 function buildSegments(windowStart: number, windowEnd: number, screens: ScreenChange[], interactions: Interaction[], operations: Operation[]): Segment[] {
     if (windowEnd <= windowStart) {
@@ -55,15 +53,23 @@ function buildSegments(windowStart: number, windowEnd: number, screens: ScreenCh
     }
 
     const sortedBoundaries = [...boundaries].sort((a, b) => a - b);
+    const findInteraction = createActiveIntervalTracker(interactions);
+    const findOperation = createActiveIntervalTracker(operations);
+    let screenIndex = -1;
     const segments: Segment[] = [];
     for (let i = 0; i < sortedBoundaries.length - 1; i++) {
         const start = sortedBoundaries.at(i) ?? windowStart;
         const end = sortedBoundaries.at(i + 1) ?? windowEnd;
-        const screen = findScreen(screens, start);
-        const activeInteraction = findActive(interactions, start);
+        let nextScreen = screens.at(screenIndex + 1);
+        while (nextScreen && nextScreen.time <= start) {
+            screenIndex++;
+            nextScreen = screens.at(screenIndex + 1);
+        }
+        const screen = screens.at(screenIndex)?.screen ?? CONST.TELEMETRY.FRAME_DROPS.NONE;
+        const activeInteraction = findInteraction(start);
         const interaction = activeInteraction?.label ?? CONST.TELEMETRY.FRAME_DROPS.NONE;
         const interactionID = activeInteraction?.id;
-        const operation = findActive(operations, start)?.name ?? CONST.TELEMETRY.FRAME_DROPS.NONE;
+        const operation = findOperation(start)?.name ?? CONST.TELEMETRY.FRAME_DROPS.NONE;
 
         const previous = segments.at(-1);
         if (previous && previous.screen === screen && previous.interaction === interaction && previous.operation === operation && previous.interactionID === interactionID) {

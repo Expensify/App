@@ -126,7 +126,11 @@ function applyPusherOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateE
             Log.info('[OnyxUpdateManager] Done applying Pusher update', false, {lastUpdateID});
         });
 
-    pusherEventsPromise = applyPromise.catch(() => {}).finally(() => endOperation(frameDropOperationID));
+    // Attached to applyPromise itself, so the operation ends before the caller's continuations run.
+    const endFrameDropOperation = () => endOperation(frameDropOperationID);
+    applyPromise.then(endFrameDropOperation, endFrameDropOperation);
+
+    pusherEventsPromise = applyPromise.catch(() => {});
 
     return applyPromise;
 }

@@ -2,6 +2,8 @@ import CONST from '@src/CONST';
 
 import type {Interaction, Operation, ScreenChange} from './types';
 
+import sanitizePressLabel from './sanitizePressLabel';
+
 /**
  * Records what the app is doing, so frame drops measured natively can later be attributed to it.
  *
@@ -17,6 +19,8 @@ const screens: ScreenChange[] = [];
 const interactions: Interaction[] = [];
 const operations: Operation[] = [];
 let activeScroll: Interaction | undefined;
+// Several lists can report scrolling at once, so the scroll interaction lasts until the last of them stops.
+let scrollingListCount = 0;
 // Kept while not recording too (e.g. the app became inactive for a permission prompt during navigation), so the
 // screen is known again as soon as recording resumes.
 let currentScreen: string | undefined;
@@ -26,11 +30,12 @@ function truncate(label: string): string {
 }
 
 function hasRoom(): boolean {
-    return screens.length + interactions.length + operations.length < CONST.TELEMETRY.FRAME_DROPS.MAX_EVENTS;
+    return interactions.length + operations.length < CONST.TELEMETRY.FRAME_DROPS.MAX_EVENTS;
 }
 
+/** Screens have their own cap: a burst of operations must not make a navigation get lost. */
 function pushScreen(screen: string) {
-    if (screens.at(-1)?.screen === screen || !hasRoom()) {
+    if (screens.at(-1)?.screen === screen || screens.length >= CONST.TELEMETRY.FRAME_DROPS.MAX_EVENTS) {
         return;
     }
     screens.push({time: performance.now(), screen});
@@ -54,36 +59,42 @@ function recordScreen(screen: string | undefined) {
     pushScreen(currentScreen);
 }
 
-/** Only static labels (sentryLabel) may be passed here: they become metric attributes, so they must not carry user data. */
 function recordPress(label: string | undefined) {
     if (!isRecording || !hasRoom()) {
         return;
     }
     const start = performance.now();
-    interactions.push({
-        id: nextID++,
-        label: label ? truncate(label) : CONST.TELEMETRY.FRAME_DROPS.INTERACTION_UNLABELED_PRESS,
-        start,
-        end: start + CONST.TELEMETRY.FRAME_DROPS.PRESS_WINDOW_MS,
-    });
+    interactions.push({id: nextID++, label: sanitizePressLabel(label), start, end: start + CONST.TELEMETRY.FRAME_DROPS.PRESS_WINDOW_MS});
+}
+
+function endScroll() {
+    scrollingListCount = 0;
+    if (!activeScroll) {
+        return;
+    }
+    activeScroll.end = performance.now();
+    activeScroll = undefined;
 }
 
 function recordScroll(isScrolling: boolean) {
-    if (!isRecording) {
-        return;
-    }
     if (!isScrolling) {
-        if (activeScroll) {
-            activeScroll.end = performance.now();
-            activeScroll = undefined;
+        scrollingListCount = Math.max(0, scrollingListCount - 1);
+        if (scrollingListCount === 0) {
+            endScroll();
         }
         return;
     }
-    if (activeScroll || !hasRoom()) {
+    scrollingListCount++;
+    if (!isRecording || activeScroll || !hasRoom()) {
         return;
     }
     activeScroll = {id: nextID++, label: CONST.TELEMETRY.FRAME_DROPS.INTERACTION_SCROLL, start: performance.now()};
     interactions.push(activeScroll);
+}
+
+/** Whether the user is interacting right now, so native queries (which hop to the UI thread on iOS) can wait. */
+function isInteractionActive(time: number): boolean {
+    return !!activeScroll || interactions.some((interaction) => interaction.end !== undefined && interaction.end > time);
 }
 
 /** Returns an id to pass to endOperation, or undefined when not recording. */
@@ -106,6 +117,10 @@ function endOperation(id: number | undefined) {
     }
 }
 
+function keepWhere<T>(list: T[], predicate: (item: T) => boolean) {
+    list.splice(0, list.length, ...list.filter(predicate));
+}
+
 /**
  * Drops everything that ended before `time`, keeping the screen that was current at `time`.
  * Intervals that were never closed (e.g. a lost scroll end event) are dropped once they get too old, so they can't own frames forever.
@@ -116,22 +131,19 @@ function pruneBefore(time: number) {
         screens.splice(0, lastScreenBefore);
     }
     const staleStart = time - CONST.TELEMETRY.FRAME_DROPS.MAX_OPEN_INTERVAL_MS;
-    for (const list of [interactions, operations]) {
-        for (let i = list.length - 1; i >= 0; i--) {
-            const interval = list.at(i);
-            if (!interval) {
-                continue;
-            }
-            const isEnded = interval.end !== undefined && interval.end <= time;
-            const isStale = interval.end === undefined && interval.start < staleStart;
-            if (isEnded || isStale) {
-                list.splice(i, 1);
-            }
-        }
-    }
+    const isKept = (interval: Interaction | Operation) => (interval.end === undefined ? interval.start >= staleStart : interval.end > time);
+    keepWhere(interactions, isKept);
+    keepWhere(operations, isKept);
     if (activeScroll && !interactions.includes(activeScroll)) {
         activeScroll = undefined;
+        scrollingListCount = 0;
     }
+}
+
+/** Ends the open scroll and stops recording, e.g. when the app leaves the foreground. */
+function pauseRecording() {
+    endScroll();
+    isRecording = false;
 }
 
 function clear() {
@@ -139,6 +151,7 @@ function clear() {
     interactions.length = 0;
     operations.length = 0;
     activeScroll = undefined;
+    scrollingListCount = 0;
     currentScreen = undefined;
 }
 
@@ -146,4 +159,4 @@ function getTimeline() {
     return {screens, interactions, operations};
 }
 
-export {clear, endOperation, getTimeline, pruneBefore, recordPress, recordScreen, recordScroll, setRecording, startOperation};
+export {clear, endOperation, getTimeline, isInteractionActive, pauseRecording, pruneBefore, recordPress, recordScreen, recordScroll, setRecording, startOperation};
