@@ -1,3 +1,6 @@
+/**
+ * Reads the device position but settles after CONST.GPS.SUBMIT_WAIT_TIMEOUT, so a submit never waits longer. A position that arrives after the cap is dropped.
+ */
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';

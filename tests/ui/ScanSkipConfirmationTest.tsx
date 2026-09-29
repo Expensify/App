@@ -50,7 +50,6 @@ const mockResolveOptimisticSplitChatReportID = jest.fn<ReturnType<ResolveOptimis
 // Read at render time, so the route-type switch has to be a mutable binding rather than a literal in the factory.
 let mockScanIouType = 'submit';
 
-// Read when the location permission is checked, so a test can put the device in either state.
 let mockLocationPermission = 'granted';
 
 jest.mock('react-native-permissions', () => ({

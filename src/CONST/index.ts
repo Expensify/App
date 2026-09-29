@@ -550,6 +550,7 @@ const CONST = {
         // 15 seconds, don't wait too long because the server can always fall back to using the IP address
         TIMEOUT: 15000,
 
+        // 3 seconds, the longest a submit waits for a position before going out without one
         SUBMIT_WAIT_TIMEOUT: 3000,
     },
 

@@ -20,7 +20,7 @@ import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQue
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
 
-import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
+import hasLocationPermission from '@pages/iou/request/step/IOURequestStepScan/LocationPermission/hasLocationPermission';
 
 import {IMMEDIATE, markBarrierAsImmediate} from '@userActions/IOU/resolveWriteBarrier';
 
@@ -31,8 +31,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
 
-import React, {useEffect, useRef, useState} from 'react';
-import {RESULTS} from 'react-native-permissions';
+import type React from 'react';
+
+import {useEffect, useRef, useState} from 'react';
 
 import type {SubmitHandler, SubmitNavigationSnapshot} from './getSubmitHandler';
 
@@ -473,10 +474,10 @@ function SubmitExpenseOrchestrator({
             dispatchSubmitHandler();
             return;
         }
-        getLocationPermission().then((status) => dispatchSubmitHandler(status === RESULTS.GRANTED || status === RESULTS.LIMITED));
+        hasLocationPermission().then((isGranted) => dispatchSubmitHandler(isGranted));
     };
 
-    return <>{children({onConfirm, isConfirming})}</>;
+    return children({onConfirm, isConfirming});
 }
 
 export default SubmitExpenseOrchestrator;

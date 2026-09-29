@@ -191,4 +191,25 @@ describe('scan screen location permission prompt', () => {
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
         expect(jest.mocked(getCurrentPosition)).not.toHaveBeenCalled();
     });
+
+    it('caches a position without prompting when permission was granted from the OS settings inside the prompt window', async () => {
+        // Given a user who tapped "Not now" recently and later granted location from the OS settings, so the prompt flow will not run
+        mockLocationPermissionResult = 'granted';
+        jest.mocked(getCurrentPosition).mockImplementation((success) => {
+            success({coords: {latitude: 10, longitude: 20, accuracy: 1, altitude: null, altitudeAccuracy: null, heading: null, speed: null}, timestamp: 0});
+            return Promise.resolve();
+        });
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, new Date().toISOString());
+        });
+
+        // When the scan screen opens
+        await renderScanScreen();
+        await waitForBatchedUpdates();
+
+        // Then the position is still cached for the submit, without showing the prompt the user dismissed
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(jest.mocked(getCurrentPosition)).toHaveBeenCalledTimes(1);
+        expect(await getUserLocationFromOnyx()).toEqual({latitude: 10, longitude: 20});
+    });
 });

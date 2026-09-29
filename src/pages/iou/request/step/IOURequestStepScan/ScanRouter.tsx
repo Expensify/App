@@ -14,11 +14,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
-import React from 'react';
+import React, {useEffect} from 'react';
 
 import MultiScanGate from './components/MultiScanGate';
 import ScanEditReceipt from './components/ScanEditReceipt';
@@ -127,7 +128,18 @@ ScanNewReceipt.displayName = 'ScanNewReceipt';
  * Asks for location permission when the scan screen opens, and caches the position once it is granted.
  */
 function ScanLocationPrompt({gpsRequired}: {gpsRequired: boolean}) {
-    const [shouldStartLocationPermissionFlow] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {selector: shouldStartLocationPermissionFlowSelector});
+    const [shouldStartLocationPermissionFlow, shouldStartLocationPermissionFlowResult] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {
+        selector: shouldStartLocationPermissionFlowSelector,
+    });
+    const isPromptCoolingDown = !isLoadingOnyxValue(shouldStartLocationPermissionFlowResult) && !shouldStartLocationPermissionFlow;
+
+    // The prompt flow skips users inside the prompt window, so onGrant never caches a position for someone who granted it in OS settings
+    useEffect(() => {
+        if (!gpsRequired || !isPromptCoolingDown) {
+            return;
+        }
+        snapshotUserLocation();
+    }, [gpsRequired, isPromptCoolingDown]);
 
     return (
         <LocationPermissionModal
