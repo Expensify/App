@@ -1,0 +1,24 @@
+name: Label product changes
+description: Classify App PRs and conservatively add IncludesProductChange.
+
+inputs:
+  GITHUB_TOKEN:
+    description: GitHub token with PR read and issue label write access.
+    required: true
+  OPENAI_API_KEY:
+    description: OpenAI API key for product-change classification.
+    required: false
+  PULL_REQUEST_NUMBER:
+    description: PR number for a dispatch run, including historical PRs in dry-run mode.
+    required: false
+  DRY_RUN:
+    description: Report the classification without writing labels (dispatch only).
+    default: 'true'
+
+outputs:
+  RESULT:
+    description: JSON containing the revision, verdict, reason, fallback, and label action.
+
+runs:
+  using: node24
+  main: index.js

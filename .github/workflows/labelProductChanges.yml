@@ -1,0 +1,47 @@
+name: Label product changes
+
+on:
+  pull_request_target:
+    types: [opened, ready_for_review, synchronize, reopened, edited]
+  workflow_dispatch:
+    inputs:
+      pull_request_number:
+        description: PR number to classify (historical PRs are supported in dry-run mode).
+        required: true
+        type: string
+      dry_run:
+        description: Report the result without changing labels.
+        default: true
+        type: boolean
+
+permissions: {}
+
+jobs:
+  label-product-changes:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.draft == false &&
+       (github.event.action != 'edited' || github.event.changes.base))
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: write
+    concurrency:
+      group: product-change-${{ github.event.pull_request.number || inputs.pull_request_number }}-${{ inputs.dry_run && 'dry-run' || 'apply' }}
+      cancel-in-progress: true
+    steps:
+      # Fork PR content is read through the API, never checked out or executed with secrets.
+      - uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+
+      - name: Classify the full PR
+        uses: ./.github/actions/javascript/labelProductChanges
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_APP_REVIEWER_API_KEY }}
+          PULL_REQUEST_NUMBER: ${{ inputs.pull_request_number }}
+          DRY_RUN: ${{ inputs.dry_run && 'true' || 'false' }}

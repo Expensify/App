@@ -48,6 +48,7 @@ describe('OpenAIUtils', () => {
                     model: 'gpt-5.1',
                     input: 'hi',
                 }),
+                undefined,
             );
         });
 
@@ -64,15 +65,34 @@ describe('OpenAIUtils', () => {
                 textFormat,
             });
 
-            expect(mockResponsesCreate).toHaveBeenCalledWith({
-                model: 'gpt-5.6-luna',
-                input: 'hi',
-                instructions: 'be nice',
-                conversation: 'conv_123',
-                text: {format: textFormat},
-                prompt_cache_key: 'test-key',
-                prompt_cache_retention: '24h',
+            expect(mockResponsesCreate).toHaveBeenCalledWith(
+                {
+                    model: 'gpt-5.6-luna',
+                    input: 'hi',
+                    instructions: 'be nice',
+                    conversation: 'conv_123',
+                    text: {format: textFormat},
+                    prompt_cache_key: 'test-key',
+                    prompt_cache_retention: '24h',
+                },
+                undefined,
+            );
+        });
+
+        it('forwards the abort signal and does not retry an aborted request', async () => {
+            // Given a caller-provided deadline that expires while the request is running.
+            const controller = new AbortController();
+            mockResponsesCreate.mockImplementationOnce(() => {
+                controller.abort();
+                throw new Error('Request timeout');
             });
+
+            // When the model request fails after the deadline.
+            await expect(openAI.promptResponses({input: 'hi', signal: controller.signal})).rejects.toThrow('Request timeout');
+
+            // Then the SDK receives the signal and retries cannot extend the caller's deadline.
+            expect(mockResponsesCreate).toHaveBeenCalledTimes(1);
+            expect(mockResponsesCreate).toHaveBeenCalledWith(expect.any(Object), {signal: controller.signal});
         });
 
         it('throws when the API returns no output text', async () => {
