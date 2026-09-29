@@ -67,7 +67,8 @@ function ConnectionCard({listing}: ConnectionCardProps) {
                 styles.p0,
                 styles.mt0,
                 styles.overflowHidden,
-                (shouldUseNarrowLayout || isMediumScreenWidth) && [styles.flexBasis100, StyleUtils.getMinimumWidth(0)],
+                StyleUtils.getMinimumWidth(0),
+                (shouldUseNarrowLayout || isMediumScreenWidth) && styles.flexBasis100,
             ]}
         >
             <MenuItem
