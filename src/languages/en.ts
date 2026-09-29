@@ -1252,6 +1252,11 @@ const translations = {
     },
     insightsPage: {
         viewOnSpend: 'View on Spend',
+        compare: {
+            label: 'Compare',
+            previousPeriod: 'Previous period',
+            average: 'Average',
+        },
         emptyState: {
             title: 'Nothing to show',
             subtitle: 'Try adjusting your criteria above',

@@ -9333,6 +9333,7 @@ const CONST = {
             CONTROL_WORKSPACE: 'Insights-ControlWorkspace',
             CONTROL_GROUP_CURRENCY: 'Insights-ControlGroupCurrency',
             CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
+            CONTROL_COMPARE: 'Insights-ControlCompare',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',

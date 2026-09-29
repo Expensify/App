@@ -523,6 +523,7 @@ export type {
     TableColumnSize,
     SearchGroupBy,
     SearchView,
+    SearchCompareMode,
     ChartView,
     SingularSearchStatus,
     SearchDatePreset,

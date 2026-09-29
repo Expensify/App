@@ -1,3 +1,5 @@
+import type {SearchCompareMode} from '@components/Search/types';
+
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
@@ -32,10 +34,16 @@ function parsePayload(request: InsightsQuery | undefined): InsightsPayload | und
     return payload as InsightsPayload;
 }
 
-/** The snapshot hash expected of every chart on the spend dashboard, taken from what the chart declares. */
+/** The snapshot hashes expected of every chart on the spend dashboard, taken from what the chart declares. */
 function buildExpectedHashes(filters: InsightsFilters) {
     return Object.fromEntries(
-        [SPEND_SPEC.headlineChart, ...SPEND_SPEC.supportingCharts].map((chart) => [chart.graphKey, {snapshotHash: buildSearchQueryJSON(applyInsightsFilters(chart, filters))?.hash}]),
+        [SPEND_SPEC.headlineChart, ...SPEND_SPEC.supportingCharts].map((chart) => {
+            const getHashOf = (compare?: SearchCompareMode) => buildSearchQueryJSON(applyInsightsFilters(chart, filters, compare))?.hash;
+            return [
+                chart.graphKey,
+                {snapshotHash: getHashOf(), previousPeriodSnapshotHash: getHashOf(CONST.SEARCH.COMPARE.PREVIOUS_PERIOD), averageSnapshotHash: getHashOf(CONST.SEARCH.COMPARE.AVERAGE)},
+            ];
+        }),
     );
 }
 
@@ -58,7 +66,20 @@ describe('insightsQueries', () => {
                 groupBy: filters.groupBy,
                 filters: queryJSON?.filters,
                 insightsHashes: buildExpectedHashes(filters),
+                numberOfPeriods: 1,
             });
+        });
+
+        it('sends the same request whether or not the dashboard is compared', () => {
+            // Given the spend dashboard shown on its own
+            const uncompared = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS);
+
+            // When it is compared against the previous period
+            const filters: InsightsFilters = {...FILTERS, compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD};
+            const compared = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters);
+
+            // Then every response carries all comparisons, so switching one neither refetches nor stores the response apart
+            expect(compared).toEqual(uncompared);
         });
 
         it('hashes every set of filters on its own', () => {

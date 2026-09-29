@@ -170,7 +170,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
             return;
         }
         onRequestConditionsChanged();
-    }, [dashboardID, jsonQuery, hash, isFocused, isOffline]);
+    }, [dashboardID, hash, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
     const [headlineSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${dashboard?.graphs?.[INSIGHTS_DASHBOARD_SPECS[dashboardID].headlineChart.graphKey]?.snapshotHash}`);
