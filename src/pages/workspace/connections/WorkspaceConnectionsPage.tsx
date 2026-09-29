@@ -271,13 +271,14 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                                 activeTabKey={activeTab}
                                 onTabPress={setActiveTab}
                                 contentContainerStyles={[styles.ph0, styles.pb0]}
+                                tabButtonStyles={styles.connectionsTabButton}
                             />
                         </TabSelectorContextProvider>
                     </View>
-                    <View style={shouldUseNarrowGridLayout && [styles.flexRow, styles.mt3]}>{searchBar}</View>
+                    <View style={shouldUseNarrowGridLayout && [styles.flexRow, styles.mt5]}>{searchBar}</View>
                 </View>
                 {shouldShowNoResults ? (
-                    <View style={[styles.pt3, styles.pb5]}>
+                    <View style={styles.pt3}>
                         <Text
                             style={[styles.textNormal, styles.colorMuted]}
                             aria-hidden
@@ -297,7 +298,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.SUGGEST_INTEGRATION}
                     style={[styles.mt4, styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart, styles.gap1]}
                 >
-                    <Text style={styles.textLabelSupporting}>{translate('workspace.connections.suggestIntegration')}</Text>
+                    <Text style={[styles.textLabelSupporting, styles.flexShrink1]}>{translate('workspace.connections.suggestIntegration')}</Text>
                     <Icon
                         src={icons.ArrowRight}
                         width={variables.iconSizeExtraSmall}

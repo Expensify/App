@@ -91,6 +91,9 @@ type TabSelectorBaseProps<K extends string = string> = {
 
     /** Additional styles for the tabs' scroll content container. */
     contentContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Additional styles for each tab button. */
+    tabButtonStyles?: StyleProp<ViewStyle>;
 };
 
 type TabSelectorItemProps = WithSentryLabel & {
@@ -123,6 +126,9 @@ type TabSelectorItemProps = WithSentryLabel & {
 
     /** Whether tabs should have equal width */
     equalWidth?: boolean;
+
+    /** Additional styles for the tab button. */
+    tabButtonStyles?: StyleProp<ViewStyle>;
 
     /** Text to display on the badge on the tab. */
     badgeText?: string;

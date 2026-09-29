@@ -54,7 +54,7 @@ function ConnectionCard({listing}: ConnectionCardProps) {
             size={CONST.BUTTON_SIZE.SMALL}
             variant={status.isBroken ? CONST.BUTTON_VARIANT.DANGER : undefined}
             onPress={onConfigure}
-            style={styles.alignSelfCenter}
+            style={[styles.alignSelfCenter, styles.ml3]}
         >
             <Button.Text>{translate(status.isBroken ? 'workspace.connections.fix' : 'workspace.connections.configure')}</Button.Text>
         </Button>

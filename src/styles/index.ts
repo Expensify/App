@@ -4911,6 +4911,12 @@ const staticStyles = (theme: ThemeColors) =>
             scrollMarginInline: variables.tabSelectorScrollMarginInline,
         },
 
+        connectionsTabButton: {
+            height: 'auto',
+            paddingVertical: 10,
+            paddingHorizontal: 16,
+        },
+
         tabSelector: {
             flexDirection: 'row',
             paddingHorizontal: 20,
