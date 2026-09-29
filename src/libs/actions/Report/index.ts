@@ -3741,7 +3741,9 @@ function editReportComment(
 
     // The server rebuilds the stored attachment from the uploaded file, so a rename has to travel with the queued
     // file as well as the optimistic markup, otherwise it reverts as soon as the send goes through.
-    const renamedAttachmentLabel = draftAttachmentLabel === originalUploadingAttachmentHtml?.match(/data-name="([^"]*)"/)?.at(1) ? undefined : draftAttachmentLabel;
+    // `data-name` carries the encoded label the comment shows now, while the draft carries what the user typed.
+    const currentAttachmentLabel = originalUploadingAttachmentHtml?.match(new RegExp(`${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}="([^"]*)"`, 'i'))?.at(1);
+    const renamedAttachmentLabel = draftAttachmentLabel && draftAttachmentLabel !== Str.htmlDecode(currentAttachmentLabel ?? '') ? draftAttachmentLabel : undefined;
     const uploadingAttachmentHtml = originalUploadingAttachmentHtml ? applyLabelToUploadingAttachmentHtml(originalUploadingAttachmentHtml, renamedAttachmentLabel) : undefined;
     const optimisticHtml = buildEditedCommentWithAttachment(htmlForNewComment, uploadingAttachmentHtml);
     const optimisticText = uploadingAttachmentHtml ? Parser.htmlToText(optimisticHtml) : reportComment;

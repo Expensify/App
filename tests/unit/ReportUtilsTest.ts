@@ -7481,6 +7481,29 @@ describe('ReportUtils', () => {
 
                 expect(applyLabelToUploadingAttachmentHtml(tag, undefined)).toBe(tag);
             });
+
+            it('treats a label holding a replacement token as literal text', () => {
+                // Given a rename whose label reads as a String.replace token
+                const tag = getUploadingAttachmentHtmlFromComment(uploadingFileHtml) ?? '';
+
+                // When it is applied to the uploading tag
+                const labelled = applyLabelToUploadingAttachmentHtml(tag, 'a$&b.csv');
+
+                // Then the anchor holds the label itself, and the token did not pull the matched text in after it
+                expect(labelled).toContain('>a$&amp;b.csv</a>');
+                expect(labelled.match(/<\/a>/g)).toHaveLength(1);
+            });
+
+            it('encodes a label that would otherwise read as markup', () => {
+                // Given a rename whose label carries angle brackets
+                const tag = getUploadingAttachmentHtmlFromComment(uploadingFileHtml) ?? '';
+
+                // When it is applied to the uploading tag
+                const labelled = applyLabelToUploadingAttachmentHtml(tag, '<b>x</b>.csv');
+
+                // Then it lands as text rather than as a nested element
+                expect(labelled).toContain('&lt;b&gt;x&lt;/b&gt;.csv');
+            });
         });
 
         it('does not swap in an attachment owned by a different report action', () => {

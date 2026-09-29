@@ -2761,6 +2761,52 @@ describe('actions/Report', () => {
         });
     });
 
+    it('renames the queued attachment back when an offline edit restores its original name', async () => {
+        global.fetch = TestHelper.createGlobalFetchMock();
+        const REPORT_ID = '1';
+        const localUri = 'file:///storage/emulated/0/Android/data/com.expensify.chat/files/Download/Receipts-Upload/original.csv';
+
+        setHasRadio(false);
+        await waitForBatchedUpdates();
+
+        // Given a text and attachment comment queued offline
+        const file = Object.assign(new File(['id,total\n1,2'], 'original.csv', {type: 'text/csv'}), {uri: localUri, source: localUri});
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
+        Report.addAttachmentWithComment({
+            report: REPORT,
+            notifyReportID: REPORT_ID,
+            ancestors: [],
+            attachments: file,
+            currentUserAccountID: 1,
+            text: 'hello',
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        const queuedAttachment = () => PersistedRequests.getAll().find((request) => request.command === WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
+        const queuedFileName = () => {
+            const queuedFile = queuedAttachment()?.data?.file;
+            return queuedFile instanceof File ? queuedFile.name : undefined;
+        };
+        const queuedReportActionID = queuedAttachment()?.data?.reportActionID;
+        const reportActionID = typeof queuedReportActionID === 'string' ? queuedReportActionID : '';
+        const getAction = async () => (await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`))?.[reportActionID];
+
+        // When it is renamed while still offline
+        Report.editReportComment({reportID: REPORT_ID}, await getAction(), `hello\n\n[renamed.csv](${localUri})`, undefined, '', undefined);
+        await waitForBatchedUpdates();
+
+        expect(queuedFileName()).toBe('renamed.csv');
+
+        // And then renamed back to the name the picker gave it
+        Report.editReportComment({reportID: REPORT_ID}, await getAction(), `hello\n\n[original.csv](${localUri})`, undefined, '', undefined);
+        await waitForBatchedUpdates();
+
+        // Then the file that uploads carries the name the comment now shows
+        expect(queuedFileName()).toBe('original.csv');
+    });
+
     it('keeps the literal file name when an edit label reads as markdown emphasis', async () => {
         global.fetch = TestHelper.createGlobalFetchMock();
         const reportID = '123';
