@@ -11431,29 +11431,23 @@ describe('ReportUtils', () => {
     });
 
     describe('getOutstandingReportsForUser', () => {
-        const testPolicy: Policy = {
-            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM, 'Outstanding Test Policy'),
-            id: 'policy_outstanding_1',
-        };
-        const reportOwnerAccountID = 100;
-        const activeReport: Report = {
-            ...createRandomReport(1, undefined),
-            policyID: testPolicy.id,
-            ownerAccountID: reportOwnerAccountID,
-            type: CONST.REPORT.TYPE.EXPENSE,
-            stateNum: CONST.REPORT.STATE_NUM.OPEN,
-            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-        };
-        const archivedReport: Report = {
-            ...createRandomReport(2, undefined),
-            policyID: testPolicy.id,
-            ownerAccountID: reportOwnerAccountID,
-            type: CONST.REPORT.TYPE.EXPENSE,
-            stateNum: CONST.REPORT.STATE_NUM.OPEN,
-            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-        };
-
         it('should return outstanding reports and exclude archived reports', () => {
+            const activeReport: Report = {
+                ...createRandomReport(1, undefined),
+                policyID: policy.id,
+                ownerAccountID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const archivedReport: Report = {
+                ...createRandomReport(2, undefined),
+                policyID: policy.id,
+                ownerAccountID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
             const reports = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${activeReport.reportID}`]: activeReport,
                 [`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`]: archivedReport,
@@ -11463,9 +11457,8 @@ describe('ReportUtils', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: '2024-01-01 00:00:00.000'},
             };
 
-            const result = getOutstandingReportsForUser(testPolicy.id, reportOwnerAccountID, undefined, reportNameValuePairs, reports);
-            expect(result).toHaveLength(1);
-            expect(result.at(0)?.reportID).toBe(activeReport.reportID);
+            const result = getOutstandingReportsForUser(policy.id, currentUserAccountID, undefined, reportNameValuePairs, reports);
+            expect(result).toEqual([activeReport]);
         });
     });
 
