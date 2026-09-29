@@ -1,7 +1,7 @@
 ---
 title: Manage Personal Cards
 description: Learn how to view, manage, and fix broken connections for personal credit cards in New Expensify.
-keywords: [New Expensify, personal cards, Wallet, reimbursable, credit card import, Expensify Classic, cards, card details, broken connection, fix card, temporary bank issue, can't auto-match receipt, card number changed, account not found]
+keywords: [New Expensify, personal cards, Wallet, reimbursable, credit card import, Expensify Classic, cards, card details, broken connection, fix card, temporary bank issue, can't auto-match receipt, card number changed, account not found, account no longer active, account closed]
 internalScope: Audience is members with personal credit cards already connected to their account. Covers viewing and managing existing personal cards in the Wallet, including reimbursable settings, fixing broken card connections, and recognizing temporary bank issues that resolve on their own. Does not cover connecting new personal cards or company card programs.
 ---
 
@@ -163,7 +163,11 @@ Your bank returned a temporary error, so Expensify couldn't pull the card transa
 
 ## What should I do if my card number changed at the bank?
 
-When your bank issues a new card number or the account is no longer active, Expensify can't find the account and the connection breaks. The card shows a red dot in **Wallet**, and the **Card details** page shows the broken connection error with a **Fix card** option. Choose **Fix card** and log into your bank to reconnect the updated account. If the account is closed for good, [connect the new card as a personal card](/articles/new-expensify/connect-credit-cards/Connect-Personal-Cards).
+When your bank issues a new card number, Expensify can't find the account and the connection breaks. The card shows a red dot in **Wallet**, and the **Card details** page shows the broken connection error with a **Fix card** option. Choose **Fix card** and log into your bank to reconnect the updated account.
+
+## What should I do if my account is no longer active at my bank?
+
+When the account is no longer active, Expensify can't find it and the connection breaks. The card shows a red dot in **Wallet**, and the **Card details** page shows the broken connection error with a **Fix card** option. If your bank moved the card to a new account, choose **Fix card** and log into your bank to reconnect it. If the account is closed for good, [connect the new card as a personal card](/articles/new-expensify/connect-credit-cards/Connect-Personal-Cards).
 
 ## Why did the broken connection reminders disappear while the card still shows an error?
 
