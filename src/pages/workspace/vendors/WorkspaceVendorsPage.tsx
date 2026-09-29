@@ -11,7 +11,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
-import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveVendorMatchingIntegration, getMatchingVendors, hasVendorFeature, sortVendors} from '@libs/PolicyUtils';
@@ -80,7 +79,7 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                 offlineIndicatorStyle={styles.mtAuto}
             >
                 <Header>
-                    {shouldUseNarrowLayout && <Header.BackButton onPress={() => Navigation.goBack()} />}
+                    {shouldUseNarrowLayout && <Header.BackButton />}
                     <Header.Title
                         title={translate('workspace.common.vendors')}
                         isHeadline

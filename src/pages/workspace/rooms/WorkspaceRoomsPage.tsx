@@ -184,7 +184,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <Header>
-                    {shouldUseNarrowLayout && <Header.BackButton onPress={Navigation.goBack} />}
+                    {shouldUseNarrowLayout && <Header.BackButton />}
                     <Header.Title
                         title={translate('workspace.common.rooms')}
                         isHeadline

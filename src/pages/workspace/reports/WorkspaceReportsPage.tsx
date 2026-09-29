@@ -106,7 +106,7 @@ function WorkspaceReportFieldsPage({
                 offlineIndicatorStyle={styles.mtAuto}
             >
                 <Header>
-                    {shouldUseNarrowLayout && <Header.BackButton onPress={Navigation.goBack} />}
+                    {shouldUseNarrowLayout && <Header.BackButton />}
                     <Header.Title
                         title={translate('common.reports')}
                         isHeadline

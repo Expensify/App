@@ -17,7 +17,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
-import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
@@ -66,7 +65,7 @@ function WorkspaceMCPPage({route}: WorkspaceMCPPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <Header>
-                    {shouldUseNarrowLayout && <Header.BackButton onPress={() => Navigation.goBack()} />}
+                    {shouldUseNarrowLayout && <Header.BackButton />}
                     <Header.Title
                         title={translate('workspace.common.mcp')}
                         isHeadline

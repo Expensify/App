@@ -20,7 +20,6 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {openPolicyHRPage, openPolicyRecruitingPage} from '@libs/actions/PolicyConnections';
 import {isMergeConnectionName} from '@libs/merge/MergeUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -174,7 +173,7 @@ function MergeConnectionsPageBaseContent({policyID, category, cards, footer}: Me
                 />
             )}
             <Header>
-                {shouldUseNarrowLayout && <Header.BackButton onPress={() => Navigation.goBack()} />}
+                {shouldUseNarrowLayout && <Header.BackButton />}
                 <Header.Title
                     title={translate(`workspace.${category}.title`)}
                     isHeadline
