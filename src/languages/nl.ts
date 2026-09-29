@@ -3412,9 +3412,9 @@ ${amount} voor ${merchant} - ${date}`,
             otherAccountingSoftware: 'Naam van de software',
         },
         interestedFeatures: {
-            title: 'In welke functies ben je geïnteresseerd?',
-            featuresAlreadyEnabled: 'Hier zijn onze populairste functies:',
-            featureYouMayBeInterestedIn: 'Schakel extra functies in:',
+            title: 'Selecteer de functies die je wilt',
+            featuresAlreadyEnabled: 'Je werkruimte heeft het volgende al ingeschakeld:',
+            featureYouMayBeInterestedIn: 'Schakel extra functies in die je mogelijk interesseren:',
         },
         error: {
             requiredFirstName: 'Voer je voornaam in om door te gaan',

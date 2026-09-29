@@ -3423,9 +3423,9 @@ ${amount} für ${merchant} – ${date}`,
             otherAccountingSoftware: 'Name der Software',
         },
         interestedFeatures: {
-            title: 'An welchen Funktionen bist du interessiert?',
-            featuresAlreadyEnabled: 'Hier sind unsere beliebtesten Funktionen:',
-            featureYouMayBeInterestedIn: 'Zusätzliche Funktionen aktivieren:',
+            title: 'Wähle die gewünschten Funktionen aus',
+            featuresAlreadyEnabled: 'In Ihrem Workspace ist bereits Folgendes aktiviert:',
+            featureYouMayBeInterestedIn: 'Aktivieren Sie zusätzliche Funktionen, die Sie interessieren könnten:',
         },
         error: {
             requiredFirstName: 'Bitte gib deinen Vornamen ein, um fortzufahren',
