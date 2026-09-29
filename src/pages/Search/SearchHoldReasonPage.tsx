@@ -48,7 +48,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
 
     const relevantTransactionIDs = useMemo(() => (isBulkHold ? selectedTransactionIDs : Object.keys(selectedTransactions)), [isBulkHold, selectedTransactionIDs, selectedTransactions]);
     const [selectedTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(relevantTransactionIDs)});
-    const [selectedTransactionsOnyx] = useTransactionsByID(selectedTransactionIDs);
+    const [relevantTransactions] = useTransactionsByID(relevantTransactionIDs);
     const {isOffline} = useNetwork();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
         selector: isTrackIntentUserSelector,
@@ -76,7 +76,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                     currentUserLogin: currentUserLogin ?? '',
                     currentUserAccountID,
                     allTransactionViolations: selectedTransactionViolations,
-                    allTransactions: selectedTransactionsOnyx,
+                    transactions: relevantTransactions,
                     isTrackIntentUser,
                     delegateAccountID,
                     rules,
@@ -88,9 +88,11 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 for (const transactionID of transactionIDs) {
                     const transactionThreadReportID = selectedTransactions[transactionID].reportAction?.childReportID;
                     const transactionViolations = selectedTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+                    const transaction = relevantTransactions.find((t) => t.transactionID === transactionID) ?? selectedTransactions[transactionID].transaction;
+
                     putOnHold({
                         transactionID,
-                        transaction: selectedTransactions[transactionID].transaction,
+                        transaction,
                         comment,
                         initialReportID: transactionThreadReportID,
                         isOffline,
@@ -118,7 +120,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             currentUserLogin,
             currentUserAccountID,
             selectedTransactionViolations,
-            selectedTransactionsOnyx,
+            relevantTransactions,
             isTrackIntentUser,
             delegateAccountID,
             rules,
