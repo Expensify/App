@@ -1,15 +1,16 @@
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
-import useSaveReportField from '@hooks/useSaveReportField';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearReportFieldKeyErrors} from '@libs/actions/Report';
 import {resolveReportFieldValue} from '@libs/Formula';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import {
     getFieldViolation,
     getFieldViolationTranslation,
@@ -25,16 +26,15 @@ import type {ThemeStyles} from '@styles/index';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, PolicyReportField, Report, ReportViolationName} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
-import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-
-import ReportFieldInlineInput from './ReportFieldInlineInput';
 
 type MoneyRequestViewReportFieldsProps = {
     report: OnyxEntry<Report>;
@@ -44,16 +44,6 @@ type MoneyRequestViewReportFieldsProps = {
 
     /** Indicates whether we have any pending actions from parent component */
     pendingAction?: PendingAction;
-
-    /** Extra styles for the block. Each call site sits in a container with its own padding, so it sets the spacing it needs. */
-    style?: StyleProp<ViewStyle>;
-
-    /**
-     * Stacks the fields one per row at any width, instead of filling rows of `CONST.REPORT_FIELDS_PER_ROW`.
-     * A one-expense report reads as a single expense rather than a table, so its fields stay vertical there.
-     * @default false
-     */
-    shouldUseSingleColumn?: boolean;
 };
 
 type EnrichedPolicyReportField = {
@@ -64,43 +54,39 @@ type EnrichedPolicyReportField = {
     violationTranslation: string;
 } & PolicyReportField;
 
-function ReportFieldView(
-    reportField: EnrichedPolicyReportField,
-    report: OnyxEntry<Report>,
-    policy: OnyxEntry<Policy>,
-    styles: ThemeStyles,
-    onSaveValue: (reportField: PolicyReportField, value: string) => void,
-    pendingAction?: PendingAction,
-) {
+function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEntry<Report>, styles: ThemeStyles, pendingAction?: PendingAction) {
     return (
-        <View
-            key={`reportField-${reportField.fieldKey}`}
-            style={styles.flex1}
+        <OfflineWithFeedback
+            // Need to return undefined when we have pendingAction to avoid the duplicate pending action
+            pendingAction={pendingAction ? undefined : report?.pendingFields?.[reportField.fieldKey as keyof typeof report.pendingFields]}
+            errorRowStyles={styles.ph5}
+            key={`menuItem-${reportField.fieldKey}`}
+            onClose={() => clearReportFieldKeyErrors(report?.reportID, reportField.fieldKey)}
         >
-            <OfflineWithFeedback
-                // Need to return undefined when we have pendingAction to avoid the duplicate pending action
-                pendingAction={pendingAction ? undefined : report?.pendingFields?.[reportField.fieldKey as keyof typeof report.pendingFields]}
-                errors={report?.errorFields?.[reportField.fieldKey]}
-                onClose={() => clearReportFieldKeyErrors(report?.reportID, reportField.fieldKey)}
-            >
-                <ReportFieldInlineInput
-                    reportField={reportField}
-                    fieldKey={reportField.fieldKey}
-                    value={reportField.fieldValue}
-                    isDisabled={reportField.isFieldDisabled}
-                    errorText={reportField.violationTranslation}
-                    fieldList={policy?.fieldList}
-                    onSaveValue={(value) => onSaveValue(reportField, value)}
-                />
-            </OfflineWithFeedback>
-        </View>
+            <MenuItemWithTopDescription
+                description={Str.UCFirst(reportField.name)}
+                title={reportField.fieldValue}
+                onPress={() => {
+                    if (!report?.policyID) {
+                        return;
+                    }
+
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EDIT_REPORT_FIELD.getRoute(report.policyID, reportField.fieldID)));
+                }}
+                shouldShowRightIcon={!reportField.isFieldDisabled}
+                wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
+                shouldGreyOutWhenDisabled={false}
+                numberOfLinesTitle={0}
+                interactive={!reportField.isFieldDisabled}
+                titleWithTooltips={[]}
+                brickRoadIndicator={reportField.violation ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                errorText={reportField.violationTranslation}
+            />
+        </OfflineWithFeedback>
     );
 }
-function MoneyRequestViewReportFields({report, policy, pendingAction, style, shouldUseSingleColumn = false}: MoneyRequestViewReportFieldsProps) {
+function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequestViewReportFieldsProps) {
     const styles = useThemeStyles();
-    // The report view is a RightModalNavigator screen shown as a wide RHP, where `useResponsiveLayout` reports a narrow layout at any pane width.
-    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
-    const saveReportField = useSaveReportField(report, policy);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(report?.reportID)}`);
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -142,35 +128,10 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
         return null;
     }
 
-    const columnCount = shouldUseNarrowLayout || shouldUseSingleColumn ? 1 : CONST.REPORT_FIELDS_PER_ROW;
-    const fieldRows: EnrichedPolicyReportField[][] = [];
-    for (let index = 0; index < sortedPolicyReportFields.length; index += columnCount) {
-        fieldRows.push(sortedPolicyReportFields.slice(index, index + columnCount));
-    }
-
     return (
-        <View style={[styles.ph5, styles.mb3, styles.gap3, style]}>
-            {fieldRows.map((fieldRow) => {
-                const rowKey = `reportFieldRow-${fieldRow.at(0)?.fieldKey}`;
-
-                return (
-                    <View
-                        key={rowKey}
-                        testID="reportFieldsRow"
-                        // Each cell sizes to its own content and hugs the top of the row, so a field showing an error
-                        // message grows downwards instead of stretching the cells beside it and shifting their inputs.
-                        style={[styles.flexRow, styles.gap3, styles.alignItemsStart]}
-                    >
-                        {fieldRow.map((reportField) => ReportFieldView(reportField, report, policy, styles, saveReportField, pendingAction))}
-                        {/* A partly filled last row is padded out so its fields stay the same width as the rows above it. */}
-                        {Array.from({length: columnCount - fieldRow.length}, (_unused, index) => (
-                            <View
-                                key={`${rowKey}-spacer-${index}`}
-                                style={styles.flex1}
-                            />
-                        ))}
-                    </View>
-                );
+        <View style={styles.mb3}>
+            {sortedPolicyReportFields.map((reportField) => {
+                return ReportFieldView(reportField, report, styles, pendingAction);
             })}
         </View>
     );

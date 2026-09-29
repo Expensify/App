@@ -142,7 +142,7 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
         return <SearchQueryListItem {...props} />;
     }
 
-    const {item, isFocused, showTooltip, isDisabled, onSelectRow, onDismissError, shouldPreventEnterKeySubmit, rightHandSideComponent, onFocus, shouldSyncFocus, wrapperStyle} = props;
+    const {item, isFocused, showTooltip, isDisabled, onSelectRow, onDismissError, shouldPreventEnterKeySubmit, onFocus, shouldSyncFocus, wrapperStyle} = props;
     const fsClass = FS.getChatFSClass((item as SearchOption<Report> | undefined)?.item);
 
     return (
@@ -154,7 +154,6 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            rightHandSideComponent={rightHandSideComponent}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             wrapperStyle={wrapperStyle}
@@ -228,6 +227,7 @@ function SearchAutocompleteList({
         isLoading: isLoadingOptions,
         loadAll: loadAllRecentReports,
         hasMore: hasMoreRecentReports,
+        getReportByID,
     } = useFilteredOptions({
         ...SEARCH_ROUTER_OPTIONS_CONFIG,
         isSearching: !!autocompleteQueryValue.trim(),
@@ -283,6 +283,7 @@ function SearchAutocompleteList({
             conciergeReportID,
             isTrackIntentUser,
             translate,
+            getReportByID,
             rules,
         }).options;
     }, [
@@ -301,6 +302,7 @@ function SearchAutocompleteList({
         conciergeReportID,
         isTrackIntentUser,
         translate,
+        getReportByID,
         dateFnsLocale,
         convertToDisplayString,
         rules,
@@ -351,6 +353,7 @@ function SearchAutocompleteList({
         allCards,
         allFeeds,
         options: listOptions ?? emptyOptionList,
+        getReportByID,
         draftComments,
         isDefaultRoomsBetaEnabled,
         countryCode,
@@ -537,7 +540,6 @@ function SearchAutocompleteList({
                 keyForList,
                 pressableStyle: styles.br2,
                 text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
-                wrapperStyle: [styles.pr3, styles.pl3],
             } as AutocompleteListItem;
         });
 
