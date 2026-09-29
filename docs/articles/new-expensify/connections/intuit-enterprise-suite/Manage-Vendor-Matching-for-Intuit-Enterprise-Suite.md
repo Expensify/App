@@ -41,7 +41,7 @@ Once a vendor is selected manually, Expensify preserves that selection and won't
 
 ## Where to find your imported Intuit Enterprise Suite vendors
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace Name]**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [workspace name]**.
 2. Select **Vendors**.
 3. Use **Find vendor** to search the list by name.
 
@@ -49,7 +49,7 @@ Vendors are managed in Intuit Enterprise Suite, so the list is read-only in Expe
 
 ## How to set a default company card vendor for Intuit Enterprise Suite
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace Name]**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [workspace name]**.
 2. Select **Accounting**.
 3. On the Intuit Enterprise Suite connection, select **Export**.
 4. Select **Default company card vendor**.
