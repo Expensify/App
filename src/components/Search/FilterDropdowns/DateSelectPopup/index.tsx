@@ -1,7 +1,7 @@
 import FormHelpMessage from '@components/FormHelpMessage';
 import ScrollView from '@components/ScrollView';
 import DatePresetFilterBase from '@components/Search/FilterComponents/DatePresetFilterBase';
-import type {SearchDatePresetFilterBaseHandle} from '@components/Search/FilterComponents/DatePresetFilterBase';
+import type {CustomDateModifier, SearchDatePresetFilterBaseHandle} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import ActionButtons from '@components/Search/FilterDropdowns/ActionButtons';
 import type {SearchDatePreset} from '@components/Search/types';
 import Text from '@components/Text';
@@ -31,6 +31,7 @@ type DateSelectPopupProps = {
 
     value: SearchDateValues;
     presets?: SearchDatePreset[];
+    allowedCustomDateModifiers?: readonly CustomDateModifier[];
     style?: StyleProp<ViewStyle>;
     onChange: (value: SearchDateValues) => void;
     closeOverlay: () => void;
@@ -39,7 +40,7 @@ type DateSelectPopupProps = {
     setPopoverWidth?: (width: number | undefined) => void;
 };
 
-function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, setPopoverWidth}: DateSelectPopupProps) {
+function DateSelectPopup({label, value, presets, allowedCustomDateModifiers = CONST.SEARCH.CUSTOM_DATE_MODIFIERS, style, closeOverlay, onChange, setPopoverWidth}: DateSelectPopupProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
 
@@ -64,7 +65,9 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
         [value, dateFnsLocale],
     );
     const displayedRangeText = selectedDateModifier ? rangeText : syncedRangeText;
-    const selectedDateModifierTitle = getDateModifierTitle(selectedDateModifier, '', translate);
+    const isCustomDayOnly = allowedCustomDateModifiers.length === 1 && allowedCustomDateModifiers.at(0) === CONST.SEARCH.DATE_MODIFIERS.ON;
+    const selectedDateModifierTitle =
+        isCustomDayOnly && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.ON ? translate('search.filters.date.customDay') : getDateModifierTitle(selectedDateModifier, '', translate);
 
     const updateRangeText = useCallback(() => {
         setRangeText(searchDatePresetFilterBaseRef.current?.getRangeDisplayText() ?? '');
@@ -135,6 +138,7 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
                         selectedDateModifier={selectedDateModifier}
                         onSelectDateModifier={setSelectedDateModifier}
                         presets={presets}
+                        allowedCustomDateModifiers={allowedCustomDateModifiers}
                         onDateValuesChange={updateRangeText}
                         onRangeValidationErrorChange={setShouldShowRangeError}
                     />
@@ -195,6 +199,7 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
                     selectedDateModifier={selectedDateModifier}
                     onSelectDateModifier={setSelectedDateModifier}
                     presets={presets}
+                    allowedCustomDateModifiers={allowedCustomDateModifiers}
                     onDateValuesChange={updateRangeText}
                     onRangeValidationErrorChange={setShouldShowRangeError}
                 />

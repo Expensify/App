@@ -281,7 +281,7 @@ function MoneyRequestView({
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${getNonEmptyStringOnyxID(linkedTransactionID)}`);
-    const transactionViolations = useTransactionViolations(transaction?.transactionID, true, distanceOriginalPolicy ?? policy);
+    const transactionViolations = useTransactionViolations(transaction?.transactionID, false, distanceOriginalPolicy ?? policy);
     const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -417,7 +417,16 @@ function MoneyRequestView({
     const isSplitAvailable =
         moneyRequestReport &&
         transaction &&
-        isSplitAction(moneyRequestReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, rules, policy);
+        isSplitAction(
+            moneyRequestReport,
+            [transaction],
+            originalTransaction,
+            currentUserPersonalDetails.login ?? '',
+            currentUserPersonalDetails.accountID,
+            rules,
+            iouReportOwnerLogin,
+            policy,
+        );
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
     const canEditAmount =

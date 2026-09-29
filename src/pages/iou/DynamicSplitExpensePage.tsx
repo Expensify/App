@@ -5,7 +5,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
@@ -19,6 +19,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
@@ -48,6 +49,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {getTransactionDetails, isReportApproved, isSelfDM, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
@@ -111,6 +113,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`];
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [personalDetails] = useAllPersonalDetails();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
@@ -148,6 +151,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
                 currentUserPersonalDetails.login ?? '',
                 currentUserPersonalDetails.accountID,
                 rules,
+                getLoginByAccountID(currentItemReport?.ownerAccountID, personalDetails),
                 currentItemPolicy,
                 parentReport,
             )
@@ -157,7 +161,17 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const isSplitAvailable =
         report &&
         transaction &&
-        isSplitAction(currentReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, rules, effectivePolicy, parentReport);
+        isSplitAction(
+            currentReport,
+            [transaction],
+            originalTransaction,
+            currentUserPersonalDetails.login ?? '',
+            currentUserPersonalDetails.accountID,
+            rules,
+            getLoginByAccountID(currentReport?.ownerAccountID, personalDetails),
+            effectivePolicy,
+            parentReport,
+        );
 
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, effectivePolicy, true) ?? {};
     const transactionDetailsAmount = useMemo(() => {
@@ -497,16 +511,11 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
 
     const headerDateContent = (
         <View style={styles.pb3}>
-            <MenuItemWithTopDescription
-                shouldShowRightIcon
-                shouldRenderAsHTML
-                key={translate('iou.splitDates')}
-                description={translate('iou.splitDates')}
-                title={splitDatesTitle}
+            <MenuItemField
+                name={translate('iou.splitDates')}
+                value={splitDatesTitle}
+                numberOfLinesValue={2}
                 onPress={handleDatePress}
-                style={[styles.moneyRequestMenuItem]}
-                titleWrapperStyle={styles.flex1}
-                numberOfLinesTitle={2}
             />
         </View>
     );
