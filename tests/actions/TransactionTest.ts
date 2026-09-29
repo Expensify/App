@@ -583,7 +583,7 @@ describe('actions/Transaction', () => {
              * Seeds a source report carrying a $10 unheld expense and a $20 held expense (so `unheldTotal` is
              * deliberately not equal to `total`), plus an empty destination report, then moves one of them.
              */
-            async function moveExpense(transactionIDToMove: string) {
+            async function moveExpense(transactionIDToMove: string, sourceUnheldTotals: Partial<Report> = {unheldTotal: -1000}) {
                 const policyID = generatePolicyID();
                 const policy: Policy = {...createRandomPolicy(4, CONST.POLICY.TYPE.TEAM, 'Hold Workspace'), id: policyID, outputCurrency: CONST.CURRENCY.USD};
 
@@ -596,7 +596,7 @@ describe('actions/Transaction', () => {
                     stateNum: CONST.REPORT.STATE_NUM.OPEN,
                     statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                     total: -3000,
-                    unheldTotal: -1000,
+                    ...sourceUnheldTotals,
                     transactionCount: 2,
                 } as Report;
 
@@ -694,6 +694,17 @@ describe('actions/Transaction', () => {
                 expect(source?.unheldTotal).toBe(-1000);
                 expect(destination?.total).toBe(-2000);
                 expect(destination?.unheldTotal).toBe(0);
+            });
+
+            it('should not add unheldTotal to a report that does not have one', async () => {
+                // Given a source report without unheldTotal, whose unheld amount is derived from its siblings instead
+                // When the $10 unheld expense is moved to the destination report
+                const {source} = await moveExpense(UNHELD_TRANSACTION_ID, {unheldReimbursableTotal: -1000});
+
+                // Then the source report still has no unheldTotal, because `getNonHeldAndFullAmount` would read a
+                // seeded value in preference to the correct derived sum
+                expect(source?.total).toBe(-2000);
+                expect(source).not.toHaveProperty('unheldTotal');
             });
         });
 

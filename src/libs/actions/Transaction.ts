@@ -1459,9 +1459,12 @@ function getChangeTransactionsReportOnyxData({
                 updatedReportTotals[oldReportID] = currentTotal + sourceTransactionAmount;
 
                 // `unheldTotal` only tracks transactions that are not on hold, so a held expense leaving the report
-                // does not change it. `getNonHeldAndFullAmount` reads it in preference to the derived sum.
-                const currentUnheldTotal = updatedReportUnheldTotals[oldReportID] ?? oldReport?.unheldTotal ?? 0;
-                updatedReportUnheldTotals[oldReportID] = currentUnheldTotal + (!isOnHold(transaction) ? sourceTransactionAmount : 0);
+                // does not change it. `getNonHeldAndFullAmount` reads it in preference to the derived sum, so it is
+                // only updated when already set; writing it for a report that lacks it would replace the derived sum.
+                const currentUnheldTotal = updatedReportUnheldTotals[oldReportID] ?? oldReport?.unheldTotal;
+                if (typeof currentUnheldTotal === 'number') {
+                    updatedReportUnheldTotals[oldReportID] = currentUnheldTotal + (!isOnHold(transaction) ? sourceTransactionAmount : 0);
+                }
 
                 const currentNonReimbursableTotal = updatedReportNonReimbursableTotals[oldReportID] ?? oldReport?.nonReimbursableTotal ?? 0;
                 updatedReportNonReimbursableTotals[oldReportID] = currentNonReimbursableTotal + (transaction?.reimbursable ? 0 : sourceTransactionAmount);
@@ -1492,8 +1495,10 @@ function getChangeTransactionsReportOnyxData({
                 const currentTotal = updatedReportTotals[targetReportID] ?? targetReport?.total ?? 0;
                 updatedReportTotals[targetReportID] = currentTotal - targetTransactionAmount;
 
-                const currentUnheldTotal = updatedReportUnheldTotals[targetReportID] ?? targetReport?.unheldTotal ?? 0;
-                updatedReportUnheldTotals[targetReportID] = currentUnheldTotal - (!isOnHold(transaction) ? targetTransactionAmount : 0);
+                const currentUnheldTotal = updatedReportUnheldTotals[targetReportID] ?? targetReport?.unheldTotal;
+                if (typeof currentUnheldTotal === 'number') {
+                    updatedReportUnheldTotals[targetReportID] = currentUnheldTotal - (!isOnHold(transaction) ? targetTransactionAmount : 0);
+                }
 
                 const currentNonReimbursableTotal = updatedReportNonReimbursableTotals[targetReportID] ?? targetReport?.nonReimbursableTotal ?? 0;
                 updatedReportNonReimbursableTotals[targetReportID] = currentNonReimbursableTotal - (transactionReimbursable ? 0 : targetTransactionAmount);
@@ -1513,8 +1518,10 @@ function getChangeTransactionsReportOnyxData({
                 const currentTotal = updatedReportTotals[targetReportID] ?? targetReport?.total ?? 0;
                 updatedReportTotals[targetReportID] = currentTotal + convertedAmount;
 
-                const currentUnheldTotal = updatedReportUnheldTotals[targetReportID] ?? targetReport?.unheldTotal ?? 0;
-                updatedReportUnheldTotals[targetReportID] = currentUnheldTotal + (!isOnHold(transaction) ? convertedAmount : 0);
+                const currentUnheldTotal = updatedReportUnheldTotals[targetReportID] ?? targetReport?.unheldTotal;
+                if (typeof currentUnheldTotal === 'number') {
+                    updatedReportUnheldTotals[targetReportID] = currentUnheldTotal + (!isOnHold(transaction) ? convertedAmount : 0);
+                }
 
                 const currentNonReimbursableTotal = updatedReportNonReimbursableTotals[targetReportID] ?? targetReport?.nonReimbursableTotal ?? 0;
                 updatedReportNonReimbursableTotals[targetReportID] = currentNonReimbursableTotal + (transactionReimbursable ? 0 : convertedAmount);
