@@ -2246,7 +2246,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Εικόνα προφίλ',
         customInstructions: 'Προσαρμοσμένες οδηγίες',
         copilotIntoAccount: 'Οδηγός εντός λογαριασμού',
-        viewMemberHistory: 'Προβολή ιστορικού μέλους',
+        seeChatHistory: 'Προβολή ιστορικού συνομιλίας',
         viewAgentHistory: 'Προβολή ιστορικού αντιπροσώπου',
         publicSection: {
             title: 'Δημόσιο',

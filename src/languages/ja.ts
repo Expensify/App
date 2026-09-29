@@ -2175,7 +2175,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'プロフィールアバター',
         customInstructions: 'カスタム指示',
         copilotIntoAccount: 'アカウントにCopilot',
-        viewMemberHistory: 'メンバー履歴を表示',
+        seeChatHistory: 'チャット履歴を表示',
         viewAgentHistory: 'エージェント履歴を表示',
         publicSection: {
             title: '公開',
