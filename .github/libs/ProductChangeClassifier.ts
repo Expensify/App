@@ -1,3 +1,8 @@
+/**
+ * Supports AI classification of App PRs for the IncludesProductChange label.
+ * Defines the prompt and response schema, prepares full-PR evidence, and validates model results for the labelProductChanges action.
+ * Favors labeling uncertain changes so product or UI changes are not mistaken for behavior-preserving refactors or tooling updates.
+ */
 import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods';
 import type {ResponseFormatTextJSONSchemaConfig} from 'openai/resources/responses/responses';
 
