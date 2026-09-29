@@ -59,7 +59,7 @@ function getDistanceRateNameError(existingRateNames: readonly string[], newName:
 function getDistanceRateNameErrorMessage(translate: LocalizedTranslate, error: DistanceRateNameError, name: string): string {
     switch (error) {
         case 'required':
-            return translate('workspace.distanceRates.errors.rateNameRequired');
+            return translate('workspace.distanceRates.errors.nameRequired');
         case 'existing':
             return translate('workspace.distanceRates.errors.existingRateName');
         case 'tooLong':
@@ -119,9 +119,7 @@ function validateCreateDistanceRateForm(
     const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM> = {};
     const nameError = getDistanceRateNameError(existingRateNames, values.name ?? '');
 
-    if (nameError === 'required') {
-        errors.name = translate('workspace.distanceRates.errors.nameRequired');
-    } else if (nameError) {
+    if (nameError) {
         errors.name = getDistanceRateNameErrorMessage(translate, nameError, values.name ?? '');
     }
 
