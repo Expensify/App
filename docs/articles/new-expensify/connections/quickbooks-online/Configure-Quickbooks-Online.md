@@ -60,7 +60,8 @@ To choose how data is exported from Expensify to QuickBooks Online:
   - Vendor bill
     - If exporting as vendor bills, select the AP account and optionally a default vendor
     - Vendor bill is unavailable when locations are imported as tags. To keep it available, import locations as report fields (only available on the **Control** plan)
-- **Export Consolidated Travel Billing expenses as**: This option appears only when [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) is enabled. Travel expenses export as credit card charges. Click it, then select the **Credit card account** where travel expenses will post in QuickBooks Online.
+- **Export Consolidated Travel Billing expenses as**: This option appears only when [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) is enabled. Travel expenses export as credit card charges. Click it to open the **Consolidated Travel Billing** page, then select the **Credit card account** where travel expenses will post in QuickBooks Online.
+- **Sync Consolidated Travel Billing settlements**: This toggle is on the **Consolidated Travel Billing** page, below **Credit card account**. Turn it on to continuously reconcile settlements through QuickBooks Online. Turning it on opens a picker where you choose the **Reconciliation account** that matches your settlement account, and that account then appears in a **Reconciliation account** row below the toggle. The toggle stays locked until you select a **Credit card account** and enable **Auto-sync** on the **Advanced** page.
 
 ---
 
@@ -80,7 +81,8 @@ To manage automation and other connection preferences:
   - If reimbursed via ACH in Expensify, the status will sync to paid in QuickBooks
 - **QuickBooks bill payment account**: Select where payments for expense reports are recorded
 - **QuickBooks invoice collections account**: Select where payments for invoices are recorded
-- **Sync Consolidated Travel Billing settlements**: This option appears only when [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) is enabled. Turn on this toggle to continuously reconcile settlements through QuickBooks Online. When enabled, select a **Reconciliation account** to match your settlement account. Auto-sync must be enabled to use this setting.
+
+**Sync Consolidated Travel Billing settlements** is not on this page. It is on the **Consolidated Travel Billing** page under **Export**.
 
 ---
 
