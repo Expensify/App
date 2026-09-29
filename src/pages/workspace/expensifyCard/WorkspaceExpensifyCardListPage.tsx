@@ -216,7 +216,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
             showConfirmModal({
                 title: translate('workspace.expensifyCard.changeCardLimit'),
-                prompt: translate(getExpensifyCardLimitChangeWarningKey(latestCard.nameValuePairs?.limitType), convertToDisplayString(nextLimit, settlementCurrency)),
+                prompt: translate(getExpensifyCardLimitChangeWarningKey(latestCard.nameValuePairs?.limitType ?? defaultLimitType), convertToDisplayString(nextLimit, settlementCurrency)),
                 confirmText: translate('workspace.expensifyCard.changeLimit'),
                 cancelText: translate('common.cancel'),
                 buttonVariant: CONST.BUTTON_VARIANT.DANGER,
@@ -228,7 +228,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 persistLimit();
             });
         },
-        [convertToDisplayString, fundID, settlementCurrency, showConfirmModal, translate],
+        [convertToDisplayString, defaultLimitType, fundID, settlementCurrency, showConfirmModal, translate],
     );
 
     const cardRows = useMemo<WorkspaceExpensifyCardTableRowData[]>(
