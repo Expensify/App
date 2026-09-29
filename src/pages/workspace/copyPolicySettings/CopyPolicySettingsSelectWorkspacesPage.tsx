@@ -167,10 +167,7 @@ function CopyPolicySettingsSelectWorkspacesPage() {
                 shouldEnableMaxHeight
                 testID={CopyPolicySettingsSelectWorkspacesPage.displayName}
             >
-                <HeaderWithBackButtonAndTitle
-                    title={translate('workspace.copyPolicySettings.title')}
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.copyPolicySettings.title')} />
                 <View style={[styles.ph5, styles.pv3]}>
                     <Text style={[styles.textHeadline]}>{translate('workspace.copyPolicySettings.selectWorkspaces.title')}</Text>
                     <Text style={[styles.textSupporting]}>{translate('workspace.copyPolicySettings.selectWorkspaces.description')}</Text>
