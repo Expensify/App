@@ -34,6 +34,11 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    bulkActionBar: {
+        label: '批量操作',
+        clearSelection: '清除选择',
+        loadingSelection: '正在加载选择',
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 天`,

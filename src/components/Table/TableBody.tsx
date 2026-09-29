@@ -385,7 +385,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
             <FlashList<TableData>
                 ref={listRef}
                 data={listData}
-                style={[styles.flex1, styles.mnh0]}
+                style={[styles.flex1, styles.mnh0, isBulkActionBarVisible && styles.bulkActionBarScrollPadding]}
                 showsVerticalScrollIndicator={false}
                 maintainVisibleContentPosition={{disabled: true}}
                 ListHeaderComponent={pageHeaderElement}

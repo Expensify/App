@@ -7,6 +7,7 @@ import Text from '@components/Text';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useInvertedThemePreference from '@hooks/useInvertedThemePreference';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -18,7 +19,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Accessibility from '@libs/Accessibility';
-import blurActiveElement from '@libs/Accessibility/blurActiveElement';
+import mergeRefs from '@libs/mergeRefs';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 
 import {setDisableDismissOnEscape} from '@userActions/Modal';
@@ -39,6 +40,7 @@ import type {BulkActionBarProps} from './types';
 import BulkActionBarButton from './BulkActionBarButton';
 import BulkActionBarMenuTheme from './BulkActionBarMenuTheme';
 import {defaultPopoverAnchorPosition, MORE_MENU_ANCHOR_ALIGNMENT} from './popoverPosition';
+import useBulkActionBarFocus from './useBulkActionBarFocus';
 
 /**
  * The bar's contents. Everything here takes its colors from the theme it is rendered under, which `BulkActionBar`
@@ -77,6 +79,9 @@ function BulkActionBarContent<TValueType>({
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'DownArrow', 'UpArrow']);
     const {calculatePopoverPosition} = usePopoverPosition();
 
+    const barElementRef = useRef<ComponentRef<typeof View> | null>(null);
+    const {handleFocusBeforeClose} = useBulkActionBarFocus(barElementRef);
+
     const moreAnchorRef = useRef<ComponentRef<typeof View> | null>(null);
     const [isMoreMenuVisible, setIsMoreMenuVisible] = useState(false);
     const [moreMenuAnchorPosition, setMoreMenuAnchorPosition] = useState<AnchorPosition | null>(defaultPopoverAnchorPosition);
@@ -94,16 +99,13 @@ function BulkActionBarContent<TValueType>({
     const isCoveredByModal = !!modal?.isVisible && !(isFocused && modal?.type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED);
     const shouldClearSelectionOnEscape = !modal?.willAlertModalBecomeVisible && !isCoveredByModal;
 
-    useKeyboardShortcut(
-        CONST.KEYBOARD_SHORTCUTS.ESCAPE,
-        () => {
-            // A key press makes whatever holds focus match `:focus-visible`, so a checkbox clicked with the mouse would
-            // light up with a focus ring just as the selection it belongs to disappears.
-            blurActiveElement();
-            onClearSelection();
-        },
-        {isActive: shouldClearSelectionOnEscape},
-    );
+    const clearSelection = () => {
+        handleFocusBeforeClose();
+        onClearSelection();
+    };
+
+    // Esc inside a text field is how you leave the field, so leave the selection alone there.
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, clearSelection, {isActive: shouldClearSelectionOnEscape, captureOnInputs: false});
 
     // Whichever Esc handler subscribed last runs first, so holding the pane back keeps it from closing out from under
     // a selection Esc was meant to clear.
@@ -139,16 +141,29 @@ function BulkActionBarContent<TValueType>({
         };
     }, [isMoreMenuVisible, calculatePopoverPosition]);
 
+    // The bar appears where nothing was before, without taking focus, so a screen reader only learns about it and about
+    // the size of the selection it describes from an announcement.
+    useAccessibilityAnnouncement(countLabel, !isSelectedCountLoading, {shouldAnnounceOnWeb: true, shouldAnnounceOnNative: true, politeness: 'polite'});
+
     return (
         <View
-            ref={barRef}
+            ref={mergeRefs(barRef, barElementRef)}
             style={styles.bulkActionBar}
+            role={CONST.ROLE.TOOLBAR}
+            accessibilityLabel={translate('bulkActionBar.label')}
             onLayout={(event) => onBarLayout(event.nativeEvent.layout.width)}
         >
             {/* Sized for a three-digit count so the bar keeps still as the selection grows, and so swapping the
                 spinner for the count does not resize it either. */}
             <View style={styles.bulkActionBarCount}>
-                {isSelectedCountLoading ? <ActivityIndicator color={theme.spinner} /> : <Text style={[styles.textLabel, styles.textStrong, styles.textAlignCenter]}>{countLabel}</Text>}
+                {isSelectedCountLoading ? (
+                    <ActivityIndicator
+                        color={theme.spinner}
+                        accessibilityLabel={translate('bulkActionBar.loadingSelection')}
+                    />
+                ) : (
+                    <Text style={[styles.textLabel, styles.textStrong, styles.textAlignCenter]}>{countLabel}</Text>
+                )}
             </View>
             {!!noticeText && <Text style={[styles.textLabel, styles.colorMuted]}>{noticeText}</Text>}
             {inlineOptions.map((option) => (
@@ -165,6 +180,7 @@ function BulkActionBarContent<TValueType>({
                         size={CONST.BUTTON_SIZE.SMALL}
                         onPress={() => setIsMoreMenuVisible((isVisible) => !isVisible)}
                         accessibilityLabel={translate('common.more')}
+                        accessibilityState={{expanded: isMoreMenuVisible}}
                         sentryLabel={CONST.SENTRY_LABEL.BULK_ACTION_BAR.MORE}
                     >
                         <Button.Text>{translate('common.more')}</Button.Text>
@@ -197,8 +213,8 @@ function BulkActionBarContent<TValueType>({
                 </>
             )}
             <PressableWithFeedback
-                onPress={onClearSelection}
-                accessibilityLabel={translate('common.close')}
+                onPress={clearSelection}
+                accessibilityLabel={translate('bulkActionBar.clearSelection')}
                 role={CONST.ROLE.BUTTON}
                 style={styles.bulkActionBarCloseButton}
                 sentryLabel={CONST.SENTRY_LABEL.BULK_ACTION_BAR.CLEAR_SELECTION}

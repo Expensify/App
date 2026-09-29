@@ -5572,6 +5572,13 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: bulkActionBarHeight + CONST.BULK_ACTION_BAR.BOTTOM_OFFSET + CONST.BULK_ACTION_BAR.LIST_GAP,
         },
 
+        // Keeps a row the browser scrolls into view, such as one reached with Tab, from settling underneath the bar
+        // (WCAG 2.4.11). The content spacing above only lifts the end of the list clear of it. Applied to the scrolling
+        // container, which is what the browser measures that scroll against.
+        bulkActionBarScrollPadding: {
+            scrollPaddingBottom: bulkActionBarHeight + CONST.BULK_ACTION_BAR.BOTTOM_OFFSET + CONST.BULK_ACTION_BAR.LIST_GAP,
+        },
+
         // Wide enough for a three-digit count, so the bar does not resize as the selection grows past 9 or 99. A
         // selection can cover far more rows than are on screen. Also keeps the width steady while the count loads.
         bulkActionBarCount: {
