@@ -28,6 +28,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 
+import ExpenseFieldRow from './ExpenseFieldRow';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {descriptionStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -38,6 +40,7 @@ type DescriptionFieldProps = {
 
 function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps) {
     const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm, isReadOnly, didConfirm, transactionID, reportID} = useConfirmationFields();
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -92,6 +95,45 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
         setMoneyRequestDescription(transactionID, newDescription, true, transactionHasReceipt);
     };
 
+    const openDescriptionPage = () => {
+        if (!transactionID) {
+            return;
+        }
+
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, reportActionID)));
+    };
+
+    // On the bordered form the editable description is a text input, so a locked one has to read as a disabled input
+    // too rather than as a push row, or the same screen answers "this field can't be changed" two different ways.
+    const readOnlyDescription = shouldUseDropdownRows ? (
+        <ExpenseFieldRow
+            name={translate('common.description')}
+            value={iouComment}
+            numberOfLinesValue={2}
+            rightLabel={isDescriptionRequired ? translate('common.required') : ''}
+            onPress={openDescriptionPage}
+            isDisabled={didConfirm}
+            isInteractive={false}
+            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
+        />
+    ) : (
+        <MenuItemWithTopDescription
+            shouldShowRightIcon={!isReadOnly}
+            shouldParseTitle
+            excludedMarkdownRules={!policy ? ['reportMentions'] : []}
+            title={iouComment}
+            description={translate('common.description')}
+            onPress={openDescriptionPage}
+            style={[styles.moneyRequestMenuItem]}
+            titleStyle={styles.flex1}
+            disabled={didConfirm}
+            interactive={!isReadOnly}
+            numberOfLinesTitle={2}
+            rightLabel={isDescriptionRequired ? translate('common.required') : ''}
+            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
+        />
+    );
+
     return (
         <View>
             <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
@@ -118,14 +160,17 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
                                 />
                             </View>
                         ) : (
-                            <MenuItemFieldHTML
-                                name={translate('common.description')}
-                                value={iouComment ? Parser.replace(iouComment, {disabledRules: !policy ? ['reportMentions'] : []}) : undefined}
-                                isDisabled={didConfirm}
-                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
-                            >
-                                {!iouComment && isDescriptionRequired && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
-                            </MenuItemFieldHTML>
+                            <>
+                                {readOnlyDescription}
+                                <MenuItemFieldHTML
+                                    name={translate('common.description')}
+                                    value={iouComment ? Parser.replace(iouComment, {disabledRules: !policy ? ['reportMentions'] : []}) : undefined}
+                                    isDisabled={didConfirm}
+                                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
+                                >
+                                    {!iouComment && isDescriptionRequired && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
+                                </MenuItemFieldHTML>
+                            </>
                         )}
                     </MentionReportContext.Provider>
                 </ShowContextMenuActionsContext.Provider>

@@ -3,6 +3,7 @@ import {act, render, screen} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
+import type {ExpenseFieldRowProps} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow';
 import ManualFooter from '@components/MoneyRequestConfirmationListFooter/variants/ManualFooter';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -19,6 +20,26 @@ import Onyx from 'react-native-onyx';
 import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+// The manual form renders its selectable rows as bordered fields. Stand them in for the same shape the
+// `MenuItemWithTopDescription` mock above produces, so the assertions read the same either way.
+jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View, Text} = require('react-native');
+    return (props: ExpenseFieldRowProps) => (
+        <View
+            testID={`menu-item-${props.name}`}
+            accessibilityLabel={props.name}
+            onPress={props.onPress}
+            // Mirrors the component's own `isInteractive = true` default, so a row that simply omits the prop
+            // does not read as disabled.
+            accessibilityState={{disabled: !(props.isInteractive ?? true)}}
+        >
+            <Text>{props.name}</Text>
+            <Text>{props.value}</Text>
+        </View>
+    );
+});
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     getCurrentRoute: jest.fn(() => ({
@@ -99,6 +120,7 @@ const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction
             shouldShowCategories: false,
             shouldShowTax: false,
             isParticipantPickerVisible: false,
+            hasParticipantSection: false,
         },
         errorState: {shouldDisplayFieldError: false, formError: '', clearFormErrors: jest.fn(), setFormError: jest.fn()},
         receiptOptions: {

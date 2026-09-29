@@ -7,6 +7,7 @@ import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import {getReportName} from '@libs/ReportNameUtils';
 import {generateReportID, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 
@@ -22,6 +23,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {createOutstandingReportsForPolicySelector} from '@selectors/Report';
 import React from 'react';
 
+import ExpenseFieldRow from './ExpenseFieldRow';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {reportFieldTransactionStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -40,6 +43,7 @@ type ReportFieldProps = {
 };
 
 function ReportField({selectedParticipants, iouType, reportID, reportActionID, action, transactionID, isPerDiemRequest, isPolicyExpenseChat}: ReportFieldProps) {
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const {translate, localeCompare} = useLocalize();
 
     const policyID = selectedParticipants?.at(0)?.policyID;
@@ -111,20 +115,34 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     // since the destination is already determined and there's no need to show a selectable list.
     const shouldReportBeEditable = (isUnreported ? outstandingReports.length >= 1 : outstandingReports.length > 1) && !isMoneyRequestReport(reportID);
 
+    const openReportPage = () => {
+        if (!transactionID || !selectedReportID) {
+            return;
+        }
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, iouType, transactionID, selectedReportID, reportActionID)));
+    };
+
+    if (shouldUseDropdownRows) {
+        return (
+            <ExpenseFieldRow
+                name={translate('common.report')}
+                // The field row renders plain text, so an HTML report name (e.g. a room with a markup name) is
+                // flattened first. Plain names pass through unchanged, with their entities decoded.
+                value={Parser.htmlToText(reportName)}
+                onPress={openReportPage}
+                // A report the user cannot change reads as a disabled field, the same as every other locked field
+                // on this form: the row itself owns that rule.
+                isInteractive={shouldReportBeEditable}
+                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.REPORT_FIELD}
+            />
+        );
+    }
+
     return (
         <MenuItemFieldHTML
             name={translate('common.report')}
             value={reportName}
-            onPress={
-                shouldReportBeEditable
-                    ? () => {
-                          if (!transactionID || !selectedReportID) {
-                              return;
-                          }
-                          Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, iouType, transactionID, selectedReportID, reportActionID)));
-                      }
-                    : undefined
-            }
+            onPress={shouldReportBeEditable ? openReportPage : undefined}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.REPORT_FIELD}
             testID="menu-item-Report"
         />
