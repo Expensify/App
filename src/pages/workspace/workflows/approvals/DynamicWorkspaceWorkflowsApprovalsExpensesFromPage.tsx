@@ -32,6 +32,7 @@ import {
     getApprovalWorkflowRulesForPolicy,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
+    includesEveryWorkspaceMember,
     isApprovalWorkflowLockedByIntegration,
 } from '@libs/WorkflowUtils';
 
@@ -522,6 +523,26 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                 setWorkspaceInviteMembersDraft(route.params.policyID, nextDraft);
                 setApprovalWorkflowMembers(workflowMembers);
             };
+
+            // Warn when selecting the last unselected workspace member: that moves everyone into this workflow,
+            // which deletes every other workflow.
+            const selectedLogins = selectedMembers.map((member) => member.login);
+            const nextSelectedLogins = members.map((member) => member.login);
+            const isSelectingLastMember = !includesEveryWorkspaceMember(selectedLogins, policy?.employeeList) && includesEveryWorkspaceMember(nextSelectedLogins, policy?.employeeList);
+            if (isSelectingLastMember) {
+                showConfirmModal({
+                    title: translate('workflowsExpensesFromPage.moveEveryoneToThisWorkflowTitle'),
+                    prompt: translate('workflowsExpensesFromPage.moveEveryoneToThisWorkflowPrompt'),
+                    confirmText: translate('common.confirm'),
+                    cancelText: translate('common.cancel'),
+                }).then((result) => {
+                    if (result.action !== ModalActions.CONFIRM) {
+                        return;
+                    }
+                    applySelection(members);
+                });
+                return;
+            }
 
             // Warn when adding a member who already belongs to another workflow. With the beta on this
             // applies to both create and edit (a submitter can only be in one workflow, so confirming
