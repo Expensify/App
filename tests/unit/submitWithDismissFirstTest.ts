@@ -12,7 +12,7 @@ const mockDismissModal = jest.fn<ReturnType<DismissModal>, Parameters<DismissMod
 const mockRevealRouteBeforeDismissingModal = jest.fn<ReturnType<RevealRouteBeforeDismissingModal>, Parameters<RevealRouteBeforeDismissingModal>>();
 const mockGetIsFullscreenPreInsertedUnderRHP = jest.fn<boolean, []>();
 const mockGetIsNarrowLayout = jest.fn<boolean, []>();
-const mockReserveDeferredWriteChannel = jest.fn();
+const mockMarkPendingSearchWrite = jest.fn();
 const mockStartTracking = jest.fn();
 const mockSetFastPath = jest.fn();
 const mockSetPendingSubmitFollowUpAction = jest.fn();
@@ -25,11 +25,11 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getIsFullscreenPreInsertedUnderRHP: () => mockGetIsFullscreenPreInsertedUnderRHP() as unknown,
     clearFullscreenPreInsertedFlag: jest.fn(),
 }));
+jest.mock('@libs/pendingSearchWrite', () => ({
+    markPendingSearchWrite: (...args: unknown[]) => mockMarkPendingSearchWrite(...args) as unknown,
+}));
 jest.mock('@libs/ReportUtils', () => ({
     getReportOrDraftReport: (id: string) => mockGetReportOrDraftReport(id) as unknown,
-}));
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    reserveDeferredWriteChannel: (...args: unknown[]) => mockReserveDeferredWriteChannel(...args) as unknown,
 }));
 jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
     startTracking: (...args: unknown[]) => mockStartTracking(...args) as unknown,
@@ -58,7 +58,7 @@ describe('submitWithDismissFirst', () => {
     });
 
     describe('Search-topmost branch', () => {
-        it('reserves deferred write channel and dismisses modal when Search is topmost', () => {
+        it('raises the pending Search write signal and dismisses modal when Search is topmost', () => {
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
             const executeWrite = jest.fn();
 
@@ -68,7 +68,7 @@ describe('submitWithDismissFirst', () => {
                 telemetryContext: TELEMETRY_CONTEXT,
             });
 
-            expect(mockReserveDeferredWriteChannel).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            expect(mockMarkPendingSearchWrite).toHaveBeenCalled();
             expect(mockDismissModal).toHaveBeenCalledTimes(1);
             expect(executeWrite).not.toHaveBeenCalled();
         });
