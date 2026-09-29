@@ -1,3 +1,8 @@
+/**
+ * Applies an expense edit (amount, merchant, distance, tax, etc.) to a Transaction and returns the updated copy,
+ * plus helpers for the cleared pending fields and the recalculated distance merchant.
+ * Extracted from TransactionUtils/index.ts to keep that file smaller.
+ */
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';

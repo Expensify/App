@@ -1,3 +1,7 @@
+/**
+ * Builds the optimistic Transaction written to Onyx when an expense is created, before the server responds.
+ * Extracted from TransactionUtils/index.ts to keep that file smaller.
+ */
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {rand64} from '@libs/NumberUtils';
