@@ -11,6 +11,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
+import type useReportActionsScroll from '@hooks/useReportActionsScroll';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
@@ -521,6 +522,36 @@ describe('ReportActionsList (body)', () => {
                 }),
         );
         expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
+    });
+
+    it('resumes resize following after scrolling from a linked action to the end', async () => {
+        // Given the chat opens at a linked action, which must keep its initial position.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        const originalImplementation = mockUseReportActionsScroll.getMockImplementation();
+        const defaultScrollState = mockUseReportActionsScroll() as ReturnType<typeof useReportActionsScroll>;
+        mockUseReportActionsScroll.mockReturnValue({...defaultScrollState, initialScrollIndex: 0});
+        try {
+            renderReportActionsList();
+            expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
+
+            // When the reader reaches the end and the latest row grows afterward.
+            act(() => {
+                const listProps = getCapturedListProps();
+                listProps?.onScroll?.({
+                    nativeEvent: {
+                        contentOffset: {x: 0, y: 500},
+                        contentSize: {height: 1000, width: 300},
+                        layoutMeasurement: {height: 500, width: 300},
+                    },
+                });
+                listProps?.onContentSizeChange?.(300, 1025);
+            });
+
+            // Then the latest content remains visible even though the route still contains a linked action.
+            await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
+        } finally {
+            mockUseReportActionsScroll.mockImplementation(originalImplementation);
+        }
     });
 
     it('cancels a queued end correction as soon as the reader starts dragging', async () => {

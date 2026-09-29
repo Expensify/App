@@ -444,13 +444,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     };
 
     const scheduleEndCorrection = () => {
-        if (
-            readyEndListIDRef.current !== listID ||
-            !shouldFollowEndOnResizeRef.current ||
-            hasNewerActions ||
-            initialScrollIndex !== undefined ||
-            endCorrectionFrameRef.current !== undefined
-        ) {
+        if (readyEndListIDRef.current !== listID || !shouldFollowEndOnResizeRef.current || hasNewerActions || endCorrectionFrameRef.current !== undefined) {
             return;
         }
         endCorrectionFrameRef.current = requestAnimationFrame(() => {
