@@ -22,6 +22,7 @@ jest.mock('@components/Search/hooks/useUpdateFilterQuery', () => ({
 
 jest.mock('@libs/SearchUIUtils', () => ({
     mapFiltersFormToLabelValueList: (...args: unknown[]) => mockMapFiltersFormToLabelValueList(...args),
+    SKIPPED_SEARCH_FILTERS: jest.requireActual<{SKIPPED_SEARCH_FILTERS: Set<string>}>('@libs/SearchUIUtils').SKIPPED_SEARCH_FILTERS,
 }));
 
 jest.mock('@components/Search/SearchContext', () => ({
@@ -55,7 +56,7 @@ function mockSearchResultsContext(overrides: Record<string, unknown> = {}) {
 
 function mockSearchQueryContext(overrides: Record<string, unknown> = {}) {
     mockUseSearchQueryContext.mockReturnValue({
-        currentDefaultSearchQueryFilterKeys: [],
+        currentDefaultSearchQueryFilterKeys: new Set(),
         currentSearchQueryJSON: undefined,
         currentDefaultSearchQueryJSON: undefined,
         ...overrides,
@@ -116,6 +117,35 @@ describe('useSearchFiltersBar', () => {
             const {result} = renderHook(() => useSearchFiltersBar(queryJSON));
 
             expect(result.current.shouldShowResetFilters).toBe(false);
+        });
+    });
+
+    describe('skipped filters', () => {
+        function getSkippedFilters() {
+            const skippedFilters = mockMapFiltersFormToLabelValueList.mock.calls.at(-1)?.at(2);
+            return skippedFilters instanceof Set ? skippedFilters : undefined;
+        }
+
+        it('shows the action filter when it is not part of the default query', () => {
+            // Given a view whose default query has no action filter, like Spend > Reports
+            mockSearchQueryContext({currentDefaultSearchQueryFilterKeys: new Set([CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE])});
+
+            // When the filters bar is built
+            renderHook(() => useSearchFiltersBar(queryJSON));
+
+            // Then the action filter isn't skipped, so a carried-over action shows as a removable chip
+            expect(getSkippedFilters()?.has(CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION)).toBe(false);
+        });
+
+        it('hides the action filter when it is part of the default query', () => {
+            // Given a to-do view whose default query is built from an action filter, like Approve
+            mockSearchQueryContext({currentDefaultSearchQueryFilterKeys: new Set([CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE, CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION])});
+
+            // When the filters bar is built
+            renderHook(() => useSearchFiltersBar(queryJSON));
+
+            // Then the action filter is skipped so the to-do view looks the same as before
+            expect(getSkippedFilters()?.has(CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION)).toBe(true);
         });
     });
 

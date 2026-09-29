@@ -152,10 +152,14 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchResultsContext();
     const {currentSearchQueryJSON, currentDefaultSearchQueryJSON, currentDefaultSearchQueryFilterKeys} = useSearchQueryContext();
     const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
+    // The action filter defines the to-do views (e.g. Approve), so it's only shown when it isn't part of the default query
+    const skippedFilters = currentDefaultSearchQueryFilterKeys.has(CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION)
+        ? new Set([...SKIPPED_SEARCH_FILTERS, CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION])
+        : SKIPPED_SEARCH_FILTERS;
     const filters = mapFiltersFormToLabelValueList(
         searchAdvancedFiltersForm,
         currentDefaultSearchQueryFilterKeys,
-        SKIPPED_SEARCH_FILTERS,
+        skippedFilters,
         translate,
         dateFnsLocale,
         localeCompare,

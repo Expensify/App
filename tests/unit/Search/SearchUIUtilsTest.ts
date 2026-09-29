@@ -14534,6 +14534,49 @@ describe('SearchUIUtils', () => {
             expect(result.at(0)?.isDefault).toBe(true);
             expect(result.at(1)?.isDefault).toBe(false);
         });
+
+        it('maps the action filter to a translated label and value', () => {
+            // Given a form with an action filter that isn't skipped, like one carried over from a to-do view
+            const form = {
+                [CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE]: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                [CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION]: CONST.SEARCH.ACTION_FILTERS.APPROVE,
+            };
+
+            // When the form is mapped with the default skipped filters
+            const result = SearchUIUtils.mapFiltersFormToLabelValueList(
+                form,
+                new Set(),
+                SearchUIUtils.SKIPPED_SEARCH_FILTERS,
+                translateLocal,
+                undefined,
+                localeCompare,
+                convertToDisplayStringWithoutCurrency,
+            );
+
+            // Then the action filter is listed so the user can see and remove it
+            expect(result).toEqual([{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION, label: 'Action', value: 'Approve'}]);
+        });
+    });
+});
+
+describe('getSingleSelectFilterOptions', () => {
+    beforeAll(async () => {
+        await IntlStore.load('en');
+    });
+
+    it('returns every action filter as an option', () => {
+        // Given the action filter, which is a single-select filter
+
+        // When its options are requested
+        const options = SearchUIUtils.getSingleSelectFilterOptions(FILTER_KEYS.ACTION, translateLocal);
+
+        // Then each action filter value is offered with its translated name
+        expect(options).toEqual([
+            {value: CONST.SEARCH.ACTION_FILTERS.SUBMIT, text: 'Submit'},
+            {value: CONST.SEARCH.ACTION_FILTERS.APPROVE, text: 'Approve'},
+            {value: CONST.SEARCH.ACTION_FILTERS.PAY, text: 'Pay'},
+            {value: CONST.SEARCH.ACTION_FILTERS.EXPORT, text: 'Export'},
+        ]);
     });
 });
 
