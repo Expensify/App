@@ -135,14 +135,6 @@ import {doesPersonalDetailMatchSearchTerm, getCurrentUserSearchTerms, getPersona
  * methods should be named for the views they build options for and then exported for use in a component.
  */
 
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (value) => {
-        allReports = value;
-    },
-});
-
 /**
  * Return true if personal details data is ready, i.e. report list options can be created.
  */
