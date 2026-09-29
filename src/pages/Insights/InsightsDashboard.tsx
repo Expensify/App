@@ -83,7 +83,7 @@ function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry, o
                 shouldShow
                 title={translate('search.searchResults.staleResults.title')}
                 subtitle={translate('search.searchResults.staleResults.subtitle')}
-                illustration="FolderSync"
+                illustration="ChartSync"
                 illustrationWidth={variables.iconSizeUltraLarge}
                 illustrationHeight={variables.iconSizeUltraLarge}
                 buttonTranslationKey="search.searchResults.staleResults.buttonText"
