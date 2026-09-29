@@ -27,3 +27,4 @@ function useReportIDToNameMap(): ReportIDToNameMap {
 }
 
 export default useReportIDToNameMap;
+export {buildReportIDToNameMap};

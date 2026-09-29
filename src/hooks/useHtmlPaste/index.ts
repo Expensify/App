@@ -1,9 +1,11 @@
-import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
+import useOnyx from '@hooks/useOnyx';
+import {buildReportIDToNameMap} from '@hooks/useReportIDToNameMap';
 
 import {isStandaloneURL, toMarkdownLink} from '@libs/MarkdownLinkHelpers';
 import Parser from '@libs/Parser';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import {useCallback, useEffect, useRef} from 'react';
 
@@ -44,7 +46,7 @@ const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: num
 };
 
 const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive = false, maxLength = CONST.MAX_COMMENT_LENGTH + 1) => {
-    const reportIDToName = useReportIDToNameMap();
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     /**
      * Set pasted text to clipboard
@@ -100,9 +102,10 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
      */
     const handlePastedHTML = useCallback(
         (html: string) => {
-            paste(Parser.htmlToMarkdown(html, {reportIDToName}));
+            // Built here rather than in render so it costs nothing until a paste actually happens.
+            paste(Parser.htmlToMarkdown(html, {reportIDToName: buildReportIDToNameMap(reports)}));
         },
-        [paste, reportIDToName],
+        [paste, reports],
     );
 
     /**
