@@ -603,6 +603,12 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The receipt object associated with the transaction */
         receipt?: Receipt;
 
+        /**
+         * Whether a receipt was ever removed from this expense, which makes a receipt added later a replacement.
+         * Needed because nothing else remembers the old receipt once it is detached.
+         */
+        wasReceiptRemoved?: boolean;
+
         /** The transaction thread reportID - usually set for transactions in the search snapshot */
         transactionThreadReportID?: string | undefined;
 

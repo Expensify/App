@@ -1526,6 +1526,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingConversionMessage: '当你重新联网时，总金额会更新',
         changedTheExpense: '更改了报销单',
         addedReceipt: '添加了收据',
+        replacedReceipt: '替换了收据',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `将 ${valueName} 更改为 ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `将 ${translatedChangedField} 设置为 ${newMerchant}，这会将金额设置为 ${newAmountToDisplay}`,

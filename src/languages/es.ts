@@ -1581,6 +1581,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         changedTheExpense: 'cambió el gasto',
         addedReceipt: 'añadió un recibo',
+        replacedReceipt: 'reemplazó un recibo',
         setTheRequest: (valueName, newValueToDisplay) =>
             `${valueName === 'comerciante' || valueName === 'importe' || valueName === 'gasto' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField, newMerchant, newAmountToDisplay) =>

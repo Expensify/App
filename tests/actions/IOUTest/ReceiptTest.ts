@@ -684,7 +684,8 @@ describe('actions/IOU/Receipt', () => {
 
                 // And the thread receives the action, attributed to the copilot so the actor does not change once the server responds
                 const threadActionsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, Onyx.METHOD.MERGE, true);
-                expect(Object.values(threadActionsUpdate.value).at(0)).toEqual(
+                const optimisticAction = Object.values(threadActionsUpdate.value).at(0);
+                expect(optimisticAction).toEqual(
                     expect.objectContaining({
                         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                         delegateAccountID,
@@ -693,12 +694,116 @@ describe('actions/IOU/Receipt', () => {
                     }),
                 );
 
+                // The old receipt was never uploaded, so this reads as an addition rather than a replacement
+                expect(optimisticAction).not.toHaveProperty('originalMessage.receiptReplaced');
+
                 // And a failed upload restores the timestamps the thread had before
                 const threadReportFailure = getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, Onyx.METHOD.MERGE, true);
                 expect(threadReportFailure.value).toEqual({
                     lastVisibleActionCreated: previousThreadTime,
                     lastReadTime: previousThreadTime,
                 });
+            } finally {
+                writeSpy.mockRestore();
+            }
+        });
+
+        it('should flag the optimistic action as a replacement when the expense already holds an uploaded receipt', async () => {
+            // Given an expense whose receipt is already stored server-side, so it has a receiptID
+            const expenseReportID = 'replaceReceiptReplacementExpenseReportID';
+            const threadReportID = 'replaceReceiptReplacementThreadReportID';
+            const transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: expenseReportID,
+                receipt: {...OLD_RECEIPT, receiptID: 1234},
+            };
+
+            const threadReport = {
+                ...createRandomReport(2, undefined),
+                reportID: threadReportID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, threadReport);
+            await waitForBatchedUpdates();
+
+            const writeSpy = mockApiWrite();
+            try {
+                // When the receipt is replaced with a different one
+                replaceReceipt({
+                    isVendorMatchingBetaEnabled: false,
+                    transaction,
+                    file: createFile(),
+                    source,
+                    transactionPolicy: undefined,
+                    transactionPolicyTagList: undefined,
+                    transactionReport: undefined,
+                    delegateAccountID: undefined,
+                    currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    transactionThreadReport: threadReport,
+                });
+                await waitForBatchedUpdates();
+
+                // Then the action carries both flags, so a renderer that only knows receiptAdded still shows something
+                const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+                const threadActionsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, Onyx.METHOD.MERGE, true);
+                expect(Object.values(threadActionsUpdate.value).at(0)).toEqual(
+                    expect.objectContaining({
+                        originalMessage: expect.objectContaining({receiptAdded: true, receiptReplaced: true}),
+                    }),
+                );
+            } finally {
+                writeSpy.mockRestore();
+            }
+        });
+
+        it('should flag the optimistic action as a replacement when the receipt was deleted first, even before the server hears about it', async () => {
+            // Given an expense whose receipt was already deleted, so it holds no receipt but remembers the removal
+            const expenseReportID = 'replaceReceiptAfterDeleteExpenseReportID';
+            const threadReportID = 'replaceReceiptAfterDeleteThreadReportID';
+            const transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: expenseReportID,
+                receipt: undefined,
+                wasReceiptRemoved: true,
+            };
+
+            const threadReport = {
+                ...createRandomReport(2, undefined),
+                reportID: threadReportID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, threadReport);
+            await waitForBatchedUpdates();
+
+            const writeSpy = mockApiWrite();
+            try {
+                // When a new receipt is added in its place
+                replaceReceipt({
+                    isVendorMatchingBetaEnabled: false,
+                    transaction,
+                    file: createFile(),
+                    source,
+                    transactionPolicy: undefined,
+                    transactionPolicyTagList: undefined,
+                    transactionReport: undefined,
+                    delegateAccountID: undefined,
+                    currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    transactionThreadReport: threadReport,
+                });
+                await waitForBatchedUpdates();
+
+                // Then it reads as a replacement straight away, rather than showing "added" until the server corrects it
+                const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+                const threadActionsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, Onyx.METHOD.MERGE, true);
+                expect(Object.values(threadActionsUpdate.value).at(0)).toEqual(
+                    expect.objectContaining({
+                        originalMessage: expect.objectContaining({receiptAdded: true, receiptReplaced: true}),
+                    }),
+                );
             } finally {
                 writeSpy.mockRestore();
             }
@@ -767,9 +872,15 @@ describe('actions/IOU/Receipt', () => {
                 expect(transactionOptimistic.value).toEqual(
                     expect.objectContaining({
                         receipt: null,
+                        // Recorded so a receipt added later reads as a replacement, even while still offline
+                        wasReceiptRemoved: true,
                         pendingFields: {receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     }),
                 );
+
+                // And a failed delete leaves no removal recorded, since the receipt is still there
+                const transactionFailure = getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, Onyx.METHOD.MERGE, true);
+                expect(transactionFailure.value).toEqual(expect.objectContaining({wasReceiptRemoved: null}));
             } finally {
                 writeSpy.mockRestore();
             }

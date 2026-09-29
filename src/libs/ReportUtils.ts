@@ -8506,6 +8506,9 @@ function buildOptimisticDetachReceipt(reportID: string | undefined, transactionI
 /**
  * Builds an optimistic "added a receipt" action for the transaction thread.
  * It shares a reportActionID with the server action so the two reconcile.
+ *
+ * @param isReplacement Whether the receipt took the place of one the expense already had or had removed earlier.
+ * This is a guess from what the client knows; the server copy arrives under the same reportActionID and corrects it.
  */
 function buildOptimisticReceiptAddedAction(
     reportID: string | undefined,
@@ -8514,6 +8517,7 @@ function buildOptimisticReceiptAddedAction(
     currentUserDisplayName: string | undefined,
     currentUserAvatar: AvatarSource | undefined,
     delegateAccountID: number | undefined,
+    isReplacement = false,
 ) {
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
@@ -8525,11 +8529,12 @@ function buildOptimisticReceiptAddedAction(
         originalMessage: {
             transactionID,
             receiptAdded: true,
+            ...(isReplacement ? {receiptReplaced: true} : {}),
         },
         message: [
             {
                 // The App builds the text from originalMessage, so this text is only used by OldDot.
-                text: 'You added a receipt',
+                text: isReplacement ? 'You replaced a receipt' : 'You added a receipt',
                 style: 'strong',
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
             },

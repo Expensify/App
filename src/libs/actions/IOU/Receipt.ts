@@ -11,6 +11,7 @@ import ReceiptStorage from '@libs/ReceiptStorage';
 import {buildOptimisticDetachReceipt, buildOptimisticReceiptAddedAction, isInvoiceReport as isInvoiceReportReportUtils} from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {logReceiptCaptured, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
+import {hasUploadedReceipt} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 
 import {resolveDetachReceiptConflicts} from '@userActions/RequestConflictUtils';
@@ -83,6 +84,9 @@ function detachReceipt(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 receipt: null,
+                // Set here rather than waiting for the server so a receipt added while still offline is
+                // already known to be a replacement.
+                wasReceiptRemoved: true,
                 pendingFields: {
                     receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -109,6 +113,9 @@ function detachReceipt(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 ...(transaction ?? null),
+                // The receipt was never removed, so restore whatever the expense knew before rather than
+                // clearing outright, which would forget an earlier removal.
+                wasReceiptRemoved: transaction?.wasReceiptRemoved ?? null,
                 errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.receiptDeleteFailureError'),
                 pendingFields: {
                     receipt: null,
@@ -347,7 +354,10 @@ function replaceReceipt({
 
     // Show "added a receipt" right away, but not for a crop or rotate (isSameReceipt) and only if the
     // thread already exists. Otherwise the backend creates the thread and message and it syncs in.
+    // `transaction` is the expense as it was before this replacement, because the caller may merge the new
+    // receipt into Onyx just before calling this, so an uploaded receipt on it is the one being replaced.
     const transactionThreadReportID = transactionThreadReport?.reportID;
+    const isReplacement = hasUploadedReceipt(transaction) || !!transaction?.wasReceiptRemoved;
     const optimisticReceiptAddedAction =
         !isSameReceipt && transactionThreadReportID
             ? buildOptimisticReceiptAddedAction(
@@ -357,6 +367,7 @@ function replaceReceipt({
                   currentUserPersonalDetails.displayName,
                   currentUserPersonalDetails.avatar,
                   delegateAccountID,
+                  isReplacement,
               )
             : undefined;
 

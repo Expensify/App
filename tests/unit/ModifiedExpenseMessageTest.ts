@@ -298,6 +298,54 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when a receipt is replaced', () => {
+            // A replacement carries both flags, so receiptReplaced has to win
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    transactionID: '1234',
+                    receiptAdded: true,
+                    receiptReplaced: true,
+                },
+            };
+
+            it('returns the correct text message', () => {
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
+                });
+
+                expect(result).toEqual('replaced a receipt');
+            });
+
+            it('takes precedence over the field fragments when other fields are also present', () => {
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction: {
+                        ...reportAction,
+                        originalMessage: {...reportAction.originalMessage, oldComment: 'old', newComment: 'new'},
+                    },
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
+                });
+
+                expect(result).toEqual('replaced a receipt');
+            });
+        });
+
         describe('when the amount is changed', () => {
             const reportAction = {
                 ...createRandomReportAction(1),

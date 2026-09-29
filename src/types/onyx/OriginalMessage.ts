@@ -977,6 +977,9 @@ type OriginalMessageModifiedExpense = {
 
     /** Whether a receipt was added to the expense */
     receiptAdded?: boolean;
+
+    /** Whether the added receipt took the place of one the expense already had or had removed earlier. Set alongside `receiptAdded`. */
+    receiptReplaced?: boolean;
 };
 
 /** Model of `concierge auto match vendor` report action — emitted on the transaction thread when the PHP fuzzy matcher auto-matches a non-reimbursable expense to a QBO vendor. */
