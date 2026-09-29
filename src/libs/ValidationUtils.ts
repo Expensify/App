@@ -818,6 +818,27 @@ function isInvalidMerchantValue(merchant?: string): boolean {
     return merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
 }
 
+type MerchantValidationError = {type: 'required'} | {type: 'invalidValue'} | {type: 'tooLong'; byteLength: number};
+
+/**
+ * Returns the first merchant validation error (required, invalid value, or too long), or `undefined` if the merchant is valid.
+ */
+function getMerchantError(merchant: string | undefined, isMerchantRequired: boolean): MerchantValidationError | undefined {
+    const trimmedMerchant = merchant?.trim() ?? '';
+
+    if (isMerchantRequired && !trimmedMerchant) {
+        return {type: 'required'};
+    }
+    if (trimmedMerchant && isInvalidMerchantValue(trimmedMerchant)) {
+        return {type: 'invalidValue'};
+    }
+    const {isValid: isLengthValid, byteLength} = isValidInputLength(trimmedMerchant, CONST.MERCHANT_NAME_MAX_BYTES);
+    if (!isLengthValid) {
+        return {type: 'tooLong', byteLength};
+    }
+    return undefined;
+}
+
 /**
  * Checks if a merchant is a placeholder the user never typed: the flow seeded the "Expense" / "(none)" value,
  * so it should be treated as empty rather than as an invalid entry the user is responsible for.
@@ -934,6 +955,7 @@ export {
     isValidInputLength,
     isValidTaxIDEINNumber,
     isInvalidMerchantValue,
+    getMerchantError,
     isUntypedPlaceholderMerchant,
     isValidPIN,
     containsHtmlTag,

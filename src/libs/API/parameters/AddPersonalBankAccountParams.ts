@@ -18,8 +18,6 @@ type AddPersonalBankAccountParams = {
     addressZip?: string;
     addressCountry?: string;
     confirmedOwnershipDetails?: boolean;
-    iban?: string;
-    swiftCode?: string;
 };
 
 export default AddPersonalBankAccountParams;

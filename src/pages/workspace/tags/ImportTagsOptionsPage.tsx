@@ -170,7 +170,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                     prompt: overrideMultiTagPrompt,
                     confirmText: translate('workspace.tags.overrideMultiTagWarning.title'),
                     cancelText: translate('common.cancel'),
-                    danger: true,
+                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 });
                 if (action === ModalActions.CONFIRM) {
                     Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo)) : workspaceTagsImportPath);
@@ -183,7 +183,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                     prompt: switchSingleToMultiLevelTagPrompt,
                     confirmText: translate('workspace.tags.switchSingleToMultiLevelTagWarning.title'),
                     cancelText: translate('common.cancel'),
-                    danger: true,
+                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 });
                 if (action === ModalActions.CONFIRM) {
                     cleanPolicyTags(policyID, shouldRestoreRequiresTagAfterTagCreate);
@@ -259,7 +259,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                                     prompt: switchSingleToMultiLevelTagPrompt,
                                     confirmText: translate('workspace.tags.switchSingleToMultiLevelTagWarning.title'),
                                     cancelText: translate('common.cancel'),
-                                    danger: true,
+                                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                                 });
                                 if (action === ModalActions.CONFIRM) {
                                     cleanPolicyTags(policyID, shouldRestoreRequiresTagAfterTagCreate);

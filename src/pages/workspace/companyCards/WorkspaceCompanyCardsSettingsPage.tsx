@@ -1,6 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -17,6 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
 import {deleteWorkspaceCompanyCardFeed, setAddNewCompanyCardStepAndData, setWorkspaceCompanyCardTransactionLiability} from '@libs/actions/CompanyCards';
 import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getSelectedFeed, isCSVUploadFeed, isDirectFeed} from '@libs/CardUtils';
@@ -35,7 +37,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
-import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
@@ -54,7 +55,6 @@ function WorkspaceCompanyCardsSettingsPage({
     const [cardFeeds] = useCardFeeds(policyID);
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const {currencyList} = useCurrencyListState();
 
     const selectedFeed = useMemo(() => getSelectedFeed(lastSelectedFeed, cardFeeds), [cardFeeds, lastSelectedFeed]);
@@ -109,6 +109,15 @@ function WorkspaceCompanyCardsSettingsPage({
         });
     };
 
+    const refreshCardFeed = () => {
+        if (!selectedFeed) {
+            return;
+        }
+        startCardFeedRefresh(policyID, selectedFeed, policy?.outputCurrency, currencyList, countryByIp);
+    };
+
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume(() => refreshCardFeed());
+
     const onToggleLiability = (isOn: boolean) => {
         if (!feed) {
             return;
@@ -139,12 +148,9 @@ function WorkspaceCompanyCardsSettingsPage({
                 >
                     <HeaderWithBackButton title={translate('common.settings')} />
                     <View style={styles.flex1}>
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
-                            title={feedName}
-                            description={translate('workspace.moreFeatures.companyCards.cardFeedName')}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
+                        <MenuItemField
+                            value={feedName}
+                            name={translate('workspace.moreFeatures.companyCards.cardFeedName')}
                             onPress={navigateToChangeFeedName}
                         />
                         <OfflineWithFeedback pendingAction={selectedFeedData?.pendingFields?.statementPeriodEndDay}>
@@ -169,21 +175,25 @@ function WorkspaceCompanyCardsSettingsPage({
                             <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.moreFeatures.companyCards.setTransactionLiabilityDescription')}</Text>
                         </View>
                         {isDirectFeedType && (
-                            <MenuItem
-                                icon={icons.Sync}
-                                title={translate('workspace.companyCards.assignNewCards.title')}
-                                description={translate('workspace.companyCards.assignNewCards.description')}
+                            <MenuItem.Root
                                 onPress={() => {
-                                    if (!selectedFeed) {
-                                        return;
-                                    }
                                     if (!isUserValidated) {
-                                        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT.getRoute(policyID, selectedFeed));
+                                        verifyAccountAndResume(undefined);
                                         return;
                                     }
-                                    startCardFeedRefresh(policyID, selectedFeed, policy?.outputCurrency, currencyList, countryByIp);
+                                    refreshCardFeed();
                                 }}
-                            />
+                            >
+                                <MenuItem.Row>
+                                    <MenuItem.Leading>
+                                        <MenuItem.Icon src={icons.Sync} />
+                                    </MenuItem.Leading>
+                                    <MenuItem.Content>
+                                        <MenuItem.Title>{translate('workspace.companyCards.assignNewCards.title')}</MenuItem.Title>
+                                        <MenuItem.Description>{translate('workspace.companyCards.assignNewCards.description')}</MenuItem.Description>
+                                    </MenuItem.Content>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
                         )}
                         {isCsvFeed && (
                             <MenuItemAction
@@ -211,7 +221,7 @@ function WorkspaceCompanyCardsSettingsPage({
                                     prompt: translate('workspace.moreFeatures.companyCards.removeCardFeedDescription'),
                                     confirmText: translate('common.delete'),
                                     cancelText: translate('common.cancel'),
-                                    danger: true,
+                                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                                 }).then((result) => {
                                     if (result.action !== ModalActions.CONFIRM) {
                                         return;

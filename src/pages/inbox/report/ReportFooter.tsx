@@ -2,6 +2,7 @@ import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import Banner from '@components/Banner';
 import BlockedReportFooter from '@components/BlockedReportFooter';
+import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBanner';
 import OfflineIndicator from '@components/OfflineIndicator';
 import SwipeableView from '@components/SwipeableView';
 
@@ -106,8 +107,19 @@ function ReportFooter() {
                 <ReportActionCompose reportID={reportIDFromRoute} />
             </SwipeableView>
         );
+        // The callout decides for itself whether this mount suits the layout and the composer size.
+        const merchantRuleBanner = (
+            <MerchantRuleSuggestionBanner
+                reportID={reportIDFromRoute}
+                policyID={report.policyID}
+                containerStyles={[styles.mh4, styles.mb3]}
+                overlayStyles={styles.merchantRuleCalloutComposerOverlay}
+                isAnchoredToBottom
+            />
+        );
         return (
             <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
+                {merchantRuleBanner}
                 {shouldShowEnableNotificationsBanner ? (
                     <>
                         <EnableNotificationsBanner />

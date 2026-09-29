@@ -1,9 +1,9 @@
-import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import type {BaseListItemProps, ListItem} from '@components/SelectionList/ListItem/types';
-import {ListItemContext} from '@components/SelectionList/ListItemContext';
+import type {ListItem, ListItemPressableProps} from '@components/SelectionList/ListItem/types';
+import {ListItemContext, ListItemHoverContext} from '@components/SelectionList/ListItemContext';
 import getListItemAccessibilityProps from '@components/SelectionList/utils/getListItemAccessibilityProps';
+import isListItemSelected from '@components/SelectionList/utils/isListItemSelected';
 
 import useHover from '@hooks/useHover';
 import {useMouseActions, useMouseState} from '@hooks/useMouseContext';
@@ -16,47 +16,10 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {ReactNode} from 'react';
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React, {useRef} from 'react';
-
-type ListItemPressableProps<TItem extends ListItem> = Pick<
-    BaseListItemProps<TItem>,
-    | 'item'
-    | 'pressableStyle'
-    | 'pressableWrapperStyle'
-    | 'containerStyle'
-    | 'isDisabled'
-    | 'shouldPreventEnterKeySubmit'
-    | 'canSelectMultiple'
-    | 'onSelectRow'
-    | 'onDismissError'
-    | 'keyForList'
-    | 'errors'
-    | 'errorRowStyles'
-    | 'pendingAction'
-    | 'isFocused'
-    | 'isFocusVisible'
-    | 'shouldSyncFocus'
-    | 'shouldShowBlueBorderOnFocus'
-    | 'onFocus'
-    | 'hoverStyle'
-    | 'onLongPressRow'
-    | 'shouldHighlightSelectedItem'
-    | 'shouldDisableHoverStyle'
-    | 'accessible'
-    | 'accessibilityLabel'
-    | 'accessibilityRole'
-    | 'shouldUseOptionRole'
-    | 'isSelected'
-> & {
-    /** Whether content inside the row should show tooltips (provided to children via ListItemContext) */
-    shouldShowTooltip: boolean;
-
-    /** Row content */
-    children?: ReactNode;
-};
 
 /**
  * The interaction core every list item row builds on: offline/error feedback, press/hover/focus states,
@@ -73,15 +36,11 @@ function ListItemPressable<TItem extends ListItem>({
     canSelectMultiple = false,
     onSelectRow,
     onDismissError = () => {},
-    keyForList,
-    errors,
     errorRowStyles,
-    pendingAction,
     children,
     isFocused,
     isFocusVisible = isFocused,
     shouldSyncFocus = true,
-    shouldShowBlueBorderOnFocus = false,
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
@@ -89,7 +48,7 @@ function ListItemPressable<TItem extends ListItem>({
     shouldDisableHoverStyle,
     accessible,
     accessibilityLabel,
-    accessibilityRole = getButtonRole(true),
+    accessibilityRole = CONST.ROLE.BUTTON,
     shouldUseOptionRole,
     isSelected,
     shouldShowTooltip,
@@ -98,11 +57,12 @@ function ListItemPressable<TItem extends ListItem>({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {
+        hovered,
         bind: {onMouseEnter, onMouseLeave},
     } = useHover();
     const {isMouseDownOnInput} = useMouseState();
     const {setMouseUp} = useMouseActions();
-    const pressableRef = useRef<View>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
 
     // Sync focus on an item
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
@@ -134,8 +94,7 @@ function ListItemPressable<TItem extends ListItem>({
         setMouseUp();
     };
 
-    // Selection can be provided explicitly (e.g. rows whose selection isn't stored on the item) and otherwise falls back to the item.
-    const isRowSelected = isSelected ?? item.isSelected;
+    const isRowSelected = isListItemSelected(item, isSelected);
 
     const {role, tabIndex, accessibilityState, accessibleAndAccessibilityLabel, ariaCurrent} = getListItemAccessibilityProps({
         role: accessibilityRole,
@@ -152,8 +111,8 @@ function ListItemPressable<TItem extends ListItem>({
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
-            pendingAction={pendingAction}
-            errors={errors}
+            pendingAction={item.pendingAction}
+            errors={item.errors}
             errorRowStyles={[styles.mh5, errorRowStyles]}
             contentContainerStyle={containerStyle}
         >
@@ -182,7 +141,7 @@ function ListItemPressable<TItem extends ListItem>({
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
                 hoverStyle={!shouldDisableHoverStyle ? [(!item.isDisabled || isRowSelected) && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle] : undefined}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: shouldShowBlueBorderOnFocus}}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
                 onMouseDown={(e) => {
                     const target = e?.target;
                     if (target instanceof HTMLElement && target.tagName === CONST.ELEMENT_NAME.INPUT) {
@@ -190,7 +149,7 @@ function ListItemPressable<TItem extends ListItem>({
                     }
                     e.preventDefault();
                 }}
-                id={keyForList ?? ''}
+                id={item.keyForList ?? ''}
                 testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
                 style={[
                     pressableStyle,
@@ -215,7 +174,18 @@ function ListItemPressable<TItem extends ListItem>({
                 onKeyDown={!shouldPreventEnterKeySubmit ? selectRowOnEnterKey : undefined}
                 wrapperStyle={pressableWrapperStyle}
             >
-                <ListItemContext.Provider value={{isFocusVisible: !!isFocusVisible, shouldShowTooltip}}>{children}</ListItemContext.Provider>
+                <ListItemContext.Provider
+                    value={{
+                        isFocused: !!isFocused,
+                        isFocusVisible: !!isFocusVisible,
+                        shouldShowTooltip,
+                        isDisabled: !!isDisabled,
+                        isInteractive: item.isInteractive !== false,
+                        shouldDisableAccessibleGrouping: accessible === false,
+                    }}
+                >
+                    <ListItemHoverContext.Provider value={hovered && !shouldDisableHoverStyle}>{children}</ListItemHoverContext.Provider>
+                </ListItemContext.Provider>
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );

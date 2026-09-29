@@ -7,8 +7,8 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
-import Header from './Header';
+import Button from './Button';
+import HeaderTitle from './HeaderTitle';
 import Modal from './Modal';
 import RenderHTML from './RenderHTML';
 import ScrollView from './ScrollView';
@@ -53,7 +53,6 @@ type DecisionModalProps = {
     /** Callback when modal has fully disappeared */
     onModalHide?: () => void;
 
-    /** Whether modal is visible */
     isVisible: boolean;
 
     /** Whether to handle browser navigation back to close the modal */
@@ -103,14 +102,17 @@ function DecisionModal({
             onModalHide={onModalHide}
             shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
             shouldHandleNavigationBack={shouldHandleNavigationBack}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <ScrollView contentContainerStyle={styles.p5}>
+            <ScrollView
+                contentContainerStyle={[styles.p5, styles.pb5]}
+                addBottomSafeAreaPadding={isSmallScreenWidth}
+            >
                 <View>
                     <View style={[styles.flexRow, styles.mb5]}>
-                        <Header
-                            title={title}
-                            containerStyles={styles.alignItemsCenter}
-                        />
+                        <HeaderTitle style={styles.alignItemsCenter}>
+                            <HeaderTitle.Text>{title}</HeaderTitle.Text>
+                        </HeaderTitle>
                     </View>
                     <RenderHTML html={prompt} />
                 </View>

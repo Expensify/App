@@ -1,7 +1,20 @@
-import {getOnboardingInitialPath, getRequired2FAOnboardingResumePath} from '@libs/actions/Welcome/OnboardingFlow';
+import {getOnboardingInitialPath, getRequired2FAOnboardingResumePath, startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
 import type {GetOnboardingInitialPathParamsType} from '@libs/actions/Welcome/OnboardingFlow';
+import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
+import navigationRef from '@libs/Navigation/navigationRef';
 
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
+
+import type * as NativeNavigation from '@react-navigation/native';
+
+jest.mock('@libs/Navigation/navigationRef', () => ({
+    getRootState: jest.fn(),
+    resetRoot: jest.fn(),
+}));
+
+jest.mock('@libs/Navigation/helpers/getAdaptedStateFromPath', () => jest.fn());
 
 describe('OnboardingFlow', () => {
     describe('getOnboardingInitialPath', () => {
@@ -258,6 +271,58 @@ describe('OnboardingFlow', () => {
             };
 
             expect(getRequired2FAOnboardingResumePath(params)).toBe('/onboarding/work-email/validation');
+        });
+    });
+
+    describe('startOnboardingFlow', () => {
+        /* eslint-disable @typescript-eslint/unbound-method -- jest.fn() mocks don't rely on `this` binding */
+        const mockedGetRootState = jest.mocked(navigationRef.getRootState);
+        const mockedResetRoot = jest.mocked(navigationRef.resetRoot);
+        /* eslint-enable @typescript-eslint/unbound-method */
+        const mockedGetAdaptedStateFromPath = jest.mocked(getAdaptedStateFromPath);
+
+        const params: GetOnboardingInitialPathParamsType = {
+            isUserFromPublicDomain: false,
+            hasAccessiblePolicies: true,
+            currentOnboardingPurposeSelected: undefined,
+            currentOnboardingCompanySize: undefined,
+            onboardingInitialPath: '/onboarding/private-domain',
+            onboardingValues: undefined,
+            // resumePath bypasses getOnboardingInitialPath so the test drives the resolved target directly.
+            resumePath: '/onboarding/personal-details',
+        };
+
+        // getRootState's return type requires a full NavigationState, so build a minimal-but-complete one.
+        const buildRootState = (routes: NativeNavigation.NavigationState['routes']): NativeNavigation.NavigationState => ({
+            key: 'root',
+            index: Math.max(routes.length - 1, 0),
+            routeNames: routes.map((route) => route.name),
+            routes,
+            type: 'stack',
+            stale: false,
+        });
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+            mockedGetAdaptedStateFromPath.mockReturnValue({routes: [{name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}]} as ReturnType<typeof getAdaptedStateFromPath>);
+        });
+
+        it('should not call resetRoot when the onboarding navigator is already mounted (no-op that would still fire replaceState)', () => {
+            // Onboarding navigator already in the root state, so there is nothing to mount and resetRoot must be skipped.
+            mockedGetRootState.mockReturnValue(buildRootState([{key: 'onboarding', name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}]));
+
+            startOnboardingFlow(params);
+
+            expect(mockedResetRoot).not.toHaveBeenCalled();
+        });
+
+        it('should call resetRoot to mount the onboarding navigator when it is not yet in the root state', () => {
+            // Onboarding navigator not yet in root state, so resetRoot runs to mount it.
+            mockedGetRootState.mockReturnValue(buildRootState([{key: 'home', name: SCREENS.HOME}]));
+
+            startOnboardingFlow(params);
+
+            expect(mockedResetRoot).toHaveBeenCalledTimes(1);
         });
     });
 });

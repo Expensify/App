@@ -3,7 +3,7 @@ import type {FullScreenLoadingIndicatorIconSize} from '@components/FullscreenLoa
 import type CONST from '@src/CONST';
 
 import type {ImagePrefetchOptions, ImageSource} from 'expo-image';
-import type {ImageRequireSource, ImageResizeMode, ImageStyle, ImageURISource, StyleProp, ViewStyle} from 'react-native';
+import type {ImageProps as RNImageProps, ImageRequireSource, ImageStyle, ImageURISource, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 type ExpoImageSource = ImageSource | number | ImageSource[];
@@ -27,10 +27,7 @@ type BaseImageProps = {
     /** Called when the image starts to load. */
     onLoadStart?: () => void;
 
-    /** Styles for the Image */
     style?: StyleProp<ImageStyle>;
-
-    /** The image cache policy */
     cachePolicy?: ImagePrefetchOptions['cachePolicy'];
 
     /** Priorities for completing loads. If more than one load is queued at a time,
@@ -47,12 +44,9 @@ type ImageOwnProps = BaseImageProps & {
     isAuthTokenRequired?: boolean;
 
     /** How should the image fit within its container */
-    resizeMode?: ImageResizeMode;
+    resizeMode?: RNImageProps['resizeMode'];
 
-    /** The size of the loading indicator */
     loadingIconSize?: FullScreenLoadingIndicatorIconSize;
-
-    /** The style of the loading indicator */
     loadingIndicatorStyles?: StyleProp<ViewStyle>;
 
     /** Event for when the image begins loading */
@@ -61,13 +55,11 @@ type ImageOwnProps = BaseImageProps & {
     /** Event for when the image finishes loading */
     onLoadEnd?: () => void;
 
-    /** Error handler */
     onError?: () => void;
 
     /** Progress events while the image is downloading */
     onProgress?: () => void;
 
-    /** The object position of image */
     objectPosition?: ImageObjectPosition;
 
     /**

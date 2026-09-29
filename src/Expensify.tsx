@@ -36,6 +36,7 @@ import NavigationRoot from './libs/Navigation/NavigationRoot';
 import PushNotification from './libs/Notification/PushNotification';
 import {endSpan, getSpan, startSpan} from './libs/telemetry/activeSpans';
 import {startBootsplashMonitor} from './libs/telemetry/bootsplashTelemetry';
+import {scheduleInitialDatabaseSizeMeasurement} from './libs/telemetry/databaseSizeTracker';
 import {cleanupTelemetryTrackers, initializeTelemetryTrackers} from './libs/telemetry/TelemetrySynchronizer';
 import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
@@ -208,6 +209,7 @@ function Expensify() {
         endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER);
+        scheduleInitialDatabaseSizeMeasurement();
     }, [setSplashScreenState]);
 
     useLayoutEffect(() => {

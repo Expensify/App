@@ -22,7 +22,7 @@ jobs:
       PR_NUMBER: ${{ github.event.pull_request.number }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
 
       - name: Check contributor authorization
         id: gate
@@ -45,7 +45,7 @@ jobs:
 
       - name: Checkout repository
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           fetch-depth: 1
 
@@ -68,7 +68,9 @@ jobs:
       - name: Setup Claude review toolkit
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
         id: toolkit
-        uses: Expensify/GitHub-Actions/.github/actions/claude-review-toolkit@2b751e9a86d8690f53443cce0ce886079eccea76
+        uses: Expensify/GitHub-Actions/.github/actions/claude-review-toolkit@54bfb8923d4f94c3cb209bfbad362fca9f0816f5
+        with:
+          rules_directory: .claude/skills/app-coding-standards/rules
 
       - name: Mark review as in progress
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'

@@ -154,6 +154,53 @@ describe('useReportActionAvatars', () => {
         });
     });
 
+    describe('Concierge thread', () => {
+        const conciergeDMReportID = 9200;
+        const threadReportID = 9201;
+        const askerAccountID = 12345;
+        const parentActionID = '9202';
+
+        const mockConciergeDM = createRegularChat(conciergeDMReportID, [CONST.ACCOUNT_ID.CONCIERGE, askerAccountID]);
+        const mockThread = {
+            ...createRegularChat(threadReportID, [CONST.ACCOUNT_ID.CONCIERGE, askerAccountID]),
+            chatReportID: String(conciergeDMReportID),
+            parentReportID: String(conciergeDMReportID),
+            parentReportActionID: parentActionID,
+        };
+
+        beforeEach(async () => {
+            await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, String(conciergeDMReportID));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${conciergeDMReportID}`, mockConciergeDM);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, mockThread);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeDMReportID}`, {
+                [parentActionID]: {
+                    ...createRandomReportAction(Number(parentActionID)),
+                    reportActionID: parentActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: askerAccountID,
+                    childReportID: String(threadReportID),
+                },
+            });
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [CONST.ACCOUNT_ID.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, displayName: 'Concierge', login: 'concierge@expensify.com'},
+                [askerAccountID]: {accountID: askerAccountID, displayName: 'Asker', login: 'asker@example.com'},
+            });
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(() => {
+            Onyx.clear();
+        });
+
+        test('shows the Concierge avatar once the parent action has loaded', () => {
+            const {
+                result: {current: data},
+            } = renderHook(() => useReportActionAvatars({report: mockThread, action: undefined}), {wrapper});
+
+            expect(data.avatars.at(0)?.id).toBe(CONST.ACCOUNT_ID.CONCIERGE);
+        });
+    });
+
     describe('derived parent preview action', () => {
         const chatReportID = 9100;
         const iouReportID = 9101;

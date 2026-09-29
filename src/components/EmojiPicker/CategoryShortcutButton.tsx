@@ -63,7 +63,11 @@ function CategoryShortcutButton({code, icon, onPress, isSelected = false}: Categ
                 onPress={onPress}
                 onHoverIn={() => setIsHighlighted(true)}
                 onHoverOut={() => setIsHighlighted(false)}
-                style={({pressed}) => [StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)), styles.categoryShortcutButton, isHighlighted && styles.emojiItemHighlighted]}
+                style={({pressed}) => [
+                    StyleUtils.getButtonBackgroundColorStyle(getButtonState({isPressed: pressed})),
+                    styles.categoryShortcutButton,
+                    isHighlighted && styles.emojiItemHighlighted,
+                ]}
                 accessibilityLabel={label}
                 accessibilityState={isSelected ? {selected: true} : undefined}
                 role={CONST.ROLE.BUTTON}

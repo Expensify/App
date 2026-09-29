@@ -169,6 +169,10 @@ function getCurrentUserPersonalDetails(): OnyxEntry<OnyxTypes.PersonalDetails> {
     return deprecatedCurrentUserPersonalDetails;
 }
 
+function getCurrentUserAccountIDFromSession(): number {
+    return deprecatedUserAccountID;
+}
+
 function getRecentAttendees(): OnyxEntry<Attendee[]> {
     return recentAttendees;
 }
@@ -191,6 +195,7 @@ export {
     getAllReportNameValuePairs,
     getAllTransactionDrafts,
     getCurrentUserPersonalDetails,
+    getCurrentUserAccountIDFromSession,
     getRecentAttendees,
     getAllSnapshots,
     getSearchQueryByHash,

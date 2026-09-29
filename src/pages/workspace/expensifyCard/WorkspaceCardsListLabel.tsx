@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Popover from '@components/Popover';
@@ -6,6 +6,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -45,17 +46,12 @@ import type {ValueOf} from 'type-fest';
 import {useRoute} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {addDays, format} from 'date-fns';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceCardsListLabelProps = {
-    /** Label type */
     type: ValueOf<typeof CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE>;
-
-    /** Label value */
     value: number;
-
-    /** Additional style props */
     style?: StyleProp<ViewStyle>;
 };
 
@@ -65,16 +61,21 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match Popover's dock decision (bottom-docked only when isSmallScreenWidth)
+    const {shouldUseNarrowLayout, isMediumScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: isSmallScreenWidth,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
+        style: [styles.p4, styles.pb4],
+    });
     const {showConfirmModal} = useConfirmModal();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`, {selector: Boolean});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
@@ -102,13 +103,11 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
 
     const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
 
-    const isConnectedWithPlaid = useMemo(() => {
-        const bankAccountData = bankAccountList?.[paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID]?.accountData;
+    const bankAccountData = bankAccountList?.[paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID]?.accountData;
 
-        // TODO: remove the extra check when plaidAccountID storing is aligned in https://github.com/Expensify/App/issues/47944
-        // Right after adding a bank account plaidAccountID is stored inside the accountData and not in the additionalData
-        return !!bankAccountData?.plaidAccountID || !!bankAccountData?.additionalData?.plaidAccountID;
-    }, [bankAccountList, paymentBankAccountID]);
+    // Admins who aren't shared on the settlement account don't have it in bankAccountList, so they rely on the card settings.
+    // Right after adding a bank account plaidAccountID is stored inside the accountData and not in the additionalData
+    const isConnectedWithPlaid = !!settings?.isPaymentBankAccountConnectedWithPlaid || !!bankAccountData?.plaidAccountID || !!bankAccountData?.additionalData?.plaidAccountID;
 
     useEffect(() => {
         if (!anchorRef.current || !isVisible) {
@@ -134,7 +133,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
         if (isGuidedSetupPending && !conciergeReportID) {
             // No Concierge chat exists yet: navigateToConciergeChat creates it and enqueues the onboarding OpenReport on
             // its create path. Wait for that promise so the limit-increase write lands after it in the queue.
-            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false).then(() => {
+            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false}).then(() => {
                 requestExpensifyCardLimitIncrease(settings?.paymentBankAccountID, defaultFundID);
             });
             return;
@@ -150,7 +149,6 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                 reportID: conciergeReportID,
                 introSelected,
                 conciergeChat,
-                betas,
                 hasReportActions,
                 currentUserAccountID,
                 isSelfTourViewed,
@@ -158,7 +156,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
             });
         }
         requestExpensifyCardLimitIncrease(settings?.paymentBankAccountID, defaultFundID);
-        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false});
     };
 
     const isCurrentBalanceType = type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE;
@@ -190,7 +188,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
             feed: [feedKey],
             withdrawalStatus: [CONST.SEARCH.SETTLEMENT_STATUS.NEVER, CONST.SEARCH.SETTLEMENT_STATUS.PENDING],
         });
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     };
 
     return (
@@ -245,8 +243,9 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                 innerContainerStyle={!shouldUseNarrowLayout ? {maxWidth: variables.modalContentMaxWidth} : undefined}
                 anchorRef={anchorRef}
                 anchorPosition={anchorPosition}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <View style={styles.p4}>
+                <View style={bottomSafeAreaPaddingStyle}>
                     <Text
                         numberOfLines={1}
                         style={[styles.optionDisplayName, styles.textStrong, styles.mb2]}
