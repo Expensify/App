@@ -285,7 +285,7 @@ describe('useReportActionsScroll', () => {
             const {result} = await renderScroll({sortedVisibleReportActions: [linkedAction], renderedVisibleReportActions: [linkedAction]});
 
             expect(result.current.initialScrollIndex).toBe(0);
-            expect(result.current.initialScrollIndexParams).toEqual({viewPosition: 1, viewOffset: 0});
+            expect(result.current.initialScrollIndexParams).toEqual({viewPosition: 1});
         });
 
         it('top-aligns a linked report action when later actions follow it', async () => {
@@ -302,14 +302,18 @@ describe('useReportActionsScroll', () => {
         });
 
         it('positions an unread marker at chronological index zero', async () => {
+            // Given the newest action is unread and can be taller than the viewport.
             const unreadAction = makeAction(UNREAD_ACTION_ID);
+            // When opening the report at its unread boundary.
             const {result} = await renderScroll({
                 unreadMarkerReportActionID: UNREAD_ACTION_ID,
                 sortedVisibleReportActions: [unreadAction],
                 renderedVisibleReportActions: [unreadAction],
             });
 
+            // Then the start of the action and its New marker remain visible.
             expect(result.current.initialScrollIndex).toBe(0);
+            expect(result.current.initialScrollIndexParams).toEqual({viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
         });
 
         it('suppresses the initial scroll key for an aligned-to-top CREATED anchor action', async () => {
