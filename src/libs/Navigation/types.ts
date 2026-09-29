@@ -2771,6 +2771,8 @@ type ReimbursementAccountNavigatorParamList = {
     };
     [SCREENS.DYNAMIC_REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT]: {
         policyID?: string;
+        /** Whether the non-USD setup flow should be started after the account is validated. */
+        isNonUSDSetup?: string;
     };
 };
 
