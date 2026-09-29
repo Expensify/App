@@ -11,7 +11,6 @@ class TextIntentHandler(private val context: Context) : AbstractIntentHandler() 
         super.clearTemporaryFiles(context)
         when(intent.action) {
             Intent.ACTION_SEND -> {
-                super.clearTemporaryFiles(context)
                 if (!handleTextIntent(intent, context, shouldLaunchActivity)) {
                     return false
                 }

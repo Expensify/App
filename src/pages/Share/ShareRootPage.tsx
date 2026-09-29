@@ -134,13 +134,11 @@ function ShareRootPage() {
 
             const rawMimeType = tempFile.mimeType?.split(';')[0]?.trim()?.toLowerCase() ?? '';
             const isValidMimeType =
-                !!rawMimeType &&
-                (shareFileMimeTypes.includes(rawMimeType) || shareFileMimeTypes.some((allowed) => allowed.endsWith('/*') && rawMimeType.startsWith(allowed.replace('/*', ''))));
+                !!rawMimeType && (shareFileMimeTypes.includes(rawMimeType) || shareFileMimeTypes.some((allowed) => allowed.endsWith('/*') && rawMimeType.startsWith(allowed.slice(0, -1))));
 
             if (!isValidMimeType) {
                 setErrorTitle(translate('attachmentPicker.wrongFileType'));
                 setErrorMessage(translate('attachmentPicker.notAllowedExtension'));
-                setIsFileReady(true);
                 return;
             }
 

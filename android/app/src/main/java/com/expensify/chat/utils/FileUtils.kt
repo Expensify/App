@@ -14,6 +14,7 @@ import java.io.OutputStream
 object FileUtils {
     private const val tag = "FileUtils"
     private const val shareDirectoryName = "sharedFiles"
+    private const val legacyShareDirectoryName = "Expensify"
 
     private fun getShareStorageDirectory(context: Context): File {
         val shareStorageDirectory = File(context.filesDir.absolutePath, shareDirectoryName)
@@ -25,15 +26,22 @@ object FileUtils {
 
     fun clearInternalStorageDirectory(context: Context) {
         val shareStorageDirectory = getShareStorageDirectory(context)
-        if (shareStorageDirectory.exists()) {
-            val files = shareStorageDirectory.listFiles()
-            if (files != null && files.isNotEmpty()) {
-                for (file in files) {
-                    file.delete()
-                }
-            } else {
-                Log.i(tag, "No files found to delete in directory: ${shareStorageDirectory.absolutePath}")
+        clearStorageDirectory(shareStorageDirectory)
+        clearStorageDirectory(File(context.filesDir.absolutePath, legacyShareDirectoryName))
+    }
+
+    private fun clearStorageDirectory(storageDirectory: File) {
+        if (!storageDirectory.exists()) {
+            return
+        }
+
+        val files = storageDirectory.listFiles()
+        if (files != null && files.isNotEmpty()) {
+            for (file in files) {
+                file.delete()
             }
+        } else {
+            Log.i(tag, "No files found to delete in directory: ${storageDirectory.absolutePath}")
         }
     }
 

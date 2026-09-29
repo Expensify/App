@@ -43,7 +43,7 @@ class ShareActionHandlerModule(reactContext: ReactApplicationContext) :
                 val extension = file.extension.lowercase()
                 mimeType = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension) ?: mimeType
             }
-            if (!file.exists() || file.length() == 0L) {
+            if (!file.exists()) {
                 if (mimeType.startsWith("text/") || mimeType == "txt") {
                     val textObject = JSONObject().apply {
                         put("id", "text")
@@ -54,6 +54,10 @@ class ShareActionHandlerModule(reactContext: ReactApplicationContext) :
                     callback.invoke(textObject.toString())
                     return
                 }
+                callback.invoke(null)
+                return
+            }
+            if (file.length() == 0L) {
                 callback.invoke(null)
                 return
             }
