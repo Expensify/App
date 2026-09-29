@@ -277,7 +277,7 @@ function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, ro
     }
 
     // Reaching here: USER always, plus GUEST/AUDITOR only on corporate policies (control-only roles are
-    // already filtered out on non-corporate policies above). Assigning USER/AUDITOR needs the
+    // already filtered out on non-corporate policies above). Assigning USER/GUEST/AUDITOR needs the
     // MEMBERS permission, and only on corporate policies.
     const isNonElevatedRole = role === CONST.POLICY.ROLE.USER || role === CONST.POLICY.ROLE.GUEST || role === CONST.POLICY.ROLE.AUDITOR;
     return isCorporatePolicy && canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.MEMBERS) && isNonElevatedRole;
@@ -867,21 +867,29 @@ const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: strin
 const isPolicyGuest = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean => getPolicyRole(policy, currentUserLogin) === CONST.POLICY.ROLE.GUEST;
 
 /**
- * Returns the highest-privilege role held across the given policies.
- * Ranking is admin > auditor > user > guest.
+ * Workspace roles from highest to lowest privilege, matching the role hierarchy in Auth.
  */
-function getHighestPolicyRole(
-    policyList: Array<OnyxInputOrEntry<Pick<Policy, 'role'>>>,
-): typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.AUDITOR | typeof CONST.POLICY.ROLE.USER | typeof CONST.POLICY.ROLE.GUEST {
+const POLICY_ROLE_RANKING = [
+    CONST.POLICY.ROLE.ADMIN,
+    CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+    CONST.POLICY.ROLE.CARD_ADMIN,
+    CONST.POLICY.ROLE.PEOPLE_ADMIN,
+    CONST.POLICY.ROLE.AUDITOR,
+    CONST.POLICY.ROLE.EDITOR,
+    CONST.POLICY.ROLE.USER,
+    CONST.POLICY.ROLE.GUEST,
+] as const;
+
+/**
+ * Returns the highest-privilege role held across the given policies.
+ * Defaults to user when no ranked role is found, so a member on any workspace is not reported as a guest.
+ */
+function getHighestPolicyRole(policyList: Array<OnyxInputOrEntry<Pick<Policy, 'role'>>>): (typeof POLICY_ROLE_RANKING)[number] {
     const roles = policyList.map((policy) => policy?.role);
-    if (roles.includes(CONST.POLICY.ROLE.ADMIN)) {
-        return CONST.POLICY.ROLE.ADMIN;
-    }
-    if (roles.includes(CONST.POLICY.ROLE.AUDITOR)) {
-        return CONST.POLICY.ROLE.AUDITOR;
-    }
-    if (roles.length > 0 && roles.every((role) => role === CONST.POLICY.ROLE.GUEST)) {
-        return CONST.POLICY.ROLE.GUEST;
+    for (const rankedRole of POLICY_ROLE_RANKING) {
+        if (roles.includes(rankedRole)) {
+            return rankedRole;
+        }
     }
     return CONST.POLICY.ROLE.USER;
 }

@@ -92,6 +92,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     const isCurrentUserGroupChatAdmin = isGroupChat && isCurrentUserAdmin;
     const policy = usePolicy(report?.policyID);
     const isGuestAnnounceRoom = isAnnounceRoom(report) && isPolicyGuest(policy);
+    const shouldShowNotFoundView = !report || isArchivedNonExpenseReport(report, isReportArchived) || isSelfDM(report) || isGuestAnnounceRoom;
     const shouldShowInviteButton = canInviteMembersToReport(report, policy, isReportArchived, currentUserAccountID);
     const {isOffline} = useNetwork();
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
@@ -271,7 +272,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
             style={[styles.defaultModalContainer]}
             testID="DynamicReportParticipantsPage"
         >
-            <FullPageNotFoundView shouldShow={!report || isArchivedNonExpenseReport(report, isReportArchived) || isSelfDM(report) || isGuestAnnounceRoom}>
+            <FullPageNotFoundView shouldShow={shouldShowNotFoundView}>
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : headerTitle}
                     onBackButtonPress={() => {

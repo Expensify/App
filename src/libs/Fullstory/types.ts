@@ -15,7 +15,7 @@ type FullstoryUserVars = {
     user_status?: 'new' | 'returning';
     has_completed_onboarding?: boolean;
     onb_step?: 'registration' | 'accounting' | 'completed';
-    user_role?: 'admin' | 'auditor' | 'member' | 'guest';
+    user_role?: 'admin' | 'paymentsAdmin' | 'cardAdmin' | 'peopleAdmin' | 'auditor' | 'editor' | 'member' | 'guest';
     workspace_state?: 'has_workspaces' | 'no_workspaces';
     workspace_count?: number;
     workspace_member_count?: number;

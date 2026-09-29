@@ -301,6 +301,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const isThread = isThreadUtil(report);
     const shouldOpenRoomMembersPage = isUserCreatedPolicyRoom || isChatThread || (isPolicyExpenseChat && isPolicyAdmin);
     const participants = getParticipantsList(report, personalDetails, shouldOpenRoomMembersPage);
+    const shouldShowInviteMenuItem =
+        !isGuestAnnounceRoom && ((isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) || ((isDefaultRoom || isPolicyExpenseChat) && isChatThread && !isPolicyEmployee));
 
     let caseID: CaseID;
     if (isMoneyRequestReport || isInvoiceReport) {
@@ -496,10 +498,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     }
                 },
             });
-        } else if (
-            !isGuestAnnounceRoom &&
-            ((isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) || ((isDefaultRoom || isPolicyExpenseChat) && isChatThread && !isPolicyEmployee))
-        ) {
+        } else if (shouldShowInviteMenuItem) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
                 translationKey: 'common.invite',
