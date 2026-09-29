@@ -5,7 +5,6 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SpendRuleRestrictionTypeToggleRevamp from '@components/SpendRules/SpendRuleRestrictionTypeToggleRevamp';
-import Text from '@components/Text';
 
 import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -414,13 +413,8 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
 
     const revampFormContent = (
         <>
-            <View style={[styles.ph5, styles.pv3, styles.gap6]}>
-                <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.spendRules.restrictCardSpendSubtitle')}</Text>
-                <Text style={[styles.textLabel, styles.textStrong, styles.lh16]}>{translate('workspace.rules.spendRules.ifAnyCardMatches')}</Text>
-            </View>
             {cardsMenuItem}
             <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
-            <Text style={[styles.textLabel, styles.textStrong, styles.lh16, styles.ph5, styles.pv3]}>{translate('workspace.rules.spendRules.thenDoThisAtPointOfSale')}</Text>
             {currenciesMenuItem}
             {maxAmountMenuItem}
             <View style={[styles.ph5, styles.pv3]}>

@@ -73,6 +73,7 @@ function ConfirmationListLayout({transactionID, sections, listRef, listFooterCon
                 shouldFooterBeInsideList={shouldFooterBeInsideList}
                 listFooterContent={listFooterContent}
                 style={selectionListStyle}
+                keyboardShouldPersistTaps="handled"
                 disableKeyboardShortcuts
             />
         </MouseProvider>
