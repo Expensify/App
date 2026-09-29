@@ -285,6 +285,7 @@ function useConfirmationListDataWithPolicy({
         shouldShowMerchant,
         shouldShowCategories,
         shouldShowTax,
+        hasParticipantSection: sections.length > 0,
         isParticipantPickerVisible,
     };
     const errorState = {shouldDisplayFieldError, formError, clearFormErrors, setFormError};

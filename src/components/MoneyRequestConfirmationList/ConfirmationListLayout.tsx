@@ -118,6 +118,7 @@ function ConfirmationListLayout({
                 footerContent={footerContent}
                 listFooterContent={fieldsContent}
                 style={selectionListStyle}
+                keyboardShouldPersistTaps="handled"
                 disableKeyboardShortcuts
             />
         </MouseProvider>
