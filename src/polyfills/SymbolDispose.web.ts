@@ -22,7 +22,7 @@ function installDisposeSymbols(symbolConstructor: DisposeSymbolHost) {
         }
         const currentValue = symbolConstructor[name];
         Object.defineProperty(symbolConstructor, name, {
-            // Keep an earlier script's symbol. Babel and tslib fall back to the registered one
+            // Keep an earlier script's symbol. Babel, SWC and core-js use the registered one
             value: typeof currentValue === 'symbol' ? currentValue : Symbol.for(`Symbol.${name}`),
             writable: false,
             configurable: false,

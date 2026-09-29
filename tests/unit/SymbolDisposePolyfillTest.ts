@@ -29,7 +29,7 @@ describe('SymbolDispose polyfill', () => {
         // When the polyfill runs
         installDisposeSymbols(fakeSymbol);
 
-        // Then both are the registered symbols Babel and tslib fall back to
+        // Then both are the registered symbols Babel, SWC and core-js use
         expect(fakeSymbol.dispose).toBe(Symbol.for('Symbol.dispose'));
         expect(fakeSymbol.asyncDispose).toBe(Symbol.for('Symbol.asyncDispose'));
     });
