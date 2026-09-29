@@ -62,4 +62,3 @@ function resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline = 
 }
 
 export {INSIGHTS_CHART_STATE, resolveInsightsChartData};
-export type {InsightsChartData};
