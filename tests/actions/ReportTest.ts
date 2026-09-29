@@ -11118,6 +11118,7 @@ describe('actions/Report', () => {
             Report.mergeReports({
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
+                cardList: undefined,
                 destinationReportID: DESTINATION_REPORT_ID,
                 sourceReportIDs: [SOURCE_REPORT_1_ID, SOURCE_REPORT_2_ID],
                 isASAPSubmitBetaEnabled: false,
@@ -11187,6 +11188,7 @@ describe('actions/Report', () => {
             Report.mergeReports({
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
+                cardList: undefined,
                 destinationReportID: DESTINATION_REPORT_ID,
                 sourceReportIDs: [SOURCE_REPORT_1_ID, SOURCE_REPORT_2_ID],
                 isASAPSubmitBetaEnabled: false,
@@ -11254,6 +11256,7 @@ describe('actions/Report', () => {
             Report.mergeReports({
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
+                cardList: undefined,
                 destinationReportID: DESTINATION_REPORT_ID,
                 sourceReportIDs: [SOURCE_REPORT_1_ID, SOURCE_REPORT_2_ID],
                 isASAPSubmitBetaEnabled: false,

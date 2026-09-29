@@ -60,6 +60,7 @@ import {
     isOdometerDistanceRequest,
     isOnHold,
     isSplitContainerTransaction,
+    isTransactionOwner,
     shouldClearConvertedAmount,
     waypointHasValidAddress,
 } from '@libs/TransactionUtils';
@@ -69,6 +70,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    CardList,
     PersonalDetails,
     Policy,
     PolicyCategories,
@@ -874,6 +876,7 @@ type ChangeTransactionsReportProps = {
     allTransactionViolation?: OnyxCollection<TransactionViolation[]>;
     reports: OnyxCollection<Report>;
     rules: OnyxCollection<Rule>;
+    cardList: OnyxEntry<CardList>;
     /** Report IDs that should be skipped when generating Onyx updates (e.g. because they are being deleted) */
     skippedReportIDs?: string[];
     isTrackIntentUser: boolean | undefined;
@@ -908,6 +911,7 @@ function getChangeTransactionsReportOnyxData({
     getCurrencyDecimals,
     getCurrencySymbol,
     isVendorMatchingBetaEnabled,
+    cardList,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -1438,7 +1442,6 @@ function getChangeTransactionsReportOnyxData({
         // 3. Keep track of the new report totals
         // Source report uses original transaction details (expense is being removed at its original amount)
         // Target report uses transactionForViolations (expense arrives with the updated rate/amount after auto-selecting workspace rate)
-        const targetReportID = isUnreporting ? selfDMReportID : reportID;
         const {amount: sourceTransactionAmount = 0, currency: sourceTransactionCurrency} = getTransactionDetails(transaction, undefined, undefined, allowNegative) ?? {};
         const {amount: targetTransactionAmount = 0, currency: targetTransactionCurrency} = getTransactionDetails(transactionForViolations, undefined, undefined, allowNegative) ?? {};
         const resolvedTargetTransactionCurrency = targetTransactionCurrency ?? transaction.currency;
@@ -1477,6 +1480,10 @@ function getChangeTransactionsReportOnyxData({
                 markReportTotalAsStale(oldReportID);
             }
         }
+
+        const isOwner = isTransactionOwner(transaction, cardList);
+        const targetReportID = isOwner && isUnreporting ? selfDMReportID : reportID;
+        const isUnreportingSomeoneElsesTransaction = !isOwner && isUnreporting;
 
         if (targetReportID) {
             const targetReportKey = `${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`;
@@ -1531,13 +1538,31 @@ function getChangeTransactionsReportOnyxData({
         // 4. Optimistically update the IOU action reportID
         const trackExpenseActionableWhisper = isUnreportedExpense ? getTrackExpenseActionableWhisper(transaction.transactionID, selfDMReportID, selfDMReportActions) : undefined;
 
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
-            value: {
-                [newIOUAction.reportActionID]: newIOUAction,
-            },
-        });
+        if (targetReportID) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
+                value: {
+                    [newIOUAction.reportActionID]: newIOUAction,
+                },
+            });
+
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
+                value: {
+                    [newIOUAction.reportActionID]: {pendingAction: null},
+                },
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
+                value: {
+                    [newIOUAction.reportActionID]: null,
+                },
+            });
+        }
 
         if (oldIOUAction && !skippedReportIDsSet.has(isUnreportedExpense ? (selfDMReportID ?? CONST.REPORT.UNREPORTED_REPORT_ID) : oldReportID)) {
             optimisticData.push({
@@ -1569,20 +1594,6 @@ function getChangeTransactionsReportOnyxData({
             });
         }
 
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
-            value: {
-                [newIOUAction.reportActionID]: {pendingAction: null},
-            },
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
-            value: {
-                [newIOUAction.reportActionID]: null,
-            },
-        });
         if (oldIOUAction && !skippedReportIDsSet.has(isUnreportedExpense ? (selfDMReportID ?? CONST.REPORT.UNREPORTED_REPORT_ID) : oldReportID)) {
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1594,21 +1605,36 @@ function getChangeTransactionsReportOnyxData({
             });
         }
 
+        // 5. Optimistically update the transaction thread and all threads in the transaction thread
         const shouldRemoveOtherParticipants = !isManagedCardTransaction(transaction);
         const childReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${newIOUAction.childReportID}`];
         if (childReport) {
-            const participants = childReport.participants;
-            // 5. Optimistically update the transaction thread and all threads in the transaction thread
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${newIOUAction.childReportID}`,
-                value: {
-                    parentReportID: targetReportID,
-                    parentReportActionID: optimisticMoneyRequestReportActionID,
-                    policyID: reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && newReport ? newReport.policyID : CONST.POLICY.ID_FAKE,
-                    participants: isUnreporting && shouldRemoveOtherParticipants ? {[accountID]: participants?.[accountID]} : participants,
-                },
-            });
+            if (targetReportID) {
+                const participants = childReport.participants;
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${newIOUAction.childReportID}`,
+                    value: {
+                        parentReportID: targetReportID,
+                        parentReportActionID: optimisticMoneyRequestReportActionID,
+                        policyID: reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && newReport ? newReport.policyID : CONST.POLICY.ID_FAKE,
+                        participants: isUnreporting && shouldRemoveOtherParticipants ? {[accountID]: participants?.[accountID]} : participants,
+                    },
+                });
+            } else {
+                // We're unreporting someone else's expense and moving it to their selfDM, so we can clear the
+                // transaction thread from Onyx since we're losing access to that.
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${newIOUAction.childReportID}`,
+                    value: null,
+                });
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${newIOUAction.childReportID}`,
+                    value: childReport,
+                });
+            }
         }
 
         if (oldIOUAction) {
@@ -1626,7 +1652,7 @@ function getChangeTransactionsReportOnyxData({
         // 6. (Optional) Create transactionThread if it doesn't exist
         let transactionThreadReportID = newIOUAction.childReportID;
         let transactionThreadCreatedReportActionID;
-        if (!transactionThreadReportID) {
+        if (!transactionThreadReportID && targetReportID) {
             const optimisticTransactionThread = buildTransactionThread(newIOUAction, reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? undefined : newReport, accountID);
             const optimisticCreatedActionForTransactionThread = buildOptimisticCreatedReportAction({emailCreatingAction: email ?? ''});
             transactionThreadReportID = optimisticTransactionThread.reportID;
@@ -1685,10 +1711,12 @@ function getChangeTransactionsReportOnyxData({
 
         // 7. Add MOVED_TRANSACTION or UNREPORTED_TRANSACTION report actions
         let movedAction;
-        if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-            movedAction = buildOptimisticUnreportedTransactionAction(transactionThreadReportID, oldReportID);
-        } else if (!isOpenReport(newReport)) {
-            movedAction = buildOptimisticMovedTransactionAction(transactionThreadReportID, oldReportID);
+        if (!isUnreportingSomeoneElsesTransaction) {
+            if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                movedAction = buildOptimisticUnreportedTransactionAction(transactionThreadReportID, oldReportID);
+            } else if (!isOpenReport(newReport)) {
+                movedAction = buildOptimisticMovedTransactionAction(transactionThreadReportID, oldReportID);
+            }
         }
 
         if (movedAction) {
@@ -1780,7 +1808,7 @@ function getChangeTransactionsReportOnyxData({
         }
 
         // Build unhold report action only when moving to unreported (self DM) report
-        if (isUnreporting && isOnHold(transaction)) {
+        if (isUnreporting && isOwner && isOnHold(transaction)) {
             const unHoldAction = buildOptimisticUnHoldReportAction(delegateAccountID);
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
