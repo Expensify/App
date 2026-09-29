@@ -38,7 +38,6 @@ class OpenAIUtils {
         model = 'gpt-5.1',
         conversation,
         textFormat,
-        signal,
     }: {
         input: string;
         instructions?: string;
@@ -46,25 +45,21 @@ class OpenAIUtils {
         model?: ResponsesModel;
         conversation?: string;
         textFormat?: ResponseFormatTextJSONSchemaConfig;
-        signal?: AbortSignal;
     }): Promise<ResponseResult> {
         const response = await retryWithBackoff(
             () =>
-                this.client.responses.create(
-                    {
-                        model,
-                        input,
-                        instructions,
-                        conversation,
-                        ...(textFormat ? {text: {format: textFormat}} : {}),
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        prompt_cache_key: promptCacheKey,
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        prompt_cache_retention: '24h',
-                    },
-                    signal ? {signal} : undefined,
-                ),
-            {isRetryable: (err) => !signal?.aborted && OpenAIUtils.isRetryableError(err)},
+                this.client.responses.create({
+                    model,
+                    input,
+                    instructions,
+                    conversation,
+                    ...(textFormat ? {text: {format: textFormat}} : {}),
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    prompt_cache_key: promptCacheKey,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    prompt_cache_retention: '24h',
+                }),
+            {isRetryable: (err) => OpenAIUtils.isRetryableError(err)},
         );
 
         const result = response.output_text?.trim();

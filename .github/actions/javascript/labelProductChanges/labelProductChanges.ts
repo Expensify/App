@@ -14,8 +14,6 @@ import OpenAIUtils from '@scripts/utils/OpenAIUtils';
 import * as core from '@actions/core';
 import {context} from '@actions/github';
 
-const CLASSIFICATION_TIMEOUT_MS = 90_000;
-
 function getSkipReason(pr: PullRequest, isDryRun: boolean): string | undefined {
     if (pr.draft) {
         return 'PR is a draft.';
@@ -45,7 +43,6 @@ async function classify(pr: PullRequest): Promise<ProductChangeClassification & 
             model: PRODUCT_CHANGE_MODEL,
             textFormat: PRODUCT_CHANGE_RESPONSE_FORMAT,
             promptCacheKey: 'includes-product-change-v1',
-            signal: AbortSignal.timeout(CLASSIFICATION_TIMEOUT_MS),
         });
         const result = openAI.parseJSONResponse(response.text, isProductChangeClassification);
         if (!result) {

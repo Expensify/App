@@ -37169,25 +37169,21 @@ var OpenAIUtils = class _OpenAIUtils {
     promptCacheKey,
     model = "gpt-5.1",
     conversation,
-    textFormat,
-    signal
+    textFormat
   }) {
     const response = await retryWithBackoff_default(
-      () => this.client.responses.create(
-        {
-          model,
-          input,
-          instructions,
-          conversation,
-          ...textFormat ? { text: { format: textFormat } } : {},
-          // eslint-disable-next-line @typescript-eslint/naming-convention
-          prompt_cache_key: promptCacheKey,
-          // eslint-disable-next-line @typescript-eslint/naming-convention
-          prompt_cache_retention: "24h"
-        },
-        signal ? { signal } : void 0
-      ),
-      { isRetryable: (err) => !signal?.aborted && _OpenAIUtils.isRetryableError(err) }
+      () => this.client.responses.create({
+        model,
+        input,
+        instructions,
+        conversation,
+        ...textFormat ? { text: { format: textFormat } } : {},
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        prompt_cache_key: promptCacheKey,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        prompt_cache_retention: "24h"
+      }),
+      { isRetryable: (err) => _OpenAIUtils.isRetryableError(err) }
     );
     const result = response.output_text?.trim();
     if (!result) {
@@ -37274,7 +37270,6 @@ var OpenAIUtils_default = OpenAIUtils;
 var context2 = new Context();
 
 // .github/actions/javascript/labelProductChanges/labelProductChanges.ts
-var CLASSIFICATION_TIMEOUT_MS = 9e4;
 function getSkipReason(pr, isDryRun) {
   if (pr.draft) {
     return "PR is a draft.";
@@ -37302,8 +37297,7 @@ async function classify(pr) {
       instructions: PRODUCT_CHANGE_INSTRUCTIONS,
       model: PRODUCT_CHANGE_MODEL,
       textFormat: PRODUCT_CHANGE_RESPONSE_FORMAT,
-      promptCacheKey: "includes-product-change-v1",
-      signal: AbortSignal.timeout(CLASSIFICATION_TIMEOUT_MS)
+      promptCacheKey: "includes-product-change-v1"
     });
     const result = openAI.parseJSONResponse(response.text, isProductChangeClassification);
     if (!result) {
