@@ -53,10 +53,10 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     const {authType} = params;
 
     const hasAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
-    // Only dev and staging can switch back to the token-based (TBA/SOAP) flow via route param, for testing.
+    // Only dev and staging can switch back to the token-based (TBA/SOAP) flow via route param for testing.
     const canSwitchToTokenAuthentication = !isProduction;
     const isTokenAuthenticationSelected = canSwitchToTokenAuthentication && authType === CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA;
-    // TBA connections store a tokenID while OAuth connections do not so this is used to pick the correct credentials
+    // TBA connections store a tokenID while OAuth connections do not, so this is used to pick the correct credentials
     // form upon reconnection. Fresh connections will always use the OAuth wizard.
     const netSuiteConnection = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
     const isOAuthFlow = !(hasAuthError && !!netSuiteConnection?.tokenID) && !isTokenAuthenticationSelected;
