@@ -14836,7 +14836,6 @@ export {
     hasOutstandingChildRequest,
     reasonForReportToBeInOptionList,
     getReasonAndReportActionThatRequiresAttention,
-    getUnresolvedCardFraudAlertAction,
     isCardFraudAlertUnresolved,
     buildOptimisticChangeFieldAction,
     isPolicyRelatedReport,
