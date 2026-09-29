@@ -61,7 +61,7 @@ function ReimbursementQueuedContent({action, report, iouReport}: ReimbursementQu
                     <ActionableItemButtons layout="horizontal">
                         <Button
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
-                            onPress={() => openPersonalBankAccountSetupView({exitReportID: Navigation.getTopmostReportId() ?? targetReport?.reportID, isUserValidated})}
+                            onPress={() => openPersonalBankAccountSetupView({exitReportID: targetReport?.reportID, isUserValidated})}
                         >
                             <Button.KeyboardShortcut />
                             <Button.Text>{translate('bankAccount.addBankAccount')}</Button.Text>
