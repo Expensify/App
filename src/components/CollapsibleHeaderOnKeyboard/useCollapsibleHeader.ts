@@ -44,7 +44,6 @@ function restoreHeaderTo(animatedHeight: SharedValue<number>, naturalHeight: num
 
 /**
  * Measurement and animated styles shared by `CollapsibleHeaderOnKeyboard` and `CollapsibleHeaderOnKeyboardGroupMember`.
- * It does not decide when to collapse — that is what the two differ in — it only exposes the values they write to.
  */
 function useCollapsibleHeader(onNaturalHeightChange?: (height: number) => void): CollapsibleHeader {
     const {isFocused, isInLandscapeMode, isFocusedSV, isInLandscapeModeSV} = useCollapsibleScreenState();
@@ -89,7 +88,7 @@ function useCollapsibleHeader(onNaturalHeightChange?: (height: number) => void):
         if (!isInLandscapeMode && isFocused && naturalHeightValue !== -1) {
             animatedHeight.set(withTiming(naturalHeightValue, {duration: RESTORE_DURATION}));
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want to run this effect when the screen orientation changes
     }, [isInLandscapeMode]);
 
     // Restores the header when the screen loses focus

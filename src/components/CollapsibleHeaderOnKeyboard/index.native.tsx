@@ -23,7 +23,7 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0, alw
     const {keyboardHeightSV, keyboardProgressSV, availableWindowHeightSV, collapsibleHeaderOffsetSV} = useKeyboardCollapseMetrics(collapsibleHeaderOffset);
 
     // Runs on the UI thread whenever keyboard state changes. `getKeyboardCollapseState` picks the frames worth
-    // reacting to; everything below only decides what this single header does with them.
+    // reacting to, everything below only decides what this single header does with them.
     useAnimatedReaction(
         () => ({
             keyboardHeight: keyboardHeightSV.get(),
