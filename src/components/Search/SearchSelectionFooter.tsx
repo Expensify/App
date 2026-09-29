@@ -1,6 +1,7 @@
 import useActivePolicy from '@hooks/useActivePolicy';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 
 import {close} from '@libs/actions/Modal';
@@ -40,6 +41,7 @@ type FooterCurrencyState = {
     defaultCurrency: string | undefined;
 };
 
+const EMPTY_FOOTER_SELECTION = {footerCount: undefined, footerTotal: undefined, footerCurrency: undefined};
 const EMPTY_REPORT_IDS: string[] = [];
 const EMPTY_SOURCES: Record<string, number> = {};
 
@@ -128,7 +130,9 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // changes the figure on display, stamped with the snapshot hash the request was made from. The stamp ends the wait
     // on its own once the snapshot moves off it, so a later visit to that hash never skeletons the total again.
     const [pendingTotal, setPendingTotal] = useState<{hash: number | undefined; fromHash: number | undefined}>();
-    const footerSelection = getFooterSelectionFromQuery(currentSearchQueryJSON);
+    const {isBetaEnabled} = usePermissions();
+    const isFooterSelectorsEnabled = isBetaEnabled(CONST.BETAS.SPEND_FOOTER_SELECTORS);
+    const footerSelection = isFooterSelectorsEnabled ? getFooterSelectionFromQuery(currentSearchQueryJSON) : EMPTY_FOOTER_SELECTION;
     // Onyx delivers an optimistic source stamp asynchronously. Bridge that short gap locally so a render caused by
     // selection reconciliation cannot dispatch the same report conversion twice before the stamp is observed.
     const pendingReportConversionSources = useRef<Record<string, Record<string, number>>>({});
@@ -326,11 +330,12 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
 
     // The other case with no answer to give: the whole-search report count comes from the server, and a search that
     // returned none of it (a grouped search, or a to-do search counting live Onyx data) has nothing to switch to.
-    const shouldShowCountSelector = (isExpenseType || isReportsSearch) && !hasGroupSelection && (hasPartialSelection || (!shouldUseLiveData && typeof metadataReportCount === 'number'));
+    const shouldShowCountSelector =
+        isFooterSelectorsEnabled && (isExpenseType || isReportsSearch) && !hasGroupSelection && (hasPartialSelection || (!shouldUseLiveData && typeof metadataReportCount === 'number'));
     const footerCountType = shouldShowCountSelector ? (footerSelection.footerCount ?? defaultFooterCountType) : undefined;
 
     // An empty result set has no total to break down, so it keeps the plain total spend with no selector.
-    const shouldShowTotalSelector = !hasGroupSelection && (!!metadataCount || selectedTransactionsKeys.length > 0);
+    const shouldShowTotalSelector = isFooterSelectorsEnabled && !hasGroupSelection && (!!metadataCount || selectedTransactionsKeys.length > 0);
 
     // Use the per-selection (client) total for a partial selection; nothing-selected and everything-selected both fall
     // to the whole-search grand total, which every search type now returns converted, keyed by the search hash.
@@ -552,7 +557,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // self-subscribing leaf that re-renders on every checkbox press, and the form route would subscribe it to the whole
     // policy collection. useSearchFilterSync writes the form from the query, so the form still follows.
     const applyFooterSelection = (selection: {footerCount?: SearchFooterCount; footerTotal?: SearchFooterTotal; footerCurrency?: string}) => {
-        if (!currentSearchQueryJSON) {
+        if (!currentSearchQueryJSON || !isFooterSelectorsEnabled) {
             return;
         }
 
