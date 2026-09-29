@@ -1,5 +1,6 @@
+import DecisionModal from '@components/DecisionModal';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
-import {useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
@@ -8,13 +9,17 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useHydrateReportsFromSnapshot from '@hooks/useHydrateReportsFromSnapshot';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {createNewReport} from '@libs/actions/Report';
 import {autoReportTransactions, changeTransactionsReport} from '@libs/actions/Transaction';
+import getAllMatchingQueryParams from '@libs/getAllMatchingQueryParams';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
@@ -37,7 +42,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -45,11 +50,27 @@ type TransactionGroupListItem = ListItem & {
 };
 
 function SearchTransactionsChangeReport() {
-    const {selectedTransactions} = useSearchSelectionContext();
+    const {selectedTransactions, areAllMatchingItemsSelected, excludedTransactions} = useSearchSelectionContext();
     const delegateAccountID = useDelegateAccountID();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
+    const {currentSearchQueryJSON} = useSearchQueryContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
+
+    const allMatchingQueryParams = getAllMatchingQueryParams(areAllMatchingItemsSelected, excludedTransactions, currentSearchQueryJSON);
+
+    /**
+     * Block offline all-matching moves because the backend reevaluates the query after reconnecting,
+     * which can include newly matching expenses. Recheck here because the connection may have dropped after the RHP opened
+     */
+    const shouldBlockOfflineAllMatchingMove = () => isOffline && !!allMatchingQueryParams.jsonQuery;
+
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
     const transactions = Object.values(selectedTransactions)
         .map((transactionItem) => transactionItem.transaction)
@@ -185,6 +206,7 @@ function SearchTransactionsChangeReport() {
                 delegateAccountID,
                 getCurrencyDecimals,
                 getCurrencySymbol,
+                ...allMatchingQueryParams,
             });
             clearSelectedTransactions();
         });
@@ -199,6 +221,10 @@ function SearchTransactionsChangeReport() {
     });
 
     const createReport = () => {
+        if (shouldBlockOfflineAllMatchingMove()) {
+            setIsOfflineModalVisible(true);
+            return;
+        }
         if (shouldNavigateToUpgradePath && selectedTransactionsKeys.length > 0) {
             const firstTransactionID = selectedTransactionsKeys.at(0);
             if (firstTransactionID) {
@@ -250,6 +276,10 @@ function SearchTransactionsChangeReport() {
         if (selectedTransactionsKeys.length === 0) {
             return;
         }
+        if (shouldBlockOfflineAllMatchingMove()) {
+            setIsOfflineModalVisible(true);
+            return;
+        }
 
         const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
         const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
@@ -279,6 +309,7 @@ function SearchTransactionsChangeReport() {
             delegateAccountID,
             getCurrencyDecimals,
             getCurrencySymbol,
+            ...allMatchingQueryParams,
         });
         Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
     };
@@ -293,6 +324,10 @@ function SearchTransactionsChangeReport() {
 
     const removeFromReport = () => {
         if (selectedTransactionsKeys.length === 0) {
+            return;
+        }
+        if (shouldBlockOfflineAllMatchingMove()) {
+            setIsOfflineModalVisible(true);
             return;
         }
         const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
@@ -314,32 +349,44 @@ function SearchTransactionsChangeReport() {
             delegateAccountID,
             getCurrencyDecimals,
             getCurrencySymbol,
+            ...allMatchingQueryParams,
         });
         clearSelectedTransactions();
         Navigation.goBack();
     };
 
     return (
-        <IOURequestEditReportCommon
-            backTo={undefined}
-            transactionIDs={selectedTransactionsKeys}
-            isManualDistanceRequest={transactions.some(isManualDistanceRequestUtil)}
-            isOdometerDistanceRequest={transactions.some(isOdometerDistanceRequestUtil)}
-            isDistanceRequest={transactions.some(isDistanceRequestUtil)}
-            selectedReportID={selectedReportID}
-            selectReport={selectReport}
-            removeFromReport={removeFromReport}
-            createReport={createReport}
-            isEditing
-            isUnreported={areAllTransactionsUnreported}
-            targetOwnerAccountID={targetOwnerAccountID}
-            transactionPolicyID={selectedReportPolicyID}
-            isPerDiemRequest={hasPerDiemTransactions}
-            isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
-            hasMultipleSubmitters={hasMultipleSubmitters}
-            areAllManagedCardTransactions={areAllManagedCardTransactions}
-            autoReport={autoReport}
-        />
+        <>
+            <IOURequestEditReportCommon
+                backTo={undefined}
+                transactionIDs={selectedTransactionsKeys}
+                isManualDistanceRequest={transactions.some(isManualDistanceRequestUtil)}
+                isOdometerDistanceRequest={transactions.some(isOdometerDistanceRequestUtil)}
+                isDistanceRequest={transactions.some(isDistanceRequestUtil)}
+                selectedReportID={selectedReportID}
+                selectReport={selectReport}
+                removeFromReport={removeFromReport}
+                createReport={createReport}
+                isEditing
+                isUnreported={areAllTransactionsUnreported}
+                targetOwnerAccountID={targetOwnerAccountID}
+                transactionPolicyID={selectedReportPolicyID}
+                isPerDiemRequest={hasPerDiemTransactions}
+                isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
+                hasMultipleSubmitters={hasMultipleSubmitters}
+                areAllManagedCardTransactions={areAllManagedCardTransactions}
+                autoReport={autoReport}
+            />
+            <DecisionModal
+                title={translate('common.youAppearToBeOffline')}
+                prompt={translate('common.offlinePrompt')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={() => setIsOfflineModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={isOfflineModalVisible}
+                onClose={() => setIsOfflineModalVisible(false)}
+            />
+        </>
     );
 }
 
