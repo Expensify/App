@@ -242,7 +242,7 @@ export default {
     signInLogoWidthPill: 132,
     tabSelectorButtonHeight: 40,
     tabSelectorButtonPadding: 12,
-    tabSelectorScrollFadeWidth: 40,
+    tabSelectorScrollFadeWidth: 32,
     tabSelectorScrollMarginInline: 20,
     tabSelectorMaxTabLabelWidth: 256,
     filterPillMaxWidth: 256,
