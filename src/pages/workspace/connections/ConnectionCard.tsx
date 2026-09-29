@@ -2,6 +2,7 @@
  * A single integration tile on the Connections page. Connected integrations show their status and a Configure or Fix
  * button, and the rest show a "+" that starts the connection flow.
  */
+import ActivityIndicator from '@components/ActivityIndicator';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -37,16 +38,20 @@ function ConnectionCard({listing, columnCount}: ConnectionCardProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'Plus']);
-    const {title, icon, status, onConnect, onConfigure, registerConnectButton} = listing;
+    const {title, icon, status, onConnect, onConfigure, registerConnectButton, isLoading} = listing;
 
     const connectIcon = (
         <View style={[styles.justifyContentCenter, styles.ml3]}>
-            <Icon
-                src={icons.Plus}
-                width={variables.iconSizeSmall}
-                height={variables.iconSizeSmall}
-                fill={theme.icon}
-            />
+            {isLoading ? (
+                <ActivityIndicator />
+            ) : (
+                <Icon
+                    src={icons.Plus}
+                    width={variables.iconSizeSmall}
+                    height={variables.iconSizeSmall}
+                    fill={theme.icon}
+                />
+            )}
         </View>
     );
 
@@ -97,7 +102,7 @@ function ConnectionCard({listing, columnCount}: ConnectionCardProps) {
                 wrapperStyle={[styles.pv4, styles.ph4]}
                 onPress={status ? onConfigure : onConnect}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.CARD}
-                disabled={!status && isOffline}
+                disabled={!status && (isOffline || !!isLoading)}
                 shouldShowRightComponent
                 rightComponent={status ? statusButton : connectIcon}
             />

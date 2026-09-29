@@ -82,8 +82,10 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         return true;
     });
 
-    const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const syncingIntegration = accountingIntegrations.find((integration) => integration === connectionSyncProgress?.connectionName);
+    // HR providers write to the same sync progress key, so only an accounting sync counts here
+    const accountingSyncProgress = syncingIntegration ? connectionSyncProgress : undefined;
+    const isSyncInProgress = !!accountingSyncProgress && isConnectionInProgress(accountingSyncProgress, policy);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingIntegration;
     const isIntuitEnterpriseSuiteSyncInProgress = isSyncInProgress && activeIntegration?.name === CONST.POLICY.CONNECTIONS.NAME.QBO && activeIntegration.isIntuitEnterpriseSuite === true;
     const isConnectedToIntuitEnterpriseSuite =
@@ -114,7 +116,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         if (isConnectionUnverified(policy, name)) {
             return {isBroken: false, message: translate('workspace.accounting.notSync')};
         }
-        const syncStage = isSyncInProgress ? connectionSyncProgress?.stageInProgress : undefined;
+        const syncStage = isSyncInProgress ? accountingSyncProgress?.stageInProgress : undefined;
         return {
             isBroken: false,
             message: getSyncStatusMessage({
@@ -122,7 +124,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
                 successfulDate: getIntegrationLastSuccessfulDate(
                     getLocalDateFromDatetime,
                     policy?.connections?.[name],
-                    name === connectionSyncProgress?.connectionName ? connectionSyncProgress : undefined,
+                    name === accountingSyncProgress?.connectionName ? accountingSyncProgress : undefined,
                 ),
                 translate,
                 datetimeToCalendarTime,

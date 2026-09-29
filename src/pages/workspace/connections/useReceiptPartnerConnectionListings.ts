@@ -3,6 +3,7 @@
  */
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePrevious from '@hooks/usePrevious';
 
@@ -28,6 +29,7 @@ function useReceiptPartnerConnectionListings(policy: OnyxEntry<Policy>): Connect
     const {getReceiptPartnersIntegrationData, shouldShowEnterCredentialsError, isUberConnected} = useGetReceiptPartnersIntegrationData(policyID);
     const {canWrite, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const prevIsUberConnected = usePrevious(isUberConnected);
+    const {isOffline} = useNetwork();
 
     // The Uber connection finishes outside the app, so the invite flow opens once the connection shows up here
     useEffect(() => {
@@ -49,10 +51,14 @@ function useReceiptPartnerConnectionListings(policy: OnyxEntry<Policy>): Connect
             showReadOnlyModal();
             return;
         }
+        const connectFormData = policy?.receiptPartners?.uber?.connectFormData;
+        if (!connectFormData) {
+            return;
+        }
         if (!policy?.receiptPartners?.enabled) {
             enablePolicyReceiptPartners(policyID, true, false);
         }
-        openExternalLink(`${CONST.UBER_CONNECT_URL}?${policy?.receiptPartners?.uber?.connectFormData}`);
+        openExternalLink(`${CONST.UBER_CONNECT_URL}?${connectFormData}`);
     };
 
     const isConnected = isUberConnected || shouldShowEnterCredentialsError;
@@ -70,6 +76,7 @@ function useReceiptPartnerConnectionListings(policy: OnyxEntry<Policy>): Connect
                   }
                 : undefined,
             onConnect: connectUber,
+            isLoading: !policy?.receiptPartners?.uber && !isOffline && !!policy?.isLoadingReceiptPartners,
             onConfigure: () => Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID)),
         },
     ];

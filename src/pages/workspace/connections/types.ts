@@ -34,6 +34,9 @@ type ConnectionListing = {
 
     onConnect: () => void;
 
+    /** Shows a spinner instead of "+" while the data the connection flow needs is still loading */
+    isLoading?: boolean;
+
     /** Opens the connection's settings. Only called for connected listings. */
     onConfigure?: () => void;
 
