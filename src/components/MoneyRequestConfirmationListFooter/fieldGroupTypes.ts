@@ -53,7 +53,7 @@ type VisibilityFlags = {
 /** Shared error state surfaced into multiple fields */
 type ErrorState = {
     shouldDisplayFieldError: boolean;
-    formError: string;
+    formError: TranslationPaths | '';
     clearFormErrors: (errors: string[]) => void;
     setFormError: (error: TranslationPaths | '') => void;
 };

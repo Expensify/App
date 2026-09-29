@@ -12,6 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 
@@ -144,7 +145,7 @@ const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction
             isParticipantPickerVisible: false,
             hasParticipantSection: false,
         },
-        errorState: {shouldDisplayFieldError: false, formError: '', clearFormErrors: jest.fn(), setFormError: jest.fn()},
+        errorState: {shouldDisplayFieldError: false, formError: 'common.error.fieldRequired' as TranslationPaths, clearFormErrors: jest.fn(), setFormError: jest.fn()},
         receiptOptions: {
             receiptFilename: '',
             receiptPath: '',

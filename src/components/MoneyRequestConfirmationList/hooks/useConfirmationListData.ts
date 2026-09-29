@@ -15,6 +15,7 @@ import {arePolicyRulesEnabled, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {getCategory, getCurrency, getMerchant, getRateID, hasValidModifiedAmount} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 
 import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
@@ -33,7 +34,7 @@ import useTransactionReportForConfirmation from './useTransactionReportForConfir
  * only visible if those fields are on screen, so every reveal site reads this same set: the shared confirmation
  * switches to the transaction whose fields need fixing, and the scan variant expands "Show more".
  */
-const INLINE_FIELD_ERROR_KEYS: ReadonlySet<string> = new Set(['common.error.fieldRequired', 'common.error.invalidAmount', 'iou.error.invalidMerchant']);
+const INLINE_FIELD_ERROR_KEYS = new Set<TranslationPaths | ''>(['common.error.fieldRequired', 'common.error.invalidAmount', 'iou.error.invalidMerchant']);
 
 /**
  * Everything the confirmation surface needs regardless of which expense type is being confirmed: the participant
