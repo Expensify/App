@@ -191,7 +191,7 @@ function getWorkspaceMenuItems({
     };
     const highlightedPolicyFeature = getObjectKeys(policyFeatureStates).find((key) => policyFeatureStates[key] && !previousPendingFields?.[key] && policy?.pendingFields?.[key]);
 
-    const items: WorkspaceMenuItem[] = [
+    const defaultItems: WorkspaceMenuItem[] = [
         {
             translationKey: 'workspace.common.profile',
             icon: icons.Building,
@@ -215,7 +215,8 @@ function getWorkspaceMenuItems({
             screenName: SCREENS.WORKSPACE.ROOMS,
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.ROOMS,
         },
-    ].filter((item) => !isGuest || item.screenName === SCREENS.WORKSPACE.PROFILE);
+    ];
+    const items = defaultItems.filter((item) => !isGuest || item.screenName === SCREENS.WORKSPACE.PROFILE);
 
     if (isGroupPolicy(policy) && shouldShowProtectedItems) {
         if (canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS)) {

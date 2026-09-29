@@ -49,20 +49,18 @@ function normalizeESLintResults(results: ESLintJSONResult[]): LintFileResult[] {
     return results.map((result) => ({
         filePath: result.filePath,
         source: result.source,
-        messages: result.messages.map(
-            (message): LintMessage => ({
-                filePath: result.filePath,
-                ruleID: message[ESLINT_RULE_ID_KEY],
-                severity: normalizeSeverity(message.severity),
-                message: message.message,
-                line: message.line ?? 0,
-                column: message.column ?? 0,
-                endLine: message.endLine,
-                endColumn: message.endColumn,
-                suggestions: message.suggestions,
-                fix: message.fix,
-            }),
-        ),
+        messages: result.messages.map((message): LintMessage => ({
+            filePath: result.filePath,
+            ruleID: message[ESLINT_RULE_ID_KEY],
+            severity: normalizeSeverity(message.severity),
+            message: message.message,
+            line: message.line ?? 0,
+            column: message.column ?? 0,
+            endLine: message.endLine,
+            endColumn: message.endColumn,
+            suggestions: message.suggestions,
+            fix: message.fix,
+        })),
     }));
 }
 
