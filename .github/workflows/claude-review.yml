@@ -11,23 +11,14 @@ on:
   issue_comment:
     types: [created]
 
-concurrency:
-  group: >-
-    claude-review-${{
-      github.event_name == 'pull_request_target' && github.event.pull_request.html_url ||
-      github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude review') && github.event.issue.html_url ||
-      github.run_id
-    }}
-  cancel-in-progress: true
-
 jobs:
-  review:
+  authorize:
     if: >-
       (github.event_name == 'pull_request_target' && github.event.pull_request.draft != true && !contains(github.event.pull_request.title, 'Revert')) ||
       (github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, '@claude review'))
     runs-on: blacksmith-2vcpu-ubuntu-2404
-    env:
-      PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+    outputs:
+      IS_AUTHORIZED: ${{ steps.gate.outputs.IS_AUTHORIZED }}
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
@@ -42,41 +33,39 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Set review authorized
-        id: set-authorized
-        run: |
-          if [ "${{ steps.gate.outputs.IS_AUTHORIZED }}" = "true" ]; then
-            echo "IS_AUTHORIZED=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "IS_AUTHORIZED=false" >> "$GITHUB_OUTPUT"
-          fi
-
+  review:
+    needs: authorize
+    if: needs.authorize.outputs.IS_AUTHORIZED == 'true'
+    # Set on this job, after authorization, so an unauthorized "@claude review" comment cannot cancel a running review
+    concurrency:
+      group: claude-review-${{ github.event.pull_request.html_url || github.event.issue.html_url }}
+      cancel-in-progress: true
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+    steps:
       - name: Checkout repository
-        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           fetch-depth: 1
 
       - name: Setup Node
-        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup Claude review toolkit
-        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
         id: toolkit
         uses: Expensify/GitHub-Actions/.github/actions/claude-review-toolkit@54bfb8923d4f94c3cb209bfbad362fca9f0816f5
         with:
           rules_directory: .claude/skills/app-coding-standards/rules
 
       - name: Check for an existing review of this commit
-        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
         id: skip
         env:
           GH_TOKEN: ${{ github.token }}
         run: shouldSkipReview.sh "$PR_NUMBER" "ai-review-completed/claude"
 
       - name: Filter paths
-        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.skip.outputs.skip != 'true'
+        if: steps.skip.outputs.skip != 'true'
         id: filter
         env:
           GH_TOKEN: ${{ github.token }}
@@ -91,7 +80,7 @@ jobs:
             echo "docs=true" >> "$GITHUB_OUTPUT"
           fi
       - name: Mark review as in progress
-        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.skip.outputs.skip != 'true'
+        if: steps.skip.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -99,7 +88,7 @@ jobs:
 
       - name: Run Claude Code (code)
         id: code-review
-        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.skip.outputs.skip != 'true' && steps.filter.outputs.code == 'true'
+        if: steps.skip.outputs.skip != 'true' && steps.filter.outputs.code == 'true'
         uses: anthropics/claude-code-action@4d7e1f0cd85743fdc93b1c8040ab54395da024e2 # v1.0.149
         with:
           display_report: 'true'
@@ -121,7 +110,7 @@ jobs:
 
       - name: Run Claude Code (docs)
         id: docs-review
-        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.skip.outputs.skip != 'true' && steps.filter.outputs.docs == 'true'
+        if: steps.skip.outputs.skip != 'true' && steps.filter.outputs.docs == 'true'
         uses: anthropics/claude-code-action@4d7e1f0cd85743fdc93b1c8040ab54395da024e2 # v1.0.149
         with:
           display_report: 'true'
@@ -143,7 +132,7 @@ jobs:
         run: recordReviewComplete.sh "$HEAD_SHA" "$STATUS_CONTEXT" "Reviewed at this commit - comment @claude review to re-run"
 
       - name: Remove in-progress indicator
-        if: always() && steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.skip.outputs.skip != 'true'
+        if: always() && steps.skip.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
