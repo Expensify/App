@@ -13,7 +13,7 @@ Expensify Card Spend Rules let Workspace Admins approve or decline card transact
 
 ## Who can use Expensify Card Spend rules
 
-- Workspace Admins can create, edit, and delete Expensify Card Spend rules.
+- Workspace Admins and Card Admins can create, edit, and delete Expensify Card Spend rules.
 - Cardholders can view Expensify Card Spend rules that apply to their cards but cannot modify them.
 
 To create Spend rules, the workspace must have **Rules** enabled. [Learn how to enable Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules).
@@ -33,7 +33,7 @@ These protections:
 
 When you create Spend rules, they are applied in addition to these protections rather than replacing them.
 
-You can view the default protections under **Default** on the **Card restrictions** tab of **Workspaces > [Workspace Name] > Rules**.
+You can view the default protections under **Workspaces > [Workspace Name] > Rules**.
 
 ---
 
@@ -85,21 +85,18 @@ When **Allow** is selected, you configure **Allowed merchants** and **Allowed me
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace Name]**.
 2. Click **Rules**.
-3. Open the **Card restrictions** tab, then click **Add spend rule**.
-4. Under **Cards**, click **Choose cards** and select one or more cards to apply the rule to.
-5. Under **Spend rules**, configure one or more of the following:
-   - **Permitted currencies:** Keep **All currencies** or select specific currencies.
-   - **Max amount:** Enter a maximum transaction amount.
-   - **Restrict merchants:** Select **Off**, **Allow**, or **Block**. When you select **Allow** or **Block**, set the merchants and merchant types to allow or block.
-6. Click **Save rule**.
+3. Under **Card restrictions**, click **Add rule**.
+4. Select **Card**.
+5. Choose one or more cards to apply the rule to, then select **Save**.
+6. Configure one or more of the following rules: 
+   - **Permitted currencies** to allow only approved currencies
+   - **Max amount** to allow only charges under a certain amount
+   - **Restrict merchants** to restrict or allow specific merchants or merchant types
+7. Select **Save rule**.
 
 Spend rules take effect immediately and are applied to future transactions on the selected cards.
 
-<!-- SCREENSHOT:
-Suggestion: The Add spend rule flow showing the Spend rules section with Permitted currencies, Max amount, and the Restrict merchants Off/Allow/Block toggle.
-Location: After the create rule steps.
-Purpose: Shows admins the rule configuration fields.
--->
+![Restrict card spend page showing available restrictions]({{site.url}}/assets/images/Rules_Card-Restrictions_Add-rule.png){:width="100%"}
 
 ---
 
@@ -107,14 +104,15 @@ Purpose: Shows admins the rule configuration fields.
 
 After a rule is created, you can review, change, or remove it.
 
-1. Go to **Workspaces > [Workspace Name] > Rules** and open the **Card restrictions** tab.
-2. Locate the card's Spend rule under **Custom rules**.
+1. Go to **Workspaces > [Workspace Name] > Rules**.
+2. Locate the card's Spend rule.
 3. Select the rule to update its permitted currencies, max amount, merchants, or merchant types or mode.
-4. Click **Save rule**.
+4. Select **Save rule**.
 
 To remove a rule: 
 1. Open the Spend rule.
-2. Click **Delete rule**.
+2. Select the trash can icon.
+3. Select **Delete** to confirm.
 
 After deletion, the card is governed only by default protections and any applicable card limits.
 

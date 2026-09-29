@@ -42,7 +42,6 @@ describe('PromotedActions.message', () => {
             introSelected,
             isSelfTourViewed: false,
             hasCompletedGuidedSetupFlow: undefined,
-            betas: undefined,
             hasReportActions: false,
         });
 
@@ -56,7 +55,6 @@ describe('PromotedActions.message', () => {
             introSelected,
             isSelfTourViewed: false,
             hasCompletedGuidedSetupFlow: undefined,
-            betas: undefined,
             shouldDismissModal: false,
             shouldRevalidateExistingChat: true,
             hasReportActions: false,
@@ -74,13 +72,12 @@ describe('PromotedActions.message', () => {
             introSelected,
             isSelfTourViewed: false,
             hasCompletedGuidedSetupFlow: undefined,
-            betas: undefined,
             hasReportActions: false,
         });
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, false, undefined, undefined, {}, undefined, true, false);
+        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, false, undefined, {}, undefined, true, false);
     });
 
     it('should pass undefined introSelected when not provided', () => {
@@ -93,13 +90,12 @@ describe('PromotedActions.message', () => {
             introSelected: undefined,
             isSelfTourViewed: undefined,
             hasCompletedGuidedSetupFlow: undefined,
-            betas: undefined,
             hasReportActions: false,
         });
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, undefined, undefined, undefined, undefined, {}, undefined, true, false);
+        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, undefined, undefined, undefined, {}, undefined, true, false);
     });
 
     it('should navigate to report directly when reportID is provided', () => {
@@ -112,7 +108,6 @@ describe('PromotedActions.message', () => {
             introSelected: undefined,
             isSelfTourViewed: undefined,
             hasCompletedGuidedSetupFlow: undefined,
-            betas: undefined,
             hasReportActions: false,
         });
 
@@ -135,7 +130,6 @@ describe('PromotedActions.message', () => {
             introSelected,
             isSelfTourViewed: false,
             hasCompletedGuidedSetupFlow: undefined,
-            betas: undefined,
             hasReportActions: false,
         });
 
@@ -149,33 +143,11 @@ describe('PromotedActions.message', () => {
             introSelected,
             isSelfTourViewed: false,
             hasCompletedGuidedSetupFlow: undefined,
-            betas: undefined,
             shouldDismissModal: false,
             shouldRevalidateExistingChat: true,
             hasReportActions: false,
         });
         expect(mockNavigateToAndOpenReportWithAccountIDs).not.toHaveBeenCalled();
-    });
-
-    it('should pass betas to navigateToAndOpenReportWithAccountIDs when accountID is provided', () => {
-        const introSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
-        const betas = [CONST.BETAS.ALL];
-        const action = PromotedActions.message({
-            isSupportalSession: false,
-            conciergeChat: undefined,
-            accountID: 42,
-            personalDetails: {},
-            currentUserAccountID: 1,
-            introSelected,
-            isSelfTourViewed: false,
-            hasCompletedGuidedSetupFlow: undefined,
-            betas,
-            hasReportActions: false,
-        });
-
-        action.onSelected();
-
-        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, false, undefined, betas, {}, undefined, true, false);
     });
 
     it('should call navigateToAndOpenReportWithAccountIDs with isSelfTourViewed=true when self tour has been viewed and accountID is provided', () => {
@@ -188,47 +160,13 @@ describe('PromotedActions.message', () => {
             introSelected,
             isSelfTourViewed: true,
             hasCompletedGuidedSetupFlow: undefined,
-            betas: undefined,
             personalDetails: {},
             hasReportActions: false,
         });
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, true, undefined, undefined, {}, undefined, true, false);
-    });
-
-    it('should pass betas to navigateToAndOpenReport when login is provided', () => {
-        const introSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
-        const betas = [CONST.BETAS.ALL];
-        const action = PromotedActions.message({
-            isSupportalSession: false,
-            conciergeChat: undefined,
-            login: 'test@example.com',
-            currentUserAccountID: 1,
-            introSelected,
-            personalDetails: {},
-            isSelfTourViewed: false,
-            hasCompletedGuidedSetupFlow: undefined,
-            betas,
-            hasReportActions: false,
-        });
-
-        action.onSelected();
-
-        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith({
-            isSupportalSession: false,
-            userLogins: ['test@example.com'],
-            personalDetails: {},
-            currentUserAccountID: 1,
-            introSelected,
-            isSelfTourViewed: false,
-            hasCompletedGuidedSetupFlow: undefined,
-            betas,
-            shouldDismissModal: false,
-            shouldRevalidateExistingChat: true,
-            hasReportActions: false,
-        });
+        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, true, undefined, {}, undefined, true, false);
     });
 
     it('should pass hasReportActions to navigateToAndOpenReport when the existing chat already has report actions', () => {
@@ -242,7 +180,6 @@ describe('PromotedActions.message', () => {
             introSelected,
             isSelfTourViewed: false,
             hasCompletedGuidedSetupFlow: undefined,
-            betas: undefined,
             hasReportActions: true,
         });
 
@@ -262,7 +199,6 @@ describe('PromotedActions.message', () => {
             introSelected: undefined,
             isSelfTourViewed: undefined,
             hasCompletedGuidedSetupFlow: undefined,
-            betas: undefined,
             hasReportActions: false,
         });
 

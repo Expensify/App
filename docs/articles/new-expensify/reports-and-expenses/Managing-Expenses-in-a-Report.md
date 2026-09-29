@@ -1,7 +1,7 @@
 ---
 title: Managing Expenses in a Report
 description: Learn how to add, remove, and move expenses in a report in New Expensify, including how comments and system messages interact with them.
-keywords: [New Expensify, manage expenses, add expense, delete expense, move expense, expense table, edit report, report approval, expense actions, create report, admin create report, inline editing, edit expense inline]
+keywords: [New Expensify, manage expenses, add expense, delete expense, move expense, expense table, edit report, report approval, expense actions, create report, admin create report, inline editing, edit expense inline, sort expenses in a report, sort by date, sort by column, expense order in a report, group by category, group by tag]
 ---
 
 Managing expenses in reports helps you keep everything organized and ready for approval, payment, or export. This guide covers adding, moving, deleting, and editing expenses, as well as understanding audit trails and collaboration.
@@ -84,9 +84,11 @@ You can move expenses to a different report, create a new report, or remove them
 
 Apart from a Workspace Admin attaching or replacing a receipt, Approved and Paid reports are locked for editing. To make other changes:
 
-1. (Admins only) Open the report.
-2. Click **More > Cancel Payment** (if Paid).
+1. Open the report.
+2. Click **More > Cancel payment** (if Paid).
 3. Then select **More > Unapprove**.
+
+**Cancel payment** is only offered to the report’s **Payer**, or — on a workspace that tracks payments made elsewhere — to a member with edit access to the **Payments** section of **Workflows**. Learn more about [who can cancel a payment on a report](articles/new-expensify/reports-and-expenses/Expense-and-Report-Actions#who-can-cancel-a-payment-on-a-report).
 
 After it’s unapproved:
   - The member can select **More** > **Undo Submit**.
@@ -133,6 +135,32 @@ Additional columns can be enabled from the **Columns** picker:
 
 Clicking a row opens the full expense details in a side panel (web) or details screen (mobile).
 
+---
+
+## How to sort the expense table in a report
+
+When you open a report, the expense table is sorted by **Date**, oldest expense first.
+
+The table always follows the column you sort by. An expense with a violation is not moved to the top of the table — it stays in its normal position for the column you are sorting by.
+
+To change the sort order:
+
+1. Open the report.
+2. Click a column header, such as **Date** or **Merchant**, to sort the table by that column.
+3. Click the same column header again to reverse the order.
+
+Sortable column headers are only available on web at wider screen widths. On mobile and on narrow screens, expenses stay in the default **Date** order.
+
+## How to sort expenses when the table is grouped
+
+If you group the expense table with the **Group by** button and choose **Category** or **Tag**, sorting applies inside each group:
+
+- Group headers stay in alphabetical order no matter which column you sort by.
+- The **Uncategorized** group (or **No tag**, when you group by **Tag**) is always listed last.
+- Clicking a column header reorders the expenses inside each group.
+
+To stop grouping, click **Group by** and select **None**.
+
 ## How to use comments and collaboration on a report
 
 Every report has a comment thread where you can:
@@ -163,3 +191,11 @@ You may be filtered into a different workspace or be using a mismatched search t
   - The destination report already has 500 expenses (the per-report limit).
 
 **Solution**: Ask a Workspace Admin to unapprove the report, or retract it if you submitted it. If the destination report is at the 500-expense limit, move some expenses out of it or choose a different destination report.
+
+## Why don’t expenses with violations appear at the top of the report?
+
+The expense table follows the column you sort by, so an expense with a violation sits in its normal position for that column rather than at the top of the table. Violations are still shown in red on the expense row, so you can spot them wherever they fall in the order.
+
+## Why is the order in a report different from the order in the report preview?
+
+The report preview in a chat and the expense table in a report use different orders. The preview shows expenses that need your attention first, while the expense table follows the column you sort by.
