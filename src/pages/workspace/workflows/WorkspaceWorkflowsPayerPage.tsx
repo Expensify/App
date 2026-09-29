@@ -2,7 +2,7 @@ import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
+import Header from '@components/Header';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -365,10 +365,13 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                     enableEdgeToEdgeBottomSafeAreaPadding
                     testID="WorkspaceWorkflowsPayerPage"
                 >
-                    <HeaderWithBackButtonAndTitle
-                        title={translate('workflowsPayerPage.title')}
-                        subtitle={policyName}
-                    />
+                    <Header>
+                        <Header.BackButton />
+                        <Header.Title
+                            title={translate('workflowsPayerPage.title')}
+                            subtitle={policyName}
+                        />
+                    </Header>
                     {shouldShowSuccess && selectedPayer ? (
                         <WorkspaceWorkflowsPayerSuccessPage />
                     ) : (

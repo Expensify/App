@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
+import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -119,10 +119,13 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
             includeSafeAreaPaddingBottom={false}
             testID={ConnectExistingBusinessBankAccountPage.displayName}
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('bankAccount.addBankAccount')}
-                subtitle={policyName}
-            />
+            <Header>
+                <Header.BackButton />
+                <Header.Title
+                    title={translate('bankAccount.addBankAccount')}
+                    subtitle={policyName}
+                />
+            </Header>
             {isSelectingBankAccount ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                     <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />

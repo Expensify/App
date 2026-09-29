@@ -36,7 +36,6 @@ import WorkspaceCreationReveal from '@libs/Navigation/helpers/WorkspaceCreationR
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {canMemberRead, shouldShowPolicy as checkIfShouldShowPolicy, goBackFromInvalidPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
-import {getAccountIDFromAvatarID} from '@libs/UserAvatarUtils';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
@@ -126,15 +125,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const policyName = policy?.name ?? '';
     const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);
     const shouldShowRBR = shouldShowRbrForWorkspaceAccountID[workspaceAccountID];
-
-    const policyAvatar = !policy
-        ? {source: expensifyIcons.ExpensifyAppIcon, name: CONST.EXPENSIFY_ICON_NAME, type: CONST.ICON_TYPE_AVATAR}
-        : {
-              source: policy.avatarURL ?? '',
-              name: policy.name ?? '',
-              type: CONST.ICON_TYPE_WORKSPACE,
-              id: policy.id,
-          };
 
     const prevPendingFields = usePrevious(policy?.pendingFields);
 
@@ -245,25 +235,25 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             >
                 <Header>
                     <Header.BackButton onPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACES_LIST.route)} />
-                    {policyAvatar.type === CONST.ICON_TYPE_WORKSPACE ? (
+                    {policy ? (
                         <WorkspaceAvatar
                             containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.SMALL)), styles.mr3]}
                             size={CONST.AVATAR_SIZE.SMALL}
-                            source={policyAvatar.source}
-                            name={policyAvatar.name}
-                            avatarID={policyAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
+                            source={policy.avatarURL ?? ''}
+                            name={policy.name ?? ''}
+                            avatarID={policy.id ?? CONST.DEFAULT_NUMBER_ID}
                         />
                     ) : (
                         <UserAvatar
                             containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.SMALL)), styles.mr3]}
                             size={CONST.AVATAR_SIZE.SMALL}
-                            source={policyAvatar.source}
-                            accountID={getAccountIDFromAvatarID(policyAvatar.id)}
+                            source={expensifyIcons.ExpensifyAppIcon}
+                            accountID={CONST.DEFAULT_NUMBER_ID}
                         />
                     )}
                     <Header.Title
                         title={policyName}
-                        shouldUseHeadlineHeader
+                        isHeadline
                         titleStyles={styles.noWrap}
                     />
                     <Header.Right>
