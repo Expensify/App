@@ -792,7 +792,6 @@
 "../../src/libs/OptionsListUtils/index.ts"	"@typescript-eslint/no-deprecated/translateLocal"	7
 "../../src/libs/OptionsListUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/OptionsListUtils/index.ts"	"rulesdir/no-onyx-connect"	1
-"../../src/libs/OptionsListUtils/searchMatchUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	2
 "../../src/libs/PageHTMLCapture/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Parser.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/libs/Parser.ts"	"rulesdir/no-onyx-connect"	2
@@ -1286,7 +1285,7 @@
 "../../src/pages/workspace/WorkspaceOverviewSharePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/WorkspacesListPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/polyfills/requestIdleCallback.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	52
+"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	53
 "../../src/ROUTES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/selectors/AdvancedSearchFiltersForm.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/selectors/Domain.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
