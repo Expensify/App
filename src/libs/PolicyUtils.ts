@@ -867,6 +867,26 @@ const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: strin
 const isPolicyGuest = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean => getPolicyRole(policy, currentUserLogin) === CONST.POLICY.ROLE.GUEST;
 
 /**
+ * Returns the highest-privilege role held across the given policies.
+ * Ranking is admin > auditor > user > guest, so a member on any workspace is not reported as a guest.
+ */
+function getHighestPolicyRole(
+    policyList: Array<OnyxInputOrEntry<Pick<Policy, 'role'>>>,
+): typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.AUDITOR | typeof CONST.POLICY.ROLE.USER | typeof CONST.POLICY.ROLE.GUEST {
+    const roles = policyList.map((policy) => policy?.role);
+    if (roles.includes(CONST.POLICY.ROLE.ADMIN)) {
+        return CONST.POLICY.ROLE.ADMIN;
+    }
+    if (roles.includes(CONST.POLICY.ROLE.AUDITOR)) {
+        return CONST.POLICY.ROLE.AUDITOR;
+    }
+    if (roles.length > 0 && roles.every((role) => role === CONST.POLICY.ROLE.GUEST)) {
+        return CONST.POLICY.ROLE.GUEST;
+    }
+    return CONST.POLICY.ROLE.USER;
+}
+
+/**
  * Checks if the current user is an auditor of the policy
  */
 const isPolicyAuditor = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean =>
@@ -3956,6 +3976,7 @@ export {
     getCustomUnitsForDuplication,
     getCountOfRequiredTagLists,
     getActiveEmployeeWorkspaces,
+    getHighestPolicyRole,
     getPolicyRole,
     hasIndependentTags,
     hasPerTagListRequired,

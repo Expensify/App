@@ -104,6 +104,7 @@ describe('FullstoryUtils', () => {
     it('reports Guest as the lowest workspace role', () => {
         const guestPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.GUEST};
         const auditorPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.AUDITOR};
+        const memberPolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.USER};
         const commonInput = {
             account: {isFromPublicDomain: true},
             activePolicy: guestPolicy,
@@ -118,5 +119,6 @@ describe('FullstoryUtils', () => {
 
         expect(buildFullstoryUserVars({...commonInput, policies: {policy_1: guestPolicy}}).user_role).toBe('guest');
         expect(buildFullstoryUserVars({...commonInput, policies: {policy_1: guestPolicy, policy_2: auditorPolicy}}).user_role).toBe('auditor');
+        expect(buildFullstoryUserVars({...commonInput, policies: {policy_1: guestPolicy, policy_3: memberPolicy}}).user_role).toBe('member');
     });
 });
