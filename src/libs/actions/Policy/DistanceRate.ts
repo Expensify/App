@@ -644,10 +644,15 @@ function disablePolicyCommuterExclusions(policyID: string, previousCommuterExclu
 }
 
 type WorkArrangementMemberUpdate = {
+    /** The account ID of the workspace member being updated. */
     accountID: number;
+    /** The member's login, used as the employeeList key and in the changelog action. */
     email: string;
+    /** The member's display name, used in the changelog message. */
     name: string;
+    /** The member's previous office arrangement, used to restore it if the update fails. */
     previousHasOfficeWorkArrangement: boolean | undefined;
+    /** The ID assigned to this member's optimistic changelog action. */
     optimisticReportActionID: string;
 };
 
