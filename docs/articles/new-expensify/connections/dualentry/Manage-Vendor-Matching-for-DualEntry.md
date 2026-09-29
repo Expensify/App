@@ -55,7 +55,7 @@ Once a vendor is selected manually, Expensify preserves that selection and won't
 
 ## Where to find your imported DualEntry vendors
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace Name]**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [workspace name]**.
 2. Select **Vendors**.
 3. Use **Find vendor** to search the list by name.
 
