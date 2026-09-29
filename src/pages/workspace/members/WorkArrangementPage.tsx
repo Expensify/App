@@ -31,7 +31,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 import {View} from 'react-native';
 
-type WorkArrangementOption = ListItem<string> & {
+type WorkArrangementOption = ListItem & {
     value: boolean;
     text: string;
     alternateText: string;
