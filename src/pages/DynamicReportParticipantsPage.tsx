@@ -76,8 +76,6 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     const {translate, formatPhoneNumber} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();
-    const policy = usePolicy(report?.policyID);
-    const isGuestAnnounceRoom = isAnnounceRoom(report) && isPolicyGuest(policy);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the selection mode only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -93,6 +91,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     const isGroupChat = isGroupChatUtils(report);
     const isCurrentUserGroupChatAdmin = isGroupChat && isCurrentUserAdmin;
     const policy = usePolicy(report?.policyID);
+    const isGuestAnnounceRoom = isAnnounceRoom(report) && isPolicyGuest(policy);
     const shouldShowInviteButton = canInviteMembersToReport(report, policy, isReportArchived, currentUserAccountID);
     const {isOffline} = useNetwork();
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);

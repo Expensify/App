@@ -85,14 +85,16 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
     });
 
     const noneOption: OptionTree[] = shouldShowNoneOption
-        ? getNoneOption(debouncedSearchValue, !selectedCategory, translate).map((option): OptionTree => ({
-              text: option.text,
-              keyForList: option.keyForList,
-              searchText: '',
-              tooltipText: option.text,
-              isDisabled: false,
-              isSelected: option.isSelected,
-          }))
+        ? getNoneOption(debouncedSearchValue, !selectedCategory, translate).map(
+              (option): OptionTree => ({
+                  text: option.text,
+                  keyForList: option.keyForList,
+                  searchText: '',
+                  tooltipText: option.text,
+                  isDisabled: false,
+                  isSelected: option.isSelected,
+              }),
+          )
         : [];
     const noneOptionSection = {
         title: '',
