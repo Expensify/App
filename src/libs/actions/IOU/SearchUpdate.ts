@@ -1,4 +1,4 @@
-import type {SearchQueryJSON} from '@components/Search/types';
+import type {SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
 
 import {isExpenseReport, isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON, getFilterFromQuery} from '@libs/SearchQueryUtils';
@@ -96,9 +96,16 @@ function shouldOptimisticallyUpdateSearch(
 
     // `status` and `policyID` are regular filters now, but they used to be root keys. They are already accounted for by the
     // status/policyID checks above, so they don't count as restrictive flat filters when deciding whether to optimistically update.
-    const hasNoFlatFilters = currentSearchQueryJSON.flatFilters.every(
-        (filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS || filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-    );
+    // The Spend footer's selections restrict nothing either — they pick which figures the footer prints — so a new expense
+    // still belongs on the list, which matters most offline, where the server's answer never comes.
+    const NON_RESTRICTIVE_FILTER_KEYS = new Set<SearchFilterKey>([
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY,
+    ]);
+    const hasNoFlatFilters = currentSearchQueryJSON.flatFilters.every((filter) => NON_RESTRICTIVE_FILTER_KEYS.has(filter.key));
 
     const onlyFromFilter = currentSearchQueryJSON.flatFilters.length === 1 ? currentSearchQueryJSON.flatFilters.at(0) : undefined;
     const matchesFromQuery: boolean =

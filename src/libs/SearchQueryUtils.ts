@@ -2566,12 +2566,16 @@ function buildCannedSearchQuery({
     return buildSearchQueryString(normalizedQueryJSON);
 }
 
+function hasNonFooterFilters(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
+    return !!queryJSON.filters && queryJSON.flatFilters.some((filter) => !FOOTER_FILTER_KEYS.has(filter.key));
+}
+
 function isDefaultExpensesQuery(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
-    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && !queryJSON.filters && !queryJSON.groupBy;
+    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && !hasNonFooterFilters(queryJSON) && !queryJSON.groupBy;
 }
 
 function isDefaultExpenseReportsQuery(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
-    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && !queryJSON.filters && !queryJSON.groupBy;
+    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && !hasNonFooterFilters(queryJSON) && !queryJSON.groupBy;
 }
 
 /**

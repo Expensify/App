@@ -2618,6 +2618,22 @@ describe('SearchQueryUtils', () => {
             expect(usd?.hash).toEqual(noSelection?.hash);
         });
 
+        it('leaves a query carrying only footer selections the default one, since they filter nothing', () => {
+            const isDefaultExpenses = (query: string) => {
+                const queryJSON = buildSearchQueryJSON(query);
+                return queryJSON ? isDefaultExpensesQuery(queryJSON) : undefined;
+            };
+            const isDefaultExpenseReports = (query: string) => {
+                const queryJSON = buildSearchQueryJSON(query);
+                return queryJSON ? isDefaultExpenseReportsQuery(queryJSON) : undefined;
+            };
+
+            expect(isDefaultExpenses('type:expense footerTotal:billable footerCurrency:EUR')).toBe(true);
+            expect(isDefaultExpenses('type:expense footerTotal:billable category:Travel')).toBe(false);
+            expect(isDefaultExpenseReports('type:expense-report footerCount:expenses')).toBe(true);
+            expect(isDefaultExpenseReports('type:expense-report groupBy:report')).toBe(false);
+        });
+
         it('keeps every footer selection out of the recent and similar search hashes, since none of them changes a result', () => {
             const noSelection = buildSearchQueryJSON('type:expense');
             const withSelections = buildSearchQueryJSON('type:expense footerCount:reports footerTotal:billable footerCurrency:EUR');
