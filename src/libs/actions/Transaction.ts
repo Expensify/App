@@ -1146,11 +1146,11 @@ function getChangeTransactionsReportOnyxData({
         const sourceCurrency = oldReport?.currency;
         const shouldClearAmount = shouldClearConvertedAmount(transaction, sourceCurrency, destinationCurrency);
 
-        const isUnreported = reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const isUnreporting = reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         const optimisticMoneyRequestReportActionID = rand64();
 
         const originalMessage = getOriginalMessage(oldIOUAction) as OriginalMessageIOU;
-        const actionType = isUnreported ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE;
+        const actionType = isUnreporting ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE;
         const newIOUAction = {
             ...oldIOUAction,
             reportID,
@@ -1169,7 +1169,7 @@ function getChangeTransactionsReportOnyxData({
             }),
         };
 
-        const comment = isUnreported ? {...transaction.comment, hold: null} : transaction.comment;
+        const comment = isUnreporting ? {...transaction.comment, hold: null} : transaction.comment;
 
         const shouldCopyOriginalAmount = transaction.originalAmount !== undefined && transaction.originalAmount !== transaction.amount;
         const shouldCopyOriginalCurrency = transaction.originalCurrency !== undefined && transaction.originalCurrency !== transaction.currency;
@@ -1219,7 +1219,7 @@ function getChangeTransactionsReportOnyxData({
         // Clear all violations for the transaction when moving to self DM report.
         // Also keep duplicate-partner violations cleaned on success so stale queued
         // responses cannot re-introduce one-sided duplicate warnings after reconnect.
-        if (isUnreported) {
+        if (isUnreporting) {
             const duplicateTransactionIDs = currentTransactionViolations[transaction.transactionID]?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data
                 ?.duplicates;
             if (duplicateTransactionIDs) {
@@ -1438,7 +1438,7 @@ function getChangeTransactionsReportOnyxData({
         // 3. Keep track of the new report totals
         // Source report uses original transaction details (expense is being removed at its original amount)
         // Target report uses transactionForViolations (expense arrives with the updated rate/amount after auto-selecting workspace rate)
-        const targetReportID = isUnreported ? selfDMReportID : reportID;
+        const targetReportID = isUnreporting ? selfDMReportID : reportID;
         const {amount: sourceTransactionAmount = 0, currency: sourceTransactionCurrency} = getTransactionDetails(transaction, undefined, undefined, allowNegative) ?? {};
         const {amount: targetTransactionAmount = 0, currency: targetTransactionCurrency} = getTransactionDetails(transactionForViolations, undefined, undefined, allowNegative) ?? {};
         const resolvedTargetTransactionCurrency = targetTransactionCurrency ?? transaction.currency;
@@ -1606,7 +1606,7 @@ function getChangeTransactionsReportOnyxData({
                     parentReportID: targetReportID,
                     parentReportActionID: optimisticMoneyRequestReportActionID,
                     policyID: reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && newReport ? newReport.policyID : CONST.POLICY.ID_FAKE,
-                    participants: isUnreported && shouldRemoveOtherParticipants ? {[accountID]: participants?.[accountID]} : participants,
+                    participants: isUnreporting && shouldRemoveOtherParticipants ? {[accountID]: participants?.[accountID]} : participants,
                 },
             });
         }
@@ -1738,7 +1738,7 @@ function getChangeTransactionsReportOnyxData({
         const searchTransaction = {
             ...transactionForViolations,
             reportID,
-            comment: isUnreported ? {...transactionForViolations.comment, hold: null} : transactionForViolations.comment,
+            comment: isUnreporting ? {...transactionForViolations.comment, hold: null} : transactionForViolations.comment,
             originalAmount: shouldCopyOriginalAmount ? transaction.originalAmount : undefined,
             originalCurrency: shouldCopyOriginalCurrency ? transaction.originalCurrency : undefined,
             reimbursable: transactionReimbursable,
@@ -1760,9 +1760,9 @@ function getChangeTransactionsReportOnyxData({
                 accountID,
                 login: email,
             },
-            iouReport: isUnreported ? undefined : newReport,
+            iouReport: isUnreporting ? undefined : newReport,
             iouAction: searchIOUAction,
-            policy: isUnreported ? undefined : policy,
+            policy: isUnreporting ? undefined : policy,
             transactionThreadReportID,
             previousMoneyRequestAction:
                 oldIOUAction && previousActionReportID && !skippedReportIDsSet.has(previousActionReportID)
@@ -1780,7 +1780,7 @@ function getChangeTransactionsReportOnyxData({
         }
 
         // Build unhold report action only when moving to unreported (self DM) report
-        if (isUnreported && isOnHold(transaction)) {
+        if (isUnreporting && isOnHold(transaction)) {
             const unHoldAction = buildOptimisticUnHoldReportAction(delegateAccountID);
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
