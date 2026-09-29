@@ -156,7 +156,7 @@ function FilterPopupButton({
                     shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
                     enableEdgeToEdgeBottomSafeAreaPadding
                 >
-                    <View style={bottomSafeAreaPaddingStyle}>{popoverContent}</View>
+                    <View style={[containerStyles, bottomSafeAreaPaddingStyle]}>{popoverContent}</View>
                 </PopoverWithMeasuredContent>
             )}
         </View>
