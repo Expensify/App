@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -17,7 +17,6 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
@@ -93,7 +92,6 @@ type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & Plat
 function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.moreFeatures');
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     // Undefined until the betas load. The action calls below need that distinction, the UI gating just treats it as off
@@ -351,13 +349,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 testID="WorkspaceMoreFeaturesPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
-                <HeaderWithBackButton
-                    shouldUseHeadlineHeader
-                    title={translate('workspace.common.moreFeatures')}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplayHelpButton
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderCentralPane title={translate('workspace.common.moreFeatures')} />
 
                 <ScrollView addBottomSafeAreaPadding>
                     <Text style={[styles.ph5, styles.mb5, styles.mt3, styles.textSupporting, styles.workspaceSectionMobile]}>{translate('workspace.moreFeatures.subtitle')}</Text>

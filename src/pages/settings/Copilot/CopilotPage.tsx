@@ -1,6 +1,6 @@
 import Badge from '@components/Badge';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
@@ -12,6 +12,7 @@ import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
 import Text from '@components/Text';
@@ -452,14 +453,9 @@ function CopilotPage() {
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithBackButton
-                        title={translate('delegate.copilot')}
-                        shouldShowBackButton={shouldUseNarrowLayout}
-                        onBackButtonPress={Navigation.goBack}
-                        shouldUseHeadlineHeader
-                        shouldDisplaySearchRouter
-                        shouldDisplayHelpButton
-                    />
+                    <HeaderCentralPane title={translate('delegate.copilot')}>
+                        <SearchButton />
+                    </HeaderCentralPane>
                     <ScrollView contentContainerStyle={styles.pt3}>
                         <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, safeAreaPaddingBottomStyle]}>
                             <Section

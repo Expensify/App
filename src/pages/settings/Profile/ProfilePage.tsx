@@ -5,7 +5,7 @@ import AvatarSkeleton from '@components/AvatarSkeleton';
 import Button from '@components/Button';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
@@ -14,6 +14,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import Section from '@components/Section';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -212,7 +213,7 @@ function ProfilePage() {
             shouldShowOfflineIndicatorInWideScreen
         >
             <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
-                <HeaderWithBackButton
+                <HeaderCentralPane
                     title={translate('common.profile')}
                     onBackButtonPress={() => {
                         if (route.params?.backTo) {
@@ -221,11 +222,9 @@ function ProfilePage() {
                         }
                         Navigation.goBack();
                     }}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplaySearchRouter
-                    shouldDisplayHelpButton
-                    shouldUseHeadlineHeader
-                />
+                >
+                    <SearchButton />
+                </HeaderCentralPane>
             </CollapsibleHeaderOnKeyboard>
             <ScrollView
                 ref={scrollViewRef}

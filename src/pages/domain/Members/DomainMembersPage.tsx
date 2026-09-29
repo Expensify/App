@@ -4,7 +4,7 @@ import type {DomainMemberBulkActionType, DropdownOption} from '@components/Butto
 import DecisionModal from '@components/DecisionModal';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -292,13 +292,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                     shouldShowOfflineIndicatorInWideScreen
                     testID="DomainMembersPage"
                 >
-                    <HeaderWithBackButton
-                        title={translate('domain.domainMembers')}
-                        onBackButtonPress={Navigation.goBack}
-                        shouldShowBackButton={shouldUseNarrowLayout}
-                        shouldUseHeadlineHeader
-                        shouldDisplayHelpButton
-                    />
+                    <HeaderCentralPane title={translate('domain.domainMembers')} />
                     <ScrollView
                         keyboardShouldPersistTaps="handled"
                         addBottomSafeAreaPadding

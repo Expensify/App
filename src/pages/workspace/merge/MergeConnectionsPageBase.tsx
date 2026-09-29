@@ -1,6 +1,6 @@
 import CollapsibleSection from '@components/CollapsibleSection';
 import ConnectToMergeFlow from '@components/ConnectToMergeFlow';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import CompactSearchBar from '@components/SearchBar/CompactSearchBar';
@@ -19,7 +19,6 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {openPolicyHRPage, openPolicyRecruitingPage} from '@libs/actions/PolicyConnections';
 import {isMergeConnectionName} from '@libs/merge/MergeUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -172,13 +171,7 @@ function MergeConnectionsPageBaseContent({policyID, category, cards, footer}: Me
                     onDone={() => setActiveSetupFlow(undefined)}
                 />
             )}
-            <HeaderWithBackButton
-                title={translate(`workspace.${category}.title`)}
-                shouldDisplayHelpButton
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldUseHeadlineHeader
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderCentralPane title={translate(`workspace.${category}.title`)} />
             <ScrollView
                 contentContainerStyle={styles.pt3}
                 addBottomSafeAreaPadding

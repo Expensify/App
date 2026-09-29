@@ -1,5 +1,5 @@
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {DomainAdminRequestRowData, DomainAdminRowData} from '@components/Tables/DomainAdminsTable';
 import DomainAdminsTable from '@components/Tables/DomainAdminsTable';
@@ -10,7 +10,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -70,7 +69,6 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus', 'DotIndicator']);
 
     const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
@@ -201,15 +199,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 testID="DomainAdminsPage"
             >
-                <HeaderWithBackButton
-                    title={translate('domain.admins.title')}
-                    onBackButtonPress={Navigation.goBack}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldUseHeadlineHeader
-                    shouldDisplayHelpButton
-                >
-                    {!shouldDisplayButtonsInSeparateLine && headerContent}
-                </HeaderWithBackButton>
+                <HeaderCentralPane title={translate('domain.admins.title')}>{!shouldDisplayButtonsInSeparateLine && headerContent}</HeaderCentralPane>
                 {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 <DomainAdminsTable
                     domainAccountID={domainAccountID}

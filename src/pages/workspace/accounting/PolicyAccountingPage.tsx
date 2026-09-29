@@ -3,7 +3,7 @@ import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import CollapsibleSection from '@components/CollapsibleSection';
 import FormHelpMessage from '@components/FormHelpMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
@@ -931,13 +931,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 testID="PolicyAccountingPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.common.accounting')}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldUseHeadlineHeader
-                    shouldDisplayHelpButton
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <HeaderCentralPane title={translate('workspace.common.accounting')} />
                 <ScrollView
                     contentContainerStyle={styles.pt3}
                     addBottomSafeAreaPadding

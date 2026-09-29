@@ -1,7 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 
@@ -11,7 +10,6 @@ import useIsWorkspacesTabFocused from '@hooks/useIsWorkspacesTabFocused';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openWorkspaceView} from '@libs/actions/BankAccounts';
@@ -25,7 +23,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -38,67 +35,61 @@ import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscree
 
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
-type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
-    Pick<HeaderWithBackButtonProps, 'shouldShowThreeDotsButton' | 'threeDotsMenuItems' | 'shouldShowBackButton' | 'onBackButtonPress'> & {
-        shouldSkipVBBACall?: boolean;
-        headerText: string;
+type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps & {
+    onBackButtonPress?: () => void;
+    shouldSkipVBBACall?: boolean;
+    headerText: string;
 
-        /** Main content of the page */
-        children: ((policyID: string | undefined, isUsingECard: boolean) => ReactNode) | ReactNode;
+    /** Main content of the page */
+    children: ((policyID: string | undefined, isUsingECard: boolean) => ReactNode) | ReactNode;
 
-        /** Content to be added as fixed footer */
-        footer?: ReactNode;
+    /** Content to be added as fixed footer */
+    footer?: ReactNode;
 
-        /** The route where we navigate when the user press the back button */
-        backButtonRoute?: Route;
+    /** The route where we navigate when the user press the back button */
+    backButtonRoute?: Route;
 
-        /** Option to use the default scroll view  */
-        shouldUseScrollView?: boolean;
+    /** Option to use the default scroll view  */
+    shouldUseScrollView?: boolean;
 
-        /** Option to show the loading page while the API is calling */
-        shouldShowLoading?: boolean;
+    /** Option to show the loading page while the API is calling */
+    shouldShowLoading?: boolean;
 
-        /** Whether the offline indicator should be shown in wide screen devices */
-        shouldShowOfflineIndicatorInWideScreen?: boolean;
+    /** Whether the offline indicator should be shown in wide screen devices */
+    shouldShowOfflineIndicatorInWideScreen?: boolean;
 
-        /** Whether to show this page to non admin policy members */
-        shouldShowNonAdmin?: boolean;
+    /** Whether to show this page to non admin policy members */
+    shouldShowNonAdmin?: boolean;
 
-        /** Policy feature permission needed to show this page */
-        policyFeature?: PolicyFeature;
+    /** Policy feature permission needed to show this page */
+    policyFeature?: PolicyFeature;
 
-        shouldShowNotFoundPage?: boolean;
+    shouldShowNotFoundPage?: boolean;
 
-        /** Makes firstRender ref display loading page before isLoading is change to true */
-        showLoadingAsFirstRender?: boolean;
+    /** Makes firstRender ref display loading page before isLoading is change to true */
+    showLoadingAsFirstRender?: boolean;
 
-        policy: OnyxEntry<Policy>;
+    policy: OnyxEntry<Policy>;
 
-        /**
-         * Icon displayed on the left of the title.
-         * If it is passed, the new styling is applied to the component:
-         * taller header on desktop and different font of the title.
-         * */
-        icon?: IconAsset;
+    headerContent?: ReactNode;
+    testID?: string;
 
-        headerContent?: ReactNode;
-        testID?: string;
+    /** Whether the page is loading, example any other API call in progress */
+    isLoading?: boolean;
 
-        /** Whether the page is loading, example any other API call in progress */
-        isLoading?: boolean;
+    /** Whether to use the taller headline style bar with the larger title font. Screens that swap the title for a "select multiple" prompt in selection mode turn this off while selecting. */
+    shouldUseHeadlineHeader?: boolean;
 
-        shouldUseHeadlineHeader?: boolean;
+    /**
+     * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
+     */
+    addBottomSafeAreaPadding?: boolean;
 
-        /**
-         * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
-         */
-        addBottomSafeAreaPadding?: boolean;
+    modals?: ReactNode;
 
-        modals?: ReactNode;
-
-        /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
-        shouldEnableMaxHeight?: boolean;
-    };
+    /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
+    shouldEnableMaxHeight?: boolean;
+};
 
 function fetchData(policyID: string | undefined, skipVBBACal?: boolean) {
     if (skipVBBACal) {
@@ -112,7 +103,6 @@ function WorkspacePageWithSections({
     backButtonRoute,
     children = () => null,
     footer = null,
-    icon = undefined,
     headerText,
     policy,
     policyDraft,
@@ -120,7 +110,6 @@ function WorkspacePageWithSections({
     shouldUseScrollView = false,
     showLoadingAsFirstRender = true,
     shouldSkipVBBACall = true,
-    shouldShowBackButton = false,
     shouldShowLoading = true,
     shouldShowOfflineIndicatorInWideScreen = false,
     shouldShowNonAdmin = false,
@@ -131,8 +120,6 @@ function WorkspacePageWithSections({
     shouldShowNotFoundPage = false,
     isLoading: isPageLoading = false,
     onBackButtonPress,
-    shouldShowThreeDotsButton,
-    threeDotsMenuItems,
     shouldUseHeadlineHeader = true,
     addBottomSafeAreaPadding = false,
     modals,
@@ -148,7 +135,6 @@ function WorkspacePageWithSections({
     const isLoading = isPageLoading ? true : !shouldSkipVBBACall && (reimbursementAccount?.isLoading ?? false);
     const isUsingECard = account?.isUsingExpensifyCard ?? false;
     const content = typeof children === 'function' ? children(policyID, isUsingECard) : children;
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
     const isWorkspacesTabFocused = useIsWorkspacesTabFocused();
     const prevPolicy = usePrevious(policy);
@@ -237,18 +223,13 @@ function WorkspacePageWithSections({
                 shouldForceFullScreen
                 shouldDisplaySearchRouter
             >
-                <HeaderWithBackButton
+                <HeaderCentralPane
                     title={headerText}
                     onBackButtonPress={handleOnBackButtonPress}
-                    shouldShowBackButton={shouldUseNarrowLayout || shouldShowBackButton}
-                    icon={icon ?? undefined}
-                    shouldShowThreeDotsButton={shouldShowThreeDotsButton}
-                    threeDotsMenuItems={threeDotsMenuItems}
-                    shouldUseHeadlineHeader={shouldUseHeadlineHeader}
-                    shouldDisplayHelpButton
+                    isHeadline={shouldUseHeadlineHeader}
                 >
                     {headerContent}
-                </HeaderWithBackButton>
+                </HeaderCentralPane>
                 {!isOffline && (isLoading || shouldShowInitialLoading) && shouldShowLoading && isFocused ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
                         <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />

@@ -1,11 +1,12 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import Section from '@components/Section';
 
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -291,14 +292,9 @@ function SecuritySettingsPage() {
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
-                title={translate('initialSettingsPage.security')}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                onBackButtonPress={Navigation.goBack}
-                shouldUseHeadlineHeader
-                shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-            />
+            <HeaderCentralPane title={translate('initialSettingsPage.security')}>
+                <SearchButton />
+            </HeaderCentralPane>
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
