@@ -35,15 +35,29 @@ type ChartYAxisLabelsProps = {
 
     /** When true, thin out labels so vertically stacked rows never overlap (used by the horizontal chart's category axis). */
     avoidOverlap?: boolean;
+
+    /** Width (px) labels truncate to. Must match the left padding the caller reserves for them. */
+    maxLabelWidth?: number;
 };
 
-function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontManager, labelColor, formatValue, leftAlign = false, avoidOverlap = false}: ChartYAxisLabelsProps) {
+function ChartYAxisLabels({
+    yTicks,
+    yScale,
+    chartBounds,
+    fontSize,
+    fontManager,
+    labelColor,
+    formatValue,
+    leftAlign = false,
+    avoidOverlap = false,
+    maxLabelWidth = MAX_Y_AXIS_LABEL_WIDTH,
+}: ChartYAxisLabelsProps) {
     const formattedLabels = yTicks.map((tick) => formatValue(tick));
 
     // Truncate to a single line: labels wider than the max would otherwise wrap onto a second line and
     // overflow the row height (positioning below assumes one line).
     const ellipsisWidth = measureTextWidth(ELLIPSIS, fontManager, fontSize);
-    const truncatedLabels = formattedLabels.map((label) => truncateLabel(label, measureTextWidth(label, fontManager, fontSize), MAX_Y_AXIS_LABEL_WIDTH, ellipsisWidth));
+    const truncatedLabels = formattedLabels.map((label) => truncateLabel(label, measureTextWidth(label, fontManager, fontSize), maxLabelWidth, ellipsisWidth));
 
     // Lay out at the wide width so the already-truncated labels never wrap.
     const paragraphs = useChartParagraphs(truncatedLabels, fontManager, fontSize, labelColor, MAX_X_AXIS_LABEL_WIDTH);

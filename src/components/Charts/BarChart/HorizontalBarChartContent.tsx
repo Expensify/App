@@ -6,7 +6,7 @@ import type {HitTestArgs, ResolveTargetIndexArgs} from '@components/Charts/hooks
 import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartParagraphs} from '@components/Charts/hooks';
 import {findClosestPoint} from '@components/Charts/hooks/useChartInteractions';
 import {getFontLineMetrics, getHorizontalChartHeight, getNiceValueDomain, getNiceValueTicks, measureTextWidth} from '@components/Charts/utils';
-import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {CATEGORY_LABEL_WIDTH_RATIO, CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -276,6 +276,10 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
     }));
 
+    // Cap the label column as a fraction of the width so long labels can't starve the plot on narrow containers.
+    // Shared by the left padding and ChartYAxisLabels truncation so the gutter and rendered labels agree.
+    const categoryLabelMaxWidth = chartWidth > 0 ? Math.min(MAX_Y_AXIS_LABEL_WIDTH, CATEGORY_LABEL_WIDTH_RATIO * chartWidth) : MAX_Y_AXIS_LABEL_WIDTH;
+
     const categoryLabelWidth = (() => {
         if (!fontManager || data.length === 0) {
             return 0;
@@ -284,7 +288,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         for (const point of data) {
             widest = Math.max(widest, measureTextWidth(point.label, fontManager, variables.iconSizeExtraSmall));
         }
-        return Math.min(MAX_Y_AXIS_LABEL_WIDTH, widest);
+        return Math.min(categoryLabelMaxWidth, widest);
     })();
 
     const {ascent, descent} = fontManager ? getFontLineMetrics(fontManager, variables.iconSizeExtraSmall) : {ascent: 0, descent: 0};
@@ -331,6 +335,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
                     fontManager={fontManager}
                     labelColor={theme.textSupporting}
                     formatValue={(yValue: number) => data.at(lastIndex - yValue)?.label ?? ''}
+                    maxLabelWidth={categoryLabelMaxWidth}
                     leftAlign
                     avoidOverlap
                 />
