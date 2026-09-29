@@ -11833,6 +11833,10 @@ ${reportName}`,
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renueva tu suscripción por un período de 12 meses, desde ${startDate} hasta ${endDate}.`,
+        title: 'Renueva tu suscripción de Expensify',
+        subtitle: 'Una cosa menos que hacer antes del nuevo año.',
+        confirmTitle: 'Confirmar renovación',
+        renew: 'Renovar',
     },
 };
 export default translations;

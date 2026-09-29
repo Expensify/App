@@ -11514,6 +11514,10 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Rinnova il tuo abbonamento per un periodo di 12 mesi, dal ${startDate} al ${endDate}.`,
+        title: 'Rinnova il tuo abbonamento Expensify',
+        subtitle: 'Una cosa in meno da fare prima del nuovo anno.',
+        confirmTitle: 'Conferma rinnovo',
+        renew: 'Rinnova',
     },
 };
 export default translations;

@@ -11050,6 +11050,10 @@ ${reportName}`,
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `将您的订阅续订为 12 个月期限，自 ${startDate} 至 ${endDate}。`,
+        title: '续订您的 Expensify 订阅',
+        subtitle: '在新年到来前又少了一件要做的事。',
+        confirmTitle: '确认续订',
+        renew: '续订',
     },
 };
 export default translations;

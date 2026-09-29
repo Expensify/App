@@ -11470,6 +11470,10 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renove sua assinatura por um período de 12 meses, de ${startDate} a ${endDate}.`,
+        title: 'Renove sua assinatura do Expensify',
+        subtitle: 'Uma coisa a menos para fazer antes do ano novo.',
+        confirmTitle: 'Confirmar renovação',
+        renew: 'Renovar',
     },
 };
 export default translations;

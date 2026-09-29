@@ -11496,6 +11496,10 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Odnów swoją subskrypcję na 12-miesięczny okres, od ${startDate} do ${endDate}.`,
+        title: 'Odnów swoją subskrypcję Expensify',
+        subtitle: 'O jedną rzecz mniej do zrobienia przed nowym rokiem.',
+        confirmTitle: 'Potwierdź odnowienie',
+        renew: 'Odnów',
     },
 };
 export default translations;

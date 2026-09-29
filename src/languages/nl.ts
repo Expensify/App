@@ -11478,6 +11478,10 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Verleng je abonnement voor een periode van 12 maanden, van ${startDate} tot ${endDate}.`,
+        title: 'Verleng je Expensify-abonnement',
+        subtitle: 'Weer iets minder te doen vóór het nieuwe jaar.',
+        confirmTitle: 'Verlenging bevestigen',
+        renew: 'Verleng',
     },
 };
 export default translations;
