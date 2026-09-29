@@ -20,10 +20,17 @@ import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {MarkdownStyle, MarkdownTextInput} from '@expensify/react-native-live-markdown';
-import type {NativeSyntheticEvent, TextInputChangeEvent, TextInputPasteEventData} from 'react-native';
+import type {NativeSyntheticEvent, TextInputChangeEvent} from 'react-native';
 
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {StyleSheet} from 'react-native';
+
+type TextInputPasteEvent = NativeSyntheticEvent<{
+    items: Array<{
+        type: string;
+        data: string;
+    }>;
+}>;
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
 const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
@@ -104,7 +111,7 @@ function Composer({
     );
 
     const pasteFile = useCallback(
-        (e: NativeSyntheticEvent<TextInputPasteEventData>) => {
+        (e: TextInputPasteEvent) => {
             const clipboardContent = e.nativeEvent.items.at(0);
             if (clipboardContent?.type === 'text/plain') {
                 return;

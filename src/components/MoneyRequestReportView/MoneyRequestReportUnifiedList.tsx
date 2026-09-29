@@ -6,9 +6,10 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 
 import type * as OnyxTypes from '@src/types/onyx';
+import type {ViewableItemsChanged, ViewToken} from '@src/types/utils/ReactNativeCompat';
 
 import type {FlashListProps, ListRenderItemInfo} from '@shopify/flash-list';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React, {memo, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -103,7 +104,7 @@ type MoneyRequestReportUnifiedListProps = {
     onScrollBeginDrag: () => void;
 
     onContentSizeChange: (width: number, height: number) => void;
-    onViewableItemsChanged: (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => void;
+    onViewableItemsChanged: ViewableItemsChanged;
 
     /** Called when the end of the list is reached (older actions). */
     onEndReached: () => void;
@@ -220,7 +221,7 @@ function MoneyRequestReportUnifiedList({
     // The hook compares unreadMarkerReportActionIndex (0-based within visibleReportActions) against
     // raw FlashList indices. When transactions are present, report actions start at reportActionIndexOffset,
     // so we shift all viewable indices down before forwarding so the comparison is apples-to-apples.
-    const onViewableItemsChangedAdjusted = (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
+    const onViewableItemsChangedAdjusted = (info: Parameters<ViewableItemsChanged>[0]) => {
         // Keep the raw array so the new-transaction effect can tell whether the new row is already on screen.
         viewableItemsRef.current = info.viewableItems;
         if (reportActionIndexOffset === 0) {
@@ -229,7 +230,7 @@ function MoneyRequestReportUnifiedList({
         }
         onViewableItemsChanged({
             ...info,
-            viewableItems: info.viewableItems.map((item) => ({...item, index: item.index !== null ? item.index - reportActionIndexOffset : null})),
+            viewableItems: info.viewableItems.map((item) => ({...item, index: typeof item.index === 'number' ? item.index - reportActionIndexOffset : item.index})),
         });
     };
 

@@ -48,7 +48,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
     const policyID = route.params.policyID;
     const feed = route.params.feed;
     const cardID = route.params.cardID;
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
@@ -61,7 +61,10 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
     const plaidUrl = getPlaidInstitutionIconUrl(feed);
 
     const isEditing = assignCard?.isEditing;
-    const assigneeDisplayName = usePersonalDetailByLogin(assignCard?.cardToAssign?.email ?? '', (personalDetails) => Str.removeSMSDomain(personalDetails?.displayName ?? ''));
+    const assigneeDisplayName = usePersonalDetailByLogin(assignCard?.cardToAssign?.email ?? '', (personalDetails) => {
+        const displayName = personalDetails?.displayName ?? '';
+        return Str.isSMSLogin(displayName) ? formatPhoneNumber(displayName) : displayName;
+    });
     const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds, feed);
 
     const [cardSelected, setCardSelected] = useState(assignCard?.cardToAssign?.encryptedCardNumber ?? '');
