@@ -31,10 +31,7 @@ function DisableAutoRenewSurveyPage() {
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('subscription.subscriptionSettings.disableAutoRenew')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('subscription.subscriptionSettings.disableAutoRenew')} />
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.pt3]}>
                 <FeedbackSurvey
                     formID={ONYXKEYS.FORMS.DISABLE_AUTO_RENEW_SURVEY_FORM}

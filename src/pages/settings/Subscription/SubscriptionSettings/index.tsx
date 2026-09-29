@@ -240,10 +240,7 @@ function SubscriptionSettings() {
             testID="SubscriptionSettings"
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('subscription.subscriptionSettings.title')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('subscription.subscriptionSettings.title')} />
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5]}>
                 {shouldUseSimplifiedCollectUI ? (
                     <>

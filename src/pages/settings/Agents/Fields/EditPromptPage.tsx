@@ -86,10 +86,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
             offlineIndicatorStyle={styles.mtAuto}
         >
             <CollapsibleHeaderOnKeyboard>
-                <HeaderWithBackButtonAndTitle
-                    title={translate('editAgentPromptPage.title')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('editAgentPromptPage.title')} />
             </CollapsibleHeaderOnKeyboard>
             <FormProvider
                 ref={formRef}

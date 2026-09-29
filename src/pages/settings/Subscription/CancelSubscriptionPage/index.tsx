@@ -84,10 +84,7 @@ function CancelSubscriptionPage() {
         >
             <FullPageNotFoundView shouldShow={!isEligibleToCancel && !resolvedCancellationType}>
                 <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                    <HeaderWithBackButtonAndTitle
-                        title={translate('subscription.cancelSubscription.title')}
-                        onBackButtonPress={Navigation.goBack}
-                    />
+                    <HeaderWithBackButtonAndTitle title={translate('subscription.cancelSubscription.title')} />
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.pt3]}>
                         {isManualCancellation && (
                             <View style={[styles.flexGrow1, styles.justifyContentBetween, styles.mh5]}>

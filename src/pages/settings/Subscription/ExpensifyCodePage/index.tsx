@@ -81,10 +81,7 @@ function ExpensifyCodePage() {
             shouldEnableMaxHeight
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <HeaderWithBackButtonAndTitle
-                    title={translate('subscription.expensifyCode.title')}
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('subscription.expensifyCode.title')} />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM}
                     submitButtonText={translate('subscription.expensifyCode.apply')}

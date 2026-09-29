@@ -182,10 +182,7 @@ function NewAgentPage({route}: NewAgentPageProps) {
             shouldEnableMaxHeight
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('newAgentPage.title')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('newAgentPage.title')} />
             {body}
         </ScreenWrapper>
     );

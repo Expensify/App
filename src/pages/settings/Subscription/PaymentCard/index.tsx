@@ -115,10 +115,7 @@ function AddPaymentCard() {
 
     return (
         <ScreenWrapper testID="AddPaymentCard">
-            <FullPageNotFoundView
-                shouldShow={shouldShowBlockingView}
-                onBackButtonPress={Navigation.goBack}
-            >
+            <FullPageNotFoundView shouldShow={shouldShowBlockingView}>
                 <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                     <HeaderWithBackButtonAndTitle title={translate('subscription.paymentCard.addPaymentCard')} />
                     <View style={styles.containerWithSpaceBetween}>
