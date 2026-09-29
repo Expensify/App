@@ -220,7 +220,7 @@ function canIOUBePaid(
 ) {
     const iouSettled = isSettled(iouReport);
 
-    if (isEmptyObject(iouReport)) {
+    if (isEmptyObject(iouReport) || iouReport.isWaitingForCancelledReimbursement) {
         return false;
     }
 

@@ -230,7 +230,7 @@ function isPrimaryPayAction({
 }: IsPrimaryPayActionParams) {
     const isExpenseReport = isExpenseReportUtils(report);
 
-    if (isPayBlockedByArchivedState(report, policy, isArchivedReport(reportNameValuePairs) || !!isChatReportArchived)) {
+    if (isPayBlockedByArchivedState(report, policy, isArchivedReport(reportNameValuePairs) || !!isChatReportArchived) || report.isWaitingForCancelledReimbursement) {
         return false;
     }
     if (isExpenseReport && !isPaidGroupPolicy(policy)) {
