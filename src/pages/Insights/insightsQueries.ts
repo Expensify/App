@@ -11,8 +11,8 @@ import type {InsightsFilters} from './insightsFilters';
 
 import INSIGHTS_DASHBOARD_SPECS from './dashboardSpecs';
 
-/** How many periods before the one on screen the Average mode spans (Typical) */
-const COMPARE_PERIOD_COUNT = 1;
+/** How many periods before the one on screen the Average mode spans (Typical on the ranking charts) */
+const COMPARE_TYPICAL_PERIOD_COUNT = 1;
 
 /** Builds the date filter in the shape a search query is built from. */
 function buildDateFormValues(date: InsightsFilters['date']): Partial<SearchAdvancedFiltersForm> {
@@ -97,7 +97,7 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
             inputQuery,
             searchKey,
             insightsHashes,
-            numberOfPeriods: COMPARE_PERIOD_COUNT,
+            numberOfPeriods: COMPARE_TYPICAL_PERIOD_COUNT,
         }),
         hash: queryJSON.hash,
         snapshotHashes: graphEntries.flatMap(([, hashes]) => Object.values(hashes)),
