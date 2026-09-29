@@ -13,8 +13,7 @@ const {headlineChart: HEADLINE_CHART, supportingCharts: SUPPORTING_CHARTS} = INS
 const [SUPPORTING_CHART] = SUPPORTING_CHARTS;
 const QUERY = 'groupBy:month groupCurrency:USD date:year-to-date';
 const QUERY_JSON = buildSearchQueryJSON(QUERY);
-const NAMED_GRAPHS: InsightsDashboard['graphs'] = {[HEADLINE_CHART.graphKey]: {snapshotHash: 1}, [SUPPORTING_CHART.graphKey]: {snapshotHash: 2}};
-const LOADED_DASHBOARD: InsightsDashboard = {inputQuery: QUERY, hasResults: true, graphs: NAMED_GRAPHS};
+const LOADED_DASHBOARD: InsightsDashboard = {inputQuery: QUERY, hasResults: true};
 const ERRORS = getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage');
 
 /** Builds a snapshot a request settled for the chart's query, the way GetInsights and Search both leave it. */
@@ -162,27 +161,5 @@ describe('getDashboardState', () => {
 
         // Then the dashboard renders instead of waiting on GetInsights for data it already has
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.READY);
-    });
-
-    it('draws the charts from the snapshots the dashboard named, whatever their Search metadata says', () => {
-        // Given a response naming both charts' snapshots, which hold rows but no Search metadata that would pass on its own
-        const snapshot: SearchResults = {...SNAPSHOT_WITH_ROWS, search: {...SNAPSHOT_WITH_ROWS.search, hash: 1234, state: undefined}};
-
-        // When the page's state is resolved
-        const state = getDashboardState(LOADED_DASHBOARD, false, makeCharts(snapshot, snapshot));
-
-        // Then the dashboard renders, because the GetInsights response vouches for its snapshots
-        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.READY);
-    });
-
-    it('counts a chart the response named no snapshot for as empty', () => {
-        // Given a response naming a snapshot only for the headline chart, which came back without rows
-        const dashboard: InsightsDashboard = {...LOADED_DASHBOARD, graphs: {[HEADLINE_CHART.graphKey]: {snapshotHash: 1}}};
-
-        // When the page's state is resolved
-        const state = getDashboardState(dashboard, false, makeCharts(SNAPSHOT_WITHOUT_ROWS, undefined));
-
-        // Then the page shows the empty state, because the response found nothing for the other chart either
-        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.EMPTY);
     });
 });

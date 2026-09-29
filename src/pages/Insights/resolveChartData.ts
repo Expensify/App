@@ -2,13 +2,10 @@ import type {GroupedItem, SearchQueryJSON} from '@components/Search/types';
 
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 
-import type {InsightsDashboard} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-
-import type {InsightsChartSpec} from './dashboardSpecs';
 
 const INSIGHTS_CHART_STATE = {
     LOADING: 'loading',
@@ -21,12 +18,6 @@ const INSIGHTS_CHART_STATE = {
 type InsightsChartState = ValueOf<typeof INSIGHTS_CHART_STATE>;
 
 type ResolveInsightsChartDataParams = {
-    /** The chart to resolve, as its dashboard declares it */
-    chart: InsightsChartSpec;
-
-    /** The dashboard's stored record, which says which charts' snapshots GetInsights filled */
-    dashboard: OnyxEntry<InsightsDashboard>;
-
     /** The snapshot stored under the chart's own query, which GetInsights or Search can fill */
     snapshot: OnyxEntry<SearchResults>;
 
@@ -47,26 +38,20 @@ type InsightsChartData = {
     state: InsightsChartState;
 };
 
-/** Says whether the dashboard's response filled the chart's snapshot, and whether that snapshot holds data for the chart's query. */
-function getInsightsChartLoadState({chart, dashboard, snapshot, queryJSON}: Pick<ResolveInsightsChartDataParams, 'chart' | 'dashboard' | 'snapshot' | 'queryJSON'>) {
-    const isNamedByDashboard = !!dashboard?.graphs?.[chart.graphKey]?.snapshotHash;
-    return {isNamedByDashboard, isLoaded: (isNamedByDashboard && !!snapshot?.data) || isSearchDataLoaded(snapshot, queryJSON)};
-}
-
-/** Resolves one chart's rows and state from its snapshot, which a Search request may have loaded before the dashboard's response lands. */
-function resolveInsightsChartData({chart, dashboard, snapshot, queryJSON, sortedData, isOffline = false}: ResolveInsightsChartDataParams): InsightsChartData {
+/** Resolves one chart's rows and state from its snapshot, whether GetInsights or Search loaded it. */
+function resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline = false}: ResolveInsightsChartDataParams): InsightsChartData {
     if (Object.keys(snapshot?.errors ?? {}).length > 0) {
         return {data: [], state: INSIGHTS_CHART_STATE.ERROR};
     }
 
-    const {isNamedByDashboard, isLoaded} = getInsightsChartLoadState({chart, dashboard, snapshot, queryJSON});
+    const isLoaded = isSearchDataLoaded(snapshot, queryJSON);
 
     if (!isLoaded && isOffline) {
         return {data: [], state: INSIGHTS_CHART_STATE.OFFLINE};
     }
 
     if (!isLoaded) {
-        return {data: [], state: dashboard?.inputQuery && !isNamedByDashboard ? INSIGHTS_CHART_STATE.EMPTY : INSIGHTS_CHART_STATE.LOADING};
+        return {data: [], state: INSIGHTS_CHART_STATE.LOADING};
     }
 
     if (!sortedData?.length) {
@@ -76,4 +61,5 @@ function resolveInsightsChartData({chart, dashboard, snapshot, queryJSON, sorted
     return {data: sortedData, state: INSIGHTS_CHART_STATE.READY};
 }
 
-export {INSIGHTS_CHART_STATE, getInsightsChartLoadState, resolveInsightsChartData};
+export {INSIGHTS_CHART_STATE, resolveInsightsChartData};
+export type {InsightsChartData};

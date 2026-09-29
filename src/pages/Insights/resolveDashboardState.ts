@@ -1,4 +1,4 @@
-import {isGroupEntry} from '@libs/SearchUIUtils';
+import {isGroupEntry, isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import type {InsightsDashboard} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -7,8 +7,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import type {InsightsChartQuery} from './insightsQueries';
-
-import {getInsightsChartLoadState} from './resolveChartData';
 
 const INSIGHTS_DASHBOARD_STATE = {
     READY: 'ready',
@@ -29,13 +27,9 @@ type InsightsDashboardChart = InsightsChartQuery & {
 function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: boolean, charts: InsightsDashboardChart[]): InsightsDashboardState {
     // Only a GetInsights response sets `inputQuery`.
     const hasDashboardResponse = !!dashboard?.inputQuery;
-    const chartStates = charts.map(({chart, snapshot, queryJSON}) => {
-        const {isNamedByDashboard, isLoaded} = getInsightsChartLoadState({chart, dashboard, snapshot, queryJSON});
-        return {
-            isLoaded,
-            isSettled: isLoaded || (hasDashboardResponse && !isNamedByDashboard),
-            hasRows: isLoaded && Object.keys(snapshot?.data ?? {}).some(isGroupEntry),
-        };
+    const chartStates = charts.map(({snapshot, queryJSON}) => {
+        const isLoaded = isSearchDataLoaded(snapshot, queryJSON);
+        return {isLoaded, hasRows: isLoaded && Object.keys(snapshot?.data ?? {}).some(isGroupEntry)};
     });
     const isWaitingForData = !hasDashboardResponse && !chartStates.some(({isLoaded}) => isLoaded);
 
@@ -51,7 +45,7 @@ function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: b
     if (dashboard?.hasResults === false) {
         return INSIGHTS_DASHBOARD_STATE.NO_EXPENSES;
     }
-    if (chartStates.every(({isSettled}) => isSettled) && !chartStates.some(({hasRows}) => hasRows)) {
+    if (chartStates.every(({isLoaded}) => isLoaded) && !chartStates.some(({hasRows}) => hasRows)) {
         return INSIGHTS_DASHBOARD_STATE.EMPTY;
     }
     return INSIGHTS_DASHBOARD_STATE.READY;
