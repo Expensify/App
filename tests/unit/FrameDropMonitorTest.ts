@@ -162,9 +162,9 @@ describe('frameDropMonitor', () => {
     });
 
     it('gives segments it could not resolve within the query budget to "unattributed", time and delay alike', async () => {
-        // Given 20 screens of 100ms each, every one with 10ms of delay, so resolving all of them needs more queries than allowed
-        for (let i = 0; i < 20; i++) {
-            now = i * 100;
+        // Given 40 screens of 50ms each, every one with 5ms of delay, so resolving all of them needs more queries than allowed
+        for (let i = 0; i < 40; i++) {
+            now = i * 50;
             recordScreen(`Screen${i}`);
         }
         mockFetchFramesDelay.mockImplementation((startSeconds, endSeconds) => Promise.resolve((toTimelineTime(endSeconds) - toTimelineTime(startSeconds)) / 10_000));
@@ -182,6 +182,27 @@ describe('frameDropMonitor', () => {
         const unattributedTime = getCountCalls(FRAME_DROPS.METRIC_ACTIVE_TIME).find(({attributes}) => attributes?.screen === FRAME_DROPS.UNATTRIBUTED);
         expect(unattributedTime?.attributes).toEqual(unattributed);
         expect(unattributedTime?.value).toBeGreaterThan(0);
+    });
+
+    it('spends the query budget on the press first when a busy window has more drops than it can split', async () => {
+        // Given 20 janky screens in one window, with a press on the last one
+        for (let i = 0; i < 20; i++) {
+            now = i * 100;
+            recordScreen(`Screen${i}`);
+        }
+        now = 1_950;
+        recordPress(PRESS_LABEL);
+        mockFetchFramesDelay.mockImplementation((startSeconds, endSeconds) => Promise.resolve((toTimelineTime(endSeconds) - toTimelineTime(startSeconds)) / 10_000));
+
+        // When the window is flushed after the press window ended
+        now = 3_000;
+        await flush(3_000);
+
+        // Then the press still gets its own measured delay instead of being lost to the query budget
+        expect(mockDistribution).toHaveBeenCalledWith(FRAME_DROPS.METRIC_INTERACTION_FRAME_DELAY, 100, {
+            unit: 'millisecond',
+            attributes: {screen: 'Screen19', interaction: PRESS_LABEL},
+        });
     });
 
     it('reports the frame delay of a press that spans two flushes once its window has ended', async () => {

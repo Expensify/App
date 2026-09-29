@@ -2396,9 +2396,10 @@ const CONST = {
             REPORT_INTERVAL_MS: 5 * 60_000,
             // How long after a press its frames are attributed to it (the same idle window Sentry uses for ui.action spans).
             PRESS_WINDOW_MS: 1_000,
-            // Upper bound of native queries per flush. On iOS each one runs on the UI thread, so a very busy window must not
-            // turn into a long burst of them; delay that can't be split within the budget is reported as unattributed.
-            MAX_QUERIES_PER_FLUSH: 12,
+            // Upper bound of native queries per flush. On iOS each one runs on the UI thread (a sub-millisecond lookup), so a
+            // very busy window must not turn into a long burst of them; delay that can't be split within the budget is
+            // reported as unattributed. 20 resolved every press and scroll of a dense post-launch window on a simulator.
+            MAX_QUERIES_PER_FLUSH: 20,
             // A native query that doesn't answer within this time counts as unmeasured, so a stuck query can't stall the monitor.
             QUERY_TIMEOUT_MS: 2_000,
             // Flushes wait while the user scrolls or presses, but not longer than this, to stay within the native retention.

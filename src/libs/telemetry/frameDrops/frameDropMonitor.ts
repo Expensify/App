@@ -143,10 +143,21 @@ function findLongTaskSegment(segments: Segment[], task: LongTask): Segment | und
     return best;
 }
 
+/** A run of segments [from, to) whose total delay is known but not yet split between them. */
+type DelayRange = {
+    from: number;
+    to: number;
+    delaySeconds: number;
+};
+
 /**
- * Splits `totalDelaySeconds`, the known delay of all segments, between the segments. Each step queries the left half and
- * derives the right half by subtraction, and halves without delay are not searched further, so a single drop among N
- * segments costs about log2(N) queries. Delay that can't be split within `maxQueries` stays undefined for its segments.
+ * Splits `totalDelaySeconds`, the known delay of all segments, between the segments. Each step queries the left half of
+ * a range and derives the right half by subtraction, and ranges without delay are not searched further, so a single drop
+ * among N segments costs about log2(N) queries.
+ *
+ * The query budget goes to the most valuable range first: ranges with a press or scroll in them (so interaction metrics
+ * aren't lost in a busy window), then the ones with the most delay. Delay that can't be split within `maxQueries` stays
+ * undefined for its segments.
  */
 async function splitDelay(
     segments: Segment[],
@@ -154,34 +165,53 @@ async function splitDelay(
     toUnixSeconds: (time: number) => number,
     maxQueries: number,
 ): Promise<{delays: Array<number | undefined>; queryCount: number}> {
+    const delays = new Array<number | undefined>(segments.length).fill(undefined);
+    const hasInteraction = (range: DelayRange) => segments.slice(range.from, range.to).some((segment) => segment.interactionID !== undefined);
+    const getPriority = (range: DelayRange) => (hasInteraction(range) ? Number.MAX_SAFE_INTEGER / 2 : 0) + range.delaySeconds;
+    const pending: DelayRange[] = [{from: 0, to: segments.length, delaySeconds: totalDelaySeconds}];
     let queryCount = 0;
 
-    const split = async (from: number, to: number, delaySeconds: number): Promise<Array<number | undefined>> => {
-        const count = to - from;
-        if (delaySeconds <= 0) {
-            return new Array<number | undefined>(count).fill(0);
+    while (pending.length > 0) {
+        let bestIndex = 0;
+        for (let i = 1; i < pending.length; i++) {
+            const candidate = pending.at(i);
+            const best = pending.at(bestIndex);
+            if (candidate && best && getPriority(candidate) > getPriority(best)) {
+                bestIndex = i;
+            }
         }
-        if (count === 1) {
-            return [delaySeconds];
+        const [range] = pending.splice(bestIndex, 1);
+        if (!range) {
+            break;
         }
-        const firstSegment = segments.at(from);
-        const middle = Math.floor((from + to) / 2);
+        if (range.delaySeconds <= 0) {
+            delays.fill(0, range.from, range.to);
+            continue;
+        }
+        if (range.to - range.from === 1) {
+            delays[range.from] = range.delaySeconds;
+            continue;
+        }
+        if (queryCount >= maxQueries) {
+            continue;
+        }
+        const middle = Math.floor((range.from + range.to) / 2);
+        const firstSegment = segments.at(range.from);
         const lastLeftSegment = segments.at(middle - 1);
-        if (queryCount >= maxQueries || !firstSegment || !lastLeftSegment) {
-            return new Array<number | undefined>(count).fill(undefined);
+        if (!firstSegment || !lastLeftSegment) {
+            continue;
         }
         queryCount++;
+        // Sequential on purpose: one small native call at a time instead of a burst.
+        // eslint-disable-next-line no-await-in-loop
         const leftDelaySeconds = await fetchFramesDelay(toUnixSeconds(firstSegment.start), toUnixSeconds(lastLeftSegment.end));
         if (leftDelaySeconds === undefined) {
-            return new Array<number | undefined>(count).fill(undefined);
+            continue;
         }
-        const clampedLeftDelaySeconds = Math.min(leftDelaySeconds, delaySeconds);
-        const leftDelays = await split(from, middle, clampedLeftDelaySeconds);
-        const rightDelays = await split(middle, to, delaySeconds - clampedLeftDelaySeconds);
-        return [...leftDelays, ...rightDelays];
-    };
+        const clampedLeftDelaySeconds = Math.min(leftDelaySeconds, range.delaySeconds);
+        pending.push({from: range.from, to: middle, delaySeconds: clampedLeftDelaySeconds}, {from: middle, to: range.to, delaySeconds: range.delaySeconds - clampedLeftDelaySeconds});
+    }
 
-    const delays = await split(0, segments.length, totalDelaySeconds);
     return {delays, queryCount};
 }
 
