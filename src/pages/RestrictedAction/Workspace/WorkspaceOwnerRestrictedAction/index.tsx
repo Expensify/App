@@ -37,10 +37,7 @@ function WorkspaceOwnerRestrictedAction() {
             includeSafeAreaPaddingBottom
             testID="WorkspaceOwnerRestrictedAction"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('workspace.restrictedAction.restricted')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('workspace.restrictedAction.restricted')} />
             <ScrollView contentContainerStyle={[styles.ph5, styles.pt3]}>
                 <View style={[styles.cardSectionContainer, styles.p5, styles.mb0, styles.mh0]}>
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart, styles.mb3]}>

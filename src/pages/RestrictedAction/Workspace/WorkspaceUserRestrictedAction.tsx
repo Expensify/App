@@ -43,10 +43,7 @@ function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedAction
             includeSafeAreaPaddingBottom
             testID="WorkspaceUserRestrictedAction"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('workspace.restrictedAction.restricted')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('workspace.restrictedAction.restricted')} />
             <ScrollView
                 style={[styles.p5, styles.pt0]}
                 contentContainerStyle={styles.flexGrow1}

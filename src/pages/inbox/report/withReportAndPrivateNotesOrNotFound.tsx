@@ -9,7 +9,6 @@ import usePrevious from '@hooks/usePrevious';
 
 import {getReportPrivateNote} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import Navigation from '@libs/Navigation/Navigation';
 import {isArchivedReport, isSelfDM} from '@libs/ReportUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -86,10 +85,7 @@ function WithReportAndPrivateNotesOrNotFoundImpl<TProps extends WithReportAndPri
                     includeSafeAreaPaddingBottom
                     testID="PrivateNotesOfflinePage"
                 >
-                    <HeaderWithBackButtonAndTitle
-                        title={translate('privateNotes.title')}
-                        onBackButtonPress={() => Navigation.goBack()}
-                    />
+                    <HeaderWithBackButtonAndTitle title={translate('privateNotes.title')} />
                     <FullPageOfflineBlockingView>
                         <View />
                     </FullPageOfflineBlockingView>

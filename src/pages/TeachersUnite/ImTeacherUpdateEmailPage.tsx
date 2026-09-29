@@ -30,10 +30,7 @@ function ImTeacherUpdateEmailPage() {
 
     return (
         <ScreenWrapper testID="ImTeacherUpdateEmailPage">
-            <HeaderWithBackButtonAndTitle
-                title={translate('teachersUnitePage.iAmATeacher')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('teachersUnitePage.iAmATeacher')} />
             <BlockingView
                 linkTranslationKey="notFound.goBackHome"
                 shouldEmbedLinkWithSubtitle

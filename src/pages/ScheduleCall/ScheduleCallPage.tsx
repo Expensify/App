@@ -165,10 +165,7 @@ function ScheduleCallPage() {
             shouldEnableKeyboardAvoidingView={false}
             testID="ScheduleCallPage"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('scheduledCall.book.title')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('scheduledCall.book.title')} />
             <FullPageOfflineBlockingView>
                 {adminReportNameValuePairs?.calendlySchedule?.isLoading ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>

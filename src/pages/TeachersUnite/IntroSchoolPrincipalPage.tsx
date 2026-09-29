@@ -105,10 +105,7 @@ function IntroSchoolPrincipalPage() {
             includeSafeAreaPaddingBottom
             testID="IntroSchoolPrincipalPage"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('teachersUnitePage.introSchoolPrincipal')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('teachersUnitePage.introSchoolPrincipal')} />
             <FormProvider
                 enabledWhenOffline
                 style={[styles.flexGrow1, styles.ph5]}
