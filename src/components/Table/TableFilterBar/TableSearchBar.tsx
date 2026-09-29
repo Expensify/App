@@ -75,6 +75,16 @@ function TableSearchBar({label}: TableSearchBarProps) {
         listRef.current?.scrollToOffset({offset: 0, animated: false});
     }, [isEmptyResult, listRef]);
 
+    useEffect(() => {
+        if (!isTextInputFocused(inputRef)) {
+            return;
+        }
+
+        // Typing into an input that was scrolled off the top brings only the caret back on screen, which leaves the
+        // field clipped. Finish the reveal so the whole field lands below the list anchor.
+        scrollInputIntoView(inputRef.current, {shouldRevealInputAboveAnchor: true, shouldScrollImmediately: true});
+    }, [activeSearchString, scrollInputIntoView]);
+
     const handleSearchStringChange = (text: string) => {
         updateSearchString(text);
         onSearchStringChange?.(text);

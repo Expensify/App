@@ -8,20 +8,9 @@ import type {EmitterSubscription, NativeScrollEvent, NativeSyntheticEvent, View}
 import {useCallback, useEffect, useRef} from 'react';
 import {KeyboardEvents} from 'react-native-keyboard-controller';
 
-import type {UseScrollToFocusedInput} from './types';
+import type {ScrollInputIntoViewOptions, UseScrollToFocusedInput} from './types';
 
-/** Extra space (px) left between the focused input and the top of the visible list area after scrolling. */
-const EXTRA_SCROLL_PADDING = 16;
-
-type MeasureInWindowCallback = (x: number, y: number, width: number, height: number) => void;
-
-type MeasurableNode = {
-    measureInWindow: (callback: MeasureInWindowCallback) => void;
-};
-
-function isMeasurable(node: MeasurableInput): node is MeasurableNode {
-    return typeof node === 'object' && node !== null && 'measureInWindow' in node && typeof node.measureInWindow === 'function';
-}
+import scrollInputToAnchor from './scrollInputToAnchor';
 
 /**
  * Scrolls a `FlashList` so that an input rendered inside its footer is not hidden behind the keyboard.
@@ -57,36 +46,15 @@ const useScrollToFocusedInput: UseScrollToFocusedInput = (listRef, isKeyboardSho
     }, []);
 
     const scrollInputIntoView = useCallback(
-        (input: MeasurableInput) => {
-            if (!isMeasurable(input)) {
-                return;
-            }
-
-            const performScroll = () => {
-                const container = containerRef.current;
-                const list = listRef.current;
-                if (!container || !list) {
-                    return;
-                }
-                // The list container grows to fit its content, so we can't treat its bottom as the visible area.
-                // Instead we use its top (just below the header) as a stable anchor and pull the focused input up
-                // toward it. The list viewport is bounded above any sticky footer (which itself sits above the
-                // keyboard), so anchoring to the top reliably brings the input into view, clamped by the available
-                // scroll range.
-                container.measureInWindow((containerX, containerY) => {
-                    input.measureInWindow((inputX, inputY) => {
-                        const target = containerY + EXTRA_SCROLL_PADDING;
-                        const delta = inputY - target;
-                        // The input is already at or above the target anchor, so there's nothing to do.
-                        if (delta <= 0) {
-                            return;
-                        }
-                        list.scrollToOffset({offset: scrollOffsetRef.current + delta, animated: true});
-                    });
-                });
-            };
+        (input: MeasurableInput, options: ScrollInputIntoViewOptions = {}) => {
+            const performScroll = () => scrollInputToAnchor({...options, input, containerRef, listRef, getCurrentOffset: () => scrollOffsetRef.current});
 
             cleanup();
+
+            if (options.shouldScrollImmediately) {
+                performScroll();
+                return;
+            }
 
             // The keyboard is already up (e.g. moving focus between fields), so the layout is settled — scroll right away.
             if (isKeyboardShownRef.current) {
