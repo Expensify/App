@@ -44,7 +44,7 @@ type ConfirmationFooterContentProps = {
     /** Validates and submits, with the payment method the button chose */
     confirm: (params?: PaymentActionParams) => void;
 
-    /** Currency of the expense */
+    /** Only the pay flow reads it, as the currency the settlement button pays in */
     iouCurrencyCode: string;
 
     /** Policy ID the confirmation was opened with */
@@ -71,10 +71,10 @@ type ConfirmationFooterContentProps = {
     /** Opens the modal that drops this receipt out of a multi-receipt confirmation */
     showRemoveExpenseConfirmModal: (() => void) | undefined;
 
-    /** Transaction being confirmed */
+    /** Only its receipt is read: a test-drive receipt shows the scan training tooltip over the button */
     transaction: OnyxEntry<Transaction>;
 
-    /** The resolved policy */
+    /** The workspace the expense goes to, which can differ from `policyID` once the user picks another one in the "To" picker. */
     policy: OnyxEntry<Policy>;
 
     /** Amount of the expense */

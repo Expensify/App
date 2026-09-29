@@ -33,10 +33,10 @@ type DistanceRequestControllerProps = {
     /** ID of the transaction being confirmed */
     transactionID: string | undefined;
 
-    /** Transaction being confirmed */
+    /** Read for its manual-distance type, its created date and its `rateAutoUpdated` flag */
     transaction: OnyxEntry<Transaction>;
 
-    /** The resolved policy */
+    /** The workspace whose mileage rates the selected rate is checked against. */
     policy: OnyxEntry<Policy>;
 
     /** Whether the expense is a distance expense */
