@@ -331,7 +331,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                     transaction: moneyRequestTransaction,
                     reportNameValuePairs: {
                         [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${IOUReportID}`]: {
-                            private_isArchived: true,
+                            private_isArchived: 'true',
                         },
                     },
                 });
