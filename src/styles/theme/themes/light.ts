@@ -88,6 +88,7 @@ const lightTheme = {
     imageCropBackgroundColor: colors.productLight700,
     fallbackIconColor: colors.green700,
     reactionActiveBackground: colors.green100,
+    selectedOptionBG: colors.green100,
     reactionActiveText: colors.green600,
     badgeDefaultBG: colors.productLight400,
     badgeSuccessBG: colors.green200,
