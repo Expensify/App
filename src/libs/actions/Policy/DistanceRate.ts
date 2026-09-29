@@ -707,7 +707,6 @@ function setEmployeeWorkArrangement(
         employeeListOptimisticUpdate[update.email] = {hasOfficeWorkArrangement: isOffice, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
         employeeListSuccessUpdate[update.email] = {pendingAction: null};
         employeeListFailureUpdate[update.email] = {
-            ...(policy?.employeeList?.[update.email] ?? {}),
             hasOfficeWorkArrangement: update.previousHasOfficeWorkArrangement ?? null,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),

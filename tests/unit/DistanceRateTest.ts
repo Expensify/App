@@ -555,7 +555,6 @@ describe('DistanceRate', () => {
                 value: {
                     employeeList: {
                         [member1Email]: {
-                            email: member1Email,
                             hasOfficeWorkArrangement: null,
                             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
@@ -567,6 +566,7 @@ describe('DistanceRate', () => {
             const failureMember =
                 typeof failureEmployeeList === 'object' && failureEmployeeList !== null && member1Email in failureEmployeeList ? failureEmployeeList[member1Email] : undefined;
             expect(typeof failureMember === 'object' && failureMember !== null && 'errors' in failureMember && failureMember.errors).toBeTruthy();
+            expect(failureMember).not.toHaveProperty('email');
 
             const failureArrangementPatch =
                 typeof failureMember === 'object' && failureMember !== null && 'hasOfficeWorkArrangement' in failureMember ? failureMember.hasOfficeWorkArrangement : undefined;
