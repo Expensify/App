@@ -72,14 +72,14 @@ describe('insightsQueries', () => {
 
         it('sends the same request whether or not the dashboard is compared', () => {
             // Given the spend dashboard shown on its own
-            const uncompared = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS);
+            const standalone = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS);
 
             // When it is compared against the previous period
             const filters: InsightsFilters = {...FILTERS, compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD};
             const compared = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters);
 
-            // Then every response carries all comparisons, so switching one neither refetches nor stores the response apart
-            expect(compared).toEqual(uncompared);
+            // Then every response carries all comparisons, so switching one never fetches again or stores the response apart
+            expect(compared).toEqual(standalone);
         });
 
         it('hashes every set of filters on its own', () => {
