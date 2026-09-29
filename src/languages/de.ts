@@ -1195,6 +1195,8 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `Ups! Ein erforderliches Feld („${fieldName}“) wurde nicht zugeordnet. Bitte überprüfe es und versuche es erneut.`,
         singleFieldMultipleColumns: (fieldName: string) => `Ups! Du hast ein einzelnes Feld („${fieldName}“) mehreren Spalten zugeordnet. Bitte überprüfe dies und versuche es erneut.`,
         emptyMappedField: (fieldName: string) => `Ups! Das Feld („${fieldName}“) enthält einen oder mehrere leere Werte. Bitte überprüfe es und versuche es erneut.`,
+        fieldValueTooLong: (fieldName: string, limit: number) =>
+            `Ups! Das Feld („${fieldName}“) enthält einen oder mehrere Werte mit mehr als ${limit} Zeichen. Bitte überprüfe es und versuche es erneut.`,
         importSuccessfulTitle: 'Import erfolgreich',
         importCategoriesNoneAddedOrUpdated: 'Es wurden keine Kategorien hinzugefügt oder aktualisiert.',
         importCategoriesAdded: ({count}: {count: number}) => ({
@@ -1592,6 +1594,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noReimbursableExpenses: 'Dieser Bericht enthält einen ungültigen Betrag',
         pendingConversionMessage: 'Die Gesamtsumme wird aktualisiert, sobald du wieder online bist',
         changedTheExpense: 'hat die Ausgabe geändert',
+        addedReceipt: 'hat einen Beleg hinzugefügt',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `den Wert ${valueName} auf ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `lege ${translatedChangedField} auf ${newMerchant} fest, wodurch der Betrag auf ${newAmountToDisplay} gesetzt wurde`,
@@ -5064,6 +5067,9 @@ ${amount} für ${merchant} – ${date}`,
                 autoSyncDescription: 'Expensify wird automatisch jeden Tag mit QuickBooks Desktop synchronisiert.',
                 createEntities: 'Entitäten automatisch erstellen',
                 createEntitiesDescription: 'Expensify erstellt in QuickBooks Desktop automatisch Kreditoren, wenn sie noch nicht vorhanden sind.',
+                fxExpenseAccount: 'Konto für Währungsumrechnungsgebühren',
+                fxExpenseAccountDescription:
+                    'Wenn Ihr Unternehmen die Kosten für die Währungsumrechnung bei einer im Ausland ausgezahlten Erstattung übernimmt, fügen wir sie dem Export als zusätzliche Zeile hinzu, die diesem Konto zugeordnet wird.',
             },
             itemsDescription: 'Wählen Sie aus, wie QuickBooks Desktop-Positionen in Expensify verarbeitet werden sollen.',
             accountingMethods: {
@@ -8350,7 +8356,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 matchTypeContains: 'Enthält',
                 matchTypeExact: 'Stimmt genau überein',
                 maxAmount: 'Maximalbetrag',
-                maxAmountHelp: 'Jede Belastung über diesem Betrag wird abgelehnt, unabhängig von Händler- und Ausgabenkategoriebeschränkungen.',
                 maxAmountCurrencyMismatchTitle: 'Währungsabweichung',
                 maxAmountCurrencyMismatchPrompt: 'Um einen Maximalbetrag festzulegen, wählen Sie Karten aus, die in derselben Währung abgerechnet werden.',
                 reviewSelectedCards: 'Ausgewählte Karten prüfen',
@@ -8429,9 +8434,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     cta: 'Karte bestellen',
                 },
                 restrictCardSpendTitle: 'Kartenausgaben beschränken',
-                restrictCardSpendSubtitle: 'Ausgaben direkt am Verkaufsort blockieren oder begrenzen.',
-                ifAnyCardMatches: 'Wenn eine Karte übereinstimmt:',
-                thenDoThisAtPointOfSale: 'Machen Sie dann Folgendes am Verkaufspunkt:',
                 setRestrictions: 'Einschränkungen festlegen',
                 merchantRestrictions: 'Händlerbeschränkungen',
                 blockedMerchant: 'Gesperrter Händler',
@@ -8445,15 +8447,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 currencies: 'Währungen',
                 permittedCurrencies: 'Zulässige Währungen',
                 allCurrencies: 'Alle Währungen',
-                permittedCurrenciesSubtitle: 'Wählen Sie, ob alle oder nur bestimmte Währungen zulässig sind',
                 settlementCurrencyPermittedSubtitle: 'Die Kartenabrechnungswährung ist immer zulässig',
                 currenciesCurrencyMismatchTitle: 'Währungsabweichung',
                 currenciesCurrencyMismatchPrompt: 'Um bevorzugte Währungen festzulegen, wählen Sie Karten aus, die in derselben Währung abgerechnet werden.',
-                restrictMerchantsOffSubtitle: 'Belastungen werden für zulässige Währungen genehmigt, die einen Höchstbetrag nicht überschreiten',
-                restrictMerchantsAllowSubtitle:
-                    'Ausgaben werden genehmigt für zulässige Währungen, die einen Höchstbetrag nicht überschreiten und bei denen das Unternehmen oder der Unternehmenstyp übereinstimmt.',
-                restrictMerchantsBlockSubtitle:
-                    'Gebühren werden genehmigt, wenn sie in zulässigen Währungen erfolgen und einen Höchstbetrag nicht überschreiten oder wenn das Geschäft bzw. die Geschäftsart übereinstimmt.',
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Erlaubt ${shownCount > 1 ? 'Währungen' : 'Währung'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} weitere` : ''}`,
                 defaultRulesCannotBeDeleted: 'Standardregeln können nicht gelöscht werden',
@@ -8874,6 +8870,30 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             companyCardAccount: {label: 'Firmenkartenkonto', description: 'Wählen Sie aus, wohin Unternehmenskartentransaktionen exportiert werden sollen.'},
             noAccountsFound: 'Keine Konten gefunden',
             noAccountsFoundDescription: 'Bitte fügen Sie Konten in Campfire hinzu und synchronisieren Sie die Verbindung erneut',
+            autoSyncDescription: 'Campfire und Expensify automatisch jeden Tag synchronisieren. Berichte werden in Echtzeit synchronisiert.',
+            accountingMethods: {
+                label: 'Exportmethode',
+                description: 'Wählen Sie, wann Ausgaben exportiert werden sollen.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Periodenabgrenzung',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Bargeld',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Auslagen aus eigener Tasche werden nach endgültiger Genehmigung exportiert',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Auslagen aus eigener Tasche werden beim Bezahlen exportiert',
+                },
+            },
+            syncReimbursedReports: 'Erstattete Berichte synchronisieren',
+            syncReimbursedReportsDescription: 'Wenn ein Bericht per ACH bezahlt wird, wird in diesem Konto eine Rechnungszahlung erstellt.',
+            billPaymentAccount: {label: 'Rechnungskonto', description: 'Wählen Sie das Verrechnungskonto „Campfire-Guthaben“, wenn Expensify eine Rechnung als bezahlt markiert.'},
+            syncExpensifyCardSettlements: 'Expensify Karte-Abrechnungen synchronisieren',
+            settlementAccount: {label: 'Verrechnungskonto der Expensify Karte', description: 'Wählen Sie Ihr Verrechnungskonto aus, und wir erstellen die Zahlung in Campfire.'},
+            syncTravelInvoicingSettlements: 'Reiseabrechnungs-Ausgleiche synchronisieren',
+            travelInvoicingSettlementAccount: {
+                label: 'Abrechnungskonto für Reiseabrechnungen',
+                description: 'Wählen Sie Ihr Verrechnungskonto aus, und wir erstellen die Zahlung in Campfire.',
+            },
+            travelInvoicingPayableAccount: {label: 'Verbindlichkeitskonto für Reiseabrechnungen'},
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-Einrichtung',
@@ -9763,6 +9783,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Letzte 12 Monate',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Letzter Auszug',
                 },
+                customDay: 'Benutzerdefinierter Tag',
             },
             status: 'Status',
             keyword: 'Schlüsselwort',
@@ -10999,6 +11020,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 invalid: 'Dieser Code ist ungültig',
             },
         },
+        paymentHistory: {title: 'Zahlungsverlauf anzeigen', subtitle: 'Ihre vollständige monatliche Zahlungshistorie, die diesem Konto belastet wurde.'},
         subscriptionSettings: {
             title: 'Abonnementeinstellungen',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
