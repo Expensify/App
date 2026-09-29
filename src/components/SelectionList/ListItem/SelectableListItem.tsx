@@ -1,78 +1,94 @@
-import ListCheckbox from '@components/SelectionList/components/ListCheckbox';
-import ListRadioButton from '@components/SelectionList/components/ListRadioButton';
-
-import useThemeStyles from '@hooks/useThemeStyles';
+import ListItemComposed from '@components/SelectionList/ListItemComposed';
+import shouldShowRBRIndicator from '@components/SelectionList/utils/shouldShowRBRIndicator';
 
 import CONST from '@src/CONST';
 
 import React from 'react';
+import {View} from 'react-native';
 
 import type {ListItem, SelectableListItemProps} from './types';
 
-import BaseListItem from './BaseListItem';
-
 /**
- * Extends BaseListItem with a selection button (checkbox for multi-select, radio for single-select).
- * This is the layer used by all SelectionList items that show a visual selection indicator.
- * Items that never need a selection button (e.g. search result rows) use BaseListItem directly.
+ * Extends the composed ListItem pressable with a selection button (checkbox for multi-select, radio for
+ * single-select). This is the layer used by all SelectionList items that show a visual selection
+ * indicator. Items that never need a selection button (e.g. search result rows) compose ListItem directly.
  */
 function SelectableListItem<TItem extends ListItem>({
+    item,
     canSelectMultiple = false,
     selectionButtonPosition = CONST.SELECTION_BUTTON_POSITION.RIGHT,
-    item,
     onSelectionButtonPress,
     onSelectRow,
     isDisabled = false,
     children,
-    rightHandSideComponent,
     isFocused,
-    ...baseProps
+    isSelected,
+    showTooltip,
+    wrapperStyle,
+    forwardedFSClass,
+    pressableStyle,
+    pressableWrapperStyle,
+    shouldPreventEnterKeySubmit,
+    onDismissError,
+    errorRowStyles,
+    isFocusVisible,
+    shouldSyncFocus,
+    onFocus,
+    hoverStyle,
+    onLongPressRow,
+    shouldHighlightSelectedItem,
+    shouldDisableHoverStyle,
+    accessible,
+    accessibilityLabel,
+    accessibilityRole,
+    shouldUseOptionRole,
 }: SelectableListItemProps<TItem>) {
-    const styles = useThemeStyles();
-    const ButtonComponent = canSelectMultiple ? ListCheckbox : ListRadioButton;
+    const selectionButton = !item.shouldHideSelectionButton && (
+        <ListItemComposed.SelectionButton
+            item={item}
+            onPress={onSelectionButtonPress ?? onSelectRow}
+            canSelectMultiple={canSelectMultiple}
+            position={selectionButtonPosition}
+        />
+    );
 
     return (
-        <BaseListItem
-            {...baseProps}
+        <ListItemComposed
             item={item}
-            isFocused={isFocused}
+            shouldShowTooltip={showTooltip}
+            onSelectRow={onSelectRow}
             isDisabled={isDisabled}
             canSelectMultiple={canSelectMultiple}
-            onSelectRow={onSelectRow}
-            rightHandSideComponent={
-                selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT ? (
-                    <>
-                        {!item.shouldHideSelectionButton && (
-                            <ButtonComponent
-                                item={item}
-                                onSelectRow={onSelectionButtonPress ?? onSelectRow}
-                                disabled={!!isDisabled || !!item.isDisabledCheckbox}
-                                style={styles.ml3}
-                            />
-                        )}
-                        {typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item, isFocused) : rightHandSideComponent}
-                    </>
-                ) : (
-                    rightHandSideComponent
-                )
-            }
+            isFocused={isFocused}
+            isSelected={isSelected}
+            pressableStyle={pressableStyle}
+            pressableWrapperStyle={pressableWrapperStyle}
+            shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
+            onDismissError={onDismissError}
+            errorRowStyles={errorRowStyles}
+            isFocusVisible={isFocusVisible}
+            shouldSyncFocus={shouldSyncFocus}
+            onFocus={onFocus}
+            hoverStyle={hoverStyle}
+            onLongPressRow={onLongPressRow}
+            shouldHighlightSelectedItem={shouldHighlightSelectedItem}
+            shouldDisableHoverStyle={shouldDisableHoverStyle}
+            accessible={accessible}
+            accessibilityLabel={accessibilityLabel}
+            accessibilityRole={accessibilityRole}
+            shouldUseOptionRole={shouldUseOptionRole}
         >
-            {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.LEFT
-                ? (hovered: boolean) => (
-                      <>
-                          {!item.shouldHideSelectionButton && (
-                              <ButtonComponent
-                                  item={item}
-                                  onSelectRow={onSelectionButtonPress ?? onSelectRow}
-                                  disabled={!!isDisabled || item.isDisabledCheckbox}
-                                  style={styles.mr3}
-                              />
-                          )}
-                          {typeof children === 'function' ? children(hovered) : children}
-                      </>
-                  )
-                : children}
-        </BaseListItem>
+            <View
+                style={wrapperStyle}
+                fsClass={forwardedFSClass}
+            >
+                {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.LEFT && selectionButton}
+                {children}
+                {shouldShowRBRIndicator(item, isSelected) && <ListItemComposed.RBRIndicator item={item} />}
+                {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT && selectionButton}
+                {item.actionElement}
+            </View>
+        </ListItemComposed>
     );
 }
 

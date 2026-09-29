@@ -20,51 +20,35 @@ import variables from '@styles/variables';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
-import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
+import type {ComponentRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 
+import ExpenseFieldRow from './ExpenseFieldRow';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {descriptionStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
 type DescriptionFieldProps = {
-    isNewManualExpenseFlowEnabled: boolean;
-    isReadOnly: boolean;
-    didConfirm: boolean;
     isDescriptionRequired: boolean;
-    transactionID: string | undefined;
-    action: IOUAction;
-    iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-    reportID: string;
-    reportActionID: string | undefined;
     policy: OnyxEntry<OnyxTypes.Policy>;
 };
 
-function DescriptionField({
-    isNewManualExpenseFlowEnabled,
-    isReadOnly,
-    didConfirm,
-    isDescriptionRequired,
-    transactionID,
-    action,
-    iouType,
-    reportID,
-    reportActionID,
-    policy,
-}: DescriptionFieldProps) {
-    const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm} = useConfirmationFields();
+function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps) {
+    const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     // Ref on the field's outer container (the bordered box), so scrolling brings the whole field — including its
     // top border and label — into view rather than just the inner text area.
-    const fieldContainerRef = useRef<View>(null);
+    const fieldContainerRef = useRef<ComponentRef<typeof View>>(null);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
@@ -113,12 +97,51 @@ function DescriptionField({
         setMoneyRequestDescription(transactionID, newDescription, true, transactionHasReceipt);
     };
 
+    const openDescriptionPage = () => {
+        if (!transactionID) {
+            return;
+        }
+
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, reportActionID)));
+    };
+
+    // On the bordered form the editable description is a text input, so a locked one has to read as a disabled input
+    // too rather than as a push row, or the same screen answers "this field can't be changed" two different ways.
+    const readOnlyDescription = shouldUseDropdownRows ? (
+        <ExpenseFieldRow
+            name={translate('common.description')}
+            value={iouComment}
+            numberOfLinesValue={2}
+            rightLabel={isDescriptionRequired ? translate('common.required') : ''}
+            onPress={openDescriptionPage}
+            isDisabled={didConfirm}
+            isInteractive={false}
+            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
+        />
+    ) : (
+        <MenuItemWithTopDescription
+            shouldShowRightIcon={!isReadOnly}
+            shouldParseTitle
+            excludedMarkdownRules={!policy ? ['reportMentions'] : []}
+            title={iouComment}
+            description={translate('common.description')}
+            onPress={openDescriptionPage}
+            style={[styles.moneyRequestMenuItem]}
+            titleStyle={styles.flex1}
+            disabled={didConfirm}
+            interactive={!isReadOnly}
+            numberOfLinesTitle={2}
+            rightLabel={isDescriptionRequired ? translate('common.required') : ''}
+            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
+        />
+    );
+
     return (
         <View>
             <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
                 <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
                     <MentionReportContext.Provider value={mentionReportContextValue}>
-                        {isNewManualExpenseFlowEnabled && !isReadOnly ? (
+                        {!isReadOnly ? (
                             <View
                                 ref={fieldContainerRef}
                                 style={[styles.mh4, styles.mv2]}
@@ -139,27 +162,7 @@ function DescriptionField({
                                 />
                             </View>
                         ) : (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon={!isReadOnly}
-                                shouldParseTitle
-                                excludedMarkdownRules={!policy ? ['reportMentions'] : []}
-                                title={iouComment}
-                                description={translate('common.description')}
-                                onPress={() => {
-                                    if (!transactionID) {
-                                        return;
-                                    }
-
-                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, reportActionID)));
-                                }}
-                                style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.flex1}
-                                disabled={didConfirm}
-                                interactive={!isReadOnly}
-                                numberOfLinesTitle={2}
-                                rightLabel={isDescriptionRequired ? translate('common.required') : ''}
-                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
-                            />
+                            readOnlyDescription
                         )}
                     </MentionReportContext.Provider>
                 </ShowContextMenuActionsContext.Provider>

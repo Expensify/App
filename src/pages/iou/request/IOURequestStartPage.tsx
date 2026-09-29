@@ -2,6 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ParticipantPickerOverlayHost from '@components/ParticipantPicker/OverlayHost';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
@@ -10,11 +11,11 @@ import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResetIOUType from '@hooks/useResetIOUType';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldShowPerDiemTabOption} from '@libs/IOUUtils';
@@ -44,7 +45,7 @@ import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportO
 import DynamicIOURequestStepDestination from './step/DynamicIOURequestStepDestination';
 import DynamicIOURequestStepDistance from './step/DynamicIOURequestStepDistance';
 import {IOURequestStepAmountWithTransactionOnly} from './step/IOURequestStepAmount';
-import IOURequestStepConfirmation from './step/IOURequestStepConfirmation';
+import {IOURequestStepConfirmationContentWithWritableReportOrNotFound as IOURequestStepConfirmationContent} from './step/IOURequestStepConfirmation';
 import IOURequestStepHours from './step/IOURequestStepHours';
 import IOURequestStepPerDiemWorkspace from './step/IOURequestStepPerDiemWorkspace';
 import IOURequestStepScan from './step/IOURequestStepScan';
@@ -157,9 +158,6 @@ function IOURequestStartPage({
         return undefined;
     }, [transaction?.iouRequestType, isStaleTransactionDraft, shouldUseTab, selectedTab, availableTabs]);
 
-    const {isBetaEnabled} = usePermissions();
-    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
-
     const resetIOUTypeIfChanged = useResetIOUType({
         reportID,
         report,
@@ -170,7 +168,6 @@ function IOURequestStartPage({
         iouType,
         policy,
         skipKeyboardDismissForPerDiem: true,
-        isNewManualExpenseFlowEnabled,
     });
 
     useEffect(() => {
@@ -184,7 +181,7 @@ function IOURequestStartPage({
     }, []);
 
     const navigateBack = () => {
-        // In the new manual expense beta the confirmation is embedded with its header hidden,
+        // The confirmation is embedded with its header hidden,
         // so this back button is the only way to abandon the flow. Cancel any active span
         // unconditionally (mirrors IOURequestStepConfirmation.navigateBack). No-op when no
         // tracking session is active.
@@ -220,7 +217,14 @@ function IOURequestStartPage({
     // it, so PAY is the only type this has to add back.)
     // The pay quick action still writes SKIP_CONFIRMATION, but IOURequestStepAmount is its only reader and no longer
     // mounts for PAY - the embedded confirmation carries the amount inline, so there is no separate step left to skip.
-    const shouldEmbedConfirmation = isNewManualExpenseFlowEnabled && (shouldUseTab || iouType === CONST.IOU.TYPE.PAY);
+    const shouldEmbedConfirmation = shouldUseTab || iouType === CONST.IOU.TYPE.PAY;
+
+    // The embedded confirmation renders its body without a ScreenWrapper of its own, so that this page's focus trap
+    // stays the sole owner of the header + tab bar + content Tab cycle. Its viewport sizing has to move here with it:
+    // shouldEnableMaxHeight gates the keyboard-open height clamp and `marginTop: viewportOffsetTop`, and together with
+    // shouldAvoidScrollOnVirtualViewport (true by default here) it gates useTackInputFocus on mobile WebKit. Same
+    // condition the standalone confirmation uses - mobile Safari opts out, and canUseTouchScreen() is false on desktop.
+    const shouldEnableManualConfirmationMaxHeight = shouldEmbedConfirmation && (!shouldUseTab || selectedTab === CONST.TAB_REQUEST.MANUAL) && canUseTouchScreen() && !isMobileSafari();
 
     let manualContent: React.ReactNode;
     if (!shouldEmbedConfirmation) {
@@ -255,7 +259,7 @@ function IOURequestStartPage({
         );
     } else {
         manualContent = (
-            <IOURequestStepConfirmation
+            <IOURequestStepConfirmationContent
                 route={route}
                 navigation={navigation}
                 shouldHideHeader
@@ -272,113 +276,120 @@ function IOURequestStartPage({
             canSendInvoice={iouRequestStartPolicies?.canSendInvoiceFromAnyWorkspace}
         >
             <ScreenWrapper
-                shouldEnableKeyboardAvoidingView={isNewManualExpenseFlowEnabled}
-                shouldEnableMaxHeight={selectedTab === CONST.TAB_REQUEST.PER_DIEM}
+                shouldEnableKeyboardAvoidingView
+                shouldEnableMaxHeight={selectedTab === CONST.TAB_REQUEST.PER_DIEM || shouldEnableManualConfirmationMaxHeight}
                 shouldEnableMinHeight={canUseTouchScreen()}
                 testID="IOURequestStartPage"
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
             >
-                {/* If the new manual expense flow is enabled, the confirmation screen is shown on the start page, so we do not want to disable the drag and drop provider in that case */}
-                <DragAndDropProvider isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN && !(isNewManualExpenseFlowEnabled && selectedTab === CONST.TAB_REQUEST.MANUAL)}>
-                    <View style={styles.flex1}>
-                        <FocusTrapContainerElement
-                            onContainerElementChanged={setHeaderWithBackButtonContainerElement}
-                            style={[styles.w100]}
-                        >
-                            <HeaderWithBackButton
-                                title={tabTitles[iouType]}
-                                onBackButtonPress={navigateBack}
-                            />
-                        </FocusTrapContainerElement>
-
-                        {shouldUseTab ? (
-                            <OnyxTabNavigator
-                                id={CONST.TAB.IOU_REQUEST_TYPE}
-                                defaultSelectedTab={defaultSelectedTab}
-                                onTabSelected={resetIOUTypeIfChanged}
-                                onTabSelect={onTabSelectFocusHandler}
-                                tabBar={TabSelector}
-                                onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
-                                onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
-                                lazyLoadEnabled
-                                shouldReapplyInterruptedTabPress
+                {/* The confirmation screen is shown on the start page for the manual tab, so we do not want to disable the drag and drop provider in that case */}
+                <DragAndDropProvider isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN && selectedTab !== CONST.TAB_REQUEST.MANUAL}>
+                    {/*
+                        The embedded confirmation opens the participant picker, which on iOS is an overlay rather
+                        than a modal. Hosting it here is what lets the overlay cover this page's header and tab
+                        bar, instead of stopping at the top of the form it is declared in.
+                    */}
+                    <ParticipantPickerOverlayHost>
+                        <View style={styles.flex1}>
+                            <FocusTrapContainerElement
+                                onContainerElementChanged={setHeaderWithBackButtonContainerElement}
+                                style={[styles.w100]}
                             >
-                                <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <TabScreenWithFocusTrapWrapper>{manualContent}</TabScreenWithFocusTrapWrapper>}</TopTab.Screen>
-                                <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>
-                                    {() => (
-                                        <TabScreenWithFocusTrapWrapper>
-                                            <IOURequestStepScan
-                                                key={transactionRequestType}
-                                                route={route}
-                                                navigation={navigation}
-                                            />
-                                        </TabScreenWithFocusTrapWrapper>
-                                    )}
-                                </TopTab.Screen>
-                                {iouType === CONST.IOU.TYPE.SPLIT && (
-                                    <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
+                                <HeaderWithBackButton
+                                    title={tabTitles[iouType]}
+                                    onBackButtonPress={navigateBack}
+                                />
+                            </FocusTrapContainerElement>
+
+                            {shouldUseTab ? (
+                                <OnyxTabNavigator
+                                    id={CONST.TAB.IOU_REQUEST_TYPE}
+                                    defaultSelectedTab={defaultSelectedTab}
+                                    onTabSelected={resetIOUTypeIfChanged}
+                                    onTabSelect={onTabSelectFocusHandler}
+                                    tabBar={TabSelector}
+                                    onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
+                                    onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
+                                    lazyLoadEnabled
+                                    shouldReapplyInterruptedTabPress
+                                >
+                                    <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <TabScreenWithFocusTrapWrapper>{manualContent}</TabScreenWithFocusTrapWrapper>}</TopTab.Screen>
+                                    <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>
                                         {() => (
                                             <TabScreenWithFocusTrapWrapper>
-                                                <DynamicIOURequestStepDistance
+                                                <IOURequestStepScan
+                                                    key={transactionRequestType}
                                                     route={route}
                                                     navigation={navigation}
                                                 />
                                             </TabScreenWithFocusTrapWrapper>
                                         )}
                                     </TopTab.Screen>
-                                )}
-                                {!!shouldShowPerDiemOption && (
-                                    <TopTab.Screen name={CONST.TAB_REQUEST.PER_DIEM}>
-                                        {() => (
-                                            <TabScreenWithFocusTrapWrapper>
-                                                {shouldShowWorkspaceSelectForPerDiem ? (
-                                                    <IOURequestStepPerDiemWorkspace
+                                    {iouType === CONST.IOU.TYPE.SPLIT && (
+                                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
+                                            {() => (
+                                                <TabScreenWithFocusTrapWrapper>
+                                                    <DynamicIOURequestStepDistance
                                                         route={route}
                                                         navigation={navigation}
                                                     />
-                                                ) : (
-                                                    <DynamicIOURequestStepDestination
-                                                        openedFromStartPage
-                                                        ref={perDiemInputRef}
-                                                        explicitPolicyID={moreThanOnePerDiemExist ? undefined : iouRequestStartPolicies?.firstPerDiemPolicyID}
-                                                        route={route}
-                                                        navigation={navigation}
-                                                    />
-                                                )}
-                                            </TabScreenWithFocusTrapWrapper>
-                                        )}
-                                    </TopTab.Screen>
-                                )}
-                                {shouldShowTimeOption && (
-                                    <TopTab.Screen name={CONST.TAB_REQUEST.TIME}>
-                                        {() => (
-                                            <TabScreenWithFocusTrapWrapper>
-                                                {isFromGlobalCreate && iouRequestStartPolicies?.hasMultipleTimePolicies ? (
-                                                    <IOURequestStepTimeWorkspace
-                                                        route={route}
-                                                        navigation={navigation}
-                                                    />
-                                                ) : (
-                                                    <IOURequestStepHours
-                                                        route={route}
-                                                        navigation={navigation}
-                                                        explicitPolicyID={isFromGlobalCreate ? iouRequestStartPolicies?.firstTimePolicyID : undefined}
-                                                    />
-                                                )}
-                                            </TabScreenWithFocusTrapWrapper>
-                                        )}
-                                    </TopTab.Screen>
-                                )}
-                            </OnyxTabNavigator>
-                        ) : (
-                            <FocusTrapContainerElement
-                                onContainerElementChanged={setActiveTabContainerElement}
-                                style={[styles.flexColumn, styles.flex1]}
-                            >
-                                {manualContent}
-                            </FocusTrapContainerElement>
-                        )}
-                    </View>
+                                                </TabScreenWithFocusTrapWrapper>
+                                            )}
+                                        </TopTab.Screen>
+                                    )}
+                                    {!!shouldShowPerDiemOption && (
+                                        <TopTab.Screen name={CONST.TAB_REQUEST.PER_DIEM}>
+                                            {() => (
+                                                <TabScreenWithFocusTrapWrapper>
+                                                    {shouldShowWorkspaceSelectForPerDiem ? (
+                                                        <IOURequestStepPerDiemWorkspace
+                                                            route={route}
+                                                            navigation={navigation}
+                                                        />
+                                                    ) : (
+                                                        <DynamicIOURequestStepDestination
+                                                            openedFromStartPage
+                                                            ref={perDiemInputRef}
+                                                            explicitPolicyID={moreThanOnePerDiemExist ? undefined : iouRequestStartPolicies?.firstPerDiemPolicyID}
+                                                            route={route}
+                                                            navigation={navigation}
+                                                        />
+                                                    )}
+                                                </TabScreenWithFocusTrapWrapper>
+                                            )}
+                                        </TopTab.Screen>
+                                    )}
+                                    {shouldShowTimeOption && (
+                                        <TopTab.Screen name={CONST.TAB_REQUEST.TIME}>
+                                            {() => (
+                                                <TabScreenWithFocusTrapWrapper>
+                                                    {isFromGlobalCreate && iouRequestStartPolicies?.hasMultipleTimePolicies ? (
+                                                        <IOURequestStepTimeWorkspace
+                                                            route={route}
+                                                            navigation={navigation}
+                                                        />
+                                                    ) : (
+                                                        <IOURequestStepHours
+                                                            route={route}
+                                                            navigation={navigation}
+                                                            explicitPolicyID={isFromGlobalCreate ? iouRequestStartPolicies?.firstTimePolicyID : undefined}
+                                                        />
+                                                    )}
+                                                </TabScreenWithFocusTrapWrapper>
+                                            )}
+                                        </TopTab.Screen>
+                                    )}
+                                </OnyxTabNavigator>
+                            ) : (
+                                <FocusTrapContainerElement
+                                    onContainerElementChanged={setActiveTabContainerElement}
+                                    style={[styles.flexColumn, styles.flex1]}
+                                >
+                                    {manualContent}
+                                </FocusTrapContainerElement>
+                            )}
+                        </View>
+                    </ParticipantPickerOverlayHost>
                 </DragAndDropProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

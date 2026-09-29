@@ -22,7 +22,6 @@ type SplitAmountInputProps = {
     formattedOriginalAmount: string;
     /** The width of the input content area. */
     contentWidth: number;
-    /** Callback invoked when the split expense value changes. */
     onSplitExpenseValueChange: (value: string) => void;
     /** Callback invoked when the input receives focus. */
     focusHandler: () => void;

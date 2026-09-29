@@ -2,6 +2,7 @@ import type {RenderInfo} from '@components/FlatList/RenderTaskQueue';
 
 import '@shopify/flash-list/jestSetup';
 import type {ReactNode} from 'react';
+import type React from 'react';
 import type * as RNAppLogs from 'react-native-app-logs';
 import type {ReadDirItem} from 'react-native-fs';
 import type * as RNKeyboardController from 'react-native-keyboard-controller';
@@ -18,6 +19,7 @@ import '@src/polyfills/requestIdleCallback';
 
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
+import setupMockLegendList from './setupMockLegendList';
 
 // Needed for tests to have the necessary environment variables set
 if (!('GITHUB_REPOSITORY' in process.env)) {
@@ -27,6 +29,7 @@ if (!('GITHUB_REPOSITORY' in process.env)) {
 
 setupMockImages();
 mockFSLibrary();
+setupMockLegendList();
 
 // Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
 Object.assign(global, {TextDecoder, TextEncoder});
@@ -75,6 +78,13 @@ jest.mock('expo-location', () => ({
         High: 4,
         Highest: 5,
         BestForNavigation: 6,
+    },
+    ActivityType: {
+        Other: 1,
+        AutomotiveNavigation: 2,
+        Fitness: 3,
+        OtherNavigation: 4,
+        Airborne: 5,
     },
 }));
 

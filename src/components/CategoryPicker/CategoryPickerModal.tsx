@@ -9,6 +9,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
+
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 
@@ -25,13 +27,11 @@ const DEFAULT_ANCHOR_ALIGNMENT = {
 };
 
 type CategoryPickerModalProps = {
-    /** Callback to close the modal */
     onClose: () => void;
 
     /** The policy whose categories should be shown */
     policyID: string | undefined;
 
-    /** Currently selected category */
     selectedCategory?: string;
 
     /** Called when the user confirms a category selection */
@@ -53,7 +53,7 @@ function CategoryPickerModal({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {isKeyboardActive} = useKeyboardState();
-    const anchorRef = useRef<View>(null);
+    const anchorRef = useRef<ComponentRef<typeof View>>(null);
 
     const handleCategorySelect = (item: ListItem) => {
         // If clicking the same category that's already selected, treat it as deselection

@@ -1,5 +1,6 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues, FormRef} from '@components/Form/types';
@@ -11,17 +12,18 @@ import TextInput from '@components/TextInput';
 
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {buildFileFromAvatarCropResult} from '@libs/AvatarCropUtils';
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
-import {isMobile} from '@libs/Browser';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -43,6 +45,9 @@ import type {TextInputKeyPressEvent} from 'react-native';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
+import {PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} from './const';
+import scrollToMultilineInput from './scrollToMultilineInput';
+
 type AddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
 
 type AddAgentPageContentProps = {
@@ -54,11 +59,14 @@ type AddAgentPageContentProps = {
 };
 
 function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
+    const StyleUtils = useStyleUtils();
     const policyID = route.params?.policyID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
-    const shouldUseScrollableLayout = useIsInLandscapeMode() || (isMobile() && windowWidth > windowHeight);
+    const {isKeyboardActive} = useKeyboardState();
+    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
+    const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
     const {accountID: ownerAccountID, login: ownerLogin, displayName} = useCurrentUserPersonalDetails();
     const defaultAgentName = template?.name ?? (displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined);
     const defaultPrompt = template?.prompt ?? translate('addAgentPage.defaultPrompt');
@@ -66,6 +74,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     const [avatarDraft, avatarDraftMetadata] = useOnyx(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT);
     const isDraftLoading = isLoadingOnyxValue(avatarDraftMetadata);
     const hasSubmittedRef = useRef(false);
+    const hasLeftPageRef = useRef(false);
     const formRef = useRef<FormRef>(null);
 
     const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
@@ -107,6 +116,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     // Reset the draft when the add flow is dismissed without creating the agent, so the next session starts fresh.
     useBeforeRemove(
         useCallback(() => {
+            hasLeftPageRef.current = true;
             if (hasSubmittedRef.current || !avatarDraft) {
                 return;
             }
@@ -130,28 +140,49 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
         // Pure optimistic flow: `createAgent` writes the agent and the owner<->agent DM to Onyx under a
         // reportID it generates client-side, and CreateAgent creates the DM under that exact ID (see
         // CreateAgent.cpp), so we can navigate to the DM immediately, online or offline, without waiting.
-        const {optimisticReportID} = uploadedAvatar?.uri
+        const {optimisticReportID, optimisticPersonalDetailPromise} = uploadedAvatar?.uri
             ? createAgent(firstName, prompt, ownerAccountID, ownerLogin, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri, policyID)
             : createAgent(firstName, prompt, ownerAccountID, ownerLogin, selectedPresetID ?? AGENT_AVATARS.getRandomID(), undefined, undefined, policyID);
 
         clearNewAgentTemplate();
-        clearNewAgentAvatarDraft();
 
         // Not useResponsiveLayout: this page itself lives inside the RHP modal stack, so
         // shouldUseNarrowLayout/isSmallScreenWidth from that hook would always read as "narrow"
         // regardless of window size. getIsNarrowLayout() reflects the actual window width.
-        if (getIsNarrowLayout()) {
-            // Reveal the DM under the modal before dismissing so we navigate directly to it in one animation,
-            // instead of dismissing to the agents list first and navigating to the DM afterward.
-            Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, ROUTES.SETTINGS_AGENTS));
-            return;
-        }
+        const isNarrowLayout = getIsNarrowLayout();
 
-        // On wide layouts, open the DM in a dedicated RHP screen instead of the fullscreen report split.
-        // forceReplace swaps this screen out for the DM instead of pushing on top of it, so the
-        // already-submitted form can't be reached again via the close/back button.
-        Navigation.navigate(ROUTES.AGENT_REPORT.getRoute(optimisticReportID), {forceReplace: true});
+        optimisticPersonalDetailPromise.then(() => {
+            // The user left the builder before the write resolved, so don't pull them into the DM from whatever screen is now active.
+            if (hasLeftPageRef.current) {
+                clearNewAgentAvatarDraft();
+                return;
+            }
+
+            if (isNarrowLayout) {
+                // Reveal the DM under the modal before dismissing so we navigate directly to it in one animation,
+                // instead of dismissing to the agents list first and navigating to the DM afterward.
+                Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, ROUTES.SETTINGS_AGENTS), {
+                    afterTransition: () => {
+                        clearNewAgentAvatarDraft();
+                    },
+                });
+                return;
+            }
+
+            // On wide layouts, open the DM in a dedicated RHP screen instead of the fullscreen report split.
+            // forceReplace swaps this screen out for the DM instead of pushing on top of it, so the
+            // already-submitted form can't be reached again via the close/back button.
+            Navigation.navigate(ROUTES.AGENT_REPORT.getRoute(optimisticReportID), {
+                forceReplace: true,
+                afterTransition: () => {
+                    clearNewAgentAvatarDraft();
+                },
+            });
+        });
     };
+
+    const promptTopOffsetRef = useRef(0);
+    const handleInputFocus = () => scrollToMultilineInput(formRef, isInLandscapeMode, promptTopOffsetRef.current);
 
     const agentAvatar = avatarSource ? (
         <UserAvatar
@@ -166,12 +197,13 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
             testID={AddAgentPage.displayName}
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
-            shouldEnableMaxHeight={shouldUseScrollableLayout}
         >
-            <HeaderWithBackButton
-                title={translate('addAgentPage.title')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS_NEW.getRoute(policyID ? {policyID} : undefined))}
-            />
+            <CollapsibleHeaderOnKeyboard>
+                <HeaderWithBackButton
+                    title={translate('addAgentPage.title')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS_NEW.getRoute(policyID ? {policyID} : undefined))}
+                />
+            </CollapsibleHeaderOnKeyboard>
             <FormProvider
                 ref={formRef}
                 formID={ONYXKEYS.FORMS.ADD_AGENT_FORM}
@@ -179,8 +211,8 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                 validate={validate}
                 submitButtonText={translate('addAgentPage.createAgent')}
                 style={[styles.flex1, styles.ph5]}
-                shouldUseScrollView={shouldUseScrollableLayout}
-                submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
+                shouldUseScrollView={isInLandscapeMode}
+                submitFlexEnabled={false}
                 shouldHideFixErrorsAlert
                 enabledWhenOffline
                 // Block submit until the draft has loaded, so we never create the agent without the preset/photo it will restore.
@@ -207,7 +239,12 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                         spellCheck={false}
                         defaultValue={defaultAgentName}
                     />
-                    <View style={[styles.flex1, shouldUseScrollableLayout && styles.minHeight42]}>
+                    <View
+                        style={shouldShrinkPromptInput ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE) : [isInLandscapeMode ? styles.h42 : styles.flex1]}
+                        onLayout={(event) => {
+                            promptTopOffsetRef.current = event.nativeEvent.layout.y;
+                        }}
+                    >
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.PROMPT}
@@ -219,10 +256,10 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                             onKeyPress={submitFormOnModEnter}
                             defaultValue={defaultPrompt}
                             multiline
-                            containerStyles={[styles.flex1]}
+                            containerStyles={[styles.h100]}
                             touchableInputWrapperStyle={[styles.flex1]}
-                            textInputContainerStyles={[styles.flex1]}
                             inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
+                            onFocus={handleInputFocus}
                         />
                     </View>
                     <Text style={[styles.textLabelSupporting]}>{`${translate('addAgentPage.copilotNote')} ${translate('workspace.rules.agentRules.disclaimer')}`}</Text>

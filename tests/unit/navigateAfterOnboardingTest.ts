@@ -7,9 +7,6 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -19,7 +16,7 @@ const ONBOARDING_ADMINS_CHAT_REPORT_ID = '1';
 const ONBOARDING_POLICY_ID = '2';
 const REPORT_ID = '3';
 const USER_ID = '4';
-const mockFindLastAccessedReport = jest.fn<OnyxEntry<Report>, Parameters<typeof ReportUtils.findLastAccessedReport>>();
+const mockFindLastAccessedReport = jest.fn<ReportUtils.LastAccessedReport | undefined, Parameters<typeof ReportUtils.findLastAccessedReport>>();
 const mockShouldOpenOnAdminRoom = jest.fn(() => false);
 const mockIsReportTopmostSplitNavigator = jest.fn(() => false);
 
@@ -172,7 +169,7 @@ describe('navigateAfterOnboarding', () => {
 
         navigateAfterOnboarding(true, true, '', reportNameValuePairs, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
 
-        expect(mockFindLastAccessedReport).toHaveBeenCalledWith(false, false, undefined, reportNameValuePairs);
+        expect(mockFindLastAccessedReport).toHaveBeenCalledWith(false, undefined, false, undefined, reportNameValuePairs);
     });
 
     it('should navigate to Concierge room if user uses a test email', () => {

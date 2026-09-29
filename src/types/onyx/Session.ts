@@ -24,7 +24,6 @@ type Session = {
     /** Currently logged in user encrypted authToken */
     encryptedAuthToken?: string;
 
-    /** Boolean that indicates whether it is loading or not */
     loading?: boolean;
 
     /** Currently logged in user accountID */
@@ -36,13 +35,8 @@ type Session = {
     /** Server side errors keyed by microtime */
     errors?: Errors;
 
-    /** User signed in with short lived token */
     signedInWithShortLivedAuthToken?: boolean;
-
-    /** User signed in with SAML */
     signedInWithSAML?: boolean;
-
-    /** Indicates whether the support auth token is used for re-authentication */
     isSupportAuthTokenUsed?: boolean;
 
     /** Timestamp of the session creation date */
