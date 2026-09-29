@@ -6,7 +6,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import getPlatform from '@libs/getPlatform';
 
-import {resolveLayoutSpacing} from '@styles/layoutSpacing';
+import layoutSpacing, {resolveLayoutSpacing} from '@styles/layoutSpacing';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -39,8 +39,7 @@ const gapWidth = 12;
 // 68 is the width of the action button
 const rightSideElementWidth = 68;
 
-// 40 is the padding of the central pane summing two sides
-const centralPanePadding = 40;
+const centralPanePadding = layoutSpacing.pageGutter.wide * 2;
 
 // 16 is the width of the right arrow icon + padding
 const rightArrowWidth = 28;
