@@ -347,6 +347,7 @@ function SearchAutocompleteList({
             conciergeReportID,
             isTrackIntentUser,
             translate,
+            getReportByID,
             rules,
         }).options;
         const optionsByReportID = new Map(options.recentReports.map((option) => [option.reportID, option]));
@@ -370,6 +371,7 @@ function SearchAutocompleteList({
         conciergeReportID,
         isTrackIntentUser,
         translate,
+        getReportByID,
         rules,
     ]);
 
