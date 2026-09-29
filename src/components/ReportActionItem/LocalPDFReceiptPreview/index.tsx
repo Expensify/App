@@ -5,9 +5,10 @@ import PDFThumbnailError from '@components/PDFThumbnail/PDFThumbnailError';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {useReportActionItemState} from '@pages/inbox/report/ReportActionIndexContext';
+
 import CONST from '@src/CONST';
 
-import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import type LocalPDFReceiptPreviewProps from './types';
@@ -18,9 +19,9 @@ const DOCUMENT_OPTIONS = {cMapUrl: '/cmaps/', cMapPacked: true};
 
 function LocalPDFReceiptPreview({sourceURL, shouldUseFullHeight, onLoadFailure, onLoadSuccess}: LocalPDFReceiptPreviewProps) {
     const styles = useThemeStyles();
-    const [failedToLoad, setFailedToLoad] = useState(false);
-    const [containerSize, setContainerSize] = useState<{width: number; height: number} | undefined>(undefined);
-    const [pageAspectRatio, setPageAspectRatio] = useState<number | undefined>(undefined);
+    const [failedToLoad, setFailedToLoad] = useReportActionItemState(false);
+    const [containerSize, setContainerSize] = useReportActionItemState<{width: number; height: number} | undefined>(undefined);
+    const [pageAspectRatio, setPageAspectRatio] = useReportActionItemState<number | undefined>(undefined);
 
     const handleDocumentLoadSuccess = (pdf: PDFDocumentProxy) => {
         pdf.getPage(1)

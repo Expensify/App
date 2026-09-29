@@ -89,7 +89,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {personalDetailsDisplayNameSelector} from '@selectors/PersonalDetails';
 import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef} from 'react';
 import {Keyboard, View} from 'react-native';
 
 import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
@@ -100,6 +100,7 @@ import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMe
 import {hideContextMenu, hideDeleteModal, isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
 import LinkPreviewer from './LinkPreviewer';
 import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
+import {useReportActionItemState} from './ReportActionIndexContext';
 import ReportActionItemContentCreated from './ReportActionItemContentCreated';
 import ReportActionItemFrame from './ReportActionItemFrame';
 import ReportActionItemThread from './ReportActionItemThread';
@@ -222,16 +223,16 @@ function ReportActionItem({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [isContextMenuActive, setIsContextMenuActive] = useState(() => isActiveReportAction(action.reportActionID));
-    const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
-    const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useState<boolean | undefined>();
-    const [isHidden, setIsHidden] = useState(false);
+    const [isContextMenuActive, setIsContextMenuActive] = useReportActionItemState(() => isActiveReportAction(action.reportActionID));
+    const [isEmojiPickerActive, setIsEmojiPickerActive] = useReportActionItemState<boolean | undefined>(undefined);
+    const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useReportActionItemState<boolean | undefined>(undefined);
+    const [isHidden, setIsHidden] = useReportActionItemState(false);
     const {isActiveReportAction: isActiveReactionListReportAction, hideReactionList} = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(AttachmentModalContext);
     const popoverAnchorRef = useRef<Exclude<ContextMenuAnchor, TextInput>>(null);
-    const downloadedPreviews = useRef<string[]>([]);
+    const downloadedPreviews = useRef<{reportActionID: string; urls: string[]}>({reportActionID: action.reportActionID, urls: []});
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
-    const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
+    const [isReportActionActive, setIsReportActionActive] = useReportActionItemState(!!isReportActionLinked);
 
     const shouldBreakGrouping = shouldBreakAccessibilityGrouping();
     const isScreenReaderActive = Accessibility.useScreenReaderStatus();
@@ -350,11 +351,14 @@ function ReportActionItem({
         }
 
         const urls = extractLinksFromMessageHtml(action);
-        if (deepEqual(downloadedPreviews.current, urls) || action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (
+            (downloadedPreviews.current.reportActionID === action.reportActionID && deepEqual(downloadedPreviews.current.urls, urls)) ||
+            action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+        ) {
             return;
         }
 
-        downloadedPreviews.current = urls;
+        downloadedPreviews.current = {reportActionID: action.reportActionID, urls};
         expandURLPreview(reportID, action.reportActionID);
     }, [action, reportID]);
 
@@ -377,7 +381,7 @@ function ReportActionItem({
             return;
         }
         setIsHidden(false);
-    }, [latestDecision, action]);
+    }, [latestDecision, action, setIsHidden]);
 
     const toggleContextMenuFromActiveReportAction = () => {
         setIsContextMenuActive(isActiveReportAction(action.reportActionID));

@@ -5,6 +5,7 @@ import type useReportScrollManager from '@hooks/useReportScrollManager';
 import type {OpenReportActionParams} from '@libs/actions/Report';
 import {openReport, pruneReportActionPagesToNewestWindow} from '@libs/actions/Report';
 import {subscribeToNewActionEvent} from '@libs/actions/Report/reportActionSubscribers';
+import type {ActionEventSource} from '@libs/actions/Report/reportActionSubscribers';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -48,7 +49,8 @@ type UseReportActionsNewActionLiveTailParams = {
     hasNewerActions: boolean;
     linkedReportActionID: string | undefined;
     hasNewestReportAction: boolean;
-    sortedVisibleReportActions: OnyxTypes.ReportAction[];
+    /** Actions rendered by the list in chronological order. */
+    renderedVisibleReportActions: OnyxTypes.ReportAction[];
     sortedAllReportActionsForPagination: OnyxTypes.ReportAction[];
     reportActionPages: OnyxTypes.Pages | undefined;
     setTreatAsNoPaginationAnchor: (value: boolean) => void;
@@ -58,12 +60,12 @@ type UseReportActionsNewActionLiveTailParams = {
 };
 
 type LiveTailJumpStage = 'idle' | 'open_report' | 'await_scroll' | 'await_prune';
+const PENDING_SENT_ACTION_TIMEOUT_MS = 5000;
 
 /**
  * Owns subscribe-to-new-action scrolling, live-tail jump (openReport → scroll → prune), and the
- * deferred scroll + pagination prune after layout. Uses useEffectEvent for the Pusher subscription handler so it
- * always sees the latest props without mirror refs. The layout-time prune step uses useCallback so callers can invoke
- * it from list `onLayout` outside this hook.
+ * deferred scroll + pagination prune after the data render. Uses useEffectEvent for the Pusher subscription handler so it
+ * always sees the latest props without mirror refs. The prune callback completes the explicit scroll request in the caller.
  */
 function useReportActionsNewActionLiveTail({
     conciergeChat,
@@ -79,7 +81,7 @@ function useReportActionsNewActionLiveTail({
     hasNewerActions,
     linkedReportActionID,
     hasNewestReportAction,
-    sortedVisibleReportActions,
+    renderedVisibleReportActions,
     sortedAllReportActionsForPagination,
     reportActionPages,
     setTreatAsNoPaginationAnchor,
@@ -92,13 +94,39 @@ function useReportActionsNewActionLiveTail({
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const liveTailJumpRef = useRef<{stage: LiveTailJumpStage}>({stage: 'idle'});
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
+    const [pendingScrollActionID, setPendingScrollActionID] = useState<string>();
 
-    const scrollToBottomForCurrentUserAction = useEffectEvent((isFromCurrentUser: boolean, action?: OnyxTypes.ReportAction) => {
+    const setShouldScrollToBottom = useCallback((enabled: boolean) => {
+        setIsScrollToBottomEnabled(enabled);
+        if (!enabled) {
+            setPendingScrollActionID(undefined);
+        }
+    }, []);
+
+    const isPendingScrollActionRendered = !!pendingScrollActionID && renderedVisibleReportActions.some((item) => item.reportActionID === pendingScrollActionID);
+
+    useEffect(() => {
+        if (!pendingScrollActionID) {
+            return;
+        }
+
+        // The optimistic row normally arrives immediately. A filtered or failed row must not
+        // scroll the reader much later when pagination or reconnecting makes it visible.
+        const timeout = setTimeout(() => setPendingScrollActionID(undefined), PENDING_SENT_ACTION_TIMEOUT_MS);
+        return () => clearTimeout(timeout);
+    }, [pendingScrollActionID]);
+
+    const scrollToBottomForCurrentUserAction = useEffectEvent((isFromCurrentUser: boolean, action: OnyxTypes.ReportAction | undefined, source: ActionEventSource) => {
         TransitionTracker.runAfterTransitions({
             callback: () => {
                 // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
                 // they are now in the list.
                 if (!isFromCurrentUser || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
+                    return;
+                }
+                // A realtime echo can represent an edit or deletion, whereas local payload-less
+                // notifications from money requests still need the usual live-tail behavior.
+                if (!action && source === 'realtime') {
                     return;
                 }
                 if (!hasNewestReportAction && !isFromCurrentUser) {
@@ -130,14 +158,14 @@ function useReportActionsNewActionLiveTail({
                     return;
                 }
 
-                const index = sortedVisibleReportActions.findIndex((item) => item.reportActionID === action?.reportActionID);
+                const index = renderedVisibleReportActions.findIndex((item) => item.reportActionID === action?.reportActionID);
                 if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
-                    if (index > 0) {
+                    setIsFloatingMessageCounterVisible(false);
+                    if (index >= 0 && index < renderedVisibleReportActions.length - 1) {
                         setTimeout(() => {
                             reportScrollManager.scrollToIndex(index);
                         }, 100);
                     } else {
-                        setIsFloatingMessageCounterVisible(false);
                         reportScrollManager.scrollToBottom();
                     }
                     if (action?.reportActionID) {
@@ -145,22 +173,24 @@ function useReportActionsNewActionLiveTail({
                     }
                 } else {
                     setIsFloatingMessageCounterVisible(false);
-                    reportScrollManager.scrollToBottom();
+                    if (action?.reportActionID) {
+                        setPendingScrollActionID(action.reportActionID);
+                    } else {
+                        setShouldScrollToBottom(true);
+                    }
                 }
-
-                setIsScrollToBottomEnabled(true);
             },
         });
     });
 
-    const completeLiveTailPruneAfterScrollToBottom = useCallback(() => {
+    const completeLiveTailPruneAfterScrollToBottom = () => {
         if (liveTailJumpRef.current.stage !== 'await_prune') {
             return;
         }
         pruneReportActionPagesToNewestWindow(reportID, sortedAllReportActionsForPagination, reportActionPages);
         setTreatAsNoPaginationAnchor(false);
         liveTailJumpRef.current = {stage: 'idle'};
-    }, [reportID, sortedAllReportActionsForPagination, reportActionPages, setTreatAsNoPaginationAnchor]);
+    };
 
     useEffect(() => {
         liveTailJumpRef.current = {stage: 'idle'};
@@ -205,9 +235,9 @@ function useReportActionsNewActionLiveTail({
         setIsFloatingMessageCounterVisible(false);
         // Defer so this effect does not synchronously chain a second render from setState (eslint react-hooks/set-state-in-effect).
         queueMicrotask(() => {
-            setIsScrollToBottomEnabled(true);
+            setShouldScrollToBottom(true);
         });
-    }, [hasNewestReportAction, treatAsNoPaginationAnchor, setIsFloatingMessageCounterVisible]);
+    }, [hasNewestReportAction, treatAsNoPaginationAnchor, setIsFloatingMessageCounterVisible, setShouldScrollToBottom]);
 
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
@@ -237,8 +267,8 @@ function useReportActionsNewActionLiveTail({
     }, [reportID]);
 
     return {
-        isScrollToBottomEnabled,
-        setIsScrollToBottomEnabled,
+        isScrollToBottomEnabled: isScrollToBottomEnabled || isPendingScrollActionRendered,
+        setIsScrollToBottomEnabled: setShouldScrollToBottom,
         completeLiveTailPruneAfterScrollToBottom,
     };
 }

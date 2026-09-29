@@ -213,7 +213,7 @@ function ActionContentRouter({
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
         return (
             <MoneyRequestReportPreview
-                // FlashList recycles cells, so this instance can be handed another report's props. Key forces a remount,
+                // The `ReportActionsList` uses LegendList cell recycling feature, so this cell instance can be handed another report's props. Key forces a remount,
                 // or `useNewTransactions` would consider the new report's transactions as newly added on top of the old report's.
                 key={action.reportActionID}
                 iouReportID={getIOUReportIDFromReportActionPreview(action)}

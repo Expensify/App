@@ -1,5 +1,4 @@
 import LinkButton from '@components/Button/composed/LinkButton';
-import type FlatListRefType from '@components/FlashList/types';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -22,6 +21,8 @@ import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/Tra
 
 import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperWideRHP';
 import Navigation from '@navigation/Navigation';
+
+import type ActionListRefType from '@pages/inbox/ActionListTypes';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -132,7 +133,7 @@ type MoneyRequestReportTransactionListProps = {
     linkedReportActionID: string | undefined;
 
     /** Ref forwarded to the underlying FlashList. */
-    listRef: FlatListRefType;
+    listRef: ActionListRefType;
 
     /** Reports the unified list's last item index so the parent can jump to the bottom via scrollToIndex. */
     onLastItemIndexChange?: (index: number) => void;
