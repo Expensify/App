@@ -432,6 +432,86 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('getDefaultTaxCode for distance requests', () => {
+        const RATE_ID = 'rate_1';
+
+        const buildDistancePolicy = ({
+            rateTaxCode,
+            isRateTaxDisabled = false,
+            isDefaultTaxDisabled = false,
+        }: {
+            rateTaxCode: string;
+            isRateTaxDisabled?: boolean;
+            isDefaultTaxDisabled?: boolean;
+        }) =>
+            ({
+                ...createRandomPolicy(0),
+                taxRates: {
+                    ...CONST.DEFAULT_TAX,
+                    taxes: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        id_TAX_EXEMPT: {name: 'Tax exempt', value: '0%', isDisabled: isDefaultTaxDisabled},
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        id_TAX_RATE_1: {name: 'Tax Rate 1', value: '5%', isDisabled: isRateTaxDisabled},
+                    },
+                },
+                customUnits: {
+                    distance: {
+                        customUnitID: 'distance',
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, taxEnabled: true},
+                        rates: {
+                            [RATE_ID]: {customUnitRateID: RATE_ID, name: 'Custom rate', rate: 100, enabled: true, attributes: {taxRateExternalID: rateTaxCode, taxClaimablePercentage: 1}},
+                        },
+                    },
+                },
+            }) as Policy;
+
+        const distanceTransaction: Transaction = {
+            ...generateTransaction(),
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+            comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT, customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitRateID: RATE_ID}},
+        };
+
+        it("returns the distance rate's tax code while it is enabled", () => {
+            // Given a distance rate whose reclaimable tax rate is still enabled
+            const policy = buildDistancePolicy({rateTaxCode: 'id_TAX_RATE_1'});
+
+            // When resolving the default tax code for a distance expense on that rate
+            // Then the rate's own tax code is used
+            expect(TransactionUtils.getDefaultTaxCode(policy, distanceTransaction)).toBe('id_TAX_RATE_1');
+        });
+
+        it("falls back to the policy default when the distance rate's tax rate was disabled", () => {
+            // Given a distance rate that still points at a tax rate the admin has since disabled
+            const policy = buildDistancePolicy({rateTaxCode: 'id_TAX_RATE_1', isRateTaxDisabled: true});
+
+            // When resolving the default tax code for a distance expense on that rate
+            // Then the disabled code is skipped so the split/save request isn't rejected, and the policy default is used
+            expect(TransactionUtils.getDefaultTaxCode(policy, distanceTransaction)).toBe('id_TAX_EXEMPT');
+        });
+
+        it('returns undefined when both the distance rate tax and the policy default are disabled', () => {
+            // Given a disabled distance rate tax and a disabled policy default
+            const policy = buildDistancePolicy({rateTaxCode: 'id_TAX_RATE_1', isRateTaxDisabled: true, isDefaultTaxDisabled: true});
+
+            // When resolving the default tax code for a distance expense on that rate
+            // Then no tax code is returned, because none of them can be picked
+            expect(TransactionUtils.getDefaultTaxCode(policy, distanceTransaction)).toBeUndefined();
+        });
+
+        it('makes getDistanceRateTaxUpdates drop the disabled tax rate', () => {
+            // Given a distance rate that still points at a disabled tax rate
+            const policy = buildDistancePolicy({rateTaxCode: 'id_TAX_RATE_1', isRateTaxDisabled: true});
+
+            // When computing the tax updates for that distance rate
+            const {taxCode} = TransactionUtils.getDistanceRateTaxUpdates(policy, distanceTransaction, RATE_ID, getCurrencyDecimalsLocal);
+
+            // Then the disabled tax code is not used
+            expect(taxCode).toBe('id_TAX_EXEMPT');
+        });
+    });
+
     describe('getUpdatedTransaction', () => {
         it('should return updated category and tax when updating category with a category tax rules', () => {
             // Given a policy with tax expense rules associated with a category

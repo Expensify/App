@@ -6105,6 +6105,36 @@ describe('updateSplitTransactions', () => {
         expect(Object.values(latestSplitTransactionFailureErrors).at(0)).toBe(localizedFallback);
     });
 
+    it('should remove the optimistic split transactions and their IOU actions when creating splits fails', async () => {
+        // Given an expense that has not been split yet
+        const {expenseReport, originalTransactionID} = await createBaseExpense();
+        if (!originalTransactionID || !expenseReport?.reportID) {
+            throw new Error('Missing original transaction data');
+        }
+        const iouAction = getIOUActionForReportID(expenseReport.reportID, originalTransactionID);
+
+        // When the split request is rejected by the backend
+        mockFetch?.fail?.();
+        const {splitTransactionID1, splitTransactionID2} = await splitToTwo(expenseReport, originalTransactionID, iouAction);
+        await waitForBatchedUpdates();
+        mockFetch?.succeed?.();
+
+        // Then the original expense is restored and the optimistic splits are removed, so the chat doesn't show the
+        // original next to two orphaned split expenses
+        const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+        expect(originalTransaction?.reportID).not.toBe(CONST.REPORT.SPLIT_REPORT_ID);
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`)).toBeUndefined();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID2}`)).toBeUndefined();
+
+        // And no IOU action is left pointing at either split transaction
+        const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`);
+        const splitIOUActions = Object.values(reportActions ?? {}).filter((action) => {
+            const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
+            return transactionID === splitTransactionID1 || transactionID === splitTransactionID2;
+        });
+        expect(splitIOUActions).toHaveLength(0);
+    });
+
     it('should keep all split transactions on hold when splitting a held transaction', async () => {
         const {expenseReport, transactionThreadReportID, originalTransactionID} = await createBaseExpense();
         const {allReports, allReportActions} = await getCollections();

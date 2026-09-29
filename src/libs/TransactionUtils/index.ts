@@ -34,6 +34,7 @@ import {
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
     isPolicyAdmin,
     isPolicyMember as isPolicyMemberPolicyUtils,
+    isSelectableTaxCode,
     resolveCurrentTaxCode,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -2771,10 +2772,15 @@ function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Tra
         const customUnitRateID = newCustomUnitRateID ?? getRateID(transaction) ?? '';
         const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
         const customUnit = getDistanceRateCustomUnit(policy);
-        if (!customUnitRate?.attributes?.taxRateExternalID && customUnit?.attributes?.taxEnabled) {
-            return policy?.taxRates?.defaultExternalID;
+        const rateTaxCode = customUnitRate?.attributes?.taxRateExternalID;
+        // Disabling a tax rate leaves the distance rate still pointing at it, so a rate the user can no longer pick is
+        // treated the same as a missing one, and the policy default is only used while it is selectable.
+        const isRateTaxCodeUnusable = !!rateTaxCode && !isSelectableTaxCode(policy, rateTaxCode);
+        if ((!rateTaxCode || isRateTaxCodeUnusable) && customUnit?.attributes?.taxEnabled) {
+            const defaultExternalID = policy?.taxRates?.defaultExternalID;
+            return isSelectableTaxCode(policy, defaultExternalID) ? defaultExternalID : undefined;
         }
-        return customUnitRate?.attributes?.taxRateExternalID;
+        return isRateTaxCodeUnusable ? undefined : rateTaxCode;
     }
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
@@ -2821,11 +2827,9 @@ function getDistanceRateTaxUpdates(
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     distanceUnit?: Unit,
 ): {taxAmount: number; taxCode: string; taxValue: string | undefined} {
-    const policyCustomUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
-    const defaultTaxCode = getDefaultTaxCode(policy, transaction, undefined, customUnitRateID) ?? '';
-    // We use || instead of ?? because taxRateExternalID may be an empty string, which should also trigger the fallback to the default tax code.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const taxCode = policyCustomUnitRate?.attributes?.taxRateExternalID || defaultTaxCode;
+    // getDefaultTaxCode already returns the rate's own tax code when it is still selectable, and falls back to the policy
+    // default when it is empty, disabled, or pending delete.
+    const taxCode = getDefaultTaxCode(policy, transaction, undefined, customUnitRateID) ?? '';
     const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(transaction, distanceUnit ?? transaction?.comment?.customUnit?.distanceUnit));
     const taxValue = taxCode ? getTaxValue(policy, transaction, taxCode) : undefined;
     const mileageRates = DistanceRequestUtils.getMileageRates(policy);

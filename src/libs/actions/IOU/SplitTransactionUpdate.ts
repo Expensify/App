@@ -1378,6 +1378,34 @@ function updateSplitTransactions({
         onyxData.optimisticData?.push(...(updateMoneyRequestParamsOnyxData.optimisticData ?? []), ...optimisticDataComments);
         onyxData.successData?.push(...(updateMoneyRequestParamsOnyxData.successData ?? []), ...successDataComments);
         onyxData.failureData?.push(...(updateMoneyRequestParamsOnyxData.failureData ?? []), ...failureDataComments);
+
+        // When creating splits fails, the original transaction is restored, so remove the optimistic split and its IOU
+        // action too. Otherwise they stay next to the restored original with an error. This is pushed last so no earlier
+        // failure merge for the same keys re-creates them.
+        const optimisticSplitTransactionID = optimisticTransactionFromGetMoneyRequest?.transactionID;
+        if (isCreationOfSplits && !splitTransaction && optimisticSplitTransactionID && optimisticSplitTransactionID !== originalTransactionID) {
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticSplitTransactionID}`,
+                value: null,
+            });
+            const iouActionUpdate = moneyRequestInformationOnyxData.optimisticData?.find(
+                (update) =>
+                    update.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS) &&
+                    'value' in update &&
+                    typeof update.value === 'object' &&
+                    update.value !== null &&
+                    iouAction.reportActionID in update.value,
+            );
+            if (iouActionUpdate) {
+                const iouActionReportID = iouActionUpdate.key.slice(ONYXKEYS.COLLECTION.REPORT_ACTIONS.length);
+                onyxData.failureData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouActionReportID}`,
+                    value: {[iouAction.reportActionID]: null},
+                });
+            }
+        }
     }
 
     // All transactions that were deleted in the split list will be marked as deleted in onyx.

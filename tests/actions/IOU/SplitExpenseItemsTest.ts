@@ -193,28 +193,87 @@ describe('initSplitExpenseItemData stale tax handling', () => {
         expect(splitExpense.taxAmount).toBe(909);
     });
 
-    it('keeps the parent stored tax trio when only a disabled rate resolves', () => {
-        // The stored code is disabled and it is also the default, so no selectable rate resolves. Keep the parent's
-        // internally-consistent stored trio.
+    it('clears the tax trio when only a disabled rate resolves', () => {
+        // Given the stored code is disabled and it is also the default, so no selectable rate resolves
+        // When the split is seeded
         const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {
             policy: buildPolicyWithOnlyDisabledRate('20%'),
             getCurrencyDecimals: () => 2,
         });
 
-        expect(splitExpense.taxCode).toBe(TAX_CODE);
-        expect(splitExpense.taxValue).toBe('5%');
-        expect(splitExpense.taxAmount).toBe(476);
+        // Then all three tax fields are cleared, because the backend rejects a split that carries the disabled code
+        expect(splitExpense.taxCode).toBe('');
+        expect(splitExpense.taxValue).toBe('');
+        expect(splitExpense.taxAmount).toBe(0);
     });
 
-    it('keeps the parent stored tax trio when no live rate can be resolved', () => {
-        // The rate was deleted and there is no default to fall back to. Rather than emitting an undefined code/value
-        // (which the save path would overwrite with the parent's deleted values while keeping a recomputed amount),
-        // leave the parent's internally-consistent stored trio in place.
+    it('clears the tax trio when no live rate can be resolved', () => {
+        // Given the rate was deleted and there is no default to fall back to
+        // When the split is seeded
         const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {policy: buildPolicyWithoutRates(), getCurrencyDecimals: () => 2});
 
-        expect(splitExpense.taxCode).toBe(TAX_CODE);
-        expect(splitExpense.taxValue).toBe('5%');
-        expect(splitExpense.taxAmount).toBe(476);
+        // Then all three tax fields are cleared to empty values (not undefined), so the save path doesn't fall back
+        // to the parent's deleted values
+        expect(splitExpense.taxCode).toBe('');
+        expect(splitExpense.taxValue).toBe('');
+        expect(splitExpense.taxAmount).toBe(0);
+    });
+
+    describe('distance expenses', () => {
+        const RATE_ID = 'rate_1';
+
+        // A distance rate with tax reclaimable on, pointing at TAX_CODE. The custom unit has tax enabled, so the policy
+        // default is the fallback when the rate's tax can't be used.
+        const withDistanceRate = (policy: Policy): Policy =>
+            ({
+                ...policy,
+                customUnits: {
+                    distance: {
+                        customUnitID: 'distance',
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, taxEnabled: true},
+                        rates: {
+                            [RATE_ID]: {customUnitRateID: RATE_ID, name: 'Custom rate', rate: 100, enabled: true, attributes: {taxRateExternalID: TAX_CODE, taxClaimablePercentage: 1}},
+                        },
+                    },
+                },
+            }) as Policy;
+
+        const distanceTransaction: Transaction = {
+            ...transaction,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+            comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT, customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitRateID: RATE_ID, quantity: 10}},
+        };
+
+        it("falls back to the policy default when the distance rate's tax rate was disabled", () => {
+            // Given a distance expense whose rate still points at a tax rate that has since been disabled, and an
+            // enabled 10% policy default
+            // When the split is seeded
+            const splitExpense = initSplitExpenseItemData(distanceTransaction, transactionReport, {
+                policy: withDistanceRate(buildPolicyWithDisabledRate('5%', '10%')),
+                getCurrencyDecimals: () => 2,
+            });
+
+            // Then the split uses the enabled default (100 * 10 / 110 = 9.09) instead of the disabled rate from the
+            // distance rate, which the backend would reject
+            expect(splitExpense.taxCode).toBe(NEW_TAX_CODE);
+            expect(splitExpense.taxValue).toBe('10%');
+            expect(splitExpense.taxAmount).toBe(909);
+        });
+
+        it("clears the tax trio when the distance rate's tax and the policy default are both disabled", () => {
+            // Given a distance expense whose rate points at a disabled tax rate that is also the policy default
+            // When the split is seeded
+            const splitExpense = initSplitExpenseItemData(distanceTransaction, transactionReport, {
+                policy: withDistanceRate(buildPolicyWithOnlyDisabledRate('5%')),
+                getCurrencyDecimals: () => 2,
+            });
+
+            // Then no disabled tax code is sent with the split
+            expect(splitExpense.taxCode).toBe('');
+            expect(splitExpense.taxValue).toBe('');
+            expect(splitExpense.taxAmount).toBe(0);
+        });
     });
 
     it('keeps the stored tax fields when the stored value still matches the policy rate', () => {

@@ -6,7 +6,7 @@ import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translate} from '@libs/Localize';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getDistanceRateCustomUnitRate, getTaxByID, resolveCurrentTaxCode} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, isSelectableTaxCode} from '@libs/PolicyUtils';
 import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import {
     buildOptimisticTransaction,
@@ -289,9 +289,7 @@ function initSplitExpenseItemData(
     // rate still resolves to a value, yet the user can no longer pick it, so treat it the same as a removed rate.
     const getSelectableTaxValue = (code: string | undefined) => {
         const value = code ? getTaxValue(policy, transaction, code) : undefined;
-        const taxRate = code ? getTaxByID(policy, resolveCurrentTaxCode(policy, code)) : undefined;
-        const isSelectable = !!taxRate && !taxRate.isDisabled && taxRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-        return value !== undefined && isSelectable ? value : undefined;
+        return value !== undefined && isSelectableTaxCode(policy, code) ? value : undefined;
     };
 
     // The stored tax is out of date when the stored taxCode and taxValue no longer match a currently-selectable rate,
@@ -314,15 +312,20 @@ function initSplitExpenseItemData(
                 liveTaxCode = undefined;
             }
         }
-        // Only refresh when a live rate resolves. If none does, keep the parent's stored trio, which is internally
-        // consistent, instead of pairing an undefined code and value with a recomputed amount. The tax is computed
-        // from the whole split amount, matching every other split tax recalculation in this file.
+        // The tax is computed from the whole split amount, matching every other split tax recalculation in this file.
         if (liveTaxValue !== undefined) {
             const splitAmount = Math.abs(amount ?? transactionDetails?.amount ?? 0);
             const splitCurrency = transactionDetails?.currency ?? CONST.CURRENCY.USD;
             resolvedTaxCode = liveTaxCode;
             resolvedTaxValue = liveTaxValue;
             resolvedTaxAmount = convertToBackendAmount(calculateTaxAmount(liveTaxValue, splitAmount, getCurrencyDecimals(splitCurrency)));
+        } else {
+            // No selectable rate resolves, so clear all three fields, the same as removing the tax by hand. Keeping the
+            // parent's stored trio would send a tax code the policy no longer accepts, and the split request would fail.
+            // Empty strings (not undefined) are used so the save path doesn't fall back to the parent's stale values.
+            resolvedTaxCode = '';
+            resolvedTaxValue = '';
+            resolvedTaxAmount = 0;
         }
     }
 
