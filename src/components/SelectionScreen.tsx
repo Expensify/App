@@ -104,6 +104,9 @@ type SelectionScreenProps<T = string> = {
 
         /** Callback to fire when the text input changes */
         onChangeText?: (text: string) => void;
+
+        /** Message shown above the list, e.g. when a search matches nothing */
+        headerMessage?: string;
     };
 
     /** Footer save button. When omitted, tapping a row still commits immediately. */
