@@ -33,6 +33,7 @@ import type {SubmissionRecentlyUsedData} from './useSubmissionRecentlyUsedData';
 type UsePerDiemSubmissionParams = {
     transaction: OnyxEntry<Transaction>;
     report: OnyxEntry<Report>;
+    reportDrafts: OnyxCollection<Report>;
     policy: OnyxEntry<Policy>;
     policyCategories: OnyxEntry<PolicyCategories>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -61,6 +62,7 @@ type UsePerDiemSubmissionParams = {
 function usePerDiemSubmission({
     transaction,
     report,
+    reportDrafts,
     policy,
     policyCategories,
     personalDetails,
@@ -111,16 +113,16 @@ function usePerDiemSubmission({
         : undefined;
     const [perDiemExpensePolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPerDiemExpensePolicyID}`);
 
-    function createTransaction({shouldHandleNavigation = true}: CreateTransactionParams) {
+    function createTransaction({shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams) {
         if (!transaction) {
             markSubmitExpenseEnd();
-            return;
+            return false;
         }
 
         const participant = selectedParticipants.at(0);
         if (!participant || isEmptyObject(transaction.comment) || isEmptyObject(transaction.comment.customUnit)) {
             markSubmitExpenseEnd();
-            return;
+            return false;
         }
         const trimmedComment = transaction.comment?.comment?.trim() ?? '';
 
@@ -134,6 +136,7 @@ function usePerDiemSubmission({
                 submitPerDiemExpenseForSelfDM({
                     dateFnsLocale,
                     getCurrencyDecimals,
+                    writeBarrier,
                     selfDMReport,
                     policy,
                     transactionParams: {
@@ -167,15 +170,15 @@ function usePerDiemSubmission({
             }
 
             markSubmitExpenseEnd();
-            return;
+            return false;
         }
 
         const isExpenseReport = isMoneyRequestReportReportUtils(report);
         let existingChatReport = report;
         if (isExpenseReport) {
-            existingChatReport = getReportOrDraftReport(report?.chatReportID);
+            existingChatReport = getReportOrDraftReport(report?.chatReportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report?.chatReportID}`] ?? {});
         } else if (!report?.reportID && participant.isPolicyExpenseChat && participant.reportID) {
-            existingChatReport = getReportOrDraftReport(participant.reportID);
+            existingChatReport = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`] ?? {});
         }
 
         // The recipient can be swapped without this screen remounting, so `existingChatReport` above
@@ -198,6 +201,7 @@ function usePerDiemSubmission({
             isVendorMatchingBetaEnabled,
             dateFnsLocale,
             getCurrencyDecimals,
+            writeBarrier,
             report,
             participantParams: {
                 payeeEmail: currentUserPersonalDetails.login,
@@ -263,6 +267,7 @@ function usePerDiemSubmission({
             });
         }
         markSubmitExpenseEnd();
+        return false;
     }
 
     return {createTransaction};

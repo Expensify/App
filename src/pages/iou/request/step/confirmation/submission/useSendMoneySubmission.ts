@@ -49,7 +49,7 @@ function useSendMoneySubmission({
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     function sendMoney(paymentMethod: PaymentMethodType | undefined, options?: SendMoneyOptions) {
-        const {shouldHandleNavigation = true, resolvedReportIDs, shouldStartTracking = true, shouldDeferForSearch = false} = options ?? {};
+        const {shouldHandleNavigation = true, resolvedReportIDs, shouldStartTracking = true} = options ?? {};
         const currency = transaction?.currency;
         const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
         const participant = participants?.at(0);
@@ -78,7 +78,6 @@ function useSendMoneySubmission({
             receipt: receiptFiles[transaction.transactionID],
             optimisticChatReportID,
             shouldStartTracking,
-            shouldDeferForSearch,
             delegateAccountID,
         };
 

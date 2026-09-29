@@ -37,6 +37,7 @@ type UseDistanceSubmissionParams = TransactionTaxValues & {
     transactions: Transaction[];
     receiptFiles: Record<string, Receipt>;
     report: OnyxEntry<Report>;
+    reportDrafts: OnyxCollection<Report>;
     policy: OnyxEntry<Policy>;
     policyCategories: OnyxEntry<PolicyCategories>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -71,6 +72,7 @@ function useDistanceSubmission({
     transactions,
     receiptFiles,
     report,
+    reportDrafts,
     policy,
     policyCategories,
     personalDetails,
@@ -109,7 +111,9 @@ function useDistanceSubmission({
 
     const selectedParticipantsForRequest = getSelectedParticipantsForSubmission({transaction, iouType, selectedParticipants});
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const currentChatReport = isMoneyRequestReport
+        ? getReportOrDraftReport(report?.chatReportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report?.chatReportID}`] ?? {})
+        : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`);
     const firstSelectedParticipantReportID = selectedParticipantsForRequest.at(0)?.reportID;
@@ -117,15 +121,15 @@ function useDistanceSubmission({
     const iouReportPolicyID = (moneyRequestReportID ? moneyRequestReport?.policyID : undefined) ?? currentChatReport?.policyID ?? selectedParticipantsReport?.policyID;
     const [iouReportPolicyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReportPolicyID}`);
 
-    function createTransaction({shouldHandleNavigation = true}: CreateTransactionParams) {
+    function createTransaction({shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams) {
         if (!transaction) {
             markSubmitExpenseEnd();
-            return;
+            return false;
         }
         const participant = selectedParticipantsForRequest.at(0);
         if (!participant) {
             markSubmitExpenseEnd();
-            return;
+            return false;
         }
         const trimmedComment = transaction.comment?.comment?.trim() ?? '';
 
@@ -139,6 +143,7 @@ function useDistanceSubmission({
         const {chatReportID: distanceChatReportID, transactionID: distanceTransactionID} = createDistanceRequestIOUActions({
             isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
+            writeBarrier,
             report,
             participants: selectedParticipantsForRequest,
             optimisticChatReportID,
@@ -200,6 +205,7 @@ function useDistanceSubmission({
         performPostBatchCleanup({
             transactions,
             report,
+            reportDrafts,
             action,
             draftTransactionIDs,
             currentUserPersonalDetails,
@@ -217,6 +223,7 @@ function useDistanceSubmission({
             },
         });
         markSubmitExpenseEnd();
+        return false;
     }
 
     return {createTransaction};

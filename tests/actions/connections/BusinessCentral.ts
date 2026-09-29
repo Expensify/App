@@ -2,7 +2,15 @@ import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
-import {clearBusinessCentralErrorField, connectToBusinessCentral, updateBusinessCentralCompany} from '@src/libs/actions/connections/BusinessCentral';
+import {
+    clearBusinessCentralErrorField,
+    connectToBusinessCentral,
+    updateBusinessCentralCompany,
+    updateBusinessCentralEnableNewCategories,
+    updateBusinessCentralFieldMapping,
+    updateBusinessCentralSyncItems,
+    updateBusinessCentralSyncTaxRates,
+} from '@src/libs/actions/connections/BusinessCentral';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
@@ -187,6 +195,211 @@ describe('actions/connections/BusinessCentral', () => {
                                         [CONST.BUSINESS_CENTRAL_CONFIG.COMPANY_ID]: 'old-company',
                                         pendingFields: {[CONST.BUSINESS_CENTRAL_CONFIG.COMPANY_ID]: null},
                                         errorFields: {[CONST.BUSINESS_CENTRAL_CONFIG.COMPANY_ID]: ANY_VALUE},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+        });
+    });
+
+    describe('updateBusinessCentralEnableNewCategories', () => {
+        it('writes the enable-new-categories command and optimistically updates the config', () => {
+            // Given a policy whose newly imported categories are currently disabled
+            // When the setting is turned on
+            updateBusinessCentralEnableNewCategories(MOCK_POLICY_ID, true, false);
+
+            // Then the command is sent and the config optimistically reflects the enabled setting so the toggle updates instantly
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_ENABLE_NEW_CATEGORIES,
+                expect.objectContaining({policyID: MOCK_POLICY_ID, enabled: true}),
+                expect.anything(),
+            );
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                optimisticData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        [CONST.BUSINESS_CENTRAL_CONFIG.ENABLE_NEW_CATEGORIES]: true,
+                                        pendingFields: {[CONST.BUSINESS_CENTRAL_CONFIG.ENABLE_NEW_CATEGORIES]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+        });
+
+        it('rolls back to the old value and sets an error on failure', () => {
+            // Given a policy whose newly imported categories are currently disabled
+            // When the setting is turned on
+            updateBusinessCentralEnableNewCategories(MOCK_POLICY_ID, true, false);
+
+            // Then on failure the setting rolls back and an error is set, so the user knows the change did not stick
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                failureData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        [CONST.BUSINESS_CENTRAL_CONFIG.ENABLE_NEW_CATEGORIES]: false,
+                                        pendingFields: {[CONST.BUSINESS_CENTRAL_CONFIG.ENABLE_NEW_CATEGORIES]: null},
+                                        errorFields: {[CONST.BUSINESS_CENTRAL_CONFIG.ENABLE_NEW_CATEGORIES]: ANY_VALUE},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+        });
+    });
+
+    describe('updateBusinessCentralSyncTaxRates', () => {
+        it('writes the sync-tax-rates command and optimistically updates the coding config', () => {
+            // Given a policy where syncing tax rates is currently off
+            // When tax-rate syncing is turned on
+            updateBusinessCentralSyncTaxRates(MOCK_POLICY_ID, true, false);
+
+            // Then the command is sent and the nested coding config optimistically reflects the enabled setting so the toggle updates instantly
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_SYNC_TAX_RATES,
+                expect.objectContaining({policyID: MOCK_POLICY_ID, enabled: true}),
+                expect.anything(),
+            );
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                optimisticData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        coding: {[CONST.BUSINESS_CENTRAL_CONFIG.SYNC_TAX_RATES]: true},
+                                        pendingFields: {[CONST.BUSINESS_CENTRAL_CONFIG.SYNC_TAX_RATES]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+        });
+
+        it('rolls the coding config back to the old value on failure', () => {
+            // Given a policy where syncing tax rates is currently off
+            // When tax-rate syncing is turned on
+            updateBusinessCentralSyncTaxRates(MOCK_POLICY_ID, true, false);
+
+            // Then on failure the nested setting rolls back so the toggle reflects that the change was not saved
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                failureData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        coding: {[CONST.BUSINESS_CENTRAL_CONFIG.SYNC_TAX_RATES]: false},
+                                        pendingFields: {[CONST.BUSINESS_CENTRAL_CONFIG.SYNC_TAX_RATES]: null},
+                                        errorFields: {[CONST.BUSINESS_CENTRAL_CONFIG.SYNC_TAX_RATES]: ANY_VALUE},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+        });
+    });
+
+    describe('updateBusinessCentralSyncItems', () => {
+        it('writes the sync-items command and optimistically updates the coding config', () => {
+            // Given a policy where importing items is currently off
+            // When item import is turned on
+            updateBusinessCentralSyncItems(MOCK_POLICY_ID, true, false);
+
+            // Then the command is sent and the nested coding config optimistically reflects the enabled setting so the toggle updates instantly
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_SYNC_ITEMS, expect.objectContaining({policyID: MOCK_POLICY_ID, enabled: true}), expect.anything());
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                optimisticData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        coding: {[CONST.BUSINESS_CENTRAL_CONFIG.SYNC_ITEMS]: true},
+                                        pendingFields: {[CONST.BUSINESS_CENTRAL_CONFIG.SYNC_ITEMS]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+        });
+    });
+
+    describe('updateBusinessCentralFieldMapping', () => {
+        const DIMENSION_CODE = 'DEPARTMENT';
+        const FEEDBACK_KEY = `${CONST.BUSINESS_CENTRAL_CONFIG.FIELD_MAPPING_PREFIX}${DIMENSION_CODE}` as const;
+
+        it('writes the field-mapping command and optimistically updates the nested field mapping', () => {
+            // Given a policy whose DEPARTMENT dimension is currently not imported
+            // When the dimension is switched to import as a tag
+            updateBusinessCentralFieldMapping(MOCK_POLICY_ID, DIMENSION_CODE, CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG, CONST.BUSINESS_CENTRAL_MAPPING_VALUE.NONE);
+
+            // Then the command carries the dimension code and the mapping is optimistically stored under a prefixed pending key so only that row shows a pending indicator
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_FIELD_MAPPING,
+                expect.objectContaining({policyID: MOCK_POLICY_ID, dimensionCode: DIMENSION_CODE, mapping: CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG}),
+                expect.anything(),
+            );
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                optimisticData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        coding: {fieldMappings: {[DIMENSION_CODE]: CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG}},
+                                        pendingFields: {[FEEDBACK_KEY]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+        });
+
+        it('rolls the field mapping back to the old value on failure', () => {
+            // Given a policy whose DEPARTMENT dimension is currently not imported
+            // When the dimension is switched to import as a tag
+            updateBusinessCentralFieldMapping(MOCK_POLICY_ID, DIMENSION_CODE, CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG, CONST.BUSINESS_CENTRAL_MAPPING_VALUE.NONE);
+
+            // Then on failure the mapping rolls back to the old value so the row reflects that the change was not saved
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                failureData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        coding: {fieldMappings: {[DIMENSION_CODE]: CONST.BUSINESS_CENTRAL_MAPPING_VALUE.NONE}},
+                                        pendingFields: {[FEEDBACK_KEY]: null},
+                                        errorFields: {[FEEDBACK_KEY]: ANY_VALUE},
                                     },
                                 },
                             },

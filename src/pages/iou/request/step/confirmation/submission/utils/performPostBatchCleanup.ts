@@ -6,17 +6,19 @@ import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolveChatTarget';
 
 import type CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Transaction from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 type PerformPostBatchCleanupParams = {
     transactions: Transaction[];
     report: OnyxEntry<Report>;
+    reportDrafts: OnyxCollection<Report>;
     action: DeepValueOf<typeof CONST.IOU.ACTION>;
     draftTransactionIDs: string[] | undefined;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
@@ -35,6 +37,7 @@ type PerformPostBatchCleanupParams = {
 function performPostBatchCleanup({
     transactions,
     report,
+    reportDrafts,
     action,
     draftTransactionIDs,
     currentUserPersonalDetails,
@@ -69,6 +72,7 @@ function performPostBatchCleanup({
             report,
             fallbackOptimisticChatReportID,
             action,
+            participantReportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`] ?? {},
         });
 
     // Move-from-track (SUBMIT/CATEGORIZE/SHARE) reuses the tracked transaction's ID — mirror the builder's `existingTransactionID ?? optimisticTransactionID`.

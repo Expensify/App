@@ -2,11 +2,11 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 
-import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import Log from '@libs/Log';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import dismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import {markPendingSearchWrite} from '@libs/pendingSearchWrite';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 import {isScanRequest as isScanRequestTransactionUtils} from '@libs/TransactionUtils';
 
@@ -84,9 +84,8 @@ function useSplitSubmission({
     const {policyRecentlyUsedCategories, policyRecentlyUsedTags, policyRecentlyUsedCurrencies} = recentlyUsedData;
     const splitParticipants = getSelectedParticipantsForSubmission({transaction, iouType, selectedParticipants});
 
-    function createTransaction({shouldHandleNavigation = true}: CreateTransactionParams) {
+    function createTransaction({shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams) {
         const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
-        const shouldDeferSplitForSearch = !shouldHandleNavigation && isSearchTopmostFullScreenRoute();
         // receiptFiles can hold an entry for a transaction no longer being submitted, so the files are matched against what is actually being submitted.
         const scannedItems = transactions.filter((item) => !!receiptFiles[item.transactionID]);
 
@@ -99,7 +98,7 @@ function useSplitSubmission({
             });
             releaseSubmitLock();
             markSubmitExpenseEnd();
-            return;
+            return false;
         }
 
         // Split flows usually navigate to the destination report internally, but dismiss-first
@@ -110,17 +109,13 @@ function useSplitSubmission({
                 // Re-resolving inside the loop would mint a different chat per scan, so resolve once up front.
                 const {optimisticSplitChatReportID, chatReportID} = resolveOptimisticSplitChatReportID(report?.reportID, selectedParticipants, currentUserPersonalDetails.accountID);
 
-                // The action hardcodes shouldDeferForSearch:false, so reserve here for Search. Each scan write flushes the one before it, so only the last one waits.
-                if (shouldDeferSplitForSearch) {
-                    reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-                }
-
                 for (const [index, item] of scannedItems.entries()) {
                     const transactionReceiptFile = receiptFiles[item.transactionID];
                     const itemTrimmedComment = item?.comment?.comment?.trim() ?? '';
 
                     startSplitBill({
                         getCurrencyDecimals,
+                        writeBarrier,
                         participants: selectedParticipants,
                         currentUserLogin,
                         currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -154,12 +149,16 @@ function useSplitSubmission({
                 releaseSubmitLock();
             }
             markSubmitExpenseEnd();
-            return;
+            return false;
         }
 
-        // The action hardcodes shouldDeferForSearch:false, so reserve here when a split write will actually run and land back on Search.
-        if (shouldDeferSplitForSearch && currentUserPersonalDetails.login && !!transaction) {
-            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        // Raise Search's own pending-write signal when a split write will actually run and land back on
+        // Search: resolveWriteBarrier's automatic hasPendingSearchWrite() check then defers this write
+        // for it. Only for submissions from the Search screen itself, not global-create (that path is
+        // covered separately by markPendingWriteForSearchPage).
+        const isDeferredSearchSubmit = !shouldHandleNavigation && isSearchTopmostFullScreenRoute();
+        if (isDeferredSearchSubmit && currentUserPersonalDetails.login && !!transaction) {
+            markPendingSearchWrite();
         }
 
         // IOUs created from a group report will have a reportID param in the route.
@@ -169,6 +168,7 @@ function useSplitSubmission({
                 splitBill({
                     isVendorMatchingBetaEnabled,
                     getCurrencyDecimals,
+                    writeBarrier,
                     participants: splitParticipants,
                     currentUserLogin: currentUserPersonalDetails.login,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -208,7 +208,7 @@ function useSplitSubmission({
                 }
             }
             markSubmitExpenseEnd();
-            return;
+            return false;
         }
 
         // If the split expense is created from the global create menu, we also navigate the user to the group report
@@ -217,6 +217,7 @@ function useSplitSubmission({
             splitBillAndOpenReport({
                 isVendorMatchingBetaEnabled,
                 getCurrencyDecimals,
+                writeBarrier,
                 participants: splitParticipants,
                 currentUserLogin: currentUserPersonalDetails.login,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -257,6 +258,7 @@ function useSplitSubmission({
             }
         }
         markSubmitExpenseEnd();
+        return false;
     }
 
     return {createTransaction};

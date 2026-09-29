@@ -8,6 +8,7 @@ import usePermissions from '@hooks/usePermissions';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 
 import {completeTestDriveTask} from '@libs/actions/Task';
+import type {WriteReadyBarrier} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getExistingTransactionID, getReusableP2PReportID, resolveOptimisticChatReportID} from '@libs/IOUUtils';
@@ -56,6 +57,7 @@ type UseRequestMoneySubmissionParams = TransactionTaxValues & {
     receiptFiles: Record<string, Receipt>;
     canEnterScanFieldsManually: boolean;
     report: OnyxEntry<Report>;
+    reportDrafts: OnyxCollection<Report>;
     policy: OnyxEntry<Policy>;
     policyCategories: OnyxEntry<PolicyCategories>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -95,6 +97,7 @@ function useRequestMoneySubmission({
     receiptFiles,
     canEnterScanFieldsManually,
     report,
+    reportDrafts,
     policy,
     policyCategories,
     personalDetails,
@@ -152,7 +155,7 @@ function useRequestMoneySubmission({
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
     const parentReportAction = useParentReportAction(viewTourTaskReport);
 
-    function requestMoney(shouldHandleNavigation: boolean, gpsPoint?: GpsPoint) {
+    function requestMoney(shouldHandleNavigation: boolean, gpsPoint?: GpsPoint, writeBarrier?: WriteReadyBarrier) {
         if (!transactions.length) {
             return;
         }
@@ -243,6 +246,7 @@ function useRequestMoneySubmission({
             const {iouReport} = requestMoneyIOUActions({
                 isVendorMatchingBetaEnabled,
                 getCurrencyDecimals,
+                writeBarrier,
                 report,
                 existingIOUReport,
                 optimisticChatReportID,
@@ -329,6 +333,7 @@ function useRequestMoneySubmission({
         performPostBatchCleanup({
             transactions,
             report,
+            reportDrafts,
             action,
             draftTransactionIDs,
             currentUserPersonalDetails,
@@ -347,12 +352,12 @@ function useRequestMoneySubmission({
         });
     }
 
-    function createTransaction({locationPermissionGranted = false, shouldHandleNavigation = true}: CreateTransactionParams) {
+    function createTransaction({locationPermissionGranted = false, shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams) {
         const hasAnyReceiptFile = Object.values(receiptFiles).filter((receipt) => !!receipt).length > 0;
         // A zero amount means the expense came through the "Scan" flow, which needs GPS coordinates attached.
         const shouldCaptureGpsPoint = hasAnyReceiptFile && !!transaction && transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted;
 
-        submitWithGpsPoint({shouldCaptureGpsPoint, shouldHandleNavigation, write: requestMoney});
+        return submitWithGpsPoint({shouldCaptureGpsPoint, shouldHandleNavigation, writeBarrier, write: requestMoney});
     }
 
     return {createTransaction};

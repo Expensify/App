@@ -1,5 +1,6 @@
 import useOnyx from '@hooks/useOnyx';
 
+import type {WriteReadyBarrier} from '@libs/API';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import Log from '@libs/Log';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -36,29 +37,31 @@ function getCurrentPositionWithGeolocationSpan(onPosition: (gpsCoords?: {lat: nu
 type SubmitWithGpsPointParams = {
     shouldCaptureGpsPoint: boolean;
     shouldHandleNavigation: boolean;
-    write: (shouldHandleNavigation: boolean, gpsPoint?: GpsPoint) => void;
+    writeBarrier: WriteReadyBarrier | undefined;
+    write: (shouldHandleNavigation: boolean, gpsPoint: GpsPoint | undefined, writeBarrier: WriteReadyBarrier | undefined) => void;
 };
 
-/** Hook that captures a GPS point (from cached user location or a live geolocation read) before running an expense write. */
+/** Hook that captures a GPS point (from cached user location or a live geolocation read) before running an expense write. `submitWithGpsPoint` returns true when the write is handed off to a live geolocation read. */
 function useGpsCapture() {
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
 
-    function submitWithGpsPoint({shouldCaptureGpsPoint, shouldHandleNavigation, write}: SubmitWithGpsPointParams) {
+    function submitWithGpsPoint({shouldCaptureGpsPoint, shouldHandleNavigation, writeBarrier, write}: SubmitWithGpsPointParams): boolean {
         if (!shouldCaptureGpsPoint) {
-            write(shouldHandleNavigation);
+            write(shouldHandleNavigation, undefined, writeBarrier);
             markSubmitExpenseEnd();
-            return;
+            return false;
         }
 
         if (userLocation) {
-            write(shouldHandleNavigation, {lat: userLocation.latitude, long: userLocation.longitude});
+            write(shouldHandleNavigation, {lat: userLocation.latitude, long: userLocation.longitude}, writeBarrier);
             markSubmitExpenseEnd();
-            return;
+            return false;
         }
 
         // No markSubmitExpenseEnd() here - getCurrentPositionWithGeolocationSpan ends the span itself before
         // opening the geolocation one, and the write runs in its callback.
-        getCurrentPositionWithGeolocationSpan((gpsCoords) => write(shouldHandleNavigation, gpsCoords));
+        getCurrentPositionWithGeolocationSpan((gpsCoords) => write(shouldHandleNavigation, gpsCoords, writeBarrier));
+        return true;
     }
 
     return {submitWithGpsPoint};

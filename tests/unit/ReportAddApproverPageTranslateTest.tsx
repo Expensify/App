@@ -92,6 +92,6 @@ describe('ReportAddApproverPage', () => {
         await waitForBatchedUpdates();
 
         // Each candidate approver's name resolves via getDisplayNameForParticipant, which must receive the translate from useLocalize.
-        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: APPROVER_ACCOUNT_ID, translate: mockTranslate}));
+        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: APPROVER_ACCOUNT_ID, hiddenTranslation: 'common.hidden'}));
     });
 });

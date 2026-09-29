@@ -20,7 +20,7 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useRef, useState} from 'react';
@@ -54,6 +54,9 @@ type UseExpenseSubmissionParams = {
     // Report data
     report: OnyxEntry<Report>;
     reportID: string;
+
+    /** Draft reports, needed to resolve chats that only exist in REPORT_DRAFT (e.g. a not-yet-created workspace chat) */
+    reportDrafts: OnyxCollection<Report>;
 
     // Policy data
     policy: OnyxEntry<Policy>;
@@ -102,6 +105,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         canEnterScanFieldsManually,
         report,
         reportID,
+        reportDrafts,
         policy,
         policyCategories,
         isDraftPolicy,
@@ -214,6 +218,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         receiptFiles,
         canEnterScanFieldsManually,
         report,
+        reportDrafts,
         policy,
         policyCategories,
         personalDetails,
@@ -252,6 +257,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         receiptFiles,
         canEnterScanFieldsManually,
         report,
+        reportDrafts,
         policy,
         policyCategories,
         isDraftPolicy,
@@ -314,6 +320,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         transactions,
         receiptFiles,
         report,
+        reportDrafts,
         policy,
         policyCategories,
         personalDetails,
@@ -345,6 +352,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const perDiemSubmission = usePerDiemSubmission({
         transaction,
         report,
+        reportDrafts,
         policy,
         policyCategories,
         personalDetails,
@@ -396,7 +404,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         isSubmittingExpenseToDraftWorkspace,
     });
 
-    const submitByPath: Record<SubmissionPath, (params: CreateTransactionParams) => void> = {
+    const submitByPath: Record<SubmissionPath, (params: CreateTransactionParams) => boolean> = {
         [SUBMISSION_PATH.DISTANCE]: distanceSubmission.createTransaction,
         [SUBMISSION_PATH.SPLIT]: splitSubmission.createTransaction,
         [SUBMISSION_PATH.INVOICE]: invoiceSubmission.createTransaction,
@@ -405,23 +413,23 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         [SUBMISSION_PATH.REQUEST_MONEY]: requestMoneySubmission.createTransaction,
     };
 
-    function createTransaction({locationPermissionGranted = false, shouldHandleNavigation = true}: CreateTransactionParams) {
+    function createTransaction({locationPermissionGranted = false, shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams): boolean {
         if (blockDistanceRequestIfNeeded()) {
-            return;
+            return false;
         }
 
         setIsConfirmed(true);
 
         // Don't let the form be submitted multiple times while the navigator is waiting to take the user to a different page
         if (formHasBeenSubmitted.current) {
-            return;
+            return false;
         }
 
         formHasBeenSubmitted.current = true;
 
         // Telemetry spans (SPAN_SUBMIT_EXPENSE, SPAN_SUBMIT_TO_DESTINATION_VISIBLE)
         // are started by SubmitExpenseOrchestrator before calling createTransaction.
-        submitByPath[submissionPath]({locationPermissionGranted, shouldHandleNavigation});
+        return submitByPath[submissionPath]({locationPermissionGranted, shouldHandleNavigation, writeBarrier});
     }
 
     return {createTransaction, sendMoney, isConfirmed, setIsConfirmed, formHasBeenSubmitted};

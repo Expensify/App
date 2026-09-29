@@ -70,13 +70,14 @@ function useInvoiceSubmission({
     const [senderWorkspacePolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${senderWorkspaceID}`);
     const existingInvoiceReport = useParticipantsInvoiceReport(receiverAccountID, receiverType, senderWorkspaceID);
 
-    function createTransaction({shouldHandleNavigation = true}: CreateTransactionParams) {
+    function createTransaction({shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams) {
         const currentTransactionReceiptFile = transaction?.transactionID ? receiptFiles[transaction.transactionID] : undefined;
         const invoiceChatReport = !isEmptyObject(report) && report?.reportID ? report : existingInvoiceReport;
         const invoiceChatReportID = invoiceChatReport ? undefined : reportID;
 
         sendInvoice({
             getCurrencyDecimals,
+            writeBarrier,
             currentUserAccountID: currentUserPersonalDetails.accountID,
             transaction,
             policyRecentlyUsedCurrencies,
@@ -108,6 +109,7 @@ function useInvoiceSubmission({
             cleanupAfterExpenseCreate({draftTransactionIDs});
         }
         markSubmitExpenseEnd();
+        return false;
     }
 
     return {createTransaction};

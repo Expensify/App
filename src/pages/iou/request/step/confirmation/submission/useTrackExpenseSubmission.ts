@@ -4,8 +4,10 @@ import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
+import type {WriteReadyBarrier} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
@@ -46,6 +48,7 @@ type UseTrackExpenseSubmissionParams = TransactionTaxValues & {
     receiptFiles: Record<string, Receipt>;
     canEnterScanFieldsManually: boolean;
     report: OnyxEntry<Report>;
+    reportDrafts: OnyxCollection<Report>;
     policy: OnyxEntry<Policy>;
     policyCategories: OnyxEntry<PolicyCategories>;
     isDraftPolicy: boolean;
@@ -87,6 +90,7 @@ function useTrackExpenseSubmission({
     receiptFiles,
     canEnterScanFieldsManually,
     report,
+    reportDrafts,
     policy,
     policyCategories,
     isDraftPolicy,
@@ -126,13 +130,15 @@ function useTrackExpenseSubmission({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const activePolicy = useActivePolicy();
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
 
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const currentChatReport = isMoneyRequestReport
+        ? getReportOrDraftReport(report?.chatReportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report?.chatReportID}`] ?? {})
+        : report;
 
     // A self-DM destination passes `undefined` as the chat to trackExpense, which then resolves the chat to the self-DM — a real report that is never a draft
     const destinationChatReportID = isSelfDMDestination ? undefined : currentChatReport?.reportID;
@@ -140,7 +146,7 @@ function useTrackExpenseSubmission({
 
     const {gpsDraftDetails, recentWaypoints, odometerDraft, transactionDistance, isModifiedGPSDistanceRequest} = distanceDraftData;
 
-    function trackExpense(shouldHandleNavigation: boolean, gpsPoint?: GpsPoint) {
+    function trackExpense(shouldHandleNavigation: boolean, gpsPoint?: GpsPoint, writeBarrier?: WriteReadyBarrier) {
         if (!transactions.length) {
             return;
         }
@@ -195,6 +201,7 @@ function useTrackExpenseSubmission({
 
             trackExpenseIOUActions({
                 getCurrencyDecimals,
+                writeBarrier,
                 report: trackReport,
                 isDraftPolicy,
                 isDraftChatReport: !!isDraftChatReport,
@@ -257,7 +264,6 @@ function useTrackExpenseSubmission({
                 conciergeChat,
                 quickAction,
                 recentWaypoints,
-                betas,
                 draftTransactionIDs,
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email, currentUserPersonalDetails.displayName, lastWorkspaceNumber, translate),
@@ -266,11 +272,13 @@ function useTrackExpenseSubmission({
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                 delegateAccountID,
                 rules,
+                personalDetailsByLogins: employeePersonalDetails,
             });
         }
         performPostBatchCleanup({
             transactions,
             report,
+            reportDrafts,
             action,
             draftTransactionIDs,
             currentUserPersonalDetails,
@@ -290,7 +298,7 @@ function useTrackExpenseSubmission({
         });
     }
 
-    function createTransaction({locationPermissionGranted = false, shouldHandleNavigation = true}: CreateTransactionParams) {
+    function createTransaction({locationPermissionGranted = false, shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams) {
         const hasAnyReceiptFile = Object.values(receiptFiles).filter((receipt) => !!receipt).length > 0;
 
         // A zero amount means the expense came through the "Scan" flow, which needs GPS coordinates attached.
@@ -303,7 +311,7 @@ function useTrackExpenseSubmission({
             !isSubmittingExpenseToDraftWorkspace &&
             locationPermissionGranted;
 
-        submitWithGpsPoint({shouldCaptureGpsPoint, shouldHandleNavigation, write: trackExpense});
+        return submitWithGpsPoint({shouldCaptureGpsPoint, shouldHandleNavigation, writeBarrier, write: trackExpense});
     }
 
     return {createTransaction};

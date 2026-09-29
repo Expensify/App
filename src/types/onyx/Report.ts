@@ -218,6 +218,10 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         errors?: OnyxCommon.Errors;
 
         isWaitingOnBankAccount?: boolean;
+
+        /** Whether Auth still allows the bank reimbursement to be cancelled, returned by OpenReport */
+        canCancelReimbursement?: boolean;
+
         isCancelledIOU?: boolean;
         hasReportBeenRetracted?: boolean;
         hasReportBeenReopened?: boolean;
