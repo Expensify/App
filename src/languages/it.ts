@@ -3374,11 +3374,11 @@ ${amount} per ${merchant} - ${date}`,
         whereYouWork: 'Dove lavori?',
         errorSelection: 'Seleziona un’opzione per procedere',
         purpose: {
-            title: 'Che cosa vuoi fare oggi?',
-            errorContinue: 'Premi continua per completare la configurazione',
+            title: 'Cosa vuoi fare oggi?',
+            errorContinue: 'Premi Continua per completare la configurazione',
             errorBackButton: 'Completa le domande di configurazione per iniziare a usare l’app',
             [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Unisciti allo spazio di lavoro della mia azienda',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Invia le note spese al mio datore di lavoro',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Invia le spese al mio datore di lavoro',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestisci le spese del mio team',
             [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Tieni traccia delle spese per la mia attività',
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organizza le mie spese personali',
@@ -3440,7 +3440,7 @@ ${amount} per ${merchant} - ${date}`,
             subtitle: (workEmail: string | undefined) =>
                 `Non è stato possibile aggiungere ${workEmail}. Riprova più tardi in Impostazioni oppure chatta con Concierge per ricevere assistenza.`,
             validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
-                `Non è stato possibile aggiungere ${workEmail}. Per unire questi account, accedi come ${workEmail} e vai su Account > Sicurezza > Unisci account per completare la procedura.`,
+                `Non siamo riusciti ad aggiungere ${workEmail}. Per unire questi account, accedi come ${workEmail} e vai su Account > Sicurezza > Unisci account per completare il processo.`,
             workAccountClosedSubtitle:
                 'L’account di lavoro associato a questa email è chiuso. Contatta l’amministratore della tua azienda per riattivarlo oppure registrati con un’altra email.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} è un accesso controllato dal dominio per un account Expensify esistente.`,
@@ -3683,18 +3683,18 @@ ${amount} per ${merchant} - ${date}`,
                 title: 'Aggiungi la tua email di lavoro',
                 description: ({workEmailLink = ''}) =>
                     Str.dedent(`
-                        1. Apri [Aggiungi email di lavoro](${workEmailLink}).
+                        1. Apri [Aggiungi email lavorativa](${workEmailLink}).
                         2. Inserisci l’indirizzo email aziendale.
                         3. Inserisci il codice che ti abbiamo inviato via email.
-                        4. Scegli uno spazio di lavoro a cui unirti oppure fai clic su *Chiedi di unirti* per inviare una richiesta al proprietario dello spazio di lavoro.
+                        4. Scegli uno spazio di lavoro a cui unirti oppure clicca su *Chiedi di unirti* per inviare una richiesta al proprietario dello spazio di lavoro.
                     `),
             },
             validateEmailTask: {
-                title: 'Verifica la tua email',
+                title: 'Conferma la tua email',
                 description: ({validateEmailLink = '', workEmail = ''}) =>
                     Str.dedent(`
                         1. Apri [Convalida il tuo account](${validateEmailLink}).
-                        2. Inserisci il codice che abbiamo inviato a ${workEmail}.
+                        2. Inserisci il codice che ti abbiamo inviato a ${workEmail}.
                         3. Scegli uno spazio di lavoro a cui unirti oppure clicca su *Chiedi di unirti* per inviare una richiesta al proprietario dello spazio di lavoro.
                     `),
             },
@@ -3703,8 +3703,8 @@ ${amount} per ${merchant} - ${date}`,
                 description: ({joinWorkspaceLink = ''}) =>
                     Str.dedent(`
                         1. Apri [Unisciti a uno spazio di lavoro](${joinWorkspaceLink}).
-                        2. Trova il tuo team nell'elenco. Per ognuno vengono mostrati il proprietario e quante persone ne fanno parte, dal più grande al più piccolo. Clicca su *Mostra altro* se non vedi il tuo.
-                        3. Clicca su *Unisciti ora* oppure su *Chiedi di unirti* se è necessaria l’approvazione di un amministratore.
+                        2. Trova il tuo team nell'elenco. Ogni voce mostra il proprietario e quante persone ne fanno parte, dal più grande al più piccolo. Fai clic su *Mostra altro* se non vedi il tuo.
+                        3. Fai clic su *Unisciti ora* o su *Chiedi di unirti* se è necessaria l'approvazione di un amministratore.
                     `),
             },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
@@ -3732,10 +3732,11 @@ ${amount} per ${merchant} - ${date}`,
             onboardingJoinWorkspaceAddWorkEmailMessage:
                 'Dato che vuoi unirti allo spazio di lavoro della tua azienda, non ne ho creato uno per te. Aggiungi la tua email di lavoro e controllerò a quali spazi di lavoro della tua azienda puoi unirti.',
             onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
-                `Dato che vuoi unirti allo spazio di lavoro della tua azienda, non ne ho creato uno per te. Verifica la tua email e controllerò a quali spazi di lavoro su ${companyDomain} puoi unirti.`,
+                `Dato che stai cercando di unirti allo spazio di lavoro della tua azienda, non ne ho creato uno per te. Verifica la tua email e controllerò a quali spazi di lavoro su ${companyDomain} puoi unirti.`,
             onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
                 `Dato che vuoi unirti allo spazio di lavoro della tua azienda, non ne ho creato uno per te. Il tuo team su ${companyDomain} è già su Expensify. [Dai un’occhiata agli spazi di lavoro a cui puoi unirti.](${joinWorkspaceLink})`,
-            onboardingJoinWorkspaceEmptyMessage: 'Non sembra che la tua azienda abbia workspace a cui puoi unirti. Contatta l’amministratore e chiedi di invitarti al suo workspace.',
+            onboardingJoinWorkspaceEmptyMessage:
+                'Sembra che la tua azienda non abbia alcuno spazio di lavoro a cui puoi unirti. Contatta il tuo amministratore e chiedi che ti inviti al suo spazio di lavoro.',
         },
         workspace: {
             title: 'Resta organizzato con uno spazio di lavoro',

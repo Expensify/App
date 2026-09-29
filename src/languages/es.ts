@@ -3291,14 +3291,14 @@ ${amount} para ${merchant} - ${date}`,
         errorSelection: 'Selecciona una opción para continuar',
         purpose: {
             title: '¿Qué quieres hacer hoy?',
-            errorContinue: 'Pulsa continuar para configurarlo',
-            errorBackButton: 'Por favor, termina las preguntas de configuración para empezar a usar la aplicación',
+            errorContinue: 'Pulsa continuar para configurarte',
+            errorBackButton: 'Por favor, completa las preguntas de configuración para empezar a usar la aplicación',
             [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Únete al espacio de trabajo de mi empresa',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Enviar gastos a mi empresa',
-            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestiona los gastos de mi equipo',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Controla los gastos de mi negocio',
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Controla los gastos de mi empresa',
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organiza mis gastos personales',
-            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Otra cosa',
+            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Algo más',
         },
         personalTrackGoal: {
             title: '¿Qué estás buscando organizar?',
@@ -3606,19 +3606,19 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Añade tu correo electrónico del trabajo',
                 description: ({workEmailLink = ''}) =>
                     Str.dedent(`
-                        1. Abre [Añadir correo de trabajo](${workEmailLink}).
-                        2. Introduce la dirección de correo electrónico de tu empresa.
-                        3. Introduce el código que te enviamos por correo electrónico.
+                        1. Abre [Añadir correo del trabajo](${workEmailLink}).
+                        2. Introduce el correo electrónico de tu empresa.
+                        3. Introduce el código que te enviamos por correo.
                         4. Elige un espacio de trabajo al que unirte o haz clic en *Pedir unirse* para enviar una solicitud a la persona propietaria del espacio de trabajo.
                     `),
             },
             validateEmailTask: {
-                title: 'Valida tu correo electrónico',
+                title: 'Verifica tu correo electrónico',
                 description: ({validateEmailLink = '', workEmail = ''}) =>
                     Str.dedent(`
                         1. Abre [Valida tu cuenta](${validateEmailLink}).
                         2. Introduce el código que enviamos a ${workEmail}.
-                        3. Elige un espacio de trabajo al que unirte o haz clic en *Solicitar unirse* para enviar una solicitud a la persona propietaria del espacio de trabajo.
+                        3. Elige un espacio de trabajo al que unirte o haz clic en *Pedir unirse* para enviar una solicitud a la persona propietaria del espacio de trabajo.
                     `),
             },
             joinWorkspaceTask: {
@@ -3626,8 +3626,8 @@ ${amount} para ${merchant} - ${date}`,
                 description: ({joinWorkspaceLink = ''}) =>
                     Str.dedent(`
                         1. Abre [Unirte a un espacio de trabajo](${joinWorkspaceLink}).
-                        2. Busca a tu equipo en la lista. En cada uno se muestra su propietario y cuántas personas hay en él, empezando por los más grandes. Haz clic en *Mostrar más* si no ves el tuyo.
-                        3. Haz clic en *Unirte ahora* o en *Solicitar unirse* si necesita aprobación de un administrador.
+                        2. Busca a tu equipo en la lista. Cada uno muestra su propietario y cuántas personas hay en él, empezando por el más grande. Haz clic en *Mostrar más* si no ves el tuyo.
+                        3. Haz clic en *Unirse ahora*, o en *Pedir unirse* si necesita aprobación de un administrador.
                     `),
             },
         },
@@ -3653,7 +3653,7 @@ ${amount} para ${merchant} - ${date}`,
             onboardingAdminMessage: 'Aprende a gestionar el espacio de tu equipo como administrador y enviar tus propios gastos.',
             onboardingTestDriveReceiverMessage: '*¡Tienes 3 meses gratis! Empieza abajo.*',
             onboardingJoinWorkspaceAddWorkEmailMessage:
-                'Como estás buscando unirte al espacio de trabajo de tu empresa, no he creado uno para ti. Añade tu correo electrónico del trabajo y comprobaré a qué espacios de trabajo de tu empresa puedes unirte.',
+                'Como quieres unirte al espacio de trabajo de tu empresa, no he creado uno para ti. Añade tu correo electrónico del trabajo y comprobaré a qué espacios de trabajo de tu empresa puedes unirte.',
             onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
                 `Como quieres unirte al espacio de trabajo de tu empresa, no he creado uno para ti. Verifica tu correo electrónico y comprobaré a qué espacios de trabajo en ${companyDomain} puedes unirte.`,
             onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>

@@ -3261,12 +3261,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         errorSelection: '选择一个选项以继续',
         purpose: {
             title: '你今天想做什么？',
-            errorContinue: '请按“继续”完成设置',
+            errorContinue: '请点击“继续”完成设置',
             errorBackButton: '请完成设置问题以开始使用此应用程序',
             [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: '加入我的公司工作区',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: '向我的雇主提交报销费用',
-            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: '管理我的团队报销',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: '为我的公司记录报销费用',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: '向我的雇主提交报销',
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: '管理我团队的报销',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: '跟踪我的业务支出',
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: '整理我的个人支出',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: '其他原因',
         },
@@ -3322,7 +3322,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             title: '无法添加工作邮箱',
             subtitle: (workEmail: string | undefined) => `我们无法添加 ${workEmail}。请稍后在设置中重试，或与 Concierge 聊天以获取指导。`,
             validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
-                `我们无法添加 ${workEmail}。若要合并这些账户，请以 ${workEmail} 身份登录，然后前往“账户 > 安全 > 合并账户”完成此流程。`,
+                `我们无法添加 ${workEmail}。要合并这些账户，请以 ${workEmail} 登录，然后前往“账户”>“安全”>“合并账户”以完成此流程。`,
             workAccountClosedSubtitle: '与此邮箱关联的工作账户已被关闭。请联系您公司的管理员以重新激活该账户，或使用其他邮箱注册。',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} 是现有 Expensify 账户的域控制登录。`,
         },
@@ -3564,28 +3564,28 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 title: '添加你的工作邮箱',
                 description: ({workEmailLink = ''}) =>
                     Str.dedent(`
-                        1. 打开［添加工作邮箱］(${workEmailLink})。
+                        1. 打开 [添加工作邮箱](${workEmailLink})。
                         2. 输入你的公司邮箱地址。
                         3. 输入我们发给你的验证码。
-                        4. 选择要加入的工作区，或点击 *请求加入* 以向该工作区所有者发送请求。
+                        4. 选择要加入的工作区，或点击 *请求加入* 向工作区所有者发送申请。
                     `),
             },
             validateEmailTask: {
-                title: '验证你的邮箱',
+                title: '验证您的邮箱',
                 description: ({validateEmailLink = '', workEmail = ''}) =>
                     Str.dedent(`
-                        1. 打开[验证您的账户](${validateEmailLink})。
+                        1. 打开 [验证你的账户](${validateEmailLink})。
                         2. 输入我们发送到 ${workEmail} 的验证码。
-                        3. 选择要加入的工作区，或点击 *请求加入* 向工作区所有者发送请求。
+                        3. 选择一个要加入的工作空间，或点击 *申请加入* 向工作空间所有者发送请求。
                     `),
             },
             joinWorkspaceTask: {
                 title: '加入你们公司的工作区',
                 description: ({joinWorkspaceLink = ''}) =>
                     Str.dedent(`
-                        1. 打开［加入工作区］(${joinWorkspaceLink})。
-                        2. 在列表中找到你的团队。每个团队都会显示其所有者和成员人数，按人数从多到少排序。如果没有看到你的团队，点击 *显示更多*。
-                        3. 点击 *立即加入*，如果需要管理员审批则点击 *申请加入*。
+                        1. 打开「加入工作区」(${joinWorkspaceLink})。
+                        2. 在列表中找到你的团队。每个团队都会显示其所有者和成员数量，按人数从多到少排序。如果没有看到你的团队，点击 *显示更多*。
+                        3. 点击 *立即加入*，如果需要管理员批准则点击 *请求加入*。
                     `),
             },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
@@ -3610,12 +3610,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             onboardingChatSplitMessage: '和朋友分摊账单就像发条消息一样简单。操作方法如下。',
             onboardingAdminMessage: '了解如何以管理员身份管理您团队的工作区，并提交您自己的报销。',
             onboardingTestDriveReceiverMessage: '*您已获得 3 个月的免费使用！请从下面开始。*',
-            onboardingJoinWorkspaceAddWorkEmailMessage: '由于你是想加入你们公司的工作区，我没有为你创建新的工作区。请添加你的工作邮箱，我会检查你在公司中可以加入哪些工作区。',
+            onboardingJoinWorkspaceAddWorkEmailMessage: '由于你是想加入公司工作区，所以我没有为你创建新的工作区。请添加你的工作邮箱，我会检查你可以加入公司中的哪些工作区。',
             onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
-                `由于你想加入你公司的工作区，我没有为你创建新的工作区。请先验证你的邮箱，我会检查你可以加入哪些在 ${companyDomain} 下的工作区。`,
+                `由于你是想加入你所在公司的工作区，所以我没有为你创建新的工作区。请先验证你的邮箱，我会检查你可以加入 ${companyDomain} 下的哪些工作区。`,
             onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
-                `由于你是想加入你们公司的工作区，我没有为你创建新的工作区。你在 ${companyDomain} 的团队已经在使用 Expensify。 [看看你可以加入的工作区。](${joinWorkspaceLink})`,
-            onboardingJoinWorkspaceEmptyMessage: '看起来你的公司没有任何可加入的工作空间。请联系管理员，请他们邀请你加入他们的工作空间。',
+                `由于你是想加入公司工作区，我没有为你创建新的工作区。你在 ${companyDomain} 的团队已经在使用 Expensify。 [看看你可以加入哪些工作区](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage: '看起来你的公司还没有任何可加入的工作区。请联系你的管理员，让他们邀请你加入他们的工作区。',
         },
         workspace: {
             title: '使用工作区保持井井有条',

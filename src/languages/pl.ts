@@ -3410,12 +3410,12 @@ ${amount} dla ${merchant} - ${date}`,
         purpose: {
             title: 'Co chcesz dzisiaj zrobić?',
             errorContinue: 'Naciśnij „Dalej”, żeby dokończyć konfigurację',
-            errorBackButton: 'Dokończ pytania konfiguracyjne, aby zacząć korzystać z aplikacji',
+            errorBackButton: 'Dokończ pytania konfiguracyjne, żeby zacząć korzystać z aplikacji',
             [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Dołącz do przestrzeni roboczej mojej firmy',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Prześlij wydatki do mojego pracodawcy',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Przesyłaj wydatki do mojego pracodawcy',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Zarządzaj wydatkami mojego zespołu',
             [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Śledź wydatki mojej firmy',
-            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Porządkuj moje osobiste wydatki',
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Porządkuj moje wydatki osobiste',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Coś innego',
         },
         personalTrackGoal: {
@@ -3473,7 +3473,7 @@ ${amount} dla ${merchant} - ${date}`,
             title: 'Nie udało się dodać służbowego adresu e-mail',
             subtitle: (workEmail: string | undefined) => `Nie udało się dodać ${workEmail}. Spróbuj ponownie później w Ustawieniach lub porozmawiaj z Concierge, aby uzyskać pomoc.`,
             validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
-                `Nie udało się dodać ${workEmail}. Żeby scalić te konta, zaloguj się jako ${workEmail} i przejdź do Konto > Zabezpieczenia > Scal konta, aby dokończyć proces.`,
+                `Nie udało się dodać ${workEmail}. Aby połączyć te konta, zaloguj się jako ${workEmail} i przejdź do Konto > Bezpieczeństwo > Połącz konta, aby dokończyć proces.`,
             workAccountClosedSubtitle:
                 'Konto służbowe powiązane z tym adresem e‑mail jest zamknięte. Skontaktuj się z administratorem w swojej firmie, żeby je ponownie aktywować, albo zarejestruj się przy użyciu innego adresu e‑mail.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} to login kontrolowany przez domenę dla istniejącego konta Expensify.`,
@@ -3713,20 +3713,20 @@ ${amount} dla ${merchant} - ${date}`,
                 `),
             },
             addWorkEmailTask: {
-                title: 'Dodaj służbowy adres e-mail',
+                title: 'Dodaj swój służbowy e-mail',
                 description: ({workEmailLink = ''}) =>
                     Str.dedent(`
                         1. Otwórz [Dodaj służbowy e‑mail](${workEmailLink}).
-                        2. Wpisz swój firmowy adres e‑mail.
-                        3. Wpisz kod, który do ciebie wyślemy.
+                        2. Wpisz swój służbowy adres e‑mail.
+                        3. Wpisz kod, który ci wysłaliśmy.
                         4. Wybierz przestrzeń roboczą, do której chcesz dołączyć, albo kliknij *Poproś o dołączenie*, żeby wysłać prośbę do właściciela przestrzeni roboczej.
                     `),
             },
             validateEmailTask: {
-                title: 'Zweryfikuj swój e-mail',
+                title: 'Zwierzyść swój adres e-mail',
                 description: ({validateEmailLink = '', workEmail = ''}) =>
                     Str.dedent(`
-                        1. Otwórz [Zatwierdź swoje konto](${validateEmailLink}).
+                        1. Otwórz [Zweryfikuj swoje konto](${validateEmailLink}).
                         2. Wpisz kod, który wysłaliśmy na adres ${workEmail}.
                         3. Wybierz przestrzeń roboczą, do której chcesz dołączyć, albo kliknij *Poproś o dołączenie*, żeby wysłać prośbę do właściciela przestrzeni roboczej.
                     `),
@@ -3735,9 +3735,9 @@ ${amount} dla ${merchant} - ${date}`,
                 title: 'Dołącz do przestrzeni roboczej swojej firmy',
                 description: ({joinWorkspaceLink = ''}) =>
                     Str.dedent(`
-                        1. Otwórz [Dołącz do workspace](${joinWorkspaceLink}).
-                        2. Znajdź swój zespół na liście. Przy każdym widać właściciela i liczbę osób, posortowane od największych. Kliknij *Pokaż więcej*, jeśli nie widzisz swojego.
-                        3. Kliknij *Dołącz teraz* albo *Poproś o dołączenie*, jeśli wymagane jest zatwierdzenie przez administratora.
+                        1. Otwórz [Dołącz do przestrzeni roboczej](${joinWorkspaceLink}).
+                        2. Znajdź swój zespół na liście. Przy każdym widać właściciela i liczbę osób, posortowane od największej. Kliknij *Pokaż więcej*, jeśli nie widzisz swojego.
+                        3. Kliknij *Dołącz teraz* albo *Poproś o dołączenie*, jeśli wymaga to zatwierdzenia przez administratora.
                     `),
             },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
@@ -3763,13 +3763,13 @@ ${amount} dla ${merchant} - ${date}`,
             onboardingAdminMessage: 'Dowiedz się, jak zarządzać przestrzenią roboczą swojego zespołu jako administrator i rozliczać własne wydatki.',
             onboardingTestDriveReceiverMessage: '*Masz 3 miesiące za darmo! Zacznij poniżej.*',
             onboardingJoinWorkspaceAddWorkEmailMessage:
-                'Ponieważ chcesz dołączyć do firmowego workspace’u, nie utworzyłem żadnego dla ciebie. Dodaj swój służbowy e‑mail, a sprawdzę, do których firmowych workspace’ów możesz dołączyć.',
+                'Ponieważ chcesz dołączyć do firmowego miejsca pracy, nie utworzyłem nowego dla ciebie. Podaj swój służbowy adres e‑mail, a sprawdzę, do których miejsc pracy w twojej firmie możesz dołączyć.',
             onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
-                `Ponieważ chcesz dołączyć do firmowego workspace, nie utworzyłem dla ciebie nowego. Zweryfikuj swój e‑mail, a ja sprawdzę, do których workspace’ów w domenie ${companyDomain} możesz dołączyć.`,
+                `Ponieważ chcesz dołączyć do przestrzeni roboczej swojej firmy, nie utworzyłam żadnej dla ciebie. Zweryfikuj swój e‑mail, a sprawdzę, do których przestrzeni roboczych w domenie ${companyDomain} możesz dołączyć.`,
             onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
-                `Ponieważ chcesz dołączyć do firmowej przestrzeni roboczej, nie utworzyłem nowej dla ciebie. Twój zespół w ${companyDomain} już korzysta z Expensify. [Zobacz przestrzenie robocze, do których możesz dołączyć.](${joinWorkspaceLink})`,
+                `Ponieważ chcesz dołączyć do przestrzeni roboczej swojej firmy, nie utworzyłem nowej dla ciebie. Twój zespół w ${companyDomain} jest już w Expensify. [Zobacz przestrzenie robocze, do których możesz dołączyć.](${joinWorkspaceLink})`,
             onboardingJoinWorkspaceEmptyMessage:
-                'Wygląda na to, że w twojej firmie nie ma żadnych przestrzeni roboczych, do których możesz dołączyć. Skontaktuj się ze swoim administratorem i poproś go o zaproszenie cię do swojej przestrzeni roboczej.',
+                'Wygląda na to, że twoja firma nie ma żadnych przestrzeni roboczych, do których można dołączyć. Skontaktuj się ze swoim administratorem i poproś go o zaproszenie cię do jego przestrzeni roboczej.',
         },
         workspace: {
             title: 'Zachowaj porządek dzięki przestrzeni roboczej',
