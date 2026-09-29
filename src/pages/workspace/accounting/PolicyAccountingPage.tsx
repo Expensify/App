@@ -744,7 +744,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         }
 
         let qboTokenExpiryHint;
-        if (qboTokenExpiryDate) {
+        if (qboTokenExpiryDate && canWriteAccounting) {
             const formattedExpiryDate = DateUtils.formatWithUTCTimeZone(qboTokenExpiryDate.toISOString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale);
             qboTokenExpiryHint = (
                 <>

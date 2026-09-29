@@ -29,6 +29,7 @@ const POLICY_ID = 'policy-1';
 const OVERFLOW_MENU_ITEM_PREFIX = 'overflow:';
 
 const mockStartIntegrationFlow = jest.fn();
+let mockCanWriteAccounting = true;
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation = jest.requireActual<typeof ReactNavigation>('@react-navigation/native');
@@ -96,7 +97,7 @@ jest.mock('@components/ThreeDotsMenu', () => {
 
 jest.mock('@hooks/usePolicyFeatureWriteAccess', () => ({
     __esModule: true,
-    default: () => ({canWrite: true, showReadOnlyModal: () => {}}),
+    default: () => ({canWrite: mockCanWriteAccounting, showReadOnlyModal: () => {}}),
 }));
 
 // The real `withPolicyConnections` HOC reads `policy` from Onyx and strips it from the component's public props. It is
@@ -155,6 +156,7 @@ describe('PolicyAccountingPage QBO refresh token expiry warning', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockCanWriteAccounting = true;
     });
 
     it('should warn with the expiry date and offer to reconnect when the token expires within the warning window', async () => {
@@ -206,5 +208,16 @@ describe('PolicyAccountingPage QBO refresh token expiry warning', () => {
         // Then the standard authentication error is shown instead of a second, redundant expiry warning
         expect(screen.queryByText('Your QuickBooks Online connection', {exact: false})).not.toBeOnTheScreen();
         expect(screen.getByText('due to an authentication error', {exact: false})).toBeOnTheScreen();
+    });
+
+    it('should not warn a member who can only read the accounting settings', async () => {
+        // Given a QBO connection whose refresh token expires in a few days, viewed by a member without write access to accounting
+        mockCanWriteAccounting = false;
+        await renderPage(buildQBOPolicy(addDays(new Date(), 3)));
+
+        // Then no expiry warning or Reconnect link is shown, since reconnecting is a write action this member cannot take
+        expect(screen.queryByText('Your QuickBooks Online connection', {exact: false})).not.toBeOnTheScreen();
+        expect(screen.queryByRole('link', {name: 'Reconnect'})).not.toBeOnTheScreen();
+        expect(screen.queryByText(`${OVERFLOW_MENU_ITEM_PREFIX}Reconnect`)).not.toBeOnTheScreen();
     });
 });
