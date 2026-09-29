@@ -228,10 +228,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
             includeSafeAreaPaddingBottom
             testID="ChronosScheduleOOOPage"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('chronos.scheduleOOOTitle')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('chronos.scheduleOOOTitle')} />
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.CHRONOS_SCHEDULE_OOO_FORM}

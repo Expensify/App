@@ -134,10 +134,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                 testID="NewChatSelectorPage"
                 focusTrapSettings={{active: false}}
             >
-                <HeaderWithBackButtonAndTitle
-                    title={translate('iou.addExistingExpense')}
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('iou.addExistingExpense')} />
                 <UnreportedExpensesSkeleton />
             </ScreenWrapper>
         );
@@ -152,10 +149,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                 testID="NewChatSelectorPage"
                 focusTrapSettings={{active: false}}
             >
-                <HeaderWithBackButtonAndTitle
-                    title={translate('iou.addExistingExpense')}
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('iou.addExistingExpense')} />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <EmptyStateComponent
                         minModalHeight={isInLandscapeMode ? 0 : undefined}
@@ -200,10 +194,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
             testID="NewChatSelectorPage"
             focusTrapSettings={{active: false}}
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('iou.addExistingExpense')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('iou.addExistingExpense')} />
             <View style={styles.flex1}>
                 <AddExistingExpenseTable
                     data={unreportedExpenses}

@@ -183,10 +183,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
             shouldEnableMaxHeight
             testID="RejectExpenseReportPage"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('iou.rejectReport.title')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('iou.rejectReport.title')} />
             <FormProvider
                 formID={ONYXKEYS.FORMS.REPORT_REJECT_FORM}
                 submitButtonText={translate('iou.rejectReport.title')}

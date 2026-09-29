@@ -112,10 +112,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
             {({didScreenTransitionEnd}) => (
                 <>
                     <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
-                        <HeaderWithBackButtonAndTitle
-                            title={translate('workspace.common.setAsDefault')}
-                            onBackButtonPress={Navigation.goBack}
-                        />
+                        <HeaderWithBackButtonAndTitle title={translate('workspace.common.setAsDefault')} />
                     </CollapsibleHeaderOnKeyboard>
                     {shouldShowLoadingIndicator ? (
                         <View style={[styles.flex1, styles.fullScreenLoading]}>
