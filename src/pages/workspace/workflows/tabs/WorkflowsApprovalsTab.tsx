@@ -1,6 +1,7 @@
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -27,7 +28,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearPolicyErrorField, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import {clearApprovalWorkflow, selectApprovalWorkflowForEdit, setApprovalWorkflow} from '@libs/actions/Workflow';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import {getConnectedHRProvider, getHRFinalApprover, isAnyHRConnected, isAnyHRReadOnlyWorkflowMode, isHRAdvancedMode} from '@libs/merge/HRUtils';
+import {getHRFinalApprover, isHRAdvancedMode} from '@libs/merge/HRUtils';
+import {isRecruitingAdvancedMode} from '@libs/merge/RecruitingUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
@@ -38,8 +40,9 @@ import {
     convertPolicyEmployeesToApprovalWorkflows,
     filterRulesForPolicy,
     getApprovalWorkflowRulesForPolicy,
-    getOpenApprovalWorkflowEdit,
+    getApprovalWorkflowSource,
     INITIAL_APPROVAL_WORKFLOW,
+    isApprovalWorkflowLockedByIntegration,
 } from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
@@ -164,29 +167,34 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
         });
     }, [isBetaEnabledOrUnknown, policy, transactionViolations, currentUserAccountID, currentUserEmail, personalDetails, isTrackIntentUser, rulesCollection]);
 
-    const navigateToHRSettings = useCallback(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID));
-    }, [policyID]);
+    const approvalWorkflowSource = getApprovalWorkflowSource(policy, policyID);
+    const isWorkflowFromIntegration = !!approvalWorkflowSource;
+    const workflowSourceName = approvalWorkflowSource?.providerName ?? '';
+    const workflowSourceSettingsRoute = approvalWorkflowSource?.settingsRoute;
 
-    const connectedHRProvider = getConnectedHRProvider(policy);
-    const hrProviderName = connectedHRProvider?.displayName ?? '';
+    const navigateToWorkflowSourceSettings = useCallback(() => {
+        if (!workflowSourceSettingsRoute) {
+            return;
+        }
+        Navigation.navigate(workflowSourceSettingsRoute);
+    }, [workflowSourceSettingsRoute]);
 
-    const promptConfigureApprovalsInHR = useCallback(async () => {
+    const promptConfigureApprovalsInIntegration = useCallback(async () => {
         const {action} = await showConfirmModal({
             title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
-            prompt: translate('workflowsPage.hrApprovalWorkflowLockedPrompt', {
-                provider: hrProviderName,
+            prompt: translate('workflowsPage.integrationApprovalWorkflowLockedPrompt', {
+                provider: workflowSourceName,
             }),
-            confirmText: translate('workflowsPage.goToHRSettings', {
-                provider: hrProviderName,
+            confirmText: translate('workflowsPage.goToProviderSettings', {
+                provider: workflowSourceName,
             }),
             cancelText: translate('common.cancel'),
         });
         if (action !== ModalActions.CONFIRM) {
             return;
         }
-        navigateToHRSettings();
-    }, [navigateToHRSettings, hrProviderName, showConfirmModal, translate]);
+        navigateToWorkflowSourceSettings();
+    }, [navigateToWorkflowSourceSettings, workflowSourceName, showConfirmModal, translate]);
 
     const navigateToSubmitWorkspaceApprovalsUpgrade = useCallback(() => {
         Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)));
@@ -220,7 +228,8 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     }, [policy, policyID, availableMembers, usedApproverEmails, isSubmitPolicyWorkspace, navigateToSubmitWorkspaceApprovalsUpgrade]);
 
     const isHRAdvancedModeEnabled = isHRAdvancedMode(policy);
-    const hrFinalApproverEmail = getHRFinalApprover(policy) ?? undefined;
+    const isRecruitingAdvancedModeEnabled = isRecruitingAdvancedMode(policy);
+    const hrFinalApproverEmail = getHRFinalApprover(policy);
 
     const filteredApprovalWorkflows =
         isMultipleApproversBetaEnabled ||
@@ -290,31 +299,30 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     // A Dynamic External Workflow can be configured to keep the approval workflow out of the customer's hands entirely.
     // The info banner below still explains why the section is empty, but nothing else about the workflows is rendered.
     const shouldHideApprovalWorkflows = shouldHideDynamicExternalWorkflowPeople(policy);
-    const isHRConnected = isAnyHRConnected(policy);
-    const shouldBlockApprovalWorkflowEditing = isAnyHRReadOnlyWorkflowMode(policy);
+    const shouldBlockApprovalWorkflowEditing = isApprovalWorkflowLockedByIntegration(policy);
     const approvalSubtitle = useMemo(() => {
-        if (!isHRConnected) {
+        if (!isWorkflowFromIntegration) {
             return translate('workflowsPage.addApprovalsDescription');
         }
 
         return (
             <Text style={[styles.textLabelSupportingEmptyValue, styles.lh20, styles.mt1, styles.mr5]}>
                 {translate('workflowsPage.addApprovalsDescription')}{' '}
-                <TextLink onPress={navigateToHRSettings}>
-                    {translate('workflowsPage.configureViaHR', {
-                        provider: hrProviderName,
+                <TextLink onPress={navigateToWorkflowSourceSettings}>
+                    {translate('workflowsPage.configureViaProvider', {
+                        provider: workflowSourceName,
                     })}
                 </TextLink>
             </Text>
         );
-    }, [isHRConnected, hrProviderName, navigateToHRSettings, styles.lh20, styles.mr5, styles.mt1, styles.textLabelSupportingEmptyValue, translate]);
+    }, [isWorkflowFromIntegration, workflowSourceName, navigateToWorkflowSourceSettings, styles.lh20, styles.mr5, styles.mt1, styles.textLabelSupportingEmptyValue, translate]);
 
-    const approvalOptionSubtitle = isHRConnected || !isSmartLimitEnabled ? approvalSubtitle : translate('workspace.moreFeatures.workflows.disableApprovalPrompt');
+    const approvalOptionSubtitle = isWorkflowFromIntegration || !isSmartLimitEnabled ? approvalSubtitle : translate('workspace.moreFeatures.workflows.disableApprovalPrompt');
     const hasApprovalError = !!policy?.errorFields?.approvalMode;
 
     const getAddApprovalsToggleDisabledAction = () => {
-        if (isHRConnected) {
-            return promptConfigureApprovalsInHR;
+        if (isWorkflowFromIntegration) {
+            return promptConfigureApprovalsInIntegration;
         }
         return undefined;
     };
@@ -333,7 +341,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                     navigateToSubmitWorkspaceApprovalsUpgrade();
                     return;
                 }
-                if (isHRConnected) {
+                if (isWorkflowFromIntegration) {
                     return;
                 }
                 if (!isEnabled) {
@@ -427,41 +435,19 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                                                 shouldBlockApprovalWorkflowEditing
                                                     ? undefined
                                                     : () => {
-                                                          // There is one APPROVAL_WORKFLOW slot, and a mounted Edit page owns it for the
-                                                          // workflow it was opened for. On a large layout this list stays visible underneath
-                                                          // the Edit RHP, so "+N more" is still tappable while that page holds the draft.
-                                                          // Compare on the member anchor as well as the first approver: the approver is not
-                                                          // unique once rule-based chains diverge, which is why the row key and the Edit
-                                                          // navigate above both carry firstMemberEmail.
-                                                          const openEdit = getOpenApprovalWorkflowEdit(Navigation.getActiveRoute(), policyID);
-                                                          const isEditOpenForThisWorkflow =
-                                                              !!openEdit && openEdit.firstApproverEmail === firstApproverEmail && openEdit.memberEmail === firstMemberEmail;
-
-                                                          // A different workflow's Edit page is holding the draft. Seeding here would
-                                                          // Onyx.set straight over it, and the fast-edit Save would then persist this
-                                                          // workflow and clear the draft out from under that still-mounted page. Meanwhile
-                                                          // expenses-from, appended to whatever route is active, would go back to the wrong
-                                                          // Edit page. Leave the other session alone rather than corrupt both.
-                                                          if (openEdit && !isEditOpenForThisWorkflow) {
-                                                              return;
-                                                          }
-
                                                           selectApprovalWorkflowForEdit({
                                                               workflow,
                                                               defaultWorkflowMembers: availableMembers,
                                                               usedApproverEmails,
-                                                              // With this workflow's own Edit page still mounted, that page keeps ownership of
-                                                              // the save: expenses-from is opened as its child and goes back to it. Marking a
-                                                              // fast edit would instead persist immediately and clear the draft underneath it.
-                                                              isFastEdit: !isEditOpenForThisWorkflow,
                                                           });
                                                           Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path));
                                                       }
                                             }
                                             currency={policy?.outputCurrency}
                                             isDisabled={shouldBlockApprovalWorkflowEditing || !canWriteApprovals}
-                                            hrProviderName={isHRConnected ? hrProviderName : undefined}
+                                            providerName={approvalWorkflowSource?.providerName}
                                             isHRAdvancedMode={isHRAdvancedModeEnabled}
+                                            isRecruitingAdvancedMode={isRecruitingAdvancedModeEnabled}
                                             hrFinalApproverEmail={isHRAdvancedModeEnabled ? hrFinalApproverEmail : undefined}
                                         />
                                     </OfflineWithFeedback>
@@ -474,28 +460,33 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                                 />
                             )}
                             {!shouldBlockApprovalWorkflowEditing && canWriteApprovals && (
-                                <MenuItem
-                                    title={translate('workflowsPage.addApprovalButton')}
-                                    titleStyle={styles.textStrong}
-                                    icon={expensifyIcons.Plus}
-                                    iconHeight={20}
-                                    iconWidth={20}
-                                    style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                                    onPress={addApprovalAction}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.ADD_APPROVAL}
-                                />
+                                <View style={[styles.mt6, styles.mbn3]}>
+                                    <MenuItemSectionRoot
+                                        onPress={addApprovalAction}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.ADD_APPROVAL}
+                                    >
+                                        <MenuItem.Row>
+                                            <MenuItem.Leading>
+                                                <MenuItem.Icon src={expensifyIcons.Plus} />
+                                            </MenuItem.Leading>
+                                            <MenuItem.Content>
+                                                <MenuItem.Title>{translate('workflowsPage.addApprovalButton')}</MenuItem.Title>
+                                            </MenuItem.Content>
+                                        </MenuItem.Row>
+                                    </MenuItemSectionRoot>
+                                </View>
                             )}
                         </>
                     )}
                 </>
             }
-            disabled={!canWriteApprovals || isSmartLimitEnabled || isDEWEnabled || isHRConnected}
+            disabled={!canWriteApprovals || isSmartLimitEnabled || isDEWEnabled || isWorkflowFromIntegration}
             disabledAction={withApprovalsReadOnlyFallback(getAddApprovalsToggleDisabledAction())}
             showLockIcon={!canWriteApprovals}
             // Submit2026 workspaces have approval mode set to Advanced, but we want to show it here as off because configuring the advanced approvals is a paid feature.
             isActive={
                 !isSubmitPolicyWorkspace &&
-                (isHRConnected ||
+                (isWorkflowFromIntegration ||
                     isDEWEnabled ||
                     (([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ?? false))
             }

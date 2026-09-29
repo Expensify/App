@@ -12,11 +12,12 @@ import {
     extractSubmitterEmails,
     filterRulesForPolicy,
     getApprovalLimitDescription,
-    getOpenApprovalWorkflowEdit,
     getOpenConnectedToPolicyBusinessBankAccounts,
+    getApprovalWorkflowSource,
     getOverLimitForwardsToDisplayName,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
+    isApprovalWorkflowLockedByIntegration,
     mergeWorkflowMembersWithAvailableMembers,
     reconcileApprovalWorkflowRulesForCreate,
     reconcileApprovalWorkflowRulesForEdit,
@@ -24,6 +25,7 @@ import {
     reconcileApprovalWorkflowRulesForRemove,
     updateWorkflowDataOnApproverRemoval,
 } from '@src/libs/WorkflowUtils';
+import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
@@ -33,6 +35,8 @@ import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
+
+import type {ValueOf} from 'type-fest';
 
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
@@ -1045,46 +1049,6 @@ describe('WorkflowUtils', () => {
             expect(convertedEmployees['1@example.com']?.pendingFields).toEqual({
                 overLimitForwardsTo: 'update',
             });
-        });
-
-        it('Should leave a circular approver chain alone when only the members changed', () => {
-            // Given a policy where 1 forwards to 2 and 2 forwards back to 1. calculateApprovers pushes the repeat
-            // before it breaks the cycle, so the approvers array arrives as [1, 2, 1]
-            const previousEmployeeList: PolicyEmployeeList = {
-                '1@example.com': {email: '1@example.com', forwardsTo: '2@example.com', submitsTo: '1@example.com'},
-                '2@example.com': {email: '2@example.com', forwardsTo: '1@example.com', submitsTo: '1@example.com'},
-                '3@example.com': {email: '3@example.com', submitsTo: '1@example.com'},
-                '4@example.com': {email: '4@example.com', submitsTo: '1@example.com'},
-            };
-            const approvalWorkflow: ApprovalWorkflow = {
-                members: [buildMember(3)],
-                approvers: [
-                    buildApprover(1, {forwardsTo: '2@example.com'}),
-                    buildApprover(2, {forwardsTo: '1@example.com'}),
-                    buildApprover(1, {forwardsTo: '2@example.com', isCircularReference: true}),
-                ],
-                isDefault: false,
-            };
-
-            // When only the members change, which is all a "+N more" fast edit can do since it has no approver field
-            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({
-                previousEmployeeList,
-                approvalWorkflow,
-                type: 'update',
-                membersToRemove: [buildMember(4)],
-                defaultApprover: '1@example.com',
-            });
-
-            // Then both approvers keep pointing where they already did. Rebuilding every entry let the trailing
-            // repeat of 1 overwrite the first one's forwardsTo with '', silently cutting a chain the caller never
-            // touched
-            expect(convertedEmployees['1@example.com']?.forwardsTo).toBe('2@example.com');
-            expect(convertedEmployees['2@example.com']?.forwardsTo).toBe('1@example.com');
-            // Then neither forwardsTo is reported as changed, so nothing marks it pending and no rewrite is sent
-            expect(convertedEmployees['1@example.com']?.pendingFields?.forwardsTo).toBeUndefined();
-            expect(convertedEmployees['2@example.com']?.pendingFields?.forwardsTo).toBeUndefined();
-            // Then the member change the caller actually made still lands, so protecting the chain costs nothing
-            expect(convertedEmployees['4@example.com']?.submitsTo).toBe('1@example.com');
         });
     });
 
@@ -2209,85 +2173,90 @@ describe('WorkflowUtils', () => {
         });
     });
 
-    describe('getOpenApprovalWorkflowEdit', () => {
-        const POLICY_ID = 'policy1';
-        const editRoute = (approverEmail: string, memberEmail?: string) =>
-            `/workspaces/${POLICY_ID}/workflows/approvals/${encodeURIComponent(approverEmail)}/edit${memberEmail ? `?memberEmail=${encodeURIComponent(memberEmail)}` : ''}`;
+    describe('approval workflows owned by a connected integration', () => {
+        const POLICY_ID = 'ats-policy';
 
-        it('reads both halves of the workflow identity back out of the route', () => {
-            // Given an Edit route carrying both the URL-encoded first approver and the member anchor
-            const route = editRoute('a@example.com', 'm@example.com');
+        function buildPolicyWithConnectedATS(approvalMode: ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null): Policy {
+            return createMock<Policy>({
+                id: POLICY_ID,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: {
+                        config: {
+                            integration: 'greenhouse',
+                            approvalMode,
+                            approverField: CONST.MERGE.ATS_APPROVER_FIELD.RECRUITER,
+                            finalApprover: 'recruiter@example.com',
+                            filters: null,
+                        },
+                    },
+                },
+            });
+        }
 
-            // When the workflows list asks which workflow that mounted Edit page belongs to
-            const openEdit = getOpenApprovalWorkflowEdit(route, POLICY_ID);
+        describe('isApprovalWorkflowLockedByIntegration', () => {
+            it.each([CONST.MERGE.APPROVAL_MODE.BASIC, CONST.MERGE.APPROVAL_MODE.ADVANCED])('locks the workflows when the ATS is in %s mode', (approvalMode) => {
+                expect(isApprovalWorkflowLockedByIntegration(buildPolicyWithConnectedATS(approvalMode))).toBe(true);
+            });
 
-            // Then both halves come back decoded, because the caller compares them against the plain emails on the
-            // workflow it rendered and would never match percent-encoded ones
-            expect(openEdit).toEqual({firstApproverEmail: 'a@example.com', memberEmail: 'm@example.com'});
+            it('leaves the workflows editable when the ATS is in custom mode', () => {
+                expect(isApprovalWorkflowLockedByIntegration(buildPolicyWithConnectedATS(CONST.MERGE.APPROVAL_MODE.CUSTOM))).toBe(false);
+            });
+
+            it('leaves the workflows editable when the ATS has no approval mode set yet', () => {
+                expect(isApprovalWorkflowLockedByIntegration(buildPolicyWithConnectedATS(null))).toBe(false);
+            });
+
+            // Disconnecting the ATS drops the lock; the workflow it produced stays in place for the admin to edit.
+            it('leaves the workflows editable once the ATS is disconnected', () => {
+                expect(isApprovalWorkflowLockedByIntegration(createMock<Policy>({id: POLICY_ID, connections: {}}))).toBe(false);
+            });
+
+            it('locks the workflows when an ATS in basic mode is connected alongside an HR provider in custom mode', () => {
+                const policy = createMock<Policy>({
+                    id: POLICY_ID,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {integration: 'workday', approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM, groups: []}},
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: {config: {integration: 'greenhouse', approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC, filters: null}},
+                    },
+                });
+
+                expect(isApprovalWorkflowLockedByIntegration(policy)).toBe(true);
+            });
         });
 
-        it('distinguishes two workflows that share a first approver', () => {
-            // Given an Edit route for the A to B workflow, where A to B and A to C are separate workflows that
-            // happen to share a first approver
-            const route = editRoute('a@example.com', 'b@example.com');
+        describe('getApprovalWorkflowSource', () => {
+            it.each([CONST.MERGE.APPROVAL_MODE.BASIC, CONST.MERGE.APPROVAL_MODE.ADVANCED])(
+                'names the connected ATS provider and links to the recruiting settings in %s mode',
+                (approvalMode) => {
+                    expect(getApprovalWorkflowSource(buildPolicyWithConnectedATS(approvalMode), POLICY_ID)).toEqual({
+                        providerName: 'Greenhouse',
+                        settingsRoute: ROUTES.WORKSPACE_RECRUITING.getRoute(POLICY_ID),
+                    });
+                },
+            );
 
-            // When the caller reads the identity of the open Edit page
-            const openEdit = getOpenApprovalWorkflowEdit(route, POLICY_ID);
+            it('has no source in custom mode, because the admin owns the workflow', () => {
+                expect(getApprovalWorkflowSource(buildPolicyWithConnectedATS(CONST.MERGE.APPROVAL_MODE.CUSTOM), POLICY_ID)).toBeUndefined();
+            });
 
-            // Then the member anchor comes back too, because it is the only thing that tells A to B apart from
-            // A to C. Without it the list would treat the wrong row as the one the Edit page is holding
-            expect(openEdit?.firstApproverEmail).toBe('a@example.com');
-            expect(openEdit?.memberEmail).not.toBe('c@example.com');
-        });
+            it('has no source when nothing is connected', () => {
+                expect(getApprovalWorkflowSource(createMock<Policy>({id: POLICY_ID, connections: {}}), POLICY_ID)).toBeUndefined();
+            });
 
-        it('reports an Edit session that has a sub-page open on top of it', () => {
-            // Given an Edit route with a sub-page appended to it, which is how expenses-from is opened from Edit
-            const route = `/workspaces/${POLICY_ID}/workflows/approvals/a%40example.com/edit/expenses-from?memberEmail=m%40example.com`;
+            it('prefers a connected HR provider over the ATS', () => {
+                const policy = createMock<Policy>({
+                    id: POLICY_ID,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {integration: 'workday', approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM, groups: []}},
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: {config: {integration: 'greenhouse', approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC, filters: null}},
+                    },
+                });
 
-            // When the caller reads the identity of the open Edit page
-            const openEdit = getOpenApprovalWorkflowEdit(route, POLICY_ID);
-
-            // Then the Edit page is still reported, because it stays mounted underneath its sub-page and still
-            // owns the draft. Matching only at the end of the path would miss it and let a fast edit seed over it
-            expect(openEdit).toEqual({firstApproverEmail: 'a@example.com', memberEmail: 'm@example.com'});
-        });
-
-        it('reports an empty member anchor when the route carried none', () => {
-            // Given an Edit route opened before the member anchor existed, so it has no memberEmail param
-            const route = editRoute('a@example.com');
-
-            // When the caller reads the identity of the open Edit page
-            const openEdit = getOpenApprovalWorkflowEdit(route, POLICY_ID);
-
-            // Then the anchor is empty rather than absent, so a caller comparing it against a row's member email
-            // gets a plain mismatch instead of accidentally matching an undefined on both sides
-            expect(openEdit).toEqual({firstApproverEmail: 'a@example.com', memberEmail: ''});
-        });
-
-        it('returns undefined for routes with no Edit page in them', () => {
-            // Given the routes a fast edit is actually started from: the workflows list, the expenses-from page
-            // opened straight from it, the create page, and an empty route before navigation is ready
-
-            // When each is checked for an open Edit page
-
-            // Then none reports one, because a fast edit started from these has no Edit page to defer to and must
-            // be allowed to seed its own draft
-            expect(getOpenApprovalWorkflowEdit(`/workspaces/${POLICY_ID}/workflows?tab=approvals`, POLICY_ID)).toBeUndefined();
-            expect(getOpenApprovalWorkflowEdit(`/workspaces/${POLICY_ID}/workflows/expenses-from?tab=approvals`, POLICY_ID)).toBeUndefined();
-            expect(getOpenApprovalWorkflowEdit(`/workspaces/${POLICY_ID}/workflows/approvals/new`, POLICY_ID)).toBeUndefined();
-            expect(getOpenApprovalWorkflowEdit('', POLICY_ID)).toBeUndefined();
-        });
-
-        it('returns undefined when the Edit page belongs to another policy', () => {
-            // Given an Edit route under policy1
-            const route = editRoute('a@example.com', 'm@example.com');
-
-            // When a workflows list rendered for policy2 checks it
-            const openEdit = getOpenApprovalWorkflowEdit(route, 'policy2');
-
-            // Then nothing is reported, because another workspace's Edit page holds a draft for a different
-            // policy and must not block this list from starting its own fast edit
-            expect(openEdit).toBeUndefined();
+                expect(getApprovalWorkflowSource(policy, POLICY_ID)).toEqual({
+                    providerName: 'Workday',
+                    settingsRoute: ROUTES.WORKSPACE_HR.getRoute(POLICY_ID),
+                });
+            });
         });
     });
 });

@@ -337,6 +337,7 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         errorFields: report.errorFields,
         errors: report.errors,
         isWaitingOnBankAccount: report.isWaitingOnBankAccount,
+        canCancelReimbursement: report.canCancelReimbursement,
         isCancelledIOU: report.isCancelledIOU,
         hasReportBeenRetracted: report.hasReportBeenRetracted,
         hasReportBeenReopened: report.hasReportBeenReopened,

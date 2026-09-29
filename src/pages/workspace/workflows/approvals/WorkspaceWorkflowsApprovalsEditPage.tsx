@@ -14,12 +14,17 @@ import usePermissions from '@hooks/usePermissions';
 import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isAnyHRReadOnlyWorkflowMode} from '@libs/merge/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {canMemberWrite, goBackFromInvalidPolicy, isPendingDeletePolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
-import {convertApprovalWorkflowRulesToWorkflows, convertPolicyEmployeesToApprovalWorkflows, filterRulesForPolicy, getApprovalWorkflowRulesForPolicy} from '@libs/WorkflowUtils';
+import {
+    convertApprovalWorkflowRulesToWorkflows,
+    convertPolicyEmployeesToApprovalWorkflows,
+    filterRulesForPolicy,
+    getApprovalWorkflowRulesForPolicy,
+    isApprovalWorkflowLockedByIntegration,
+} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -27,7 +32,6 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 
 import {
     clearApprovalWorkflow,
-    clearApprovalWorkflowFastEdit,
     removeApprovalWorkflow,
     removeApprovalWorkflowRules,
     selectApprovalWorkflowForEdit,
@@ -44,6 +48,7 @@ import type Rule from '@src/types/onyx/Rule';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -67,7 +72,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const [initialApprovalWorkflow, setInitialApprovalWorkflow] = useState<ApprovalWorkflow | undefined>();
-    const formRef = useRef<ScrollView>(null);
+    const formRef = useRef<ComponentRef<typeof ScrollView>>(null);
     const {showConfirmModal} = useConfirmModal();
     const isDeleting = useRef(false);
     const {isLoading, startWithLoading} = usePressLoading();
@@ -163,7 +168,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         !canWriteApprovals ||
         isPendingDeletePolicy(policy) ||
         !currentApprovalWorkflow ||
-        isAnyHRReadOnlyWorkflowMode(policy) ||
+        isApprovalWorkflowLockedByIntegration(policy) ||
         shouldHideDynamicExternalWorkflowPeople(policy);
 
     // Set the initial approval workflow when the page is loaded
@@ -187,13 +192,6 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         // Resume after a sub-page round-trip: keep onyx state to avoid wiping the user's pending edits.
         const isResumingEdit = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT && approvalWorkflow?.originalApprovers?.at(0)?.email === route.params.firstApproverEmail;
         if (isResumingEdit) {
-            // A draft left over from an abandoned fast edit can match this check (it also seeds EDIT mode with
-            // the same first approver). Once this page owns the draft it is no longer a fast edit, so drop the
-            // flag. Otherwise the expenses-from sub-page would save and clear the draft on its own, blanking
-            // this page underneath it and double-writing if the admin then presses Save here.
-            if (approvalWorkflow?.isFastEdit) {
-                clearApprovalWorkflowFastEdit();
-            }
             // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time snapshot guarded by isResumingEdit + early return; runs at most once per mount
             setInitialApprovalWorkflow(currentApprovalWorkflow);
             return;
@@ -218,7 +216,6 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         route.params.memberEmail,
         approvalWorkflow?.action,
         approvalWorkflow?.originalApprovers,
-        approvalWorkflow?.isFastEdit,
         isLoadingApprovalWorkflow,
     ]);
 
