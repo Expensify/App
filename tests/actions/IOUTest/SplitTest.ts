@@ -33,7 +33,7 @@ import {
     evenlyDistributeSplitExpenseAmounts,
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
-    removeSplitExpenseField,
+    removeSplitExpenseAndRedistributeAmounts,
     resetSplitExpensesByDateRange,
     updateSplitExpenseAmountField,
     updateSplitExpenseField,
@@ -9319,7 +9319,7 @@ describe('resetSplitExpensesByDateRange', () => {
     });
 });
 
-describe('removeSplitExpenseField', () => {
+describe('removeSplitExpenseAndRedistributeAmounts', () => {
     it('should remove split expense field from draft transaction', async () => {
         const originalTransactionID = 'orig-remove';
         const splitExpenseTransactionID = 'split-to-remove';
@@ -9362,7 +9362,7 @@ describe('removeSplitExpenseField', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, draftTransaction);
         await waitForBatchedUpdates();
 
-        removeSplitExpenseField(draftTransaction, splitExpenseTransactionID, getCurrencyDecimalsLocal);
+        removeSplitExpenseAndRedistributeAmounts(draftTransaction, splitExpenseTransactionID, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -9378,7 +9378,7 @@ describe('removeSplitExpenseField', () => {
     });
 
     it('should not remove if draftTransaction or splitExpenseTransactionID is missing', async () => {
-        removeSplitExpenseField(undefined, 'split-123', getCurrencyDecimalsLocal);
+        removeSplitExpenseAndRedistributeAmounts(undefined, 'split-123', getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
     });
 
@@ -9401,7 +9401,7 @@ describe('removeSplitExpenseField', () => {
         };
 
         // When one of the splits is removed
-        const remainingSplitExpenses = removeSplitExpenseField(draftTransaction, 'split-remove', getCurrencyDecimalsLocal);
+        const remainingSplitExpenses = removeSplitExpenseAndRedistributeAmounts(draftTransaction, 'split-remove', getCurrencyDecimalsLocal);
 
         // Then the caller gets the single remaining split holding the whole amount, so it can revert the split without reading Onyx back
         expect(remainingSplitExpenses).toHaveLength(1);

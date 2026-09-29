@@ -32,7 +32,7 @@ import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ViolationField} from '@hooks/useViolations';
 
-import {initDraftSplitExpenseDataForEdit, removeSplitExpenseField, updateSplitExpenseDraftField, updateSplitExpenseField} from '@libs/actions/IOU/SplitExpenseItems';
+import {initDraftSplitExpenseDataForEdit, removeSplitExpenseAndRedistributeAmounts, updateSplitExpenseDraftField, updateSplitExpenseField} from '@libs/actions/IOU/SplitExpenseItems';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import {getDecodedLeafCategoryName, isCategoryDescriptionRequired, isCategoryMissing} from '@libs/CategoryUtils';
@@ -572,7 +572,11 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                 size={CONST.BUTTON_SIZE.LARGE}
                                 style={[styles.w100, styles.mb4]}
                                 onPress={() => {
-                                    const remainingSplitExpenses = removeSplitExpenseField(draftTransactionWithSplitExpenses, splitExpenseTransactionID, getCurrencyDecimals);
+                                    const remainingSplitExpenses = removeSplitExpenseAndRedistributeAmounts(
+                                        draftTransactionWithSplitExpenses,
+                                        splitExpenseTransactionID,
+                                        getCurrencyDecimals,
+                                    );
 
                                     // Deleting a per diem split opens this page instead of deleting it, so a removal that leaves one
                                     // split must revert the split right away rather than leave it as an unsaved draft change.
