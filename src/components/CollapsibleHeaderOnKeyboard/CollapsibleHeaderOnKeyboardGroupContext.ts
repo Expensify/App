@@ -21,4 +21,3 @@ function useCollapsibleHeaderOnKeyboardGroup() {
 
 export default CollapsibleHeaderOnKeyboardGroupContext;
 export {useCollapsibleHeaderOnKeyboardGroup};
-export type {CollapsibleHeaderOnKeyboardGroupContextValue};
