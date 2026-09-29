@@ -1127,6 +1127,9 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether we should export to the most recent open period if the current one is closed  */
         exportToNextOpenPeriod: boolean;
 
+        /** Whether non-reimbursable exports are split into one transaction per calendar month */
+        splitExportsByPostingPeriod?: boolean;
+
         /** Whether we will include the original foreign amount of a transaction to NetSuite */
         allowForeignCurrency?: boolean;
 
@@ -2201,7 +2204,7 @@ type DualEntryConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
  * A subsidiary (entity) configured in Campfire.
  */
 type CampfireSubsidiary = {
-    /** Unique identifier of the account. */
+    /** Unique identifier of the subsidiary. */
     id: string;
 
     /** Name of the account. */
@@ -2251,7 +2254,7 @@ type CampfireAccount = {
  * Field retrieved from Campfire.
  */
 type CampfireField = {
-    /** Unique identifier of the account. */
+    /** Unique identifier of the field. */
     id: string;
 
     /** Name of the field. */
@@ -2864,6 +2867,9 @@ type QBDConnectionData = {
     payableAccounts: Account[];
     bankAccounts: Account[];
     vendors: Vendor[];
+
+    /** Expense accounts, the only ones a currency conversion cost can be charged to */
+    expenseAccounts?: Account[];
 };
 
 /**
@@ -2916,6 +2922,9 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         shouldAutoCreateVendor: boolean;
         importItems: boolean;
         export: QBDExportConfig;
+
+        /** ID of the account cross-border currency conversion costs are charged to. Unset means the cost is not exported. */
+        fxExpenseAccount?: string;
 
         /** Configuration of import settings from QuickBooks Desktop to the app */
         mappings: {
@@ -3826,6 +3835,8 @@ export type {
     CampfireVendor,
     CampfireAccount,
     CampfireExport,
+    CampfireAutoSync,
+    CampfireSync,
     BusinessCentralCompany,
     BusinessCentralCoding,
     BusinessCentralCodingOfflineFeedbackKeys,
