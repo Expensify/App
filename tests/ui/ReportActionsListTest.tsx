@@ -391,8 +391,9 @@ describe('ReportActionsList (body)', () => {
         });
 
         it('marks the reply once streaming finishes even when the draft HTML differs from the saved comment', () => {
-            // The draft keeps HTML entities that the saved comment does not have, so the draft can stay in the list after it completes
+            // Given a completed draft whose HTML serialization differs from its saved reply
             const completedDraft: OnyxTypes.ReportAction = {...conciergeReply, message: [{type: 'COMMENT', html: 'Here&apos;s it', text: "Here's it"}]};
+            const savedReply: OnyxTypes.ReportAction = {...conciergeReply, message: [{type: 'COMMENT', html: "Here's it", text: "Here's it"}]};
             mockUseConciergeDraft.mockReturnValue({
                 draftReportAction: completedDraft,
                 hasActiveDraft: true,
@@ -400,13 +401,16 @@ describe('ReportActionsList (body)', () => {
             });
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: [...mockReportActions, {...conciergeReply, message: [{type: 'COMMENT', html: "Here's it", text: "Here's it"}]}],
+                reportActions: [savedReply, ...mockReportActions],
             });
 
+            // When the saved reply is available after streaming finishes
             renderReportActionsList();
 
-            expect(getCapturedVisibleActions()).toContain(completedDraft);
-            expect(getRenderedReportActionsListItemProps(completedDraft).isLatestConciergeFeedbackAction).toBe(true);
+            // Then the saved reply replaces the draft and retains its feedback prompt
+            expect(getCapturedVisibleActions()).toContain(savedReply);
+            expect(getCapturedVisibleActions()).not.toContain(completedDraft);
+            expect(getRenderedReportActionsListItemProps(savedReply).isLatestConciergeFeedbackAction).toBe(true);
         });
 
         it('marks nothing inside the feedback thread the backend opens after a thumbs down', () => {

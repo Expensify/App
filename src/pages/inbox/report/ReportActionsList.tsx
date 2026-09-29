@@ -26,7 +26,6 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
     getFirstVisibleReportActionID,
     getLatestConciergeFeedbackActionID,
-    getReportActionHtml,
     getReportActionMessage,
     isConsecutiveActionMadeByPreviousActor,
     isDeletedParentAction,
@@ -190,7 +189,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => getScrollOffset() >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
 
-    const {unreadMarkerReportActionID, unreadMarkerReportActionIndex} = useUnreadMarker({
+    const {unreadMarkerReportActionID} = useUnreadMarker({
         reportID,
         sortedVisibleReportActions,
         sortedReportActions,
@@ -225,7 +224,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         }
 
         // A completed reveal belongs to the saved action, even when pagination keeps that action off screen.
-        if (persistedDraftReportAction && !isDraftPendingCompletion && getReportActionHtml(persistedDraftReportAction) === getReportActionHtml(draftReportAction)) {
+        if (persistedDraftReportAction && !isDraftPendingCompletion) {
             return sortedVisibleReportActions;
         }
 
@@ -262,18 +261,20 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     }, [clearDraft, draftReportAction, isSyntheticDraftVisible]);
 
     useEffect(() => {
-        if (!draftReportAction || !persistedDraftReportAction) {
+        if (!isDraftPendingCompletion || !draftReportAction || !persistedDraftReportAction) {
             return;
         }
 
         // The persisted action is the durable completion signal when a terminal Pusher event is missed.
         // Reconcile by action ID even when its HTML is byte-identical to the last streamed draft.
         revealDraftFromReportAction(persistedDraftReportAction);
-    }, [draftReportAction, persistedDraftReportAction, revealDraftFromReportAction]);
+    }, [draftReportAction, isDraftPendingCompletion, persistedDraftReportAction, revealDraftFromReportAction]);
 
     // Find the index of the action badge target in the rendered actions list (which is what the FlatList uses as data)
     const actionBadgeTargetID = reportAttributes?.actionTargetReportActionID;
     const actionBadgeTargetIndex = actionBadgeTargetID ? renderedVisibleReportActions.findIndex((action) => action.reportActionID === actionBadgeTargetID) : -1;
+
+    const unreadMarkerReportActionIndex = unreadMarkerReportActionID ? renderedVisibleReportActions.findIndex((action) => action.reportActionID === unreadMarkerReportActionID) : -1;
 
     const {
         trackVerticalScrolling,
