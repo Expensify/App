@@ -1,4 +1,37 @@
-import {wrapAttachmentAnchorsInBlocks} from '@libs/AttachmentAnchorUtils';
+import {isAttachmentAnchor, wrapAttachmentAnchorsInBlocks} from '@libs/AttachmentAnchorUtils';
+
+describe('isAttachmentAnchor', () => {
+    const url = 'https://www.expensify.com/chat-attachments/123/w_abc.csv';
+
+    it('recognizes the URLs the server emits for attachments and receipts', () => {
+        // Given hrefs in the shapes the server stores, including a scaled image and an escaped name
+        const emitted = [url, 'https://staging.expensify.com/chat-attachments/7006877151048865417/w_d060af4.png.1024.jpg', 'https://www.expensify.com/receipts/w_abc%20def.jpg'];
+
+        // When each is checked without any attachment attribute
+        // Then the URL alone identifies it
+        for (const href of emitted) {
+            expect(isAttachmentAnchor(href, false, false)).toBe(true);
+        }
+    });
+
+    it('does not read a truncated attachment URL as a file', () => {
+        // Given hrefs left behind when an edit cuts the tail off the link
+        const truncated = [url.slice(0, -4), 'https://www.expensify.com/chat-attachments/', 'https://www.expensify.com/chat-attachmentsXYZ'];
+
+        // When each is checked without any attachment attribute
+        // Then none of them renders as a file card
+        for (const href of truncated) {
+            expect(isAttachmentAnchor(href, false, false)).toBe(false);
+        }
+    });
+
+    it('still trusts an anchor that carries its attachment attributes', () => {
+        // Given a truncated href on an anchor the client itself built
+        // When it is checked with the source attribute present
+        // Then the attribute wins over the URL shape
+        expect(isAttachmentAnchor(url.slice(0, -4), true, false)).toBe(true);
+    });
+});
 
 describe('wrapAttachmentAnchorsInBlocks', () => {
     const url = 'https://www.expensify.com/chat-attachments/123/w_abc.csv';
