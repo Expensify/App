@@ -1150,6 +1150,7 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: '支出で表示',
         emptyState: {title: '表示するものはありません', subtitle: '上の条件を調整してみてください'},
         noExpensesState: {title: 'お金の使い道を確認する', subtitle: '経費が登録されると、支出の傾向や上位の加盟店など、さまざまな情報を確認できるようになります。'},
+        compare: {label: '比較', previousPeriod: '前の期間', average: '平均'},
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
