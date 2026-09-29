@@ -1,7 +1,6 @@
-import Header from '@components/Header';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import type {WorkspaceVendorTableRowData} from '@components/Tables/WorkspaceVendorsTable';
 import WorkspaceVendorsTable from '@components/Tables/WorkspaceVendorsTable';
 
@@ -11,6 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveVendorMatchingIntegration, getMatchingVendors, hasVendorFeature, sortVendors} from '@libs/PolicyUtils';
@@ -78,16 +78,13 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                <Header>
-                    {shouldUseNarrowLayout && <Header.BackButton />}
-                    <Header.Title
-                        title={translate('workspace.common.vendors')}
-                        isHeadline
-                    />
-                    <Header.Right>
-                        <SidePanelButton />
-                    </Header.Right>
-                </Header>
+                <HeaderWithBackButton
+                    shouldUseHeadlineHeader
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldDisplayHelpButton
+                    title={translate('workspace.common.vendors')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
                 <WorkspaceVendorsTable
                     vendors={vendorRows}
                     headerComponent={headerContent}

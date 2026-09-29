@@ -1,8 +1,7 @@
 import Button from '@components/Button';
-import Header from '@components/Header';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import type {SortOrder} from '@components/Table/middlewares/sorting';
 import WorkspaceRoomsTable from '@components/Tables/WorkspaceRoomsTable';
 import type {WorkspaceRoomRowData} from '@components/Tables/WorkspaceRoomsTable';
@@ -63,7 +62,6 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const personalDetails = usePersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
@@ -123,7 +121,6 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     reportID: report.reportID,
                     introSelected,
                     conciergeChat,
-                    betas,
                     personalDetails,
                     shouldMarkAsRead: false,
                     hasReportActions: !!hasReportActions?.[report.reportID],
@@ -183,25 +180,23 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <Header>
-                    {shouldUseNarrowLayout && <Header.BackButton />}
-                    <Header.Title
-                        title={translate('workspace.common.rooms')}
-                        isHeadline
-                    />
-                    <Header.Right>
-                        {!shouldUseNarrowLayout && !isArchived && (
-                            <Button
-                                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
-                            >
-                                <Button.Icon src={headerIcons.Plus} />
-                                <Button.Text>{translate('common.create')}</Button.Text>
-                            </Button>
-                        )}
-                        <SidePanelButton />
-                    </Header.Right>
-                </Header>
+                <HeaderWithBackButton
+                    title={translate('workspace.common.rooms')}
+                    shouldUseHeadlineHeader
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    onBackButtonPress={Navigation.goBack}
+                    shouldDisplayHelpButton
+                >
+                    {!shouldUseNarrowLayout && !isArchived && (
+                        <Button
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
+                        >
+                            <Button.Icon src={headerIcons.Plus} />
+                            <Button.Text>{translate('common.create')}</Button.Text>
+                        </Button>
+                    )}
+                </HeaderWithBackButton>
 
                 <WorkspaceRoomsTable
                     rooms={rooms}

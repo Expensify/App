@@ -4,12 +4,11 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
 import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
-import Header from '@components/Header';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import type {WorkspaceCategoryTableRowData} from '@components/Tables/WorkspaceCategoriesTable';
 import WorkspaceCategoriesTable from '@components/Tables/WorkspaceCategoriesTable';
 import Text from '@components/Text';
@@ -665,34 +664,28 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                <Header>
-                    {shouldUseNarrowLayout && (
-                        <Header.BackButton
-                            onPress={() => {
-                                if (isMobileSelectionModeEnabled) {
-                                    clearTableSelection();
-                                    turnOffMobileSelectionMode();
-                                    return;
-                                }
+                <HeaderWithBackButton
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.categories')}
+                    shouldUseHeadlineHeader={!selectionModeHeader}
+                    shouldDisplayHelpButton
+                    onBackButtonPress={() => {
+                        if (isMobileSelectionModeEnabled) {
+                            clearTableSelection();
+                            turnOffMobileSelectionMode();
+                            return;
+                        }
 
-                                if (backTo) {
-                                    Navigation.goBack(backTo);
-                                    return;
-                                }
+                        if (backTo) {
+                            Navigation.goBack(backTo);
+                            return;
+                        }
 
-                                Navigation.goBack();
-                            }}
-                        />
-                    )}
-                    <Header.Title
-                        title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.categories')}
-                        isHeadline={!selectionModeHeader}
-                    />
-                    <Header.Right>
-                        {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
-                        <SidePanelButton />
-                    </Header.Right>
-                </Header>
+                        Navigation.goBack();
+                    }}
+                >
+                    {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
+                </HeaderWithBackButton>
                 {shouldDisplayButtonsInSeparateLine && !!getHeaderButtons() && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
 
                 {(!hasVisibleCategories || isLoading) && headerContent}

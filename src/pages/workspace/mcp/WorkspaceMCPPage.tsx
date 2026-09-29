@@ -1,11 +1,10 @@
 import Button from '@components/Button';
-import Header from '@components/Header';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
-import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
@@ -17,6 +16,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
@@ -64,16 +64,13 @@ function WorkspaceMCPPage({route}: WorkspaceMCPPageProps) {
                 testID="WorkspaceMCPPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
-                <Header>
-                    {shouldUseNarrowLayout && <Header.BackButton />}
-                    <Header.Title
-                        title={translate('workspace.common.mcp')}
-                        isHeadline
-                    />
-                    <Header.Right>
-                        <SidePanelButton />
-                    </Header.Right>
-                </Header>
+                <HeaderWithBackButton
+                    title={translate('workspace.common.mcp')}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldUseHeadlineHeader
+                    shouldDisplayHelpButton
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
                 <ScrollView
                     contentContainerStyle={styles.pt3}
                     addBottomSafeAreaPadding

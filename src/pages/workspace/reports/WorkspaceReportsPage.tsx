@@ -1,12 +1,13 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Header from '@components/Header';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
-import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -38,6 +39,7 @@ import type SCREENS from '@src/SCREENS';
 
 import {Str} from 'expensify-common';
 import React from 'react';
+import {View} from 'react-native';
 
 type WorkspaceReportFieldsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.REPORTS>;
 
@@ -105,16 +107,13 @@ function WorkspaceReportFieldsPage({
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                <Header>
-                    {shouldUseNarrowLayout && <Header.BackButton />}
-                    <Header.Title
-                        title={translate('common.reports')}
-                        isHeadline
-                    />
-                    <Header.Right>
-                        <SidePanelButton />
-                    </Header.Right>
-                </Header>
+                <HeaderWithBackButton
+                    title={translate('common.reports')}
+                    shouldUseHeadlineHeader
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldDisplayHelpButton
+                    onBackButtonPress={Navigation.goBack}
+                />
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -141,14 +140,16 @@ function WorkspaceReportFieldsPage({
                                 errorRowTextStyles={[styles.mv2]}
                                 onClose={clearTitleFieldError}
                             >
-                                <MenuItemWithTopDescription
-                                    description={translate('workspace.reports.customNameTitle')}
-                                    title={Str.htmlDecode(titleField?.defaultValue ?? '')}
-                                    shouldShowRightIcon={canWriteReportFields}
-                                    style={[styles.sectionMenuItemTopDescription, styles.mt6]}
-                                    onPress={() => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID))}
-                                    interactive={canWriteReportFields}
-                                />
+                                <View style={styles.mt6}>
+                                    <MenuItemSectionRoot onPress={canWriteReportFields ? () => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID)) : undefined}>
+                                        <MenuItemField.Row
+                                            name={translate('workspace.reports.customNameTitle')}
+                                            value={titleField?.defaultValue ? Str.htmlDecode(titleField.defaultValue) : undefined}
+                                        >
+                                            {canWriteReportFields && <MenuItem.Chevron />}
+                                        </MenuItemField.Row>
+                                    </MenuItemSectionRoot>
+                                </View>
                             </OfflineWithFeedback>
                             <ToggleSettingOptionRow
                                 pendingAction={reportTitlePendingFields.deletable ?? policy?.pendingAction}
