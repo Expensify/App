@@ -5044,6 +5044,9 @@ const translations = {
             hrisListing: (providerName: string) => `${providerName} (HRIS)`,
             atsListing: (providerName: string) => `${providerName} (ATS)`,
             suggestIntegration: "Don't see yours? Suggest an integration, we'll look into it.",
+            noResultsPrompt: 'Please adjust your search or',
+            suggestAnIntegration: 'suggest an integration',
+            noResultsPromptEnd: '.',
         },
         receiptPartners: {
             uber: {

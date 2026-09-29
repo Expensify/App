@@ -94,6 +94,9 @@ type TabSelectorBaseProps<K extends string = string> = {
 
     /** Additional styles for each tab button. */
     tabButtonStyles?: StyleProp<ViewStyle>;
+
+    /** Whether to fade the edges that have more tabs to scroll to. The fades are positioned against the parent view. */
+    shouldShowScrollFade?: boolean;
 };
 
 type TabSelectorItemProps = WithSentryLabel & {

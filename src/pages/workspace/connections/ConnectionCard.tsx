@@ -26,11 +26,11 @@ import type {ConnectionListing} from './types';
 type ConnectionCardProps = {
     listing: ConnectionListing;
 
-    /** Whether the card takes the whole row instead of sharing it with a second card */
-    shouldUseFullWidth: boolean;
+    /** How many cards share a row */
+    columnCount: number;
 };
 
-function ConnectionCard({listing, shouldUseFullWidth}: ConnectionCardProps) {
+function ConnectionCard({listing, columnCount}: ConnectionCardProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -63,7 +63,17 @@ function ConnectionCard({listing, shouldUseFullWidth}: ConnectionCardProps) {
     );
 
     return (
-        <View style={[styles.workspaceSectionMoreFeaturesItem, styles.p0, styles.mt0, styles.overflowHidden, StyleUtils.getMinimumWidth(0), shouldUseFullWidth && styles.flexBasis100]}>
+        <View
+            style={[
+                styles.workspaceSectionMoreFeaturesItem,
+                styles.p0,
+                styles.mt0,
+                styles.overflowHidden,
+                StyleUtils.getMinimumWidth(0),
+                columnCount === 1 && styles.flexBasis100,
+                columnCount === 3 && styles.connectionCardThreeColumns,
+            ]}
+        >
             <MenuItem
                 ref={registerConnectButton}
                 title={title}

@@ -4911,6 +4911,11 @@ const staticStyles = (theme: ThemeColors) =>
             scrollMarginInline: variables.tabSelectorScrollMarginInline,
         },
 
+        // Three 26% bases fit a row with the gaps, while a fourth does not
+        connectionCardThreeColumns: {
+            flexBasis: '26%',
+        },
+
         connectionsTabButton: {
             height: 'auto',
             paddingVertical: 10,

@@ -3,6 +3,7 @@
  * receipt partners, and AI assistants.
  */
 import ConnectToMergeFlow from '@components/ConnectToMergeFlow';
+import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -13,9 +14,10 @@ import TabSelectorContextProvider from '@components/TabSelector/TabSelectorConte
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import TextLink from '@components/TextLink';
 
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
@@ -95,6 +97,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseSingleColumn = shouldUseNarrowLayout || isMediumScreenWidth;
@@ -265,48 +268,61 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                     </View>
                 )}
                 <View style={[connectedListings.length > 0 ? styles.mt6 : styles.mt3, !shouldUseSingleColumn && [styles.flexRow, styles.alignItemsCenter, styles.gap5]]}>
-                    <View style={[styles.flex1, styles.flexRow]}>
+                    <View style={[styles.flex1, styles.flexRow, shouldUseNarrowLayout && styles.mhn5]}>
                         <TabSelectorContextProvider activeTabKey={activeTab}>
                             <TabSelectorBase
                                 tabs={tabs}
                                 activeTabKey={activeTab}
-                                onTabPress={setActiveTab}
-                                contentContainerStyles={[styles.ph0, styles.pb0]}
+                                onTabPress={(tab) => {
+                                    setSearchValue('');
+                                    setActiveTab(tab);
+                                }}
+                                onActiveTabPress={() => setSearchValue('')}
+                                // On mobile the tabs scroll edge to edge, so the page gutter moves inside the scroll content
+                                contentContainerStyles={shouldUseNarrowLayout ? styles.pb0 : [styles.ph0, styles.pb0]}
                                 tabButtonStyles={styles.connectionsTabButton}
+                                shouldShowScrollFade
                             />
                         </TabSelectorContextProvider>
                     </View>
                     <View style={shouldUseSingleColumn && [styles.flexRow, styles.mt5]}>{searchBar}</View>
                 </View>
                 {shouldShowNoResults ? (
-                    <View style={styles.pt3}>
-                        <Text
-                            style={[styles.textNormal, styles.colorMuted]}
-                            aria-hidden
-                        >
-                            {noResultsMessage}
-                        </Text>
-                    </View>
+                    <GenericEmptyStateComponent
+                        headerMedia={illustrations.EmptyShelves}
+                        headerContentStyles={styles.emptyShelvesIllustration}
+                        headerStyles={styles.emptyStateCardIllustrationContainer}
+                        title={translate('common.noResultsFound')}
+                        subtitleText={
+                            <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>
+                                {translate('workspace.connections.noResultsPrompt')}{' '}
+                                <TextLink onPress={() => openConciergeAnywhere({forceConcierge: true})}>{translate('workspace.connections.suggestAnIntegration')}</TextLink>
+                                {translate('workspace.connections.noResultsPromptEnd')}
+                            </Text>
+                        }
+                    />
                 ) : (
                     <View style={styles.mt4}>
                         <ConnectionsGrid listings={visibleListings} />
                     </View>
                 )}
-                <PressableWithFeedback
-                    onPress={() => openConciergeAnywhere({forceConcierge: true})}
-                    accessibilityLabel={translate('workspace.connections.suggestIntegration')}
-                    role={CONST.ROLE.LINK}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.SUGGEST_INTEGRATION}
-                    style={[styles.mt4, styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart, styles.gap1]}
-                >
-                    <Text style={[styles.textLabelSupporting, styles.flexShrink1]}>{translate('workspace.connections.suggestIntegration')}</Text>
-                    <Icon
-                        src={icons.ArrowRight}
-                        width={variables.iconSizeExtraSmall}
-                        height={variables.iconSizeExtraSmall}
-                        fill={theme.icon}
-                    />
-                </PressableWithFeedback>
+                {!shouldShowNoResults && (
+                    <PressableWithFeedback
+                        onPress={() => openConciergeAnywhere({forceConcierge: true})}
+                        accessibilityLabel={translate('workspace.connections.suggestIntegration')}
+                        role={CONST.ROLE.LINK}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.SUGGEST_INTEGRATION}
+                        style={[styles.mt4, styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart, styles.gap1]}
+                    >
+                        <Text style={[styles.textLabelSupporting, styles.flexShrink1]}>{translate('workspace.connections.suggestIntegration')}</Text>
+                        <Icon
+                            src={icons.ArrowRight}
+                            width={variables.iconSizeExtraSmall}
+                            height={variables.iconSizeExtraSmall}
+                            fill={theme.icon}
+                        />
+                    </PressableWithFeedback>
+                )}
             </ScrollView>
         </ScreenWrapper>
     );
