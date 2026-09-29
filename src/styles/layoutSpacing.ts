@@ -1,3 +1,5 @@
+const menuItemHorizontalPadding = 20;
+
 type LayoutSpacingToken = {
     narrow: number;
     wide: number;
@@ -22,6 +24,7 @@ function resolveLayoutSpacing(shouldUseNarrowLayout: boolean) {
         cardPaddingBottom: {paddingBottom: cardPadding},
         cardPaddingLeft: {paddingLeft: cardPadding},
         cardEdgeToEdge: {marginHorizontal: -cardPadding},
+        cardMenuItemInset: {paddingHorizontal: cardPadding - menuItemHorizontalPadding},
         cardGapBottom: {marginBottom: cardGap},
         pageGutter: {paddingHorizontal: pageGutter},
         pageGutterMargin: {marginHorizontal: pageGutter},
