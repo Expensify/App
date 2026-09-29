@@ -7,9 +7,9 @@ import com.expensify.chat.utils.FileUtils
 
 class FileIntentHandler(private val context: Context) : AbstractIntentHandler() {
     override fun handle(intent: Intent, shouldLaunchActivity: Boolean): Boolean {
+        super.clearTemporaryFiles(context)
         when(intent.action) {
              Intent.ACTION_SEND -> {
-                 super.clearTemporaryFiles(context)
                  if (!handleSingleFileIntent(intent, context, shouldLaunchActivity)) {
                      return false
                  }
