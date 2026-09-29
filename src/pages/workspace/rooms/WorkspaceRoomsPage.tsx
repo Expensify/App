@@ -187,7 +187,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     {shouldUseNarrowLayout && <Header.BackButton onPress={Navigation.goBack} />}
                     <Header.Title
                         title={translate('workspace.common.rooms')}
-                        shouldUseHeadlineHeader
+                        isHeadline
                     />
                     <Header.Right>
                         {!shouldUseNarrowLayout && !isArchived && (

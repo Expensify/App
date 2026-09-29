@@ -177,7 +177,7 @@ function MergeConnectionsPageBaseContent({policyID, category, cards, footer}: Me
                 {shouldUseNarrowLayout && <Header.BackButton onPress={() => Navigation.goBack()} />}
                 <Header.Title
                     title={translate(`workspace.${category}.title`)}
-                    shouldUseHeadlineHeader
+                    isHeadline
                 />
                 <Header.Right>
                     <SidePanelButton />

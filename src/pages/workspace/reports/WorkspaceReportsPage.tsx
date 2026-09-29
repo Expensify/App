@@ -109,7 +109,7 @@ function WorkspaceReportFieldsPage({
                     {shouldUseNarrowLayout && <Header.BackButton onPress={Navigation.goBack} />}
                     <Header.Title
                         title={translate('common.reports')}
-                        shouldUseHeadlineHeader
+                        isHeadline
                     />
                     <Header.Right>
                         <SidePanelButton />

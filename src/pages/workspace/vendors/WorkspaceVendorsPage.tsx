@@ -83,7 +83,7 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                     {shouldUseNarrowLayout && <Header.BackButton onPress={() => Navigation.goBack()} />}
                     <Header.Title
                         title={translate('workspace.common.vendors')}
-                        shouldUseHeadlineHeader
+                        isHeadline
                     />
                     <Header.Right>
                         <SidePanelButton />

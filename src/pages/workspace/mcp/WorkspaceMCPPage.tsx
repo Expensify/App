@@ -69,7 +69,7 @@ function WorkspaceMCPPage({route}: WorkspaceMCPPageProps) {
                     {shouldUseNarrowLayout && <Header.BackButton onPress={() => Navigation.goBack()} />}
                     <Header.Title
                         title={translate('workspace.common.mcp')}
-                        shouldUseHeadlineHeader
+                        isHeadline
                     />
                     <Header.Right>
                         <SidePanelButton />

@@ -686,7 +686,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     )}
                     <Header.Title
                         title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.categories')}
-                        shouldUseHeadlineHeader={!selectionModeHeader}
+                        isHeadline={!selectionModeHeader}
                     />
                     <Header.Right>
                         {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
