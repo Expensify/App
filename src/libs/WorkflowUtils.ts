@@ -776,6 +776,16 @@ function mergeWorkflowMembersWithAvailableMembers(workflowMembers: Member[], all
     return [...workflowMembers, ...additionalMembers];
 }
 
+/**
+ * True when `memberEmails` includes every workspace member. A workflow with these members leaves every other
+ * workflow empty, so it is the only workflow left and has to be the default one.
+ */
+function includesEveryWorkspaceMember(memberEmails: Array<string | null | undefined>, employeeList: PolicyEmployeeList | undefined): boolean {
+    const memberEmailSet = new Set(memberEmails);
+    const workspaceMembers = Object.values(employeeList ?? {}).filter((employee) => !!employee.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    return workspaceMembers.length > 0 && workspaceMembers.every((employee) => memberEmailSet.has(employee.email));
+}
+
 type ApprovalWorkflowRulesDiff = Record<string, ApprovalWorkflowRule | null>;
 
 function buildComparison(left: RuleFilterComparison['left'], operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>, right: RuleFilterComparison['right']): RuleFilterComparison {
@@ -1736,6 +1746,7 @@ export {
     getRulesSubmitterToWorkflowKey,
     getWorkflowMemberEmails,
     hasRuleBasedDefaultWorkflow,
+    includesEveryWorkspaceMember,
     isApprovalWorkflowLockedByIntegration,
     getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,

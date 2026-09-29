@@ -1736,6 +1736,11 @@ function arePaymentsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
     return getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 }
 
+/** Whether the workspace has everything auto-pay approved reports needs: workflows, direct reimbursements, and a business bank account. */
+function isAutoPayApprovedReportsAvailable(policy: OnyxInputOrEntry<Policy>): boolean {
+    return !!policy?.areWorkflowsEnabled && getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && !!policy?.achAccount?.bankAccountID;
+}
+
 /**
  * Returns true when the user is both a submitter and an approver, mirroring the Submit/Approve suggested-search eligibility in
  * `getSuggestedSearchesVisibility` (SearchUIUtils): a submitter is a member of any group workspace, and an approver is a member of a
@@ -3839,6 +3844,7 @@ export {
     PAYER_ROLES,
     canRolePay,
     arePaymentsEnabled,
+    isAutoPayApprovedReportsAvailable,
     getReimbursementChoice,
     isSubmitterAndApprover,
     isSubmitAndClose,

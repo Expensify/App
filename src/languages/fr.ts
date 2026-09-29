@@ -1200,6 +1200,8 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `Oups ! Un champ obligatoire (« ${fieldName} ») n’a pas été associé. Veuillez examiner et réessayer.`,
         singleFieldMultipleColumns: (fieldName: string) => `Oups ! Vous avez associé un seul champ (« ${fieldName} ») à plusieurs colonnes. Veuillez vérifier et réessayer.`,
         emptyMappedField: (fieldName: string) => `Oups ! Le champ (« ${fieldName} ») contient une ou plusieurs valeurs vides. Veuillez vérifier et réessayer.`,
+        fieldValueTooLong: (fieldName: string, limit: number) =>
+            `Oups ! Le champ (« ${fieldName} ») contient une ou plusieurs valeurs de plus de ${limit} caractères. Veuillez vérifier et réessayer.`,
         importSuccessfulTitle: 'Importation réussie',
         importCategoriesNoneAddedOrUpdated: 'Aucune catégorie n’a été ajoutée ou mise à jour.',
         importCategoriesAdded: ({count}: {count: number}) => ({
@@ -1591,6 +1593,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noReimbursableExpenses: 'Cette note de frais a un montant non valide',
         pendingConversionMessage: 'Le total sera mis à jour quand vous serez de nouveau en ligne',
         changedTheExpense: 'a modifié la dépense',
+        addedReceipt: 'a ajouté un reçu',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `le ${valueName} sur ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `défini le ${translatedChangedField} sur ${newMerchant}, ce qui a défini le montant sur ${newAmountToDisplay}`,
@@ -2335,7 +2338,13 @@ const translations: TranslationDeepObject<typeof en> = {
             results: 'Résultats',
             releaseOptions: 'Options de version',
             testingPreferences: 'Préférences de test',
-            useStagingServer: 'Utiliser le serveur de préproduction',
+            server: 'Serveur',
+            servers: {
+                production: {label: 'Production', description: "L'environnement en direct que voient les vrais utilisateurs"},
+                staging: {label: 'Préproduction', description: 'Copie de la production. Utilisée pour la validation finale'},
+                qa: {label: 'QA', description: 'Environnement expérimental utilisé pour les tests'},
+            },
+            serverPinnedDescription: 'Cette version communique toujours avec un seul serveur, il est donc impossible de le changer ici.',
             forceOffline: 'Forcer le mode hors ligne',
             simulatePoorConnection: 'Simuler une mauvaise connexion Internet',
             simulateFailingNetworkRequests: 'Simuler l’échec des requêtes réseau',
@@ -2560,7 +2569,7 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredForAdminsHeader: 'Authentification à deux facteurs requise',
         twoFactorAuthIsRequiredForAdminsTitle: 'Veuillez activer l’authentification à deux facteurs',
         twoFactorAuthIsRequiredXero: 'Votre connexion comptable Xero nécessite une authentification à deux facteurs.',
-        twoFactorAuthIsRequiredCompany: 'Votre entreprise exige l’authentification à deux facteurs.',
+        twoFactorAuthIsRequiredCompany: 'Votre entreprise exige l’authentification à deux facteurs (2FA).',
         twoFactorAuthCannotDisable: 'Impossible de désactiver la 2FA',
         twoFactorAuthRequired: 'L’authentification à deux facteurs (2FA) est requise pour votre connexion Xero et ne peut pas être désactivée.',
         replaceDevice: 'Remplacer l’appareil',
@@ -2572,6 +2581,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: 'Scannez le code QR avec votre nouvel appareil, puis saisissez le code pour terminer la configuration.',
         downloadCodes: 'Télécharger les codes',
         copyCodes: 'Copier les codes',
+        enable2FA: 'Activer',
     },
     recoveryCodeForm: {
         error: {
@@ -3017,6 +3027,9 @@ ${amount} pour ${merchant} - ${date}`,
         memberAlreadyInWorkflowTitle: 'Membre déjà dans un workflow',
         memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
             `${memberName} fait déjà partie d’un workflow d’approbation qui soumet à ${approverName}. L’ajouter ici le déplacera vers ce workflow.`,
+        moveEveryoneToThisWorkflowTitle: 'Déplacer tout le monde vers ce workflow',
+        moveEveryoneToThisWorkflowPrompt:
+            'Vous êtes sur le point de déplacer tout le monde vers ce workflow d’approbation. Cela supprimera tous les autres workflows d’approbation et déplacera tout le monde vers celui-ci. Cette action est irréversible.',
         header: 'Quand les membres suivants soumettent des dépenses :',
     },
     workflowsApproverPage: {
@@ -5065,6 +5078,9 @@ ${amount} pour ${merchant} - ${date}`,
                 autoSyncDescription: 'Expensify se synchronisera automatiquement avec QuickBooks Desktop chaque jour.',
                 createEntities: 'Créer automatiquement les entités',
                 createEntitiesDescription: "Expensify créera automatiquement des fournisseurs dans QuickBooks Desktop s'ils n'existent pas déjà.",
+                fxExpenseAccount: 'Compte de frais de conversion de devise',
+                fxExpenseAccountDescription:
+                    'Lorsque votre entreprise prend en charge les frais de conversion de devise pour un remboursement payé à l’étranger, nous l’ajouterons à l’export comme une ligne supplémentaire imputée à ce compte.',
             },
             itemsDescription: 'Choisissez comment gérer les éléments QuickBooks Desktop dans Expensify.',
             accountingMethods: {
@@ -6431,6 +6447,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             deleteFailureMessage: "Une erreur s'est produite lors de la suppression de la catégorie, veuillez réessayer",
             categoryName: 'Nom de la catégorie',
             requiresCategory: 'Les membres doivent catégoriser toutes les dépenses',
+            autoCategorizeNewExpenses: 'Catégoriser automatiquement les nouvelles dépenses',
             showCategoryGLCodes: 'Afficher les codes de grand livre lors de la catégorisation des dépenses',
             needCategoryForExportToIntegration: (connectionName: string) => `Toutes les dépenses doivent être catégorisées afin de pouvoir être exportées vers ${connectionName}.`,
             subtitle: 'Obtenez une meilleure vue d’ensemble de l’endroit où l’argent est dépensé. Utilisez nos catégories par défaut ou ajoutez les vôtres.',
@@ -8207,6 +8224,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 autoPayApprovedReportsSubtitle: 'Configurez quelles notes de frais sont éligibles au paiement automatique.',
                 autoPayApprovedReportsLimitError: (currency?: string) => `Veuillez saisir un montant inférieur à ${currency ?? ''}20 000`,
                 autoPayApprovedReportsLockedSubtitle: 'Accédez à Plus de fonctionnalités et activez les flux de travail, puis ajoutez les paiements pour déverrouiller cette fonctionnalité.',
+                autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) =>
+                    `Le paiement automatique n’est disponible qu’avec l’offre Control. [Mettez à niveau](${upgradeLink}) pour déverrouiller cette fonctionnalité.`,
                 autoPayReportsUnderTitle: 'Notes de frais payées automatiquement sous',
                 autoPayReportsUnderDescription: 'Les notes de frais entièrement conformes en dessous de ce montant seront payées automatiquement.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Ajoutez ${featureName} pour déverrouiller cette fonctionnalité.`,
@@ -8366,7 +8385,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 matchTypeContains: 'Contient',
                 matchTypeExact: 'Correspond exactement',
                 maxAmount: 'Montant maximal',
-                maxAmountHelp: 'Toute transaction supérieure à ce montant sera refusée, indépendamment des restrictions liées au commerçant et à la catégorie de dépense.',
                 maxAmountCurrencyMismatchTitle: 'Incohérence de devise',
                 maxAmountCurrencyMismatchPrompt: 'Pour définir un montant maximal, sélectionnez des cartes qui sont réglées dans la même devise.',
                 reviewSelectedCards: 'Examiner les cartes sélectionnées',
@@ -8445,9 +8463,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     cta: 'Obtenir la carte',
                 },
                 restrictCardSpendTitle: 'Limiter les dépenses de la carte',
-                restrictCardSpendSubtitle: 'Bloquez ou limitez les dépenses au point de vente.',
-                ifAnyCardMatches: 'Si une carte correspond :',
-                thenDoThisAtPointOfSale: 'Ensuite, faites ceci au point de vente :',
                 setRestrictions: 'Définir des restrictions',
                 merchantRestrictions: 'Restrictions du commerçant',
                 blockedMerchant: 'Commerçant bloqué',
@@ -8461,15 +8476,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 currencies: 'Devises',
                 permittedCurrencies: 'Devises autorisées',
                 allCurrencies: 'Toutes les devises',
-                permittedCurrenciesSubtitle: 'Choisissez d’autoriser toutes les devises ou seulement certaines devises',
                 settlementCurrencyPermittedSubtitle: 'La devise de règlement de la carte est toujours autorisée',
                 currenciesCurrencyMismatchTitle: 'Incohérence de devise',
                 currenciesCurrencyMismatchPrompt: 'Pour définir des devises préférées, sélectionnez les cartes qui sont réglées dans la même devise.',
-                restrictMerchantsOffSubtitle: 'Les frais sont approuvés pour les devises autorisées qui n’excèdent pas un montant maximal',
-                restrictMerchantsAllowSubtitle:
-                    'Les frais sont approuvés pour les devises autorisées qui ne dépassent pas un montant maximal, et lorsque le commerçant ou le type de commerçant correspond.',
-                restrictMerchantsBlockSubtitle:
-                    'Les dépenses sont approuvées pour les devises autorisées qui ne dépassent pas un montant maximal, ou lorsque le commerçant ou le type de commerçant correspond.',
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Autorisé ${shownCount > 1 ? 'devises' : 'devise'} : ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
                 defaultRulesCannotBeDeleted: 'Les règles par défaut ne peuvent pas être supprimées',
@@ -8887,6 +8896,33 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             companyCardAccount: {label: 'Compte de carte d’entreprise', description: 'Choisissez où exporter les transactions de carte d’entreprise.'},
             noAccountsFound: 'Aucun compte trouvé',
             noAccountsFoundDescription: 'Veuillez ajouter des comptes dans Campfire et synchroniser à nouveau la connexion',
+            autoSyncDescription: 'Synchronisez Campfire et Expensify automatiquement, chaque jour. Les notes de frais se synchronisent en temps réel.',
+            accountingMethods: {
+                label: 'Méthode d’exportation',
+                description: 'Choisissez quand exporter les dépenses.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Comptabilité d’engagement',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Espèces',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Les dépenses hors poche seront exportées une fois approuvées définitivement',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Les dépenses hors poche seront exportées une fois payées',
+                },
+            },
+            syncReimbursedReports: 'Synchroniser les notes de frais remboursées',
+            syncReimbursedReportsDescription: 'Lorsqu’une note de frais est payée par virement ACH, un paiement de facture sera généré sur ce compte.',
+            billPaymentAccount: {
+                label: 'Compte de paiement des factures',
+                description: 'Choisissez le compte de compensation des crédits Campfire lorsque Expensify marque une facture comme payée.',
+            },
+            syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
+            settlementAccount: {label: 'Compte de règlement de la Carte Expensify', description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Campfire.'},
+            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage',
+            travelInvoicingSettlementAccount: {
+                label: 'Compte de règlement de facturation de voyage',
+                description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Campfire.',
+            },
+            travelInvoicingPayableAccount: {label: 'Compte fournisseur pour la facturation de voyage'},
         },
         businessCentral: {
             businessCentralSetup: 'Configuration de Dynamics 365 Business Central',
@@ -9559,6 +9595,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `paramètres de facturation copiés depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `paramètres de déplacement copiés depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
         },
+        updatedAutoCategorizeNewExpenses: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'Désactivé'} la catégorisation automatique des nouvelles dépenses`,
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'Désactivé'} l’exigence de catégorisation des dépenses`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'Désactivé'} l’exigence de tag des dépenses`,
         updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `mis à jour le paramètre de frais de conversion de devise sur « ${preferenceLabel} »`,
@@ -9779,6 +9816,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: '12 derniers mois',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Dernier relevé',
                 },
+                customDay: 'Jour personnalisé',
             },
             status: 'Statut',
             keyword: 'Mot-clé',
@@ -11015,6 +11053,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 invalid: "Ce code n'est pas valide",
             },
         },
+        paymentHistory: {title: 'Afficher l’historique des paiements', subtitle: 'Votre historique complet des paiements mensuels facturés sur ce compte.'},
         subscriptionSettings: {
             title: 'Paramètres d’abonnement',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
@@ -11127,6 +11166,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `Êtes-vous sûr de vouloir supprimer votre accès copilote au compte Expensify de ${delegatorName} ? Cette action est irréversible.`,
         removeCopilotAccessConfirm: "Supprimer l'accès",
         copilotAccess: 'Accès Copilot',
+        leaveAccount: 'Quitter le compte',
+        leaveAccountConfirmationText: 'Vous reviendrez à votre propre compte. Vous ne serez pas complètement déconnecté.',
     },
     debug: {
         debug: 'Déboguer',

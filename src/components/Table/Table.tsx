@@ -28,7 +28,7 @@ import type {TableContextValue} from './TableContext';
 import type {TableHeaderProps} from './TableHeader';
 import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from './types';
 
-import {getDataVisibleIndices, getListIndex, getTableListMetadata} from './buildTableListData';
+import {getDataVisibleIndices, getListIndex, getTableListMetadata, rendersColumnHeader} from './buildTableListData';
 import useFiltering from './middlewares/filtering';
 import useHighlighting from './middlewares/highlight';
 import useSearching from './middlewares/searching';
@@ -427,16 +427,22 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
         return !isTableHeaderElement(child) && !(React.isValidElement(child) && (child.type === TableEmptyState || child.type === TableNoResultsState));
     });
-    const shouldRenderStickyHeader = processedData.length > 0 && !!tableHeaderElement && hasPageHeader && !(shouldUseNarrowTableLayout && !title);
+    const hasColumnHeaderElement = !!tableHeaderElement;
+    const hasRows = processedData.length > 0;
+    const isColumnHeaderHiddenInNarrowLayout = shouldUseNarrowTableLayout && !title;
+    const areColumnsScrollable = !!dynamicScrollWidth;
 
     const tableListMetadata = useMemo(
         () =>
             getTableListMetadata({
                 listHeaderElement,
                 listHeaderComponent: listProps.ListHeaderComponent,
-                shouldRenderStickyHeader,
+                hasColumnHeaderElement,
+                hasRows,
+                isColumnHeaderHiddenInNarrowLayout,
+                areColumnsScrollable,
             }),
-        [listHeaderElement, listProps.ListHeaderComponent, shouldRenderStickyHeader],
+        [listHeaderElement, listProps.ListHeaderComponent, hasColumnHeaderElement, hasRows, isColumnHeaderHiddenInNarrowLayout, areColumnsScrollable],
     );
     /**
      * Exposes table control methods through the ref.
@@ -503,6 +509,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         originalDataLength,
         columns,
         dynamicGridTemplateColumns,
+        scrollWidth: dynamicScrollWidth,
+        tableWidth,
         filterConfig: filters,
         activeFilters: currentFilters,
         activeSorting,
@@ -543,7 +551,10 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 columnCount={semanticColumnCount}
                 rendersBodyWhenEmpty={rendersBodyWhenEmpty}
                 shouldUseDynamicColumns={shouldUseDynamicColumns}
-                scrollWidth={dynamicScrollWidth}
+                hasHeaderRow={rendersColumnHeader(tableListMetadata)}
+                // Only tables without a page header scroll here. With one, an ancestor scroller would drag the
+                // in-list filter bar sideways, so their list scrolls horizontally itself (see `TableBody`).
+                scrollWidth={hasPageHeader ? undefined : dynamicScrollWidth}
                 onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
             >
                 {renderedChildren}
