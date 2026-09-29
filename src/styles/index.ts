@@ -716,10 +716,6 @@ const staticStyles = (theme: ThemeColors) =>
             opacity: 1,
         },
 
-        textDanger: {
-            color: theme.danger,
-        },
-
         borderRadiusNormal: {
             borderRadius: variables.buttonBorderRadius,
         },
@@ -4654,7 +4650,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textSuccess: {
-            color: theme.success,
+            color: theme.textSuccess,
         },
 
         footerRow: {
