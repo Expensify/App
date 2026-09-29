@@ -29,12 +29,13 @@ import {setTravelBillingReconciliationBankAccount, toggleTravelBillingContinuous
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type {BankAccountList, Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {useNavigationState} from '@react-navigation/native';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 
@@ -48,6 +49,7 @@ type ReconciliationAccountSettingsLayoutProps = {
     goBack: () => void;
     description: string;
     html: string;
+    onLinkPress?: () => void;
     selectedBankAccountID?: string;
     onSelectBankAccount: (newBankAccountID?: string) => void;
 };
@@ -78,6 +80,7 @@ function ReconciliationAccountSettingsLayout({
     goBack,
     description,
     html,
+    onLinkPress,
     selectedBankAccountID,
     onSelectBankAccount,
 }: ReconciliationAccountSettingsLayoutProps) {
@@ -115,7 +118,10 @@ function ReconciliationAccountSettingsLayout({
         >
             <Text style={[styles.textNormal, styles.mb5, styles.ph5]}>{description}</Text>
             <View style={[styles.textNormal, styles.mb6, styles.ph5, styles.renderHTML, styles.flexRow]}>
-                <RenderHTML html={html} />
+                <RenderHTML
+                    html={html}
+                    onLinkPress={onLinkPress}
+                />
             </View>
 
             <SelectionList
@@ -152,6 +158,7 @@ function ExpensifyCardDynamicReconciliation({policyID, domainName, bankAccountLi
     const reconciliationDomainName = settings?.domainName ?? domainName;
     const {environmentURL} = useEnvironment();
     const buildDynamicRoute = useScreenBoundDynamicRoute();
+    const isOpenedFromSettlementAccount = useNavigationState((state) => state.routes.at(state.index - 1)?.name === SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT);
 
     const selectBankAccount = (newBankAccountID?: string) => {
         if (!newBankAccountID) {
@@ -173,6 +180,7 @@ function ExpensifyCardDynamicReconciliation({policyID, domainName, bankAccountLi
                 `${environmentURL}${appendParam(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path), 'fundID', defaultFundID.toString())}`,
                 settlementAccountEnding,
             )}
+            onLinkPress={isOpenedFromSettlementAccount ? goBack : undefined}
             selectedBankAccountID={reconciliationBankAccountID}
             onSelectBankAccount={selectBankAccount}
         />

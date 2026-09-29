@@ -32,10 +32,11 @@ import {updateSettlementAccount as updateSettlementAccountCard} from '@userActio
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type {BankName} from '@src/types/onyx/Bank';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
+import {useNavigationState} from '@react-navigation/native';
 import {isExpensifyCardContinuousReconciliationEnabledSelector} from '@selectors/Card';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
@@ -57,6 +58,7 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
     const isFundIDFromRouteValid = !!fundIDFromRoute && !Number.isNaN(fundIDFromRoute) && allFeeds.some((entry) => entry.fundID === fundIDFromRoute);
     const defaultFundID = isFundIDFromRouteValid ? fundIDFromRoute : defaultFundIDFromCardPages;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path);
+    const isOpenedFromReconciliationAccount = useNavigationState((state) => state.routes.at(state.index - 1)?.name === SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS);
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -150,6 +152,7 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
                                 `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connectionParam)}/${DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path}`,
                                 `${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(paymentBankAccountNumber)}`,
                             )}
+                            onLinkPress={isOpenedFromReconciliationAccount ? () => Navigation.goBack(backPath) : undefined}
                         />
                     </View>
                 )}
