@@ -1,5 +1,6 @@
 import ConfirmationPage from '@components/ConfirmationPage';
 import FormHelpMessage from '@components/FormHelpMessage';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -8,6 +9,7 @@ import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useRedirectOnDomainAccessChange from '@hooks/useRedirectOnDomainAccessChange';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRequestAdminshipError, requestDomainAdminship} from '@libs/actions/Domain';
@@ -40,6 +42,8 @@ function DomainAlreadyExistsPage({route}: DomainAlreadyExistsPageProps) {
     const [isRequestPending] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {selector: (pendingActions) => !!pendingActions?.requestAdminship});
     const [requestError] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {selector: (errors) => errors?.requestAdminshipError});
 
+    const isRedirecting = useRedirectOnDomainAccessChange(domainAccountID, {shouldDismissWhenAdmin: true});
+
     // Tracks whether the user has submitted a request this visit, so navigating away on success doesn't also fire for a request that was already pending before the page mounted.
     const [hasSubmittedRequest, setHasSubmittedRequest] = useState(false);
     // The optimistic pending flag lands a render or two after the submit itself, so we can't treat "not pending yet" as "already settled" until we've actually seen it pending once.
@@ -65,6 +69,10 @@ function DomainAlreadyExistsPage({route}: DomainAlreadyExistsPageProps) {
     useEffect(() => {
         return () => clearRequestAdminshipError(domainAccountID);
     }, [domainAccountID]);
+
+    if (isRedirecting) {
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+    }
 
     return (
         <ScreenWrapper testID="DomainAlreadyExistsPage">
