@@ -43,6 +43,7 @@ import {
     getCustomOrFormattedFeedName,
     getDefaultCommercialFeedDisplayName,
     getDefaultExpensifyCardLimitType,
+    getDisplayedExpensifyCardLimitType,
     getExpensifyCardLimitChangeWarningKey,
     getExpensifyCardLimitError,
     getExpensifyCardLimitTypeChangeWarningKey,
@@ -2238,6 +2239,26 @@ describe('CardUtils', () => {
             });
 
             expect(getDefaultExpensifyCardLimitType(policy)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
+        });
+    });
+
+    describe('getDisplayedExpensifyCardLimitType', () => {
+        it('keeps a stored limit type', () => {
+            // Given a card that already has a limit type, on a workspace whose default is a different type
+            // When the displayed type is resolved
+            const displayedLimitType = getDisplayedExpensifyCardLimitType(CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY);
+
+            // Then the stored type is shown, because the default only fills in a missing type
+            expect(displayedLimitType).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED);
+        });
+
+        it('uses the workspace default when the card has no stored limit type', () => {
+            // Given a card issued before a limit type was stored, on a workspace that defaults to Monthly
+            // When the displayed type is resolved
+            const displayedLimitType = getDisplayedExpensifyCardLimitType(undefined, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY);
+
+            // Then Monthly is shown, rather than the Smart limit that getTranslationKeyForLimitType falls back to for a missing type
+            expect(displayedLimitType).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY);
         });
     });
 

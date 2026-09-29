@@ -301,6 +301,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     cards: selectedCards,
                     personalDetailsList: personalDetails,
                     settlementCurrency,
+                    defaultLimitType,
                     translate,
                     formatPhoneNumber,
                 });

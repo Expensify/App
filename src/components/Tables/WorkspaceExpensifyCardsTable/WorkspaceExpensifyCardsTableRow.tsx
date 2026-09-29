@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getTranslationKeyForCardStatus, getTranslationKeyForLimitType} from '@libs/CardUtils';
+import {getDefaultExpensifyCardLimitType, getDisplayedExpensifyCardLimitType, getTranslationKeyForCardStatus, getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -58,7 +58,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
     const cardholderName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: item.cardholder, translate, formatPhoneNumber});
     const narrowLayoutSubtitle = [item.lastFourPAN, item.name].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `);
     const cardType = item.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
-    const limitTypeLabel = translate(getTranslationKeyForLimitType(item.limitType));
+    const limitTypeLabel = translate(getTranslationKeyForLimitType(getDisplayedExpensifyCardLimitType(item.limitType, getDefaultExpensifyCardLimitType(policy))));
     const statusTranslationKey = getTranslationKeyForCardStatus(item.card.state, item.isVirtual);
     const statusLabel = statusTranslationKey ? translate(statusTranslationKey) : '';
     const formattedLimit = convertToShortDisplayString(item.limit, item.currency);

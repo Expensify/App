@@ -25,7 +25,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CardProgramKey} from '@libs/CardUtils';
-import {getTranslationKeyForLimitType} from '@libs/CardUtils';
+import {getDisplayedExpensifyCardLimitType, getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -2010,13 +2010,16 @@ type ExportExpensifyCardListToCSVParams = {
     /** Settlement / card program currency for limit amounts */
     settlementCurrency: string;
 
+    /** Policy default limit type, used for cards that have none stored so the export matches the card list */
+    defaultLimitType: CardLimitType;
+
     translate: LocalizedTranslate;
 
     /** Formats a phone-number login for display in the current locale */
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
-function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, settlementCurrency, translate, formatPhoneNumber}: ExportExpensifyCardListToCSVParams) {
+function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, settlementCurrency, defaultLimitType, translate, formatPhoneNumber}: ExportExpensifyCardListToCSVParams) {
     if (cards.length === 0) {
         return;
     }
@@ -2037,7 +2040,7 @@ function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, set
         const ownerNameColumn = getCardholderNameForCSV(card, personalDetailsList, translate, formatPhoneNumber);
         const lastFourColumn = card.lastFourPAN ?? '';
         const typeColumn = card.nameValuePairs?.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
-        const limitTypeColumn = translate(getTranslationKeyForLimitType(card.nameValuePairs?.limitType));
+        const limitTypeColumn = translate(getTranslationKeyForLimitType(getDisplayedExpensifyCardLimitType(card.nameValuePairs?.limitType, defaultLimitType)));
         const limitAmount = card.nameValuePairs?.unapprovedExpenseLimit ?? 0;
         const limitColumn = convertToShortDisplayString(limitAmount, settlementCurrency);
 

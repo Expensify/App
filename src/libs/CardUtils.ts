@@ -493,6 +493,16 @@ function getDefaultExpensifyCardLimitType(policy?: OnyxEntry<Policy>): ValueOf<t
     return areApprovalsConfigured ? CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART : CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY;
 }
 
+/**
+ * Cards issued before a limit type was stored have none, and those fall back to the policy default rather than to the
+ * `smartLimit` translation `getTranslationKeyForLimitType` returns for a missing type. Everything that shows a card's
+ * limit type has to resolve it the same way, or the visible text, accessibility label, sort order, column width and
+ * CSV export disagree with each other.
+ */
+function getDisplayedExpensifyCardLimitType(limitType: CardLimitType | undefined, defaultLimitType: CardLimitType): CardLimitType {
+    return limitType ?? defaultLimitType;
+}
+
 function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES> | undefined): TranslationPaths {
     switch (limitType) {
         case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
@@ -2400,6 +2410,7 @@ export {
     getCardFeedBackgroundColor,
     getCardFeedTextColor,
     getDefaultExpensifyCardLimitType,
+    getDisplayedExpensifyCardLimitType,
     shouldShowExpensifyCardFixedLimitType,
     shouldConfirmExpensifyCardLimitTypeChange,
     getExpensifyCardLimitTypeChangeWarningKey,

@@ -7,7 +7,13 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {filterCardsByPersonalDetails, getTranslationKeyForCardStatus, getTranslationKeyForLimitType} from '@libs/CardUtils';
+import {
+    filterCardsByPersonalDetails,
+    getDefaultExpensifyCardLimitType,
+    getDisplayedExpensifyCardLimitType,
+    getTranslationKeyForCardStatus,
+    getTranslationKeyForLimitType,
+} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -119,6 +125,8 @@ export default function WorkspaceExpensifyCardsTable({
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
     const errorMessage = getLatestErrorMessage(cardSettings) ?? '';
+    const defaultLimitType = getDefaultExpensifyCardLimitType(policy);
+    const getLimitTypeLabel = (limitType: CardLimitType | undefined) => translate(getTranslationKeyForLimitType(getDisplayedExpensifyCardLimitType(limitType, defaultLimitType)));
 
     const columns: Array<TableColumn<WorkspaceExpensifyCardTableColumnKey, WorkspaceExpensifyCardTableRowData>> = [
         {
@@ -164,7 +172,7 @@ export default function WorkspaceExpensifyCardsTable({
                 containerStyles: [styles.mnw0, styles.editableCellHeader],
             },
             dynamicSizing: {
-                getContentToMeasure: (item) => [{text: translate(getTranslationKeyForLimitType(item.limitType)), fontSize: fontScale.text}],
+                getContentToMeasure: (item) => [{text: getLimitTypeLabel(item.limitType), fontSize: fontScale.text}],
                 shouldFitContent: true,
             },
         },
@@ -237,8 +245,8 @@ export default function WorkspaceExpensifyCardsTable({
         }
 
         if (activeSorting.columnKey === 'limitType') {
-            const limitType1 = translate(getTranslationKeyForLimitType(item1.limitType));
-            const limitType2 = translate(getTranslationKeyForLimitType(item2.limitType));
+            const limitType1 = getLimitTypeLabel(item1.limitType);
+            const limitType2 = getLimitTypeLabel(item2.limitType);
             return localeCompare(limitType1, limitType2) * orderMultiplier;
         }
 

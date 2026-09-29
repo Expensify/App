@@ -4,7 +4,7 @@ import WorkspaceExpensifyCardLimitTypePickerModal, {useWorkspaceExpensifyCardLim
 
 import useLocalize from '@hooks/useLocalize';
 
-import {getDefaultExpensifyCardLimitType, getTranslationKeyForLimitType} from '@libs/CardUtils';
+import {getDefaultExpensifyCardLimitType, getDisplayedExpensifyCardLimitType, getTranslationKeyForLimitType} from '@libs/CardUtils';
 
 import type {Card, Policy} from '@src/types/onyx';
 import type {CardLimitType} from '@src/types/onyx/Card';
@@ -23,7 +23,7 @@ type WorkspaceExpensifyCardLimitTypeCellProps = {
 
 function WorkspaceExpensifyCardLimitTypeCell({limitType, card, policy, canEdit, onSave}: WorkspaceExpensifyCardLimitTypeCellProps) {
     const {translate} = useLocalize();
-    const currentLimitType = limitType ?? getDefaultExpensifyCardLimitType(policy);
+    const currentLimitType = getDisplayedExpensifyCardLimitType(limitType, getDefaultExpensifyCardLimitType(policy));
     const limitTypeLabel = translate(getTranslationKeyForLimitType(currentLimitType));
     const {popoverHeight} = useWorkspaceExpensifyCardLimitTypePickerPopover({card, policy});
 
