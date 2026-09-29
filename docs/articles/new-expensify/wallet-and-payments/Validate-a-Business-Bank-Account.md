@@ -43,7 +43,7 @@ Once the values are confirmed, your business bank account is fully connected and
 
 ---
 
-![Account > Wallet > bank account with a callout on the Pending badge]({{site.url}}/assets/images/ExpensifyHelp-BetterBusinessBankAccount_02.png){:width="100%"}
+![Account > Wallet > bank account with a Pending badge and a callout on the Confirm action]({{site.url}}/assets/images/wallet-test-transactions.png){:width="100%"}
 
 ![Account > Wallet > bank account with a Pending badge > expose validation pane]({{site.url}}/assets/images/ExpensifyHelp-BetterBusinessBankAccount_03.png){:width="100%"}
 
