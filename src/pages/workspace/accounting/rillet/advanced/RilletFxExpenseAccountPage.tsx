@@ -57,7 +57,7 @@ function RilletFxExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
         Navigation.goBack(backPath);
     };
 
-    const {searchableList, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(expenseAccountOptions, expenseAccounts.length, saveSelectedAccount);
+    const {searchableList, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(expenseAccountOptions, saveSelectedAccount);
     const {filteredData, textInputOptions} = useSelectionListSearch(searchableList, translate('common.noResultsFound'));
 
     const headerContent = (
