@@ -1,3 +1,7 @@
+/**
+ * Builds the payment history table rows from the raw Onyx purchase list, folding refunds, disputes,
+ * balance transfers, and cleared payments onto the bill they modify.
+ */
 import CONST from '@src/CONST';
 import type {Purchase} from '@src/types/onyx/PurchaseList';
 

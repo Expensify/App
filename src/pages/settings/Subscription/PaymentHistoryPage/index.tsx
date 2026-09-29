@@ -5,7 +5,6 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -16,7 +15,6 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {openPaymentHistoryPage} from '@userActions/Subscription';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback} from 'react';
@@ -27,7 +25,6 @@ function PaymentHistoryPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
-    const [purchaseList] = useOnyx(ONYXKEYS.PURCHASE_LIST);
 
     useFocusEffect(
         useCallback(() => {
@@ -56,7 +53,7 @@ function PaymentHistoryPage() {
                 />
                 <ScrollView>
                     <Text style={[styles.textNormal, styles.textSupporting, styles.mh5, styles.mb5, styles.userSelectText]}>{translate('subscription.paymentHistory.subtitle')}</Text>
-                    <PaymentHistoryTable purchaseList={purchaseList} />
+                    <PaymentHistoryTable />
                 </ScrollView>
             </DelegateNoAccessWrapper>
         </ScreenWrapper>

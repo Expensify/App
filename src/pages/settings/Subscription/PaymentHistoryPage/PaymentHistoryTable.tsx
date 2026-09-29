@@ -5,6 +5,7 @@ import SkeletonTextLine from '@components/Skeletons/SkeletonTextLine';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
@@ -15,14 +16,10 @@ import {getPaymentHistoryRows} from '@libs/PaymentHistoryUtils';
 import {lineHeightScale} from '@styles/typography';
 
 import CONST from '@src/CONST';
-import type {Purchase} from '@src/types/onyx/PurchaseList';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 import {View} from 'react-native';
-
-type PaymentHistoryTableProps = {
-    purchaseList: Purchase[] | null | undefined;
-};
 
 const SKELETON_ROWS = [0, 1, 2, 3];
 const SKELETON_TITLE_WIDTH = 180;
@@ -31,9 +28,10 @@ const SKELETON_SUBTITLE_WIDTH = 120;
 // The payment details page is a later change, so pressing a row does nothing yet.
 function ignorePaymentRowPress() {}
 
-function PaymentHistoryTable({purchaseList}: PaymentHistoryTableProps) {
+function PaymentHistoryTable() {
     const {translate, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
+    const [purchaseList] = useOnyx(ONYXKEYS.PURCHASE_LIST);
     const isLoading = purchaseList === undefined;
     const rows = getPaymentHistoryRows(purchaseList);
 
