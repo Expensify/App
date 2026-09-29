@@ -20,6 +20,7 @@ import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
 
 import CONST from '@src/CONST';
 import {endSpan, getSpan} from '@src/libs/telemetry/activeSpans';
+import {recordScreen} from '@src/libs/telemetry/frameDrops/frameDropTimeline';
 import {navigationIntegration} from '@src/libs/telemetry/integrations';
 import useStartSpansOnRender from '@src/libs/telemetry/useStartSpansOnRender';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -281,6 +282,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         }
         const currentRoute = navigationRef.getCurrentRoute();
         Sentry.addBreadcrumb({message: `[NAVIGATION] screen: ${currentRoute?.name}, params: ${JSON.stringify(currentRoute?.params ?? {})}`, category: 'navigation'});
+        recordScreen(currentRoute?.name);
 
         updateCurrentReportID(state);
         parseAndLogRoute(state, authenticated);
@@ -303,6 +305,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // from the restored root state so isTopMostReportId is correct on the first report screen
         // (e.g. the composer's keyboard avoiding view is enabled right away).
         updateCurrentReportID(navigationRef.getRootState());
+        recordScreen(navigationRef.getCurrentRoute()?.name);
     }, [onReady, updateCurrentReportID]);
 
     // Re-establish on (re)mount — StrictMode's cleanup-then-remount otherwise leaves us listener-less; setup is idempotent.

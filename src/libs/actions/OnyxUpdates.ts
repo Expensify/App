@@ -1,6 +1,7 @@
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import PusherUtils from '@libs/PusherUtils';
+import {endOperation, startOperation} from '@libs/telemetry/frameDrops/frameDropTimeline';
 import {trackExpenseApiError} from '@libs/telemetry/trackExpenseCreationError';
 
 import CONST from '@src/CONST';
@@ -113,7 +114,9 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
 }
 
 function applyPusherOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateEvent<TKey>>, lastUpdateID: number) {
+    let frameDropOperationID: number | undefined;
     pusherEventsPromise = pusherEventsPromise.then(() => {
+        frameDropOperationID = startOperation(CONST.TELEMETRY.FRAME_DROPS.OPERATION_PUSHER);
         Log.info('[OnyxUpdateManager] Applying pusher update', false, {lastUpdateID});
     });
 
@@ -123,7 +126,7 @@ function applyPusherOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateE
             Log.info('[OnyxUpdateManager] Done applying Pusher update', false, {lastUpdateID});
         });
 
-    pusherEventsPromise = applyPromise.catch(() => {});
+    pusherEventsPromise = applyPromise.catch(() => {}).finally(() => endOperation(frameDropOperationID));
 
     return applyPromise;
 }

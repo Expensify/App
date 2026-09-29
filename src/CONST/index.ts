@@ -2386,6 +2386,38 @@ const CONST = {
         CONTEXT_FULLSTORY: 'Fullstory',
         CONTEXT_MEMORY: 'Memory',
         CONTEXT_POLICIES: 'Policies',
+        FRAME_DROPS: {
+            // How often the recorded context timeline is matched against the native frame delay store. Both native stores keep
+            // delayed frames for 5+ minutes (Android: 5 min / 3600 frames, iOS: 500 s), so this must stay well below that.
+            FLUSH_INTERVAL_MS: 30_000,
+            // Frame metrics reach the native store asynchronously, so the newest part of the timeline is left for the next flush.
+            SETTLE_MS: 1_000,
+            // Aggregates are sent this often, and whenever the app goes to the background.
+            REPORT_INTERVAL_MS: 5 * 60_000,
+            // How long after a press its frames are attributed to it (the same idle window Sentry uses for ui.action spans).
+            PRESS_WINDOW_MS: 1_000,
+            // Upper bound of native queries per flush, so a very busy window can't turn into a long burst of bridge calls.
+            MAX_QUERIES_PER_FLUSH: 40,
+            // Upper bound of timeline events kept between flushes, so a runaway caller can't grow memory.
+            MAX_EVENTS: 500,
+            // An interval that was never closed (a lost scroll end, a request that never settled) stops owning frames after this long.
+            MAX_OPEN_INTERVAL_MS: 60_000,
+            MAX_LABEL_LENGTH: 64,
+            NONE: 'none',
+            UNATTRIBUTED: 'unattributed',
+            INTERACTION_SCROLL: 'scroll',
+            INTERACTION_UNLABELED_PRESS: 'press',
+            OPERATION_API_PREFIX: 'api.',
+            OPERATION_PUSHER: 'pusher',
+            METRIC_ACTIVE_TIME: 'ui.frame_drops.active_time',
+            METRIC_FRAME_DELAY: 'ui.frame_drops.frame_delay',
+            METRIC_LONG_TASK_TIME: 'ui.frame_drops.long_task_time',
+            METRIC_LONG_TASK_COUNT: 'ui.frame_drops.long_task_count',
+            METRIC_INTERACTION_FRAME_DELAY: 'ui.interaction.frame_delay',
+            ATTRIBUTE_SCREEN: 'screen',
+            ATTRIBUTE_INTERACTION: 'interaction',
+            ATTRIBUTE_OPERATION: 'operation',
+        },
         // Breadcrumb names
         BREADCRUMB_CATEGORY_MEMORY: 'system.memory',
         BREADCRUMB_CATEGORY_MFA: 'mfa',
