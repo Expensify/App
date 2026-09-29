@@ -2,9 +2,10 @@ import {setWorkspaceDistanceAutoUpdate} from '@libs/actions/Policy/DistanceRate'
 import {write} from '@libs/API';
 
 import type {GovernmentMileageRate} from '@src/types/onyx';
-import type {CustomUnit, Policy, Rate} from '@src/types/onyx/Policy';
+import type Policy from '@src/types/onyx/Policy';
+import type {CustomUnit, Rate, Unit} from '@src/types/onyx/Policy';
 
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
 jest.mock('@libs/API');
 jest.mock('@libs/Log', () => ({warn: jest.fn(), alert: jest.fn(), hmmm: jest.fn()}));
@@ -16,17 +17,23 @@ const customUnitID = 'unit1';
 
 type OptimisticPolicyValue = Partial<Policy> & {customUnits?: Record<string, Partial<CustomUnit>>};
 
-function getOnyxDataAt(index: number): {params: Record<string, unknown>; optimisticData: OnyxUpdate[]; successData: OnyxUpdate[]; failureData: OnyxUpdate[]} {
+type CapturedWrite = {params: Record<string, unknown>; optimisticData?: OnyxUpdate<OnyxKey>[]; successData?: OnyxUpdate<OnyxKey>[]; failureData?: OnyxUpdate<OnyxKey>[]};
+
+function getOnyxDataAt(index: number): CapturedWrite {
     const [command, params, onyxData] = mockWrite.mock.calls.at(index) ?? [];
     expect(command).toBeDefined();
     return {params: params as Record<string, unknown>, ...onyxData};
 }
 
-function getOptimisticPolicy(onyxData: {optimisticData?: OnyxUpdate[]}): OptimisticPolicyValue {
+function getOptimisticPolicy(onyxData: {optimisticData?: OnyxUpdate<OnyxKey>[]}): OptimisticPolicyValue {
     return onyxData.optimisticData?.at(0)?.value as OptimisticPolicyValue;
 }
 
-function createGovernmentRate(sourceRateID: string, currency: string, rate = '0.30'): GovernmentMileageRate {
+function getRates(unit?: Partial<CustomUnit>): Rate[] {
+    return Object.values(unit?.rates ?? {}) as Rate[];
+}
+
+function createGovernmentRate(sourceRateID: string, currency: string, rate = 0.3): GovernmentMileageRate {
     return {
         sourceRateID,
         currency,
@@ -37,7 +44,7 @@ function createGovernmentRate(sourceRateID: string, currency: string, rate = '0.
     };
 }
 
-function createCustomUnit(unit = 'mi'): CustomUnit {
+function createCustomUnit(unit: Unit = 'mi'): CustomUnit {
     return {
         customUnitID,
         name: 'Distance',
@@ -67,7 +74,7 @@ describe('setWorkspaceDistanceAutoUpdate', () => {
         expect(optimisticPolicy.autoUpdateGovernmentRateCountry).toBeUndefined();
 
         const optimisticUnit = optimisticPolicy.customUnits?.[customUnitID];
-        const copiedRates = Object.values(optimisticUnit?.rates ?? {});
+        const copiedRates = getRates(optimisticUnit);
         expect(copiedRates).toHaveLength(1);
         expect(copiedRates.at(0)?.attributes?.governmentRate?.sourceRateID).toBe('US_2026');
         expect(optimisticUnit?.attributes?.unit).toBe('mi');
@@ -86,7 +93,7 @@ describe('setWorkspaceDistanceAutoUpdate', () => {
 
         // EUR has no single country, so the unit comes from the passed country
         const optimisticUnit = optimisticPolicy.customUnits?.[customUnitID];
-        const copiedRates = Object.values(optimisticUnit?.rates ?? {});
+        const copiedRates = getRates(optimisticUnit);
         expect(copiedRates).toHaveLength(1);
         expect(copiedRates.at(0)?.attributes?.governmentRate?.sourceRateID).toBe('DE_2026');
         expect(optimisticUnit?.attributes?.unit).toBe('km');
@@ -96,7 +103,7 @@ describe('setWorkspaceDistanceAutoUpdate', () => {
         const existingRate: Rate = {
             customUnitRateID: 'rate1',
             name: 'Government rate',
-            rate: '0.30',
+            rate: 0.3,
             currency: 'EUR',
             enabled: true,
             attributes: {governmentRate: {sourceRateID: 'DE_2026'}},
@@ -108,7 +115,7 @@ describe('setWorkspaceDistanceAutoUpdate', () => {
 
         const {optimisticData} = getOnyxDataAt(0);
         const optimisticPolicy = getOptimisticPolicy({optimisticData});
-        expect(Object.values(optimisticPolicy.customUnits?.[customUnitID]?.rates ?? {})).toHaveLength(0);
+        expect(getRates(optimisticPolicy.customUnits?.[customUnitID])).toHaveLength(0);
     });
 
     it('does not copy rates or correct the unit when turning the auto-update off', () => {

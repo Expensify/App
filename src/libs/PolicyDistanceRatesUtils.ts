@@ -506,7 +506,6 @@ export {
     isSharedGovernmentRateCurrency,
     isCurrencySupportedForAutoUpdate,
     getAutoUpdateGovernmentRateCountry,
-    getExpectedUnitForCountry,
     getExpectedUnitForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
     getGovernmentRateCountryOptions,
