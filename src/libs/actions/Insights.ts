@@ -45,12 +45,21 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
     ];
 
     waitForWrites(READ_COMMANDS.GET_INSIGHTS).then(() =>
-        makeRequestWithSideEffects(READ_COMMANDS.GET_INSIGHTS, {jsonQuery}, {optimisticData, failureData}).then((result) => {
-            if (typeof result?.jsonCode !== 'number' || result.jsonCode === CONST.JSON_CODE.SUCCESS) {
-                return;
-            }
-            Onyx.merge(key, {responseJsonCode: result.jsonCode}).catch((error: unknown) => Log.hmmm('[Insights] failed to store the GetInsights response code', {error: String(error)}));
-        }),
+        // API.read() hides the response code and network rejections, which are needed to tell backend errors from failed requests, same as Search
+        makeRequestWithSideEffects(READ_COMMANDS.GET_INSIGHTS, {jsonQuery}, {optimisticData, failureData})
+            .then((result) => {
+                if (typeof result?.jsonCode !== 'number' || result.jsonCode === CONST.JSON_CODE.SUCCESS) {
+                    return;
+                }
+                Onyx.merge(key, {responseJsonCode: result.jsonCode}).catch((error: unknown) => Log.hmmm('[Insights] failed to store the GetInsights response code', {error: String(error)}));
+            })
+            .catch((error: unknown) => {
+                // A network-level rejection never reaches SaveResponseInOnyx, so failureData has to be applied here
+                Log.hmmm('[Insights] GetInsights request failed', {
+                    error: String(error),
+                });
+                return Onyx.update(failureData);
+            }),
     );
 }
 
