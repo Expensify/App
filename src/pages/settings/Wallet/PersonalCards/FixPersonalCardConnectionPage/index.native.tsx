@@ -148,10 +148,7 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('personalCard.fixCard')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('personalCard.fixCard')} />
             <FullPageOfflineBlockingView addBottomSafeAreaPadding>
                 {isPlaid && renderPlaid()}
                 {!isPlaid && !!url && !isConnectionCompleted && (

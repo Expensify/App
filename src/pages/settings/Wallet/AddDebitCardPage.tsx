@@ -9,7 +9,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 
 import type {PaymentCardParams} from '@libs/API/parameters';
-import Navigation from '@libs/Navigation/Navigation';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -63,10 +62,7 @@ function DebitCardPage() {
             includeSafeAreaPaddingBottom={false}
             testID="DebitCardPage"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('addDebitCardPage.addADebitCard')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('addDebitCardPage.addADebitCard')} />
             <PaymentCardForm
                 showAcceptTerms
                 shouldShowPaymentCardForm

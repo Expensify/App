@@ -56,10 +56,7 @@ function ImportTransactionsCardNamePage() {
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('workspace.companyCards.importTransactions.cardDisplayName')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('workspace.companyCards.importTransactions.cardDisplayName')} />
             <FormProvider
                 formID={ONYXKEYS.FORMS.IMPORT_TRANSACTIONS_FORM}
                 submitButtonText={translate('common.save')}

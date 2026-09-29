@@ -28,10 +28,7 @@ function ImportTransactionsCurrencyPage() {
             shouldEnableMaxHeight
             testID="ImportTransactionsCurrencyPage"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('workspace.companyCards.importTransactions.currency')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('workspace.companyCards.importTransactions.currency')} />
 
             <CurrencySelectionList
                 searchInputLabel={translate('workspace.companyCards.importTransactions.currency')}
