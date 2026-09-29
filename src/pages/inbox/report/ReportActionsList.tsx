@@ -355,6 +355,9 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
             return;
         }
         const animationFrame = requestAnimationFrame(() => {
+            if (!shouldRestoreTailAfterHistoryRevealRef.current || !shouldFollowEndOnResizeRef.current) {
+                return;
+            }
             legendListRef.current?.scrollToEnd({animated: false});
             const hasReceivedHistoryPage = oldestLoadedActionID !== oldestLoadedActionIDAtHistoryRevealRef.current || !hasOlderActions;
             if (!oldestLoadedActionIDAtHistoryRevealRef.current || (!isLoadingOlderReportActions && (hasReceivedHistoryPage || hasLoadingOlderReportActionsError))) {
@@ -426,6 +429,18 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const readyEndListIDRef = useRef<string | undefined>(undefined);
     const lastScrollMetricsRef = useRef<{offset: number; contentHeight: number; viewportHeight: number} | undefined>(undefined);
     const endCorrectionFrameRef = useRef<number | undefined>(undefined);
+    const userScrolledListIDRef = useRef<string | undefined>(undefined);
+
+    const stopFollowingEnd = () => {
+        userScrolledListIDRef.current = listID;
+        shouldFollowEndOnResizeRef.current = false;
+        shouldRestoreTailAfterHistoryRevealRef.current = false;
+        if (endCorrectionFrameRef.current === undefined) {
+            return;
+        }
+        cancelAnimationFrame(endCorrectionFrameRef.current);
+        endCorrectionFrameRef.current = undefined;
+    };
 
     const scheduleEndCorrection = () => {
         if (
@@ -473,7 +488,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const handleListReady = () => {
         readyEndListIDRef.current = listID;
-        shouldFollowEndOnResizeRef.current = initialScrollIndex === undefined && !hasNewerActions;
+        shouldFollowEndOnResizeRef.current = initialScrollIndex === undefined && !hasNewerActions && userScrolledListIDRef.current !== listID;
         lastScrollMetricsRef.current = undefined;
         // The final row can grow after LegendList's initial end estimate (for example, Concierge feedback).
         scheduleEndCorrection();
@@ -495,7 +510,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         const isNearStart = contentOffset.y <= layoutMeasurement.height * PAGINATION_THRESHOLD;
         const previousMetrics = lastScrollMetricsRef.current;
         if (readyEndListIDRef.current === listID && !hasNewerActions) {
-            if (shouldRestoreTailAfterHistoryRevealRef.current || distanceFromBottom <= layoutMeasurement.height * MAINTAIN_SCROLL_AT_END_THRESHOLD) {
+            if (distanceFromBottom <= layoutMeasurement.height * MAINTAIN_SCROLL_AT_END_THRESHOLD) {
                 shouldFollowEndOnResizeRef.current = true;
             } else if (
                 (previousMetrics && contentOffset.y < previousMetrics.offset - 1) ||
@@ -504,7 +519,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     previousMetrics.viewportHeight === layoutMeasurement.height &&
                     endCorrectionFrameRef.current === undefined)
             ) {
-                shouldFollowEndOnResizeRef.current = false;
+                // A pending history request must not reclaim the end after the reader has moved away.
+                stopFollowingEnd();
             }
         }
         lastScrollMetricsRef.current = {offset: contentOffset.y, contentHeight: contentSize.height, viewportHeight: layoutMeasurement.height};
@@ -720,6 +736,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     keyboardShouldPersistTaps="handled"
                     onLayout={recordTimeToMeasureItemLayout}
                     onScroll={trackScrollPositionAndThreshold}
+                    onScrollBeginDrag={stopFollowingEnd}
                     onStartReached={loadOlderChatsOnStartReached}
                     onStartReachedThreshold={PAGINATION_THRESHOLD}
                     onViewableItemsChanged={updateVisibleItemOverflow}
@@ -729,8 +746,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     initialScrollAtEnd={initialScrollIndex === undefined}
                     initialScrollIndex={initialScrollIndex === undefined ? undefined : {index: initialScrollIndex, ...initialScrollIndexParams}}
                     alignItemsAtEnd={!shouldBeAlignedToTop}
-                    // Only follow the real latest page. Older/linked windows must retain their visible anchor.
-                    maintainScrollAtEnd={!hasNewerActions && {animated: false}}
+                    // Follow new actions on the latest page. Layout changes use the cancellable correction above.
+                    maintainScrollAtEnd={!hasNewerActions && {animated: false, on: {dataChange: true}}}
                     // Leave the end-follow region as soon as the user starts reading older messages.
                     maintainScrollAtEndThreshold={MAINTAIN_SCROLL_AT_END_THRESHOLD}
                     maintainVisibleContentPosition

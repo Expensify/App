@@ -200,11 +200,12 @@ type MockLegendListProps = {
     extraData?: unknown;
     getItemType?: (item: OnyxTypes.ReportAction) => string;
     initialScrollAtEnd?: boolean;
-    maintainScrollAtEnd?: {animated: boolean} | false;
+    maintainScrollAtEnd?: {animated: boolean; on: {dataChange: boolean}} | false;
     maintainScrollAtEndThreshold?: number;
     maintainVisibleContentPosition?: boolean;
     onLoad?: () => void;
     onReady?: () => void;
+    onScrollBeginDrag?: () => void;
     onStartReachedThreshold?: number;
     onContentSizeChange?: (width: number, height: number) => void;
     onViewableItemsChanged?: (info: OnViewableItemsChangedInfo<OnyxTypes.ReportAction>) => void;
@@ -435,11 +436,11 @@ describe('ReportActionsList (body)', () => {
         await Onyx.clear();
     });
 
-    it('delegates end following and size corrections to LegendList without a full-viewport threshold', () => {
+    it('delegates new-action following to LegendList without a full-viewport threshold', () => {
         mockUseNetwork.mockReturnValue({isOffline: false});
         renderReportActionsList();
 
-        expect(getCapturedListProps()?.maintainScrollAtEnd).toEqual({animated: false});
+        expect(getCapturedListProps()?.maintainScrollAtEnd).toEqual({animated: false, on: {dataChange: true}});
         expect(getCapturedListProps()?.maintainScrollAtEndThreshold).toBe(0.01);
         expect(getCapturedListProps()?.maintainVisibleContentPosition).toBe(true);
     });
@@ -522,6 +523,35 @@ describe('ReportActionsList (body)', () => {
         expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
     });
 
+    it('cancels a queued end correction as soon as the reader starts dragging', async () => {
+        // Given removing the latest message has queued a layout correction at the end.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        renderReportActionsList();
+        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalled());
+        mockLegendScrollToEnd.mockClear();
+        const animationFrames: FrameRequestCallback[] = [];
+        const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+            animationFrames.push(callback);
+            return animationFrames.length;
+        });
+        try {
+            const listProps = getCapturedListProps();
+            // When the user touches the list before the next scroll metrics arrive.
+            act(() => {
+                listProps?.onContentSizeChange?.(300, 900);
+                listProps?.onScrollBeginDrag?.();
+                for (const callback of animationFrames) {
+                    callback(0);
+                }
+            });
+
+            // Then even a callback already dispatched by the frame scheduler respects the gesture.
+            expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
+        } finally {
+            requestAnimationFrameSpy.mockRestore();
+        }
+    });
+
     it('does not duplicate the composer spacing inside the chronological list', () => {
         mockUseNetwork.mockReturnValue({isOffline: false});
         renderReportActionsList();
@@ -549,7 +579,7 @@ describe('ReportActionsList (body)', () => {
 
         expect(getCapturedListProps()?.initialScrollAtEnd).toBe(true);
         expect(getCapturedListProps()?.alignItemsAtEnd).toBe(true);
-        expect(getCapturedListProps()?.maintainScrollAtEnd).toEqual({animated: false});
+        expect(getCapturedListProps()?.maintainScrollAtEnd).toEqual({animated: false, on: {dataChange: true}});
     });
 
     it('does not follow the end of a page that still has newer actions to load', () => {
@@ -588,7 +618,7 @@ describe('ReportActionsList (body)', () => {
         expect(mockLegendListMount).toHaveBeenCalledTimes(2);
         expect(mockLegendListUnmount).toHaveBeenCalledTimes(1);
         expect(getCapturedListProps()?.initialScrollAtEnd).toBe(true);
-        expect(getCapturedListProps()?.maintainScrollAtEnd).toEqual({animated: false});
+        expect(getCapturedListProps()?.maintainScrollAtEnd).toEqual({animated: false, on: {dataChange: true}});
     });
 
     it('keeps the initial viewport covered until the hydrated LegendList finishes rendering it', async () => {
@@ -1737,7 +1767,7 @@ describe('ReportActionsList (body)', () => {
             }
         });
 
-        it('keeps the latest Concierge messages visible when an older history page arrives after Show History', () => {
+        it.each([false, true])('only follows a delayed Show History page while the reader stays at the end (scrolls away: %s)', (scrollsAway) => {
             // Given a Concierge session with more history to load after the initially revealed actions.
             setupMainDMConciergeMocks();
             let isShowingFullHistory = false;
@@ -1784,6 +1814,25 @@ describe('ReportActionsList (body)', () => {
                 flushAnimationFrames();
                 mockLegendScrollToEnd.mockClear();
 
+                if (scrollsAway) {
+                    act(() => {
+                        getCapturedListProps()?.onScroll?.({
+                            nativeEvent: {
+                                contentOffset: {x: 0, y: 500},
+                                contentSize: {height: 1000, width: 300},
+                                layoutMeasurement: {height: 500, width: 300},
+                            },
+                        });
+                        getCapturedListProps()?.onScroll?.({
+                            nativeEvent: {
+                                contentOffset: {x: 0, y: 200},
+                                contentSize: {height: 1000, width: 300},
+                                layoutMeasurement: {height: 500, width: 300},
+                            },
+                        });
+                    });
+                }
+
                 const oldUserAction = oldReportActions.at(1);
                 if (!oldUserAction) {
                     throw new Error('Expected the older Concierge action');
@@ -1799,9 +1848,13 @@ describe('ReportActionsList (body)', () => {
                 );
                 flushAnimationFrames();
 
-                // Then the added page remains available without moving the reader away from the latest messages.
+                // Then loading the page respects the reader's choice to stay at the end or read history.
                 expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === 'older-user-msg')).toBe(true);
-                expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false});
+                if (scrollsAway) {
+                    expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
+                } else {
+                    expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false});
+                }
             } finally {
                 requestAnimationFrameSpy.mockRestore();
             }
