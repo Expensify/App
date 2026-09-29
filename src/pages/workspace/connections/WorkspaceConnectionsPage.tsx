@@ -135,13 +135,14 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const connectedListings = listings.filter((listing) => !!listing.status);
     const availableListings = listings.filter((listing) => !listing.status);
 
-    const [searchValue, setSearchValue, searchResults] = useSearchResults(
+    const [searchValue, setSearchValue, searchResults, appliedSearchValue] = useSearchResults(
         availableListings,
         (listing, searchInput) => tokenizedSearch([listing], searchInput, (item) => [item.title]).length > 0,
     );
-    const visibleListings = searchValue.trim() ? searchResults : getListingsForTab(availableListings, activeTab);
+    // The results only switch once the debounced search has run, so the tab's full list doesn't flash while typing
+    const isSearching = !!searchValue.trim() && !!appliedSearchValue.trim();
+    const visibleListings = isSearching ? searchResults : getListingsForTab(availableListings, activeTab);
     const noResultsMessage = translate('common.noResultsFoundMatching', searchValue);
-    const isSearching = !!searchValue.trim();
     const shouldShowNoResults = isSearching && !searchResults.length;
     useDebouncedAccessibilityAnnouncement(noResultsMessage, shouldShowNoResults, searchValue);
     // A tab also ends up empty once everything in it is connected
