@@ -3664,7 +3664,7 @@ function getConnectionExporters(policy: OnyxInputOrEntry<Policy>): Array<string 
  * Returns if the policy has the Time Tracking feature enabled.
  */
 function isTimeTrackingEnabled(policy: OnyxEntry<Policy>): boolean {
-    return !!policy?.units?.time?.enabled;
+    return !!policy?.units?.time?.enabled && policy?.features?.timeTracking === true;
 }
 
 /** MCP is on for every workspace unless an admin has explicitly turned it off, so an absent flag reads as enabled. */
