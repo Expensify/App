@@ -31,6 +31,8 @@ To turn on **Recruiting**, go to **Workspaces** > [Workspace Name] > **More feat
 
 You can connect only one applicant tracking system (ATS) to a workspace at a time.
 
+You can connect and manage Greenhouse on web and mobile.
+
 ---
 
 ## How to connect Greenhouse to Expensify
@@ -117,7 +119,7 @@ London candidates are imported only into the UK workspace, and New York candidat
 - Expensify checks Greenhouse about once a day for new matching candidates and updates candidate details to match Greenhouse.
 - Expensify doesn't remove candidates automatically, even after they move to a different stage or have their tag removed in Greenhouse.
 
-If you're on the **Recruiting** or **Members** page when a sync finishes, the **Greenhouse sync complete** screen shows the **Added**, **Removed**, and **Skipped** candidate counts. Click **Skipped** to see why each candidate was skipped. This screen doesn't appear for syncs that finish in the background, such as the daily sync, or if you leave the page before the sync finishes.
+If you're on the **Recruiting** or **Members** page when a sync finishes, the **Greenhouse sync complete** screen shows the **Added** and **Skipped** candidate counts. Click **Skipped** to see why each candidate was skipped. This screen doesn't appear for syncs that finish in the background, such as the daily sync, or if you leave the page before the sync finishes.
 
 ---
 
