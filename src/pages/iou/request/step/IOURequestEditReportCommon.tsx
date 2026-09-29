@@ -21,7 +21,16 @@ import useReportTransactions from '@hooks/useReportTransactions';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {canSubmitPerDiemExpenseFromWorkspace, isPerDiemEnabled, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
-import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {
+    canAddTransaction,
+    getIconsForExpenseReport,
+    isIOUReport,
+    isOpenReport,
+    isReportIneligibleForMoveExpenses,
+    isReportOwner,
+    isSelfDM,
+    sortOutstandingReportsBySelected,
+} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 
@@ -177,6 +186,10 @@ function IOURequestEditReportCommon({
                 }
 
                 if (isPerDiemRequest && !canSubmitPerDiemExpenseFromWorkspace(policy)) {
+                    return false;
+                }
+
+                if (isReportIneligibleForMoveExpenses(report, policy)) {
                     return false;
                 }
 

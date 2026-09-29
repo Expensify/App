@@ -3058,6 +3058,30 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, rules
 }
 
 /**
+ * Checks whether moving an expense into a report would be rejected because the report only contains non-reimbursable transactions.
+ */
+function isReportIneligibleForMoveExpenses(moneyRequestReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+    if (
+        !isExpenseReport(moneyRequestReport) ||
+        !isInstantSubmitEnabled(policy) ||
+        !isSubmitAndClose(policy) ||
+        (isOpenExpenseReport(moneyRequestReport) && (hasReportBeenReopened(moneyRequestReport) || hasReportBeenRetracted(moneyRequestReport)))
+    ) {
+        return false;
+    }
+
+    const hasOnlyNonReimbursableTransactionsLocal = hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID);
+    const hasOnlyNonReimbursableTransactionsFromReportTotals =
+        moneyRequestReport?.transactionCount !== undefined &&
+        moneyRequestReport.transactionCount > 0 &&
+        moneyRequestReport.total !== undefined &&
+        moneyRequestReport.nonReimbursableTotal !== undefined &&
+        moneyRequestReport.total === moneyRequestReport.nonReimbursableTotal;
+
+    return hasOnlyNonReimbursableTransactionsLocal || hasOnlyNonReimbursableTransactionsFromReportTotals;
+}
+
+/**
  * Checks whether the supplied report supports adding more transactions to it.
  * Return true if:
  * - report is a non-settled IOU
@@ -14547,6 +14571,7 @@ export {
     canAccessReport,
     isReportNotFound,
     canAddTransaction,
+    isReportIneligibleForMoveExpenses,
     canDeleteTransaction,
     canBeAutoReimbursed,
     canCreateRequest,
