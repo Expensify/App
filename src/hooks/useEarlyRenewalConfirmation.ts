@@ -24,15 +24,14 @@ function useEarlyRenewalConfirmation() {
             return;
         }
 
-        const copy = CONST.SUBSCRIPTION.EARLY_RENEWAL.COPY.BILLING_OWNER;
         const {startDate, endDate} = getNonIncentivizedEarlyRenewalDates();
         const result = await showConfirmModal({
-            title: copy.HEADER_TITLE,
+            title: translate('earlyRenewal.confirmTitle'),
             prompt: translate('earlyRenewal.confirmationDescription', {
                 startDate: DateUtils.formatWithUTCTimeZone(startDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale),
                 endDate: DateUtils.formatWithUTCTimeZone(endDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale),
             }),
-            confirmText: copy.CTA,
+            confirmText: translate('earlyRenewal.renew'),
             cancelText: translate('common.cancel'),
             shouldDisableConfirmButtonWhenOffline: true,
             shouldEnableNewFocusManagement: true,
@@ -49,7 +48,7 @@ function useEarlyRenewalConfirmation() {
             }
 
             await showConfirmModal({
-                title: copy.HEADER_TITLE,
+                title: translate('earlyRenewal.confirmTitle'),
                 prompt: response?.message ?? translate('common.genericErrorMessage'),
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
@@ -57,7 +56,7 @@ function useEarlyRenewalConfirmation() {
             });
         } catch {
             await showConfirmModal({
-                title: copy.HEADER_TITLE,
+                title: translate('earlyRenewal.confirmTitle'),
                 prompt: translate('common.genericErrorMessage'),
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,

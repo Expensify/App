@@ -29,12 +29,10 @@ function EarlyRenewalBillingBanner({fallback}: EarlyRenewalBillingBannerProps) {
         return fallback;
     }
 
-    const copy = CONST.SUBSCRIPTION.EARLY_RENEWAL.COPY.BILLING_OWNER;
-
     return (
         <BillingBanner
-            title={isIncentivizedPeriod ? translate('earlyRenewal.incentivizedTitle') : copy.HOME_TITLE}
-            subtitle={isIncentivizedPeriod ? translate('earlyRenewal.incentivizedSubtitle') : copy.HOME_SUBTITLE}
+            title={isIncentivizedPeriod ? translate('earlyRenewal.incentivizedTitle') : translate('earlyRenewal.title')}
+            subtitle={isIncentivizedPeriod ? translate('earlyRenewal.incentivizedSubtitle') : translate('earlyRenewal.subtitle')}
             icon={illustrations.MoneyBadge}
             rightComponent={
                 <Button
@@ -43,7 +41,7 @@ function EarlyRenewalBillingBanner({fallback}: EarlyRenewalBillingBannerProps) {
                     size={CONST.BUTTON_SIZE.SMALL}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                 >
-                    <Button.Text>{isIncentivizedPeriod ? translate('earlyRenewal.claim') : copy.CTA}</Button.Text>
+                    <Button.Text>{isIncentivizedPeriod ? translate('earlyRenewal.claim') : translate('earlyRenewal.renew')}</Button.Text>
                 </Button>
             }
         />

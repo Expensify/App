@@ -1,5 +1,3 @@
-import CONST from '@src/CONST';
-
 import useConfirmModal from './useConfirmModal';
 import useEarlyRenewalPeriod from './useEarlyRenewalPeriod';
 import useLocalize from './useLocalize';
@@ -12,7 +10,7 @@ function useEarlyRenewalConfirmation() {
 
     const showEarlyRenewalConfirmation = () => {
         return showConfirmModal({
-            title: isIncentivizedPeriod ? translate('earlyRenewal.incentivizedTitle') : CONST.SUBSCRIPTION.EARLY_RENEWAL.COPY.BILLING_OWNER.HOME_TITLE,
+            title: isIncentivizedPeriod ? translate('earlyRenewal.incentivizedTitle') : translate('earlyRenewal.title'),
             prompt: translate('subscription.mobileReducedFunctionalityMessage'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,

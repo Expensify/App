@@ -15,6 +15,7 @@ Duplicating a workspace helps Workspace Admins quickly create a new workspace us
 Only **Workspace Admins** can duplicate an existing workspace. Members without admin access won’t see the duplicate option in the workspace menu.
 
 ---
+
 ## How to duplicate a workspace
 Follow these steps to create a new workspace based on an existing one:
 
@@ -69,5 +70,3 @@ No. The original workspace remains unchanged. Duplication creates a separate, in
 
 ## Can I rename or delete a duplicated workspace later?
 Yes. You can rename or delete any workspace at any time under **Workspaces > Settings > Workspace Info**.
-
----

@@ -11,7 +11,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {draftEarlyRenewalMessage} from '@libs/actions/EarlyRenewalOffer';
@@ -36,7 +35,6 @@ function EarlyRenewalOfferSection() {
     const showEarlyRenewalConfirmation = useEarlyRenewalConfirmation();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const theme = useTheme();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['SubscriptionAnnual']);
 
@@ -65,15 +63,14 @@ function EarlyRenewalOfferSection() {
         return null;
     }
 
-    const copy = CONST.SUBSCRIPTION.EARLY_RENEWAL.COPY.BILLING_OWNER;
-    const claimTitle = isIncentivizedPeriod ? translate('earlyRenewal.incentivizedTitle') : copy.HOME_TITLE;
-    const claimSubtitle = isIncentivizedPeriod ? translate('earlyRenewal.incentivizedSubtitle') : copy.HOME_SUBTITLE;
-    const claimCTA = isIncentivizedPeriod ? translate('earlyRenewal.claim') : copy.CTA;
+    const claimTitle = isIncentivizedPeriod ? translate('earlyRenewal.incentivizedTitle') : translate('earlyRenewal.title');
+    const claimSubtitle = isIncentivizedPeriod ? translate('earlyRenewal.incentivizedSubtitle') : translate('earlyRenewal.subtitle');
+    const claimCTA = isIncentivizedPeriod ? translate('earlyRenewal.claim') : translate('earlyRenewal.renew');
 
     return (
         <WidgetContainer
             title={canClaim ? claimTitle : translate('earlyRenewal.adminTitle')}
-            containerStyles={{backgroundColor: theme.trialBannerBackgroundColor}}
+            containerStyles={styles.trialBannerBackgroundColor}
         >
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3, styles.pb8, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
                 <Icon
