@@ -87,10 +87,11 @@ function BulkActionBarContent<TValueType>({
     const moreOptions = hasMoreMenu ? options.slice(inlineActionCount) : [];
 
     // Esc clears the selection, but not while something is open over the bar. An RHP the bar is rendered inside
-    // reports itself visible too, and is told apart by the screen still being focused.
+    // reports itself visible too, and is told apart by the screen still being focused. The type is not worth reading
+    // here, because a popover opened and closed over an RHP leaves it stale at `popover`.
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const isFocused = useIsFocused();
-    const isCoveredByModal = !!modal?.isVisible && !(isFocused && modal?.type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED);
+    const isCoveredByModal = !!modal?.isVisible && !isFocused;
     const shouldClearSelectionOnEscape = !modal?.willAlertModalBecomeVisible && !isCoveredByModal;
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, onClearSelection, {isActive: shouldClearSelectionOnEscape});
