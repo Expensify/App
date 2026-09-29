@@ -735,12 +735,12 @@ function clearError(transactionID: string) {
  * Clears a transaction's error and, when it is a split child whose original is still the hidden split
  * container (`SPLIT_REPORT_ID`), clears the original's error too
  */
-function clearErrorWithOriginalTransactionError(transactionID: string, originalTransaction: OnyxEntry<Transaction>) {
+function clearErrorWithOriginalTransactionError(transactionID: string, originalTransactionID: string | undefined, isOriginalTransactionSplitContainer: boolean | undefined) {
     clearError(transactionID);
-    if (!originalTransaction?.transactionID || !isSplitContainerTransaction(originalTransaction)) {
+    if (!originalTransactionID || isOriginalTransactionSplitContainer) {
         return;
     }
-    clearError(originalTransaction?.transactionID);
+    clearError(originalTransactionID);
 }
 
 function getLastModifiedExpense(reportID?: string): OriginalMessageModifiedExpense | undefined {

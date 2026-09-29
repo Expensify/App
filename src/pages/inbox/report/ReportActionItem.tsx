@@ -77,7 +77,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
 import {getReimbursedExpectedDateSelector} from '@src/selectors/ReportAction';
-import {originalTransactionIDSelector} from '@src/selectors/Transaction';
+import {isSplitContainerTransactionSelector, originalTransactionIDSelector} from '@src/selectors/Transaction';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
@@ -209,7 +209,7 @@ function ReportActionItem({
     const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {selector: getLinkedTransactionRouteError});
 
     const [originalTransactionID] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {selector: originalTransactionIDSelector});
-    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+    const [isOriginalTransactionSplitContainer] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {selector: isSplitContainerTransactionSelector});
 
     const {editingMessage, editingReportAction} = useReportActionActiveEdit();
 
@@ -289,7 +289,7 @@ function ReportActionItem({
             navigation.setParams({reportActionID: ''});
         }
         if (transactionIDToDismiss) {
-            clearErrorWithOriginalTransactionError(transactionIDToDismiss, originalTransaction);
+            clearErrorWithOriginalTransactionError(transactionIDToDismiss, originalTransactionID, isOriginalTransactionSplitContainer);
         }
         clearAllRelatedReportActionErrors(reportID, action, originalReportID, isOffline);
     };
