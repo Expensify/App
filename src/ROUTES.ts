@@ -940,6 +940,10 @@ const DYNAMIC_ROUTES = {
         path: 'quickbooks-desktop/advanced',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT_SELECT: {
+        path: 'qbd-fx-expense-account-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_ADVANCED],
+    },
     WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
         path: 'account-reconciliation-settings',
         entryScreens: [
@@ -2649,6 +2653,7 @@ const ROUTES = {
     SETTINGS_VACATION_DELEGATE: 'settings/profile/status/vacation-delegate',
     SETTINGS_VACATION_DELEGATE_MISSING_WORKSPACES: 'settings/profile/status/vacation-delegate/missing-workspaces',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
+    SETTINGS_TROUBLESHOOT_SERVER: 'settings/troubleshoot/server',
     SETTINGS_HELP: 'settings/help',
 
     SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
@@ -5228,6 +5233,11 @@ const ROUTES = {
         route: 'test-tools',
 
         getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools' as const, backTo),
+    },
+    TEST_TOOLS_SERVER: {
+        route: 'test-tools/server',
+
+        getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools/server' as const, backTo),
     },
     WORKSPACES_VERIFY_DOMAIN: {
         route: 'workspaces/verify-domain/:domainAccountID',

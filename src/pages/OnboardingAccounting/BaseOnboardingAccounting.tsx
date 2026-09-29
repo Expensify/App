@@ -176,7 +176,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 hoverStyle={isSelected ? undefined : styles.hoveredComponentBG}
                 style={[
                     styles.onboardingAccountingItem,
-                    isSmallScreenWidth ? styles.onboardingAccountingItemNarrow : styles.onboardingAccountingItemWide,
+                    isSmallScreenWidth && !isInLandscapeMode ? styles.onboardingAccountingItemNarrow : styles.onboardingAccountingItemWide,
                     isSelected && styles.onboardingAccountingItemSelected,
                 ]}
             >
