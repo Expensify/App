@@ -98,10 +98,7 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
                 shouldEnableMaxHeight
                 testID="ReportsDefaultTitlePage"
             >
-                <HeaderWithBackButtonAndTitle
-                    title={translate('workspace.reports.customNameTitle')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.reports.customNameTitle')} />
                 <View style={[styles.renderHTML, styles.flexRow, styles.ph5, styles.pb4]}>
                     <RenderHTML html={translate('workspace.reports.customNameDescription')} />
                 </View>
