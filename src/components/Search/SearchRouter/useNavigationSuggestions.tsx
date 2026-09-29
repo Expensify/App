@@ -314,7 +314,11 @@ function buildWorkspaceNavigationItems({
                     action: () => navigateToWorkspaceSettingsRoute(item.getRoute(), policy.id, shouldUseNarrowLayout, item.screenName),
                     keyForList: `workspace_${policy.id}_${item.screenName}`,
                     rightElement: <WorkspaceIdentityCell policy={policy} />,
-                    matchTerms: item.screenName === SCREENS.WORKSPACE.PROFILE ? [itemText, policy.name] : [itemText],
+                    matchTerms: [
+                        itemText,
+                        ...(item.screenName === SCREENS.WORKSPACE.PROFILE ? [policy.name] : []),
+                        ...(item.searchAliasKeys ?? []).map((translationKey) => getItemText({...item, translationKey})),
+                    ],
                     sortText: policy.name,
                 };
             });

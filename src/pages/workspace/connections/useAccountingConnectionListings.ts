@@ -2,9 +2,6 @@
  * Builds the accounting listings for the Connections page and starts the accounting connect flows from them.
  * Must be rendered inside an AccountingContextProvider.
  */
-import useCardFeeds from '@hooks/useCardFeeds';
-import useCardsLists from '@hooks/useCardsLists';
-import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -13,6 +10,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
+import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration, getIntegrationLastSuccessfulDate, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
 
@@ -32,6 +30,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ConnectionListing, ConnectionStatus} from './types';
 
 import {getSyncStatusMessage} from './utils';
+
+// Listings only read an integration's title and icon. The setup flow inputs are read by `AccountingContext` when a flow starts.
+const NO_REUSABLE_CONNECTIONS = {sageIntacct: false, qbd: false, certinia: false, rillet: false, dualEntry: false, campfire: false};
 
 function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionListing[] {
     const policyID = policy?.id;
@@ -55,16 +56,6 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         'CampfireSquare',
         'BusinessCentralSquare',
     ]);
-    const existingConnections = {
-        sageIntacct: useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, policyID),
-        qbd: useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.QBD, policyID),
-        certinia: useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.CERTINIA, policyID),
-        rillet: useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.RILLET, policyID),
-        dualEntry: useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.DUALENTRY, policyID),
-        campfire: useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE, policyID),
-    };
-    const [cardFeeds] = useCardFeeds(policyID);
-    const [cardLists] = useCardsLists();
 
     if (!policyID) {
         return [];
@@ -110,7 +101,8 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
     };
 
     const getConnectedStatus = (name: ConnectionName, title: string | undefined): ConnectionStatus => {
-        if (getSynchronizationErrorMessage(policy, name, isSyncInProgress, translate, styles)) {
+        const hasQBOExportError = name === CONST.POLICY.CONNECTIONS.NAME.QBO && shouldShowQBOReimbursableExportDestinationAccountError(policy);
+        if (hasQBOExportError || getSynchronizationErrorMessage(policy, name, isSyncInProgress, translate, styles)) {
             return {isBroken: true, message: translate('workspace.connections.brokenConnection')};
         }
         if (isConnectionUnverified(policy, name)) {
@@ -142,15 +134,15 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
             name,
             policyID,
             translate,
-            existingConnections,
+            NO_REUSABLE_CONNECTIONS,
             undefined,
             undefined,
             undefined,
             undefined,
             undefined,
             accountingIcons,
-            cardFeeds,
-            cardLists,
+            undefined,
+            undefined,
             isIntuitEnterpriseSuite,
         );
         if (!integrationData) {

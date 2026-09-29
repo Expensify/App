@@ -3658,11 +3658,11 @@ const translations = {
 
                         1. Click *Workspaces*.
                         2. Select your workspace.
-                        3. Click *Accounting*.
+                        3. Click *Connections*.
                         4. Find ${integrationName}.
                         5. Click *Connect*.
 
-                        [Take me to accounting](${workspaceAccountingLink}).
+                        [Take me to connections](${workspaceAccountingLink}).
                     `),
             },
             connectCorporateCardTask: {
@@ -4869,6 +4869,7 @@ const translations = {
             accounting: 'Accounting',
             hr: 'HR',
             recruiting: 'Recruiting',
+            mcp: 'MCP',
             receiptPartners: 'Receipt partners',
             connections: 'Connections',
             rules: 'Rules',

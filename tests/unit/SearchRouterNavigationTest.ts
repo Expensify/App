@@ -718,6 +718,7 @@ describe('Workspace Search Router navigation source', () => {
                     ['workspace.common.rooms', 'Rooms'],
                     ['workspace.common.workflows', 'Workflows'],
                     ['workspace.common.connections', 'Connections'],
+                    ['workspace.common.hr', 'HR'],
                 ]);
                 return labels.get(item.translationKey) ?? item.translationKey;
             },
@@ -742,6 +743,17 @@ describe('Workspace Search Router navigation source', () => {
         expect(items.some((item) => item.keyForList?.startsWith('workspace_3_'))).toBe(false);
         expect(items.some((item) => item.keyForList?.startsWith('workspace_4_'))).toBe(false);
         expect(items.some((item) => item.keyForList === `workspace_1_${SCREENS.WORKSPACE.WORKFLOWS}`)).toBe(false);
+    });
+
+    it('matches the Connections row by the name of an integration category it replaced', () => {
+        // Given a workspace, since HR no longer has its own row
+        const items = buildItems([createWorkspacePolicy('1', 'Alpha Workspace')]);
+
+        // When searching for the old HR page by its short name
+        const suggestions = buildNavigationSuggestions('hr', [items], localeCompare);
+
+        // Then the Connections row is suggested, because HR moved onto the Connections page
+        expect(suggestions.map((item) => item.keyForList)).toEqual([`workspace_1_${SCREENS.WORKSPACE.CONNECTIONS}`]);
     });
 
     it('alphabetizes equal-priority Workspace rows', () => {

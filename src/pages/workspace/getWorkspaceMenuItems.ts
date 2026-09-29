@@ -78,6 +78,9 @@ type WorkspaceMenuItem = WithSentryLabel & {
     screenName: WorkspaceTopLevelScreens;
     badgeText?: string;
     highlighted?: boolean;
+
+    /** Other names the Search router also matches this item by */
+    searchAliasKeys?: TranslationPaths[];
 };
 
 /** Inputs used to build the Workspace menu while preserving its visibility and indicator rules. */
@@ -212,6 +215,7 @@ function getWorkspaceMenuItems({
         if (canReadMoreFeatures) {
             items.push({
                 translationKey: 'workspace.common.connections',
+                searchAliasKeys: ['workspace.common.accounting', 'workspace.common.hr', 'workspace.common.recruiting', 'workspace.common.receiptPartners', 'workspace.common.mcp'],
                 icon: icons.Connect,
                 getRoute: () => ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID),
                 brickRoadIndicator: getConnectionsBrickRoadIndicator(),

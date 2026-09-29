@@ -1,12 +1,13 @@
 /**
  * Builds the People listings (HR and, behind the Merge ATS beta, recruiting providers) for the Connections page.
  */
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -48,6 +49,9 @@ const CATEGORY_CONFIG = {
     },
 } as const;
 
+// Personal details only feed the settings rows, which the Connections page doesn't render
+const NO_PERSONAL_DETAILS: PersonalDetailsByLogin = {};
+
 function useMergeConnectionListings(policy: OnyxEntry<Policy>, onStartSetup: (setupLink: string, category: MergeProviderCardCategory) => void): ConnectionListing[] {
     const policyID = policy?.id;
     const {translate, getLocalDateFromDatetime, datetimeToCalendarTime, formatPhoneNumber} = useLocalize();
@@ -55,7 +59,6 @@ function useMergeConnectionListings(policy: OnyxEntry<Policy>, onStartSetup: (se
     const {showConfirmModal} = useConfirmModal();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const policyEmployeePersonalDetails = usePersonalDetailsByLogins([...Object.keys(policy?.employeeList ?? {})]);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const {canWrite, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'TriNetSquare', 'Download']);
@@ -67,7 +70,7 @@ function useMergeConnectionListings(policy: OnyxEntry<Policy>, onStartSetup: (se
     const isRecruitingBetaEnabled = isBetaEnabled(CONST.BETAS.MERGE_ATS);
     const hrCards = getHRCards({
         policy,
-        policyEmployeePersonalDetails,
+        policyEmployeePersonalDetails: NO_PERSONAL_DETAILS,
         connectionSyncProgress,
         getLocalDateFromDatetime,
         translate,
@@ -76,7 +79,7 @@ function useMergeConnectionListings(policy: OnyxEntry<Policy>, onStartSetup: (se
         gustoIcon: icons.GustoSquare,
         trinetIcon: icons.TriNetSquare,
     });
-    const recruitingCards = isRecruitingBetaEnabled ? getRecruitingCards({policy, policyEmployeePersonalDetails, policyID, icons, translate, formatPhoneNumber}) : [];
+    const recruitingCards = isRecruitingBetaEnabled ? getRecruitingCards({policy, policyEmployeePersonalDetails: NO_PERSONAL_DETAILS, policyID, icons, translate, formatPhoneNumber}) : [];
 
     const connect = (card: MergeProviderCardDescriptor, categoryCards: MergeProviderCardDescriptor[]) => {
         if (!card.setupLink) {
