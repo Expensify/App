@@ -20,6 +20,7 @@ import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibil
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -47,6 +48,7 @@ import variables from '@styles/variables';
 import {openPolicyReceiptPartnersPage} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
 import {useFocusEffect, useRoute} from '@react-navigation/native';
@@ -104,6 +106,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const {isBetaEnabled} = usePermissions();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const {startIntegrationFlow} = useAccountingActions();
     const {canWrite: canWriteAccounting} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
     const [activeTab, setActiveTab] = useState<ConnectionsTab>(CONST.TAB.CONNECTIONS.POPULAR);
@@ -138,8 +141,24 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     );
     const visibleListings = searchValue.trim() ? searchResults : getListingsForTab(availableListings, activeTab);
     const noResultsMessage = translate('common.noResultsFoundMatching', searchValue);
-    const shouldShowNoResults = !!searchValue.trim() && !searchResults.length;
+    const isSearching = !!searchValue.trim();
+    const shouldShowNoResults = isSearching && !searchResults.length;
     useDebouncedAccessibilityAnnouncement(noResultsMessage, shouldShowNoResults, searchValue);
+    // A tab also ends up empty once everything in it is connected
+    const shouldShowEmptyState = !visibleListings.length;
+
+    // Suggestions go to the person who looks after this workspace, like the old Accounting page did
+    const openSuggestIntegration = () => {
+        if (policy?.chatReportIDAdmins) {
+            openConciergeAnywhere({reportID: String(policy.chatReportIDAdmins)});
+            return;
+        }
+        if (account?.accountManagerAccountID && account.accountManagerReportID) {
+            openConciergeAnywhere({reportID: account.accountManagerReportID});
+            return;
+        }
+        openConciergeAnywhere({forceConcierge: true});
+    };
 
     // Upgrade and setup flows that leave the app come back here with the integration to connect in the route params.
     // `startIntegrationFlow` changes identity whenever `policy` does, and the params are only cleared in a later render,
@@ -287,16 +306,16 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                     </View>
                     <View style={shouldUseSingleColumn && [styles.flexRow, styles.mt5]}>{searchBar}</View>
                 </View>
-                {shouldShowNoResults ? (
+                {shouldShowEmptyState ? (
                     <GenericEmptyStateComponent
                         headerMedia={illustrations.EmptyShelves}
                         headerContentStyles={styles.emptyShelvesIllustration}
                         headerStyles={styles.emptyStateCardIllustrationContainer}
-                        title={translate('common.noResultsFound')}
+                        title={isSearching ? translate('common.noResultsFound') : translate('workspace.connections.allConnectedTitle')}
                         subtitleText={
                             <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>
-                                {translate('workspace.connections.noResultsPrompt')}{' '}
-                                <TextLink onPress={() => openConciergeAnywhere({forceConcierge: true})}>{translate('workspace.connections.suggestAnIntegration')}</TextLink>
+                                {isSearching ? translate('workspace.connections.noResultsPrompt') : translate('workspace.connections.allConnectedPrompt')}{' '}
+                                <TextLink onPress={openSuggestIntegration}>{translate('workspace.connections.suggestAnIntegration')}</TextLink>
                                 {translate('workspace.connections.noResultsPromptEnd')}
                             </Text>
                         }
@@ -306,9 +325,9 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                         <ConnectionsGrid listings={visibleListings} />
                     </View>
                 )}
-                {!shouldShowNoResults && (
+                {!shouldShowEmptyState && (
                     <PressableWithFeedback
-                        onPress={() => openConciergeAnywhere({forceConcierge: true})}
+                        onPress={openSuggestIntegration}
                         accessibilityLabel={translate('workspace.connections.suggestIntegration')}
                         role={CONST.ROLE.LINK}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.SUGGEST_INTEGRATION}

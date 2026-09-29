@@ -120,7 +120,8 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(CONNECTIONS_MOVED, isDismissedUsingCloseButton),
         name: CONNECTIONS_MOVED,
         priority: 1650,
-        shouldShow: ({isUserPolicyAdmin}) => isUserPolicyAdmin,
+        // The workspace menu only renders it next to Connections, which is already limited to members who can read it
+        shouldShow: () => true,
     },
 };
 

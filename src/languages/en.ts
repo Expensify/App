@@ -5048,6 +5048,8 @@ const translations = {
             noResultsPrompt: 'Please adjust your search or',
             suggestAnIntegration: 'suggest an integration',
             noResultsPromptEnd: '.',
+            allConnectedTitle: "You're all connected",
+            allConnectedPrompt: 'Everything here is already connected. You can also',
         },
         receiptPartners: {
             uber: {

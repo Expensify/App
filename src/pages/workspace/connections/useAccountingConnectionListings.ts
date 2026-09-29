@@ -17,8 +17,6 @@ import {getConnectedIntegration, getIntegrationLastSuccessfulDate, tryNavigateTo
 import {useAccountingActions, useAccountingState} from '@pages/workspace/accounting/AccountingContext';
 import {getAccountingIntegrationData, getSynchronizationErrorMessage, isIntuitEnterpriseSuiteConnection} from '@pages/workspace/accounting/utils';
 
-import {enablePolicyConnections} from '@userActions/Policy/Policy';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -89,9 +87,6 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         }
         if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias, ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))) {
             return;
-        }
-        if (!policy?.areConnectionsEnabled) {
-            enablePolicyConnections(policyID, true, false);
         }
         startIntegrationFlow(
             connectedIntegration

@@ -13,6 +13,8 @@ import {isControlPolicy, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/Policy
 
 import {getAccountingIntegrationData} from '@pages/workspace/accounting/utils';
 
+import {enablePolicyConnections} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type Policy from '@src/types/onyx/Policy';
@@ -150,6 +152,10 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                     ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, workspaceUpgradeNavigationDetails.integrationAlias, workspaceUpgradeNavigationDetails.backToAfterWorkspaceUpgradeRoute),
                 );
                 return;
+            }
+            // Enabled only once the plan allows the integration, so backing out of the upgrade leaves the feature untouched
+            if (!policy?.areConnectionsEnabled) {
+                enablePolicyConnections(policyID, true, false);
             }
             setActiveIntegration({
                 ...newActiveIntegration,
