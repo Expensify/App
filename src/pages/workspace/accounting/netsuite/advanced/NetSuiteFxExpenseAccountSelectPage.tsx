@@ -47,7 +47,7 @@ function NetSuiteFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps
         Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
     };
 
-    const {searchableList, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(netsuiteFxExpenseAccountOptions, netsuiteFxExpenseAccountOptions.length, saveSelectedAccount);
+    const {searchableList, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(netsuiteFxExpenseAccountOptions, saveSelectedAccount);
     const {filteredData: listData, textInputOptions} = useSelectionListSearch(searchableList, translate('common.noResultsFound'));
 
     const listEmptyContent = (
