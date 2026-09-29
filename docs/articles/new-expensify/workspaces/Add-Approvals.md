@@ -79,7 +79,7 @@ The Audit team approves both reports, but each report continues to a different n
 
 To set this up, create a separate approval workflow for each submitter and give each one its own next approver after the shared approver:
 
-1. Navigate to **Workspaces > [Workspace Name] > Workflows**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Workspace Name] > Workflows**.
 2. On the **Approvals** tab, click **Add approval workflow**.
 3. On the **Expenses from** page, choose the member whose expenses should follow this path.
 4. Click **Next**.
