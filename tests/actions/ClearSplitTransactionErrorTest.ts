@@ -5,8 +5,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
-import createRandomTransaction from 'tests/utils/collections/transaction';
 
+import createRandomTransaction from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -34,7 +34,7 @@ describe('clearErrorWithOriginalTransactionError', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${CHILD_ID}`, buildChild());
         await waitForBatchedUpdates();
 
-        clearErrorWithOriginalTransactionError(CHILD_ID, originalTransaction);
+        clearErrorWithOriginalTransactionError(CHILD_ID, ORIGINAL_ID, true);
         await waitForBatchedUpdates();
 
         const child = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${CHILD_ID}`);
@@ -49,7 +49,7 @@ describe('clearErrorWithOriginalTransactionError', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${CHILD_ID}`, buildChild());
         await waitForBatchedUpdates();
 
-        clearErrorWithOriginalTransactionError(CHILD_ID, originalTransaction);
+        clearErrorWithOriginalTransactionError(CHILD_ID, ORIGINAL_ID, false);
         await waitForBatchedUpdates();
 
         const child = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${CHILD_ID}`);
@@ -62,7 +62,7 @@ describe('clearErrorWithOriginalTransactionError', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${CHILD_ID}`, {transactionID: CHILD_ID, reportID: '987654', errors: {[ERROR_KEY]: 'some error'}});
         await waitForBatchedUpdates();
 
-        clearErrorWithOriginalTransactionError(CHILD_ID, undefined);
+        clearErrorWithOriginalTransactionError(CHILD_ID, undefined, undefined);
         await waitForBatchedUpdates();
 
         const child = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${CHILD_ID}`);
