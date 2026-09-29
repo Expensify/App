@@ -63,6 +63,7 @@ import {
     getPlaidInstitutionId,
     getSelectedFeed,
     getTranslationKeyForCardStatus,
+    getVisibleExpensifyCardLimitTypes,
     getWalletProviderNameKey,
     getYearFromExpirationDateString,
     hasActiveExpensifyCard,
@@ -2309,6 +2310,67 @@ describe('CardUtils', () => {
 
             expect(shouldShowExpensifyCardFixedLimitType(card)).toBe(true);
             expect(shouldShowExpensifyCardFixedLimitType(card, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY)).toBe(false);
+        });
+    });
+
+    describe('getVisibleExpensifyCardLimitTypes', () => {
+        const policy = createMock<Policy>({
+            type: CONST.POLICY.TYPE.CORPORATE,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+        });
+
+        it('offers Smart, Monthly, and Fixed on a physical card that has not spent its limit', () => {
+            // Given a physical card whose unapproved spend is still under the limit
+            const card = createMock<Card>({
+                totalSpend: -1000,
+                nameValuePairs: {
+                    isVirtual: false,
+                    limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            // When the limit types this card can show are resolved
+            const limitTypes = getVisibleExpensifyCardLimitTypes(card, policy);
+
+            // Then Single Use is omitted, because it only exists on virtual cards
+            expect(limitTypes).toEqual([CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY, CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED]);
+        });
+
+        it('hides Fixed when a monthly card has already spent its full unapproved limit', () => {
+            // Given a monthly card that has already spent its full unapproved limit
+            const card = createMock<Card>({
+                totalSpend: -5000,
+                nameValuePairs: {
+                    isVirtual: false,
+                    limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            // When the limit types this card can show are resolved
+            const limitTypes = getVisibleExpensifyCardLimitTypes(card, policy);
+
+            // Then Fixed is hidden, so the card cannot be switched onto a type that would decline new spend
+            expect(limitTypes).toEqual([CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY]);
+        });
+
+        it('offers Single Use on a virtual card', () => {
+            // Given a virtual card that has already spent its full unapproved limit
+            const card = createMock<Card>({
+                totalSpend: -5000,
+                nameValuePairs: {
+                    isVirtual: true,
+                    limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            // When the limit types this card can show are resolved
+            const limitTypes = getVisibleExpensifyCardLimitTypes(card, policy);
+
+            // Then Single Use is offered and Fixed stays hidden
+            expect(limitTypes).toEqual([CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE]);
         });
     });
 

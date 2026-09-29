@@ -548,6 +548,20 @@ function shouldShowExpensifyCardFixedLimitType(card?: Card, fallbackLimitType?: 
 }
 
 /**
+ * Smart and Monthly are always offered. Fixed is hidden once spend is already at the limit, and Single Use only exists on virtual cards.
+ */
+function getVisibleExpensifyCardLimitTypes(card: Card | undefined, policy: OnyxEntry<Policy>): CardLimitType[] {
+    const limitTypes: CardLimitType[] = [CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY];
+    if (shouldShowExpensifyCardFixedLimitType(card, getDefaultExpensifyCardLimitType(policy))) {
+        limitTypes.push(CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED);
+    }
+    if (card?.nameValuePairs?.isVirtual) {
+        limitTypes.push(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE);
+    }
+    return limitTypes;
+}
+
+/**
  * Whether changing to `newLimitType` can decline new transactions because unapproved spend is already at the limit.
  * `fallbackLimitType` is the policy default, used when the card has no `limitType` yet.
  */
@@ -2430,6 +2444,7 @@ export {
     getMCardNumberString,
     getTranslationKeyForLimitType,
     getTranslationKeyForCardStatus,
+    getVisibleExpensifyCardLimitTypes,
     maskPin,
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,

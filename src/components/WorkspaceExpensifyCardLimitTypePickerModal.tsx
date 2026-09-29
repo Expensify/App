@@ -11,7 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import {getDefaultExpensifyCardLimitType, shouldShowExpensifyCardFixedLimitType} from '@libs/CardUtils';
+import {getVisibleExpensifyCardLimitTypes} from '@libs/CardUtils';
 import {canMemberRead, getApprovalWorkflow} from '@libs/PolicyUtils';
 
 import variables from '@styles/variables';
@@ -59,20 +59,6 @@ type WorkspaceExpensifyCardLimitTypePickerModalProps = {
 
     onSelected?: (limitType: CardLimitType) => void;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
-
-/**
- * Smart and Monthly are always offered. Fixed is hidden once spend is already at the limit, and Single Use only exists on virtual cards.
- */
-function getVisibleExpensifyCardLimitTypes(card: Card, policy: OnyxEntry<Policy>): CardLimitType[] {
-    const limitTypes: CardLimitType[] = [CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY];
-    if (shouldShowExpensifyCardFixedLimitType(card, getDefaultExpensifyCardLimitType(policy))) {
-        limitTypes.push(CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED);
-    }
-    if (card.nameValuePairs?.isVirtual) {
-        limitTypes.push(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE);
-    }
-    return limitTypes;
-}
 
 /**
  * Inversion has to use the options this card can actually show. A fixed four-row height flips the menu when a shorter list still fits below the cell.

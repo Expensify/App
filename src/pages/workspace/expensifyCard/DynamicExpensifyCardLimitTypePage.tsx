@@ -31,8 +31,8 @@ import {
     filterInactiveCardsForWorkspace,
     getDefaultExpensifyCardLimitType,
     getExpensifyCardLimitTypeChangeWarningKey,
+    getVisibleExpensifyCardLimitTypes,
     shouldConfirmExpensifyCardLimitTypeChange,
-    shouldShowExpensifyCardFixedLimitType,
 } from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -143,7 +143,7 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
         updateCardLimitType(values);
     };
 
-    const shouldShowFixedOption = shouldShowExpensifyCardFixedLimitType(card, defaultLimitType);
+    const visibleLimitTypes = getVisibleExpensifyCardLimitTypes(card, policy);
 
     // Only link to the Workflows page when the current user can actually read it. Card admins without Workflows
     // access would otherwise be dropped onto the Not Found page. When they lack access, render plain (non-linked) text.
@@ -178,7 +178,7 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
         isSelected: typeSelected === CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
     });
 
-    if (shouldShowFixedOption) {
+    if (visibleLimitTypes.includes(CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED)) {
         data.push({
             value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED,
             label: translate('workspace.card.issueNewCard.fixedAmount'),
@@ -188,7 +188,7 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
         });
     }
 
-    if (card?.nameValuePairs?.isVirtual) {
+    if (visibleLimitTypes.includes(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE)) {
         data.push({
             value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE,
             label: translate('workspace.card.issueNewCard.singleUse'),
