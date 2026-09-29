@@ -12,14 +12,15 @@ import useDefaultFundID from './useDefaultFundID';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import {useAllPersonalDetails} from './usePersonalDetails';
 
 export default function useExpensifyCardRules(policyID: string) {
     const {isOffline} = useNetwork();
     const defaultFundID = useDefaultFundID(policyID);
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const [cardsList, cardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
 
@@ -51,7 +52,13 @@ export default function useExpensifyCardRules(policyID: string) {
                 }
 
                 const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[accountID], defaultValue: '', shouldFallbackToHidden: false, translate});
+                const displayName = temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: personalDetails?.[accountID],
+                    defaultValue: '',
+                    shouldFallbackToHidden: false,
+                    translate,
+                    formatPhoneNumber,
+                });
                 cardNames.push(getCardDescriptionForSearchTable(card, translate, displayName || undefined) || cardID);
                 cardOwnerDisplayNames.push(displayName);
             }

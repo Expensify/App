@@ -1,4 +1,4 @@
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -14,6 +14,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Unit} from '@src/types/onyx/Policy';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
@@ -28,10 +29,12 @@ type DistanceRatesTableColumnKey = 'status' | 'name' | 'rate' | 'startDate' | 'e
 type WorkspaceDistanceRatesTableProps = {
     ratesData: DistanceRateTableItemData[];
     policyID: string;
+    unit?: Unit;
     selectionEnabled: boolean;
     selectedKeys: string[];
     canWriteDistanceRates: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    headerComponent?: React.ReactElement;
 };
 
 const STATUS_ORDER: Record<string, number> = {
@@ -41,7 +44,16 @@ const STATUS_ORDER: Record<string, number> = {
     [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: 3,
 };
 
-function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, selectedKeys, canWriteDistanceRates, onRowSelectionChange}: WorkspaceDistanceRatesTableProps) {
+function WorkspaceDistanceRatesTable({
+    ratesData,
+    policyID,
+    unit,
+    selectionEnabled,
+    selectedKeys,
+    canWriteDistanceRates,
+    onRowSelectionChange,
+    headerComponent,
+}: WorkspaceDistanceRatesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
@@ -117,7 +129,7 @@ function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, sel
                   icon: icons.Plus,
                   buttonText: translate('workspace.distanceRates.addRate'),
 
-                  success: true,
+                  buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                   buttonAction: () => {
                       Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID));
                   },
@@ -143,8 +155,12 @@ function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, sel
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
             shouldShowDateColumns={hasAnyDateBound}
             statusLabels={statusLabels}
+            unit={unit}
         />
     );
+
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.distanceRates.findRate')} />;
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (
         <Table
@@ -161,7 +177,7 @@ function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, sel
             narrowLayoutSortColumn="name"
             title={translate('workspace.common.distanceRates')}
         >
-            <Table.FilterBar label={translate('workspace.distanceRates.findRate')} />
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.EmptyState
                 title={translate('workspace.distanceRates.emptyRates.title')}
                 subtitle={translate('workspace.distanceRates.emptyRates.subtitle')}

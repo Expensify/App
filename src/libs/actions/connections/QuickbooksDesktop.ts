@@ -418,6 +418,26 @@ function updateQuickbooksDesktopReimbursableExpensesAccount<TSettingValue extend
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_REIMBURSABLE_EXPENSES_ACCOUNT, parameters, onyxData);
 }
 
+function updateQuickbooksDesktopFxExpenseAccount<TSettingValue extends Connections['quickbooksDesktop']['config']['fxExpenseAccount']>(
+    policyID: string | undefined,
+    settingValue: TSettingValue,
+    oldSettingValue?: TSettingValue,
+) {
+    if (settingValue === oldSettingValue || !policyID) {
+        return;
+    }
+
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.FX_EXPENSE_ACCOUNT, settingValue, oldSettingValue);
+
+    const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
+        policyID,
+        // Auth parses settingValue as JSON and 400s on anything else, so the account ID goes over the wire quoted.
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.FX_EXPENSE_ACCOUNT),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT, parameters, onyxData);
+}
+
 function updateQuickbooksDesktopEnableNewCategories<TSettingValue extends Connections['quickbooksDesktop']['config']['enableNewCategories']>(policyID: string, settingValue: TSettingValue) {
     const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.ENABLE_NEW_CATEGORIES, settingValue, !settingValue);
 
@@ -522,20 +542,20 @@ function updateQuickbooksDesktopNonReimbursableBillDefaultVendor<TSettingValue e
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_BILL_DEFAULT_VENDOR, parameters, onyxData);
 }
 
-function updateQuickbooksDesktopTravelInvoicingPayableAccount(
+function updateQuickbooksDesktopTravelBillingPayableAccount(
     policyID: string,
     settingValue: string,
     oldSettingValue?: Connections['quickbooksDesktop']['config']['export']['travelInvoicingPayableAccountID'],
 ) {
-    const onyxData = buildOnyxDataForQuickbooksExportConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, settingValue, oldSettingValue);
+    const onyxData = buildOnyxDataForQuickbooksExportConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT, settingValue, oldSettingValue);
 
     const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
         policyID,
         settingValue,
-        idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT),
+        idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT),
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_TRAVEL_BILLING_PAYABLE_ACCOUNT, parameters, onyxData);
 }
 
 function updateQuickbooksDesktopExportDate<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['exportDate']>(
@@ -584,11 +604,12 @@ export {
     updateQuickbooksDesktopPreferredExporter,
     updateQuickbooksDesktopMarkChecksToBePrinted,
     updateQuickbooksDesktopNonReimbursableBillDefaultVendor,
-    updateQuickbooksDesktopTravelInvoicingPayableAccount,
+    updateQuickbooksDesktopTravelBillingPayableAccount,
     updateQuickbooksDesktopShouldAutoCreateVendor,
     updateQuickbooksDesktopNonReimbursableExpensesAccount,
     updateQuickbooksDesktopExpensesExportDestination,
     updateQuickbooksDesktopReimbursableExpensesAccount,
+    updateQuickbooksDesktopFxExpenseAccount,
     getQuickbooksDesktopCodatSetupLink,
     updateQuickbooksCompanyCardExpenseAccount,
     updateQuickbooksDesktopEnableNewCategories,

@@ -6,10 +6,12 @@ on:
     inputs:
       app_pull_request_url:
         description: 'The Expensify/App pull request URL. Its description is scanned for a MOBILE-EXPENSIFY entry.'
+        type: string
         required: false
         default: ''
       mobile_expensify_pull_request_url:
         description: 'The Expensify/Mobile-Expensify pull request URL to check out the submodule. Overrides MOBILE-EXPENSIFY set in the App PR description.'
+        type: string
         required: false
         default: ''
       reviewed_code:
@@ -46,8 +48,6 @@ jobs:
   build:
     needs: [prep, resolveRefs]
     runs-on: ${{ github.repository_owner == 'Expensify' && 'blacksmith-12vcpu-macos-latest' || 'macos-latest' }}
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
     strategy:
       fail-fast: false
       matrix:
@@ -75,6 +75,9 @@ jobs:
           git fetch origin ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF }}
           git checkout ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF }}
           echo "Checked out Mobile-Expensify PR #${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_PR }} (${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF }})"
+
+      - name: Set up Xcode version
+        uses: ./.github/actions/composite/getXcodeVersion
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode

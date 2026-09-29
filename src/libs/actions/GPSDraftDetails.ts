@@ -1,4 +1,4 @@
-import {addressFromGpsPoint, calculateTrimmedEndPoint, coordinatesToString} from '@libs/GPSDraftDetailsUtils';
+import {addressFromGpsPoint, calculateTrimmedEndPoint, coordinatesToString} from '@libs/GPSPointUtils';
 
 import {GPS_DISTANCE_INTERVAL_METERS} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {updateGpsTripNotificationDistance} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
@@ -64,11 +64,8 @@ function updateGpsPoints(gpsPoints: GPSPoint[][]) {
 }
 
 function removeLastSegment(gpsPoints: GPSPoint[][]) {
-    // Clear the last segment instead of removing it if there is only one segment
-    if (gpsPoints.length === 1) {
-        Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {
-            gpsPoints: [[]],
-        });
+    // A trip's only segment is never dropped, because a trip with no points reads as one that never started
+    if (gpsPoints.length <= 1) {
         return;
     }
 
@@ -80,13 +77,14 @@ function removeLastSegment(gpsPoints: GPSPoint[][]) {
     });
 }
 
-function initGpsDraft(reportID: string, unit: Unit) {
+function initGpsDraft(reportID: string, unit: Unit, accountID?: number) {
     Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {
         gpsPoints: [[]],
         isTracking: true,
         distanceInMeters: 0,
         reportID,
         unit,
+        accountID,
     });
 }
 

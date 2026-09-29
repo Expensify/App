@@ -81,14 +81,17 @@
             -webkit-user-select: none !important;
             -webkit-touch-callout: none !important;
         }
+        .drag-in-progress, .drag-in-progress * {
+            cursor: grabbing !important;
+        }
         :focus-visible:not([data-programmatic-focus="true"]) {
             outline: 0;
             box-shadow: inset 0px 0px 0px 1px #5AB0FF;
         }
-        :focus-visible:not([data-programmatic-focus="true"])[data-inner-box-shadow-element]{
+        :focus-visible:not([data-programmatic-focus="true"])[data-inner-box-shadow-element="true"]{
             overflow: hidden;
         }
-        :focus-visible:not([data-programmatic-focus="true"])[data-inner-box-shadow-element]::before {
+        :focus-visible:not([data-programmatic-focus="true"])[data-inner-box-shadow-element="true"]::before {
             content: '';
             position: absolute;
             top: 0;

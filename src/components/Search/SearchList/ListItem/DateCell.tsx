@@ -31,7 +31,7 @@ type DateCellProps = {
 function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseLocalTimeZone = false, canEdit, onSave}: DateCellProps) {
     const styles = useThemeStyles();
     const {isInNarrowPaneModal} = useResponsiveLayout();
-    const {getLocalDateFromDatetime} = useLocalize();
+    const {getLocalDateFromDatetime, dateFnsLocale} = useLocalize();
     const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
         value: date,
@@ -42,9 +42,13 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseL
     if (shouldUseLocalTimeZone && date) {
         const localDate = getLocalDateFromDatetime(date);
         const isPastYear = localDate.getFullYear() !== getLocalDateFromDatetime().getFullYear();
-        formattedDate = format(localDate, isPastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+        formattedDate = format(localDate, isPastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT, {locale: dateFnsLocale});
     } else {
-        formattedDate = DateUtils.formatWithUTCTimeZone(date, DateUtils.doesDateBelongToAPastYear(date) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+        formattedDate = DateUtils.formatWithUTCTimeZone(
+            date,
+            DateUtils.doesDateBelongToAPastYear(date) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+            dateFnsLocale,
+        );
     }
     const displayText = suffixText ? `${formattedDate} • ${suffixText}` : formattedDate;
 

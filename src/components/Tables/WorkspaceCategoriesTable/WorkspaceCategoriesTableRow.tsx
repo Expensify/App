@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Icon from '@components/Icon';
 import Switch from '@components/Switch';
 import Table from '@components/Table';
@@ -20,13 +20,8 @@ import {View} from 'react-native';
 import type {WorkspaceCategoryTableRowData} from '.';
 
 type WorkspaceCategoriesTableRowProps = {
-    /** Data about the category */
     item: WorkspaceCategoryTableRowData;
-
-    /** The index of the row relative to all other rows */
     rowIndex: number;
-
-    /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
 
     /** Whether the GL Code column is visible on web screens or not */
@@ -100,10 +95,9 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                         >
                             {!!item.approverDisplayName && !!item.approverAccountID && (
                                 <>
-                                    <Avatar
-                                        name={item.approverDisplayName}
+                                    <UserAvatar
                                         source={item.approverAvatar}
-                                        type={CONST.ICON_TYPE_AVATAR}
+                                        accountID={item.approverAccountID}
                                         size={CONST.AVATAR_SIZE.XXX_SMALL}
                                     />
                                     <TextWithTooltip

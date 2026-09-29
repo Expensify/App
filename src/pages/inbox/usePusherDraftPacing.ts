@@ -1,12 +1,16 @@
+import useOnyx from '@hooks/useOnyx';
+
 import {getReportChannelName} from '@libs/actions/Report';
 import {ACCELERATED_REMAINING_MS, easeOut, getRevealDurationMS, MIN_TRICKLE_TOKEN_COUNT, TICK_INTERVAL_MS, TRICKLE_HARD_CAP_MS} from '@libs/ConciergeRevealUtils';
 import Log from '@libs/Log';
 import Pusher from '@libs/Pusher';
 import type {ConciergeDraftEvent, ConciergeDraftEventsEvent} from '@libs/Pusher/types';
+import stripFollowupListFromHtml from '@libs/ReportActionFollowupUtils/stripFollowupListFromHtml';
 import tokenizeForReveal from '@libs/ReportActionFollowupUtils/tokenizeForReveal';
 import {getReportActionHtml} from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
 import type {Dispatch, SetStateAction} from 'react';
@@ -39,6 +43,7 @@ type PusherDraftPaceRefs = {
 };
 
 type PusherDraftPacingRuntime = PusherDraftPaceRefs & {
+    completedReportActionIDsRef: MutableRef<Set<string>>;
     currentDraftRef: MutableRef<ConciergeDraft | null>;
     isGroupPolicyReport: boolean;
     reportID: string;
@@ -132,7 +137,13 @@ function resetPusherDraftPace(runtime: PusherDraftPaceRefs) {
 }
 
 function clearCachedPusherDraft(runtime: PusherDraftPacingRuntime) {
-    const {currentDraftRef, reportID, setDraft} = runtime;
+    const {completedReportActionIDsRef, currentDraftRef, reportID, setDraft} = runtime;
+
+    // Clearing the display must not let delayed Pusher events restart a completed reply.
+    // Unfinished drafts cleared on reconnect can still resume.
+    if (currentDraftRef.current?.status === CONCIERGE_DRAFT_STATUS.COMPLETED && !currentDraftRef.current.pusherPendingCompletionEvent) {
+        completedReportActionIDsRef.current.add(currentDraftRef.current.reportAction.reportActionID);
+    }
 
     resetPusherDraftPace(runtime);
     currentDraftRef.current = null;
@@ -219,7 +230,9 @@ function publishVisibleEvent(
         visibleSourceOffsetRef.current = visibleMarkdown.sourceOffset;
     }
 
-    visibleSequenceRef.current += 1;
+    // Local optimistic reveals also advance the draft sequence. Reconciliation must
+    // publish a newer event even when the Pusher pacer has not emitted those stages.
+    visibleSequenceRef.current = Math.max(visibleSequenceRef.current, runtime.currentDraftRef.current?.sequence ?? 0) + 1;
     const visibleStatus = status ?? event.status;
     const visibleEvent = {
         ...event,
@@ -366,7 +379,7 @@ function getRevealStageForCurrentDraft(runtime: PusherDraftPacingRuntime, event:
         return 0;
     }
 
-    const currentHTML = getReportActionHtml(currentDraft.reportAction);
+    const currentHTML = stripFollowupListFromHtml(getReportActionHtml(currentDraft.reportAction));
     if (!currentHTML) {
         return 0;
     }
@@ -397,7 +410,7 @@ function tickFinalRenderedHTMLReveal(runtime: PusherDraftPacingRuntime) {
     const shouldComplete = progress >= 1 || elapsed >= TRICKLE_HARD_CAP_MS;
 
     if (shouldComplete) {
-        publishVisibleEvent(runtime, event, undefined, CONCIERGE_DRAFT_STATUS.COMPLETED, tokens.at(-1) ?? finalRenderedHTML);
+        publishVisibleEvent(runtime, event, undefined, CONCIERGE_DRAFT_STATUS.COMPLETED, finalRenderedHTML);
         stopFinalRenderedHTMLReveal(runtime);
         return;
     }
@@ -429,7 +442,9 @@ function startFinalRenderedHTMLReveal(runtime: PusherDraftPacingRuntime, event: 
         return;
     }
 
-    const tokens = tokenizeForReveal(finalRenderedHTML);
+    // Followups include hidden pregenerated answers. Reveal only the visible answer body,
+    // then publish the complete original HTML so buttons never expose partial responses.
+    const tokens = tokenizeForReveal(stripFollowupListFromHtml(finalRenderedHTML) ?? '');
     stopPusherDraftPace(runtime);
     stopFinalRenderedHTMLReveal(runtime);
     completedPusherDraftEventRef.current = null;
@@ -439,17 +454,17 @@ function startFinalRenderedHTMLReveal(runtime: PusherDraftPacingRuntime, event: 
     visibleSourceOffsetRef.current = 0;
     latestPusherDraftEventRef.current = event;
 
-    if (tokens.length < MIN_TRICKLE_TOKEN_COUNT) {
+    const currentStage = getRevealStageForCurrentDraft(runtime, event, tokens);
+    if (tokens.length < MIN_TRICKLE_TOKEN_COUNT || currentStage === tokens.length - 1) {
         finalRenderedHTMLRevealDurationRef.current = 0;
         finalRenderedHTMLRevealTokensRef.current = [];
         finalRenderedHTMLRevealStartedAtRef.current = 0;
         finalRenderedHTMLRevealLastStageRef.current = 0;
-        publishVisibleEvent(runtime, event, undefined, CONCIERGE_DRAFT_STATUS.COMPLETED, tokens.at(-1) ?? finalRenderedHTML);
+        publishVisibleEvent(runtime, event, undefined, CONCIERGE_DRAFT_STATUS.COMPLETED, finalRenderedHTML);
         return;
     }
 
     const lastIndex = tokens.length - 1;
-    const currentStage = getRevealStageForCurrentDraft(runtime, event, tokens);
     const initialStage = Math.max(1, Math.min(lastIndex, currentStage));
     const initialProgress = initialStage / lastIndex;
     const initialElapsedRatio = 1 - Math.sqrt(1 - initialProgress);
@@ -623,9 +638,9 @@ function promoteQueuedPusherDraftTarget(runtime: PusherDraftPacingRuntime): bool
 }
 
 function isStalePusherDraftEventAgainstTarget(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent, latestEvent: ConciergeDraftEvent | null): boolean {
-    const {currentDraftRef, reportID} = runtime;
+    const {completedReportActionIDsRef, currentDraftRef, reportID} = runtime;
 
-    if (event.reportID !== reportID) {
+    if (event.reportID !== reportID || completedReportActionIDsRef.current.has(event.reportActionID)) {
         return true;
     }
 
@@ -851,11 +866,15 @@ function resumeCachedPusherDraftPace(runtime: PusherDraftPacingRuntime) {
 }
 
 function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
+    const [pendingLocalReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`, {
+        selector: (pendingResponse) => pendingResponse?.reportAction.reportActionID,
+    });
     // Lazy-init from the module-level cache so a remount (ReportScreen
     // unmount/remount on chat-switch) restores the in-progress draft on the
     // first paint instead of flashing the synthetic bubble away.
     const [draft, setDraft] = useState<ConciergeDraft | null>(() => getCachedDraft(reportID));
     const currentDraftRef = useRef<ConciergeDraft | null>(draft);
+    const completedReportActionIDsRef = useRef(new Set<string>());
     const visibleBodyMarkdownRef = useRef(draft?.bodyMarkdown ?? '');
     const visibleSourceMarkdownRef = useRef(draft?.pusherVisibleSourceMarkdown ?? draft?.bodyMarkdown ?? '');
     const visibleSourceOffsetRef = useRef(draft?.pusherVisibleSourceOffset ?? draft?.bodyMarkdown?.length ?? 0);
@@ -874,6 +893,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
 
     const clearDraft = () => {
         clearCachedPusherDraft({
+            completedReportActionIDsRef,
             completedPusherDraftEventRef,
             currentDraftRef,
             finalRenderedHTMLRevealDurationRef,
@@ -929,7 +949,16 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
             return;
         }
 
-        if (getReportActionHtml(currentDraft.reportAction) === finalRenderedHTML && currentDraft.status === CONCIERGE_DRAFT_STATUS.COMPLETED) {
+        // A completed reply belongs to the persisted action. Followup selection or other
+        // later edits must not turn it back into a streaming draft.
+        if (currentDraft.status === CONCIERGE_DRAFT_STATUS.COMPLETED && !currentDraft.pusherPendingCompletionEvent) {
+            clearDraft();
+            return;
+        }
+
+        // The local reveal already accelerates when this saved action arrives. Let it
+        // finish before reconciliation takes over, so two timers cannot advance the same draft.
+        if (pendingLocalReportActionID === reportAction.reportActionID) {
             return;
         }
 
@@ -941,6 +970,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
         const sequence = Math.max(currentDraft.sequence, latestPusherDraftEvent?.sequence ?? 0, visibleSequenceRef.current) + 1;
         startFinalRenderedHTMLReveal(
             {
+                completedReportActionIDsRef,
                 completedPusherDraftEventRef,
                 currentDraftRef,
                 finalRenderedHTMLRevealDurationRef,
@@ -977,6 +1007,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
 
     useEffect(() => {
         const runtime = {
+            completedReportActionIDsRef,
             completedPusherDraftEventRef,
             currentDraftRef,
             finalRenderedHTMLRevealDurationRef,
@@ -998,32 +1029,22 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
             visibleSequenceRef,
         };
         const channelName = getReportChannelName(reportID);
-        const handleResubscribe = () => {
+        const unregisterResubscribe = Pusher.onChannelResubscribe(channelName, () => {
             clearCachedPusherDraft(runtime);
-        };
+        });
 
         const draftEventSubscriptions = [
             {
                 eventType: Pusher.TYPE.CONCIERGE_DRAFT_EVENTS,
-                listener: Pusher.subscribe(
-                    channelName,
-                    Pusher.TYPE.CONCIERGE_DRAFT_EVENTS,
-                    (eventData: ConciergeDraftEventsEvent) => {
-                        handlePusherDraftEvents(runtime, eventData);
-                    },
-                    handleResubscribe,
-                ),
+                listener: Pusher.subscribe(channelName, Pusher.TYPE.CONCIERGE_DRAFT_EVENTS, (eventData: ConciergeDraftEventsEvent) => {
+                    handlePusherDraftEvents(runtime, eventData);
+                }),
             },
             ...PUSHER_DRAFT_EVENT_TYPES.map((eventType) => ({
                 eventType,
-                listener: Pusher.subscribe(
-                    channelName,
-                    eventType,
-                    (eventData: ConciergeDraftEvent) => {
-                        handlePusherDraftEvent(runtime, eventData);
-                    },
-                    handleResubscribe,
-                ),
+                listener: Pusher.subscribe(channelName, eventType, (eventData: ConciergeDraftEvent) => {
+                    handlePusherDraftEvent(runtime, eventData);
+                }),
             })),
         ];
 
@@ -1064,6 +1085,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
             unsubscribeVisibility();
             stopPusherDraftPace(runtime);
             stopFinalRenderedHTMLReveal(runtime);
+            unregisterResubscribe();
             for (const subscription of subscriptions) {
                 subscription.unsubscribe();
             }

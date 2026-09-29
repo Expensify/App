@@ -11,6 +11,7 @@ import {Str} from 'expensify-common';
 
 import type {AvatarSource} from './UserAvatarUtils';
 
+import getVacationDelegateErrors from './getVacationDelegateErrors';
 import hashCode from './hashCode';
 
 type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
@@ -190,12 +191,13 @@ function getProfilePageBrickRoadIndicator(
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>,
     vacationDelegate: OnyxEntry<VacationDelegate>,
     email: string | undefined,
+    shouldShowAddHomeAddress = false,
 ): LoginListIndicator {
     const hasPhoneNumberError = !!privatePersonalDetails?.errorFields?.phoneNumber;
-    if (hasLoginListError(loginList) || hasPhoneNumberError || !isEmptyObject(vacationDelegate?.errors)) {
+    if (hasLoginListError(loginList) || hasPhoneNumberError || !isEmptyObject(getVacationDelegateErrors(vacationDelegate))) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
-    if (hasLoginListInfo(loginList, email)) {
+    if (hasLoginListInfo(loginList, email) || shouldShowAddHomeAddress) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 

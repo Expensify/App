@@ -4,6 +4,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import CONST from '../../src/CONST';
 import * as FileUtils from '../../src/libs/fileDownload/FileUtils';
+import createMock from '../utils/createMock';
 
 // Mock only normalizeFileObject and validateImageForCorruption; keep real hasHeicOrHeifExtension and isValidReceiptExtension
 jest.mock('@src/libs/fileDownload/FileUtils', () => {
@@ -15,7 +16,7 @@ jest.mock('@src/libs/fileDownload/FileUtils', () => {
     };
 });
 
-const mockFileUtils = FileUtils as jest.Mocked<typeof FileUtils>;
+const mockFileUtils = jest.mocked(FileUtils);
 
 const createMockFile = (name: string, size: number): FileObject => ({
     name,
@@ -54,7 +55,7 @@ describe('validateAttachmentFile', () => {
         });
 
         it('returns invalid result with FILE_INVALID when file has null size', async () => {
-            const file: FileObject = {name: 'receipt.jpg', size: null as unknown as number};
+            const file = {name: 'receipt.jpg', size: null};
             const error = await validateAttachmentFile(file, undefined, true);
 
             if (error.isValid) {
@@ -191,12 +192,10 @@ describe('validateAttachmentFile', () => {
 
     describe('FOLDER_NOT_ALLOWED', () => {
         it('returns invalid result with FOLDER_NOT_ALLOWED when DataTransferItem is a directory', async () => {
-            const mockItem = {
+            const mockItem = createMock<DataTransferItem>({
                 kind: 'file' as const,
-                webkitGetAsEntry: jest.fn(() => ({
-                    isDirectory: true,
-                })),
-            } as unknown as DataTransferItem;
+                webkitGetAsEntry: jest.fn(() => createMock<FileSystemEntry>({isDirectory: true})),
+            });
 
             const file = createMockFile('folder', 0);
             const error = await validateAttachmentFile(file, mockItem);
@@ -208,13 +207,27 @@ describe('validateAttachmentFile', () => {
             expect(error.error).toEqual(CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED);
         });
 
-        it('returns valid result when DataTransferItem is not a directory', async () => {
-            const mockItem = {
+        it.each(['folder', 'receipts.pdf'])('returns FOLDER_NOT_ALLOWED for a receipt directory named %s', async (name) => {
+            const mockItem = createMock<DataTransferItem>({
                 kind: 'file' as const,
-                webkitGetAsEntry: jest.fn(() => ({
-                    isDirectory: false,
-                })),
-            } as unknown as DataTransferItem;
+                webkitGetAsEntry: jest.fn(() => createMock<FileSystemEntry>({isDirectory: true})),
+            });
+
+            const file = createMockFile(name, 0);
+            const error = await validateAttachmentFile(file, mockItem, true);
+
+            if (error.isValid) {
+                throw new Error('validateAttachmentFile should return an invalid result');
+            }
+
+            expect(error.error).toEqual(CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED);
+        });
+
+        it('returns valid result when DataTransferItem is not a directory', async () => {
+            const mockItem = createMock<DataTransferItem>({
+                kind: 'file' as const,
+                webkitGetAsEntry: jest.fn(() => createMock<FileSystemEntry>({isDirectory: false})),
+            });
 
             const file = createMockFile('file.pdf', 100);
             const error = await validateAttachmentFile(file, mockItem);
@@ -316,11 +329,11 @@ describe('validateAttachmentFile', () => {
             try {
                 const blob = new Blob(['content'], {type: 'text/plain'});
                 const convertedFile = new File([blob], 'file.txt', {type: 'text/plain'});
-                const file = {
+                const file = createMock<FileObject>({
                     name: 'file.txt',
                     size: 7,
                     getAsFile: () => convertedFile,
-                } as unknown as FileObject;
+                });
 
                 const error = await validateAttachmentFile(file);
 

@@ -1,16 +1,12 @@
 import {useFullScreenLoaderActions, useFullScreenLoaderState} from '@components/FullScreenLoaderContext';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
-import getPlatform from '@libs/getPlatform';
-import type Platform from '@libs/getPlatform/types';
 import Log from '@libs/Log';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CameraPermission from '@pages/iou/request/step/IOURequestStepScan/CameraPermission';
 
-import ONYXKEYS from '@src/ONYXKEYS';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
-
+import type React from 'react';
 import type {Camera, Point} from 'react-native-vision-camera';
 
 import {useFocusEffect} from '@react-navigation/core';
@@ -22,13 +18,10 @@ import {useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, w
 import {useCameraDevice} from 'react-native-vision-camera';
 import {scheduleOnRN} from 'react-native-worklets';
 
+import useIsPlatformMuted from './useIsPlatformMuted';
 import useLocalize from './useLocalize';
-import useOnyx from './useOnyx';
 
 type UseNativeCameraOptions = {
-    /** Context name for telemetry reason attributes */
-    context: string;
-
     /** Additional logic to run when the screen gains focus */
     onFocusStart?: () => void;
 
@@ -36,7 +29,27 @@ type UseNativeCameraOptions = {
     onFocusCleanup?: () => void;
 };
 
-function useNativeCamera({context, onFocusStart, onFocusCleanup}: UseNativeCameraOptions) {
+/**
+ * Requests camera permission and reports the resulting status back to the caller. Shared by every native camera
+ * surface so they all handle the BLOCKED case the same way.
+ */
+function requestCameraPermission(translate: LocalizedTranslate, setStatus: (status: string) => void) {
+    // There's no way we can check for the BLOCKED status without requesting the permission first
+    // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
+    CameraPermission.requestCameraPermission?.()
+        .then((status: string) => {
+            setStatus(status);
+
+            if (status === RESULTS.BLOCKED) {
+                showCameraPermissionsAlert(translate);
+            }
+        })
+        .catch(() => {
+            setStatus(RESULTS.UNAVAILABLE);
+        });
+}
+
+function useNativeCamera({onFocusStart, onFocusCleanup}: UseNativeCameraOptions) {
     const {translate} = useLocalize();
     const {isLoaderVisible} = useFullScreenLoaderState();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
@@ -45,9 +58,7 @@ function useNativeCamera({context, onFocusStart, onFocusCleanup}: UseNativeCamer
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
 
-    const platform = getPlatform(true);
-    const [mutedPlatforms = getEmptyObject<Partial<Record<Platform, true>>>()] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
-    const isPlatformMuted = mutedPlatforms[platform];
+    const isPlatformMuted = useIsPlatformMuted();
 
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const hasFlash = !!device?.hasFlash;
@@ -56,57 +67,9 @@ function useNativeCamera({context, onFocusStart, onFocusCleanup}: UseNativeCamer
     const [isAttachmentPickerActive, setIsAttachmentPickerActive] = useState(false);
     const camera = useRef<Camera>(null);
 
-    const askForPermissions = useCallback(() => {
-        // There's no way we can check for the BLOCKED status without requesting the permission first
-        // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
-        CameraPermission.requestCameraPermission?.()
-            .then((status: string) => {
-                setCameraPermissionStatus(status);
+    const askForPermissions = useCallback(() => requestCameraPermission(translate, setCameraPermissionStatus), [translate]);
 
-                if (status === RESULTS.BLOCKED) {
-                    showCameraPermissionsAlert(translate);
-                }
-            })
-            .catch(() => {
-                setCameraPermissionStatus(RESULTS.UNAVAILABLE);
-            });
-    }, [translate]);
-
-    // Focus indicator animations
-    const focusIndicatorOpacity = useSharedValue(0);
-    const focusIndicatorScale = useSharedValue(2);
-    const focusIndicatorPosition = useSharedValue({x: 0, y: 0});
-
-    const cameraFocusIndicatorAnimatedStyle = useAnimatedStyle(() => ({
-        opacity: focusIndicatorOpacity.get(),
-        transform: [{translateX: focusIndicatorPosition.get().x}, {translateY: focusIndicatorPosition.get().y}, {scale: focusIndicatorScale.get()}],
-    }));
-
-    const focusCamera = useCallback((point: Point) => {
-        if (!camera.current) {
-            return;
-        }
-
-        camera.current.focus(point).catch((error: Record<string, unknown>) => {
-            if (error.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
-                return;
-            }
-            Log.warn('Error focusing camera', error);
-        });
-    }, []);
-
-    const tapGesture = Gesture.Tap()
-        .enabled(device?.supportsFocus ?? false)
-        .onStart((ev: {x: number; y: number}) => {
-            const point = {x: ev.x, y: ev.y};
-
-            focusIndicatorOpacity.set(withSequence(withTiming(0.8, {duration: 250}), withDelay(1000, withTiming(0, {duration: 250}))));
-            focusIndicatorScale.set(2);
-            focusIndicatorScale.set(withSpring(1, {damping: 10, stiffness: 200}));
-            focusIndicatorPosition.set(point);
-
-            scheduleOnRN(focusCamera, point);
-        });
+    const {tapGesture, cameraFocusIndicatorAnimatedStyle} = useTapToFocusGesture(camera, device?.supportsFocus ?? false);
 
     // Refresh camera permission on screen focus and app state changes
     useFocusEffect(
@@ -141,12 +104,6 @@ function useNativeCamera({context, onFocusStart, onFocusCleanup}: UseNativeCamer
         }, [isLoaderVisible, setIsLoaderVisible, onFocusStart, onFocusCleanup]),
     );
 
-    const cameraLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context,
-        cameraPermissionGranted: cameraPermissionStatus === RESULTS.GRANTED,
-        deviceAvailable: device != null,
-    };
-
     return {
         camera,
         device,
@@ -162,8 +119,54 @@ function useNativeCamera({context, onFocusStart, onFocusCleanup}: UseNativeCamer
         askForPermissions,
         tapGesture,
         cameraFocusIndicatorAnimatedStyle,
-        cameraLoadingReasonAttributes,
     };
 }
 
+/**
+ * Module-level so React Compiler never sees the `cameraRef.current` read. Doing it inside a hook body
+ * trips the "no ref access during render" rule, making OXC bail on the file and diverge from Babel.
+ */
+function focusCameraAtPoint(cameraRef: React.RefObject<Camera | null>, point: Point) {
+    if (!cameraRef.current) {
+        return;
+    }
+
+    cameraRef.current.focus(point).catch((error: Record<string, unknown>) => {
+        if (error.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
+            return;
+        }
+        Log.warn('Error focusing camera', error);
+    });
+}
+
+function useTapToFocusGesture(cameraRef: React.RefObject<Camera | null>, supportsFocus: boolean) {
+    const focusIndicatorOpacity = useSharedValue(0);
+    const focusIndicatorScale = useSharedValue(2);
+    const focusIndicatorPosition = useSharedValue({x: 0, y: 0});
+
+    const cameraFocusIndicatorAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: focusIndicatorOpacity.get(),
+        transform: [{translateX: focusIndicatorPosition.get().x}, {translateY: focusIndicatorPosition.get().y}, {scale: focusIndicatorScale.get()}],
+    }));
+
+    // React Compiler memoizes this closure, so no manual useCallback.
+    const focusCamera = (point: Point) => focusCameraAtPoint(cameraRef, point);
+
+    const tapGesture = Gesture.Tap()
+        .enabled(supportsFocus)
+        .onStart((ev: {x: number; y: number}) => {
+            const point = {x: ev.x, y: ev.y};
+
+            focusIndicatorOpacity.set(withSequence(withTiming(0.8, {duration: 250}), withDelay(1000, withTiming(0, {duration: 250}))));
+            focusIndicatorScale.set(2);
+            focusIndicatorScale.set(withSpring(1, {damping: 10, stiffness: 200}));
+            focusIndicatorPosition.set(point);
+
+            scheduleOnRN(focusCamera, point);
+        });
+
+    return {tapGesture, cameraFocusIndicatorAnimatedStyle};
+}
+
 export default useNativeCamera;
+export {useTapToFocusGesture, requestCameraPermission};

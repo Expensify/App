@@ -82,7 +82,7 @@ describe('ReportActionItemSingle', () => {
             }
 
             it('renders avatar properly', async () => {
-                const expectedIconTestID = 'ReportActionAvatars-SingleAvatar';
+                const expectedIconTestID = 'SingleAvatar';
 
                 await setup();
                 await waitFor(() => {
@@ -134,11 +134,21 @@ describe('ReportActionItemSingle', () => {
         }
 
         type Ancestor = {props: {style?: unknown}; parent: Ancestor | null};
+        function isModerationFlagStyle(style: unknown): style is StyleProp<Pick<ViewStyle, 'borderLeftWidth'>> {
+            if (Array.isArray(style)) {
+                return style.every(isModerationFlagStyle);
+            }
+            if (style === undefined || style === null || style === false || style === '') {
+                return true;
+            }
+            return typeof style === 'object' && (!('borderLeftWidth' in style) || style.borderLeftWidth === undefined || typeof style.borderLeftWidth === 'number');
+        }
+
         function findFlaggedAncestor(start: Ancestor | null): Ancestor | null {
             let cursor = start;
             while (cursor) {
-                const flat = StyleSheet.flatten(cursor.props.style as StyleProp<ViewStyle>);
-                if (flat?.borderLeftWidth !== undefined) {
+                const style = cursor.props.style;
+                if (isModerationFlagStyle(style) && StyleSheet.flatten(style)?.borderLeftWidth !== undefined) {
                     return cursor;
                 }
                 cursor = cursor.parent;

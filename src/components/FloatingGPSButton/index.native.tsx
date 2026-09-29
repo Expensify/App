@@ -32,16 +32,17 @@ function FloatingGpsButton() {
 
     return (
         <Button
-            text={translate('gps.gpsFloatingPillText')}
-            icon={icons.Crosshair}
             onPress={navigateToGpsScreen}
-            success
-            small
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={CONST.BUTTON_SIZE.SMALL}
             style={[styles.floatingGpsButton]}
             testID="floating-gps-button"
             accessibilityLabel={translate('gps.gpsFloatingPillText')}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_GPS_BUTTON}
-        />
+        >
+            <Button.Icon src={icons.Crosshair} />
+            <Button.Text>{translate('gps.gpsFloatingPillText')}</Button.Text>
+        </Button>
     );
 }
 

@@ -4,15 +4,15 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 
 import {setTravelProvisioningNextStep} from '@libs/actions/Travel';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -49,12 +49,11 @@ function EnableTravel({route}: EnableTravelProps) {
             return;
         }
         setTravelProvisioningNextStep(ROUTES.TRAVEL_ENABLE.getRoute(policyID));
-        Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, policyID), {forceReplace: true});
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(policyID)), {forceReplace: true});
     }, [isUserValidated, accountMetadata, policyID]);
 
     if (isLoadingOnyxValue(privatePersonalDetailsMetadata, accountMetadata) || !isUserValidated || (isMidFlowMount && isLoadingOnyxValue(travelProvisioningMetadata))) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'EnableTravel'};
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

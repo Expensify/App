@@ -5,6 +5,7 @@ import useReportActionAvatars from '@components/ReportActionAvatars/useReportAct
 
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
@@ -45,13 +46,14 @@ describe('useReportActionAvatars translate wiring', () => {
 
     it('threads the translate function from useLocalize into the default display name resolution', async () => {
         const report = createRegularChat(1, [ACTOR_ACCOUNT_ID]);
-        const action = {...createRandomReportAction(2), actorAccountID: ACTOR_ACCOUNT_ID};
+        // Pin the actionName: createRandomReportAction picks a random one, and some types (e.g. REPORTPREVIEW) resolve the actor from the IOU report instead of actorAccountID.
+        const action = {...createRandomReportAction(2), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, actorAccountID: ACTOR_ACCOUNT_ID};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
         await waitForBatchedUpdates();
 
         renderHook(() => useReportActionAvatars({report, action}), {wrapper});
 
-        // The hook resolves the default display name via getDisplayNameForParticipant, which must receive the translate from useLocalize.
-        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: ACTOR_ACCOUNT_ID, translate: mockTranslate}));
+        // The hook resolves the default display name via getDisplayNameForParticipant, which must receive the resolved "Hidden" string from useLocalize.
+        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({hiddenTranslation: 'common.hidden'}));
     });
 });

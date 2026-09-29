@@ -12,6 +12,8 @@ import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
 
+import createMock from '../../../utils/createMock';
+
 jest.mock('@userActions/Agent', () => ({
     updateAgentName: jest.fn(),
 }));
@@ -89,8 +91,8 @@ const TEST_ACCOUNT_ID = 12345;
 type EditNamePageRoute = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT_NAME>['route'];
 type EditNamePageNavigation = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT_NAME>['navigation'];
 
-const mockRoute = {params: {accountID: TEST_ACCOUNT_ID}} as EditNamePageRoute;
-const mockNavigation = {} as EditNamePageNavigation;
+const mockRoute = createMock<EditNamePageRoute>({params: {accountID: TEST_ACCOUNT_ID}});
+const mockNavigation = createMock<EditNamePageNavigation>({});
 
 describe('EditNamePage', () => {
     beforeEach(() => {

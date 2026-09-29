@@ -15,10 +15,12 @@ import type SCREENS from '@src/SCREENS';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@userActions/Tab');
@@ -61,20 +63,19 @@ describe('IOURequestStartPage', () => {
         render(
             <OnyxListItemProvider>
                 <LocaleContextProvider>
-                    <NavigationContainer>
-                        <IOURequestStartPage
-                            route={
-                                {params: {iouType: CONST.IOU.TYPE.SUBMIT, reportID: '1', transactionID: ''}} as PlatformStackScreenProps<
-                                    MoneyRequestNavigatorParamList,
-                                    typeof SCREENS.MONEY_REQUEST.CREATE
-                                >['route']
-                            }
-                            report={undefined}
-                            reportDraft={undefined}
-                            navigation={{} as PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>['navigation']}
-                            defaultSelectedTab={CONST.TAB_REQUEST.MANUAL}
-                        />
-                    </NavigationContainer>
+                    <PortalProvider>
+                        <NavigationContainer>
+                            <IOURequestStartPage
+                                route={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>['route']>({
+                                    params: {iouType: CONST.IOU.TYPE.SUBMIT, reportID: '1', transactionID: ''},
+                                })}
+                                report={undefined}
+                                reportDraft={undefined}
+                                navigation={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>['navigation']>({})}
+                                defaultSelectedTab={CONST.TAB_REQUEST.MANUAL}
+                            />
+                        </NavigationContainer>
+                    </PortalProvider>
                 </LocaleContextProvider>
             </OnyxListItemProvider>,
         );

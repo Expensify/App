@@ -27,7 +27,6 @@ type HybridApp = {
     /** Stores the information if HybridApp uses NewDot's sign-in flow */
     useNewDotSignInPage?: boolean;
 
-    /** Determines if the AuthScreens are ready to be displayed */
     readyToShowAuthScreens?: boolean;
 
     /** Specifies if the transition from OldDot was made to display a specific subset of screens in NewDot */
@@ -36,10 +35,7 @@ type HybridApp = {
     /** Indicates if the last sign out action was performed from OldDot */
     loggedOutFromOldDot?: boolean;
 
-    /** Determines whether to remove delegated access */
     shouldRemoveDelegatedAccess?: boolean;
-
-    /** Holds delegate access information */
     delegateAccessData?: HybridAppDelegateAccessData;
 
     /** Indicates if NewDot is being closed */

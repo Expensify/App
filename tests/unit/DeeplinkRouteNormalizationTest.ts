@@ -4,7 +4,6 @@ import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import {getRouteFromLink} from '@libs/ReportUtils';
 
-import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 jest.mock('@libs/Navigation/helpers/getStateFromPath', () => jest.fn());
@@ -57,39 +56,39 @@ describe('Deeplink route normalization', () => {
     });
 
     describe('getAdaptedStateFromPath path pass-through', () => {
-        const mockGetStateFromPath = getStateFromPath as jest.Mock;
-        const mockGetMatchingNewRoute = getMatchingNewRoute as jest.Mock;
+        const mockGetStateFromPath = jest.mocked(getStateFromPath);
+        const mockGetMatchingNewRoute = jest.mocked(getMatchingNewRoute);
 
         beforeEach(() => {
             jest.clearAllMocks();
             // Pass through unchanged so we can isolate what getAdaptedStateFromPath itself does to the path.
-            mockGetMatchingNewRoute.mockReturnValue(null);
+            mockGetMatchingNewRoute.mockReturnValue(undefined);
             // Return a minimal state with a full-screen route so getAdaptedState early-returns.
             mockGetStateFromPath.mockReturnValue({routes: [{name: SCREENS.HOME}], index: 0});
         });
 
         it('Should pass `/Home` through untouched, so the linking config alias can resolve it', () => {
-            getAdaptedStateFromPath('/Home' as Route, undefined, false);
+            getAdaptedStateFromPath('/Home', undefined, false);
             expect(mockGetStateFromPath).toHaveBeenCalledWith('/Home');
         });
 
         it('Should only add the leading slash to bare `Home` (no leading slash)', () => {
-            getAdaptedStateFromPath('Home' as Route, undefined, false);
+            getAdaptedStateFromPath('Home', undefined, false);
             expect(mockGetStateFromPath).toHaveBeenCalledWith('/Home');
         });
 
         it('Should NOT rewrite the lowercase `/home` route', () => {
-            getAdaptedStateFromPath('/home' as Route, undefined, false);
+            getAdaptedStateFromPath('/home', undefined, false);
             expect(mockGetStateFromPath).toHaveBeenCalledWith('/home');
         });
 
         it('Should NOT rewrite other paths that merely contain `Home`', () => {
-            getAdaptedStateFromPath('/Home/extra' as Route, undefined, false);
+            getAdaptedStateFromPath('/Home/extra', undefined, false);
             expect(mockGetStateFromPath).toHaveBeenCalledWith('/Home/extra');
         });
 
         it('Should leave unrelated paths untouched', () => {
-            getAdaptedStateFromPath('/r/123456789' as Route, undefined, false);
+            getAdaptedStateFromPath('/r/123456789', undefined, false);
             expect(mockGetStateFromPath).toHaveBeenCalledWith('/r/123456789');
         });
     });

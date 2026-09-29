@@ -8,9 +8,11 @@ import RenderHTML from '@components/RenderHTML';
 
 import CONST from '@src/CONST';
 
-import type {CustomRendererProps, TBlock} from 'react-native-render-html';
+import type {CustomRendererProps, TBlock, TText} from 'react-native-render-html';
 
 import React from 'react';
+
+import createMock from '../utils/createMock';
 
 jest.mock('@hooks/useWindowDimensions', () => () => ({windowWidth: 400}));
 jest.mock('@hooks/useHasTextAncestor', () => () => false);
@@ -18,6 +20,12 @@ jest.mock('@hooks/useHasTextAncestor', () => () => false);
 // Capture the html string ultimately passed to react-native-render-html so we can
 // assert the orphaned <br/> stripping happens before the library sees the HTML.
 const capturedSource: {html?: string} = {};
+
+function mockGetFirstTextContent(tnode?: TBlock): string {
+    const firstChild = tnode?.children.at(0);
+    return firstChild?.type === 'text' ? firstChild.data : '';
+}
+
 jest.mock('react-native-render-html', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {View: MockView, Text: MockText} = jest.requireActual<{View: React.ComponentType; Text: React.ComponentType}>('react-native');
@@ -27,8 +35,8 @@ jest.mock('react-native-render-html', () => {
             capturedSource.html = source?.html;
             return ReactModule.createElement(MockView);
         },
-        TNodeChildrenRenderer: ({tnode}: {tnode?: {mockText?: string}}) => ReactModule.createElement(MockText, null, tnode?.mockText ?? ''),
-        TNodeRenderer: ({tnode}: {tnode?: {mockText?: string}}) => ReactModule.createElement(MockText, null, tnode?.mockText ?? ''),
+        TNodeChildrenRenderer: ({tnode}: {tnode?: TBlock}) => ReactModule.createElement(MockText, null, mockGetFirstTextContent(tnode)),
+        TNodeRenderer: ({tnode}: {tnode?: TBlock}) => ReactModule.createElement(MockText, null, mockGetFirstTextContent(tnode)),
     };
 });
 
@@ -39,11 +47,13 @@ jest.mock('@libs/Parser', () => ({
     default: {replace: (html: string) => html},
 }));
 
-const buildTNode = (text = '') => ({mockText: text}) as unknown as CustomRendererProps<TBlock>['tnode'];
+const buildTextTNode = (text: string) => createMock<TText>({type: 'text', data: text});
+const buildTNode = (text = '') => createMock<CustomRendererProps<TBlock>['tnode']>({type: 'block', children: [buildTextTNode(text)]});
 const buildULTNode = (children: Array<{tagName: string; text: string}>) =>
-    ({
-        children: children.map((child) => ({tagName: child.tagName, mockText: child.text})),
-    }) as unknown as CustomRendererProps<TBlock>['tnode'];
+    createMock<CustomRendererProps<TBlock>['tnode']>({
+        type: 'block',
+        children: children.map((child) => createMock<TBlock>({type: 'block', tagName: child.tagName, children: [buildTextTNode(child.text)]})),
+    });
 
 describe('Bullet list rendering', () => {
     beforeEach(() => {

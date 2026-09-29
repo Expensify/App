@@ -10,6 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
+import type HybridAppModuleType from '@expensify/react-native-hybrid-app/src/types';
 import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
@@ -20,8 +21,17 @@ import createMock from '../utils/createMock';
 jest.mock('@libs/API');
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
 
+// API initializes Log, which imports this unavailable native module in the Jest environment.
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    __esModule: true,
+    default: {
+        isHybridApp: jest.fn<ReturnType<HybridAppModuleType['isHybridApp']>, Parameters<HybridAppModuleType['isHybridApp']>>(() => false),
+    },
+}));
+
 const mockWrite = jest.mocked(write);
 const mockGoBack = jest.mocked(Navigation.goBack);
+const mockUpdate = jest.spyOn(Onyx, 'update');
 
 type CapturedUpdate = Omit<AnyOnyxUpdate<OnyxKey>, 'value'> & {value?: unknown};
 type WriteOptions = {optimisticData: CapturedUpdate[]; successData: CapturedUpdate[]; failureData: CapturedUpdate[]};
@@ -73,65 +83,75 @@ function getPersonalDetailEntry(updates: CapturedUpdate[], accountID: number): R
     return requireRecord(getPersonalDetailValue(updates, accountID), `No personal detail entry for ${accountID}`);
 }
 
-function getOptimisticAccountID(optimisticData: CapturedUpdate[]): number {
-    return Number(Object.keys(getUpdateRecord(optimisticData, ONYXKEYS.PERSONAL_DETAILS_LIST)).at(0));
+function getOptimisticPersonalDetails(): Record<string, unknown> {
+    const personalDetailUpdate = mockUpdate.mock.calls.flatMap(([updates]) => updates).find((update) => update.key === ONYXKEYS.PERSONAL_DETAILS_LIST);
+    return requireRecord(personalDetailUpdate?.value, 'No optimistic personal detail update');
 }
+
+function getOptimisticAccountID(): number {
+    return Number(Object.keys(getOptimisticPersonalDetails()).at(0));
+}
+
+function getOptimisticPersonalDetailEntry(accountID: number): Record<string, unknown> {
+    return requireRecord(getOptimisticPersonalDetails()[accountID], `No optimistic personal detail entry for ${accountID}`);
+}
+
+const OWNER_ACCOUNT_ID = 999;
+const OWNER_LOGIN = 'owner@test.com';
 
 describe('createAgent', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockUpdate.mockResolvedValue(undefined);
     });
 
     it('calls write with CREATE_AGENT command and provided params', () => {
-        createAgent('My Agent', 'Reject gambling expenses.');
+        createAgent('My Agent', 'Reject gambling expenses.', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
         expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({firstName: 'My Agent', prompt: 'Reject gambling expenses.'}), expect.any(Object));
     });
 
     it('passes undefined firstName through unchanged', () => {
-        createAgent(undefined, 'Some prompt');
+        createAgent(undefined, 'Some prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
         expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({firstName: undefined, prompt: 'Some prompt'}), expect.any(Object));
     });
 
     it('optimistic personal detail entry has a positive account ID from generateReportID', () => {
-        createAgent('Bot', 'My prompt');
+        createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
-        const {optimisticData} = getWriteOptions();
-        const accountID = getOptimisticAccountID(optimisticData);
+        const accountID = getOptimisticAccountID();
 
         expect(Number(accountID)).toBeGreaterThan(0);
     });
 
     it('optimistic personal detail entry stores displayName and marks entry as optimistic', () => {
-        createAgent('Bot', 'My prompt');
+        createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
-        const {optimisticData} = getWriteOptions();
-        const accountID = getOptimisticAccountID(optimisticData);
+        const accountID = getOptimisticAccountID();
 
-        expect(getPersonalDetailEntry(optimisticData, accountID)).toMatchObject({
+        expect(getOptimisticPersonalDetailEntry(accountID)).toMatchObject({
             displayName: 'Bot',
             isOptimisticPersonalDetail: true,
         });
     });
 
     it('optimistic personal detail entry stores undefined displayName when firstName is undefined', () => {
-        createAgent(undefined, 'My prompt');
+        createAgent(undefined, 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
-        const {optimisticData} = getWriteOptions();
-        const accountID = getOptimisticAccountID(optimisticData);
+        const accountID = getOptimisticAccountID();
 
-        expect(getPersonalDetailEntry(optimisticData, accountID)).toMatchObject({
+        expect(getOptimisticPersonalDetailEntry(accountID)).toMatchObject({
             displayName: undefined,
             isOptimisticPersonalDetail: true,
         });
     });
 
     it('optimistic prompt entry uses the same account ID as the personal detail entry', () => {
-        createAgent('Bot', 'My prompt');
+        createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
         const {optimisticData} = getWriteOptions();
-        const accountID = getOptimisticAccountID(optimisticData);
+        const accountID = getOptimisticAccountID();
         const promptUpdate = findUpdate(optimisticData, `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
 
         expect(promptUpdate?.value).toEqual({
@@ -141,7 +161,7 @@ describe('createAgent', () => {
     });
 
     it('passes customExpensifyAvatarID to write params when provided', () => {
-        createAgent('Bot', 'My prompt', 'bot-avatar--blue');
+        createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN, 'bot-avatar--blue');
 
         expect(mockWrite).toHaveBeenCalledWith(
             WRITE_COMMANDS.CREATE_AGENT,
@@ -152,26 +172,26 @@ describe('createAgent', () => {
 
     it('passes file to write params when provided', () => {
         const mockFile = createMock<File>({uri: 'file://photo.jpg', name: 'photo.jpg'});
-        createAgent('Bot', 'My prompt', undefined, mockFile, 'file://photo.jpg');
+        createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN, undefined, mockFile, 'file://photo.jpg');
 
         expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({firstName: 'Bot', prompt: 'My prompt', file: mockFile}), expect.any(Object));
     });
 
     it('uploads file in the CREATE_AGENT call itself — no separate UPDATE_AGENT_AVATAR write', () => {
         const mockFile = createMock<File>({uri: 'file://photo.jpg', name: 'photo.jpg'});
-        createAgent('Bot', 'My prompt', undefined, mockFile, 'file://photo.jpg');
+        createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN, undefined, mockFile, 'file://photo.jpg');
 
         expect(mockWrite).toHaveBeenCalledTimes(1);
         expect(mockWrite).not.toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_AGENT_AVATAR, expect.anything(), expect.anything());
     });
 
     it('includes resolved avatar URI in optimistic and failure personal detail data for a preset ID', () => {
-        createAgent('Bot', 'My prompt', 'bot-avatar--blue');
+        createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN, 'bot-avatar--blue');
 
-        const {optimisticData, failureData} = getWriteOptions();
-        const accountID = getOptimisticAccountID(optimisticData);
+        const {failureData} = getWriteOptions();
+        const accountID = getOptimisticAccountID();
 
-        const optimisticEntry = getPersonalDetailEntry(optimisticData, accountID);
+        const optimisticEntry = getOptimisticPersonalDetailEntry(accountID);
         expect(optimisticEntry.avatar).toBeTruthy();
         expect(optimisticEntry.avatarThumbnail).toBeTruthy();
 
@@ -182,12 +202,12 @@ describe('createAgent', () => {
 
     it('includes optimisticAvatarURI in optimistic and failure personal detail data for a custom file URI', () => {
         const fileURI = 'file://local-photo.jpg';
-        createAgent('Bot', 'My prompt', undefined, undefined, fileURI);
+        createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN, undefined, undefined, fileURI);
 
-        const {optimisticData, failureData} = getWriteOptions();
-        const accountID = getOptimisticAccountID(optimisticData);
+        const {failureData} = getWriteOptions();
+        const accountID = getOptimisticAccountID();
 
-        const optimisticEntry = getPersonalDetailEntry(optimisticData, accountID);
+        const optimisticEntry = getOptimisticPersonalDetailEntry(accountID);
         expect(optimisticEntry.avatar).toBe(fileURI);
         expect(optimisticEntry.avatarThumbnail).toBe(fileURI);
 
@@ -197,32 +217,107 @@ describe('createAgent', () => {
     });
 
     it('does not include avatar fields in optimistic data when no avatar args are given', () => {
-        createAgent('Bot', 'My prompt');
+        createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
-        const {optimisticData} = getWriteOptions();
-        const accountID = getOptimisticAccountID(optimisticData);
+        const accountID = getOptimisticAccountID();
 
-        const entry = getPersonalDetailEntry(optimisticData, accountID);
+        const entry = getOptimisticPersonalDetailEntry(accountID);
         expect(entry.avatar).toBeUndefined();
         expect(entry.avatarThumbnail).toBeUndefined();
     });
 
     it('forwards policyID in the write params when provided', () => {
-        createAgent('Bot', 'My prompt', undefined, undefined, undefined, 'POLICY_42');
+        createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN, undefined, undefined, undefined, 'POLICY_42');
 
         expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({firstName: 'Bot', prompt: 'My prompt', policyID: 'POLICY_42'}), expect.any(Object));
     });
 
     it('returns the optimistic accountID and avatarURI so callers can chain follow-up navigation', () => {
-        const result = createAgent('Bot', 'My prompt', 'bot-avatar--blue');
+        const result = createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN, 'bot-avatar--blue');
 
         expect(result.optimisticAccountID).toEqual(expect.any(Number));
         expect(result.optimisticAccountID).toBeGreaterThan(0);
         expect(result.avatarURI).toBeTruthy();
     });
 
+    it('returns an optimisticReportID for the owner<->agent DM so the caller can navigate immediately', () => {
+        const result = createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
+
+        expect(result.optimisticReportID).toEqual(expect.any(String));
+        expect(result.optimisticReportID).toBeTruthy();
+    });
+
+    it('passes the optimistic reportID through to CreateAgent so the DM is created under that exact ID', () => {
+        const result = createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
+
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({optimisticReportID: result.optimisticReportID}), expect.any(Object));
+    });
+
+    it('passes createdReportActionID through to CreateAgent matching the key of the optimistic CREATED action, so the DM created action reconciles onto it instead of a duplicate', () => {
+        const result = createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
+
+        const {optimisticData} = getWriteOptions();
+        const actionsValue: unknown = optimisticData.find((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${result.optimisticReportID}`)?.value;
+        if (!actionsValue || typeof actionsValue !== 'object') {
+            throw new Error('No reportActions update in optimisticData');
+        }
+        const createdActionID = Object.keys(actionsValue).at(0);
+
+        expect(createdActionID).toBeTruthy();
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({createdReportActionID: createdActionID}), expect.any(Object));
+    });
+
+    it('optimistic data writes the owner<->agent DM report with both participants and a pending createChat field', () => {
+        const result = createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
+
+        const {optimisticData} = getWriteOptions();
+        const accountID = getOptimisticAccountID();
+        const reportUpdate = optimisticData.find((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT}${result.optimisticReportID}`);
+
+        expect(reportUpdate?.onyxMethod).toBe('set');
+        expect(reportUpdate?.value).toHaveProperty(['participants', String(OWNER_ACCOUNT_ID)]);
+        expect(reportUpdate?.value).toHaveProperty(['participants', String(accountID)]);
+        expect(reportUpdate?.value).toMatchObject({pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}});
+    });
+
+    it('optimistic data marks the DM report as optimistic and adds a created action', () => {
+        const result = createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
+
+        const {optimisticData} = getWriteOptions();
+        const metadataUpdate = optimisticData.find((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.optimisticReportID}`);
+        const actionsUpdate = optimisticData.find((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${result.optimisticReportID}`);
+
+        expect(metadataUpdate?.value).toMatchObject({isOptimisticReport: true});
+        expect(actionsUpdate?.onyxMethod).toBe('set');
+        expect(actionsUpdate?.value).toBeTruthy();
+    });
+
+    it('success data clears the pending createChat field and optimistic report flag', () => {
+        const result = createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
+
+        const {successData} = getWriteOptions();
+        const reportUpdate = successData.find((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT}${result.optimisticReportID}`);
+        const metadataUpdate = successData.find((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.optimisticReportID}`);
+
+        expect(reportUpdate?.value).toMatchObject({pendingFields: {createChat: null}});
+        expect(metadataUpdate?.value).toMatchObject({isOptimisticReport: false});
+    });
+
+    it('failure data rolls back the optimistic DM report, its actions, and its metadata', () => {
+        const result = createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
+
+        const {failureData} = getWriteOptions();
+        const reportUpdate = failureData.find((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT}${result.optimisticReportID}`);
+        const actionsUpdate = failureData.find((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${result.optimisticReportID}`);
+        const metadataUpdate = failureData.find((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.optimisticReportID}`);
+
+        expect(reportUpdate?.value).toBeNull();
+        expect(actionsUpdate?.value).toBeNull();
+        expect(metadataUpdate?.value).toBeNull();
+    });
+
     it('does not touch the policy when no policyID is provided', () => {
-        createAgent('Bot', 'My prompt');
+        createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
         const {optimisticData, successData, failureData} = getWriteOptions();
         const allKeys: string[] = [...optimisticData, ...successData, ...failureData].map((u) => String(u.key));
@@ -231,17 +326,16 @@ describe('createAgent', () => {
     });
 
     it('omits login on the optimistic personal detail entry — the real email is server-assigned', () => {
-        createAgent('Bot', 'My prompt', undefined, undefined, undefined, 'POLICY_42');
+        createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN, undefined, undefined, undefined, 'POLICY_42');
 
-        const {optimisticData} = getWriteOptions();
-        const accountID = getOptimisticAccountID(optimisticData);
-        const entry = getPersonalDetailEntry(optimisticData, accountID);
+        const accountID = getOptimisticAccountID();
+        const entry = getOptimisticPersonalDetailEntry(accountID);
 
         expect(entry.login).toBeUndefined();
     });
 
     it('does not merge ADD_AGENT_FORM (navigation handles UX after submit)', () => {
-        createAgent('Bot', 'My prompt');
+        createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
         const {optimisticData, successData, failureData} = getWriteOptions();
 
@@ -250,29 +344,27 @@ describe('createAgent', () => {
         expect(failureData.some((u) => u.key === ONYXKEYS.FORMS.ADD_AGENT_FORM)).toBe(false);
     });
 
-    it('success data nulls out both optimistic entries', () => {
-        createAgent('Bot', 'My prompt');
+    it('success data leaves both optimistic entries in place so replaceOptimisticAgentWithActualAgent can clear them after redirecting', () => {
+        createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
-        const {optimisticData, successData} = getWriteOptions();
-        const accountID = getOptimisticAccountID(optimisticData);
+        const {successData} = getWriteOptions();
+        const accountID = getOptimisticAccountID();
 
-        const promptRollback = findUpdate(successData, `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
-
-        expect(getPersonalDetailValue(successData, accountID)).toBeNull();
-        expect(promptRollback?.value).toBeNull();
+        expect(findUpdate(successData, ONYXKEYS.PERSONAL_DETAILS_LIST)).toBeUndefined();
+        expect(findUpdate(successData, `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`)).toBeUndefined();
     });
 
     it('passes the optimistic accountID through to the server so it can echo a real-ID mapping', () => {
-        const result = createAgent('Bot', 'My prompt');
+        const result = createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
         expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({optimisticAccountID: String(result.optimisticAccountID)}), expect.any(Object));
     });
 
     it('failure data preserves optimistic personal detail and merges errors onto the prompt entry', () => {
-        createAgent('Bot', 'My prompt');
+        createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
-        const {optimisticData, failureData} = getWriteOptions();
-        const accountID = getOptimisticAccountID(optimisticData);
+        const {failureData} = getWriteOptions();
+        const accountID = getOptimisticAccountID();
 
         expect(getPersonalDetailEntry(failureData, accountID)).toMatchObject({
             accountID,

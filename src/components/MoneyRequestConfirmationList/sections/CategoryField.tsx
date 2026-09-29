@@ -5,18 +5,21 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
+import ExpenseFieldRow from './ExpenseFieldRow';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {categoryStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -49,6 +52,7 @@ function CategoryField({
     shouldNavigateToUpgradePath,
     shouldSelectPolicy,
 }: CategoryFieldProps) {
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
@@ -58,11 +62,14 @@ function CategoryField({
     const shouldDisplayCategoryError = formError === 'violations.categoryOutOfPolicy';
     const iouCategory = categoryState?.category ?? '';
     const willAutoFill = categoryState?.willAutoFill ?? false;
+    const isAutoFillFromReceipt = categoryState?.isAutoFillFromReceipt ?? false;
     const decodedCategoryName = getDecodedLeafCategoryName(iouCategory);
 
-    const getCategoryRightLabelIcon = () => (willAutoFill ? icons.Sparkles : undefined);
+    const shouldPromiseAutomaticCategory = willAutoFill && (isAutoFillFromReceipt || !isCategoryRequired);
+
+    const getCategoryRightLabelIcon = () => (shouldPromiseAutomaticCategory ? icons.Sparkles : undefined);
     const getCategoryRightLabel = () => {
-        if (willAutoFill) {
+        if (shouldPromiseAutomaticCategory) {
             return translate('common.automatic');
         }
         if (isCategoryRequired) {
@@ -71,38 +78,89 @@ function CategoryField({
         return '';
     };
 
+    const openCategoryPage = () => {
+        if (!transactionID) {
+            return;
+        }
+
+        if (shouldNavigateToUpgradePath) {
+            Navigation.navigate(
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action,
+                        iouType,
+                        transactionID,
+                        reportID,
+                        upgradeBackTo: createDynamicRoute(
+                            DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                                action,
+                                iouType,
+                                transactionID,
+                                reportID,
+                                reportActionID,
+                            }),
+                        ),
+                        upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                    }),
+                ),
+            );
+        } else if (!policy && shouldSelectPolicy) {
+            Navigation.navigate(
+                ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                            action,
+                            iouType,
+                            transactionID,
+                            reportID,
+                            reportActionID,
+                        }),
+                    ),
+                ),
+            );
+        } else {
+            Navigation.navigate(
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                        action,
+                        iouType,
+                        transactionID,
+                        reportID,
+                        reportActionID,
+                    }),
+                ),
+            );
+        }
+    };
+
+    if (shouldUseDropdownRows) {
+        return (
+            <ExpenseFieldRow
+                name={translate('common.category')}
+                value={decodedCategoryName}
+                numberOfLinesValue={2}
+                rightLabel={getCategoryRightLabel()}
+                rightLabelIcon={getCategoryRightLabelIcon()}
+                // On a scan, `Automatic` describes the category Concierge picked, so it has to outlive the field
+                // being filled in. On a manual expense it only promises a category for a field that is still
+                // empty, so there it goes the moment the field holds one, the same way `Required` does.
+                shouldKeepRightLabelWhenFilled={willAutoFill && isAutoFillFromReceipt}
+                errorText={shouldDisplayCategoryError ? translate(formError as TranslationPaths) : ''}
+                onPress={openCategoryPage}
+                isDisabled={didConfirm}
+                isInteractive={!isReadOnly}
+                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.CATEGORY_FIELD}
+            />
+        );
+    }
+
     return (
         <MenuItemWithTopDescription
             shouldShowRightIcon={!isReadOnly}
             title={decodedCategoryName}
             description={translate('common.category')}
             numberOfLinesTitle={2}
-            onPress={() => {
-                if (!transactionID) {
-                    return;
-                }
-
-                if (shouldNavigateToUpgradePath) {
-                    Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                            action,
-                            iouType,
-                            transactionID,
-                            reportID,
-                            backTo: ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
-                            upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                        }),
-                    );
-                } else if (!policy && shouldSelectPolicy) {
-                    Navigation.navigate(
-                        ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
-                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
-                        ),
-                    );
-                } else {
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
-                }
-            }}
+            onPress={openCategoryPage}
             style={[styles.moneyRequestMenuItem]}
             titleStyle={styles.flex1}
             disabled={didConfirm}

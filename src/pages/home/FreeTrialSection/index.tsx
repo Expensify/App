@@ -54,7 +54,7 @@ function FreeTrialSection() {
         return null;
     }
 
-    const title = translate('homePage.freeTrialSection.title', {days: daysLeft});
+    const title = translate('homePage.freeTrialSection.title', {count: daysLeft});
 
     let bodyText: string;
     let ctaText: string;
@@ -95,12 +95,13 @@ function FreeTrialSection() {
                         {!!countdownSubtitle && <Text style={[styles.widgetItemSubtitle, {color: theme.trialTimer}]}>{countdownSubtitle}</Text>}
                     </View>
                     <Button
-                        text={ctaText}
                         onPress={onCtaPress}
-                        small
+                        size={CONST.BUTTON_SIZE.SMALL}
                         style={styles.widgetItemButton}
-                        success
-                    />
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    >
+                        <Button.Text>{ctaText}</Button.Text>
+                    </Button>
                 </View>
             </PressableWithoutFeedback>
         </WidgetContainer>

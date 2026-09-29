@@ -18,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useEffect} from 'react';
 
 import Address from './subSteps/Address';
@@ -49,19 +50,19 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
     const {translate} = useLocalize();
     const bankAccountID = Number(route.params.bankAccountID);
     const policyID = route.params.policyID;
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [signerEmail = ''] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [enterSignerInfoForm] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM);
     const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT);
 
     const submit = useCallback(() => {
-        const {signerDetails, signerFiles} = getSignerDetailsAndSignerFiles(enterSignerInfoFormDraft, account?.primaryLogin ?? '');
+        const {signerDetails, signerFiles} = getSignerDetailsAndSignerFiles(enterSignerInfoFormDraft, signerEmail);
 
         saveCorpayOnboardingDirectorInformation({
             inputs: JSON.stringify(signerDetails),
             ...signerFiles,
             bankAccountID,
         });
-    }, [account?.primaryLogin, bankAccountID, enterSignerInfoFormDraft]);
+    }, [bankAccountID, enterSignerInfoFormDraft, signerEmail]);
 
     const buildRoute = (pageName: string, action?: 'edit') =>
         ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.getRoute(policyID, route.params.bankAccountID, route.params.isCompleted === 'true', pageName, action);
@@ -110,12 +111,7 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
     }, [isEditing, moveTo, pageIndex, prevPage]);
 
     if (isRedirecting) {
-        return (
-            <FullScreenLoadingIndicator
-                shouldUseGoBackButton
-                reasonAttributes={{context: 'EnterSignerInfo', isRedirecting}}
-            />
-        );
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
     return (

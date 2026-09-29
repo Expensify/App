@@ -1,14 +1,14 @@
 import {CHART_FONT_FAMILY_NAMES} from '@components/Charts/utils/chartFontConstants';
-import type VictoryThemeType from '@components/Charts/VictoryTheme';
+import type * as VictoryThemeModule from '@components/Charts/VictoryTheme';
 
 import colors from '@styles/theme/colors';
 
 /**
- * Loads VictoryTheme via require so individual tests can mock
+ * Loads VictoryTheme after each module reset so individual tests can mock
  * `@styles/theme/colors` before the module's IIFE runs.
  */
-function loadVictoryTheme(): typeof VictoryThemeType {
-    const mod = require('@components/Charts/VictoryTheme') as {default: typeof VictoryThemeType};
+function loadVictoryTheme(): typeof VictoryThemeModule.default {
+    const mod = jest.requireActual<typeof VictoryThemeModule>('@components/Charts/VictoryTheme');
     return mod.default;
 }
 

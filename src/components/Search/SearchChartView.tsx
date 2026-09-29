@@ -1,27 +1,28 @@
+import {BarChart, LineChart, PieChart} from '@components/Charts';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 
 import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatToParts} from '@libs/NumberFormatUtils';
-import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
-import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
+import type {StyleProp, ViewStyle} from 'react-native';
+
 import React from 'react';
+import {View} from 'react-native';
 
-import type {ChartView, GroupedItem, SearchChartProps, SearchGroupBy, SearchQueryJSON} from './types';
+import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy, SearchQueryJSON} from './types';
 
+import {buildChartSeries} from './buildChartSeries';
+import {buildChartDrillDownQuery} from './chartDrillDown';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
-import SearchBarChart from './SearchBarChart';
-import SearchLineChart from './SearchLineChart';
-import SearchPieChart from './SearchPieChart';
+import {useSearchQueryContext} from './SearchContext';
 
 type SearchChartViewProps = {
-    /** The current search query JSON */
     queryJSON: Readonly<SearchQueryJSON>;
 
     /** The view type (bar, etc.) */
@@ -33,48 +34,44 @@ type SearchChartViewProps = {
     /** Grouped transaction data from search results */
     data: GroupedItem[];
 
-    /** Whether data is loading */
     isLoading?: boolean;
-};
 
-/**
- * Map of chart view types to their corresponding chart components.
- */
-const CHART_VIEW_TO_COMPONENT: Record<ChartView, React.ComponentType<SearchChartProps>> = {
-    [CONST.SEARCH.VIEW.BAR]: SearchBarChart,
-    [CONST.SEARCH.VIEW.LINE]: SearchLineChart,
-    [CONST.SEARCH.VIEW.PIE]: SearchPieChart,
+    /** Color every bar is drawn in. Only a bar chart reads it. */
+    color?: string;
+
+    /** Renders the details of the plotted groups below the chart */
+    renderDetails?: (rows: SearchChartDataRow[]) => React.ReactNode;
+
+    /** Style of the view around the chart, which the details below it don't share */
+    chartContainerStyle?: StyleProp<ViewStyle>;
 };
 
 /**
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChartViewProps) {
+function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, renderDetails, chartContainerStyle}: SearchChartViewProps) {
     const {preferredLocale} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
+    const {currentSearchKey} = useSearchQueryContext();
 
-    const {getLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
-    const ChartComponent = CHART_VIEW_TO_COMPONENT[view];
+    const {getLabel, getShortLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
 
-    const handleItemPress = (filterQuery: string) => {
-        const currentQueryString = buildSearchQueryString(queryJSON);
-        const parsedQueryJSON = buildSearchQueryJSON(`${currentQueryString} ${filterQuery}`);
+    const rows = buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecimals, color});
+    const points = rows.map((row) => row.point);
 
-        if (!parsedQueryJSON) {
-            Log.alert('[SearchChartView] Failed to build search query JSON from filter query');
+    const handleItemPress = (index: number) => {
+        const item = rows.at(index)?.item;
+        if (!item) {
             return;
         }
-        const newQueryJSON: SearchQueryJSON = {
-            ...parsedQueryJSON,
-            groupBy: undefined,
-            view: CONST.SEARCH.VIEW.TABLE,
-            sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
-            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-        };
 
-        const newQueryString = buildSearchQueryString(newQueryJSON);
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQueryString}));
+        const query = buildChartDrillDownQuery(queryJSON, getFilterQuery(item));
+
+        if (!query) {
+            return;
+        }
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, searchKey: currentSearchKey}));
     };
 
     const firstItem = data.at(0);
@@ -86,16 +83,43 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
     const unit = {value: getCurrencySymbol(currency) ?? intlSymbol ?? currency, fallback: intlSymbol ?? currency};
     const unitPosition = currencyIndex < integerIndex ? 'left' : 'right';
 
+    const CHART_VIEW_TO_CHART: Record<ChartView, React.ReactNode> = {
+        [CONST.SEARCH.VIEW.BAR]: (
+            <BarChart
+                data={points}
+                isLoading={isLoading}
+                onBarPress={(dataPoint, index) => handleItemPress(index)}
+                yAxisUnit={unit}
+                yAxisUnitPosition={unitPosition}
+                color={color}
+            />
+        ),
+        [CONST.SEARCH.VIEW.LINE]: (
+            <LineChart
+                data={points}
+                isLoading={isLoading}
+                onPointPress={(dataPoint, index) => handleItemPress(index)}
+                yAxisUnit={unit}
+                yAxisUnitPosition={unitPosition}
+            />
+        ),
+        [CONST.SEARCH.VIEW.PIE]: (
+            <PieChart
+                data={points}
+                isLoading={isLoading}
+                onSlicePress={(dataPoint, index) => handleItemPress(index)}
+                valueUnit={unit.value}
+                valueUnitPosition={unitPosition}
+                shouldShowLegend={!renderDetails}
+            />
+        ),
+    };
+
     return (
-        <ChartComponent
-            data={data}
-            getLabel={(item) => StringUtils.normalize(getLabel(item))}
-            getFilterQuery={getFilterQuery}
-            onItemPress={handleItemPress}
-            isLoading={isLoading}
-            unit={unit}
-            unitPosition={unitPosition}
-        />
+        <>
+            <View style={chartContainerStyle}>{CHART_VIEW_TO_CHART[view]}</View>
+            {renderDetails?.(rows)}
+        </>
     );
 }
 

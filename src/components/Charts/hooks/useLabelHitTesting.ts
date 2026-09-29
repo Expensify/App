@@ -147,7 +147,7 @@ function useLabelHitTesting({fontManager, fontSize, truncatedLabelWidths, labelR
             if (tickX === undefined) {
                 continue;
             }
-            if (isCursorOverLabel({cursorX, cursorY, targetX: tickX, targetY: 0, chartBottom: currentChartBottom}, i)) {
+            if (isCursorOverLabel({cursorX, cursorY, targetX: tickX, targetY: 0, chartBottom: currentChartBottom, targetIndex: i}, i)) {
                 return tickX;
             }
         }

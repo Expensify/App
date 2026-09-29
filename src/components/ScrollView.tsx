@@ -1,6 +1,6 @@
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 import type {ScrollViewProps as RNScrollViewProps} from 'react-native';
 
 import React from 'react';
@@ -8,14 +8,9 @@ import React from 'react';
 import {ScrollView as RNScrollView} from 'react-native';
 
 type ScrollViewProps = RNScrollViewProps & {
-    /** Whether to add bottom safe area padding to the content. */
     addBottomSafeAreaPadding?: boolean;
-
-    /** Whether to add bottom safe area padding to the content. */
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
-
-    /** Reference to the outer element */
-    ref?: ForwardedRef<RNScrollView>;
+    ref?: ForwardedRef<ComponentRef<typeof RNScrollView>>;
 };
 
 function ScrollView({

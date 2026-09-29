@@ -62,7 +62,7 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
                             src={illustrations.ValidateCode}
                         />
                     </View>
-                    <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('validateCodeModal.title')}</Text>
+                    <Text style={[styles.textHeadline, styles.textAlignCenter]}>{translate('validateCodeModal.title')}</Text>
                     <View style={[styles.mt2, styles.mb2]}>
                         <Text style={styles.textAlignCenter}>
                             {translate('validateCodeModal.description')}

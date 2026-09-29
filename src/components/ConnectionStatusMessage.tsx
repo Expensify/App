@@ -3,6 +3,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
+
 import type {ComponentProps} from 'react';
 
 import React from 'react';
@@ -69,13 +71,14 @@ function ConnectionStatusMessage({
 
     const actionButton = shouldShowActionButton ? (
         <Button
-            small
-            danger
+            variant={CONST.BUTTON_VARIANT.DANGER}
+            size={CONST.BUTTON_SIZE.SMALL}
             style={styles.alignSelfStart}
-            text={actionText}
             onPress={onActionPress}
             isDisabled={isActionDisabled}
-        />
+        >
+            <Button.Text>{actionText}</Button.Text>
+        </Button>
     ) : null;
 
     return (

@@ -2,7 +2,7 @@
 #
 # Enforces validateCode terminology across the codebase:
 #   - User-facing copy (src/languages) must use "security code" / "security link", not "magic code"
-#   - Internal identifiers (src, tests) must use validateCode, not magicCode / MagicCode / MAGIC_CODE
+#   - Internal identifiers (src, tests) must use validateCode, not magicCode / MagicCode / MAGIC_CODE / magic-code
 
 set -e
 
@@ -14,9 +14,9 @@ filter_comments() {
     grep -v ":[0-9]*:[[:space:]]*//" | grep -v ":[0-9]*:[[:space:]]*\*"
 }
 
-LANG_HITS=$(grep -rni --include="*.ts" "magic.code\|magic code" "$ROOT_DIR/src/languages" 2>/dev/null | filter_comments || true)
-CODE_HITS=$(grep -rn  --include="*.ts" --include="*.tsx" "magicCode\|MagicCode\|MAGIC_CODE" "$ROOT_DIR/src" "$ROOT_DIR/tests" 2>/dev/null | filter_comments || true)
-DOCS_HITS=$(grep -rn --include="*.md" "magic.code\|magic code\|magicCode\|MagicCode\|MAGIC_CODE" "$ROOT_DIR" 2>/dev/null | grep -v "node_modules" || true)
+LANG_HITS=$(grep -rniE --include="*.ts" "magic.code|magic code|magic-code" "$ROOT_DIR/src/languages" 2>/dev/null | filter_comments || true)
+CODE_HITS=$(grep -rnE  --include="*.ts" --include="*.tsx" "magicCode|magic-code|MagicCode|MAGIC_CODE" "$ROOT_DIR/src" "$ROOT_DIR/tests" 2>/dev/null | filter_comments || true)
+DOCS_HITS=$(grep -rnE --include="*.md" "magic.code|magic-code|magic code|magicCode|MagicCode|MAGIC_CODE" "$ROOT_DIR" 2>/dev/null | grep -v "node_modules" || true)
 
 if [[ -z "$LANG_HITS" && -z "$CODE_HITS" && -z "$DOCS_HITS" ]]; then
     echo "✅  Validate code terminology check passed."

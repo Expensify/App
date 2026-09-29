@@ -26,7 +26,6 @@ function useCopyPolicySettingsProgressModal() {
     const [bulkPolicyCopySettings] = useOnyx(ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const copyInProgressStep = copyPolicySettings?.currentStep === CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING;
@@ -123,7 +122,7 @@ function useCopyPolicySettingsProgressModal() {
             shouldShowCancelButton: true,
             onConfirm: () => {
                 clearCopyPolicySettings();
-                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
+                navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false});
             },
             onCancel: () => {
                 clearCopyPolicySettings();
@@ -159,8 +158,7 @@ function CopyPolicySettingsProgressModal() {
             shouldShowCancelButton={shouldShowCancelButton}
             isTitleLoading={isTitleLoading}
             shouldHandleNavigationBack
-            success={!danger}
-            danger={danger}
+            buttonVariant={danger ? CONST.BUTTON_VARIANT.DANGER : CONST.BUTTON_VARIANT.SUCCESS}
         />
     );
 }

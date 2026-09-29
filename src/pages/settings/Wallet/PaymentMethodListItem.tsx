@@ -44,6 +44,8 @@ import type {ValueOf} from 'type-fest';
 import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
+import PendingDigitalWalletApprovalRow from './PendingDigitalWalletApprovalRow';
+
 type ConnectionStatusDetails = {
     statusText: string;
     statusTone?: 'default' | 'success' | 'danger';
@@ -81,22 +83,22 @@ type PaymentMethodItem = PaymentMethod & {
     shouldShowErrorMessages?: boolean;
     /** Whether to show the "Add details" CTA row below a virtual Expensify Card when personal details are missing */
     shouldShowMissingPersonalDetailsAction?: boolean;
+
+    /** ID of the Expensify Card awaiting a wallet addition approval, which shows the "Review" CTA row */
+    digitalWalletApprovalCardID?: number;
+
+    /** Wallet the addition was requested from, used to name it in the "Review" CTA row */
+    digitalWalletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>;
 } & BankIcon;
 
 type PaymentMethodListItemProps = {
-    /** The payment method item to render */
     item: PaymentMethodItem;
 
     /** Whether to show the default badge for this payment method */
     shouldShowDefaultBadge: boolean;
 
-    /** Optional array of menu items to be displayed in the three dots menu */
     threeDotsMenuItems?: PopoverMenuItem[];
-
-    /** Callback for when the three dots menu is pressed */
     onThreeDotsMenuPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void;
-
-    /** List item style */
     listItemStyle?: StyleProp<ViewStyle>;
 };
 
@@ -152,6 +154,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const isInLockedState = isBusinessBankAccountLocked(item);
     const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems && !isInLockedState;
     const isNeedingAction = isAccountNeedingAction(item);
+    const digitalWalletApprovalCardID = item.digitalWalletApprovalCardID;
     const connectionStatus = item.connectionStatus;
 
     // Check if this is a Chase personal bank account connected via Plaid
@@ -329,12 +332,20 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                         <Text style={[styles.mutedNormalTextLabel, styles.label, styles.flexShrink1]}>{translate('walletPage.addVirtualCardPersonalDetails.subtitle')}</Text>
                     </View>
                     <Button
-                        small
-                        success
-                        text={translate('walletPage.addVirtualCardPersonalDetails.cta')}
+                        size={CONST.BUTTON_SIZE.SMALL}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(item.cardID))))}
-                    />
+                    >
+                        <Button.Text>{translate('walletPage.addVirtualCardPersonalDetails.cta')}</Button.Text>
+                    </Button>
                 </View>
+            )}
+            {!!digitalWalletApprovalCardID && (
+                <PendingDigitalWalletApprovalRow
+                    cardID={digitalWalletApprovalCardID}
+                    walletProvider={item.digitalWalletProvider}
+                    style={[styles.pv3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                />
             )}
             {isChaseAccountConnectedViaPlaid && (
                 <View style={[styles.pb3, shouldUseNarrowLayout ? styles.pl5 : styles.pl8]}>

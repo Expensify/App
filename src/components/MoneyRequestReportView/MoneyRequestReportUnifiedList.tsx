@@ -3,14 +3,13 @@ import type FlatListRefType from '@components/FlashList/types';
 
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-
 import variables from '@styles/variables';
 
 import type * as OnyxTypes from '@src/types/onyx';
+import type {ViewableItemsChanged, ViewToken} from '@src/types/utils/ReactNativeCompat';
 
 import type {FlashListProps, ListRenderItemInfo} from '@shopify/flash-list';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React, {memo, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -94,23 +93,18 @@ type MoneyRequestReportUnifiedListProps = {
     /** Ref to the underlying list, shared via the ActionList context. */
     listRef: FlatListRefType;
 
-    /** Accessibility label for the list. */
     accessibilityLabel: string;
 
     /** Called when the list lays out. */
-    onLayout: () => void;
+    onLayout: (event: LayoutChangeEvent) => void;
 
-    /** Called on scroll. */
     onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
     /** Called when the user starts dragging the list. */
     onScrollBeginDrag: () => void;
 
-    /** Called when the list content size changes. */
-    onContentSizeChange: () => void;
-
-    /** Called when the set of viewable items changes. */
-    onViewableItemsChanged: (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => void;
+    onContentSizeChange: (width: number, height: number) => void;
+    onViewableItemsChanged: ViewableItemsChanged;
 
     /** Called when the end of the list is reached (older actions). */
     onEndReached: () => void;
@@ -118,7 +112,6 @@ type MoneyRequestReportUnifiedListProps = {
     /** Called when the start of the list is reached (newer actions). */
     onStartReached: () => void;
 
-    /** Style applied to the list's content container. */
     contentContainerStyle: StyleProp<ViewStyle>;
 
     /** Whether the app is offline. */
@@ -126,9 +119,6 @@ type MoneyRequestReportUnifiedListProps = {
 
     /** Whether the initial batch of report actions is still loading. */
     isLoadingInitialActions: boolean;
-
-    /** Attributes describing why the skeleton is shown, for telemetry. */
-    skeletonReasonAttributes: SkeletonSpanReasonAttributes;
 
     /** Reports the index of the last list item so callers can jump to the bottom via scrollToIndex (which renders the
      * landing region, unlike scrollToEnd's estimated-offset jump that leaves the bottom blank on large lists). */
@@ -159,7 +149,6 @@ function MoneyRequestReportUnifiedList({
     contentContainerStyle,
     isOffline,
     isLoadingInitialActions,
-    skeletonReasonAttributes,
     onLastItemIndexChange,
     listFooterComponent,
 }: MoneyRequestReportUnifiedListProps) {
@@ -226,13 +215,13 @@ function MoneyRequestReportUnifiedList({
 
     const handleLayout = (event: LayoutChangeEvent) => {
         setViewportHeight(event.nativeEvent.layout.height);
-        onLayout();
+        onLayout(event);
     };
 
     // The hook compares unreadMarkerReportActionIndex (0-based within visibleReportActions) against
     // raw FlashList indices. When transactions are present, report actions start at reportActionIndexOffset,
     // so we shift all viewable indices down before forwarding so the comparison is apples-to-apples.
-    const onViewableItemsChangedAdjusted = (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
+    const onViewableItemsChangedAdjusted = (info: Parameters<ViewableItemsChanged>[0]) => {
         // Keep the raw array so the new-transaction effect can tell whether the new row is already on screen.
         viewableItemsRef.current = info.viewableItems;
         if (reportActionIndexOffset === 0) {
@@ -241,7 +230,7 @@ function MoneyRequestReportUnifiedList({
         }
         onViewableItemsChanged({
             ...info,
-            viewableItems: info.viewableItems.map((item) => ({...item, index: item.index !== null ? item.index - reportActionIndexOffset : null})),
+            viewableItems: info.viewableItems.map((item) => ({...item, index: typeof item.index === 'number' ? item.index - reportActionIndexOffset : item.index})),
         });
     };
 
@@ -394,10 +383,10 @@ function MoneyRequestReportUnifiedList({
             onScrollBeginDrag={onScrollBeginDrag}
             onContentSizeChange={onContentSizeChange}
             contentContainerStyle={contentContainerStyle}
-            ListEmptyComponent={shouldShowActionsLoadingSkeleton ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined}
+            ListEmptyComponent={shouldShowActionsLoadingSkeleton ? <ReportActionsListLoadingSkeleton /> : undefined}
             ListFooterComponent={
                 <>
-                    {shouldInlineTransactions && shouldShowActionsLoadingSkeleton && <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} />}
+                    {shouldInlineTransactions && shouldShowActionsLoadingSkeleton && <ReportActionsListLoadingSkeleton />}
                     {listFooterComponent}
                 </>
             }

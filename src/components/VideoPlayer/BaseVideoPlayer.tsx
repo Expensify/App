@@ -13,14 +13,13 @@ import useNetwork from '@hooks/useNetwork';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isSafari} from '@libs/Browser';
 import {canUseTouchScreen as canUseTouchScreenLib} from '@libs/DeviceCapabilities';
 
 import CONST from '@src/CONST';
 
 import type {MutedChangeEventPayload, PlayingChangeEventPayload, StatusChangeEventPayload, TimeUpdateEventPayload, VideoPlayer} from 'expo-video';
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 
 import {useEvent, useEventListener} from 'expo';
 import {useVideoPlayer, VideoView} from 'expo-video';
@@ -33,7 +32,7 @@ import {scheduleOnRN} from 'react-native-worklets';
 import type VideoPlayerProps from './types';
 
 import useHandleNativeVideoControls from './useHandleNativeVideoControls';
-import * as VideoUtils from './utils';
+import {buildVideoSourceURL} from './utils';
 import VideoErrorIndicator from './VideoErrorIndicator';
 import VideoPlayerControls from './VideoPlayerControls';
 
@@ -78,8 +77,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     const [duration, setDuration] = useState(videoDuration);
     const [isEnded, setIsEnded] = useState(false);
     const [isFirstLoad, setIsFirstLoad] = useState(true);
-    // we add "#t=0.001" at the end of the URL to skip first millisecond of the video and always be able to show proper video preview when video is paused at the beginning
-    const [sourceURL] = useState(() => VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url, encryptedAuthToken), 0.001));
+    const [sourceURL] = useState(() => buildVideoSourceURL(url, encryptedAuthToken));
     const isPopoverVisible = useIsPopoverVisible();
     const [controlStatusState, setControlStatusState] = useState(controlsStatus);
     const controlsOpacity = useSharedValue(1);
@@ -146,9 +144,9 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     }, [isLoading, isVideoOffline, isOffline]);
 
     const videoViewRef = useRef<VideoView | null>(null);
-    const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
-    const videoPlayerElementRef = useRef<View | HTMLDivElement | null>(null);
-    const sharedVideoPlayerParentRef = useRef<View | HTMLDivElement | null>(null);
+    const videoPlayerElementParentRef = useRef<ComponentRef<typeof View> | HTMLDivElement | null>(null);
+    const videoPlayerElementRef = useRef<ComponentRef<typeof View> | HTMLDivElement | null>(null);
+    const sharedVideoPlayerParentRef = useRef<ComponentRef<typeof View> | HTMLDivElement | null>(null);
     const isReadyForDisplayRef = useRef(false);
     const savedCurrentTimeRef = useRef(0);
     const shouldUseSharedVideoElementRef = useRef(shouldUseSharedVideoElement);
@@ -590,7 +588,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
                                 {shouldUseSharedVideoElement ? (
                                     <>
                                         <View
-                                            ref={sharedVideoPlayerParentRef as RefObject<View | null>}
+                                            ref={sharedVideoPlayerParentRef as RefObject<ComponentRef<typeof View> | null>}
                                             style={[styles.flex1]}
                                         />
                                         {/* We are adding transparent absolute View between appended video component and control buttons to enable
@@ -606,7 +604,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
                                             if (!el) {
                                                 return;
                                             }
-                                            const elHTML = el as View | HTMLDivElement;
+                                            const elHTML = el as ComponentRef<typeof View> | HTMLDivElement;
                                             if ('childNodes' in elHTML && elHTML.childNodes[0]) {
                                                 videoPlayerElementRef.current = elHTML.childNodes[0] as HTMLDivElement;
                                             }

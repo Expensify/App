@@ -45,8 +45,8 @@ describe('actions/PolicyTax', () => {
 
     let mockFetch: MockFetch;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = TestHelper.getGlobalFetchMock();
+        global.fetch = mockFetch;
         return Onyx.clear()
             .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy))
             .then(waitForBatchedUpdates);
@@ -854,6 +854,8 @@ describe('actions/PolicyTax', () => {
                                 // We expected to have a new tax rate with the new tax code
                                 expect(updatedTaxRate).toBeDefined();
                                 expect(updatedTaxRate?.previousTaxCode).toBe(oldTaxCode);
+                                // The old code is appended to the rename history so expenses still referencing it resolve to this rate
+                                expect(updatedTaxRate?.previousTaxCodes).toEqual([oldTaxCode]);
                                 expect(updatedTaxRate?.name).toBe(oldTaxRateName);
                                 resolve();
                             },

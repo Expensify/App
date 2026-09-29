@@ -1,6 +1,8 @@
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useLocalize from '@hooks/useLocalize';
@@ -11,6 +13,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -21,10 +24,12 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React, {useEffect} from 'react';
+import {View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
 
 function QuickbooksCustomersPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -49,6 +54,7 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
             displayName="QuickbooksCustomersPage"
             headerTitle="workspace.qbo.customers"
             title="workspace.qbo.customersDescription"
+            titleAlreadyTranslated={translate('workspace.qbo.customersDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -77,14 +83,19 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
                 isToggleTriggered={shouldAnimateAccordionSection}
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS], qboConfig?.pendingFields)}>
-                    <MenuItemWithTopDescription
-                        title={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
-                        description={translate('workspace.common.displayedAs')}
-                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS_DISPLAYED_AS.getRoute(policyID))}
-                        shouldShowRightIcon
-                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt4]}
-                        brickRoadIndicator={areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS], qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    />
+                    <View style={styles.mt4}>
+                        <MenuItemSectionRoot onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS_DISPLAYED_AS.getRoute(policyID))}>
+                            <MenuItemField.Row
+                                name={translate('workspace.common.displayedAs')}
+                                value={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
+                            >
+                                {areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS], qboConfig?.errorFields) && (
+                                    <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                )}
+                                <MenuItem.Chevron />
+                            </MenuItemField.Row>
+                        </MenuItemSectionRoot>
+                    </View>
                 </OfflineWithFeedback>
             </Accordion>
         </ConnectionLayout>

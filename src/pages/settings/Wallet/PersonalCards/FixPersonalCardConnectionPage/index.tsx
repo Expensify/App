@@ -15,7 +15,6 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import openBankConnection from '@pages/settings/Wallet/PersonalCards/steps/BankConnection/openBankConnection';
 
@@ -172,15 +171,10 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
         if (plaidDataErrorMessage) {
             return <Text style={[styles.formError, styles.mh5]}>{plaidDataErrorMessage}</Text>;
         }
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'FixPersonalCardConnectionPage.renderPlaid',
-            isPlaidLoading: plaidData?.isLoading,
-        };
         return (
             <ActivityIndicator
                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                 style={styles.flex1}
-                reasonAttributes={reasonAttributes}
             />
         );
     };

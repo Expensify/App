@@ -6,6 +6,8 @@ import type {Policy, PolicyReportField} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
+
 // Mock dependencies
 jest.mock('@libs/ReportUtils', () => ({
     getTitleReportField: jest.fn(),
@@ -15,7 +17,7 @@ jest.mock('@libs/Permissions', () => ({
     isBetaEnabled: jest.fn().mockReturnValue(true),
 }));
 
-const mockedReportUtils = ReportUtils as jest.Mocked<typeof ReportUtils>;
+const mockedReportUtils = jest.mocked(ReportUtils);
 
 describe('ReportTitleUtils', () => {
     beforeAll(async () => {
@@ -57,18 +59,18 @@ describe('ReportTitleUtils', () => {
 
     describe('updateTitleFieldToMatchPolicy', () => {
         const mockReportID = '12345';
-        const mockTitleField: PolicyReportField = {
+        const mockTitleField = createMock<PolicyReportField>({
             defaultValue: 'Test report Title',
-        } as unknown as PolicyReportField;
+        });
 
         it('should return optimistic update when valid inputs provided', () => {
-            const mockPolicy: Policy = {
+            const mockPolicy = createMock<Policy>({
                 id: 'policy123',
                 fieldList: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     text_title: mockTitleField,
                 },
-            } as unknown as Policy;
+            });
 
             mockedReportUtils.getTitleReportField.mockReturnValue(mockTitleField);
 

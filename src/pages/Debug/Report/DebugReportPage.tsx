@@ -8,6 +8,8 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import {useDerivedIsEmptyReport} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -21,7 +23,7 @@ import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
-import {getViolatingReportIDForRBRInLHN} from '@libs/ReportUtils';
+import {getViolatingReportIDForRBRInLHN, hasExpensifyGuidesEmails} from '@libs/ReportUtils';
 
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
@@ -76,16 +78,22 @@ function DebugReportPage({
     });
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {isBetaEnabled} = usePermissions();
+    const isDefaultRoomsBetaEnabled = isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
+    });
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID, login: currentUserLogin} = currentUserPersonalDetail;
     const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
     const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
     const isReportArchived = useReportIsArchived(reportID);
+    const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
+    const hasGuidesEmails = hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), guideAccountIDs);
+    const derivedIsEmptyReport = useDerivedIsEmptyReport(reportID);
 
     const metadata = useMemo<Metadata[]>(() => {
         if (!report) {
@@ -114,7 +122,7 @@ function DebugReportPage({
         const reasonLHN = DebugUtils.getReasonForShowingRowInLHN({
             report,
             chatReport,
-            betas,
+            isDefaultRoomsBetaEnabled,
             doesReportHaveViolations: shouldDisplayViolations,
             hasRBR,
             isReportArchived,
@@ -123,6 +131,8 @@ function DebugReportPage({
             currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,
             conciergeReportID,
+            hasGuidesEmails,
+            derivedIsEmptyReport,
         });
 
         return [
@@ -179,11 +189,13 @@ function DebugReportPage({
         transactions,
         reportAttributes?.reportErrors,
         isOffline,
-        betas,
+        isDefaultRoomsBetaEnabled,
         priorityMode,
         draftComment,
         translate,
         conciergeReportID,
+        hasGuidesEmails,
+        derivedIsEmptyReport,
     ]);
 
     const icons = useMemoizedLazyExpensifyIcons(['Eye']);
@@ -203,7 +215,6 @@ function DebugReportPage({
                         currentUserAccountID,
                         introSelected,
                         isSelfTourViewed,
-                        betas,
                         reportOwnerPersonalDetail,
                         currentUserPersonalDetail,
                         conciergePersonalDetail,
@@ -225,27 +236,28 @@ function DebugReportPage({
                             </View>
                             {!!message && <Text style={styles.textSupporting}>{message}</Text>}
                             {!!action && (
-                                <Button
-                                    text={action.name}
-                                    onPress={action.callback}
-                                />
+                                <Button onPress={action.callback}>
+                                    <Button.Text>{action.name}</Button.Text>
+                                </Button>
                             )}
                         </View>
                     ))}
                     <Button
-                        text={translate('debug.viewReport')}
                         onPress={() => {
                             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
                         }}
-                        icon={icons.Eye}
-                    />
+                    >
+                        <Button.Icon src={icons.Eye} />
+                        <Button.Text>{translate('debug.viewReport')}</Button.Text>
+                    </Button>
                     {!!transactionID && (
                         <Button
-                            text={translate('debug.viewTransaction')}
                             onPress={() => {
                                 Navigation.navigate(ROUTES.DEBUG_TRANSACTION.getRoute(transactionID));
                             }}
-                        />
+                        >
+                            <Button.Text>{translate('debug.viewTransaction')}</Button.Text>
+                        </Button>
                     )}
                 </View>
             </DebugDetails>
@@ -274,7 +286,6 @@ function DebugReportPage({
             conciergeReportID,
             introSelected,
             isSelfTourViewed,
-            betas,
             reportOwnerPersonalDetail,
             currentUserPersonalDetail,
             conciergePersonalDetail,

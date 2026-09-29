@@ -6,6 +6,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import useActivePolicy from './useActivePolicy';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from './useHasActiveAdminPolicies';
+import useHasOwnedPaidPolicy from './useHasOwnedPaidPolicy';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import useLocalize from './useLocalize';
 import useOnboardingMessages from './useOnboardingMessages';
@@ -22,7 +23,6 @@ function useOnboardingWorkspaceCreationState() {
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.login ?? '';
@@ -33,6 +33,7 @@ function useOnboardingWorkspaceCreationState() {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
     const {onboardingMessages} = useOnboardingMessages();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -42,7 +43,6 @@ function useOnboardingWorkspaceCreationState() {
         onboardingAdminsChatReportID,
         introSelected,
         isSelfTourViewed,
-        betas,
         currentUserPersonalDetails,
         currentUserEmail,
         currentUserAccountID,
@@ -52,6 +52,7 @@ function useOnboardingWorkspaceCreationState() {
         formatPhoneNumber,
         isRestrictedPolicyCreation,
         hasActiveAdminPolicies,
+        hasOwnedPaidPolicy,
         onboardingMessages,
         lastWorkspaceNumber,
         shouldUseNarrowLayout,

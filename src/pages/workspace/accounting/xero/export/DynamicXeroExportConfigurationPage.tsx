@@ -13,7 +13,7 @@ import {getCardSettings} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, getCurrentXeroOrganizationName, getXeroSupplierByID, isXeroVendorMatchingActive, settingsPendingAction} from '@libs/PolicyUtils';
-import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
+import {getIsTravelBillingEnabled, getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -35,19 +35,19 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
 
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
 
-    // Gate the Xero default-supplier row on Xero specifically being configured, not on the global
+    // Gate the Xero Default vendor row on Xero specifically being configured, not on the global
     // hasVendorFeature predicate. hasVendorFeature OR's all integrations, so on a dual-connected
     // workspace where QBO/Intacct is the active vendor-matching source it would still expose the
     // row even when Xero is mid tenant-switch (config.isConfigured=false) and data.contacts is
     // stale from the prior tenant — allowing the admin to persist a defaultVendor that flips
     // invalid the moment the new sync completes.
     const isVendorFeatureAvailable = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING) && isXeroVendorMatchingActive(policy);
-    const defaultSupplierName = getXeroSupplierByID(policy, defaultVendor)?.name ?? '';
+    const defaultVendorName = getXeroSupplierByID(policy, defaultVendor)?.name ?? '';
     const exportPath = policyID ? `${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path}` : undefined;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
-    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);
+    const isTravelBillingEnabled = getIsTravelBillingEnabled(travelSettings);
 
     const selectedBankAccountName = useMemo(() => {
         const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === exportConfiguration?.nonReimbursableAccount);
@@ -89,13 +89,13 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
             shouldShowRightIcon: false,
             helperText: translate('workspace.xero.exportInvoicesDescription'),
         },
-        ...(isTravelInvoicingEnabled
+        ...(isTravelBillingEnabled
             ? [
                   {
                       title: translate('workspace.xero.bankTransactions'),
                       description: translate('workspace.common.travelInvoicing'),
-                      onPress: !exportPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_INVOICING_CONFIGURATION.path, exportPath)),
-                      subscribedSettings: [CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT],
+                      onPress: !exportPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_BILLING_CONFIGURATION.path, exportPath)),
+                      subscribedSettings: [CONST.XERO_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT],
                   },
               ]
             : []),
@@ -115,9 +115,13 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
         ...(isVendorFeatureAvailable
             ? [
                   {
-                      description: translate('workspace.xero.defaultSupplier'),
+                      description: translate('workspace.accounting.defaultVendor'),
                       onPress: () => (!policyID ? undefined : Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_NON_REIMBURSABLE_DEFAULT_CONTACT_SELECT.path))),
-                      title: defaultSupplierName,
+                      title: defaultVendorName,
+                      // No fallback vendor name: Xero posts company card expenses as bank transactions and never
+                      // auto-creates a stand-in vendor, so clearing the default just turns the fallback off. Passing
+                      // one here would tell the admin their expenses export as "Credit Card Misc.", which is QBO-only.
+                      helperText: translate('workspace.accounting.defaultVendorHelperText', !!defaultVendorName),
                       subscribedSettings: [CONST.XERO_CONFIG.DEFAULT_VENDOR],
                   },
               ]

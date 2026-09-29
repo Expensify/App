@@ -1,0 +1,162 @@
+[
+    {
+        "body": "Hello,\nI would like to take on this issues by:\n- Carefully reproducing in staging\n- Debugging further and establishing the root-cause of the bug\n- Fixing the bug\n- updating the needed tests if applicable\n\nPlease see the submitted Upwork application\nRegards,\nSnufkin",
+        "expectedIntent": "SPAM",
+        "id": "commentIntent-upwork-bid-with-work-plan",
+        "note": "The canonical case: a bid on the job with a generic work plan and an Upwork application reference, and no technical content at all. Never reached any check in production, because it contains no \"Proposal\" keyword.",
+        "origin": "harvested (signature redacted)",
+        "sourceHash": "a7c13129bddc"
+    },
+    {
+        "body": "Hi, I'd like to claim this bounty issue: \"[$500] Invoice shows waiting for user to add a bank account despite payer already having a verified bank account\". I can provide a concise implementation plan and ETA today, then start with a scoped first PR. Implementation approach: 1) reproduce issue with clear acceptance criteria; 2) implement minimal fix; 3) add tests and ship a scoped PR quickly.",
+        "expectedIntent": "SPAM",
+        "id": "commentIntent-bounty-claim-restating-workflow",
+        "note": "Claims the bounty and restates the workflow (reproduce, fix, test, PR) as a plan of action, with nothing specific to this bug.",
+        "origin": "harvested",
+        "sourceHash": "3f18504cb75d"
+    },
+    {
+        "body": "Hi, I’d like to work on this.\n\nMy initial approach:\n1. Reproduce the `/transition?...exitTo=...` redirect into `/search/r/<reportID>` and compare it with direct navigation to `/search/r/<reportID>`.\n2. Inspect the report loading/search route state after transition, especially whether the report data request is skipped, blocked by stale navigation state, or stuck behind a loading flag.\n3. Patch the route/report initialization so transition-based deep links hydrate the same way direct New Expensify links do.\n4. Add focused regression coverage for transition/deep-link navigation into report search routes, plus manual web verification.\n\nI’ll avoid touching unrelated report/search behavior and will post a draft PR with repro notes once confirmed.",
+        "expectedIntent": "SPAM",
+        "id": "commentIntent-issue-restated-as-todo-list",
+        "note": "The issue restated as a numbered to-do list of what they would do. Names files and flows from the issue itself but offers no root cause or fix of its own.",
+        "origin": "harvested",
+        "sourceHash": "81838cbdd65b"
+    },
+    {
+        "body": "Can i work on this issue ?",
+        "expectedIntent": "SPAM",
+        "id": "commentIntent-bare-request-for-assignment",
+        "note": "A bare request to be given the job.",
+        "origin": "harvested",
+        "sourceHash": "911c33ed04b1"
+    },
+    {
+        "body": "I would like to work on this issue. I have identified the fix and can submit a PR.\n\n## Proposal\n\n**Problem:** The getReportPreviewMessage() function shows \"waiting for bank account\" without checking if policy has VBBA.\n\n**Solution:** Add VBBA check before showing message:\n- Check if policy.achAccount?.bankAccountID exists\n- Check if policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN\n- Only show \"waiting for bank account\" if user doesn't have VBBA\n\nThis matches the pattern used in SearchUIUtils and WorkspaceWorkflowsPage.\n\nCan I be assigned to this issue? @user @user",
+        "expectedIntent": "GENUINE_ATTEMPT",
+        "id": "commentIntent-bid-then-names-function-and-fix",
+        "note": "Opens with a bid, but then names a concrete function, the missing condition, and the specific fields to check. Real technical content in a shape the template would not match.",
+        "origin": "harvested",
+        "sourceHash": "06fd33485a56"
+    },
+    {
+        "body": "### Proposal\n\n**Analysis:**\nThe flashing of the \"Hmm... it's not here\" page before bouncing back happens because of a minor timing race between routing logic and the Onyx state evaluation inside `LinkedActionNotFoundGuard`. \n\nWhen a linked message is deleted, `useAutoNavigateForDeletedLinkedAction` triggers a layout effect to clear the `reportActionID` and drop the user to the end of the report. However, because the navigation state update is asynchronous, the guard evaluates the missing/deleted target on the very first render block and briefly mounts the 404 layout before the navigation action actually clears the parameters. From Self-DM, the screen push transition masks this update delay, which is why it bypasses the 404 frame completely and drops straight into the report.\n\n**Solution:**\n1. I will update the rendering gate logic within `LinkedActionNotFoundGuard` to handle the transition state atomically. \n2. We can introduce a synchronous rendering flag (or adapt the existing layout effect gates like `wasEverVisible`) to prevent committing the `<FullPageNotFoundView>` to the native view tree if the component is already in the middle of executing an automatic navigation recovery for a deleted action.\n3. This will ensure both entry points (same chat vs self-DM) behave consistently, clearing the invalid ID cleanly without flashing dead-end layouts to the user.\n\n**Platforms Affected:**\nAndroid, iOS, Web (React Native)",
+        "expectedIntent": "GENUINE_ATTEMPT",
+        "id": "commentIntent-proposal-heading-free-text-sections",
+        "note": "A \"Proposal\" heading followed by free-text Analysis and Solution sections rather than the template headings.",
+        "origin": "harvested",
+        "sourceHash": "44f4666fe802"
+    },
+    {
+        "body": "@user I built a prod bundle and profiled it.\n\nRoot cause: toggling a checkbox re-renders the avatar subtree (`ReportActionAvatars` + its per-row `useOnyx(REPORT)`) for **every** visible row, not just the tapped one — the page rebuilds its option objects each toggle, so every row's `item` is a new ref and React Compiler can't bail on identity. Extracting the avatar into a child keyed on primitives (`reportID`/`accountID`/`policyID`) lets the compiler bail it — verified in prod, **17 → 0** avatar re-renders per toggle, zero regressioon.\n\nbut i'll be straigth: on my repro (15 rows, seeded contacts, idle machine) the whole toggle is already ~12 ms, so this doesn't move INP — and a `useDeferredValue` variant didn't either. It's the \"insufficient data\" case; my synthetic list isn't slow enough to reproduce the real thing.",
+        "expectedIntent": "GENUINE_ATTEMPT",
+        "id": "commentIntent-profiling-results-informal",
+        "note": "Profiling results with a measured before/after and a named fix, written informally and with typos. The false positive that would hurt most: substantive work from someone not writing polished English must not read as spam.",
+        "origin": "harvested",
+        "sourceHash": "d9b871b9f38a"
+    },
+    {
+        "body": "## Updated Proposal\n\nUpdating my [proposal](https://github.com/Expensify/App/issues/94622#issuecomment-000000).\n\n**Root cause:** a card's workspace is derived from the cardholder's current membership, not from the card. Removing the member breaks that signal, so the card falls back to their individual workspace.\n\n**Fix:** anchor the card's workspace to its funding source / card feed, not the holder.\n\n```diff\n-const cardPolicyID = getPolicyIDForAccountID(card.accountID);\n+const cardPolicyID = getPolicyIDForCardFeed(card.fundID); // company workspace owning the feed\n```\n\nRemoval then only detaches the holder — the card and its unreported transactions keep resolving to the company workspace, with no migration code and no need to block removal.\n",
+        "expectedIntent": "GENUINE_ATTEMPT",
+        "id": "commentIntent-root-cause-and-diff-bold-labels",
+        "note": "Root cause and fix with a code diff, under bold labels instead of the template headings.",
+        "origin": "harvested",
+        "sourceHash": "a07d65ac018a"
+    },
+    {
+        "body": "Issue is still reproducible on Xiaomi Poco F5 / Android 13 in [v9.4.53-1 PR:98549 Ad-Hoc](https://ad-hoc-expensify-cash.s3.us-east-1.amazonaws.com/rock-artifacts/ad-hoc/rock-android-Adhoc-2afe348-85ce0b9-ade2809d68e91792389a7465754ec1cfd1747e8f/index.html)\n\nhttps://github.com/user-attachments/assets/054db92e-9989-461d-a40a-16bedc0b6f9a",
+        "expectedIntent": "NOT_AN_ATTEMPT",
+        "id": "commentIntent-qa-retest-result",
+        "note": "A QA retest result with a device, build and video.",
+        "origin": "harvested",
+        "sourceHash": "f9687cce9d36"
+    },
+    {
+        "body": "🆘 C+ Help wanted",
+        "expectedIntent": "NOT_AN_ATTEMPT",
+        "id": "commentIntent-contributor-plus-help-marker",
+        "note": "The Contributor+ help marker, which appears on almost every Help Wanted issue.",
+        "origin": "harvested",
+        "sourceHash": "2a24bbaef3df"
+    },
+    {
+        "body": "@user Since there is no Melvin proposal in this issue. Can you please open it for contributors? TY!",
+        "expectedIntent": "NOT_AN_ATTEMPT",
+        "id": "commentIntent-asking-to-open-to-contributors",
+        "note": "Asking for the issue to be opened to contributors. Adjacent to a claim on the job without being one.",
+        "origin": "harvested",
+        "sourceHash": "284d45251f0b"
+    },
+    {
+        "body": "@user What solution do you propose? Add code diffs.\n\nAlso, please describe in detail what I need to test to determine whether this is a front-end or back-end error (specifically, which values I should check and where).\n\nIf possible, please also find the PR where this logic was originally added.",
+        "expectedIntent": "NOT_AN_ATTEMPT",
+        "id": "commentIntent-reviewer-asking-for-solution",
+        "note": "A reviewer asking the proposer for a solution and for specific test information.",
+        "origin": "harvested",
+        "sourceHash": "31db12703d76"
+    },
+    {
+        "body": "I’m still not able to reproduce it.\n\n@user @user I set up an Expensify Card:\n\n<img width=\"770\" height=\"105\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/4592fc35-fde1-49a6-857a-dcdad42ae2e6\" />\n\nAnd I’m still not able to reproduce it\n\nhttps://github.com/user-attachments/assets/b72f4087-bc62-4753-821e-136f799a79a9\n\n\n",
+        "expectedIntent": "NOT_AN_ATTEMPT",
+        "id": "commentIntent-reproduction-notes-cannot-repro",
+        "note": "Reproduction notes with screenshots reporting a failure to reproduce.",
+        "origin": "harvested",
+        "sourceHash": "c35a46d0bab0"
+    },
+    {
+        "body": "Alright, so there's no bug here. Given the report with the held expenses is outstanding and the user does not have instant submit, the new expense is correctly added to a draft report",
+        "expectedIntent": "NOT_AN_ATTEMPT",
+        "id": "commentIntent-concluding-behaviour-is-correct",
+        "note": "A conclusion that the reported behaviour is correct. Describes the mechanism, but is closing the issue rather than proposing anything.",
+        "origin": "harvested",
+        "sourceHash": "bfb9885d0b7e"
+    },
+    {
+        "body": "> The important part: the backend already reassigns achAccount.reimburser to the new owner during the transfer — the client just never refreshes it. \n\nThanks @user for the correct RCA.\n\nThis is primarily a **backend** fix, not an App fix. The correct fix is for `RequestWorkspaceOwnerChange` api to return the updated policy data (including achAccount.reimburser) in its response onyxData, and to ship the same delta via the Pusher policy update. This fixes the root cause at the source.\n\n🎀👀🎀 C+ reviewed",
+        "expectedIntent": "NOT_AN_ATTEMPT",
+        "id": "commentIntent-feedback-disputing-root-cause",
+        "note": "Feedback on someone else’s root cause, arguing the fix belongs in the backend. Technical, and still not an attempt to claim or solve the job here.",
+        "origin": "harvested",
+        "sourceHash": "e5fa08aa2e77"
+    },
+    {
+        "body": "Thank you all proposals. Since the **Choose file** path is already covered after #96024, the only remaining repro is the **Choose from gallery** path — and that's what the review should hinge on.\n\nI think we can move forward with  **@user**'s [proposal](https://github.com/Expensify/App/issues/96404#issuecomment-000000).\n\n<details>\n<summary>Root cause & solution</summary>\n\n**Root cause** is the sharpest here: `showImagePicker()` converts HEIC→JPEG *before* validation, so the converted files reach `useFilesValidation` already named `.jpg`, `hasHeicOrHeifExtension()` is `false`, `filesToConvert` stays empty, and the sequential conversion loop is never hit. That's exactly why the crash still reproduces from gallery only.\n\n**Solution** is correctly scoped and complete:\n- Process gallery assets sequentially in `showImagePicker()` → bounds native decoding to one image at a time.\n- `release()` the `ImageManipulator` context + rendered `ImageRef` in a `finally` → deterministic native cleanup instead of relying on GC (sequential alone isn't enough without this).\n- Merges the per-asset `showGeneralAlert` into a single alert (today 30 failures = 30 stacked modals).\n- Adds a regression test asserting peak in-flight decodes = 1, since this doesn't reproduce in the simulator.\n\n</details>\n\n\n\n🎀 👀 🎀 C+ reviewed",
+        "expectedIntent": "NOT_AN_ATTEMPT",
+        "id": "commentIntent-contributor-plus-proposal-selection",
+        "note": "A Contributor+ review picking between submitted proposals and summarising the winner. Restates a root cause and solution, so an over-eager classifier could read it as an attempt.",
+        "origin": "harvested",
+        "sourceHash": "319ed2f41300"
+    },
+    {
+        "body": "> [@user](https://github.com/user)'s [proposal](https://github.com/Expensify/App/issues/94800#issuecomment-000000) looks good to me. 🎀 👀 🎀 C+ reviewed\n\nI agree, this proposal looks good. I really like the way you clearly explained the root cause.\n\n\nFor the other problems noted in the bullet points above, such as handling new emails and never-contacted users, I think that we should report separate bugs for those. Either fix them in parallel or after this fix goes out. @user can you please report those in Slack and tag me and the users from the previous Slack thread that is linked in this issue description?",
+        "expectedIntent": "NOT_AN_ATTEMPT",
+        "id": "commentIntent-agreement-with-followup-instructions",
+        "note": "Agreement with a selected proposal plus follow-up instructions.",
+        "origin": "harvested",
+        "sourceHash": "4634dd38d901"
+    },
+    {
+        "body": "[Proposal updated](https://github.com/Expensify/App/issues/97442#issuecomment-000000) — added compare branch with implementation, and corrected the root cause: the quick reaction buttons are rendered by a single `renderContent` action, which the arrow-key focus manager explicitly skips over as a disabled index.",
+        "expectedIntent": "NOT_AN_ATTEMPT",
+        "id": "commentIntent-pointer-at-edited-proposal",
+        "note": "A pointer at an edited proposal that summarises the correction inline. The summary is technical, but the proposal itself lives in another comment.",
+        "origin": "harvested",
+        "sourceHash": "4e3020c8e008"
+    },
+    {
+        "body": "@user  @user Before assignment is finalized - my [proposal](https://github.com/Expensify/App/issues/94854#issuecomment-000000) (posted June 29, before the selected one) was auto-withdrawn by ProposalPolice as a duplicate, but that was a false positive: the flagged proposal standardizes backTo as a path segment, mine removes the path placeholder and fixes getPathFromState - opposite fixes. Since it was withdrawn by the bot rather than reviewed, could you take a look at it on its merits? It also identifies why the bug **only reproduces after a tab** switch (the `backBehavior: 'none'` URL regeneration dropping `backTo`), which is a different root cause than the selected proposal's `getAdaptedState` restoration approach.",
+        "expectedIntent": "NOT_AN_ATTEMPT",
+        "id": "commentIntent-disputing-duplicate-withdrawal",
+        "note": "Disputing a duplicate withdrawal and asking for the original to be reviewed on its merits.",
+        "origin": "harvested",
+        "sourceHash": "cfee39f68485"
+    },
+    {
+        "body": "Guys, I don't think it's fair to tag C+ (@user)  and offer a solution before the Help Wanted label is added. We could also submit our proposals, but we prefer to follow the established order.\n\nThe same rules should apply to everyone.\n",
+        "expectedIntent": "NOT_AN_ATTEMPT",
+        "id": "commentIntent-process-complaint",
+        "note": "A process complaint about how the issue is being handled.",
+        "origin": "harvested",
+        "sourceHash": "3b4435bc72c2"
+    }
+]

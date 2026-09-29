@@ -1,11 +1,14 @@
 import type {PaymentMethodType} from '@components/KYCWall/types';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {SendMoneyParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
-import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
+import type {PersonalDetailsOnyxUpdate} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -18,10 +21,10 @@ import {
     getParsedComment,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {addOptimization, startTracking} from '@libs/telemetry/submitFollowUpAction';
+import {startTracking} from '@libs/telemetry/submitFollowUpAction';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 
-import {notifyNewAction} from '@userActions/Report';
+import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,6 +37,8 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
+
+import resolveWriteBarrier from './resolveWriteBarrier';
 
 type SendMoneyParamsData = {
     params: SendMoneyParams;
@@ -80,6 +85,7 @@ function getSendMoneyParams({
     optimisticChatReportID,
     currentUserAccountID,
     delegateAccountID,
+    getCurrencyDecimals,
 }: {
     report: OnyxEntry<OnyxTypes.Report>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
@@ -95,6 +101,7 @@ function getSendMoneyParams({
     optimisticChatReportID?: string;
     currentUserAccountID: number;
     delegateAccountID: number | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 }): SendMoneyParamsData {
     const recipientEmail = addSMSDomainIfPhoneNumber(recipient.login ?? '');
     const recipientAccountID = Number(recipient.accountID);
@@ -120,7 +127,7 @@ function getSendMoneyParams({
         });
         isNewChat = true;
     }
-    const optimisticIOUReport = buildOptimisticIOUReport(recipientAccountID, managerID, amount, chatReport.reportID, currency, true);
+    const optimisticIOUReport = buildOptimisticIOUReport(recipientAccountID, managerID, amount, chatReport.reportID, currency, getCurrencyDecimals, true);
 
     const optimisticTransaction = buildOptimisticTransaction({
         transactionParams: {
@@ -141,6 +148,7 @@ function getSendMoneyParams({
 
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, optimisticIOUReportAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
         buildOptimisticMoneyRequestEntities({
+            getCurrencyDecimals,
             iouReport: optimisticIOUReport,
             type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
             amount,
@@ -155,7 +163,7 @@ function getSendMoneyParams({
             delegateAccountIDParam: delegateAccountID,
         });
 
-    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticIOUReport, undefined, undefined, undefined, undefined, delegateAccountID);
+    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticIOUReport, getCurrencyDecimals, delegateAccountID);
 
     // Change the method to set for new reports because it doesn't exist yet, is faster,
     // and we need the data to be available when we navigate to the chat page
@@ -260,7 +268,7 @@ function getSendMoneyParams({
     > = [];
 
     // Add optimistic personal details for recipient
-    let optimisticPersonalDetailListData: OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST> | null = null;
+    let optimisticPersonalDetailListData: PersonalDetailsOnyxUpdate | null = null;
     const optimisticPersonalDetailListAction = isNewChat
         ? {
               [recipientAccountID]: {
@@ -284,16 +292,8 @@ function getSendMoneyParams({
             redundantParticipants[accountID] = null;
         }
 
-        optimisticPersonalDetailListData = {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: optimisticPersonalDetailListAction,
-        };
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: successPersonalDetailListAction,
-        });
+        optimisticPersonalDetailListData = buildPersonalDetailsUpdate(optimisticPersonalDetailListAction);
+        successData.push(buildPersonalDetailsUpdate(successPersonalDetailListAction));
     }
 
     successData.push(
@@ -503,8 +503,8 @@ type SendMoneyActionParams = {
     receipt?: Receipt;
     optimisticChatReportID?: string;
     shouldStartTracking?: boolean;
-    shouldDeferForSearch?: boolean;
     delegateAccountID: number | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 function executeSendMoney(
@@ -512,8 +512,9 @@ function executeSendMoney(
     paymentMethodType: typeof CONST.IOU.PAYMENT_TYPE.ELSEWHERE | typeof CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
     writeCommand: typeof WRITE_COMMANDS.SEND_MONEY_ELSEWHERE | typeof WRITE_COMMANDS.SEND_MONEY_WITH_WALLET,
 ) {
-    const {report, quickAction, amount, currency, comment, currentUserAccountID, recipient, created, merchant, receipt, optimisticChatReportID, delegateAccountID} = actionParams;
-    const {shouldStartTracking = true, shouldDeferForSearch = false} = actionParams;
+    const {report, quickAction, amount, currency, comment, currentUserAccountID, recipient, created, merchant, receipt, optimisticChatReportID, delegateAccountID, getCurrencyDecimals} =
+        actionParams;
+    const {shouldStartTracking = true} = actionParams;
 
     const {params, optimisticData, successData, failureData} = getSendMoneyParams({
         report,
@@ -530,6 +531,7 @@ function executeSendMoney(
         optimisticChatReportID,
         currentUserAccountID,
         delegateAccountID,
+        getCurrencyDecimals,
     });
     if (shouldStartTracking) {
         startTracking(
@@ -546,16 +548,12 @@ function executeSendMoney(
     // Sound acknowledges the action immediately, even when the write is deferred.
     playSound(SOUNDS.DONE);
     const chatReportIDForNotification = params.chatReportID;
-    deferOrExecuteWrite(
-        () => {
-            API.write(writeCommand, params, {optimisticData, successData, failureData});
-            notifyNewAction(chatReportIDForNotification, undefined, true);
-        },
-        {
-            shouldDeferForSearch,
-            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
-            onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
-        },
+    API.writeWhenReady(
+        writeCommand,
+        params,
+        {optimisticData, successData, failureData},
+        resolveWriteBarrier({optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`}),
+        {onWriteStarted: () => notifyNewAction(chatReportIDForNotification, undefined, true)},
     );
 }
 

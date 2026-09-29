@@ -1,80 +1,88 @@
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
-import type {IOUAction, IOUType} from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Unit} from '@src/types/onyx/Policy';
+import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 
 import React from 'react';
+
+import ExpenseFieldRow from './ExpenseFieldRow';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 
 type DistanceFieldProps = {
     hasRoute: boolean;
     distance: number;
     unit: Unit | undefined;
-    rate: number | undefined;
-    isManualDistanceRequest: boolean;
-    isOdometerDistanceRequest: boolean;
-    isGPSDistanceRequest: boolean;
-    isReadOnly: boolean;
-    didConfirm: boolean;
-    transactionID: string | undefined;
-    action: IOUAction;
-    iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-    reportID: string;
-    reportActionID: string | undefined;
+    customUnit?: TransactionCustomUnit;
 };
 
-function DistanceField({
-    hasRoute,
-    distance,
-    unit,
-    rate,
-    isManualDistanceRequest,
-    isOdometerDistanceRequest,
-    isGPSDistanceRequest,
-    isReadOnly,
-    didConfirm,
-    transactionID,
-    action,
-    iouType,
-    reportID,
-    reportActionID,
-}: DistanceFieldProps) {
+function DistanceField({hasRoute, distance, unit, customUnit}: DistanceFieldProps) {
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isManualDistanceRequest, isOdometerDistanceRequest, isGPSDistanceRequest} =
+        useConfirmationFields();
+
+    const displayUnit = unit ?? customUnit?.distanceUnit;
+    const commuterExclusionData = DistanceRequestUtils.getCommuterExclusionDisplayData(customUnit, displayUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+    const displayTitle = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, translate, false, isManualDistanceRequest, commuterExclusionData);
+    const {distanceToDisplayDescription, distanceToDisplayHintText} = DistanceRequestUtils.getDistanceDisplayDetailsWithCommuter(commuterExclusionData, displayUnit, translate);
+
+    // A GPS route is whatever the map traced, so there is nothing for the user to pick here.
+    const isDistanceInteractive = !isReadOnly && !isGPSDistanceRequest;
+
+    const openDistancePage = () => {
+        if (!transactionID) {
+            return;
+        }
+
+        if (isManualDistanceRequest) {
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(action, iouType, transactionID, reportID, reportActionID)));
+            return;
+        }
+
+        if (isOdometerDistanceRequest) {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(action, iouType, transactionID, reportID));
+            return;
+        }
+
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, reportActionID)));
+    };
+
+    if (shouldUseDropdownRows) {
+        return (
+            <ExpenseFieldRow
+                name={distanceToDisplayDescription}
+                value={displayTitle}
+                hintText={distanceToDisplayHintText}
+                onPress={openDistancePage}
+                isDisabled={didConfirm}
+                isInteractive={isDistanceInteractive}
+                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DISTANCE_FIELD}
+            />
+        );
+    }
 
     return (
         <MenuItemWithTopDescription
-            shouldShowRightIcon={!isReadOnly && !isGPSDistanceRequest}
-            title={DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, undefined, isManualDistanceRequest)}
-            description={translate('common.distance')}
+            shouldShowRightIcon={isDistanceInteractive}
+            title={displayTitle}
+            description={distanceToDisplayDescription}
+            hintText={distanceToDisplayHintText}
             style={[styles.moneyRequestMenuItem]}
             titleStyle={styles.flex1}
-            onPress={() => {
-                if (!transactionID) {
-                    return;
-                }
-
-                if (isManualDistanceRequest) {
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
-                    return;
-                }
-
-                if (isOdometerDistanceRequest) {
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(action, iouType, transactionID, reportID));
-                    return;
-                }
-
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
-            }}
+            onPress={openDistancePage}
             disabled={didConfirm}
-            interactive={!isReadOnly && !isGPSDistanceRequest}
+            interactive={isDistanceInteractive}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DISTANCE_FIELD}
         />
     );

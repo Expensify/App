@@ -1,10 +1,13 @@
 import {render} from '@testing-library/react-native';
 
+import type {ComponentRef} from 'react';
 import type {LayoutChangeEvent, View as RNView, ViewStyle} from 'react-native';
 
 import {FlashList} from '@shopify/flash-list';
 import React from 'react';
 import {View} from 'react-native';
+
+import createMock from '../utils/createMock';
 
 type CellProps = {
     index: number;
@@ -18,7 +21,7 @@ describe('FlashList - stale onLayout after rapid data change', () => {
         // Map of index -> captured onLayout handler from each ViewHolder render
         const capturedLayoutHandlers = new Map<number, (event: LayoutChangeEvent) => void>();
 
-        const CapturingCell = React.forwardRef<RNView, CellProps>(({index, onLayout, style, children}, ref) => {
+        const CapturingCell = React.forwardRef<ComponentRef<typeof RNView>, CellProps>(({index, onLayout, style, children}, ref) => {
             capturedLayoutHandlers.set(index, onLayout);
             return (
                 <View
@@ -72,11 +75,13 @@ describe('FlashList - stale onLayout after rapid data change', () => {
         // Pre-fix: this throws "index out of bounds, not enough layouts"
         // Post-fix: validateItemSize bails when tryGetLayout returns undefined
         expect(() => {
-            staleOnLayout?.({
-                nativeEvent: {
-                    layout: {x: 0, y: 0, width: 100, height: 50},
-                },
-            } as LayoutChangeEvent);
+            staleOnLayout?.(
+                createMock<LayoutChangeEvent>({
+                    nativeEvent: {
+                        layout: {x: 0, y: 0, width: 100, height: 50},
+                    },
+                }),
+            );
         }).not.toThrow();
     });
 });

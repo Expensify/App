@@ -11,6 +11,7 @@ import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,7 +19,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openSearchCardFiltersPage} from '@libs/actions/Search';
 import {buildCardsData} from '@libs/CardFeedUtils';
 import type {CardFilterItem} from '@libs/CardFeedUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import variables from '@styles/variables';
 
@@ -35,6 +35,7 @@ type CardSelectorProps = SearchFilterCommonProps<string[] | undefined>;
 
 function CardSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CardSelectorProps) {
     const theme = useTheme();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -137,7 +138,6 @@ function CardSelector({value = [], selectionListTextInputStyle, selectionListSty
 
     const isLoadingOnyxData = isLoadingOnyxValue(userCardListMetadata, workspaceCardFeedsMetadata);
     const shouldShowLoadingState = isLoadingOnyxData || (!areCardsLoaded && !isOffline);
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'SearchFiltersCardPage', isLoadingFromOnyx: isLoadingOnyxData};
 
     return (
         <ListFilterView
@@ -152,7 +152,6 @@ function CardSelector({value = [], selectionListTextInputStyle, selectionListSty
                         color={theme.spinner}
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.pl3]}
-                        reasonAttributes={reasonAttributes}
                     />
                 </View>
             ) : (
@@ -170,6 +169,7 @@ function CardSelector({value = [], selectionListTextInputStyle, selectionListSty
                     shouldPreventAutoScrollOnSelect
                     style={selectionListStyle}
                     footerContent={footer}
+                    shouldFooterBeInsideList={shouldFooterBeInsideList}
                 />
             )}
         </ListFilterView>

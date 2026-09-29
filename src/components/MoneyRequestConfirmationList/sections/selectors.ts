@@ -9,10 +9,10 @@ import {
     isAmountMissing,
     isCreatedMissing,
     isMerchantMissing,
+    isScanRequest,
     willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
 
-import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
@@ -23,7 +23,16 @@ type Transaction = OnyxTypes.Transaction;
 
 // --- DateField ---
 
-type DateState = {iouCreated: string; isMissing: boolean; hasReceipt: boolean};
+type DateState = {
+    iouCreated: string;
+    isMissing: boolean;
+    hasReceipt: boolean;
+    isCreatedSet: boolean;
+    // The Scan confirmation's amount / merchant / date are all-or-nothing, so the date field reads the other two.
+    iouRequestType: Transaction['iouRequestType'];
+    isAmountSet: boolean;
+    isMerchantSet: boolean;
+};
 
 const dateStateSelector = (t: OnyxEntry<Transaction>): DateState | undefined => {
     if (!t) {
@@ -33,6 +42,10 @@ const dateStateSelector = (t: OnyxEntry<Transaction>): DateState | undefined => 
         iouCreated: getCreated(t),
         isMissing: isCreatedMissing(t),
         hasReceipt: hasReceipt(t),
+        isCreatedSet: t.isCreatedSet ?? false,
+        iouRequestType: t.iouRequestType,
+        isAmountSet: t.isAmountSet ?? false,
+        isMerchantSet: t.isMerchantSet ?? false,
     };
 };
 
@@ -95,7 +108,7 @@ const createTagDisplaySelector = (tagIndex: number) => (t: OnyxEntry<Transaction
 
 // --- CategoryField ---
 
-type CategoryState = {category: string; willAutoFill: boolean};
+type CategoryState = {category: string; willAutoFill: boolean; isAutoFillFromReceipt: boolean};
 
 const categoryStateSelector = (t: OnyxEntry<Transaction>): CategoryState | undefined => {
     if (!t) {
@@ -104,12 +117,25 @@ const categoryStateSelector = (t: OnyxEntry<Transaction>): CategoryState | undef
     return {
         category: getCategory(t),
         willAutoFill: willFieldBeAutomaticallyFilled(t, 'category'),
+        // On a scan the category is read off the receipt, so `Automatic` describes the value the row ends up
+        // holding. On a manual expense it is a promise about a field that is still empty, since categorization
+        // only runs once the expense is created.
+        isAutoFillFromReceipt: isScanRequest(t),
     };
 };
 
 // --- MerchantField ---
 
-type MerchantState = {merchant: string; isMerchantSet: boolean; isMissing: boolean; hasReceipt: boolean};
+type MerchantState = {
+    merchant: string;
+    isMerchantSet: boolean;
+    isMissing: boolean;
+    hasReceipt: boolean;
+    // The Scan confirmation's amount / merchant / date are all-or-nothing, so the merchant field reads the other two.
+    iouRequestType: Transaction['iouRequestType'];
+    isAmountSet: boolean;
+    isCreatedSet: boolean;
+};
 
 const merchantStateSelector = (t: OnyxEntry<Transaction>): MerchantState | undefined => {
     if (!t) {
@@ -120,6 +146,9 @@ const merchantStateSelector = (t: OnyxEntry<Transaction>): MerchantState | undef
         isMerchantSet: t.isMerchantSet ?? false,
         isMissing: isMerchantMissing(t),
         hasReceipt: hasReceipt(t),
+        iouRequestType: t.iouRequestType,
+        isAmountSet: t.isAmountSet ?? false,
+        isCreatedSet: t.isCreatedSet ?? false,
     };
 };
 
@@ -150,6 +179,9 @@ type AmountSlice = {
     isAmountMissing: boolean;
     isAmountSet: Transaction['isAmountSet'];
     taxCode: Transaction['taxCode'];
+    // The Scan confirmation's amount / merchant / date are all-or-nothing, so the amount field reads the other two.
+    isMerchantSet: boolean;
+    isCreatedSet: boolean;
 };
 
 const amountSliceSelector = (t: OnyxEntry<Transaction>): AmountSlice | undefined => {
@@ -167,6 +199,8 @@ const amountSliceSelector = (t: OnyxEntry<Transaction>): AmountSlice | undefined
         isAmountMissing: isAmountMissing(t),
         isAmountSet: t.isAmountSet,
         taxCode: t.taxCode,
+        isMerchantSet: t.isMerchantSet ?? false,
+        isCreatedSet: t.isCreatedSet ?? false,
     };
 };
 
@@ -227,7 +261,7 @@ const tagSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<TagSlice> => {
     return slice;
 };
 
-// --- InvoiceSenderSection ---
+// --- InvoiceSenderField ---
 
 type InvoiceSenderSlice = Pick<Transaction, 'isFromGlobalCreate' | 'transactionID'>;
 
@@ -245,7 +279,14 @@ const invoiceSenderSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Invoic
 // --- DistanceMapSection ---
 
 type DistanceMapSlice = Pick<Transaction, 'pendingFields' | 'errors' | 'errorFields' | 'routes'> & {
-    comment: {waypoints: NonNullable<Transaction['comment']>['waypoints']} | undefined;
+    comment:
+        | {
+              waypoints: NonNullable<Transaction['comment']>['waypoints'];
+              selectedRouteKey: NonNullable<Transaction['comment']>['selectedRouteKey'];
+              // `getSelectedRouteKey` falls back to this when the frontend-only `selectedRouteKey` is absent (e.g. on an already-saved expense)
+              customUnit: {routeDistanceMeters: NonNullable<NonNullable<Transaction['comment']>['customUnit']>['routeDistanceMeters']} | undefined;
+          }
+        | undefined;
 };
 
 const distanceMapSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
@@ -257,7 +298,13 @@ const distanceMapSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transact
         errors: t.errors,
         errorFields: t.errorFields,
         routes: t.routes,
-        comment: t.comment ? {waypoints: t.comment.waypoints} : undefined,
+        comment: t.comment
+            ? {
+                  waypoints: t.comment.waypoints,
+                  selectedRouteKey: t.comment.selectedRouteKey,
+                  customUnit: t.comment.customUnit ? {routeDistanceMeters: t.comment.customUnit.routeDistanceMeters} : undefined,
+              }
+            : undefined,
     };
     return slice as Transaction;
 };
@@ -315,9 +362,6 @@ const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportF
     };
 };
 
-const createOutstandingReportsForPolicySelector = (policyID: string | undefined) => (derived: OnyxEntry<OnyxTypes.OutstandingReportsByPolicyIDDerivedValue>) =>
-    derived?.[policyID ?? CONST.DEFAULT_NUMBER_ID];
-
 // --- InvoiceSenderField ---
 
 type InvoiceSenderWorkspace = {id: string | undefined; name: string | undefined; avatarURL: string | undefined} | undefined;
@@ -341,7 +385,6 @@ export {
     attendeeSliceSelector,
     categoryStateSelector,
     createCanUpdateSenderWorkspaceSelector,
-    createOutstandingReportsForPolicySelector,
     createTagDisplaySelector,
     dateStateSelector,
     derivedFlagsSliceSelector,

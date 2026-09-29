@@ -15,9 +15,10 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {expensifyLoginsSelector, getContactMethod} from '@libs/UserUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect} from 'react';
 
 import getDecodedContactMethodFromUriParam from './utils';
@@ -69,7 +70,8 @@ function SetDefaultContactMethodConfirmValidateCodePage({route}: SetDefaultConta
     return (
         <ValidateCodeActionContent
             title={translate('delegate.makeSureItIsYou')}
-            sendValidateCode={() => requestValidateCodeAction()}
+            sendValidateCode={() => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.CHANGE_PRIMARY_LOGIN})}
+            validateCodeReasonCode={COMMON_CONST.VALIDATE_CODE_REASONS.CHANGE_PRIMARY_LOGIN}
             descriptionPrimary={translate('contacts.enterSecurityCode', primaryContactMethod)}
             validateCodeActionErrorField="defaultLogin"
             validateError={defaultLoginError}
@@ -79,7 +81,8 @@ function SetDefaultContactMethodConfirmValidateCodePage({route}: SetDefaultConta
                 clearContactMethodErrors(contactMethod, 'defaultLogin');
             }}
             onClose={() => {
-                Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(contactMethod, backTo));
+                const listPath = createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, backTo);
+                Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHOD_DETAILS.getRoute(contactMethod), listPath));
             }}
         />
     );

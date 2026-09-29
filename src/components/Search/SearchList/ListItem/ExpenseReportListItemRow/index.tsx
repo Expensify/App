@@ -15,22 +15,17 @@ function ExpenseReportListItemRow(props: ExpenseReportListItemRowProps) {
             <ExpenseReportListItemRowWide
                 item={props.item}
                 reportActions={props.reportActions}
-                showTooltip={props.showTooltip}
                 canSelectMultiple={props.canSelectMultiple}
                 isActionLoading={props.isActionLoading}
                 onButtonPress={props.onButtonPress}
                 onCheckboxPress={props.onCheckboxPress}
                 chatReport={props.chatReport}
-                containerStyle={props.containerStyle}
                 isSelectAllChecked={props.isSelectAllChecked}
                 isIndeterminate={props.isIndeterminate}
                 isDisabledCheckbox={props.isDisabledCheckbox}
-                isHovered={props.isHovered}
-                isFocused={props.isFocused}
-                isPendingDelete={props.isPendingDelete}
                 shouldDisableActionPointerEvents={props.shouldDisableActionPointerEvents}
                 columns={props.columns}
-                isMarkAsDone={props.isMarkAsDone}
+                shouldShowMarkAsDoneCopy={props.shouldShowMarkAsDoneCopy}
             />
         );
     }
