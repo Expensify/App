@@ -1,12 +1,10 @@
-import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
+import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import TopBar from '@components/Navigation/TopBar';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
 
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
-
-import variables from '@styles/variables';
 
 import React from 'react';
 
@@ -15,8 +13,6 @@ type SearchPageHeaderNarrowProps = {
     shouldShowLoadingBar: boolean;
     isMobileSelectionModeEnabled: boolean;
 };
-
-const TAB_NAVIGATOR_HEIGHT_LANDSCAPE = variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding;
 
 function SearchPageHeaderNarrow({queryJSON, shouldShowLoadingBar = false, isMobileSelectionModeEnabled}: SearchPageHeaderNarrowProps) {
     const {translate} = useLocalize();
@@ -28,13 +24,13 @@ function SearchPageHeaderNarrow({queryJSON, shouldShowLoadingBar = false, isMobi
     // The narrow header is the top-level page title, so it stays a static "Spend". The tab selector rendered directly
     // below it already names the current view, and repeating that name here would show the same label twice.
     return (
-        <CollapsibleHeaderOnKeyboard collapsibleHeaderOffset={TAB_NAVIGATOR_HEIGHT_LANDSCAPE}>
+        <CollapsibleHeaderOnKeyboardGroupMember>
             <TopBar
                 shouldShowLoadingBar={shouldShowLoadingBar}
                 breadcrumbLabel={translate('common.spend')}
                 shouldDisplayHelpButton
             />
-        </CollapsibleHeaderOnKeyboard>
+        </CollapsibleHeaderOnKeyboardGroupMember>
     );
 }
 
