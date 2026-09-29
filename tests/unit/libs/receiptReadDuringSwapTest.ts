@@ -26,6 +26,7 @@ jest.mock('react-native-fs', () => ({
         return Promise.resolve();
     },
     readDir: () => Promise.resolve([]),
+    writeFile: () => Promise.resolve(),
 }));
 
 jest.mock('@libs/fileDownload/checkFileExists', () => ({

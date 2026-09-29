@@ -23,6 +23,10 @@ const SWEEP_IDLE_TIMEOUT_MS = 10000;
 const STAGED_SUFFIX = '.receipt-swap-staged';
 const BACKUP_SUFFIX = '.receipt-swap-backup';
 
+// RNFS `readDir` on the receipts folder costs ~1ms per file on Android and blocks every other native call
+// while it runs, so the sweep lists this folder of pending swaps instead.
+const PENDING_SWAPS_FOLDER = '.pending-receipt-swaps';
+
 const swapsInFlight = new Map<string, Promise<unknown>>();
 
 const committedSwaps = new Map<string, Promise<void>>();
@@ -76,11 +80,13 @@ const discard: ReceiptStorage['discard'] = async (uriOrPath) => {
     await RNFS.unlink(path);
 };
 
-async function discardLeftover(path: string) {
+async function discardLeftover(path: string): Promise<boolean> {
     try {
         await discard(path);
+        return true;
     } catch (error) {
         Log.warn('[ReceiptStorage] could not delete a leftover receipt copy', {path, error: error instanceof Error ? error.message : String(error)});
+        return false;
     }
 }
 
@@ -110,7 +116,7 @@ async function restoreInterruptedSwap(target: string, {shouldWaitForRunningSwap 
     return true;
 }
 
-async function swapIntoPlace(dir: string, durableName: string, target: string, uriOrPath: string, shouldAbort?: () => boolean): Promise<string> {
+async function swapFiles(dir: string, durableName: string, target: string, uriOrPath: string, shouldAbort?: () => boolean): Promise<string> {
     // Neither platform can move a file onto one that already exists. NSFileManager refuses and Android's
     // `renameTo` is unreliable, so stage the new bytes beside the receipt, then swap them in with two
     // renames inside the directory. The original keeps a second name until the swap succeeds.
@@ -162,19 +168,57 @@ async function swapIntoPlace(dir: string, durableName: string, target: string, u
     return verify(dir, durableName);
 }
 
+async function markSwapStarted(dir: string, durableName: string) {
+    const pendingSwapsDir = `${dir}/${PENDING_SWAPS_FOLDER}`;
+    await RNFS.mkdir(pendingSwapsDir);
+    await RNFS.writeFile(`${pendingSwapsDir}/${durableName}`, '', 'utf8');
+}
+
+async function markSwapFinished(dir: string, durableName: string, target: string) {
+    try {
+        const [isInPlace, hasStaged, hasBackup] = await Promise.all([RNFS.exists(target), RNFS.exists(`${target}${STAGED_SUFFIX}`), RNFS.exists(`${target}${BACKUP_SUFFIX}`)]);
+        if (!isInPlace || hasStaged || hasBackup) {
+            return;
+        }
+        await discard(`${dir}/${PENDING_SWAPS_FOLDER}/${durableName}`);
+    } catch (error) {
+        Log.warn('[ReceiptStorage] could not clear a finished swap from the pending swaps', {error: error instanceof Error ? error.message : String(error)});
+    }
+}
+
+async function swapIntoPlace(dir: string, durableName: string, target: string, uriOrPath: string, shouldAbort?: () => boolean): Promise<string> {
+    await markSwapStarted(dir, durableName);
+    try {
+        return await swapFiles(dir, durableName, target, uriOrPath, shouldAbort);
+    } finally {
+        await markSwapFinished(dir, durableName, target);
+    }
+}
+
 async function sweepInterruptedSwaps(dir: string) {
-    // Nothing was ever scanned or adopted, so there is nothing to sweep, and `readDir` would reject.
-    if (!(await RNFS.exists(dir))) {
+    const pendingSwapsDir = `${dir}/${PENDING_SWAPS_FOLDER}`;
+    if (!(await RNFS.exists(pendingSwapsDir))) {
         return;
     }
 
-    const names = (await RNFS.readDir(dir)).map((entry) => entry.name);
+    const names = (await RNFS.readDir(pendingSwapsDir)).map((entry) => entry.name);
 
     await Promise.all(
-        names.filter((name) => name.endsWith(BACKUP_SUFFIX)).map((name) => restoreInterruptedSwap(`${dir}/${name.slice(0, -BACKUP_SUFFIX.length)}`, {shouldWaitForRunningSwap: false})),
-    );
+        names.map(async (name) => {
+            const target = `${dir}/${name}`;
+            const isRestored = await restoreInterruptedSwap(target, {shouldWaitForRunningSwap: false});
+            const isStagedGone = await discardLeftover(`${target}${STAGED_SUFFIX}`);
 
-    await Promise.all(names.filter((name) => name.endsWith(STAGED_SUFFIX) || name.endsWith(BACKUP_SUFFIX)).map((name) => discardLeftover(`${dir}/${name}`)));
+            if (!isRestored) {
+                return;
+            }
+            const isBackupGone = await discardLeftover(`${target}${BACKUP_SUFFIX}`);
+
+            if (isStagedGone && isBackupGone) {
+                await discardLeftover(`${pendingSwapsDir}/${name}`);
+            }
+        }),
+    );
 }
 
 let leftoversSwept: Promise<void> | undefined;

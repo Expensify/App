@@ -21,6 +21,17 @@ describe('useReceiptUpgradeCount', () => {
         expect(result.current).toBe(0);
     });
 
+    it('reports nothing for a bundled asset, which is a numeric module ID on native', () => {
+        // Given a source that is a bundled image such as ReceiptGeneric, which native resolves to a numeric asset ID
+        const bundledAsset = 42;
+
+        // When the hook reads its upgrade count
+        const {result} = renderHook(() => useReceiptUpgradeCount(bundledAsset));
+
+        // Then it reports no upgrade instead of throwing on `split`
+        expect(result.current).toBe(0);
+    });
+
     it('goes up when the receipt behind the path is replaced, since the path itself never changes', () => {
         const {result} = renderHook(() => useReceiptUpgradeCount(RECEIPT_URI));
 

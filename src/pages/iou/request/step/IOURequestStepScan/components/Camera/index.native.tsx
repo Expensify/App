@@ -270,6 +270,8 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                             flash={flash}
                             hasFlash={hasFlash}
                             setFlash={setFlash}
+                            photoQualityBalance="balanced"
+                            outputOrientation="preview"
                         />
                     )}
                 </View>
