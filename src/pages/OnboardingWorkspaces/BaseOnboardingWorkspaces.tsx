@@ -290,6 +290,9 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             returnToOriginReport();
             return;
         }
+        if (!isJoiningCompanyWorkspace) {
+            return;
+        }
         Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
     }, [
         conciergeChat,
@@ -297,6 +300,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         delegateAccountID,
         accessiblePoliciesActionRequestID,
         isConciergeTaskFlow,
+        isJoiningCompanyWorkspace,
         joinablePoliciesErrors,
         joinablePoliciesLength,
         joinablePoliciesLoading,
