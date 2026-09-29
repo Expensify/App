@@ -868,7 +868,7 @@ const isPolicyGuest = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: stri
 
 /**
  * Returns the highest-privilege role held across the given policies.
- * Ranking is admin > auditor > user > guest, so a member on any workspace is not reported as a guest.
+ * Ranking is admin > auditor > user > guest.
  */
 function getHighestPolicyRole(
     policyList: Array<OnyxInputOrEntry<Pick<Policy, 'role'>>>,
