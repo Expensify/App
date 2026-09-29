@@ -14,6 +14,7 @@ import {setAddNewPersonalCardStepAndData} from '@libs/actions/PersonalCards';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
+import getPlaidInstitutionID from '@libs/PlaidUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -155,10 +156,7 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
         Log.info('[PlaidLink] Success!');
 
         const institution = metadata.institution;
-        let plaidConnectedFeed: string | undefined;
-        if (institution) {
-            plaidConnectedFeed = 'institution_id' in institution ? institution.institution_id : institution.id;
-        }
+        const plaidConnectedFeed = getPlaidInstitutionID(institution);
         const plaidConnectedFeedName = institution?.name;
 
         setAddNewPersonalCardStepAndData({
@@ -167,7 +165,7 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
                 publicToken,
                 plaidConnectedFeed,
                 plaidConnectedFeedName,
-                plaidAccounts: metadata?.accounts,
+                plaidAccounts: metadata.accounts,
             },
         });
     };

@@ -1,16 +1,19 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -18,10 +21,19 @@ import {clearBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils} from '@libs/PolicyUtils';
-import {canEditFieldOfMoneyRequest, isInvoiceReport, isIOUReport} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, isInvoiceReport, isIOUReport, isReportApproved, isSettled} from '@libs/ReportUtils';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
-import {hasEnabledTags, shouldShowDependentTagList} from '@libs/TagsOptionsListUtils';
-import {getTagArrayFromName, getTaxName, hasSplitExpenseInSelection, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';
+import {getDependentTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import {
+    getAttendeesListDisplayString,
+    getTagArrayFromName,
+    getTaxName,
+    hasSplitExpenseInSelection,
+    isDistanceRequest,
+    isManagedCardTransaction,
+    isPerDiemRequest,
+    isTimeRequest,
+} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,6 +51,7 @@ import {
     areAllTransactionsExpenseCompatible,
     getTransactionEditContext,
     hasCustomUnitMerchantInSelection,
+    isBulkEditAttendeeTrackingEnabled,
     isBulkEditTaxTrackingEnabled,
     withSnapshotReportActions,
     withSnapshotReports,
@@ -46,12 +59,15 @@ import {
 } from './SearchEditMultipleUtils';
 
 function SearchEditMultiplePage() {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {convertToDisplayStringWithoutCurrency, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {currentSearchHash} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
+    const {showConfirmModal} = useConfirmModal();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const personalPolicy = usePersonalPolicy();
     const delegateAccountID = useDelegateAccountID();
@@ -75,6 +91,7 @@ function SearchEditMultiplePage() {
     });
 
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const snapshotData = currentSearchResults?.data;
     const mergedTransactions = withSnapshotTransactions(allTransactions, snapshotData);
@@ -92,13 +109,26 @@ function SearchEditMultiplePage() {
 
     const hasSplitTransaction = hasSplitExpenseInSelection(selectedTransactionContexts.map(({transaction}) => transaction));
 
+    // Expenses on approved or paid reports are finalized records. Editing them in bulk is allowed for admins, but it
+    // needs an explicit confirmation first so a large selection can't quietly rewrite them.
+    const finalizedTransactionCount = selectedTransactionContexts.filter(({report}) => isReportApproved({report}) || isSettled(report)).length;
+
     const isFieldDisabledForAnyTransaction = (field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) =>
-        selectedTransactionContexts.some(({transaction, report, reportAction, transactionPolicy}) => {
+        selectedTransactionContexts.some(({transaction, report, reportAction, reportActions, transactionPolicy}) => {
             // Unreported expenses have no report actions yet but are always editable
             if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 return false;
             }
-            return !canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report, policy: transactionPolicy, reportNameValuePairs});
+            return !canEditFieldOfMoneyRequest({
+                reportAction,
+                fieldToEdit: field,
+                transaction,
+                report,
+                policy: transactionPolicy,
+                reportNameValuePairs,
+                reportActions,
+                rules,
+            });
         });
 
     const hasPartiallyEditableTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.AMOUNT);
@@ -109,6 +139,8 @@ function SearchEditMultiplePage() {
         isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.TAX_RATE) || selectedTransactionContexts.some(({transaction}) => isDistanceRequest(transaction));
 
     const hasPartiallyEditableDateTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.DATE);
+
+    const hasPartiallyEditableReimbursableTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.REIMBURSABLE);
 
     const areSelectedTransactionsBillable = selectedTransactionContexts.every(({transaction, transactionPolicy}) => {
         // Unreported expenses have no policy yet but billable is always applicable
@@ -135,8 +167,10 @@ function SearchEditMultiplePage() {
 
     const isTaxTrackingEnabled = isBulkEditTaxTrackingEnabled(selectedTransactionContexts, policy, hasPerDiemOrTimeTransaction);
     const areSelectedTransactionsExpenses = areAllTransactionsExpenseCompatible(selectedTransactionContexts);
+    const isAttendeeTrackingEnabledForSelection = isBulkEditAttendeeTrackingEnabled(selectedTransactionContexts, policy);
     const areCategoriesEnabled = areSelectedTransactionsExpenses && !!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {});
     const areTagsEnabled = areSelectedTransactionsExpenses && !!policy?.areTagsEnabled && hasEnabledTags(policyTagLists);
+    const areAttendeesEnabled = areSelectedTransactionsExpenses && isAttendeeTrackingEnabledForSelection;
 
     useEffect(() => {
         return () => {
@@ -145,6 +179,44 @@ function SearchEditMultiplePage() {
     }, []);
 
     const [isSaving, setIsSaving] = useState(false);
+
+    const commit = (changes: TransactionChanges) => {
+        setIsSaving(true);
+
+        // Defer the bulk edit loop so the loading spinner has a chance to paint
+        // before the synchronous Onyx writes block the JS thread.
+        requestAnimationFrame(() => {
+            updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled,
+                transactionIDs: selectedTransactionIDs,
+                changes,
+                bulkEditTagChanges: draftTransaction?.bulkEditTagChanges,
+                policy,
+                reports: mergedReports,
+                transactions: mergedTransactions,
+                reportActions: mergedReportActions,
+                policyCategories: allPolicyCategories,
+                policyTags: allPolicyTags,
+                violations: allTransactionViolations,
+                reportNameValuePairs,
+                hash: currentSearchHash,
+                allPolicies: policies,
+                currentUserAccountID,
+                delegateAccountID,
+                personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                personalDetailsList,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+                rules,
+            });
+            // Bulk edit can start from report (ID-based selection) or search (map-based selection),
+            // so clear both stores to keep deselection behavior consistent.
+            clearSelectedTransactions(true);
+            clearSelectedTransactions();
+
+            Navigation.dismissToPreviousRHP();
+        });
+    };
 
     const save = () => {
         if (!draftTransaction || isSaving) {
@@ -179,44 +251,31 @@ function SearchEditMultiplePage() {
         if (typeof draftTransaction.reimbursable === 'boolean') {
             changes.reimbursable = draftTransaction.reimbursable;
         }
+        if (draftTransaction.comment?.attendees) {
+            changes.attendees = draftTransaction.comment.attendees;
+        }
 
         if (Object.keys(changes).length === 0) {
             Navigation.dismissToPreviousRHP();
             return;
         }
 
-        setIsSaving(true);
-
-        // Defer the bulk edit loop so the loading spinner has a chance to paint
-        // before the synchronous Onyx writes block the JS thread.
-        requestAnimationFrame(() => {
-            updateMultipleMoneyRequests({
-                transactionIDs: selectedTransactionIDs,
-                changes,
-                policy,
-                reports: mergedReports,
-                transactions: mergedTransactions,
-                reportActions: mergedReportActions,
-                policyCategories: allPolicyCategories,
-                policyTags: allPolicyTags,
-                violations: allTransactionViolations,
-                reportNameValuePairs,
-                hash: currentSearchHash,
-                allPolicies: policies,
-                currentUserAccountID,
-                delegateAccountID,
-                personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
-                personalDetailsList,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+        if (finalizedTransactionCount > 0) {
+            showConfirmModal({
+                title: translate('search.bulkActions.editFinalizedExpensesTitle'),
+                prompt: translate('search.bulkActions.editFinalizedExpensesConfirmation', {count: finalizedTransactionCount, total: selectedTransactionContexts.length}),
+                confirmText: translate('common.yesContinue'),
+                cancelText: translate('common.cancel'),
+            }).then(({action}) => {
+                if (action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                commit(changes);
             });
-            // Bulk edit can start from report (ID-based selection) or search (map-based selection),
-            // so clear both stores to keep deselection behavior consistent.
-            clearSelectedTransactions(true);
-            clearSelectedTransactions();
+            return;
+        }
 
-            Navigation.dismissToPreviousRHP();
-        });
+        commit(changes);
     };
 
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -224,6 +283,7 @@ function SearchEditMultiplePage() {
     // TODO: Currency editing and currency symbol should be handled in a separate PR
     const tagsArray = getTagArrayFromName(draftTransaction?.tag ?? '');
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
+    const shouldShowTagList = hasDependentTags ? getDependentTagVisibility(policyTagLists, draftTransaction?.tag) : [];
     const tagFields: Array<{description: string; title: string; route: Route; disabled?: boolean}> = areTagsEnabled
         ? policyTagLists.flatMap((tagList, tagListIndex) => {
               const tagName = tagsArray.at(tagListIndex) ?? '';
@@ -232,7 +292,7 @@ function SearchEditMultiplePage() {
               let shouldShow = true;
 
               if (hasDependentTags) {
-                  shouldShow = shouldShowDependentTagList(tagListIndex, draftTransaction?.tag, tagList.tags);
+                  shouldShow = !!shouldShowTagList.at(tagListIndex);
               }
 
               if (!shouldShow) {
@@ -308,6 +368,7 @@ function SearchEditMultiplePage() {
                       description: translate('common.billable'),
                       title: getBooleanTitle(draftTransaction?.billable),
                       route: ROUTES.SEARCH_EDIT_MULTIPLE_BILLABLE_RHP,
+                      disabled: isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.BILLABLE),
                   },
               ]
             : []),
@@ -317,6 +378,17 @@ function SearchEditMultiplePage() {
                       description: translate('common.reimbursable'),
                       title: getBooleanTitle(draftTransaction?.reimbursable),
                       route: ROUTES.SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP,
+                      disabled: hasPartiallyEditableReimbursableTransaction,
+                  },
+              ]
+            : []),
+        ...(areAttendeesEnabled
+            ? [
+                  {
+                      description: translate('iou.attendees'),
+                      title: draftTransaction?.comment?.attendees?.length ? getAttendeesListDisplayString(draftTransaction.comment.attendees, localeCompare) : '',
+                      route: ROUTES.SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP,
+                      disabled: isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.ATTENDEES),
                   },
               ]
             : []),

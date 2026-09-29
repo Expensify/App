@@ -6,10 +6,12 @@ on:
     inputs:
       app_pull_request_url:
         description: 'The Expensify/App pull request URL. Its description is scanned for a MOBILE-EXPENSIFY entry.'
+        type: string
         required: false
         default: ''
       mobile_expensify_pull_request_url:
         description: 'The Expensify/Mobile-Expensify pull request URL to check out the submodule. Overrides MOBILE-EXPENSIFY set in the App PR description.'
+        type: string
         required: false
         default: ''
       reviewed_code:
@@ -57,7 +59,7 @@ jobs:
             is_hybrid_build: true
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           ref: ${{ needs.resolveRefs.outputs.APP_REF }}
           submodules: ${{ matrix.is_hybrid_build || false }}

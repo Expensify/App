@@ -30,6 +30,8 @@ describe('Company card CSV import column roles', () => {
                 CONST.CSV_IMPORT_COLUMNS.COMMENT,
                 CONST.CSV_IMPORT_COLUMNS.CATEGORY,
                 CONST.CSV_IMPORT_COLUMNS.TAG,
+                // The Unique ID column the backend dedupes re-uploads on:
+                CONST.CSV_IMPORT_COLUMNS.EXTERNAL_ID,
             ]),
         );
     });

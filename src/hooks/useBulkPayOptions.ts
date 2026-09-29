@@ -140,10 +140,10 @@ function useBulkPayOptions({
     const personalBankAccountList = formattedPaymentMethods.filter((method) => 'bankCurrency' in method && method.accountData?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
 
     let bulkPayButtonOptions;
-    if (!selectedReportID || !selectedPolicyID) {
-        bulkPayButtonOptions = undefined;
-    } else if (onlyShowPayElsewhere) {
+    if (onlyShowPayElsewhere) {
         bulkPayButtonOptions = [paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
+    } else if (!selectedReportID || !selectedPolicyID) {
+        bulkPayButtonOptions = undefined;
     } else {
         bulkPayButtonOptions = [];
 

@@ -31,7 +31,11 @@ import type DimensionTypeSelector from '@pages/workspace/accounting/intacct/impo
 import type NetSuiteCustomFieldMappingPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomFieldMappingPicker';
 import type NetSuiteCustomListPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomListPicker';
 import type NetSuiteMenuWithTopDescriptionForm from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteMenuWithTopDescriptionForm';
+import type InitialListValueSelector from '@pages/workspace/reports/InitialListValueSelector';
+import type TypeSelector from '@pages/workspace/reports/TypeSelector';
 import type TaxValuePicker from '@pages/workspace/taxes/TaxValuePicker';
+
+import type {ButtonVariant} from '@styles/utils/types';
 
 import type {Country} from '@src/CONST';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
@@ -74,6 +78,8 @@ type ValidInputs =
     | typeof NetSuiteCustomListPicker
     | typeof NetSuiteCustomFieldMappingPicker
     | typeof NetSuiteMenuWithTopDescriptionForm
+    | typeof InitialListValueSelector
+    | typeof TypeSelector
     | typeof CountryPicker
     | typeof StatePicker
     | typeof ConstantSelector
@@ -141,31 +147,29 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProp
         /** A unique Onyx key identifying the form */
         formID: TFormID;
 
-        /** Text to be displayed in the submit button */
         submitButtonText: string;
-
-        /** Submit button styles */
         submitButtonStyles?: StyleProp<ViewStyle>;
 
         /** Controls the submit button's visibility */
         isSubmitButtonVisible?: boolean;
 
-        /** Callback to submit the form */
         onSubmit: (values: FormOnyxValues<TFormID>) => void;
 
         /** Should the button be enabled when offline */
         enabledWhenOffline?: boolean;
 
-        /** Whether the form submit action is dangerous */
-        isSubmitActionDangerous?: boolean;
+        /** The visual variant of the submit button, which controls its color scheme */
+        buttonVariant?: ButtonVariant;
 
         /** Should fix the errors alert be displayed when there is an error in the form */
         shouldHideFixErrorsAlert?: boolean;
 
+        /** Hides the server error banner even when `formState.errors` is set */
+        shouldHideServerError?: boolean;
+
         /** Whether ScrollWithContext should be used instead of regular ScrollView. Set to true when there's a nested Picker component in Form. */
         scrollContextEnabled?: boolean;
 
-        /** Whether to use ScrollView */
         shouldUseScrollView?: boolean;
 
         /** Container styles */
@@ -196,10 +200,12 @@ type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     resetFormFieldError: (fieldID: keyof Form) => void;
     submit: () => void;
     scrollToEnd: () => void;
+    scrollTo: (y: number) => void;
 };
 
 type FormWrapperRef = {
     scrollToEnd: () => void;
+    scrollTo: (y: number) => void;
 };
 
 type InputRefs = Record<string, RefObject<InputComponentBaseProps>>;

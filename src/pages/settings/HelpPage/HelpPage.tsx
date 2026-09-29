@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -49,7 +50,7 @@ function HelpPage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const isPaidPolicyAdmin = useIsPaidPolicyAdmin();
     const isApprovedAccountant = !!account?.isApprovedAccountant;
     const accountManagerDetails = account?.accountManagerAccountID ? personalDetails?.[account.accountManagerAccountID] : null;
@@ -57,7 +58,8 @@ function HelpPage() {
     const guideDetails = usePersonalDetailByLogin(account?.guideDetails?.email);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
 
@@ -81,8 +83,8 @@ function HelpPage() {
                           introSelected,
                           guidedSetupAndTourStatus?.isSelfTourViewed,
                           guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                          betas,
                           personalDetails,
+                          conciergeChat,
                       ),
                   shouldShowRightIcon: !partnerManagerCalendarLink,
                   shouldShowRightComponent: !!partnerManagerCalendarLink,
@@ -114,8 +116,8 @@ function HelpPage() {
                           introSelected,
                           guidedSetupAndTourStatus?.isSelfTourViewed,
                           guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                          betas,
                           personalDetails,
+                          conciergeChat,
                       ),
                   shouldShowRightIcon: !guideCalendarLink,
                   shouldShowRightComponent: !!guideCalendarLink,
@@ -147,8 +149,8 @@ function HelpPage() {
                           introSelected,
                           guidedSetupAndTourStatus?.isSelfTourViewed,
                           guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                          betas,
                           personalDetails,
+                          conciergeChat,
                       ),
                   shouldShowRightIcon: !accountManagerCalendarLink,
                   shouldShowRightComponent: !!accountManagerCalendarLink,

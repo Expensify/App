@@ -11,6 +11,8 @@ import Text from '@components/Text';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import * as API from '@libs/API';
+import {READ_COMMANDS} from '@libs/API/types';
 import {setHasRadio} from '@libs/NetworkState';
 import type * as OptionsListUtilsModule from '@libs/OptionsListUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -95,10 +97,15 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
 }));
 
-const mockRootNavigationState = jest.fn((): {contextualReportID: string | undefined; isSearchRouterScreen: boolean} => ({
-    contextualReportID: undefined,
-    isSearchRouterScreen: false,
-}));
+const mockRootNavigationState = jest.fn(
+    (): {
+        contextualReportID: string | undefined;
+        isSearchRouterScreen: boolean;
+    } => ({
+        contextualReportID: undefined,
+        isSearchRouterScreen: false,
+    }),
+);
 jest.mock('@src/hooks/useRootNavigationState', () => ({
     __esModule: true,
     default: () => mockRootNavigationState(),
@@ -173,12 +180,28 @@ const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(10);
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
 const CURRENT_USER_ACCOUNT_ID = 1;
-const mockedOptions = createFilteredOptionList(mockedPersonalDetails, mockedReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
-    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-    dateFnsLocale: undefined,
-    conciergeReportID: undefined,
-    isSearching: true,
-});
+const mockedOptions = createFilteredOptionList(
+    mockedPersonalDetails,
+    mockedReports,
+    undefined,
+    EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+    undefined,
+    {
+        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+        dateFnsLocale: undefined,
+        convertToDisplayString: TestHelper.convertToDisplayString,
+        conciergeReportID: undefined,
+        isSearching: true,
+    },
+    undefined,
+);
+
+// Mirrors useFilteredOptions: resolves a report from the same reports snapshot the options were built from.
+const createGetReportByID =
+    (reports: Record<string, Report>) =>
+    (reportID: string | undefined): Report | undefined =>
+        reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
 const OFFLINE_INDICATOR_SAFE_AREA_CONTEXT_ENABLED = {addSafeAreaPadding: true};
 const OFFLINE_INDICATOR_SAFE_AREA_CONTEXT_DISABLED = {addSafeAreaPadding: false};
 
@@ -240,6 +263,7 @@ describe('SearchAutocompleteList', () => {
             loadMore: jest.fn(),
             hasMore: false,
             isLoadingMore: false,
+            getReportByID: createGetReportByID(mockedReports),
         });
     });
 
@@ -459,14 +483,20 @@ describe('SearchAutocompleteList', () => {
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     dateFnsLocale: undefined,
+                    convertToDisplayString: TestHelper.convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
                 },
+                undefined,
             ),
             isLoading: false,
             loadMore: jest.fn(),
             hasMore: false,
             isLoadingMore: false,
+            getReportByID: createGetReportByID({
+                [`${ONYXKEYS.COLLECTION.REPORT}${adminsReportID}`]: adminsReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`]: threadReport,
+            }),
         });
 
         render(<SearchRouterWrapper />);
@@ -548,14 +578,20 @@ describe('SearchAutocompleteList', () => {
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     dateFnsLocale: undefined,
+                    convertToDisplayString: TestHelper.convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
                 },
+                undefined,
             ),
             isLoading: false,
             loadMore: jest.fn(),
             hasMore: false,
             isLoadingMore: false,
+            getReportByID: createGetReportByID({
+                [`${ONYXKEYS.COLLECTION.REPORT}${adminsReportID}`]: adminsReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`]: threadReport,
+            }),
         });
 
         render(<SearchRouterWrapper />);
@@ -587,6 +623,25 @@ describe('SearchAutocompleteList', () => {
 
         afterEach(() => {
             getSearchOptionsSpy.mockRestore();
+        });
+
+        it('searches reports and users for an active query', async () => {
+            await waitForBatchedUpdates();
+            await Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+            });
+
+            render(<SearchRouterWrapper />);
+            await flushAllUpdates();
+
+            const textInput = screen.getByTestId('search-autocomplete-text-input');
+            fireEvent.changeText(textInput, 'Alice');
+            await flushAllUpdates();
+
+            const requestedCommands = jest.mocked(API.read).mock.calls.map(([command]) => command);
+            expect(requestedCommands).toEqual(expect.arrayContaining([READ_COMMANDS.SEARCH_FOR_REPORTS, READ_COMMANDS.SEARCH_FOR_USERS]));
         });
 
         it('should display "Recent chats" section when query is empty', async () => {
@@ -712,8 +767,13 @@ describe('SearchAutocompleteList', () => {
                 expect(screen.getByText('Recent chats')).toBeTruthy();
             });
 
+            const uncachedUserOption = mockedOptions.personalDetails.at(0);
+            if (!uncachedUserOption) {
+                throw new Error('Expected a personal detail option fixture');
+            }
+
             // Now simulate server results arriving by updating the mock to return results
-            // in a DIFFERENT order, plus a new server-only result.
+            // in a DIFFERENT order, plus new server-only report and user results.
             getSearchOptionsSpy.mockReturnValue({
                 options: {
                     recentReports: [
@@ -722,7 +782,16 @@ describe('SearchAutocompleteList', () => {
                         {reportID: '102', keyForList: '102', text: 'Bob Report', alternateText: 'bob alt', lastMessageText: 'hi'},
                         {reportID: '201', keyForList: '201', text: 'NewServer Report', alternateText: 'server alt', lastMessageText: 'new'},
                     ],
-                    personalDetails: [],
+                    personalDetails: [
+                        {
+                            ...uncachedUserOption,
+                            accountID: 999,
+                            keyForList: '999',
+                            login: 'uncached.test@example.com',
+                            text: 'Uncached Test User',
+                            alternateText: 'uncached.test@example.com',
+                        },
+                    ],
                     currentUserOption: null,
                     userToInvite: null,
                 },
@@ -736,6 +805,7 @@ describe('SearchAutocompleteList', () => {
                 loadMore: jest.fn(),
                 hasMore: false,
                 isLoadingMore: false,
+                getReportByID: createGetReportByID(mockedReports),
             });
             await act(async () => {
                 await Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
@@ -749,6 +819,7 @@ describe('SearchAutocompleteList', () => {
 
             // Verify the new server-only result appears
             expect(screen.getByText('NewServer Report')).toBeTruthy();
+            expect(screen.getByText('Uncached Test User')).toBeTruthy();
 
             // Verify that local results maintain their FROZEN order (Alice < Bob < Charlie)
             // even though the mock now returns them as Charlie, Alice, Bob.

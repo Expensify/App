@@ -43,6 +43,8 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
         'CertiniaSquare',
         'RilletSquare',
         'DualEntrySquare',
+        'CampfireSquare',
+        'BusinessCentralSquare',
         'GustoSquare',
         'Table',
         'TablePencil',
@@ -85,7 +87,7 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
                                     src={icon}
                                     width={variables.iconSizeXLarge}
                                     height={variables.iconSizeXLarge}
-                                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR)]}
+                                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.AVATAR_SHAPE.CIRCLE)]}
                                 />
                             </View>
                         ) : (

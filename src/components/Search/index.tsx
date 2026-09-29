@@ -24,16 +24,17 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import type {TransactionPreviewData} from '@libs/actions/Search';
-import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
-import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
+import {consumePageRequestedSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {flushPendingSearchWrite, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
+import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -69,6 +70,9 @@ import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 
 import EmptySearchView from '@pages/Search/EmptySearchView';
 
+import type {GetReportTableColumnStylesParams} from '@styles/utils';
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -83,6 +87,7 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
@@ -98,7 +103,9 @@ import ChatSearchView from './ChatSearchView';
 import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import ExpenseGroupedSearchView from './ExpenseGroupedSearchView';
 import ExpenseReportSearchView from './ExpenseReportSearchView';
+import useLiveRowLimit from './hooks/useLiveRowLimit';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
+import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
 import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
@@ -154,12 +161,18 @@ function Search({
     const {setShouldResetSearchQuery} = useSearchQueryActions();
     const {setShouldShowFiltersBarLoading} = useSearchResultsActions();
     const {clearSelectedTransactions} = useSearchSelectionActions();
-    const {areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {areAllMatchingItemsSelected, selectedTransactions} = useSearchSelectionContext();
+    // Wide layout floats the bulk action bar over the end of the list, so the list has to leave room for it.
+    const shouldReserveBulkActionBarSpace = useShouldShowBulkActionBar(queryJSON);
     const [offset, setOffset] = useState(0);
+    // a page left running by a previous mount is still in flight, so wait for it rather than revealing or skipping its rows
+    const isLivePageRunningAtMount = () => shouldUseLiveData && isSearchPending(searchResults) && (searchResults?.search?.offset ?? 0) > 0;
+    // live paging owns its in-flight flag, keyed to the offset it asked for so other searches on this hash don't read as ours
+    const [livePageOffset, setLivePageOffset] = useState(() => (isLivePageRunningAtMount() ? searchResults?.search?.offset : undefined));
+    const [isLivePageAdopted, setIsLivePageAdopted] = useState(isLivePageRunningAtMount);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -186,13 +199,34 @@ function Search({
 
     const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
 
+    const isSnapshotPending = isSearchPending(searchResults);
+
+    // gate on state: loading so it self-clears — Onyx resolves loading on every response
+    const isLivePageInFlight = shouldUseLiveData && livePageOffset !== undefined && livePageOffset === searchResults?.search?.offset && isSnapshotPending;
+    // once the adopted page settles, a later page in flight is ours and must not be re-asked
+    if (isLivePageAdopted && !isLivePageInFlight) {
+        setIsLivePageAdopted(false);
+    }
+
+    // live results drop `errors`, so the response code is the only failure signal left
+    const didLastLivePageFail = shouldUseLiveData && typeof searchResults?.search?.responseJsonCode === 'number';
+
+    const {liveRowLimit, answeredOffset: answeredLiveOffset, revealNextPage: revealNextLivePage} = useLiveRowLimit(searchResults?.search?.offset, isSnapshotPending || didLastLivePageFail);
+
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
     const isExpenseAllMatchingSelection = type === CONST.SEARCH.DATA_TYPES.EXPENSE && areAllMatchingItemsSelected;
     const isAllMatchingItemsCountMissing = isExpenseAllMatchingSelection && typeof searchResults?.search?.count !== 'number';
-    const shouldCalculateExpenseTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0 || isAllMatchingItemsCountMissing, isExpenseAllMatchingSelection);
+    const shouldCalculateExpenseTotals = useSearchShouldCalculateTotals(currentSearchKey, offset === 0 || isAllMatchingItemsCountMissing, isExpenseAllMatchingSelection);
     const shouldCalculateTotals = (areAllMatchingItemsSelected && !isExpenseAllMatchingSelection) || shouldCalculateExpenseTotals;
     const previousShouldCalculateTotals = usePrevious(shouldCalculateTotals);
     const searchRequestOffset = getSearchRequestOffsetForMissingAllMatchingCount(offset, searchResults?.search?.offset, isAllMatchingItemsCountMissing);
+    // For an expense-report "select all matching", the total the bulk-actions button waits for is the server
+    // report count, not the expense `count` (which is always present). Treat a missing reportCount as the missing
+    // total so the totals retry below still fires. Otherwise a snapshot that has `count` but no `reportCount`
+    // (e.g. persisted before the field shipped, or a colliding non-totals response) would never fetch it and the
+    // button would stay loading forever.
+    const isRequiredAllMatchingTotalMissing =
+        isExpenseReportType && areAllMatchingItemsSelected ? typeof searchResults?.search?.reportCount !== 'number' : searchResults?.search?.count === undefined;
 
     useEffect(() => {
         if (searchRequestOffset === offset) {
@@ -205,14 +239,20 @@ function Search({
 
     // Retrying a failed page always resets pagination to the first page, so totals eligibility
     // must be evaluated as if we're on the first page rather than the (possibly paginated) offset.
-    const shouldCalculateTotalsOnRetry = useSearchShouldCalculateTotals(currentSearchKey, hash, true, areAllMatchingItemsSelected);
+    const shouldCalculateTotalsOnRetry = useSearchShouldCalculateTotals(currentSearchKey, true, areAllMatchingItemsSelected);
 
     const previousReportActions = usePrevious(reportActions);
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const searchListRef = useRef<SelectionListHandle<SearchListItem> | null>(null);
 
-    const savedSearchSelector = useCallback((searches: OnyxEntry<SaveSearch>) => searches?.[hash], [hash]);
+    const savedSearchSelector = useCallback(
+        (searches: OnyxEntry<SaveSearch>) => {
+            const savedSearchID = searchKeyToSavedSearchID(currentSearchKey);
+            return savedSearchID ? searches?.[savedSearchID] : undefined;
+        },
+        [currentSearchKey],
+    );
     const [savedSearch] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {
         selector: savedSearchSelector,
     });
@@ -262,12 +302,16 @@ function Search({
         hasPendingWriteOnMountRef,
         skipDeferralOnFocusRef,
         rearmTracking,
+        policyCategories,
+        policyTags,
     } = useSearchSnapshot({
         queryJSON,
         searchResults,
         newSearchResultKeys,
         transactions,
         reportActions,
+        visibleRowLimit: shouldUseLiveData ? liveRowLimit : undefined,
+        selectedTransactions,
     });
 
     // Mirror `hasQueuedHighlights` into a ref so the post-create-flow `useFocusEffect`
@@ -375,7 +419,8 @@ function Search({
     const shouldShowLoadingState = isDeferringHeavyWork || isWaitingForInitialData;
     const shouldShowRowSkeleton = (!skeletonWasDisplayed || shouldShowLoadingState) && showPendingExpensePlaceholder && !hasErrors;
 
-    const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
+    const isLoadingMorePage = shouldUseLiveData ? isLivePageInFlight : !!searchResults?.search?.isLoading;
+    const shouldShowLoadingMoreItems = !shouldShowLoadingState && isLoadingMorePage && (searchResults?.search?.offset ?? 0) > 0;
 
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
@@ -416,14 +461,15 @@ function Search({
         // When mounting after the pre-insert fast path, the deferred write hasn't
         // been flushed yet. Triggering a search now would race with the CREATE
         // API call and return stale results that overwrite the optimistic row.
-        // Skip this call; the optimistic data from flushDeferredWrite will populate
+        // Skip this call; the optimistic data from the pending Search write will populate
         // the list, and the next user-driven search will refresh from the server.
-        if (hasPendingWriteOnMountRef.current.hasPendingWriteOnMount && hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+        if (hasPendingWriteOnMountRef.current.hasPendingWriteOnMount && hasPendingSearchWrite()) {
             return;
         }
 
-        if (searchResults?.search?.isLoading) {
-            if (validGroupBy || (shouldCalculateTotals && searchResults?.search?.count === undefined)) {
+        // the offset change from paging would otherwise fire a duplicate page alongside fetchMoreResults
+        if (isLoadingMorePage) {
+            if (validGroupBy || (shouldCalculateTotals && isRequiredAllMatchingTotalMissing)) {
                 shouldRetrySearchWithTotalsOrGroupedRef.current = true;
             }
             return;
@@ -451,6 +497,11 @@ function Search({
             return;
         }
 
+        // The page already fetched this first page, and that request finished before Search mounts, so search() no longer sees it.
+        if (!shouldRefreshOnReconnect && searchRequestOffset === 0 && isDataLoaded && consumePageRequestedSearch(queryJSON.hash, shouldCalculateTotals)) {
+            return;
+        }
+
         handleSearch({
             queryJSON,
             searchKey: currentSearchKey,
@@ -462,16 +513,17 @@ function Search({
 
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, hasErrors, isOffline, offset, queryJSON, currentSearchKey, shouldCalculateTotals, validGroupBy, searchRequestOffset]);
+    }, [handleSearch, hasErrors, isDataLoaded, isOffline, offset, queryJSON, shouldCalculateTotals, validGroupBy, searchRequestOffset]);
 
     useEffect(() => {
         if (!shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {
             return;
         }
 
-        // If count is already present, the latest response already contains totals and we can skip the re-query.
+        // If the required total is already present, the latest response already contains totals and we can skip the
+        // re-query (for expense-report select-all that means reportCount, not the always-present expense count).
         // If we show grouped values we want to retry search either way, the data may be outdated e.g. after deleting an expense.
-        if (!validGroupBy && searchResults?.search?.count !== undefined) {
+        if (!validGroupBy && !isRequiredAllMatchingTotalMissing) {
             shouldRetrySearchWithTotalsOrGroupedRef.current = false;
             return;
         }
@@ -491,6 +543,7 @@ function Search({
         queryJSON,
         currentSearchKey,
         searchResults?.search?.count,
+        isRequiredAllMatchingTotalMissing,
         searchResults?.search?.isLoading,
         shouldCalculateTotals,
         validGroupBy,
@@ -587,7 +640,6 @@ function Search({
                     backTo,
                     currentUserLogin: email ?? '',
                     currentUserAccountID: accountID,
-                    betas,
                     personalDetails,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
@@ -651,7 +703,6 @@ function Search({
                             backTo,
                             currentUserLogin: email ?? '',
                             currentUserAccountID: accountID,
-                            betas,
                             personalDetails,
                             isSelfTourViewed,
                             hasCompletedGuidedSetupFlow,
@@ -736,7 +787,6 @@ function Search({
             handleSearch,
             unmarkReportRHPWidth,
             introSelected,
-            betas,
             personalDetails,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
@@ -795,6 +845,7 @@ function Search({
                 Navigation.setParams({
                     q: buildCannedSearchQuery(),
                     rawQuery: undefined,
+                    searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
                 });
             });
             if (shouldResetSearchQuery) {
@@ -803,13 +854,135 @@ function Search({
         }
     }, [hasErrors, queryJSON, searchResults, shouldResetSearchQuery, setShouldResetSearchQuery]);
 
+    // `isLoading` has to stay out of the search effect's deps, or every completed search would start another,
+    // and onEndReached only fires on the edge, so a page we cannot fetch yet is remembered here rather than
+    // dropped. Stays set until that page actually shows up in the snapshot.
+    const wantedOffsetRef = useRef<number | undefined>(undefined);
+
+    // rebuilds report ends too, only a scroll moves the visible rows; not onScroll, it's a worklet on native
+    const hasScrolledSinceLastEndRef = useRef(true);
+    const onViewableItemsChanged = () => {
+        hasScrolledSinceLastEndRef.current = true;
+    };
+
     const fetchMoreResults = useCallback(() => {
-        if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems || offset > allDataLength - CONST.SEARCH.RESULTS_PAGE_SIZE) {
+        // A first-page response replaces the snapshot rather than appending to it, so deriving the next page
+        // from `offset` instead of the snapshot's own cursor drifts the moment one lands mid-pagination.
+        // Live rows don't come from the snapshot, so live paging follows the pages that answered instead.
+        const serverOffset = shouldUseLiveData ? answeredLiveOffset : (searchResults?.search?.offset ?? 0);
+        const nextOffset = serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE;
+
+        // a failed page never writes `hasMoreResults`, and a failure doesn't mean the server is out of rows
+        if (!searchResults?.search?.hasMoreResults && !didLastLivePageFail) {
+            // before the first answer `hasMoreResults` is only the default, so wait for the server to say it is out of pages;
+            // no `state` means no request for this tab has even gone out yet
+            const hasLiveSearchStarted = searchResults?.search?.state !== undefined;
+            if (shouldUseLiveData && (!hasLiveSearchStarted || (isSnapshotPending && !isOffline))) {
+                wantedOffsetRef.current = nextOffset;
+                return;
+            }
+            // the server has nothing left, but the live scan can still hold rows past the cap: page those in locally
+            if (shouldUseLiveData && allDataLength > liveRowLimit) {
+                revealNextLivePage();
+            }
+            wantedOffsetRef.current = undefined;
             return;
         }
 
-        setOffset((prev) => prev + CONST.SEARCH.RESULTS_PAGE_SIZE);
-    }, [isFocused, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState, offset, allDataLength]);
+        if (!isFocused || shouldShowLoadingState) {
+            return;
+        }
+
+        const hasScrolledToEnd = hasScrolledSinceLastEndRef.current;
+        hasScrolledSinceLastEndRef.current = false;
+        // a failed page retries once per end the user scrolls to, not on every rebuild while they sit at the bottom
+        if (didLastLivePageFail && !hasScrolledToEnd) {
+            return;
+        }
+
+        // onEndReached refires mid-flight under the skeleton; recording the next offset would chase past the loading page
+        if (shouldUseLiveData && isLoadingMorePage) {
+            // a reload strands an adopted page in loading, so re-ask it once; search() drops it if it is still running
+            if (isLivePageAdopted && !isOffline) {
+                setIsLivePageAdopted(false);
+                handleSearch({queryJSON, searchKey: currentSearchKey, offset: nextOffset, shouldCalculateTotals, prevReportsLength: filteredDataLength, isLoading: false});
+            }
+            return;
+        }
+
+        if (serverOffset > allDataLength - CONST.SEARCH.RESULTS_PAGE_SIZE) {
+            return;
+        }
+
+        // the cap can outrun the cursor, and pulling the cursor up to it would skip server pages for good
+        wantedOffsetRef.current = nextOffset;
+        // Offline, the request would only fail and leave an error on the snapshot. Hold the page until reconnect.
+        if (isLoadingMorePage || isOffline) {
+            return;
+        }
+
+        // Dispatched here rather than left to the offset effect: after a first-page response `nextOffset` can
+        // equal the offset we already hold, and that effect only runs on a change. search() dedupes the pair.
+        setOffset(nextOffset);
+        handleSearch({
+            queryJSON,
+            searchKey: currentSearchKey,
+            offset: nextOffset,
+            shouldCalculateTotals,
+            prevReportsLength: filteredDataLength,
+            isLoading: false,
+        });
+        // offline path returned above, so we never arm with no request running
+        if (shouldUseLiveData) {
+            setLivePageOffset(nextOffset);
+        }
+    }, [
+        isFocused,
+        isOffline,
+        shouldUseLiveData,
+        answeredLiveOffset,
+        isSnapshotPending,
+        liveRowLimit,
+        revealNextLivePage,
+        didLastLivePageFail,
+        isLivePageAdopted,
+        searchResults?.search?.hasMoreResults,
+        searchResults?.search?.state,
+        isLoadingMorePage,
+        searchResults?.search?.offset,
+        shouldShowLoadingState,
+        allDataLength,
+        handleSearch,
+        queryJSON,
+        currentSearchKey,
+        shouldCalculateTotals,
+        filteredDataLength,
+    ]);
+
+    // Ask again for a page that never arrived, either because a search was still running when the list hit
+    // its end or because a first-page response replaced it. Both leave the request with nothing to retry it.
+    useEffect(() => {
+        const serverOffset = shouldUseLiveData ? answeredLiveOffset : (searchResults?.search?.offset ?? 0);
+        // A first-page response that lands after the page it displaces drags the cursor back below the page we
+        // hold, after that page's arrival already cleared the intent. The list has not moved, so arm it again.
+        // Live rows stay in Onyx through that, so there is nothing to fetch again.
+        if (!shouldUseLiveData && wantedOffsetRef.current === undefined && searchResults?.search?.hasMoreResults && serverOffset < offset) {
+            wantedOffsetRef.current = offset;
+        }
+
+        const wantedOffset = wantedOffsetRef.current;
+        if (wantedOffset === undefined || isLoadingMorePage) {
+            return;
+        }
+
+        // a failed live page waits for the next end rather than retrying on its own
+        if (serverOffset >= wantedOffset || didLastLivePageFail) {
+            wantedOffsetRef.current = undefined;
+            return;
+        }
+
+        fetchMoreResults();
+    }, [answeredLiveOffset, didLastLivePageFail, fetchMoreResults, isLoadingMorePage, offset, searchResults?.search?.hasMoreResults, searchResults?.search?.offset, shouldUseLiveData]);
 
     const onLayoutBase = useCallback(() => {
         hasHadFirstLayout.current = true;
@@ -820,7 +993,7 @@ function Search({
         endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_FIRST);
         endNavigateToReportsContentLoad();
         TransitionTracker.runAfterTransitions({
-            callback: () => flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH),
+            callback: () => flushPendingSearchWrite(),
         });
     }, [onDestinationVisible]);
 
@@ -862,11 +1035,11 @@ function Search({
         // different component" warning. setIsSearchReady is idempotent, so
         // firing this on every bail-out render is safe.
         onContentReady?.();
-        if (!hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+        if (!hasPendingSearchWrite()) {
             return;
         }
         didBailToFallbackState.current = false;
-        flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        flushPendingSearchWrite();
     });
 
     const onLayoutChart = useCallback(() => {
@@ -894,7 +1067,7 @@ function Search({
 
             // Re-arm pending expense skeleton for subsequent creations while Search
             // stays mounted (the original hasPendingWriteOnMountRef only covers the first).
-            if (hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) && !showPendingExpensePlaceholder) {
+            if (hasPendingSearchWrite() && !showPendingExpensePlaceholder) {
                 wasRearmedRef.current = true;
                 rearmTracking();
                 setSkeletonWasDisplayed(true);
@@ -907,7 +1080,7 @@ function Search({
             endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_SUBSEQUENT);
             endNavigateToReportsContentLoad();
             // On re-focus (e.g. DISMISS_MODAL_ONLY) onLayout won't re-fire — flush here.
-            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            flushPendingSearchWrite();
         }, [shouldShowLoadingState, onDestinationVisible, showPendingExpensePlaceholder, rearmTracking]),
     );
 
@@ -917,7 +1090,7 @@ function Search({
     // write channel is gone (write executed) and sortedData has updated, then
     // signals overlay readiness.
     useEffect(() => {
-        if (!wasRearmedRef.current || hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+        if (!wasRearmedRef.current || hasPendingSearchWrite()) {
             return;
         }
         wasRearmedRef.current = false;
@@ -1017,35 +1190,58 @@ function Search({
     }
 
     if (hasErrors) {
-        const isInvalidQuery = responseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
         cancelNavigationSpans();
+        const retrySearch = () => {
+            // A response replaces the snapshot's results rather than appending to them, so retrying at
+            // the paginated offset would leave only that later page behind. Retry from the first page.
+            setOffset(0);
+            handleSearch({
+                queryJSON,
+                searchKey: currentSearchKey,
+                offset: 0,
+                shouldCalculateTotals: shouldCalculateTotalsOnRetry,
+                prevReportsLength: filteredDataLength,
+                isLoading: !!searchResults?.search?.isLoading,
+            });
+        };
+        // failureData stores NO_RESPONSE when the request never got a server answer, so only the results' freshness is in
+        // doubt and the refresh copy fits. Any code the server did return marks a real failure and keeps the error copy,
+        // and an invalid query gets no button because re-sending it cannot succeed.
+        let failureKind: ValueOf<typeof CONST.SEARCH.FAILURE_KIND> = CONST.SEARCH.FAILURE_KIND.FAILED;
+        if (responseStatusCode === CONST.JSON_CODE.NO_RESPONSE) {
+            failureKind = CONST.SEARCH.FAILURE_KIND.STALE;
+        } else if (responseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY) {
+            failureKind = CONST.SEARCH.FAILURE_KIND.INVALID_QUERY;
+        }
+        const errorTitle = translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout});
+        const errorViewByKind = {
+            [CONST.SEARCH.FAILURE_KIND.STALE]: {
+                title: translate('search.searchResults.staleResults.title'),
+                subtitle: translate('search.searchResults.staleResults.subtitle'),
+                illustration: 'FolderSync',
+                illustrationWidth: variables.iconSizeUltraLarge,
+                illustrationHeight: variables.iconSizeUltraLarge,
+                buttonTranslationKey: 'search.searchResults.staleResults.buttonText',
+                onButtonPress: retrySearch,
+            },
+            [CONST.SEARCH.FAILURE_KIND.INVALID_QUERY]: {
+                title: errorTitle,
+                subtitle: translate('errorPage.wrongTypeSubtitle'),
+            },
+            [CONST.SEARCH.FAILURE_KIND.FAILED]: {
+                title: errorTitle,
+                subtitle: translate('errorPage.subtitle'),
+                buttonTranslationKey: 'common.tryAgain',
+                onButtonPress: retrySearch,
+            },
+        } as const;
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3, styles.flex1]}>
                 <FullPageErrorView
                     shouldShow
                     containerStyle={styles.searchBlockingErrorViewContainer}
                     subtitleStyle={styles.textSupporting}
-                    title={translate('errorPage.title', {
-                        isBreakLine: shouldUseNarrowLayout,
-                    })}
-                    subtitle={translate(isInvalidQuery ? 'errorPage.wrongTypeSubtitle' : 'errorPage.subtitle')}
-                    // Retrying an invalid query won't help, so the retry button is only offered for other errors.
-                    {...(!isInvalidQuery && {
-                        buttonTranslationKey: 'common.tryAgain',
-                        onButtonPress: () => {
-                            // A response replaces the snapshot's results rather than appending to them, so retrying at
-                            // the paginated offset would leave only that later page behind. Retry from the first page.
-                            setOffset(0);
-                            handleSearch({
-                                queryJSON,
-                                searchKey: currentSearchKey,
-                                offset: 0,
-                                shouldCalculateTotals: shouldCalculateTotalsOnRetry,
-                                prevReportsLength: filteredDataLength,
-                                isLoading: !!searchResults?.search?.isLoading,
-                            });
-                        },
-                    })}
+                    {...errorViewByKind[failureKind]}
                 />
             </View>
         );
@@ -1130,9 +1326,18 @@ function Search({
         );
     }
 
+    // Transaction lists (expense, invoice, trip) render through the flat or grouped view depending on groupBy;
+    // chat, expense-report and task each have their own dedicated view. Every view composes BaseSearchList
+    // directly, and the snapshot, lifecycle and selection providers stay here so the data layer runs once.
+    const isTransactionListView = type !== CONST.SEARCH.DATA_TYPES.CHAT && type !== CONST.SEARCH.DATA_TYPES.TASK && type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+
+    let searchTablePaddingRightStyle;
+    if (!isTask) {
+        searchTablePaddingRightStyle = isTransactionListView && validGroupBy ? styles.pr9 : styles.pr8;
+    }
     const searchTableHeader = !shouldShowTableHeader ? undefined : (
         // Match the rows' trailing arrow spacing so the header columns line up with them.
-        <View style={[!isTask && styles.pr8, styles.flex1]}>
+        <View style={[searchTablePaddingRightStyle, styles.flex1]}>
             <SearchTableHeader
                 canSelectMultiple={canSelectMultiple}
                 columns={columnsToShow}
@@ -1167,10 +1372,19 @@ function Search({
             />
         ) : undefined;
 
-    // Transaction lists (expense, invoice, trip) render through the flat or grouped view depending on groupBy;
-    // chat, expense-report and task each have their own dedicated view. Every view composes BaseSearchList
-    // directly, and the snapshot, lifecycle and selection providers stay here so the data layer runs once.
-    const isTransactionListView = type !== CONST.SEARCH.DATA_TYPES.CHAT && type !== CONST.SEARCH.DATA_TYPES.TASK && type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    // The same flags the column header above is built from, so a row and its heading can't disagree about how wide a
+    // column is. Read once here because they are decided across the whole search, not from the rows currently loaded.
+    const columnSizeOptions: GetReportTableColumnStylesParams = {
+        isActionColumnWide: isTask || hasDeletedTransaction,
+        isDateColumnWide: shouldShowYearCreated,
+        isSubmittedColumnWide: shouldShowYearSubmitted,
+        isApprovedColumnWide: shouldShowYearApproved,
+        isPostedColumnWide: shouldShowYearPosted,
+        isExportedColumnWide: shouldShowYearExported,
+        isWithdrawnColumnWide: shouldShowYearWithdrawn,
+        isAmountColumnWide: shouldShowAmountInWideColumn,
+        isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
+    };
 
     const commonViewProps: CommonSearchViewProps = {
         ref: searchListRef,
@@ -1181,9 +1395,10 @@ function Search({
         canSelectMultiple,
         SearchTableHeader: searchTableHeader,
         tableHeaderVisible,
-        contentContainerStyle: [styles.pb3, contentContainerStyle],
+        contentContainerStyle: [styles.pb3, shouldReserveBulkActionBarSpace && styles.bulkActionBarListSpacing, contentContainerStyle],
         containerStyle: [styles.pv0],
         onScroll: onSearchListScroll,
+        onViewableItemsChanged,
         onEndReached: fetchMoreResults,
         ListFooterComponent: listFooterComponent,
         onLayout,
@@ -1191,6 +1406,7 @@ function Search({
         newTransactions,
         hasLoadedAllTransactions,
         isActionColumnWide: isTask || hasDeletedTransaction,
+        columnSizeOptions,
     };
 
     let searchListContent: React.JSX.Element;
@@ -1200,6 +1416,8 @@ function Search({
                 {...commonViewProps}
                 isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                policyCategories={policyCategories}
+                policyTags={policyTags}
             />
         );
     } else if (isTransactionListView) {

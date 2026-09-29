@@ -1,4 +1,5 @@
 import {getActivePolicies} from '@libs/PolicyUtils';
+import {getGlobalSpanAttributes} from '@libs/telemetry/globalSpanAttributes';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -10,6 +11,8 @@ import * as Sentry from '@sentry/react-native';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import {createRandomReport} from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@sentry/react-native', () => ({
@@ -209,6 +212,104 @@ describe('TelemetrySynchronizer', () => {
         });
     });
 
+    describe('raw count span attributes', () => {
+        it('should register reports_count_raw when the report collection changes', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: 'test@example.com', accountID: 1});
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, {
+                [`${ONYXKEYS.COLLECTION.REPORT}1`]: createRandomReport(1),
+                [`${ONYXKEYS.COLLECTION.REPORT}2`]: createRandomReport(2),
+                [`${ONYXKEYS.COLLECTION.REPORT}3`]: createRandomReport(3),
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_REPORTS_COUNT_RAW]).toBe(3);
+        });
+
+        it('should register personal_details_count_raw when the personal details list changes', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: 'test@example.com', accountID: 1});
+            const personalDetails = Object.fromEntries([1, 2].map((accountID) => [accountID, {accountID}]));
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_PERSONAL_DETAILS_COUNT_RAW]).toBe(2);
+        });
+
+        it('should register transactions_count_raw when the transaction collection changes', async () => {
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: createRandomTransaction(1),
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}2`]: createRandomTransaction(2),
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_TRANSACTIONS_COUNT_RAW]).toBe(2);
+        });
+
+        it('should register policies_count_raw with the active policies count', async () => {
+            const mockSession: Session = {
+                email: 'test@example.com',
+                accountID: 1,
+            };
+            const mockPolicies: Record<string, Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}123`]: createRandomPolicy(123),
+                [`${ONYXKEYS.COLLECTION.POLICY}456`]: createRandomPolicy(456),
+            };
+            jest.mocked(getActivePolicies).mockReturnValue(Object.values(mockPolicies));
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: mockSession,
+                [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: '123',
+            });
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, mockPolicies);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_POLICIES_COUNT_RAW]).toBe(2);
+        });
+
+        it('clears the span attributes on sign-out without touching the Sentry tags', async () => {
+            const mockSession: Session = {
+                email: 'test@example.com',
+                accountID: 1,
+            };
+            const mockPolicies: Record<string, Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}123`]: createRandomPolicy(123),
+                [`${ONYXKEYS.COLLECTION.POLICY}456`]: createRandomPolicy(456),
+            };
+            jest.mocked(getActivePolicies).mockReturnValue(Object.values(mockPolicies));
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: mockSession,
+                [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: '123',
+                [ONYXKEYS.COLLECTION.POLICY]: mockPolicies,
+            });
+            await waitForBatchedUpdatesWithAct();
+            expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_POLICIES_COUNT_RAW]).toBe(2);
+            jest.clearAllMocks();
+
+            // A session without an email is how sign-out arrives before Onyx.clear wipes the key entirely.
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: 1});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_POLICIES_COUNT_RAW]).toBeUndefined();
+            expect(Sentry.setTag).not.toHaveBeenCalled();
+            expect(Sentry.setContext).not.toHaveBeenCalled();
+        });
+
+        it('clears the span attributes when switching directly between accounts', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: 'first@example.com', accountID: 1});
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, {
+                [`${ONYXKEYS.COLLECTION.REPORT}1`]: createRandomReport(1),
+                [`${ONYXKEYS.COLLECTION.REPORT}2`]: createRandomReport(2),
+            });
+            await waitForBatchedUpdatesWithAct();
+            expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_REPORTS_COUNT_RAW]).toBe(2);
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: 'second@example.com', accountID: 2});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_REPORTS_COUNT_RAW]).toBeUndefined();
+        });
+    });
+
     describe('Onyx callbacks', () => {
         describe('NVP_ACTIVE_POLICY_ID callback', () => {
             it('should call sendPoliciesContext when value is set', async () => {
@@ -274,7 +375,9 @@ describe('TelemetrySynchronizer', () => {
                 };
                 jest.mocked(getActivePolicies).mockReturnValue([mockPolicies[`${ONYXKEYS.COLLECTION.POLICY}123`]]);
 
+                // The policy callback caches the collection only for an active session.
                 await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: mockSession,
                     [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: 'policy123',
                     [ONYXKEYS.COLLECTION.POLICY]: mockPolicies,
                 });
@@ -282,7 +385,7 @@ describe('TelemetrySynchronizer', () => {
 
                 jest.clearAllMocks();
 
-                await Onyx.set(ONYXKEYS.SESSION, mockSession);
+                await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'token'});
                 await waitForBatchedUpdatesWithAct();
 
                 expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAGS.ACTIVE_POLICY, 'policy123');
