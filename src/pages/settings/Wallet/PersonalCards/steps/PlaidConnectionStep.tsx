@@ -134,11 +134,11 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
     useEffect(() => {
         // If we are coming back from offline and we haven't authenticated with Plaid yet, we need to re-run our call to kick off Plaid
         // previousNetworkState.current also makes sure that this doesn't run on the first render.
-        if (previousNetworkState.current && !isOffline && !isAuthenticatedWithPlaid && addNewPersonalCard?.data?.selectedCountry) {
+        if (previousNetworkState.current && !isOffline && !isAuthenticatedWithPlaid && !plaidLinkToken && addNewPersonalCard?.data?.selectedCountry) {
             openPlaidCompanyCardLogin(addNewPersonalCard.data.selectedCountry, '', feed, true);
         }
         previousNetworkState.current = isOffline;
-    }, [addNewPersonalCard?.data?.selectedCountry, feed, isAuthenticatedWithPlaid, isOffline]);
+    }, [addNewPersonalCard?.data?.selectedCountry, feed, isAuthenticatedWithPlaid, isOffline, plaidLinkToken]);
 
     const handleBackButtonPress = () => {
         if (feed) {
