@@ -119,6 +119,8 @@ function AddExistingExpenseTable({data, selectedKeys, onRowSelectionChange, onEn
             columns={columns}
             selectionEnabled
             shouldEnableSelectionInNarrowPaneModal
+            // This screen exists to pick expenses, so the checkboxes are there from the start on every screen size.
+            shouldAlwaysEnableSelection
             // Expenses are confirmed in one batch, so searching or filtering must not drop what is already picked.
             shouldPreserveSelectionOnSearchAndFilter
             // The skeleton appended while the next page loads continues the rows, so it draws the bottom corners.

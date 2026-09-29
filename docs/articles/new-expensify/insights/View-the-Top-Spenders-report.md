@@ -2,7 +2,7 @@
 title: View the Top Spenders report
 description: Learn how Workspace Admins, Approvers, and Auditors can use the Top Spenders report to understand spending trends.
 keywords: [New Expensify, Top Spenders, Top Categories, Top Merchants, Spend over time, employee spending, high spenders, expense trends, Workspace Admin, Approver, Auditor, monthly spending, spending insights, virtual CFO, analytics, insight, budget]
-internalScope: Audience is Workspace Admins, Approvers, and Auditors. Covers using the Top Spenders suggested search to view employee-level spending. Does not cover custom reports, exporting data, or grouping by category or merchant.
+internalScope: Audience is Workspace Admins, Approvers, and Auditors. Covers using the Top Spenders suggested search to view employee-level spending, and which expenses are included in the results. Does not cover custom reports, exporting data, or grouping by category or merchant.
 ---
 
 # View the Top Spenders report
@@ -44,6 +44,9 @@ The Top Spenders report is powered by a saved search query using Expensify's gro
 - The **top expense submitters** for the last month  
 - The **total amount spent** by each person  
 - The **number of expenses** by each person
+
+Results cover only the workspaces where you're a Workspace Admin, Approver, or Auditor. Expenses submitted in an individual chat instead of to a workspace aren't included.
+
 ---
 
 ## How to interpret the Top Spenders report 
@@ -125,4 +128,8 @@ Only Workspace Admins, Approvers, and Auditors can view a workspace's **Top Spen
 
 ## How is the Top Spenders report calculated?
 
-The Top Spenders report uses expenses from the previous calendar month and groups them by submitter (employee). It shows the top 10 people by total amount spent.
+The Top Spenders report uses expenses from the previous calendar month that belong to the workspaces where you're a Workspace Admin, Approver, or Auditor, and groups them by submitter (employee). It shows the top 10 people by total amount spent.
+
+## Why is an expense missing from the Top Spenders report?
+
+The expense is left out when it doesn't belong to one of your workspaces. An expense submitted in an individual chat isn't part of a workspace, so it never appears in **Top spenders**. Expenses dated outside the previous calendar month are also excluded.
