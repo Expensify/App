@@ -465,6 +465,9 @@ type SearchChartDataRow = {
     /** The grouped search result the point was built from */
     item: GroupedItem;
 
+    /** The compared window's row paired with `item`, absent unless a comparison is drawn */
+    comparisonItem?: GroupedItem;
+
     /** Palette color the chart assigns this group */
     color?: string;
 };

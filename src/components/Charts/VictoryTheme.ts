@@ -46,6 +46,16 @@ function getChartColor(index: number): string {
     return CHART_PALETTE.at(index % CHART_PALETTE.length) ?? colors.black;
 }
 
+/** The palette color one shade darker than `color`, which a line's dots are drawn in. Falls back to `color` itself. */
+function getDarkerShade(color: string): string {
+    const paletteName = Object.keys(colors).find((name) => colors[name] === color);
+    const shade = Number(paletteName?.match(/\d+$/)?.at(0));
+    if (!paletteName || Number.isNaN(shade)) {
+        return color;
+    }
+    return colors[paletteName.replace(String(shade), String(shade + 100))] ?? color;
+}
+
 /** Index of the default single-color chart color (green400). */
 const DEFAULT_CHART_COLOR_INDEX = 3;
 
@@ -60,6 +70,7 @@ const VictoryTheme = {
         /** Default dot color for line chart data points, one shade darker than the line */
         defaultDot: getChartColor(DEFAULT_CHART_DOT_COLOR_INDEX),
         getColor: getChartColor,
+        getDarkerShade,
     },
     fontFamilies: Array.from(CHART_FONT_FAMILY_NAMES),
     axis: {

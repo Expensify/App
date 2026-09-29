@@ -24,8 +24,11 @@ type InsightsChartSpec = {
     sortOrder?: string;
     limit?: number;
 
-    /** Color every bar is drawn in. Only a bar chart reads it. */
+    /** Color the period on screen is drawn in. Left out, a bar chart colors each bar by its rank instead. */
     color?: string;
+
+    /** Color the previous period is drawn in while comparing */
+    comparisonColor?: string;
 
     /** The chart is shown when any workspace in scope passes this. A chart that declares none is always shown. */
     isPolicyEligible?: (policy: Policy, login: string | undefined) => boolean;
@@ -49,6 +52,8 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             graphKey: CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME,
             titleKey: 'search.spendOverTime',
             view: CONST.SEARCH.VIEW.LINE,
+            color: colors.green400,
+            comparisonColor: colors.green200,
         },
         supportingCharts: [
             {
@@ -56,6 +61,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 titleKey: 'search.tabs.topSpenders',
                 view: CONST.SEARCH.VIEW.BAR,
                 color: colors.blue400,
+                comparisonColor: colors.blue200,
                 groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
@@ -67,6 +73,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 titleKey: 'search.tabs.topMerchants',
                 view: CONST.SEARCH.VIEW.BAR,
                 color: colors.pink400,
+                comparisonColor: colors.pink200,
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
@@ -76,6 +83,8 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 graphKey: CONST.INSIGHTS.GRAPH.TOP_CATEGORIES,
                 titleKey: 'search.tabs.topCategories',
                 view: CONST.SEARCH.VIEW.PIE,
+                color: colors.tangerine400,
+                comparisonColor: colors.tangerine200,
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,

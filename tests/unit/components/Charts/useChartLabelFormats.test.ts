@@ -12,8 +12,8 @@ jest.mock('@hooks/useLocalize', () =>
 );
 
 const SAMPLE_DATA: ChartDataPoint[] = [
-    {label: 'Jan', total: 100},
-    {label: 'Feb', total: 200},
+    {label: 'Jan', values: {primary: 100}},
+    {label: 'Feb', values: {primary: 200}},
 ];
 
 beforeEach(() => {

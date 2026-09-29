@@ -15,12 +15,36 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy, SearchQueryJSON} from './types';
+import type {SearchChartModel} from './buildChartSeries';
+import type {ChartBucketRange} from './chartGroupByConfig';
+import type {ChartView, GroupedItem, SearchGroupBy, SearchQueryJSON} from './types';
 
-import {buildChartSeries} from './buildChartSeries';
+import {buildChartSeries, CHART_SERIES_KEY} from './buildChartSeries';
 import {buildChartDrillDownQuery} from './chartDrillDown';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import {useSearchQueryContext} from './SearchContext';
+
+/** How one of the compared periods is named, colored and bounded */
+type SearchChartWindow = {
+    /** Name shown in the legend and the tooltip */
+    label: string;
+
+    color: string;
+
+    /** The dates the period covers, which a drill-down into one of its ranking bars narrows to */
+    range: ChartBucketRange;
+};
+
+type SearchChartComparison = {
+    /** The compared period's grouped rows, paired to the plotted ones */
+    data: GroupedItem[];
+
+    /** The period `data` was plotted from */
+    current: SearchChartWindow;
+
+    /** The period drawn beside it */
+    previous: SearchChartWindow;
+};
 
 type SearchChartViewProps = {
     queryJSON: Readonly<SearchQueryJSON>;
@@ -39,8 +63,11 @@ type SearchChartViewProps = {
     /** Color every bar is drawn in. Only a bar chart reads it. */
     color?: string;
 
+    /** The period drawn beside `data` as a second series, left out when nothing is compared */
+    comparison?: SearchChartComparison;
+
     /** Renders the details of the plotted groups below the chart */
-    renderDetails?: (rows: SearchChartDataRow[]) => React.ReactNode;
+    renderDetails?: (model: SearchChartModel) => React.ReactNode;
 
     /** Style of the view around the chart, which the details below it don't share */
     chartContainerStyle?: StyleProp<ViewStyle>;
@@ -50,23 +77,37 @@ type SearchChartViewProps = {
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, renderDetails, chartContainerStyle}: SearchChartViewProps) {
+function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, comparison, renderDetails, chartContainerStyle}: SearchChartViewProps) {
     const {preferredLocale} = useLocalize();
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
 
-    const {getLabel, getShortLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
+    const {getLabel, getShortLabel, getFilterQuery, getBucketRange} = CHART_GROUP_BY_CONFIG[groupBy];
 
-    const rows = buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecimals, color});
+    const model = buildChartSeries({
+        primary: {rows: data, label: comparison?.current.label, color: comparison?.current.color ?? color, start: comparison?.current.range.start},
+        comparison: comparison ? {rows: comparison.data, label: comparison.previous.label, color: comparison.previous.color, start: comparison.previous.range.start} : undefined,
+        view,
+        groupBy,
+        getLabel,
+        getShortLabel,
+        getCurrencyDecimals,
+    });
+    const {series, rows} = model;
     const points = rows.map((row) => row.point);
 
-    const handleItemPress = (index: number) => {
-        const item = rows.at(index)?.item;
-        if (!item) {
+    const handleItemPress = (index: number, seriesKey: string) => {
+        const row = rows.at(index);
+        if (!row) {
             return;
         }
 
-        const query = buildChartDrillDownQuery(queryJSON, getFilterQuery(item));
+        const isComparisonSeries = seriesKey === CHART_SERIES_KEY.COMPARISON;
+        const pressedWindow = isComparisonSeries ? comparison?.previous : comparison?.current;
+        const pressedItem = (isComparisonSeries ? row.comparisonItem : row.item) ?? row.item;
+        // A time bucket opens the dates it covers; a ranking group opens its own rows over the period its series plots.
+        const dateRange = getBucketRange ? getBucketRange(pressedItem) : pressedWindow?.range;
+        const query = buildChartDrillDownQuery(queryJSON, {groupFilter: getBucketRange ? undefined : getFilterQuery(pressedItem), dateRange});
 
         if (!query) {
             return;
@@ -87,8 +128,9 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, rend
         [CONST.SEARCH.VIEW.BAR]: (
             <BarChart
                 data={points}
+                series={series}
                 isLoading={isLoading}
-                onBarPress={(dataPoint, index) => handleItemPress(index)}
+                onBarPress={(dataPoint, index, seriesKey) => handleItemPress(index, seriesKey)}
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
                 color={color}
@@ -97,8 +139,9 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, rend
         [CONST.SEARCH.VIEW.LINE]: (
             <LineChart
                 data={points}
+                series={series}
                 isLoading={isLoading}
-                onPointPress={(dataPoint, index) => handleItemPress(index)}
+                onPointPress={(dataPoint, index, seriesKey) => handleItemPress(index, seriesKey)}
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
             />
@@ -106,8 +149,9 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, rend
         [CONST.SEARCH.VIEW.PIE]: (
             <PieChart
                 data={points}
+                series={series}
                 isLoading={isLoading}
-                onSlicePress={(dataPoint, index) => handleItemPress(index)}
+                onSlicePress={(dataPoint, index) => handleItemPress(index, CHART_SERIES_KEY.PRIMARY)}
                 valueUnit={unit.value}
                 valueUnitPosition={unitPosition}
                 shouldShowLegend={!renderDetails}
@@ -118,9 +162,10 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, rend
     return (
         <>
             <View style={chartContainerStyle}>{CHART_VIEW_TO_CHART[view]}</View>
-            {renderDetails?.(rows)}
+            {renderDetails?.(model)}
         </>
     );
 }
 
 export default SearchChartView;
+export type {SearchChartComparison, SearchChartWindow};

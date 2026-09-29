@@ -65,9 +65,8 @@ function VictoryChartCartesianInteractive() {
                         pointerEvents="none"
                     >
                         <ChartTooltip
-                            label={activeTooltipData.label}
-                            amount={activeTooltipData.amount}
-                            percentage={activeTooltipData.percentage}
+                            title={activeTooltipData.label}
+                            rows={[{amount: activeTooltipData.amount, percentage: activeTooltipData.percentage}]}
                             chartWidth={chartWidth}
                             initialTooltipPosition={initialTooltipPosition}
                         />

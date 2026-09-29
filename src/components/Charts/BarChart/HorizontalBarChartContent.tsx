@@ -1,10 +1,11 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import ChartLegend from '@components/Charts/components/ChartLegend';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import type {HitTestArgs, ResolveTargetIndexArgs} from '@components/Charts/hooks';
 import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartParagraphs} from '@components/Charts/hooks';
 import {findClosestPoint} from '@components/Charts/hooks/useChartInteractions';
-import {calculateMinDomainPadding, getFontLineMetrics, getNiceValueDomain, getNiceValueTicks, measureTextWidth} from '@components/Charts/utils';
+import {calculateMinDomainPadding, getFontLineMetrics, getNiceValueDomain, getNiceValueTicks, getSeriesValue, measureTextWidth} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
@@ -53,6 +54,9 @@ const BAR_TIP_RADIUS = 8;
 
 /** Horizontal gap between the category labels and the bars. Wider than the default axis gap for readability. */
 const CATEGORY_LABEL_GAP = 24;
+
+/** Gap between the bars of one row, as a share of a bar's thickness */
+const BAR_WITHIN_GROUP_PADDING = 0.1;
 
 /**
  * Builds a bar path with only the tip end rounded and the axis end square.
@@ -152,7 +156,7 @@ function ValueAxisLabels({xTicks, xScale, chartBottom, fontSize, fontManager, la
     });
 }
 
-function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', color = colors.blue400, onBarPress}: BarChartProps) {
+function HorizontalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosition = 'left', color = colors.blue400, onBarPress}: BarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
@@ -162,10 +166,10 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
     // Transpose: value on the x-axis, category index on the y-axis.
     // Categories are reversed (index 0 mapped to the top row) so a descending-sorted ranking reads top-to-bottom.
     const lastIndex = data.length - 1;
-    const chartData = data.map((point, index) => ({
-        x: point.total,
-        y: lastIndex - index,
-    }));
+    const seriesKeys = series.map((seriesItem) => seriesItem.key);
+    const primarySeriesKey = seriesKeys.at(0) ?? '';
+    // Every series contributes a point, so the value axis spans all of them even though the bars are drawn by hand below.
+    const chartData = data.flatMap((point, index) => seriesKeys.map((key) => ({x: getSeriesValue(point, key), y: lastIndex - index})));
 
     const valueDomain = getNiceValueDomain(data, VictoryTheme.axis.tickCount);
 
@@ -175,13 +179,23 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         unitPosition: yAxisUnitPosition,
     });
 
-    const handleBarPress = (index: number) => {
+    /** The series whose bar sits under `cursorY`, resolved from the row's top edge */
+    const resolveSeriesKey = (rowCenterY: number, cursorY: number): string => {
+        const groupThickness = barThickness.get();
+        if (groupThickness <= 0) {
+            return primarySeriesKey;
+        }
+        const seriesIndex = Math.min(series.length - 1, Math.max(0, Math.floor((cursorY - (rowCenterY - groupThickness / 2)) / (groupThickness / series.length))));
+        return seriesKeys.at(seriesIndex) ?? primarySeriesKey;
+    };
+
+    const handleBarPress = (index: number, cursor: {x: number; y: number}) => {
         if (index < 0 || index >= data.length) {
             return;
         }
         const dataPoint = data.at(index);
         if (dataPoint && onBarPress) {
-            onBarPress(dataPoint, index);
+            onBarPress(dataPoint, index, resolveSeriesKey(rowCenters.get().at(index) ?? cursor.y, cursor.y));
         }
     };
 
@@ -197,8 +211,12 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         return {...BASE_DOMAIN_PADDING, top: verticalPadding, bottom: verticalPadding};
     })();
 
+    /** Thickness of a whole row of bars, which a row splits between its series */
     const barThickness = useSharedValue(0);
     const rowHeight = useSharedValue(0);
+
+    /** Canvas y position of each row's center, so a press can be traced back to the bar under the cursor */
+    const rowCenters = useSharedValue<number[]>([]);
     const xZero = useSharedValue(0);
     const plotLeft = useSharedValue(0);
 
@@ -267,9 +285,11 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
 
     const handleScaleChange = (xScale: Scale, yScale: Scale) => {
         xZero.set(xScale(0));
-        const oy = chartData.map((point) => yScale(point.y));
+        const oy = data.map((point, index) => yScale(lastIndex - index));
+        rowCenters.set(oy);
         setPointPositions(
-            chartData.map((point) => xScale(point.x)),
+            // The tooltip hangs off the longest bar of the row, so it clears every series.
+            data.map((point) => Math.max(...seriesKeys.map((key) => xScale(getSeriesValue(point, key))))),
             oy,
         );
 
@@ -364,28 +384,33 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
     // barWidth for a single series: (1 - betweenGroupPadding) * plotHeight / groupCount.
     const renderBars = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
         const plotHeight = args.chartBounds.bottom - args.chartBounds.top;
-        const thickness = data.length > 0 ? (1 - HORIZONTAL_BAR_PADDING) * (plotHeight / data.length) : 0;
-        if (thickness <= 0) {
+        const groupThickness = data.length > 0 ? (1 - HORIZONTAL_BAR_PADDING) * (plotHeight / data.length) : 0;
+        if (groupThickness <= 0) {
             return null;
         }
+        // A row is split into one slot per series, each bar leaving a gap to the next.
+        const slotThickness = groupThickness / series.length;
+        const thickness = series.length > 1 ? slotThickness * (1 - BAR_WITHIN_GROUP_PADDING) : slotThickness;
         const radius = Math.min(BAR_TIP_RADIUS, thickness / 2);
         const zeroX = args.xScale(0);
 
-        return args.points.y.map((point, index) => {
-            if (typeof point.y !== 'number') {
-                return null;
-            }
-            const tipX = point.x;
-            const roundedTipOnRight = Number(point.xValue) >= 0;
-            const path = buildHorizontalBarPath(Math.min(tipX, zeroX), point.y - thickness / 2, Math.abs(tipX - zeroX), thickness, radius, roundedTipOnRight);
+        return data.flatMap((dataPoint, index) => {
+            const rowCenterY = args.yScale(lastIndex - index);
 
-            return (
-                <Path
-                    key={`horizontal-bar-${data.at(index)?.label ?? index}`}
-                    path={path}
-                    color={color}
-                />
-            );
+            return series.map((seriesItem, seriesIndex) => {
+                const value = getSeriesValue(dataPoint, seriesItem.key);
+                const tipX = args.xScale(value);
+                const barCenterY = rowCenterY + (seriesIndex - (series.length - 1) / 2) * slotThickness;
+                const path = buildHorizontalBarPath(Math.min(tipX, zeroX), barCenterY - thickness / 2, Math.abs(tipX - zeroX), thickness, radius, value >= 0);
+
+                return (
+                    <Path
+                        key={`horizontal-bar-${dataPoint.label}-${seriesItem.key}`}
+                        path={path}
+                        color={series.length > 1 ? (seriesItem.color ?? VictoryTheme.colors.default) : (seriesItem.color ?? color)}
+                    />
+                );
+            });
         });
     };
 
@@ -441,6 +466,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
                     matchedIndex={matchedIndex}
                     isTooltipActive={isTooltipActive}
                     data={data}
+                    series={series}
                     formatValue={formatValue}
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
