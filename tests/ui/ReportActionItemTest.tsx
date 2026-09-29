@@ -3068,6 +3068,57 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(assertion)).toBeOnTheScreen();
         });
 
+        describe('isActionableCardFraudAlert buttons', () => {
+            const CARD_ID = 1;
+            const FRAUD_REPORT_ID = '111';
+            const fraudAlertMessage = {cardID: CARD_ID, maskedCardNumber: '****1234', triggerMerchant: 'SuspiciousShop', triggerAmount: 5000, currency: 'USD'};
+            const fraudAlertAction = {...createReportAction(CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT, fraudAlertMessage), reportID: FRAUD_REPORT_ID};
+
+            it('shows the buttons to the cardholder while the fraud is live', async () => {
+                // Given the current user's card has live fraud pointing at the report that holds the alert
+                await act(async () => {
+                    await Onyx.merge(ONYXKEYS.CARD_LIST, {[CARD_ID]: {cardID: CARD_ID, nameValuePairs: {possibleFraud: {fraudAlertReportID: Number(FRAUD_REPORT_ID)}}}});
+                });
+                await waitForBatchedUpdatesWithAct();
+
+                // When the fraud alert renders
+                renderItemWithAction(fraudAlertAction);
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the cardholder can resolve it
+                expect(screen.getByText('Yes, I do')).toBeOnTheScreen();
+                expect(screen.getByText("No, it wasn't me")).toBeOnTheScreen();
+            });
+
+            it('hides the buttons from a user who is not the cardholder', async () => {
+                // Given a workspace admin whose card list does not contain the flagged card
+                // When the fraud alert renders
+                renderItemWithAction(fraudAlertAction);
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the admin sees the alert but no buttons, since the backend rejects anyone but the cardholder
+                expect(screen.getByText(/suspicious activity/i)).toBeOnTheScreen();
+                expect(screen.queryByText('Yes, I do')).not.toBeOnTheScreen();
+                expect(screen.queryByText("No, it wasn't me")).not.toBeOnTheScreen();
+            });
+
+            it('hides the buttons from the cardholder once the fraud is cleared on the card', async () => {
+                // Given the backend cleared possibleFraud on the cardholder's card without resolving the alert
+                await act(async () => {
+                    await Onyx.merge(ONYXKEYS.CARD_LIST, {[CARD_ID]: {cardID: CARD_ID, nameValuePairs: {}}});
+                });
+                await waitForBatchedUpdatesWithAct();
+
+                // When the fraud alert renders
+                renderItemWithAction(fraudAlertAction);
+                await waitForBatchedUpdatesWithAct();
+
+                // Then there is nothing left to resolve
+                expect(screen.queryByText('Yes, I do')).not.toBeOnTheScreen();
+                expect(screen.queryByText("No, it wasn't me")).not.toBeOnTheScreen();
+            });
+        });
+
         it('isCardBrokenConnectionAction falls back to card.cardName from CARD_LIST when originalMessage has no cardName', async () => {
             const CARD_ID_KEY = '100';
 

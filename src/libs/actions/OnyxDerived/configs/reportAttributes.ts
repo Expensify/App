@@ -33,7 +33,7 @@ import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportActions, ReportAttributesDerivedValue, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {CardList, PersonalDetails, PersonalDetailsList, Policy, Report, ReportActions, ReportAttributesDerivedValue, Transaction, TransactionViolation} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -44,6 +44,8 @@ let previousDisplayNames: Record<string, string> = {};
 let previousPersonalDetails: OnyxEntry<PersonalDetailsList> | undefined;
 let previousPolicies: OnyxCollection<Policy>;
 let previousReportsTransactions: Record<string, Transaction[]> | undefined;
+let previousFraudAlertReportIDs: Set<string> | undefined;
+let previousCardList: OnyxEntry<CardList>;
 
 const RECOMPUTE_ALL = 'all' as const;
 
@@ -232,6 +234,7 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.REPORT_METADATA,
         ONYXKEYS.CURRENCY_LIST,
         ONYXKEYS.COLLECTION.RULE,
+        ONYXKEYS.CARD_LIST,
         ONYXKEYS.NETWORK,
     ],
     compute: (
@@ -251,6 +254,7 @@ export default createOnyxDerivedValueConfig({
             reportMetadata,
             currencyList,
             rules,
+            cardList,
         ],
         {currentValue, sourceValues, triggeredKeys},
     ) => {
@@ -406,12 +410,30 @@ export default createOnyxDerivedValueConfig({
             previousPolicies = policies;
         }
 
+        // A card's live fraud decides the fraud alert green dot on the report its fraudAlertReportID points at.
+        // Clearing possibleFraud drops that ID from the card, so the previous IDs are needed to refresh the report.
+        const cardChangedReportKeys: string[] = [];
+        if (previousCardList !== cardList) {
+            const fraudAlertReportIDs = new Set<string>();
+            for (const card of Object.values(cardList ?? {})) {
+                const fraudAlertReportID = card?.nameValuePairs?.possibleFraud?.fraudAlertReportID;
+                if (fraudAlertReportID) {
+                    fraudAlertReportIDs.add(String(fraudAlertReportID));
+                }
+            }
+            for (const reportID of new Set([...(previousFraudAlertReportIDs ?? []), ...fraudAlertReportIDs])) {
+                cardChangedReportKeys.push(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            }
+            previousFraudAlertReportIDs = fraudAlertReportIDs;
+            previousCardList = cardList;
+        }
+
         // Use incremental updates when currentValue is already populated and no full recompute is required.
         // If currentValue has no reports (fresh install or cleared storage), fall back to a full scan.
         const useIncrementalUpdates = !!currentValue?.reports && Object.keys(currentValue.reports).length > 0 && !needsFullRecompute;
 
         // if we already computed the report attributes and there is no new reports data, return the current value
-        if ((useIncrementalUpdates && !sourceValues) || !reports) {
+        if ((useIncrementalUpdates && !sourceValues && cardChangedReportKeys.length === 0) || !reports) {
             return currentValue ?? {reports: {}, locale: null};
         }
 
@@ -464,7 +486,8 @@ export default createOnyxDerivedValueConfig({
             ...personalDetailsChangedReportKeys,
         ];
 
-        const updates = [...nonPolicyUpdates, ...policyChangedReportKeys];
+        // Card changes don't feed report names, so they stay out of nonPolicyUpdates like policy changes.
+        const updates = [...nonPolicyUpdates, ...policyChangedReportKeys, ...cardChangedReportKeys];
 
         // Keys that reuse their cached name. Starts as the name-irrelevant policy reports; every other change
         // source (report/action/nvp/personal-details updates here, transactions and policy tags below) deletes
@@ -612,6 +635,7 @@ export default createOnyxDerivedValueConfig({
                     reports,
                     policies,
                     reportMetadata: reportReportMetadata,
+                    cardList,
                     currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     currentUserLogin: session?.email ?? '',
                 });
@@ -795,6 +819,8 @@ export default createOnyxDerivedValueConfig({
         previousDisplayNames = {};
         previousPersonalDetails = undefined;
         previousPolicies = undefined;
+        previousFraudAlertReportIDs = undefined;
+        previousCardList = undefined;
     },
 });
 
