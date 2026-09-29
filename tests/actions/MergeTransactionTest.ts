@@ -97,7 +97,7 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
         category: 'Original Category',
         reportID: 'target-report-456',
     };
-    const sourceChatReport = {...createRandomReport(5, undefined), reportID: 'source-chatreport-123'};
+    const sourceChatReport = {...createRandomReport(5, undefined), reportID: 'source-chat-report-123'};
 
     const sourceExpenseReport = {
         ...createExpenseReport(1),
