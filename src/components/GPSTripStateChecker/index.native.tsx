@@ -19,9 +19,9 @@ import ROUTES from '@src/ROUTES';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
 import type {GpsDraftDetails} from '@src/types/onyx';
 
+import {accountIDSelector} from '@selectors/Session';
 import {hasStartedLocationUpdatesAsync, startLocationUpdatesAsync, stopLocationUpdatesAsync} from 'expo-location';
-import React, {useEffect, useState} from 'react';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import React, {useEffect, useRef, useState} from 'react';
 
 import useUpdateGpsNotification from './useUpdateGpsNotification';
 import useUpdateGpsTripOnReconnect from './useUpdateGpsTripOnReconnect';
@@ -39,7 +39,10 @@ function isGpsDraftDetailsInOldFormat(gpsDraftDetails: GpsDraftDetails | undefin
 function GPSTripStateChecker() {
     const {translate} = useLocalize();
     const [showContinueTripModal, setShowContinueTripModal] = useState(false);
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
+    const [gpsDraftDetails, gpsDraftDetailsMetadata] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
+    const [currentAccountID, currentAccountIDResult] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const isSessionLoaded = currentAccountIDResult.status === 'loaded';
+    const hasHandledAppRestart = useRef(false);
     const {isOffline} = useNetwork();
 
     const {splashScreenState} = useSplashScreenState();
@@ -49,17 +52,43 @@ function GPSTripStateChecker() {
     useUpdateGpsTripOnReconnect({gpsPoints: getGpsPoints(gpsDraftDetails)});
     useUpdateGpsNotification();
 
+    // A trip started before this shipped records no accountID, so only a different one means another user.
+    const isTripFromDifferentUser = isSessionLoaded && !!gpsDraftDetails?.accountID && gpsDraftDetails.accountID !== currentAccountID;
+
     useEffect(() => {
+        if (!isTripFromDifferentUser) {
+            return;
+        }
+
+        resetGPSDraftDetails();
+        hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).then((isRunning) => {
+            if (!isRunning) {
+                return;
+            }
+
+            stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) =>
+                console.error('[GPS distance request] Failed to stop tracking for a trip from another user', error),
+            );
+        });
+    }, [isTripFromDifferentUser]);
+
+    useEffect(() => {
+        // Wait for the GPS_DRAFT_DETAILS subscription to hydrate before running the restart check once, so we don't
+        // misread the not-yet-loaded state as "no trip" and wrongly stop an in-progress trip's background task.
+        if (gpsDraftDetailsMetadata.status !== 'loaded' || hasHandledAppRestart.current) {
+            return;
+        }
+        hasHandledAppRestart.current = true;
+
         async function handleGpsTripInProgressOnAppRestart() {
             await checkAndCleanGpsNotification();
-            const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
 
-            if (isGpsDraftDetailsInOldFormat(gpsTrip)) {
+            if (isGpsDraftDetailsInOldFormat(gpsDraftDetails)) {
                 resetGPSDraftDetails();
                 return;
             }
 
-            if (!gpsTrip?.isTracking) {
+            if (!gpsDraftDetails?.isTracking) {
                 const isBackgroundTaskRunning = await hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME);
                 if (isBackgroundTaskRunning) {
                     stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) =>
@@ -73,7 +102,9 @@ function GPSTripStateChecker() {
         }
 
         handleGpsTripInProgressOnAppRestart();
+    }, [gpsDraftDetails?.isTracking, gpsDraftDetailsMetadata.status]);
 
+    useEffect(() => {
         return () => {
             hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).then((isRunning) => {
                 if (!isRunning) {
@@ -129,7 +160,7 @@ function GPSTripStateChecker() {
 
     return (
         <ConfirmModal
-            isVisible={showContinueTripModal && splashScreenState === CONST.BOOT_SPLASH_STATE.HIDDEN}
+            isVisible={showContinueTripModal && !!gpsDraftDetails?.isTracking && !isTripFromDifferentUser && splashScreenState === CONST.BOOT_SPLASH_STATE.HIDDEN}
             title={translate('gps.continueGpsTripModal.title')}
             prompt={translate('gps.continueGpsTripModal.prompt')}
             shouldReverseStackedButtons

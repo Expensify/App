@@ -1,4 +1,8 @@
-#!/usr/bin/env npx ts-node
+#!/usr/bin/env bun
+
+/*
+ * This script uses src/languages/en.ts as the source of truth, and leverages ChatGPT to generate translations for other languages.
+ */
 import GitHubUtils from '@github/libs/GithubUtils';
 
 import decodeUnicode from '@libs/StringUtils/decodeUnicode';
@@ -9,11 +13,9 @@ import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 import en from '@src/languages/en';
 import type {TranslationPaths} from '@src/languages/types';
 
-import type {TemplateExpression} from 'typescript';
+import type {TemplateExpression} from '@typescript/typescript6';
 
-/*
- * This script uses src/languages/en.ts as the source of truth, and leverages ChatGPT to generate translations for other languages.
- */
+import ts from '@typescript/typescript6';
 import {execFileSync} from 'child_process';
 import * as dotenv from 'dotenv';
 import {Str} from 'expensify-common';
@@ -22,7 +24,6 @@ import fs from 'fs';
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
 import get from 'lodash/get';
 import path from 'path';
-import ts from 'typescript';
 
 import type {DiffResult} from './utils/Git';
 import type Translator from './utils/Translator/Translator';
@@ -545,7 +546,7 @@ class TranslationGenerator {
             if (!this.isIncremental) {
                 const scriptPath = path.relative(process.cwd(), path.resolve(__dirname, 'generateTranslations.ts'));
                 console.log(
-                    `Note: You are currently running a full retranslation of the entire \`en.ts\` file. To incrementally translate only what you changed on your branch, run: ${COLORS.BLUE}\`npx ts-node ${scriptPath} --compare-ref main\`${COLORS.RESET}\n`,
+                    `Note: You are currently running a full retranslation of the entire \`en.ts\` file. To incrementally translate only what you changed on your branch, run: ${COLORS.BLUE}\`bun ${scriptPath} --compare-ref main\`${COLORS.RESET}\n`,
                 );
             }
 
@@ -667,7 +668,7 @@ class TranslationGenerator {
         // Check if path is in either pathsToModify or pathsToAdd
         const allPathsToTranslate = new Set([...this.pathsToModify, ...this.pathsToAdd]);
         for (const targetPath of allPathsToTranslate) {
-            if (currentPath.startsWith(targetPath)) {
+            if (currentPath === targetPath || currentPath.startsWith(`${targetPath}.`)) {
                 return true;
             }
         }

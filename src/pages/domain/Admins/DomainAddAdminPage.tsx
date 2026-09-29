@@ -7,11 +7,14 @@ import type {Section} from '@components/SelectionList/SelectionListWithSections/
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {searchUserInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getPlatform from '@libs/getPlatform';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -47,17 +50,18 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     const {translate} = useLocalize();
 
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const [domainEmail] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: domainEmailSelector,
     });
     const [adminIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: adminAccountIDsSelector,
     });
-    const [adminLoginsByAccountIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginsSelector(adminIDs)});
+    const [adminLoginsByAccountIDs = getEmptyArray<string>()] = usePersonalDetailsByIDs(adminIDs, personalDetailsLoginsSelector(adminIDs));
 
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const didInvite = useRef<boolean>(false);
+    const {isLoading, startWithLoading} = usePressLoading();
 
     const domainName = domainEmail ? Str.extractEmailDomain(domainEmail) : undefined;
 
@@ -89,8 +93,11 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
         }
         didInvite.current = true;
 
-        addAdminToDomain(domainAccountID, selectedOption.accountID, selectedOption.login, domainName, !!selectedOption.isOptimisticPersonalDetail);
-        Navigation.dismissModal();
+        const {accountID, login, isOptimisticPersonalDetail} = selectedOption;
+        startWithLoading(() => {
+            addAdminToDomain(domainAccountID, accountID, login, domainName, !!isOptimisticPersonalDetail);
+            Navigation.dismissModal();
+        });
     };
 
     const sections: Sections[] = [];
@@ -125,6 +132,8 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
             isDisabled={selectedOptions.length === 0}
             isAlertVisible={false}
             buttonText={translate('common.invite')}
+            shouldShowLoadingImmediatelyOnPress={false}
+            isLoading={isLoading}
             onSubmit={inviteUser}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline
@@ -173,11 +182,13 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
                     textInputOptions={textInputOptions}
                     confirmButtonOptions={{
                         onConfirm: inviteUser,
+                        isFooterConfirmEnabled: selectedOptions.length > 0,
+                        isFooterConfirmEnterKeyEnabled: getPlatform() !== CONST.PLATFORM.ANDROID,
                     }}
                     shouldShowLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     footerContent={footerContent}
-                    isLoadingNewOptions={!!isSearchingForReports}
+                    isLoadingNewOptions={!!isSearchingForUsers}
                     addBottomSafeAreaPadding
                     shouldShowTextInput
                     disableMaintainingScrollPosition

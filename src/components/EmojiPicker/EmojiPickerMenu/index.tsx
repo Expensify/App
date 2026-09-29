@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -24,6 +25,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 import type {ListRenderItem} from '@shopify/flash-list';
+import type {ComponentRef} from 'react';
 
 import throttle from 'lodash/throttle';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -38,9 +40,14 @@ const throttleTime = isMobile() ? 200 : 50;
 
 function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // The compact search input must be sized by the physical device width, not by `shouldUseNarrowLayout`. Using
+    // `shouldUseNarrowLayout` would grow the input to the tall mobile size whenever it is rendered inside an
+    // RHP/narrow pane on web/desktop, so `isSmallScreenWidth` is intentionally used here to keep it compact.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {singleExecution} = useSingleExecution();
     const {
@@ -59,13 +66,13 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         spacersIndexes,
     } = useEmojiPickerMenu();
 
-    const headerRefs = useRef<Record<number, React.RefObject<View | null>>>({});
+    const headerRefs = useRef<Record<number, React.RefObject<ComponentRef<typeof View> | null>>>({});
     const pendingHeaderFocusIndexRef = useRef<number | null>(null);
     const [selectedHeaderIndex, setSelectedHeaderIndex] = useState<number | null>(null);
 
     const getHeaderRef = useCallback((index: number) => {
         if (!headerRefs.current[index]) {
-            headerRefs.current[index] = React.createRef<View>();
+            headerRefs.current[index] = React.createRef<ComponentRef<typeof View>>();
         }
         return headerRefs.current[index];
     }, []);
@@ -400,14 +407,21 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         >
             <View style={[styles.p4, styles.pb3]}>
                 <TextInput
-                    label={translate('common.search')}
+                    placeholder={translate('common.search')}
+                    placeholderTextColor={theme.textSupporting}
                     accessibilityLabel={translate('common.search')}
                     role={CONST.ROLE.PRESENTATION}
+                    // Size is based on device width (isSmallScreenWidth), not shouldUseNarrowLayout, so the search input
+                    // stays the compact 34px size on web/desktop and only grows to 46px on mobile.
+                    touchableInputWrapperStyle={isSmallScreenWidth ? styles.listSearchInputNarrowWrapper : styles.listSearchInputWideWrapper}
+                    textInputContainerStyles={[styles.pb0, isSmallScreenWidth ? styles.ph3 : styles.ph2]}
+                    inputStyle={[styles.w100, styles.lineHeightUndefined, isSmallScreenWidth ? undefined : styles.fontSizeLabel]}
                     onChangeText={(text: string) => {
                         setSearchText(text);
                         filterEmojis(text);
                     }}
-                    defaultValue=""
+                    value={searchText}
+                    shouldHideClearButton={false}
                     ref={searchInputRef}
                     autoFocus={shouldFocusInputOnScreenFocus}
                     onFocus={() => {

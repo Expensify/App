@@ -14,7 +14,7 @@ function getStepToOpenFromRouteParams(
     route: PlatformStackRouteProp<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>,
     hasConfirmedUSDCurrency: boolean,
 ): TBankAccountStep | '' {
-    switch (route.params.stepToOpen) {
+    switch (route.params?.stepToOpen) {
         case REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW:
             return hasConfirmedUSDCurrency ? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT : CONST.BANK_ACCOUNT.STEP.COUNTRY;
         case REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.COMPANY:

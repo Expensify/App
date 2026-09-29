@@ -663,10 +663,6 @@ function getNextVisibleConciergeDraftMarkdown(
     };
 }
 
-function getNextVisibleConciergeDraftBodyMarkdown(currentBodyMarkdown: string, targetBodyMarkdown: string): string {
-    return getNextVisibleConciergeDraftMarkdown(currentBodyMarkdown, targetBodyMarkdown).bodyMarkdown;
-}
-
 // Module-level cache so a chat re-mount (ReportScreen unmount/remount on chat
 // switch) preserves the in-progress draft. Without this the gate's local state
 // resets to null on every revisit and the synthetic bubble disappears for the
@@ -731,13 +727,5 @@ function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: Co
     };
 }
 
-export {
-    applyConciergeDraftEvent,
-    CONCIERGE_DRAFT_STATUS,
-    getCachedDraft,
-    getNextVisibleConciergeDraftBodyMarkdown,
-    getNextVisibleConciergeDraftMarkdown,
-    setCachedDraft,
-    stripIncompleteMarkdown,
-};
+export {applyConciergeDraftEvent, CONCIERGE_DRAFT_STATUS, getCachedDraft, getNextVisibleConciergeDraftMarkdown, setCachedDraft, stripIncompleteMarkdown};
 export type {ConciergeDraft};

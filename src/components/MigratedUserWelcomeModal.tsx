@@ -25,7 +25,7 @@ import {View} from 'react-native';
 import type {FeatureListItem} from './FeatureList';
 
 import CenteredModalLayout from './CenteredModalLayout';
-import FeatureTrainingContent from './FeatureTrainingContent';
+import FeatureTraining from './FeatureTraining';
 import Icon from './Icon';
 import LottieAnimations from './LottieAnimations';
 import RenderHTML from './RenderHTML';
@@ -57,23 +57,19 @@ function MigratedUserWelcomeModal() {
         [illustrations.ChatBubbles, illustrations.ConciergeBot, illustrations.MagnifyingGlassReceipt],
     );
 
-    const handleDismiss = () => {
+    const persistDismissal = () => {
         Log.hmmm('[MigratedUserWelcomeModal] dismissing product training');
         dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})}));
     };
 
-    useBeforeRemove(handleDismiss);
+    useBeforeRemove(persistDismissal);
 
-    const handleClose = () => Navigation.goBack();
-
-    const illustrationProps = isReduceMotionEnabled
-        ? {image: illustrations.PlanetWithMobileApp}
-        : {
-              videoURL: '',
-              animation: LottieAnimations.WorkspacePlanet,
-              animationStyle: [styles.emptyWorkspaceIllustrationStyle],
-          };
+    const handleClose = () => {
+        const spendRoute = ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}), searchKey: CONST.SEARCH.SEARCH_KEYS.REPORTS});
+        Navigation.goBack(undefined, {
+            afterTransition: () => Navigation.navigate(spendRoute),
+        });
+    };
 
     const onHelp = () => {
         Log.info('[MigratedUserWelcomeModal] onHelp called, opening help URL based on admin status and device type');
@@ -81,7 +77,7 @@ function MigratedUserWelcomeModal() {
         const employeeUrl = shouldUseNarrowLayout ? CONST.STORYLANE.EMPLOYEE_MIGRATED_MOBILE : CONST.STORYLANE.EMPLOYEE_MIGRATED;
         const helpUrl = isCurrentUserPolicyAdmin ? adminUrl : employeeUrl;
         openExternalLink(helpUrl);
-        dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
+        persistDismissal();
     };
 
     return (
@@ -89,41 +85,55 @@ function MigratedUserWelcomeModal() {
             onBackdropPress={handleClose}
             contentStyle={[styles.pt0, styles.pb0]}
         >
-            <FeatureTrainingContent
-                {...illustrationProps}
-                title={translate('migratedUserWelcomeModal.title')}
-                description={translate('migratedUserWelcomeModal.subtitle')}
-                confirmText={translate('migratedUserWelcomeModal.confirmText')}
-                helpText={translate('migratedUserWelcomeModal.helpText')}
-                onHelp={onHelp}
+            <FeatureTraining
+                onConfirm={handleClose}
                 onClose={handleClose}
-                illustrationInnerContainerStyle={[StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor), styles.cardSectionIllustration]}
-                illustrationOuterContainerStyle={styles.p0}
-                contentInnerContainerStyles={[styles.mb5, styles.gap2]}
-                contentOuterContainerStyles={!shouldUseNarrowLayout && [styles.mt8, styles.mh8]}
                 shouldUseScrollView
             >
-                <View
-                    style={[styles.gap3, styles.pt1, styles.pl1]}
-                    fsClass={CONST.FULLSTORY.CLASS.UNMASK}
-                >
-                    {ExpensifyFeatures.map(({translationKey, icon}) => (
+                {isReduceMotionEnabled ? (
+                    <FeatureTraining.Illustration
+                        image={illustrations.PlanetWithMobileApp}
+                        innerContainerStyle={[StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor), styles.cardSectionIllustration]}
+                        outerContainerStyle={styles.p0}
+                    />
+                ) : (
+                    <FeatureTraining.Illustration
+                        videoURL=""
+                        animation={LottieAnimations.WorkspacePlanet}
+                        animationStyle={[styles.emptyWorkspaceIllustrationStyle]}
+                        innerContainerStyle={[StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor), styles.cardSectionIllustration]}
+                        outerContainerStyle={styles.p0}
+                    />
+                )}
+                <FeatureTraining.Body style={!shouldUseNarrowLayout && [styles.mt8, styles.mh8]}>
+                    <FeatureTraining.BodyText style={[styles.mb5, styles.gap2]}>
+                        <FeatureTraining.Title>{translate('migratedUserWelcomeModal.title')}</FeatureTraining.Title>
+                        <FeatureTraining.Description>{translate('migratedUserWelcomeModal.subtitle')}</FeatureTraining.Description>
                         <View
-                            key={translationKey}
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto]}
+                            style={[styles.gap3, styles.pt1, styles.pl1]}
+                            fsClass={CONST.FULLSTORY.CLASS.UNMASK}
                         >
-                            <Icon
-                                src={icon}
-                                height={variables.menuIconSize}
-                                width={variables.menuIconSize}
-                            />
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto, styles.flex1, styles.ml6]}>
-                                <RenderHTML html={`<comment>${convertToLTR(translate(translationKey))}</comment>`} />
-                            </View>
+                            {ExpensifyFeatures.map(({translationKey, icon}) => (
+                                <View
+                                    key={translationKey}
+                                    style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto]}
+                                >
+                                    <Icon
+                                        src={icon}
+                                        height={variables.menuIconSize}
+                                        width={variables.menuIconSize}
+                                    />
+                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto, styles.flex1, styles.ml6]}>
+                                        <RenderHTML html={`<comment>${convertToLTR(translate(translationKey))}</comment>`} />
+                                    </View>
+                                </View>
+                            ))}
                         </View>
-                    ))}
-                </View>
-            </FeatureTrainingContent>
+                    </FeatureTraining.BodyText>
+                    <FeatureTraining.HelpButton onPress={onHelp}>{translate('migratedUserWelcomeModal.helpText')}</FeatureTraining.HelpButton>
+                    <FeatureTraining.ConfirmButton>{translate('migratedUserWelcomeModal.confirmText')}</FeatureTraining.ConfirmButton>
+                </FeatureTraining.Body>
+            </FeatureTraining>
         </CenteredModalLayout>
     );
 }

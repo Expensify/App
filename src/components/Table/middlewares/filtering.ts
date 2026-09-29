@@ -16,6 +16,12 @@ type FilterConfigEntry = {
     label: string;
     filterType?: ValueOf<typeof CONST.TABLES.FILTER_TYPE>;
     options: Array<{label: string; value: string}>;
+
+    /**
+     * When true, the filter's options render inline in the popover and each selection applies immediately,
+     * instead of being staged behind an "Apply" button. Only takes effect for `MULTI_SELECT` filters.
+     */
+    immediate?: boolean;
 };
 
 /**
@@ -32,10 +38,7 @@ type IsItemInFilterCallback<DataType extends TableData> = (item: DataType, value
  *  Methods exposed by the table to control filtering.
  */
 type FilteringMethods<FilterKey extends string = string> = {
-    /** Callback to update a filter value. */
     updateFilter: (params: {key: FilterKey; value: string[]}) => void;
-
-    /** Callback to get the active filters. */
     getActiveFilters: () => Record<FilterKey, string[]>;
 };
 
@@ -56,23 +59,34 @@ type UseFilteringResult<DataType extends TableData, FilterKey extends string = s
 };
 
 /**
+ * Builds the initial filters state, defaulting every configured filter key to an empty selection.
+ *
+ * This is a standalone top-level function (rather than being inlined in the `useState` lazy initializer)
+ * because OXC's React Compiler currently fails to compile a component/hook when a generic type cast
+ * referencing the function's own type parameters (e.g. `as Record<FilterKey, string[]>`) appears inside
+ * a nested closure. That bailout is silent (no build warning) and disables automatic memoization for the
+ * entire file.
+ */
+function buildInitialFilters<FilterKey extends string = string>(filters?: FilterConfig<FilterKey>): Record<FilterKey, string[]> {
+    const initialFilters = {} as Record<FilterKey, string[]>;
+
+    if (filters) {
+        for (const key of getObjectKeys(filters)) {
+            initialFilters[key] = [];
+        }
+    }
+
+    return initialFilters;
+}
+
+/**
  * Provides functionality to filter table data.
  */
 function useFiltering<DataType extends TableData, FilterKey extends string = string>({
     filters,
     isItemInFilter,
 }: UseFilteringProps<DataType, FilterKey>): UseFilteringResult<DataType, FilterKey> {
-    const [currentFilters, setCurrentFilters] = useState<Record<FilterKey, string[]>>(() => {
-        const initialFilters = {} as Record<FilterKey, string[]>;
-
-        if (filters) {
-            for (const key of getObjectKeys(filters)) {
-                initialFilters[key] = [];
-            }
-        }
-
-        return initialFilters;
-    });
+    const [currentFilters, setCurrentFilters] = useState<Record<FilterKey, string[]>>(() => buildInitialFilters(filters));
 
     const updateFilter: FilteringMethods<FilterKey>['updateFilter'] = ({key, value}) => {
         setCurrentFilters((previousFilters) => ({
@@ -81,9 +95,7 @@ function useFiltering<DataType extends TableData, FilterKey extends string = str
         }));
     };
 
-    const getActiveFilters: FilteringMethods<FilterKey>['getActiveFilters'] = () => {
-        return currentFilters;
-    };
+    const getActiveFilters: FilteringMethods<FilterKey>['getActiveFilters'] = () => currentFilters;
 
     const middleware: Middleware<DataType> = (data) => filter({data, filters, currentFilters, isItemInFilter});
 
@@ -115,15 +127,9 @@ function filter<DataType extends TableData, FilterKey extends string = string>({
 
     return data.filter((item) => {
         return filterKeys.every((filterKey) => {
-            const filterValue = currentFilters[filterKey];
-
-            // When no filter value is set, we keep the item.
-            if (!filterValue?.length) {
-                return true;
-            }
+            const filterValue = currentFilters[filterKey] ?? [];
 
             if (!isItemInFilter) {
-                // Without a filter callback, we do not exclude any items.
                 return true;
             }
 

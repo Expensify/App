@@ -1,16 +1,18 @@
-import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
-
+import useBackfillWhenNoVisibleActions from '@hooks/useBackfillWhenNoVisibleActions';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
-import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
+import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
 import useReportActionsListModel from '@hooks/useReportActionsListModel';
 import useStartConciergeSession from '@hooks/useStartConciergeSession';
+
+import CONST from '@src/CONST';
 
 import type {ReactNode} from 'react';
 
 import React from 'react';
 
 import {computeReportActionsSkeletonState, ReportActionsListActionsContext, ReportActionsListStateContext} from './ReportActionsListContext';
+import ReportActionsLoadingSkeleton from './ReportActionsLoadingSkeleton';
 
 type ReportActionsSkeletonGuardProps = {
     /** The ID of the report to display actions for */
@@ -29,10 +31,23 @@ type ReportActionsSkeletonGuardProps = {
  *
  */
 function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonGuardProps) {
-    const {readinessSignals, state, actions} = useReportActionsListModel(reportID);
-    const {shouldShowLoadingSkeleton, shouldShowDerivedTimingSkeleton, shouldShowInitialSkeleton} = computeReportActionsSkeletonState(readinessSignals);
+    const isReportLoadPending = useIsReportLoadPending(reportID);
+    const {readinessSignals, state, actions} = useReportActionsListModel(reportID, isReportLoadPending);
+    const {shouldShowLoadingSkeleton, shouldShowDerivedTimingSkeleton} = computeReportActionsSkeletonState(readinessSignals);
 
-    const {report, isConciergeMainDM, oldestUnreadReportAction, hasOnceLoadedReportActions, hasCachedReportActions} = readinessSignals;
+    const {
+        isConciergeMainDM,
+        oldestUnreadReportAction,
+        hasOnceLoadedReportActions,
+        hasCachedReportActions,
+        isMissingReportActions,
+        hasOlderActions,
+        hasNewerActions,
+        isOffline,
+        isLoadingOlderReportActions,
+        hasLoadingOlderReportActionsError,
+        oldestReportActionID,
+    } = readinessSignals;
 
     // Side effects that must run whenever the chat list is shown, including while the skeleton renders.
     useCopySelectionHelper();
@@ -46,14 +61,36 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
         hasCachedReportActions,
     });
 
-    useMarkOpenReportEndOnSkeleton(report, shouldShowInitialSkeleton);
+    useBackfillWhenNoVisibleActions({
+        reportID,
+        isMissingReportActions,
+        hasOlderActions,
+        hasNewerActions,
+        isOffline,
+        isReportLoadPending,
+        isLoadingOlderReportActions,
+        hasLoadingOlderReportActionsError,
+        oldestReportActionID,
+        loadOlderChats: actions.loadOlderChats,
+    });
 
     if (shouldShowLoadingSkeleton) {
-        return <ReportActionsSkeletonView />;
+        return (
+            <ReportActionsLoadingSkeleton
+                reportID={reportID}
+                skeletonName={CONST.TELEMETRY.CANCELED_BY_SKELETON.SKELETON_GUARD_LOADING}
+            />
+        );
     }
 
     if (shouldShowDerivedTimingSkeleton) {
-        return <ReportActionsSkeletonView shouldAnimate={false} />;
+        return (
+            <ReportActionsLoadingSkeleton
+                reportID={reportID}
+                skeletonName={CONST.TELEMETRY.CANCELED_BY_SKELETON.SKELETON_GUARD_DERIVED_TIMING}
+                shouldAnimate={false}
+            />
+        );
     }
 
     return (

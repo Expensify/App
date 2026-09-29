@@ -2,7 +2,7 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
@@ -23,15 +23,19 @@ import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
+type SpendRuleMerchant = {
+    name: string;
+    matchType: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS> | undefined;
+};
+
 type SpendRuleMerchantsBaseProps = {
     policyID: string;
     action: string;
-    merchantNames: string[];
-    merchantMatchTypes: Array<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>;
+    merchants: SpendRuleMerchant[];
     getEditMerchantRoute: (merchantIndex: string) => Route;
 };
 
-function SpendRuleMerchantsBase({policyID, action, merchantMatchTypes, merchantNames, getEditMerchantRoute}: SpendRuleMerchantsBaseProps) {
+function SpendRuleMerchantsBase({policyID, action, merchants, getEditMerchantRoute}: SpendRuleMerchantsBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
@@ -46,6 +50,10 @@ function SpendRuleMerchantsBase({policyID, action, merchantMatchTypes, merchantN
 
     const goBack = () => {
         Navigation.goBack();
+    };
+
+    const saveAndGoBack = () => {
+        Navigation.goBack(undefined, {shouldSkipFocusRestore: true});
     };
 
     const navigateToMerchantEdit = (merchantIndex: string) => {
@@ -82,23 +90,25 @@ function SpendRuleMerchantsBase({policyID, action, merchantMatchTypes, merchantN
                         titleStyle={styles.textStrong}
                         onPress={addMerchant}
                     />
-                    {merchantNames.length > 0 ? (
-                        merchantNames.map((merchantName, index) => (
-                            <MenuItemWithTopDescription
-                                // eslint-disable-next-line react/no-array-index-key
-                                key={`${merchantName}-${merchantMatchTypes.at(index) ?? ''}-${index}`}
-                                description={
-                                    merchantMatchTypes.at(index) === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO
-                                        ? translate('workspace.rules.spendRules.merchantExactlyMatches')
-                                        : translate('workspace.rules.spendRules.merchantContains')
-                                }
-                                onPress={() => navigateToMerchantEdit(String(index))}
-                                shouldShowRightIcon
-                                title={merchantName}
-                                titleStyle={styles.flex1}
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
-                            />
-                        ))
+                    {merchants.length > 0 ? (
+                        merchants.map(({name, matchType}, index) => {
+                            // `name`/`matchType` are edited on the detail screen — keying by content would remount the row on save and lose the captured focus-return target. No per-merchant backend ID.
+                            const rowId = `merchant-${index}`;
+                            return (
+                                <MenuItemField
+                                    key={rowId}
+                                    testID={rowId}
+                                    name={
+                                        matchType === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO
+                                            ? translate('workspace.rules.spendRules.merchantExactlyMatches')
+                                            : translate('workspace.rules.spendRules.merchantContains')
+                                    }
+                                    onPress={() => navigateToMerchantEdit(String(index))}
+                                    value={name}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                                />
+                            );
+                        })
                     ) : (
                         <BlockingView
                             icon={illustrations.FoodTruck}
@@ -115,7 +125,7 @@ function SpendRuleMerchantsBase({policyID, action, merchantMatchTypes, merchantN
                     buttonText={translate('common.save')}
                     containerStyles={[styles.m4, styles.mb5]}
                     isAlertVisible={false}
-                    onSubmit={goBack}
+                    onSubmit={saveAndGoBack}
                     enabledWhenOffline
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
                 />

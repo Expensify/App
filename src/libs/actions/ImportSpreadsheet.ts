@@ -1,3 +1,5 @@
+import {getCompanyCardColumnMappings} from '@libs/importSpreadsheetUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ImportFinalModal, ImportTransactionSettings} from '@src/types/onyx/ImportedSpreadsheet';
@@ -37,7 +39,7 @@ function setSpreadsheetData(
     const numColumns = firstRow.length;
 
     // Transpose data from row-major to column-major format
-    const transposedData: string[][] = firstRow.map((_, colIndex) => data.map((row) => String(row.at(colIndex) ?? '')));
+    const transposedData: string[][] = Array.from({length: numColumns}, (_, colIndex) => data.map((row) => String(row.at(colIndex) ?? '')));
 
     const columnNames: Record<number, string> = {};
     for (let colIndex = 0; colIndex < numColumns; colIndex++) {
@@ -75,6 +77,7 @@ function closeImportPage(): Promise<void> {
         columns: null,
         importFinalModalID: null,
         importFinalModal: null,
+        shouldShowMemberRolePermissionWarning: null,
         // Clear the import settings so the next import starts fresh
         importTransactionSettings: null,
     });
@@ -201,6 +204,27 @@ function applySavedColumnMappings(spreadsheetData: string[][], savedLayout: Save
     }
 }
 
+/**
+ * Applies the auto-detected company card column mapping to the freshly uploaded spreadsheet.
+ *
+ * The mapping is computed in a single coordinated pass (header-first, with the saved layout as a positional fallback)
+ * so that a property is never pre-selected on more than one column. The complete map - including the columns that stay
+ * `ignore` - is written so re-running (e.g. when the file or the selectable roles change) fully replaces any prior
+ * auto-selection instead of leaving stale duplicates behind.
+ *
+ * @param spreadsheetData - The spreadsheet data in column-major format
+ * @param savedColumnMappings - Saved mappings from uploadLayoutSettings, keyed by field role with a column index value
+ * @param availableColumnRoles - The field roles currently selectable in the mapping UI
+ */
+function applyCompanyCardColumnMappings(spreadsheetData: string[][], savedColumnMappings: Record<string, string> | undefined, availableColumnRoles: string[]): void {
+    if (!Array.isArray(spreadsheetData) || spreadsheetData.length === 0) {
+        return;
+    }
+
+    const columns = getCompanyCardColumnMappings(spreadsheetData, savedColumnMappings, availableColumnRoles);
+    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {columns});
+}
+
 export {
     setSpreadsheetData,
     setColumnName,
@@ -210,6 +234,7 @@ export {
     setImportTransactionCurrency,
     setImportTransactionSettings,
     applySavedColumnMappings,
+    applyCompanyCardColumnMappings,
     getImportFailedFinalModal,
     getImportFinalModalID,
     getImportFinalModalOnyxData,

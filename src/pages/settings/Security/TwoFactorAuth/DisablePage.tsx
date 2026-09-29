@@ -85,9 +85,8 @@ function DisablePage() {
             </ScrollView>
             <FixedFooter style={[styles.mt2, styles.pt2]}>
                 <Button
-                    success
-                    large
-                    text={translate('twoFactorAuth.disable')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={account?.isLoading}
                     onPress={() => {
                         if (!formRef.current) {
@@ -95,7 +94,9 @@ function DisablePage() {
                         }
                         formRef.current.validateAndSubmitForm();
                     }}
-                />
+                >
+                    <Button.Text>{translate('twoFactorAuth.disable')}</Button.Text>
+                </Button>
             </FixedFooter>
         </TwoFactorAuthWrapper>
     );

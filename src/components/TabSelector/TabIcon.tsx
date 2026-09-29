@@ -2,6 +2,7 @@ import Icon from '@components/Icon';
 
 import useTheme from '@hooks/useTheme';
 
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import React from 'react';
@@ -29,14 +30,14 @@ function TabIcon({icon, activeOpacity = 0, inactiveOpacity = 1}: TabIconProps) {
                         <Icon
                             src={icon}
                             fill={theme.icon}
-                            small
+                            size={CONST.ICON_SIZE.SMALL}
                         />
                     </Animated.View>
                     <Animated.View style={[StyleSheet.absoluteFill, {opacity: activeOpacity}]}>
                         <Icon
                             src={icon}
                             fill={theme.iconMenu}
-                            small
+                            size={CONST.ICON_SIZE.SMALL}
                         />
                     </Animated.View>
                 </>

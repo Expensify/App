@@ -27,16 +27,26 @@ import type {ValueOf} from 'type-fest';
 
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
-import React, {useImperativeHandle, useRef} from 'react';
+import React, {useCallback, useImperativeHandle, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {FlattenedItem, ListItem, SelectionListWithSectionsProps} from './types';
 
-function getItemType<TItem extends ListItem>(item: FlattenedItem<TItem>): ValueOf<typeof CONST.SECTION_LIST_ITEM_TYPE> {
+function getItemType(item: FlattenedItem<ListItem>): ValueOf<typeof CONST.SECTION_LIST_ITEM_TYPE> {
     return item?.type ?? CONST.SECTION_LIST_ITEM_TYPE.ROW;
 }
 
-function BaseSelectionListWithSections<TItem extends ListItem>({
+/**
+ * FlashList paints its first frame in batches of `initialDrawBatchSize ** ceil(pass / 5)` rows, re-measuring every
+ * mounted row on each pass. Rows stay at opacity 0 until that ends, so a bigger batch only means fewer passes.
+ */
+const FLASH_LIST_OVERRIDE_PROPS = {initialDrawBatchSize: 8};
+
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function BaseSelectionListWithSectionsImpl({
     sections,
     ref,
     ListItem,
@@ -50,11 +60,11 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     onDismissError,
     onScroll,
     onScrollBeginDrag,
+    keyboardShouldPersistTaps = 'always',
     onEndReached,
     onEndReachedThreshold,
     customListHeaderContent,
     customHeaderContent,
-    rightHandSideComponent,
     listEmptyContent,
     footerContent,
     listFooterContent,
@@ -82,8 +92,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldHighlightSelectedItem,
     shouldDisableHoverStyle,
     selectionButtonPosition,
+    shouldFooterBeInsideList = false,
     setShouldDisableHoverStyle = () => {},
-}: SelectionListWithSectionsProps<TItem>) {
+}: SelectionListWithSectionsProps<ListItem>) {
     const styles = useThemeStyles();
     const isScreenFocused = useIsFocused();
     const scrollEnabled = useScrollEnabled();
@@ -94,7 +105,11 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const paddingBottomStyle = !isKeyboardShown && !footerContent && safeAreaPaddingBottomStyle;
 
     const {flattenedData, disabledIndexes, itemsCount, selectedItems, initialFocusedIndex, firstFocusableIndex} = useFlattenedSections(sections, initiallyFocusedItemKey);
-    const listRef = useRef<FlashListRef<FlattenedItem<TItem>> | null>(null);
+
+    // FlashList treats any defined initialScrollIndex as a scroll target and recomputes every layout on each
+    // progressive pass. `initialFocusedIndex` is -1 when nothing is focused, which is not a scroll target.
+    const targetScrollIndex = initialScrollIndex ?? (initialFocusedIndex < 0 ? undefined : initialFocusedIndex);
+    const listRef = useRef<FlashListRef<FlattenedItem<ListItem>> | null>(null);
     const {scrollToIndex, debouncedScrollToIndex} = useSelectionListScroll(listRef, flattenedData);
     const {containerRef, trackScrollOffset, scrollInputIntoView} = useScrollToFocusedInput(listRef, isKeyboardShown);
 
@@ -114,7 +129,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
     const {innerTextInputRef, isTextInputFocusedRef, focusTextInput, textInputKeyPress} = useSelectionListTextInput(setHasKeyBeenPressed);
 
-    const getFocusedItem = (): TItem | undefined => {
+    const getFocusedItem = useCallback((): ListItem | undefined => {
         if (focusedIndex < 0 || focusedIndex >= flattenedData.length) {
             return;
         }
@@ -122,10 +137,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         if (!item || shouldTreatItemAsDisabled(item)) {
             return;
         }
-        return item as TItem;
-    };
+        return item as ListItem;
+    }, [flattenedData, focusedIndex]);
 
-    const selectRow = (item: TItem, indexToFocus?: number) => {
+    const selectRow = (item: ListItem, indexToFocus?: number) => {
         if (!isScreenFocused) {
             return;
         }
@@ -156,23 +171,29 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         selectRow(focusedItem);
     };
 
-    const clearInputAfterSelect = () => {
+    const clearInputAfterSelect = useCallback(() => {
         textInputOptions?.onChangeText?.('');
-    };
+    }, [textInputOptions]);
 
-    const updateAndScrollToFocusedIndex = (index: number, shouldScroll = true) => {
-        setFocusedIndex(index);
-        if (shouldScroll) {
-            scrollToIndex(index);
-        }
-    };
+    const updateAndScrollToFocusedIndex = useCallback(
+        (index: number, shouldScroll = true) => {
+            setFocusedIndex(index);
+            if (shouldScroll) {
+                scrollToIndex(index);
+            }
+        },
+        [scrollToIndex, setFocusedIndex],
+    );
 
     /**
      * Handles isTextInputFocusedRef value when using external TextInput, so external TextInput does not lose focus when typing in it.
      */
-    const updateExternalTextInputFocus = (isTextInputFocused: boolean) => {
-        isTextInputFocusedRef.current = isTextInputFocused;
-    };
+    const updateExternalTextInputFocus = useCallback(
+        (isTextInputFocused: boolean) => {
+            isTextInputFocusedRef.current = isTextInputFocused;
+        },
+        [isTextInputFocusedRef],
+    );
 
     useImperativeHandle(
         ref,
@@ -190,12 +211,26 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
     const syncedSearchValue = searchValueForFocusSync ?? textInputOptions?.value;
 
+    const hasSelectedItems = selectedItems.length > 0;
+    const isFooterConfirmEnabled = confirmButtonOptions?.isFooterConfirmEnabled ?? hasSelectedItems;
+    const isCustomFooterConfirmEnabled = isFooterConfirmEnabled && confirmButtonOptions?.isDisabled !== true && confirmButtonOptions?.isFooterConfirmEnterKeyEnabled !== false;
+    // Whether Enter should trigger an enabled confirm button instead of the list.
+    // Footer renders footerContent in place of the built-in button, so the two paths are mutually
+    // exclusive; custom footers count only if they are Enter-capable and enabled. Owners can
+    // override the enabled state when selection persists outside the currently rendered rows.
+    const hasEnabledEnterConfirm =
+        (!footerContent && !!confirmButtonOptions?.showButton && !confirmButtonOptions?.isDisabled) || (!!footerContent && !!confirmButtonOptions?.onConfirm && isCustomFooterConfirmEnabled);
+    // Whether the focused row should handle plain Enter.
+    // Enter selects the row when keyboard navigation/search is active, propagation should stop,
+    // or there is no enabled Enter-capable confirm control that should handle the keypress instead.
+    const shouldSelectOnEnter = isKeyboardNavigating || !!syncedSearchValue?.trim() || !hasEnabledEnterConfirm || shouldStopPropagation;
+
     useSelectionListShortcuts({
         selectFocusedItem,
         getFocusedOption: getFocusedItem,
         confirmButtonOptions,
         isActive: isScreenFocused,
-        focusedIndex,
+        focusedIndex: shouldSelectOnEnter ? focusedIndex : -1,
         disableKeyboardShortcuts,
         shouldStopPropagation,
         shouldBubble: itemsCount > 0 && !getFocusedItem(),
@@ -244,7 +279,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         );
     };
 
-    const renderItem = ({item, index}: ListRenderItemInfo<FlattenedItem<TItem>>) => {
+    const renderItem = ({item, index}: ListRenderItemInfo<FlattenedItem<ListItem>>) => {
         if (!item) {
             return null;
         }
@@ -280,7 +315,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         canSelectMultiple={canSelectMultiple}
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         onDismissError={onDismissError}
-                        rightHandSideComponent={rightHandSideComponent}
                         setFocusedIndex={setFocusedIndex}
                         singleExecution={singleExecution}
                         shouldSyncFocus={!isTextInputFocusedRef.current && isKeyboardNavigating}
@@ -301,6 +335,17 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         }
     };
 
+    // Footer renders nothing when there is no footer content
+    const footer = (
+        <Footer<ListItem>
+            footerContent={footerContent}
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+        />
+    );
+
+    const shouldShowEmptyState = itemsCount === 0 && (shouldShowLoadingPlaceholder || shouldShowListEmptyContent);
+    const isFooterInsideList = shouldFooterBeInsideList && !shouldShowEmptyState;
+
     return (
         <View
             ref={containerRef}
@@ -309,12 +354,11 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         >
             {textInputComponent()}
             {customHeaderContent}
-            {itemsCount === 0 && (shouldShowLoadingPlaceholder || shouldShowListEmptyContent) ? (
+            {shouldShowEmptyState ? (
                 <SelectionListEmptyState
                     shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                     shouldShowListEmptyContent={shouldShowListEmptyContent}
                     listEmptyContent={listEmptyContent}
-                    context="BaseSelectionListWithSections"
                 />
             ) : (
                 <FlashList
@@ -324,7 +368,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     ref={listRef}
                     extraData={flattenedData.length}
                     getItemType={getItemType}
-                    initialScrollIndex={initialScrollIndex ?? initialFocusedIndex}
+                    initialScrollIndex={targetScrollIndex}
+                    overrideProps={FLASH_LIST_OVERRIDE_PROPS}
                     keyExtractor={(item) => ('flatListKey' in item ? item.flatListKey : item.keyForList)}
                     onEndReached={onEndReached}
                     onEndReachedThreshold={onEndReachedThreshold}
@@ -337,23 +382,31 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     }}
                     indicatorStyle="white"
                     showsVerticalScrollIndicator
-                    keyboardShouldPersistTaps="always"
+                    keyboardShouldPersistTaps={keyboardShouldPersistTaps}
                     ListHeaderComponent={customListHeaderContent}
-                    ListFooterComponent={listFooterContent}
+                    ListFooterComponent={
+                        isFooterInsideList ? (
+                            <>
+                                {listFooterContent}
+                                {footer}
+                            </>
+                        ) : (
+                            listFooterContent
+                        )
+                    }
                     ListFooterComponentStyle={style?.listFooterContentStyle}
                     style={style?.listStyle}
                     contentContainerStyle={style?.contentContainerStyle}
                     maintainVisibleContentPosition={{disabled: true}}
                 />
             )}
-            {!!footerContent && (
-                <Footer<TItem>
-                    footerContent={footerContent}
-                    addBottomSafeAreaPadding={addBottomSafeAreaPadding}
-                />
-            )}
+            {!isFooterInsideList && footer}
         </View>
     );
+}
+
+function BaseSelectionListWithSections<TItem extends ListItem>(props: SelectionListWithSectionsProps<TItem>) {
+    return <BaseSelectionListWithSectionsImpl {...(props as unknown as SelectionListWithSectionsProps<ListItem>)} />;
 }
 
 export default BaseSelectionListWithSections;

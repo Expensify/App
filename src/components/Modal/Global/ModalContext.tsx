@@ -3,7 +3,7 @@ import Log from '@libs/Log';
 import CONST from '@src/CONST';
 
 import noop from 'lodash/noop';
-import React, {useContext, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 
 const ModalActions = {
     CONFIRM: 'CONFIRM',
@@ -27,12 +27,14 @@ type ModalContextType = {
         isCloseable?: boolean;
     }): Promise<ModalStateChangePayload>;
     closeModal(data?: ModalStateChangePayload): void;
+    closeModalByID(id: string, data?: ModalStateChangePayload): void;
     resolveModal(data?: ModalStateChangePayload): void;
 };
 
 const ModalContext = React.createContext<ModalContextType>({
     showModal: () => Promise.resolve({action: 'CLOSE'}),
     closeModal: noop,
+    closeModalByID: noop,
     resolveModal: noop,
 });
 
@@ -51,6 +53,13 @@ function ModalProvider({children}: {children: React.ReactNode}) {
     const [modalStack, setModalStack] = useState<{modals: ModalInfo[]}>({modals: []});
     const modalIDRef = useRef(1);
     const modalPromisesStack = useRef<Record<string, CloseModalPromiseWithResolvers>>({});
+
+    // We use a ref because `resolveModal` is called on demand, so it doesn't need to re-render whenever `modalStack` changes.
+    // This keeps the `ModalContext.Provider` value stable and prevents unnecessary updates, avoiding an infinite re-render loop (#96411).
+    const modalStackRef = useRef(modalStack);
+    useEffect(() => {
+        modalStackRef.current = modalStack;
+    }, [modalStack]);
 
     const showModal: ModalContextType['showModal'] = ({component, props, id, isCloseable = true}) => {
         // This is a promise that will resolve when the modal is closed
@@ -88,7 +97,7 @@ function ModalProvider({children}: {children: React.ReactNode}) {
     // Resolves the modal promise without closing the modal
     // Used for async confirmation flows where the modal stays open with loading state
     const resolveModal: ModalContextType['resolveModal'] = (data = {action: ModalActions.CONFIRM}) => {
-        const lastModalId = modalStack.modals.at(-1)?.id;
+        const lastModalId = modalStackRef.current.modals.at(-1)?.id;
 
         if (!lastModalId) {
             return;
@@ -124,11 +133,33 @@ function ModalProvider({children}: {children: React.ReactNode}) {
         });
     };
 
+    // Closes one named entry wherever it sits in the stack, which a caller needs when the thing its modal was asking
+    // about has gone away and the user never answered. Such a caller cannot use `closeModal`, because by then another
+    // modal may sit above it and that is the one `closeModal` would take down.
+    const closeModalByID: ModalContextType['closeModalByID'] = (id, data = {action: ModalActions.CLOSE}) => {
+        setModalStack((prevState) => {
+            if (!prevState.modals.some((modal) => modal.id === id)) {
+                return prevState;
+            }
+
+            const modalPromise = modalPromisesStack.current?.[id];
+            if (modalPromise) {
+                modalPromise.resolve(data);
+                delete modalPromisesStack.current[id];
+            }
+
+            return {
+                ...prevState,
+                modals: prevState.modals.filter((modal) => modal.id !== id),
+            };
+        });
+    };
+
     const modalToRender = modalStack.modals.length > 0 ? modalStack.modals.at(modalStack.modals.length - 1) : null;
     const ModalComponent = modalToRender?.component;
 
     return (
-        <ModalContext.Provider value={{showModal, closeModal, resolveModal}}>
+        <ModalContext.Provider value={{showModal, closeModal, closeModalByID, resolveModal}}>
             {children}
             {!!ModalComponent && (
                 <ModalComponent

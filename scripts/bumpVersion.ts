@@ -1,4 +1,3 @@
-#!/usr/bin/env ts-node
 import * as versionUpdater from '@github/libs/versionUpdater';
 import type {SemverLevel} from '@github/libs/versionUpdater';
 
@@ -28,7 +27,7 @@ const PLIST_BUDDY = '/usr/libexec/PlistBuddy';
 
 /**
  * This is a utility function to get the repo root.
- * It's a helpful alternative to __dirname, which doesn't work with ncc-compiled scripts.
+ * It's a helpful alternative to __dirname, which doesn't work with bundled/compiled scripts.
  * __dirname doesn't work, because:
  *   - if it's evaluated at compile time it will include an absolute path in the computer in which the file was compiled
  *   - if it's evaluated at runtime, it won't refer to the directory of the imported module, because the code will have moved to wherever it's bundled
@@ -206,15 +205,6 @@ async function run(semanticVersionLevel: SemverLevel) {
     // Apply the version changes in Android, iOS, and JS config files (E/App and Mobile-Expensify)
     await Promise.all([updateAndroid(newVersion), updateIOS(newVersion), updateNPM(newVersion), updateConfigJSON(newVersion)]);
     return newVersion;
-}
-
-if (require.main === module) {
-    // Get and validate SEMVER_LEVEL input
-    const semanticVersionLevel = process.argv.at(2) ?? 'BUILD';
-    if (!versionUpdater.isValidSemverLevel(semanticVersionLevel)) {
-        throw new Error(`Invalid semver level ${semanticVersionLevel}. Must be one of: ${Object.values(versionUpdater.SEMANTIC_VERSION_LEVELS).join(', ')}`);
-    }
-    run(semanticVersionLevel);
 }
 
 export default run;

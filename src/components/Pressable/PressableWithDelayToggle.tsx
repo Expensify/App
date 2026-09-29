@@ -1,4 +1,6 @@
 import Icon from '@components/Icon';
+import InlineIcon from '@components/Icon/InlineIcon';
+import type IconSize from '@components/Icon/types';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 
@@ -8,8 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 
 import getButtonState from '@libs/getButtonState';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -24,13 +24,11 @@ import type PressableProps from './GenericPressable/types';
 import PressableWithoutFeedback from './PressableWithoutFeedback';
 
 type PressableWithDelayToggleProps = PressableProps & {
-    /** The text to display */
     text?: string;
 
     /** The text to display once the pressable is pressed */
     textChecked?: string;
 
-    /** The tooltip text to display */
     tooltipText: string;
 
     /** The tooltip text to display once the pressable is pressed */
@@ -42,13 +40,8 @@ type PressableWithDelayToggleProps = PressableProps & {
     /** Styles to apply to the root PressableView */
     wrapperStyles?: StyleProp<ViewStyle>;
 
-    /** Styles to apply to the text */
     textStyles?: StyleProp<TextStyle>;
-
-    /** Styles to apply to the icon */
     iconStyles?: StyleProp<ViewStyle>;
-
-    /** The icon to display */
     icon?: IconAsset;
 
     /** The icon to display once the pressable is pressed */
@@ -61,10 +54,6 @@ type PressableWithDelayToggleProps = PressableProps & {
      */
     inline?: boolean;
     accessibilityRole?: string;
-
-    /**
-     * Reference to the outer element
-     */
     ref?: PressableRef;
 
     /** Whether to use background color based on button states, e.g., hovered, active, pressed...  */
@@ -73,16 +62,12 @@ type PressableWithDelayToggleProps = PressableProps & {
     /** Whether to always use active (hovered) background by default */
     shouldHaveActiveBackground?: boolean;
 
-    /** Icon width */
-    iconWidth?: number;
-
-    /** Icon height */
-    iconHeight?: number;
+    /** Preset icon size */
+    iconSize?: IconSize;
 
     /** Custom accessibility label that overrides the tooltipText-based label for both states */
     accessibilityLabel?: string;
 
-    /** Custom accessibility label to use in the checked (pressed) state */
     accessibilityLabelChecked?: string;
 };
 
@@ -103,8 +88,7 @@ function PressableWithDelayToggle({
     accessibilityRole = CONST.ROLE.BUTTON,
     sentryLabel,
     shouldHaveActiveBackground,
-    iconWidth = variables.iconSizeSmall,
-    iconHeight = variables.iconSizeSmall,
+    iconSize = CONST.ICON_SIZE.SMALL,
     shouldUseButtonBackground = false,
     accessibilityLabel: accessibilityLabelProp,
     accessibilityLabelChecked,
@@ -144,6 +128,7 @@ function PressableWithDelayToggle({
     // Hide text when showing iconChecked and no icon prop is provided
     const shouldShowText = !(resolvedIconChecked && !icon && !isActive);
     const displayLabelText = shouldShowText ? labelText : null;
+    const IconComponent = inline ? InlineIcon : Icon;
 
     const content = (
         <>
@@ -163,7 +148,11 @@ function PressableWithDelayToggle({
                         !isActive && styles.cursorDefault,
                         shouldUseButtonBackground &&
                             StyleUtils.getButtonBackgroundColorStyle(
-                                getButtonState(!!shouldHaveActiveBackground || hovered, shouldHaveActiveBackground ? hovered : pressed, !shouldHaveActiveBackground && !isActive),
+                                getButtonState({
+                                    isActive: !!shouldHaveActiveBackground || hovered,
+                                    isPressed: shouldHaveActiveBackground ? hovered : pressed,
+                                    isComplete: !shouldHaveActiveBackground && !isActive,
+                                }),
                                 true,
                             ),
                     ]}
@@ -171,13 +160,11 @@ function PressableWithDelayToggle({
                     {({hovered, pressed}) => (
                         <>
                             {shouldShowIcon && (
-                                <Icon
+                                <IconComponent
                                     src={!isActive ? resolvedIconChecked : (icon ?? resolvedIconChecked)}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
+                                    fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: hovered, isPressed: pressed, isComplete: !isActive})})}
                                     additionalStyles={[styles.mr2, iconStyles]}
-                                    width={iconWidth}
-                                    height={iconHeight}
-                                    inline={inline}
+                                    size={iconSize}
                                 />
                             )}
                             {!inline && displayLabelText}

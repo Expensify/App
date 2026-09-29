@@ -28,8 +28,10 @@ function ReportFieldPopup({values, closeOverlay, updateFilterForm}: ReportFieldP
     const [selectedField, setSelectedField] = useState<PolicyReportField | null>(null);
     const reportFieldRef = useRef<ReportFieldHandle>(null);
 
+    const [error, setError] = useState<string>();
+
     const applyChanges = () => {
-        if (!reportFieldRef.current) {
+        if (!reportFieldRef.current || error) {
             return;
         }
 
@@ -48,6 +50,7 @@ function ReportFieldPopup({values, closeOverlay, updateFilterForm}: ReportFieldP
             onApply={applyChanges}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_REPORT_FIELD}
             style={[styles.getPopoverMaxHeight(windowHeight, isInLandscapeMode)]}
+            shouldSubmitOnEnter={selectedField?.type === CONST.REPORT_FIELD_TYPES.TEXT}
         >
             <ReportFieldBase
                 ref={reportFieldRef}
@@ -55,6 +58,7 @@ function ReportFieldPopup({values, closeOverlay, updateFilterForm}: ReportFieldP
                 hasFeed={!!values.feed}
                 selectedField={selectedField}
                 onFieldSelected={setSelectedField}
+                onError={setError}
             />
         </BasePopup>
     );

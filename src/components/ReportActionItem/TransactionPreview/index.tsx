@@ -26,6 +26,7 @@ import CONST from '@src/CONST';
 import useTransactionsByID from '@src/hooks/useTransactionsByID';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import {getStableReportSelector} from '@src/selectors/Report';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {GestureResponderEvent} from 'react-native';
@@ -45,12 +46,12 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const {anchor: contextMenuAnchorRef, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
     const {checkIfContextMenuActive} = useShowContextMenuActions();
 
-    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
+    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW>>();
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
     const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : undefined);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {selector: getStableReportSelector});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`);
@@ -85,7 +86,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
     }, [chatReportID]);
 
     const navigateToReviewFields = () =>
-        Navigation.navigate(getReviewNavigationRoute(Navigation.getActiveRoute(), route.params?.threadReportID, transaction, duplicates, policy, policyCategories, policyTags ?? {}, report));
+        Navigation.navigate(getReviewNavigationRoute(Navigation.getActiveRoute(), route.params?.reportID, transaction, duplicates, policy, policyCategories, policyTags ?? {}, report));
 
     const transactionPreview = transaction;
 
@@ -96,7 +97,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const transactionRawAmount = (Number(transaction?.modifiedAmount) || transaction?.amount) ?? 0;
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
-    const isReviewDuplicateTransactionPage = route.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW;
+    const isReviewDuplicateTransactionPage = route.name === SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW;
 
     if (onPreviewPressed) {
         return (
@@ -119,6 +120,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     transaction={transactionPreview}
                     transactionRawAmount={transactionRawAmount}
                     report={report}
+                    policy={policy}
                     violations={violations}
                     offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}
                     navigateToReviewFields={navigateToReviewFields}
@@ -143,6 +145,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
             transaction={originalTransaction ?? transaction}
             transactionRawAmount={transactionRawAmount}
             report={report}
+            policy={policy}
             violations={violations}
             offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}
             navigateToReviewFields={navigateToReviewFields}

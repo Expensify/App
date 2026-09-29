@@ -5,7 +5,7 @@ import CONST from '@github/libs/CONST';
  *
  * To run this script from the root of E/App:
  *
- * ts-node ./scripts/aggregateGitHubDataFromUpwork.js <path_to_csv> <github_pat> <output_path>
+ * bun ./scripts/aggregateGitHubDataFromUpwork.ts <path_to_csv> <github_pat> <output_path>
  *
  * The input file must be a CSV with a single column containing just the GitHub issue number. The CSV must have a single header row.
  */
@@ -15,7 +15,6 @@ import {throttling} from '@octokit/plugin-throttling';
 import {createObjectCsvWriter} from 'csv-writer';
 import fs from 'fs';
 
-type OctokitOptions = {method: string; url: string; request: {retryCount: number}};
 type IssueType = 'bug' | 'feature' | 'other';
 
 if (process.argv.length < 3) {
@@ -46,16 +45,16 @@ const Octokit = GitHub.plugin(throttling, paginateRest);
 const octokit = new Octokit(
     getOctokitOptions(token, {
         throttle: {
-            onRateLimit: (retryAfter: number, options: OctokitOptions) => {
+            onRateLimit: (retryAfter, options, throttledOctokit, retryCount) => {
                 console.warn(`Request quota exhausted for request ${options.method} ${options.url}`);
 
                 // Retry once after hitting a rate limit error, then give up
-                if (options.request.retryCount <= 1) {
+                if (retryCount <= 1) {
                     console.log(`Retrying after ${retryAfter} seconds!`);
                     return true;
                 }
             },
-            onAbuseLimit: (retryAfter: number, options: OctokitOptions) => {
+            onSecondaryRateLimit: (retryAfter, options) => {
                 // does not retry, only logs a warning
                 console.warn(`Abuse detected for request ${options.method} ${options.url}`);
             },

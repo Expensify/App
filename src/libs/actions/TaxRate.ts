@@ -342,7 +342,7 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], l
                         pendingFields: {foreignTaxDefault: isForeignTaxRemoved ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null},
                         foreignTaxDefault: isForeignTaxRemoved ? firstTaxID : foreignTaxDefault,
                         taxes: taxesToDelete.reduce<TaxRateDeleteMap>((acc, taxID) => {
-                            acc[taxID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null, isDisabled: true};
+                            acc[taxID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null};
                             return acc;
                         }, {}),
                     },
@@ -391,7 +391,6 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], l
                             acc[taxID] = {
                                 pendingAction: null,
                                 errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.deleteFailureMessage'),
-                                isDisabled: !!policyTaxRates?.[taxID]?.isDisabled,
                             };
                             return acc;
                         }, {}),
@@ -572,6 +571,10 @@ function setPolicyTaxCode(
         },
     };
 
+    // Mirror the rename history the back-end persists so that expenses referencing any older code keep resolving to
+    // this rate while the rename is still optimistic or was made offline.
+    const previousTaxCodes = [...new Set([...(originalTaxRate.previousTaxCodes ?? []), oldTaxCode])];
+
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -589,6 +592,8 @@ function setPolicyTaxCode(
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 errorFields: {code: null},
                                 previousTaxCode: oldTaxCode,
+                                previousTaxCodes,
+                                optimisticPreviousTaxCode: oldTaxCode,
                             },
                         },
                     },
@@ -609,9 +614,12 @@ function setPolicyTaxCode(
                             [newTaxCode]: {
                                 ...originalTaxRate,
                                 code: newTaxCode,
+                                previousTaxCode: oldTaxCode,
+                                previousTaxCodes,
                                 pendingFields: {...originalTaxRate.pendingFields, code: null},
                                 pendingAction: null,
                                 errorFields: {code: null},
+                                optimisticPreviousTaxCode: null,
                             },
                         },
                     },

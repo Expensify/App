@@ -60,19 +60,20 @@ function UnlinkLoginForm() {
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <PressableWithFeedback
                     accessibilityLabel={translate('common.back')}
-                    onPress={() => redirectToSignIn()}
+                    onPress={() => redirectToSignIn(CONST.SIGN_OUT_REASON.UNLINK_LOGIN)}
                     sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.GO_BACK}
                 >
                     <Text style={[styles.link]}>{translate('common.back')}</Text>
                 </PressableWithFeedback>
                 <Button
-                    success
-                    text={translate('unlinkLoginForm.unlink')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     isLoading={account?.isLoading && account.loadingForm === CONST.FORMS.UNLINK_LOGIN_FORM}
-                    onPress={() => requestUnlinkValidationLink()}
+                    onPress={() => requestUnlinkValidationLink(credentials?.login)}
                     isDisabled={!!isOffline || !!account?.message}
                     sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.UNLINK}
-                />
+                >
+                    <Button.Text>{translate('unlinkLoginForm.unlink')}</Button.Text>
+                </Button>
             </View>
         </>
     );

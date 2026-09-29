@@ -7,7 +7,6 @@ import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyTagLists} from '@src/types/onyx';
-import type {PolicyCategory} from '@src/types/onyx/PolicyCategory';
 
 import type * as NativeNavigation from '@react-navigation/native';
 
@@ -102,52 +101,15 @@ describe('useAdvancedSearchFilters', () => {
     });
 
     describe('category filter visibility', () => {
-        it('hides category filter when no policies have categories enabled', async () => {
+        it('shows category filter when no categories are configured', async () => {
             const policy = buildPolicy(1, {areCategoriesEnabled: false});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
-
-            await waitFor(() => {
-                const allKeys = result.current.flat();
-                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
-            });
-        });
-
-        it('shows category filter when policy has categories enabled and categories exist', async () => {
-            const policy = buildPolicy(1, {areCategoriesEnabled: true});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
-
-            const categories: Record<string, PolicyCategory> = {
-                Food: {name: 'Food', enabled: true, unencodedName: 'Food', areCommentsRequired: false, externalID: '', origin: '', pendingAction: undefined},
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`, categories);
-
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
                 expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
-            });
-        });
-
-        it('hides category filter when categories exist only for personal policies', async () => {
-            const personalPolicy = buildPolicy(1, {
-                areCategoriesEnabled: true,
-                type: CONST.POLICY.TYPE.PERSONAL,
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, personalPolicy);
-
-            const categories: Record<string, PolicyCategory> = {
-                Food: {name: 'Food', enabled: true, unencodedName: 'Food', areCommentsRequired: false, externalID: '', origin: '', pendingAction: undefined},
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`, categories);
-
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
-
-            await waitFor(() => {
-                const allKeys = result.current.flat();
-                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
             });
         });
     });
@@ -157,7 +119,7 @@ describe('useAdvancedSearchFilters', () => {
             const policy = buildPolicy(1, {areTagsEnabled: false});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -170,7 +132,7 @@ describe('useAdvancedSearchFilters', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`, buildTagList('Engineering'));
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -178,48 +140,27 @@ describe('useAdvancedSearchFilters', () => {
             });
         });
 
-        it('hides tag filter when tags are enabled but no tags exist', async () => {
+        it('shows tag filter when tags are enabled but no tags exist', async () => {
             const policy = buildPolicy(1, {areTagsEnabled: true});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const emptyTagList: PolicyTagLists = {
-                Department: {
-                    name: 'Department',
-                    orderWeight: 0,
-                    required: false,
-                    tags: {},
-                },
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`, emptyTagList);
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
-
-            // Tag filter is hidden because the tag list contains no actual tags
             await waitFor(() => {
                 const allKeys = result.current.flat();
-                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
+                expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
             });
         });
 
-        it('hides tag filter when a selected policy has tags enabled but no tags exist', async () => {
+        it('shows tag filter when a selected policy has tags enabled but no tags exist', async () => {
             const policy = buildPolicy(1, {areTagsEnabled: true});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const emptyTagList: PolicyTagLists = {
-                Department: {
-                    name: 'Department',
-                    orderWeight: 0,
-                    required: false,
-                    tags: {},
-                },
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`, emptyTagList);
-
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, ['1']), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
-                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
+                expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
             });
         });
 
@@ -228,7 +169,7 @@ describe('useAdvancedSearchFilters', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`, buildTagList('Engineering'));
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, ['1']), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -242,7 +183,7 @@ describe('useAdvancedSearchFilters', () => {
             const policy = buildPolicy(1, {tax: {trackingEnabled: false}});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -265,7 +206,7 @@ describe('useAdvancedSearchFilters', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -286,7 +227,7 @@ describe('useAdvancedSearchFilters', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -300,7 +241,7 @@ describe('useAdvancedSearchFilters', () => {
             const policy = buildPolicy(1, {type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: false});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -314,7 +255,7 @@ describe('useAdvancedSearchFilters', () => {
             delete (policy as Record<string, unknown>).isAttendeeTrackingEnabled;
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -326,7 +267,7 @@ describe('useAdvancedSearchFilters', () => {
             const policy = buildPolicy(1, {type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: true});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -340,7 +281,7 @@ describe('useAdvancedSearchFilters', () => {
             const policy = buildPolicy(1, {fieldList: {}});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -370,7 +311,7 @@ describe('useAdvancedSearchFilters', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -400,7 +341,7 @@ describe('useAdvancedSearchFilters', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -411,7 +352,7 @@ describe('useAdvancedSearchFilters', () => {
 
     describe('bank account filter visibility', () => {
         it('hides bank account filter when no bank accounts exist', async () => {
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -433,7 +374,7 @@ describe('useAdvancedSearchFilters', () => {
                 },
             });
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -455,7 +396,7 @@ describe('useAdvancedSearchFilters', () => {
                 },
             });
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -477,7 +418,7 @@ describe('useAdvancedSearchFilters', () => {
                 },
             });
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -499,7 +440,7 @@ describe('useAdvancedSearchFilters', () => {
                 },
             });
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -521,7 +462,7 @@ describe('useAdvancedSearchFilters', () => {
                 },
             });
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.CHAT, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.CHAT), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -534,7 +475,6 @@ describe('useAdvancedSearchFilters', () => {
         it('shows multiple filters when multiple features are enabled', async () => {
             const policy = buildPolicy(1, {
                 type: CONST.POLICY.TYPE.CORPORATE,
-                areCategoriesEnabled: true,
                 areTagsEnabled: true,
                 isAttendeeTrackingEnabled: true,
                 tax: {trackingEnabled: true},
@@ -549,14 +489,9 @@ describe('useAdvancedSearchFilters', () => {
                 },
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
-
-            const categories: Record<string, PolicyCategory> = {
-                Food: {name: 'Food', enabled: true, unencodedName: 'Food', areCommentsRequired: false, externalID: '', origin: '', pendingAction: undefined},
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`, categories);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`, buildTagList('Engineering'));
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();

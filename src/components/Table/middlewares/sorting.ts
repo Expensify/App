@@ -1,13 +1,16 @@
-import type {SetStateAction} from 'react';
+import CONST from '@src/CONST';
 
-import {useMemo, useState} from 'react';
+import type {SetStateAction} from 'react';
+import type {ValueOf} from 'type-fest';
+
+import {useState} from 'react';
 
 import type {Middleware, MiddlewareHookResult} from './types';
 
 /**
  * The sort order of a column in the table.
  */
-type SortOrder = 'asc' | 'desc';
+type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
 
 /**
  * The active sorting configuration of the table.
@@ -40,7 +43,6 @@ type SortingMethods<ColumnKey extends string = string> = {
     /** Callback to update the sorting configuration. */
     updateSorting: (value: SetStateAction<ActiveSorting<ColumnKey>>) => void;
 
-    /** Callback to toggle sorting for a specific column. */
     toggleColumnSorting: (columnKey?: ColumnKey) => void;
 
     /** Callback to get the active sorting configuration. */
@@ -62,8 +64,13 @@ type SortingMethods<ColumnKey extends string = string> = {
 type UseSortingProps<T, ColumnKey extends string = string> = {
     compareItems?: CompareItemsCallback<T, ColumnKey>;
     initialSortColumn?: ColumnKey;
+    initialSortOrder?: SortOrder;
     narrowLayoutSortColumn?: ColumnKey;
     shouldUseNarrowTableLayout?: boolean;
+    onSortingChange?: (sorting: ActiveSorting<ColumnKey>) => void;
+
+    /** Keys of the columns currently rendered, so sorting can fall back once its active column is no longer one of them. */
+    columnKeys: ColumnKey[];
 };
 
 /**
@@ -78,6 +85,41 @@ type UseSortingResult<T, ColumnKey extends string = string> = MiddlewareHookResu
 };
 
 /**
+ * Resolves the sorting configuration that should actually be applied, forcing `narrowLayoutSortColumn`
+ * when the table is in narrow layout.
+ *
+ * This is a standalone top-level function (rather than being inlined in the `useMemo` callback) because
+ * OXC's React Compiler currently fails to compile a component/hook when a generic type expression
+ * referencing the function's own type parameters (e.g. `satisfies ActiveSorting<ColumnKey>`) appears
+ * inside a nested closure. That bailout is silent (no build warning) and disables automatic memoization
+ * for the entire file.
+ *
+ * @template ColumnKey - The type of column keys.
+ */
+function resolveActiveSorting<ColumnKey extends string = string>(
+    shouldUseNarrowTableLayout: boolean | undefined,
+    narrowLayoutSortColumn: ColumnKey | undefined,
+    userSorting: ActiveSorting<ColumnKey>,
+    columnKeys: ColumnKey[],
+    initialSortColumn: ColumnKey | undefined,
+    initialSortOrder: SortOrder,
+): ActiveSorting<ColumnKey> {
+    if (shouldUseNarrowTableLayout) {
+        // Narrow layouts drop columns for space rather than because the data lost them, so the fallback below must not
+        // run here. Otherwise resizing past the breakpoint would silently discard the sort the user picked.
+        return narrowLayoutSortColumn ? {columnKey: narrowLayoutSortColumn, order: CONST.SEARCH.SORT_ORDER.ASC} : userSorting;
+    }
+
+    // A column that stops being rendered (e.g. a conditional column loses its last value) can leave the table sorted
+    // by a key no header shows an arrow for. Falling back to the initial column keeps the sort visible and correct.
+    if (userSorting.columnKey && !columnKeys.includes(userSorting.columnKey)) {
+        return {columnKey: initialSortColumn, order: initialSortOrder};
+    }
+
+    return userSorting;
+}
+
+/**
  * Provides functionality to sort table data.
  *
  * @template T - The type of items in the data array.
@@ -89,39 +131,40 @@ type UseSortingResult<T, ColumnKey extends string = string> = MiddlewareHookResu
 function useSorting<T, ColumnKey extends string = string>({
     compareItems,
     initialSortColumn,
+    initialSortOrder = CONST.SEARCH.SORT_ORDER.ASC,
     narrowLayoutSortColumn,
     shouldUseNarrowTableLayout,
+    onSortingChange,
+    columnKeys,
 }: UseSortingProps<T, ColumnKey>): UseSortingResult<T, ColumnKey> {
     const [userSorting, setUserSorting] = useState<ActiveSorting<ColumnKey>>({
         columnKey: initialSortColumn,
-        order: 'asc',
+        order: initialSortOrder,
     });
 
-    const activeSorting = useMemo(
-        () => (shouldUseNarrowTableLayout && narrowLayoutSortColumn ? ({columnKey: narrowLayoutSortColumn, order: 'asc'} satisfies ActiveSorting<ColumnKey>) : userSorting),
-        [shouldUseNarrowTableLayout, narrowLayoutSortColumn, userSorting],
-    );
+    const activeSorting = resolveActiveSorting(shouldUseNarrowTableLayout, narrowLayoutSortColumn, userSorting, columnKeys, initialSortColumn, initialSortOrder);
+
+    const updateSorting: SortingMethods<ColumnKey>['updateSorting'] = (value) => {
+        const newSorting = typeof value === 'function' ? value(userSorting) : value;
+        setUserSorting(newSorting);
+        onSortingChange?.(newSorting);
+    };
 
     const toggleColumnSorting: SortingMethods<ColumnKey>['toggleColumnSorting'] = (columnKey) => {
-        setUserSorting((previousSorting) => {
-            const columnKeyToUse = columnKey ?? previousSorting.columnKey;
-            const orderToUse = previousSorting.order === 'asc' ? 'desc' : 'asc';
-
-            return {
-                columnKey: columnKeyToUse,
-                order: orderToUse,
-            };
+        // Flipped from the sorting the headers actually show rather than the stored one, which the fallback above can
+        // diverge from. Otherwise the first press after a column disappears asks for the order already on screen.
+        updateSorting({
+            columnKey: columnKey ?? activeSorting.columnKey,
+            order: activeSorting.order === CONST.SEARCH.SORT_ORDER.ASC ? CONST.SEARCH.SORT_ORDER.DESC : CONST.SEARCH.SORT_ORDER.ASC,
         });
     };
 
-    const getActiveSorting: SortingMethods<ColumnKey>['getActiveSorting'] = () => {
-        return activeSorting;
-    };
+    const getActiveSorting: SortingMethods<ColumnKey>['getActiveSorting'] = () => activeSorting;
 
     const middleware: Middleware<T> = (data) => sort({data, activeSorting, compareItems});
 
     const methods: SortingMethods<ColumnKey> = {
-        updateSorting: setUserSorting,
+        updateSorting,
         toggleColumnSorting,
         getActiveSorting,
     };
@@ -169,4 +212,4 @@ function sort<T, ColumnKey extends string = string>({data, activeSorting, compar
 }
 
 export default useSorting;
-export type {CompareItemsCallback, ActiveSorting, SortingMethods};
+export type {CompareItemsCallback, ActiveSorting, SortingMethods, SortOrder};

@@ -10,7 +10,7 @@
 // freeTextFilter: rule to process the free text search values returned by the identifier rule. It builds filter Object.
 // standardFilter: rule to process the values returned by the key rule. It builds filter Object.
 // key: rule to match pre-defined search syntax fields, e.g. amount, merchant, etc
-// defaultKey: rule to match pre-defined search syntax fields that are used to update default values, e.g. type, status, etc
+// defaultKey: rule to match pre-defined search syntax fields that are used to update default values, e.g. type, sortBy, etc
 // identifier: composite rule to match patterns defined by the quotedString and alphanumeric rules
 
 // filter, logicalAnd, operator, alphanumeric, quotedStrig are defined in baseRules.peggy grammar
@@ -35,6 +35,7 @@
     category: "groupCategory",
     tag: "groupTag",
     merchant: "groupMerchant",
+    day: "groupday",
     month: "groupmonth",
     week: "groupweek",
     year: "groupyear",
@@ -48,6 +49,7 @@
     category: "asc",
     tag: "asc",
     merchant: "asc",
+    day: "desc",
     month: "desc",
     week: "desc",
     year: "desc",
@@ -56,11 +58,10 @@
 
   const DEFAULT_SORT_BY_VALUES = new Set([...Object.values(GROUP_BY_DEFAULT_SORT), "date"]);
 
-  const TIME_BASED_GROUP_BY = new Set(["week", "month", "year", "quarter"]);
+  const TIME_BASED_GROUP_BY = new Set(["day", "week", "month", "year", "quarter"]);
 
   const defaultValues = {
     type: "expense",
-    status: "",
     sortBy: "date",
     sortOrder: "desc",
     view: "table",
@@ -71,7 +72,7 @@
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
-    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view"
+    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view", "compare"
   ]);
 
   function isDefaultSortValue(sortBy) {
@@ -113,11 +114,6 @@
   }
 
   function updateDefaultValues(field, value) {
-    if (field === "status" && value === "all") {
-      defaultValues[field] = "";
-      return;
-    }
-
     // Track if user explicitly provided a custom (non-default) sortBy
     if (field === "sortBy" && !isDefaultSortValue(value)) {
       userProvidedSortBy = true;
@@ -225,7 +221,7 @@ defaultFilter
     }
 
 freeTextFilter
-  = _ value:(quotedString / [^ \t\r\n\xA0]+) _ {
+  = _ value:(quotedString / (escapedChar / [^ \t\r\n\xA0])+) _ {
       //handle no-breaking space
       let word;
       if (Array.isArray(value)) {
@@ -262,6 +258,9 @@ reportFieldDynamic
 key "key"
   = @(
       date
+      // Both must precede `amount`, which would otherwise match their prefix.
+      / amountDebited
+      / amountReimbursed
       / amount
       / total
       / merchant
@@ -280,9 +279,11 @@ key "key"
       / from
       / attendee
       / payer
+      / paidBy
       / exporter
       / expenseType
       / receiptType
+      / transactionStatus
       / withdrawalType
       / withdrawalStatus
       / paidStatus
@@ -296,6 +297,9 @@ key "key"
       / withdrawn
       / feed
       / title
+      / submitterUserID
+      / submitterPayrollID
+      / orderDealNumbers
       / assignee
       / createdBy
       / reimbursable
@@ -305,16 +309,18 @@ key "key"
       / is
       / purchaseCurrency
       / purchaseAmount
+      / policyID
+      / status
       / reportFieldDynamic
     )
 
 filterKey
   = k:key {
-      nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
+      nameOperator = (k === "from" || k === "to" || k === "payer" || k === "paidBy" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
       return k;
     }
     
-defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy / columns / limit / view)
+defaultKey "default key" = @(type / sortBy / sortOrder / groupBy / columns / limit / view / compare)
 
 identifier
   = (","+)? parts:(values / quotedString / alphanumeric)|1.., ","+| empty:(","+)? {

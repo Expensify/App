@@ -2,6 +2,7 @@ import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SelectedReports} from '@components/Search/types';
 
 import {bulkDuplicateReports} from '@libs/actions/IOU/Duplicate';
+import Log from '@libs/Log';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -10,13 +11,16 @@ import type {Report} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
+import useDelegateAccountID from './useDelegateAccountID';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import {useAllPersonalDetails} from './usePersonalDetails';
 
 type UseBulkDuplicateReportActionParams = {
     selectedReports: SelectedReports[];
@@ -26,27 +30,35 @@ type UseBulkDuplicateReportActionParams = {
 
 function useBulkDuplicateReportAction({selectedReports, allReports, searchData}: UseBulkDuplicateReportActionParams) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const defaultExpensePolicy = useDefaultExpensePolicy();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const handleDuplicateReports = () => {
         const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
 
         bulkDuplicateReports({
+            isVendorMatchingBetaEnabled,
+            dateFnsLocale,
             selectedReports,
             allReports: allReports ?? {},
             searchData,
@@ -57,7 +69,6 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
             activePolicyExpenseChat,
             ownerPersonalDetails: currentUserPersonalDetails,
             isASAPSubmitBetaEnabled,
-            betas,
             personalDetails,
             quickAction,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
@@ -67,6 +78,14 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
             recentWaypoints,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
             currentUserAccountID: currentUserPersonalDetails?.accountID,
+            isTrackIntentUser,
+            delegateAccountID,
+            formatPhoneNumber,
+            getCurrencyDecimals,
+            conciergeChat,
+            rules,
+        }).catch((error: unknown) => {
+            Log.warn('[useBulkDuplicateReportAction] Failed to duplicate the selected reports', {error});
         });
 
         clearSelectedTransactions(undefined, true);

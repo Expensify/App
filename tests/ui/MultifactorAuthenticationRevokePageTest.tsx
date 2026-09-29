@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import type {revokeMultifactorAuthenticationCredentials as revokeMultifactorAuthenticationCredentialsType} from '@libs/actions/MultifactorAuthentication';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 
@@ -10,8 +11,15 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
+import type * as MockUseConfirmModalUtil from '../utils/mockUseConfirmModal';
+
+import createMock from '../utils/createMock';
+import {getShowConfirmModalOption, mockCloseModal, mockShowConfirmModal, resetMockConfirmModal, resolveShowConfirmModal} from '../utils/mockUseConfirmModal';
+
+type MultifactorAuthenticationRevokeResponse = Awaited<ReturnType<typeof revokeMultifactorAuthenticationCredentialsType>>;
+
 jest.mock('@libs/API');
-const mockAPI = API as jest.Mocked<typeof API>;
+const mockAPI = jest.mocked(API);
 
 let mockBiometricStatus = {
     localCredentialID: undefined as string | undefined,
@@ -26,9 +34,12 @@ jest.mock('@hooks/useBiometricRegistrationStatus', () => ({
     default: () => mockBiometricStatus,
 }));
 
-const mockRevokeCredentials = jest.fn().mockResolvedValue({httpStatusCode: 200});
+const mockRevokeCredentials = jest
+    .fn<ReturnType<typeof revokeMultifactorAuthenticationCredentialsType>, Parameters<typeof revokeMultifactorAuthenticationCredentialsType>>()
+    .mockResolvedValue(createMock<MultifactorAuthenticationRevokeResponse>({httpStatusCode: 200}));
 jest.mock('@libs/actions/MultifactorAuthentication', () => ({
-    revokeMultifactorAuthenticationCredentials: (...args: unknown[]): Promise<{httpStatusCode: number}> => mockRevokeCredentials(...args) as Promise<{httpStatusCode: number}>,
+    revokeMultifactorAuthenticationCredentials: (...args: Parameters<typeof revokeMultifactorAuthenticationCredentialsType>): Promise<MultifactorAuthenticationRevokeResponse> =>
+        mockRevokeCredentials(...args),
 }));
 
 jest.mock('@userActions/User', () => ({
@@ -93,15 +104,29 @@ jest.mock('@components/FormHelpMessage', () => {
     return MockFormHelpMessage;
 });
 
-let capturedConfirmModalProps: Record<string, unknown> = {};
-jest.mock('@components/ConfirmModal', () => {
-    function MockConfirmModal(props: Record<string, unknown>) {
-        capturedConfirmModalProps = props;
-        return null;
-    }
-    MockConfirmModal.displayName = 'ConfirmModal';
-    return MockConfirmModal;
+// The page no longer renders ConfirmModal itself -- it pushes one onto the global modal stack via useConfirmModal.
+jest.mock('@hooks/useConfirmModal', () => {
+    const {default: mockUseConfirmModal} = jest.requireActual<typeof MockUseConfirmModalUtil>('../utils/mockUseConfirmModal');
+    return mockUseConfirmModal;
 });
+
+jest.mock('@components/Modal/Global/ModalContext', () => {
+    const {createMockModalContextModule} = jest.requireActual<typeof MockUseConfirmModalUtil>('../utils/mockUseConfirmModal');
+    return createMockModalContextModule();
+});
+
+// Derived from the imported value rather than from MockUseConfirmModalUtil.ShowConfirmModalResult: reading a member off
+// that namespace import makes knip track the helper's exports member-by-member, which orphans the ones only reached
+// through jest.requireActual (default, createMockModalContextModule, ...) and fails the knip-vs-main check.
+type ConfirmModalAction = NonNullable<Parameters<typeof resolveShowConfirmModal>[0]>['action'];
+
+/** Settle the pending confirm-modal promise and flush the async revoke chain it kicks off. */
+async function settleConfirmModal(action: ConfirmModalAction) {
+    await act(async () => {
+        resolveShowConfirmModal({action});
+        await Promise.resolve();
+    });
+}
 
 function setBiometricStatus(overrides: Partial<typeof mockBiometricStatus>) {
     mockBiometricStatus = {
@@ -117,7 +142,7 @@ function setBiometricStatus(overrides: Partial<typeof mockBiometricStatus>) {
 describe('MultifactorAuthenticationRevokePage', () => {
     afterEach(() => {
         jest.clearAllMocks();
-        capturedConfirmModalProps = {};
+        resetMockConfirmModal();
     });
 
     describe('Bottom button text', () => {
@@ -168,9 +193,11 @@ describe('MultifactorAuthenticationRevokePage', () => {
             fireEvent.press(thisDeviceButton!);
 
             // Then the confirmation modal should say "this device" and the confirm button should say "Revoke access"
-            expect(capturedConfirmModalProps.prompt).toBe('multifactorAuthentication.revoke.confirmationPromptThisDevice');
-            expect(capturedConfirmModalProps.confirmText).toBe('multifactorAuthentication.revoke.cta');
-            expect(capturedConfirmModalProps.isVisible).toBe(true);
+            expect(getShowConfirmModalOption('prompt')).toBe('multifactorAuthentication.revoke.confirmationPromptThisDevice');
+            expect(getShowConfirmModalOption('confirmText')).toBe('multifactorAuthentication.revoke.cta');
+
+            // And isConfirmLoading must be *defined* so the global modal takes its async branch and stays open in a loading state
+            expect(getShowConfirmModalOption('isConfirmLoading')).toBeDefined();
         });
     });
 
@@ -187,8 +214,8 @@ describe('MultifactorAuthenticationRevokePage', () => {
             fireEvent.press(otherDevicesButton!);
 
             // Then the modal should say "that device" and the confirm button should say "Revoke access"
-            expect(capturedConfirmModalProps.prompt).toBe('multifactorAuthentication.revoke.confirmationPrompt');
-            expect(capturedConfirmModalProps.confirmText).toBe('multifactorAuthentication.revoke.cta');
+            expect(getShowConfirmModalOption('prompt')).toBe('multifactorAuthentication.revoke.confirmationPrompt');
+            expect(getShowConfirmModalOption('confirmText')).toBe('multifactorAuthentication.revoke.cta');
         });
 
         it('shows "those devices" prompt with "Revoke access" when revoking 2+ others and this device is registered', () => {
@@ -204,8 +231,8 @@ describe('MultifactorAuthenticationRevokePage', () => {
 
             // Then the modal should say "those devices" and the confirm button should say "Revoke access"
             // because we're only revoking others, not this device
-            expect(capturedConfirmModalProps.prompt).toBe('multifactorAuthentication.revoke.confirmationPromptMultiple');
-            expect(capturedConfirmModalProps.confirmText).toBe('multifactorAuthentication.revoke.cta');
+            expect(getShowConfirmModalOption('prompt')).toBe('multifactorAuthentication.revoke.confirmationPromptMultiple');
+            expect(getShowConfirmModalOption('confirmText')).toBe('multifactorAuthentication.revoke.cta');
         });
 
         it('shows "any device" prompt with "Revoke all" when revoking 2+ others and this device is not registered', () => {
@@ -221,8 +248,8 @@ describe('MultifactorAuthenticationRevokePage', () => {
             fireEvent.press(otherDevicesButton!);
 
             // Then the modal should say "any device" and the confirm button should say "Revoke all"
-            expect(capturedConfirmModalProps.prompt).toBe('multifactorAuthentication.revoke.confirmationPromptAll');
-            expect(capturedConfirmModalProps.confirmText).toBe('multifactorAuthentication.revoke.ctaAll');
+            expect(getShowConfirmModalOption('prompt')).toBe('multifactorAuthentication.revoke.confirmationPromptAll');
+            expect(getShowConfirmModalOption('confirmText')).toBe('multifactorAuthentication.revoke.ctaAll');
         });
     });
 
@@ -237,8 +264,8 @@ describe('MultifactorAuthenticationRevokePage', () => {
 
             // Then the modal should say "this device" and the confirm button should say "Revoke access"
             // because the only device being revoked is the one the user is currently on
-            expect(capturedConfirmModalProps.prompt).toBe('multifactorAuthentication.revoke.confirmationPromptThisDevice');
-            expect(capturedConfirmModalProps.confirmText).toBe('multifactorAuthentication.revoke.cta');
+            expect(getShowConfirmModalOption('prompt')).toBe('multifactorAuthentication.revoke.confirmationPromptThisDevice');
+            expect(getShowConfirmModalOption('confirmText')).toBe('multifactorAuthentication.revoke.cta');
         });
 
         it('shows "that device" prompt with "Revoke access" when only 1 other device is registered', () => {
@@ -254,8 +281,8 @@ describe('MultifactorAuthenticationRevokePage', () => {
 
             // Then the modal should say "that device" and the confirm button should say "Revoke access"
             // because we're revoking a single device that is not the current one
-            expect(capturedConfirmModalProps.prompt).toBe('multifactorAuthentication.revoke.confirmationPrompt');
-            expect(capturedConfirmModalProps.confirmText).toBe('multifactorAuthentication.revoke.cta');
+            expect(getShowConfirmModalOption('prompt')).toBe('multifactorAuthentication.revoke.confirmationPrompt');
+            expect(getShowConfirmModalOption('confirmText')).toBe('multifactorAuthentication.revoke.cta');
         });
 
         it('shows "any device" prompt with "Revoke all" when 2+ others and this device is not registered', () => {
@@ -268,8 +295,8 @@ describe('MultifactorAuthenticationRevokePage', () => {
 
             // Then the modal should say "any device" and the confirm button should say "Revoke all"
             // because all registered devices will be revoked
-            expect(capturedConfirmModalProps.prompt).toBe('multifactorAuthentication.revoke.confirmationPromptAll');
-            expect(capturedConfirmModalProps.confirmText).toBe('multifactorAuthentication.revoke.ctaAll');
+            expect(getShowConfirmModalOption('prompt')).toBe('multifactorAuthentication.revoke.confirmationPromptAll');
+            expect(getShowConfirmModalOption('confirmText')).toBe('multifactorAuthentication.revoke.ctaAll');
         });
 
         it('shows "any device" prompt with "Revoke all" when this device + others are registered', () => {
@@ -282,8 +309,8 @@ describe('MultifactorAuthenticationRevokePage', () => {
 
             // Then the modal should say "any device" and the confirm button should say "Revoke all"
             // because both this device and others are being revoked
-            expect(capturedConfirmModalProps.prompt).toBe('multifactorAuthentication.revoke.confirmationPromptAll');
-            expect(capturedConfirmModalProps.confirmText).toBe('multifactorAuthentication.revoke.ctaAll');
+            expect(getShowConfirmModalOption('prompt')).toBe('multifactorAuthentication.revoke.confirmationPromptAll');
+            expect(getShowConfirmModalOption('confirmText')).toBe('multifactorAuthentication.revoke.ctaAll');
         });
     });
 
@@ -298,10 +325,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
             const thisDeviceButton = revokeButtons.at(0);
             expect(thisDeviceButton).toBeTruthy();
             fireEvent.press(thisDeviceButton!);
-            const onConfirm = capturedConfirmModalProps.onConfirm as () => void;
-            await act(async () => {
-                onConfirm();
-            });
+            await settleConfirmModal('CONFIRM');
 
             // Then the API should be called with onlyKeyID matching this device's key
             // so that only this device is revoked and others are unaffected
@@ -318,10 +342,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
             const otherDevicesButton = revokeButtons.at(1);
             expect(otherDevicesButton).toBeTruthy();
             fireEvent.press(otherDevicesButton!);
-            const onConfirm = capturedConfirmModalProps.onConfirm as () => void;
-            await act(async () => {
-                onConfirm();
-            });
+            await settleConfirmModal('CONFIRM');
 
             // Then the API should be called with exceptKeyID to preserve this device's registration
             expect(mockRevokeCredentials).toHaveBeenCalledWith({exceptKeyID: 'key-this'});
@@ -337,14 +358,29 @@ describe('MultifactorAuthenticationRevokePage', () => {
             const otherDevicesButton = revokeButtons.at(0);
             expect(otherDevicesButton).toBeTruthy();
             fireEvent.press(otherDevicesButton!);
-            const onConfirm = capturedConfirmModalProps.onConfirm as () => void;
-            await act(async () => {
-                onConfirm();
-            });
+            await settleConfirmModal('CONFIRM');
 
             // Then the API should be called with empty params to revoke all credentials
             // because there is no current device key to exclude
             expect(mockRevokeCredentials).toHaveBeenCalledWith({});
+        });
+
+        it('uses the credential ID that hydrated while the confirmation modal was open', async () => {
+            // Given the server reports one credential but this device's ID has not loaded yet, so "Other devices" opens in 'single' mode
+            setBiometricStatus({localCredentialID: undefined, isCurrentDeviceRegistered: false, totalDeviceCount: 1, otherDeviceCount: 1});
+
+            const {rerender} = render(<MultifactorAuthenticationRevokePage />);
+            const revokeButtons = screen.getAllByText('multifactorAuthentication.revoke.revoke');
+            fireEvent.press(revokeButtons.at(0)!);
+
+            // When the local credential ID hydrates while the modal is still open
+            setBiometricStatus({localCredentialID: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 1, otherDeviceCount: 0});
+            rerender(<MultifactorAuthenticationRevokePage />);
+
+            await settleConfirmModal('CONFIRM');
+
+            // Then confirming excludes this device instead of revoking every credential with empty params
+            expect(mockRevokeCredentials).toHaveBeenCalledWith({exceptKeyID: 'key-this'});
         });
 
         it('passes empty params when revoking all devices via bottom button', async () => {
@@ -354,10 +390,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
             // When the user confirms revoking all via the bottom "Revoke all" button
             render(<MultifactorAuthenticationRevokePage />);
             fireEvent.press(screen.getByText('multifactorAuthentication.revoke.ctaAll'));
-            const onConfirm = capturedConfirmModalProps.onConfirm as () => void;
-            await act(async () => {
-                onConfirm();
-            });
+            await settleConfirmModal('CONFIRM');
 
             // Then the API should be called with empty params to revoke every credential
             expect(mockRevokeCredentials).toHaveBeenCalledWith({});
@@ -366,7 +399,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
 
     describe('Error handling', () => {
         it('displays error message when revoke returns a non-200 status', async () => {
-            mockRevokeCredentials.mockResolvedValueOnce({httpStatusCode: 500});
+            mockRevokeCredentials.mockResolvedValueOnce(createMock<MultifactorAuthenticationRevokeResponse>({httpStatusCode: 500}));
             setBiometricStatus({localCredentialID: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 1, otherDeviceCount: 0});
 
             render(<MultifactorAuthenticationRevokePage />);
@@ -376,10 +409,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
             expect(thisDeviceButton).toBeTruthy();
             fireEvent.press(thisDeviceButton!);
 
-            const onConfirm = capturedConfirmModalProps.onConfirm as () => Promise<void>;
-            await act(async () => {
-                await onConfirm();
-            });
+            await settleConfirmModal('CONFIRM');
 
             expect(mockRevokeCredentials).toHaveBeenCalled();
             expect(screen.getByText('multifactorAuthentication.revoke.error')).toBeTruthy();
@@ -396,7 +426,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
             expect(dismissButton).toBeTruthy();
         });
 
-        it('hides confirm modal when cancel is pressed', () => {
+        it('does not revoke anything when the confirm modal is dismissed', async () => {
             setBiometricStatus({localCredentialID: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 1, otherDeviceCount: 0});
 
             render(<MultifactorAuthenticationRevokePage />);
@@ -404,14 +434,44 @@ describe('MultifactorAuthenticationRevokePage', () => {
             const revokeButtons = screen.getAllByText('multifactorAuthentication.revoke.revoke');
             fireEvent.press(revokeButtons.at(0)!);
 
-            expect(capturedConfirmModalProps.isVisible).toBe(true);
+            expect(mockShowConfirmModal).toHaveBeenCalled();
 
-            const onCancel = capturedConfirmModalProps.onCancel as () => void;
-            act(() => {
-                onCancel();
-            });
+            // When the modal is dismissed rather than confirmed (cancel button, backdrop or ESC)
+            await settleConfirmModal('CLOSE');
 
-            expect(capturedConfirmModalProps.isVisible).toBe(false);
+            // Then nothing is revoked and no extra close is issued -- the modal already dismissed itself
+            expect(mockRevokeCredentials).not.toHaveBeenCalled();
+            expect(mockCloseModal).not.toHaveBeenCalled();
+        });
+
+        it('closes the loading modal after the revoke completes', async () => {
+            setBiometricStatus({localCredentialID: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 1, otherDeviceCount: 0});
+
+            render(<MultifactorAuthenticationRevokePage />);
+
+            const revokeButtons = screen.getAllByText('multifactorAuthentication.revoke.revoke');
+            fireEvent.press(revokeButtons.at(0)!);
+
+            await settleConfirmModal('CONFIRM');
+
+            // The modal is kept open in a loading state by the global modal system, so the page must close it explicitly
+            expect(mockCloseModal).toHaveBeenCalled();
+        });
+
+        it('closes the loading modal on the early-return path where there is no local credential', async () => {
+            // Given this device is marked registered but its credential ID has not loaded, so "Other devices" opens the modal in 'multiple' mode
+            setBiometricStatus({localCredentialID: undefined, isCurrentDeviceRegistered: true, totalDeviceCount: 3, otherDeviceCount: 2});
+
+            render(<MultifactorAuthenticationRevokePage />);
+
+            const revokeButtons = screen.getAllByText('multifactorAuthentication.revoke.revoke');
+            fireEvent.press(revokeButtons.at(1)!);
+
+            await settleConfirmModal('CONFIRM');
+
+            // Then the early-return path still has to close the modal, otherwise it is stuck loading forever
+            expect(mockRevokeCredentials).not.toHaveBeenCalled();
+            expect(mockCloseModal).toHaveBeenCalled();
         });
     });
 
@@ -441,7 +501,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
 
             fireEvent.press(screen.getByText('multifactorAuthentication.revoke.ctaAll'));
 
-            expect(capturedConfirmModalProps.title).toBe('multifactorAuthentication.revoke.ctaAll');
+            expect(getShowConfirmModalOption('title')).toBe('multifactorAuthentication.revoke.ctaAll');
         });
 
         it('shows "Revoke access" title on modal when revoking a single device', () => {
@@ -452,7 +512,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
             const revokeButtons = screen.getAllByText('multifactorAuthentication.revoke.revoke');
             fireEvent.press(revokeButtons.at(0)!);
 
-            expect(capturedConfirmModalProps.title).toBe('multifactorAuthentication.revoke.cta');
+            expect(getShowConfirmModalOption('title')).toBe('multifactorAuthentication.revoke.cta');
         });
     });
 });

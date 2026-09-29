@@ -1,4 +1,5 @@
 import useAncestors from '@hooks/useAncestors';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import {getOriginalReportID, shouldExcludeAncestorReportAction} from '@libs/ReportUtils';
@@ -30,14 +31,15 @@ function findAncestorWithDraftOnChain(params: {
     ancestors: Ancestor[];
     reportActions: OnyxCollection<OnyxTypes.ReportActions> | undefined;
     reportActionsDrafts: OnyxCollection<OnyxTypes.ReportActionsDrafts> | undefined;
+    isOffline: boolean;
 }) {
-    const {ancestors, reportActions, reportActionsDrafts} = params;
+    const {ancestors, reportActions, reportActionsDrafts, isOffline} = params;
 
     const ancestorChainReversedNewestFirst = [...ancestors].slice().reverse();
 
     return ancestorChainReversedNewestFirst.find(({report: ancestorReport, reportAction}) => {
         const reportActionsForAncestor = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`];
-        const draftOwnerReportID = getOriginalReportID(ancestorReport.reportID, reportAction, reportActionsForAncestor);
+        const draftOwnerReportID = getOriginalReportID(ancestorReport.reportID, reportAction, reportActionsForAncestor, isOffline);
         if (!draftOwnerReportID) {
             return false;
         }
@@ -56,15 +58,16 @@ function computeResolvedActiveDraftEdit(inputs: {
     reportActionsDrafts: OnyxCollection<OnyxTypes.ReportActionsDrafts> | undefined;
     reportID: string | undefined;
     transactionThreadReportID: string | undefined;
+    isOffline: boolean;
 }): ResolvedActiveDraftEdit | null {
-    const {ancestors, reportActions, reportActionsDrafts, reportID, transactionThreadReportID} = inputs;
+    const {ancestors, reportActions, reportActionsDrafts, reportID, transactionThreadReportID, isOffline} = inputs;
 
-    const ancestorWithDraft = findAncestorWithDraftOnChain({ancestors, reportActions, reportActionsDrafts});
+    const ancestorWithDraft = findAncestorWithDraftOnChain({ancestors, reportActions, reportActionsDrafts, isOffline});
 
     if (ancestorWithDraft != null) {
         const {report: ancestorReport, reportAction: ancestorReportAction} = ancestorWithDraft;
         const actionsRowForAncestor = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`];
-        const draftOwningReportID = getOriginalReportID(ancestorReport.reportID, ancestorReportAction, actionsRowForAncestor);
+        const draftOwningReportID = getOriginalReportID(ancestorReport.reportID, ancestorReportAction, actionsRowForAncestor, isOffline);
         const draftsForOwningReport = draftOwningReportID != null ? reportActionsDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${draftOwningReportID}`] : undefined;
         const persistedDraftPayload = draftsForOwningReport?.[ancestorReportAction.reportActionID];
 
@@ -137,80 +140,73 @@ function computeResolvedActiveDraftEdit(inputs: {
 function useActiveDraftReportAction({reportID, effectiveTransactionThreadReportID}: UseActiveDraftReportActionArgs): ResolvedActiveDraftEdit | null {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
+    const {isOffline} = useNetwork();
 
     const transactionThreadReportID =
         !effectiveTransactionThreadReportID || effectiveTransactionThreadReportID === CONST.FAKE_REPORT_ID || effectiveTransactionThreadReportID === reportID
             ? undefined
             : effectiveTransactionThreadReportID;
 
-    const [reportActions] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-        {
-            selector: (allReportActions) => {
-                if (!allReportActions) {
-                    return {};
-                }
+    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+        selector: (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
+            if (!allReportActions) {
+                return {};
+            }
 
-                const scopedReportActionsSlice: OnyxCollection<OnyxTypes.ReportActions> = {};
+            const scopedReportActionsSlice: OnyxCollection<OnyxTypes.ReportActions> = {};
 
-                if (reportID) {
-                    const visibleReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
-                    scopedReportActionsSlice[visibleReportActionsKey] = allReportActions[visibleReportActionsKey];
-                }
+            if (reportID) {
+                const visibleReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
+                scopedReportActionsSlice[visibleReportActionsKey] = allReportActions[visibleReportActionsKey];
+            }
 
-                if (transactionThreadReportID != null) {
-                    const transactionThreadActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`;
-                    scopedReportActionsSlice[transactionThreadActionsKey] = allReportActions[transactionThreadActionsKey];
-                }
+            if (transactionThreadReportID != null) {
+                const transactionThreadActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`;
+                scopedReportActionsSlice[transactionThreadActionsKey] = allReportActions[transactionThreadActionsKey];
+            }
 
-                for (const ancestor of ancestors) {
-                    const ancestorReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestor.report.reportID}`;
-                    scopedReportActionsSlice[ancestorReportActionsKey] = allReportActions[ancestorReportActionsKey];
-                }
+            for (const ancestor of ancestors) {
+                const ancestorReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestor.report.reportID}`;
+                scopedReportActionsSlice[ancestorReportActionsKey] = allReportActions[ancestorReportActionsKey];
+            }
 
-                return scopedReportActionsSlice;
-            },
+            return scopedReportActionsSlice;
         },
-        [ancestors, reportID, transactionThreadReportID],
-    );
+    });
 
-    const [reportActionsDrafts] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS,
-        {
-            selector: (allDrafts) => {
-                if (!allDrafts) {
-                    return {};
+    const [reportActionsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {
+        selector: (allDrafts: OnyxCollection<OnyxTypes.ReportActionsDrafts>) => {
+            if (!allDrafts) {
+                return {};
+            }
+
+            const scopedDraftsSlice: OnyxCollection<OnyxTypes.ReportActionsDrafts> = {};
+
+            if (reportID) {
+                const currentDraftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`;
+                scopedDraftsSlice[currentDraftKey] = allDrafts[currentDraftKey];
+            }
+
+            if (transactionThreadReportID != null) {
+                const transactionThreadDraftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${transactionThreadReportID}`;
+                scopedDraftsSlice[transactionThreadDraftKey] = allDrafts[transactionThreadDraftKey];
+            }
+
+            for (const ancestor of ancestors) {
+                const actionsForAncestorRow = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestor.report.reportID}`];
+                const draftOwningReportID = getOriginalReportID(ancestor.report.reportID, ancestor.reportAction, actionsForAncestorRow, isOffline);
+                if (!draftOwningReportID) {
+                    continue;
                 }
+                const ancestorDraftBucketKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${draftOwningReportID}`;
+                scopedDraftsSlice[ancestorDraftBucketKey] = allDrafts[ancestorDraftBucketKey];
+            }
 
-                const scopedDraftsSlice: OnyxCollection<OnyxTypes.ReportActionsDrafts> = {};
-
-                if (reportID) {
-                    const currentDraftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`;
-                    scopedDraftsSlice[currentDraftKey] = allDrafts[currentDraftKey];
-                }
-
-                if (transactionThreadReportID != null) {
-                    const transactionThreadDraftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${transactionThreadReportID}`;
-                    scopedDraftsSlice[transactionThreadDraftKey] = allDrafts[transactionThreadDraftKey];
-                }
-
-                for (const ancestor of ancestors) {
-                    const actionsForAncestorRow = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestor.report.reportID}`];
-                    const draftOwningReportID = getOriginalReportID(ancestor.report.reportID, ancestor.reportAction, actionsForAncestorRow);
-                    if (!draftOwningReportID) {
-                        continue;
-                    }
-                    const ancestorDraftBucketKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${draftOwningReportID}`;
-                    scopedDraftsSlice[ancestorDraftBucketKey] = allDrafts[ancestorDraftBucketKey];
-                }
-
-                return scopedDraftsSlice;
-            },
+            return scopedDraftsSlice;
         },
-        [ancestors, reportActions, reportID, transactionThreadReportID],
-    );
+    });
 
-    return computeResolvedActiveDraftEdit({ancestors, reportActions, reportActionsDrafts, reportID, transactionThreadReportID});
+    return computeResolvedActiveDraftEdit({ancestors, reportActions, reportActionsDrafts, reportID, transactionThreadReportID, isOffline});
 }
 
 export default useActiveDraftReportAction;

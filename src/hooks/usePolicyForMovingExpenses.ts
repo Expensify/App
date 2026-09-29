@@ -1,5 +1,7 @@
+import {useActivePolicyContext} from '@components/ActivePolicyProvider';
 import {useSession} from '@components/OnyxListItemProvider';
 
+import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import {canSubmitPerDiemExpenseFromWorkspace, isGroupPolicy, isPolicyMemberWithoutPendingDelete, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
@@ -8,8 +10,6 @@ import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-
-import {activePolicySelector} from '@selectors/Policy';
 
 import useOnyx from './useOnyx';
 
@@ -31,6 +31,8 @@ function isPolicyValidForMovingExpenses(policy: OnyxEntry<Policy>, login: string
         isPolicyMemberByRole(policy) &&
         isGroupPolicy(policy) &&
         policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+        // Teachers Unite doesn't support reimbursement, so it can never be a destination for moving/reporting an expense.
+        !isTeachersUnitePolicyID(policy?.id) &&
         (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy)) &&
         (!isTimeRequest || isTimeTrackingEnabled(policy))
     );
@@ -82,11 +84,15 @@ function getPolicyQualificationResult(
     return {singlePolicyID, isMemberOfMoreThanOnePolicy, validExpensePolicyID};
 }
 
-function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: boolean, expensePolicyID?: string) {
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
-        selector: activePolicySelector,
-    });
+type PolicyForMovingExpenses = {
+    policyForMovingExpensesID: string | undefined;
+    policyForMovingExpenses: OnyxEntry<Policy>;
+    shouldSelectPolicy: boolean;
+    shouldNavigateToUpgradePath: boolean;
+};
+
+function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: boolean, expensePolicyID?: string, isUnreportedManagedCardTransaction?: boolean): PolicyForMovingExpenses {
+    const {activePolicyID, activePolicy} = useActivePolicyContext();
 
     const session = useSession();
     const login = session?.email ?? '';
@@ -104,24 +110,40 @@ function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: 
     const resolvedPolicyID = validExpensePolicyID ?? singlePolicyID;
     const [resolvedPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${resolvedPolicyID}`);
 
-    // If an expense policy ID is provided and valid, prefer it over the active policy
-    if (validExpensePolicyID) {
-        return {policyForMovingExpensesID: validExpensePolicyID, policyForMovingExpenses: resolvedPolicy, shouldSelectPolicy: false};
+    // User has no eligible policy
+    if (!resolvedPolicyID) {
+        return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: false, shouldNavigateToUpgradePath: true};
     }
 
-    if (activePolicy && (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(activePolicy)) && (!isTimeRequest || isTimeTrackingEnabled(activePolicy))) {
-        return {policyForMovingExpensesID: activePolicyID, policyForMovingExpenses: activePolicy, shouldSelectPolicy: false};
+    // If this is an employee's card transaction that we manage, then we should report it to their default policy
+    // which we don't know. Sending an empty `policyID` instructs the backend to auto-select the preferred policy.
+    if (isUnreportedManagedCardTransaction) {
+        return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false};
+    }
+
+    // If an expense policy ID is provided and valid, prefer it over the active policy
+    if (validExpensePolicyID) {
+        return {policyForMovingExpensesID: validExpensePolicyID, policyForMovingExpenses: resolvedPolicy, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false};
+    }
+
+    if (
+        activePolicy &&
+        !isTeachersUnitePolicyID(activePolicy.id) &&
+        (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(activePolicy)) &&
+        (!isTimeRequest || isTimeTrackingEnabled(activePolicy))
+    ) {
+        return {policyForMovingExpensesID: activePolicyID, policyForMovingExpenses: activePolicy, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false};
     }
 
     if (singlePolicyID && !isMemberOfMoreThanOnePolicy) {
-        return {policyForMovingExpensesID: singlePolicyID, policyForMovingExpenses: resolvedPolicy, shouldSelectPolicy: false};
+        return {policyForMovingExpensesID: singlePolicyID, policyForMovingExpenses: resolvedPolicy, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false};
     }
 
     if (isMemberOfMoreThanOnePolicy) {
-        return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: true};
+        return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: true, shouldNavigateToUpgradePath: false};
     }
 
-    return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: false};
+    return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: false, shouldNavigateToUpgradePath: true};
 }
 
 export default usePolicyForMovingExpenses;

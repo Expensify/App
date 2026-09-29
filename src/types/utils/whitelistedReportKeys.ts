@@ -15,6 +15,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         lastMessageText: unknown;
         lastVisibleActionCreated: unknown;
         lastReadTime: unknown;
+        manuallyMarkedUnreadReportActionID: unknown;
         lastReadSequenceNumber: unknown;
         lastMentionedTime: unknown;
         policyAvatar: unknown;
@@ -37,6 +38,10 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         submitterUserID: unknown;
         submitterPayrollID: unknown;
         orderDealNumbers: unknown;
+        debitedAmount: unknown;
+        debitedCurrency: unknown;
+        creditedAmount: unknown;
+        creditedCurrency: unknown;
         visibility: unknown;
         invoiceReceiver: unknown;
         parentReportID: unknown;
@@ -57,6 +62,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         errorFields: unknown;
         errors: unknown;
         isWaitingOnBankAccount: unknown;
+        canCancelReimbursement: unknown;
         isCancelledIOU: unknown;
         hasReportBeenRetracted: unknown;
         hasReportBeenReopened: unknown;

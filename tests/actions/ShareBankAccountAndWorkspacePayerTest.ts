@@ -121,6 +121,8 @@ describe('actions/ShareBankAccountAndWorkspacePayer', () => {
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                             value: expect.objectContaining({
+                                reimburser: null,
+                                achAccount: {reimburser: null},
                                 // Error object shape from ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey
                                 errorFields: expect.objectContaining({
                                     reimburser: expect.anything(), // eslint-disable-line @typescript-eslint/no-unsafe-assignment -- Jest matcher

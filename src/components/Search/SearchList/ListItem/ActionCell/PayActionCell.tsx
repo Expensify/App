@@ -14,9 +14,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {canIOUBePaid} from '@libs/actions/IOU/ReportWorkflow';
-import {getSearchPayOnyxData} from '@libs/actions/Search';
+import {getChatReportWithFallback, getSearchPayOnyxData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getReimbursableTotal, isIndividualInvoiceRoom, isInvoiceReport} from '@libs/ReportUtils';
+import Log from '@libs/Log';
+import {getReimbursableTotal, isArchivedReport, isIndividualInvoiceRoom, isInvoiceReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,6 +26,7 @@ import type {Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 
 type PayActionCellProps = {
@@ -39,7 +41,7 @@ type PayActionCellProps = {
 
 function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisablePointerEvents, chatReport}: PayActionCellProps) {
     const styles = useThemeStyles();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -49,6 +51,9 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
     const {
@@ -57,29 +62,48 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         email,
         localCurrencyCode,
         introSelected,
-        betas,
+        isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
         activePolicyID,
         activePolicy,
+        conciergeChat,
         defaultWorkspaceName,
-        nextStep,
         chatReportPolicy,
+        delegateAccountID,
     } = useReportPaymentContext({
-        reportID,
         chatReportPolicyID: chatReport?.policyID,
     });
 
-    const canBePaid = canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, false, undefined, invoiceReceiverPolicy);
+    const isChatReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`]);
+    const canBePaid = canIOUBePaid(
+        iouReport,
+        chatReport,
+        policy,
+        bankAccountList,
+        currentUserLogin ?? '',
+        currentUserAccountID,
+        transactions,
+        false,
+        isChatReportArchived,
+        invoiceReceiverPolicy,
+    );
     const shouldOnlyShowElsewhere =
-        !canBePaid && canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, true, undefined, invoiceReceiverPolicy);
+        !canBePaid &&
+        canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, true, isChatReportArchived, invoiceReceiverPolicy);
 
     const {currency} = iouReport ?? {};
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
-        if (!type || !reportID || !hash || !amount || !chatReport) {
+        if (!type || !reportID || !hash || !amount) {
+            Log.info('[SearchPay] Dropping row pay: missing required data', false, {
+                hasPaymentType: !!type,
+                reportID,
+                hasHash: !!hash,
+                hasAmount: !!amount,
+            });
             return;
         }
 
@@ -91,6 +115,11 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         const additionalOnyxData = getSearchPayOnyxData(hash, reportID);
 
         if (isInvoiceReport(iouReport)) {
+            // Invoice payments rely on the invoice room data, so they can't proceed without the chat report.
+            if (!chatReport) {
+                Log.info('[SearchPay] Dropping invoice row pay: chat report is not loaded', false, {reportID});
+                return;
+            }
             const existingB2BInvoiceReport = getParticipantsInvoiceReport(
                 allReports,
                 reportNameValuePairs,
@@ -107,10 +136,11 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldUseB2BInvoiceReport ? existingB2BInvoiceReport?.reportID : chatReport?.reportID)}`];
 
             payInvoice({
+                isASAPSubmitBetaEnabled,
+                getCurrencyDecimals,
                 paymentMethodType: type,
                 chatReport,
                 invoiceReport: iouReport,
-                invoiceReportCurrentNextStepDeprecated: nextStep,
                 introSelected,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: email ?? '',
@@ -120,27 +150,41 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 methodID,
                 paymentMethod,
                 activePolicy,
-                betas,
+                conciergeChat,
                 isSelfTourViewed,
                 defaultWorkspaceName,
                 additionalOnyxData,
                 chatReportActions,
+                delegateAccountID,
+                isTrackIntentUser,
+                rules,
             });
             return;
         }
 
+        // The chat report is only needed for optimistic chat updates, so when it isn't loaded, pay with a fallback
+        // built from the known IDs and let the server fill in the chat data.
+        const fallbackChatReportID = iouReport?.chatReportID ?? iouReport?.parentReportID;
+        const fallbackPolicyID = iouReport?.policyID ?? policyID;
+        const {chatReport: chatReportForPayment, isFallbackChatReport} = getChatReportWithFallback(chatReport, fallbackChatReportID, fallbackPolicyID);
+        if (!chatReportForPayment) {
+            Log.info('[SearchPay] Dropping row pay: chat report is not loaded and no chatReportID is available', false, {reportID});
+            return;
+        }
+
         payMoneyRequest({
+            isASAPSubmitBetaEnabled,
+            getCurrencyDecimals,
             paymentType: type,
-            chatReport,
+            chatReport: chatReportForPayment,
+            isFallbackChatReport,
             iouReport,
             introSelected,
-            iouReportCurrentNextStepDeprecated: nextStep,
             currentUserAccountID,
             currentUserLogin: currentUserLogin ?? '',
             activePolicy,
             policy,
             chatReportPolicy,
-            betas,
             isSelfTourViewed,
             userBillingGracePeriodEnds,
             amountOwed,
@@ -148,6 +192,10 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
             additionalOnyxData,
             chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID)}`],
+            delegateAccountID,
+            isTrackIntentUser,
+            conciergeChat,
+            rules,
         });
     };
 
@@ -155,7 +203,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         <SearchScopeProvider isOnSearch={false}>
             <SettlementButton
                 shouldUseShortForm
-                buttonSize={CONST.BUTTON_SIZE.SMALL}
+                size={CONST.BUTTON_SIZE.SMALL}
                 currency={currency}
                 formattedAmount={convertToDisplayString(Math.abs(getReimbursableTotal(iouReport)), currency)}
                 policyID={policyID || iouReport?.policyID}
@@ -167,7 +215,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 wrapperStyle={[styles.w100]}
                 shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}
                 isDisabled={isOffline || shouldDisablePointerEvents}
-                shouldStayNormalOnDisable={shouldDisablePointerEvents}
+                stayNormalOnDisable={shouldDisablePointerEvents}
                 isLoading={isLoading}
                 onlyShowPayElsewhere={shouldOnlyShowElsewhere}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_PAY}

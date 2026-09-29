@@ -108,7 +108,7 @@ function AttachmentCarouselView({
             }
 
             const item = entry.item as Attachment;
-            if (entry.index !== null) {
+            if (entry.index != null) {
                 setPage(entry.index);
                 setActiveAttachmentID(item.attachmentID ?? item.source);
             }
@@ -303,4 +303,6 @@ function AttachmentCarouselView({
     );
 }
 
-export default AttachmentCarouselView;
+// OXC's React Compiler bails on this file (refs accessed during render in gesture handlers), so it
+// is not memoized on web. Memoize it explicitly to keep parent-driven re-renders cheap there.
+export default React.memo(AttachmentCarouselView);

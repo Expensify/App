@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import {applySavedColumnMappings} from '@libs/actions/ImportSpreadsheet';
-import importTransactionsFromCSV from '@libs/actions/ImportTransactions';
+import importTransactionsFromCSV, {getExistingCardImportSettings, hasTagExceedingMaxLength} from '@libs/actions/ImportTransactions';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -21,9 +21,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {CardList} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {cardByIdSelector} from '@selectors/Card';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
@@ -35,6 +39,9 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [savedColumnLayouts] = useOnyx(ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST);
     const [accountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const cardSelector = useCallback((cardList: OnyxEntry<CardList>) => (existingCardID ? cardByIdSelector(String(existingCardID))(cardList) : undefined), [existingCardID]);
+    const [existingCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardSelector});
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [isImporting, setIsImporting] = useState(false);
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const hasAppliedSavedMappings = useRef(false);
@@ -75,6 +82,7 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
             {text: translate('common.date'), value: CONST.CSV_IMPORT_COLUMNS.DATE, isRequired: true},
             {text: translate('common.merchant'), value: CONST.CSV_IMPORT_COLUMNS.MERCHANT, isRequired: true},
             {text: translate('common.category'), value: CONST.CSV_IMPORT_COLUMNS.CATEGORY},
+            {text: translate('common.tag'), value: CONST.CSV_IMPORT_COLUMNS.TAG},
             {text: translate('iou.amount'), value: CONST.CSV_IMPORT_COLUMNS.AMOUNT, isRequired: true},
         ],
         [translate],
@@ -95,12 +103,14 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
 
             if (duplicateColumn) {
                 errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicateColumn.text);
+            } else if (hasTagExceedingMaxLength(spreadsheet)) {
+                errors.tagTooLong = translate('spreadsheet.fieldValueTooLong', translate('common.tag'), CONST.API_TRANSACTION_TAG_MAX_LENGTH);
             } else {
                 errors = {};
             }
         }
         return errors;
-    }, [spreadsheet?.columns, requiredColumns, translate, columnRoles]);
+    }, [spreadsheet, requiredColumns, translate, columnRoles]);
 
     const closeImportPageAndModal = () => {
         setIsClosing(true);
@@ -123,7 +133,9 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
         // If existingCardID is provided, add transactions to that card instead of creating a new one
         const cardIDNumber = existingCardID ? Number(existingCardID) : undefined;
         const previouslySavedLayout = cardIDNumber && savedColumnLayouts ? savedColumnLayouts[String(cardIDNumber)] : undefined;
-        const importFinalModal = await importTransactionsFromCSV(spreadsheet, accountID, cardIDNumber, previouslySavedLayout);
+        // Re-uploading a file to an existing card skips the settings step, so keep the configuration the card was imported with
+        const existingCardSettings = cardIDNumber ? getExistingCardImportSettings(existingCard, previouslySavedLayout, customCardNames?.[String(cardIDNumber)]) : undefined;
+        const importFinalModal = await importTransactionsFromCSV(spreadsheet, accountID, cardIDNumber, previouslySavedLayout, existingCardSettings);
         const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
         if (!didShowImportFinalModal) {
             setIsImporting(false);

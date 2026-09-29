@@ -25,16 +25,9 @@ type UploadFileProps = {
     /** Text displayed on button when no file is uploaded */
     buttonText: string;
 
-    /** Name of currently uploaded file */
     uploadedFiles: FileObject[];
-
-    /** Handler that fires when file is selected for upload */
     onUpload: (files: FileObject[]) => void;
-
-    /** Handler that fires when file is removed */
     onRemove: (fileUri: string) => void;
-
-    /** Array containing accepted file types */
     acceptedFileTypes: Array<ValueOf<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>>;
 
     /** Styles to be assigned to Container */
@@ -52,7 +45,6 @@ type UploadFileProps = {
     /** Whether to allow multiple files to be selected. */
     fileLimit?: number;
 
-    /** The total size limit of the files that can be selected. */
     totalFilesSizeLimit?: number;
 
     /** The maximum size of a single file that can be selected. */
@@ -129,15 +121,15 @@ function UploadFile({
             >
                 {({openPicker}) => (
                     <Button
-                        medium
-                        text={buttonText}
                         accessibilityLabel={buttonText}
                         onPress={() => {
                             openPicker({
                                 onPicked: handleFileUpload,
                             });
                         }}
-                    />
+                    >
+                        <Button.Text>{buttonText}</Button.Text>
+                    </Button>
                 )}
             </AttachmentPicker>
             {uploadedFiles.map((file) => (
@@ -148,7 +140,7 @@ function UploadFile({
                     <Icon
                         src={icons.Paperclip}
                         fill={theme.icon}
-                        medium
+                        size={CONST.ICON_SIZE.MEDIUM}
                     />
                     <TextWithMiddleEllipsis
                         text={file.name ?? ''}
@@ -164,7 +156,7 @@ function UploadFile({
                         <Icon
                             src={icons.Close}
                             fill={theme.icon}
-                            medium
+                            size={CONST.ICON_SIZE.MEDIUM}
                         />
                     </PressableWithFeedback>
                 </View>

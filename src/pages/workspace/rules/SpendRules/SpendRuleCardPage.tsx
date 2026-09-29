@@ -11,11 +11,14 @@ import type {ListItem} from '@components/SelectionList/types';
 
 import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
+import useControlOnlyRuleUpgradeRedirect from '@hooks/useControlOnlyRuleUpgradeRedirect';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,10 +26,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDraftSpendRule} from '@libs/actions/User';
 import {filterCardsByPersonalDetails, filterInactiveCards, getCardFeedIcon, sortCardsByCardholderName} from '@libs/CardUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import {getSpendRuleFormValuesFromCardRule} from '@libs/SpendRulesUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -44,7 +49,7 @@ import type {ExpensifyCardRule} from '@src/types/onyx/ExpensifyCardSettings';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
 
 type ExpensifyCardListItem = ListItem &
@@ -83,10 +88,9 @@ function getEligibleCards(cardsList: OnyxEntry<WorkspaceCardsList>, expensifyCar
 }
 
 function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
-    const navigation = useNavigation();
     const {policyID, ruleID} = route.params;
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const canWriteCardSpendRules = useCanWriteCardSpendRules(policyID);
     const defaultFundID = useDefaultFundID(policyID);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -102,6 +106,8 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
     const companyCardFeedIcons = useCompanyCardFeedIcons();
 
     const [selectedCardIDs, setSelectedCardIDs] = useState<string[]>([]);
+    const {isLoading, startWithLoading} = usePressLoading();
+    useControlOnlyRuleUpgradeRedirect(policyID);
 
     useFocusEffect(
         useCallback(() => {
@@ -109,7 +115,12 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         }, [spendRuleForm?.cardIDs]),
     );
 
-    const goBack = () => navigation.goBack();
+    // Freeze the cards selected when this page opened so they stay pinned to the top for the whole open/focus cycle, even as the live selection changes.
+    const initialSelectedCardIDs = useInitialSelection(spendRuleForm?.cardIDs ?? [], {resetOnFocus: true});
+
+    const goBack = () => Navigation.goBack();
+
+    const saveAndGoBack = () => Navigation.goBack(undefined, {shouldSkipFocusRestore: true});
 
     const {isOffline} = useNetwork({
         onReconnect: () => {
@@ -120,16 +131,25 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
     const isCardSettingsLoading = !isOffline && (!expensifyCardSettings || expensifyCardSettings.isLoading) && !expensifyCardSettings?.hasOnceLoaded;
     const eligibleCards = expensifyCardSettings ? getEligibleCards(cardsList, expensifyCardSettings, ruleID === ROUTES.NEW ? undefined : ruleID) : [];
 
-    const filterCard = (card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails);
-    const sortCards = (cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare, translate);
+    const sortCards = (cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare, translate, formatPhoneNumber);
 
-    const [inputValue, setInputValue, filteredCards] = useSearchResults(eligibleCards, filterCard, sortCards);
+    const sortedCards = sortCards(eligibleCards).map((card) => ({...card, value: String(card.cardID)}));
+    const orderedCards = moveInitialSelectionToTop(sortedCards, initialSelectedCardIDs);
+
+    const filterCard = (card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails);
+    const [inputValue, setInputValue, filteredCards] = useSearchResults(orderedCards, filterCard);
 
     const listData: ExpensifyCardListItem[] = filteredCards.map((card) => {
         const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
         const cardOwnerPersonalDetails = personalDetails?.[accountID] ?? undefined;
         const cardName = card.nameValuePairs?.cardTitle;
-        const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: cardOwnerPersonalDetails, defaultValue: '', shouldFallbackToHidden: false, translate});
+        const displayName = temporaryGetDisplayNameOrDefault({
+            passedPersonalDetails: cardOwnerPersonalDetails,
+            defaultValue: '',
+            shouldFallbackToHidden: false,
+            translate,
+            formatPhoneNumber,
+        });
         return {
             keyForList: String(card.cardID),
             text: displayName !== '' ? displayName : (cardName ?? ''),
@@ -191,8 +211,10 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
             return;
         }
 
-        updateDraftSpendRule({cardIDs: validSelectedCardIDs});
-        goBack();
+        startWithLoading(() => {
+            updateDraftSpendRule({cardIDs: validSelectedCardIDs});
+            saveAndGoBack();
+        });
     };
 
     const hasCards = listData.length > 0;
@@ -207,14 +229,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
             shouldBeBlocked={!canWriteCardSpendRules}
         >
             {isCardSettingsLoading ? (
-                <FullScreenLoadingIndicator
-                    shouldUseGoBackButton
-                    reasonAttributes={{
-                        context: 'SpendRuleCardPage',
-                        isOffline,
-                        hasOnceLoaded: !!expensifyCardSettings?.hasOnceLoaded,
-                    }}
-                />
+                <FullScreenLoadingIndicator shouldUseGoBackButton />
             ) : (
                 <ScreenWrapper
                     testID="SpendRuleCardPage"
@@ -248,6 +263,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                         onSelectRow={toggleCard}
                         selectedItems={selectedCardIDs}
                         ListItem={CardListItem}
+                        shouldScrollToFocusedIndexOnMount={false}
                         shouldUpdateFocusedIndex
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listEmptyContent={
@@ -271,6 +287,8 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                                 isAlertVisible={false}
                                 isDisabled={isCardSettingsLoading}
                                 onSubmit={handleSave}
+                                isLoading={isLoading}
+                                shouldShowLoadingImmediatelyOnPress={false}
                                 enabledWhenOffline
                                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                             />

@@ -1,13 +1,13 @@
 import CONST from '@src/CONST';
+import type {ViewToken} from '@src/types/utils/ReactNativeCompat';
 
 import type {RefObject} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
 
 type Args = {
-    /** The report ID */
     reportID: string;
 
     /** Whether the FlatList is inverted, we need it to determine if the current unread message is visible. */
@@ -19,7 +19,6 @@ type Args = {
     /** Called when the unread-marker action is within the viewport, on every viewability change */
     onUnreadActionVisible: () => void;
 
-    /** The index of the unread report action */
     unreadMarkerReportActionIndex: number;
 
     /** Whether the report has newer actions to load */
@@ -33,6 +32,9 @@ type Args = {
 
     /** Whether the report is aligned to the top. When true, the "Latest messages" pill should never be shown. */
     shouldBeAlignedToTop?: boolean;
+
+    /** If pill tracking should be disabled, used during initial linked message positioning */
+    shouldDisablePillTracking?: boolean;
 };
 
 export default function useReportUnreadMessageScrollTracking({
@@ -45,6 +47,7 @@ export default function useReportUnreadMessageScrollTracking({
     isInverted,
     actionBadgeTargetIndex = -1,
     shouldBeAlignedToTop = false,
+    shouldDisablePillTracking = false,
 }: Args) {
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
     const [isActionBadgeAboveViewport, setIsActionBadgeAboveViewport] = useState(false);
@@ -80,19 +83,14 @@ export default function useReportUnreadMessageScrollTracking({
     }, [onUnreadActionVisible]);
 
     /**
-     * On every scroll event we want to:
      * Show/hide the latest message pill when user is scrolling back/forth in the history of messages.
-     * Call any other callback that the component might need
      */
-    const trackVerticalScrolling = (event: NativeSyntheticEvent<NativeScrollEvent> | undefined) => {
-        if (event) {
-            onTrackScrolling(event);
-        }
+    const updatePillVisibility = () => {
         const hasUnreadMarkerReportAction = unreadMarkerReportActionIndex !== -1;
 
         // display floating button if we're scrolled more than the offset
         if (
-            currentVerticalScrollingOffsetRef.current > CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD &&
+            currentVerticalScrollingOffsetRef.current > CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD &&
             !isFloatingMessageCounterVisible &&
             !hasUnreadMarkerReportAction &&
             !shouldBeAlignedToTop
@@ -102,13 +100,30 @@ export default function useReportUnreadMessageScrollTracking({
 
         // hide floating button if we're scrolled closer than the offset
         if (
-            currentVerticalScrollingOffsetRef.current < CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD &&
+            currentVerticalScrollingOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD &&
             isFloatingMessageCounterVisible &&
             !hasUnreadMarkerReportAction &&
             !hasNewerActions
         ) {
             setIsFloatingMessageCounterVisible(false);
         }
+    };
+
+    /**
+     * On every scroll event we want to:
+     * Update the current scroll offset ref
+     * Show/hide the latest message pill, if it's not disabled
+     */
+    const trackVerticalScrolling = (event: NativeSyntheticEvent<NativeScrollEvent> | undefined) => {
+        if (event) {
+            onTrackScrolling(event);
+        }
+
+        if (shouldDisablePillTracking) {
+            return;
+        }
+
+        updatePillVisibility();
     };
 
     const onViewableItemsChanged = useCallback(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
@@ -181,5 +196,6 @@ export default function useReportUnreadMessageScrollTracking({
         isActionBadgeAboveViewport,
         trackVerticalScrolling,
         onViewableItemsChanged,
+        updatePillVisibility,
     };
 }

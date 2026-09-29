@@ -3,10 +3,10 @@ import type {SyntheticEvent} from 'react';
 import React, {useEffect, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
 
-import type {ReactionListAnchor, ReactionListContextType, ReactionListEvent} from './ReportScreenContext';
+import type {ReactionListAnchor, ReactionListContextType, ReactionListEvent} from './ReactionListContext';
 
+import {ReactionListContext} from './ReactionListContext';
 import PopoverReactionList from './report/ReactionList/PopoverReactionList';
-import {ReactionListContext} from './ReportScreenContext';
 
 type AnchorPosition = {horizontal: number; vertical: number};
 

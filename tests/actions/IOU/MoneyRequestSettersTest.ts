@@ -20,23 +20,20 @@ import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LastSelectedDistanceRates, Policy, Report} from '@src/types/onyx';
-import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Transaction from '@src/types/onyx/Transaction';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {format} from 'date-fns';
-import {SafeString} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import currencyList from '../../unit/currencyList.json';
-import createPersonalDetails from '../../utils/collections/personalDetails';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getGlobalFetchMock} from '../../utils/TestHelper';
+import {getCurrencyDecimalsLocal, getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -66,29 +63,8 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
-// In production, requestMoney defers its API.write() call until the target screen's
-// content lays out (or a safety timeout fires). In tests there is no target component
-// to flush the deferred write, so we bypass the deferral by executing the callback immediately.
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    registerDeferredWrite: (_key: string, callback: () => void) => callback(),
-    flushDeferredWrite: jest.fn(),
-    cancelDeferredWrite: jest.fn(),
-    hasDeferredWrite: () => false,
-    getOptimisticWatchKey: () => undefined,
-    deferOrExecuteWrite: (apiWrite: () => void) => apiWrite(),
-    reserveDeferredWriteChannel: jest.fn(),
-    resetForTesting: jest.fn(),
-}));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const unapprovedCashHash = 71801560;
@@ -127,14 +103,6 @@ const RORY_ACCOUNT_ID = 3;
 
 OnyxUpdateManager();
 describe('actions/IOU', () => {
-    const currentUserPersonalDetails: CurrentUserPersonalDetails = {
-        ...createPersonalDetails(RORY_ACCOUNT_ID),
-        login: RORY_EMAIL,
-        email: RORY_EMAIL,
-        displayName: RORY_EMAIL,
-        avatar: 'https://example.com/avatar.jpg',
-    };
-
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -367,7 +335,7 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
             // When setting the money request category
-            setMoneyRequestCategory(transactionID, category, fakePolicy);
+            setMoneyRequestCategory(transactionID, category, fakePolicy, getCurrencyDecimalsLocal);
 
             await waitForBatchedUpdates();
 
@@ -408,7 +376,7 @@ describe('actions/IOU', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
                 // When setting the money request category
-                setMoneyRequestCategory(transactionID, category, fakePolicy);
+                setMoneyRequestCategory(transactionID, category, fakePolicy, getCurrencyDecimalsLocal);
 
                 await waitForBatchedUpdates();
 
@@ -446,7 +414,7 @@ describe('actions/IOU', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
                 // When setting the money request category
-                setMoneyRequestCategory(transactionID, category, fakePolicy);
+                setMoneyRequestCategory(transactionID, category, fakePolicy, getCurrencyDecimalsLocal);
 
                 await waitForBatchedUpdates();
 
@@ -477,7 +445,7 @@ describe('actions/IOU', () => {
             });
 
             // When setting the money request category without a policyID
-            setMoneyRequestCategory(transactionID, '', undefined);
+            setMoneyRequestCategory(transactionID, '', undefined, getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             // Then the transaction tax should be cleared
@@ -523,20 +491,7 @@ describe('actions/IOU', () => {
         };
         const transactionResult: Transaction = {
             amount: 0,
-            comment: {
-                attendees: [
-                    {
-                        email: currentUserPersonalDetails.email ?? '',
-                        login: currentUserPersonalDetails.login,
-                        accountID: 3,
-                        text: currentUserPersonalDetails.login,
-                        selected: true,
-                        reportID: '0',
-                        avatarUrl: SafeString(currentUserPersonalDetails.avatar) ?? '',
-                        displayName: currentUserPersonalDetails.displayName ?? '',
-                    },
-                ],
-            },
+            comment: {},
             created: '2025-04-01',
             currency: 'USD',
             iouRequestType: 'manual',
@@ -567,7 +522,6 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
-                        currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
                         draftTransactionIDs: [],
                     });
@@ -590,7 +544,6 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
-                        currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
                         draftTransactionIDs: [],
                     });
@@ -614,7 +567,6 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
-                        currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
                         draftTransactionIDs: [],
                     });
@@ -648,7 +600,6 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
-                        currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
                         draftTransactionIDs: [otherDraftTransactionID],
                     });
@@ -687,7 +638,6 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
-                        currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
                         draftTransactionIDs: [otherDraftTransactionID, CONST.IOU.OPTIMISTIC_TRANSACTION_ID],
                     });
@@ -727,7 +677,6 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
-                        currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
                         draftTransactionIDs: [draftTransactionID1, draftTransactionID2],
                     });

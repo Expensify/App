@@ -19,7 +19,11 @@ import type {RenderSuggestionMenuItemProps} from './types';
 
 type ExternalProps<TSuggestion> = Omit<AutoCompleteSuggestionsPortalProps<TSuggestion>, 'left' | 'bottom'>;
 
-function BaseAutoCompleteSuggestions<TSuggestion>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function BaseAutoCompleteSuggestionsImpl({
     highlightedSuggestionIndex = 0,
     onSelect,
     accessibilityLabelExtractor,
@@ -27,18 +31,18 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
     suggestions,
     keyExtractor,
     measuredHeightOfSuggestionRows,
-}: ExternalProps<TSuggestion>) {
+}: ExternalProps<unknown>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const rowHeight = useSharedValue(0);
     const prevRowHeightRef = useRef<number>(measuredHeightOfSuggestionRows);
     const fadeInOpacity = useSharedValue(0);
-    const scrollRef = useRef<FlatList<TSuggestion>>(null);
+    const scrollRef = useRef<FlatList<unknown>>(null);
     /**
      * Render a suggestion menu item component.
      */
     const renderItem = useCallback(
-        ({item, index}: RenderSuggestionMenuItemProps<TSuggestion>): ReactElement => (
+        ({item, index}: RenderSuggestionMenuItemProps<unknown>): ReactElement => (
             <PressableWithFeedback
                 style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(highlightedSuggestionIndex, CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT, hovered, index)}
                 hoverDimmingValue={1}
@@ -119,6 +123,10 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
             </ColorSchemeWrapper>
         </Animated.View>
     );
+}
+
+function BaseAutoCompleteSuggestions<TSuggestion>(props: ExternalProps<TSuggestion>) {
+    return <BaseAutoCompleteSuggestionsImpl {...(props as ExternalProps<unknown>)} />;
 }
 
 export default BaseAutoCompleteSuggestions;

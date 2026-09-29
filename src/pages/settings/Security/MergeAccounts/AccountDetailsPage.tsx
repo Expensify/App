@@ -95,7 +95,7 @@ function AccountDetailsPage() {
                     return;
                 }
 
-                Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE.getRoute(email.trim()));
+                Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_VALIDATE_CODE.getRoute(email.trim()));
             },
         });
 
@@ -226,6 +226,8 @@ function AccountDetailsPage() {
                         buttonText={translate('common.next')}
                         enabledWhenOffline={false}
                         containerStyles={styles.mt3}
+                        // This onSubmit triggers the FormProvider submit (via formRef), which already owns the press-loading mechanism
+                        shouldShowLoadingImmediatelyOnPress={false}
                         isLoading={getValidateCodeForAccountMerge?.isLoading}
                     />
                 </FormProvider>

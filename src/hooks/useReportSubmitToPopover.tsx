@@ -8,18 +8,23 @@ import ReportSubmitToContent from '@pages/ReportSubmitToContent';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import calculateModalHeightInLandscapeMode from '@src/utils/calculateModalHeightInLandscapeMode';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 
 import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
+import {loginSelector} from '@selectors/PersonalDetails';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import useIsInLandscapeMode from './useIsInLandscapeMode';
+import useKeyboardState from './useKeyboardState';
 import useOnyx from './useOnyx';
+import {usePersonalDetail} from './usePersonalDetails';
 import usePopoverPosition from './usePopoverPosition';
 import usePrevious from './usePrevious';
 import useResponsiveLayout from './useResponsiveLayout';
+import useSafeAreaInsets from './useSafeAreaInsets';
 import useStyleUtils from './useStyleUtils';
 import useThemeStyles from './useThemeStyles';
 import useViewportOffsetTop from './useViewportOffsetTop';
@@ -28,7 +33,7 @@ import useWindowDimensions from './useWindowDimensions';
 const popoverDimensions = {
     width: CONST.POPOVER_DROPDOWN_WIDTH,
     height: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
-    minHeight: CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT,
+    portraitHeight: CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT,
 };
 
 const DEFAULT_ANCHOR_ALIGNMENT = {
@@ -47,7 +52,7 @@ type UseReportSubmitToPopoverParams = {
     onSubmitSuccess?: () => void;
     anchorAlignment?: AnchorAlignment;
     /** When provided, resolves the anchor at open time (used by the shared Search host). */
-    getAnchorRef?: () => RefObject<View | null> | null;
+    getAnchorRef?: () => RefObject<ComponentRef<typeof View> | null> | null;
 };
 
 function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT, getAnchorRef}: UseReportSubmitToPopoverParams) {
@@ -59,16 +64,21 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     // Bottom-docked Modal path only; aligns with Popover path that omits modal shell padding chrome
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const isBottomDockedInLandscape = isSmallScreenWidth && isInLandscapeMode;
+    const {keyboardActiveHeight} = useKeyboardState();
+    const {top: topSafeAreaInset} = useSafeAreaInsets();
 
     const submitToPopoverContentHeight = useMemo(() => {
-        if (!isBottomDockedInLandscape) {
-            return popoverDimensions.height;
+        if (!isInLandscapeMode) {
+            // Portrait uses the dedicated fixed height for this popover (`POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT`),
+            // so the intent stays explicit rather than silently coupling to the generic dropdown max.
+            return popoverDimensions.portraitHeight;
         }
 
-        return Math.min(popoverDimensions.height, windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE);
-    }, [isBottomDockedInLandscape, windowHeight]);
-    const anchorRef = useRef<View>(null);
+        const contentHeightLandscapeMode = calculateModalHeightInLandscapeMode(windowHeight, topSafeAreaInset, keyboardActiveHeight);
+
+        return Math.min(popoverDimensions.height, contentHeightLandscapeMode);
+    }, [isInLandscapeMode, windowHeight, keyboardActiveHeight, topSafeAreaInset]);
+    const anchorRef = useRef<ComponentRef<typeof View>>(null);
     const oneShotOnSubmitSuccessRef = useRef<(() => void) | undefined>(undefined);
     const onSubmitWithManagerEmailRef = useRef<ReportSubmitToPopoverOpenOptions['onSubmitWithManagerEmail']>(undefined);
     const canSubmitRef = useRef(true);
@@ -90,6 +100,8 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const [ownerLogin] = usePersonalDetail(report?.ownerAccountID, loginSelector);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {
         selector: willAlertModalBecomeVisibleSelector,
     });
@@ -102,7 +114,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         willAlertModalBecomeVisibleRef.current = willAlertModalBecomeVisible;
     }, [willAlertModalBecomeVisible]);
 
-    const submitToContentKey = useMemo(() => `${reportID}:${getSubmitToEmail(policy, report)}`, [reportID, policy, report]);
+    const submitToContentKey = `${reportID}:${getSubmitToEmail(policy, report, ownerLogin, rules)}`;
 
     const clearDismissGuard = useCallback(() => {
         setIsDismissGuardActive(false);
@@ -222,12 +234,15 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         [StyleUtils, isSmallScreenWidth, popoverContainerStyle, viewportOffsetTop, windowHeight],
     );
 
+    // No height in portrait: the wrapper `View` below owns it. This container is the modal's own box, so a height set
+    // here does not bound the content (the wrapper's `flex1` had nothing to resolve against, which let the content
+    // overflow the fixed box and pushed the Confirm button out of view).
     const innerContainerStyle = useMemo(
         () => ({
             ...popoverContainerStyle,
-            ...(isBottomDockedInLandscape ? styles.getPopoverMaxHeight(windowHeight, true) : {minHeight: popoverDimensions.minHeight}),
+            ...(isInLandscapeMode ? styles.getPopoverMaxHeight(windowHeight, true) : {}),
         }),
-        [popoverContainerStyle, isBottomDockedInLandscape, windowHeight, styles],
+        [popoverContainerStyle, isInLandscapeMode, windowHeight, styles],
     );
 
     const reportSubmitToPopover = useMemo(() => {
@@ -252,12 +267,20 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
                 shouldSkipRemeasurement
                 shouldDisplayBelowModals
                 shouldUseModalPaddingStyle
+                // `FixedFooter` inside the list already applies the bottom safe area on top of its own 20px, so let it
+                // own that spacing entirely. Without this the narrow bottom-docked modal adds its own 16px plus a
+                // second safe area inset (both helpers sum rather than max), leaving far too much room under Confirm.
+                enableEdgeToEdgeBottomSafeAreaPadding
                 avoidKeyboard
                 shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
             >
                 <View
                     collapsable={false}
-                    style={[StyleUtils.getHeight(submitToPopoverContentHeight), styles.flexColumn, styles.flex1, styles.w100, styles.pt4]}
+                    // Single owner of the popover height: this is the `flexColumn` box that directly parents the
+                    // content, so the height here is what bounds the chain below and lets the list scroll instead of
+                    // growing the popover. `flex1` is deliberately omitted, since `flex-basis: 0` would override the
+                    // height and hand sizing back to the content. `pt4` (wide only) is padding within that height.
+                    style={[StyleUtils.getHeight(submitToPopoverContentHeight), styles.flexColumn, styles.w100, !isSmallScreenWidth && styles.pt4]}
                 >
                     <ReportSubmitToContent
                         key={submitToContentKey}
@@ -274,28 +297,27 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
             </PopoverWithMeasuredContent>
         );
     }, [
-        StyleUtils,
-        styles.flexColumn,
-        styles.flex1,
-        styles.pt4,
-        styles.w100,
+        shouldRenderSubmitToPopover,
         innerContainerStyle,
         outerStyle,
-        submitToPopoverContentHeight,
-        shouldRenderSubmitToPopover,
         isVisible,
         closeReportSubmitToPopover,
         handleReportSubmitToPopoverModalHide,
         anchorPosition,
         anchorAlignment,
-        anchorRef,
+        StyleUtils,
+        submitToPopoverContentHeight,
+        styles.flexColumn,
+        styles.w100,
+        styles.pt4,
+        isSmallScreenWidth,
+        submitToContentKey,
         report,
         policy,
         isLoadingReportData,
         handleCombinedSubmitSuccess,
         isSearchSubmitFlow,
         handleSearchSubmitWithManagerEmail,
-        submitToContentKey,
     ]);
 
     return {

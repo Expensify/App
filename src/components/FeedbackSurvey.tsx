@@ -1,5 +1,6 @@
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
@@ -27,19 +28,13 @@ type FeedbackSurveyProps = {
     /** A unique Onyx key identifying the form */
     formID: typeof ONYXKEYS.FORMS.DISABLE_AUTO_RENEW_SURVEY_FORM | typeof ONYXKEYS.FORMS.CANCEL_SUBSCRIPTION_FORM;
 
-    /** Title of the survey */
     title: string;
-
-    /** Description of the survey */
     description: string;
-
-    /** Callback to be called when the survey is submitted */
     onSubmit: (reason: FeedbackSurveyOptionID, note?: string) => void;
 
     /** Optional text to render over the submit button */
     footerText?: React.ReactNode;
 
-    /** Indicates whether note field is required  */
     isNoteRequired?: boolean;
 
     /** Indicates whether a loading indicator should be shown */
@@ -49,12 +44,13 @@ type FeedbackSurveyProps = {
     enabledWhenOffline?: boolean;
 };
 
-function FeedbackSurvey({title, description, onSubmit, footerText, isNoteRequired, isLoading, formID, enabledWhenOffline = true}: FeedbackSurveyProps) {
+function FeedbackSurvey({title, description, onSubmit, footerText, isNoteRequired, isLoading: isOnyxLoading, formID, enabledWhenOffline = true}: FeedbackSurveyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [draft, draftResults] = useOnyx(`${formID}Draft`);
     const [reason, setReason] = useState<string | undefined>(draft?.reason);
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
+    const {isLoading, startWithLoading} = usePressLoading({isLoading: isOnyxLoading});
 
     const isLoadingDraft = isLoadingOnyxValue(draftResults);
 
@@ -88,8 +84,12 @@ function FeedbackSurvey({title, description, onSubmit, footerText, isNoteRequire
             return;
         }
 
-        onSubmit(draft.reason, draft.note?.trim());
-        clearDraftValues(formID);
+        const submittedReason = draft.reason;
+        const submittedNote = draft.note?.trim();
+        startWithLoading(() => {
+            onSubmit(submittedReason, submittedNote);
+            clearDraftValues(formID);
+        });
     };
 
     const handleSetNote = () => {
@@ -145,6 +145,7 @@ function FeedbackSurvey({title, description, onSubmit, footerText, isNoteRequire
                     buttonText={translate('common.submit')}
                     enabledWhenOffline={enabledWhenOffline}
                     containerStyles={styles.mt3}
+                    shouldShowLoadingImmediatelyOnPress={false}
                     isLoading={isLoading}
                 />
             </FixedFooter>

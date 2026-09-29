@@ -16,11 +16,13 @@ import type {
     UpdateUserAvatarParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import type {LetterAvatarSchemeKey} from '@libs/Avatars/letterAvatarPalette';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {isSupportAuthToken} from '@libs/Network/NetworkStore';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserAvatarUtils from '@libs/UserAvatarUtils';
 
@@ -56,7 +58,7 @@ function buildSetPersonalDetailsAndShipExpensifyCardsParams(values: PersonalDeta
     return {
         legalFirstName: values.legalFirstName?.trim() ?? '',
         legalLastName: values.legalLastName?.trim() ?? '',
-        phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? '', countryCode),
+        phoneNumber: LoginUtils.formatE164PhoneNumber(values.phoneNumber?.trim() ?? '', countryCode) ?? '',
         addressCity: values.city.trim(),
         addressStreet: values.addressLine1?.trim() ?? '',
         addressStreet2: values.addressLine2?.trim() ?? '',
@@ -77,67 +79,78 @@ function updatePronouns(pronouns: string, currentUserAccountID: number) {
 
     API.write(WRITE_COMMANDS.UPDATE_PRONOUNS, parameters, {
         optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: {
-                    [currentUserAccountID]: {
-                        pronouns,
-                    },
+            PersonalDetailsUtils.buildPersonalDetailsUpdate({
+                [currentUserAccountID]: {
+                    pronouns,
                 },
-            },
+            }),
         ],
     });
 }
 
-function setDisplayName(firstName: string, lastName: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], currentUserAccountID: number, currentUserEmail: string) {
-    if (!currentUserAccountID) {
-        return;
-    }
+type DisplayNamePersonalDetails = Pick<CurrentUserPersonalDetails, 'accountID' | 'email' | 'firstName' | 'lastName' | 'displayName' | 'avatar'>;
 
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        [currentUserAccountID]: {
-            firstName,
-            lastName,
-            displayName: PersonalDetailsUtils.createDisplayName(
-                currentUserEmail ?? '',
-                {
-                    firstName,
-                    lastName,
-                },
-                formatPhoneNumber,
-            ),
-        },
-    });
+/**
+ * Builds the personal details fields a display name change touches. A generated letter avatar
+ * encodes the initials in its URL, so it is rewritten alongside the name to keep them in sync.
+ */
+function buildOptimisticDisplayNameDetails(
+    firstName: string,
+    lastName: string,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    currentUserPersonalDetails: DisplayNamePersonalDetails,
+): Partial<PersonalDetails> {
+    const letterAvatarURL = UserAvatarUtils.getUpdatedLetterAvatarURL(currentUserPersonalDetails.avatar, firstName, lastName, currentUserPersonalDetails.email ?? '');
+    return {
+        firstName,
+        lastName,
+        displayName: PersonalDetailsUtils.createDisplayName(
+            currentUserPersonalDetails.email ?? '',
+            {
+                firstName,
+                lastName,
+            },
+            formatPhoneNumber,
+        ),
+        ...(letterAvatarURL && {avatar: letterAvatarURL}),
+    };
 }
 
-function updateDisplayName(firstName: string, lastName: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], currentUserAccountID: number, currentUserEmail: string) {
-    if (!currentUserAccountID) {
+function setDisplayName(firstName: string, lastName: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], currentUserPersonalDetails: DisplayNamePersonalDetails) {
+    if (!currentUserPersonalDetails.accountID) {
         return;
     }
 
+    Onyx.update([
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserPersonalDetails.accountID]: buildOptimisticDisplayNameDetails(firstName, lastName, formatPhoneNumber, currentUserPersonalDetails),
+        }),
+    ]);
+}
+
+function updateDisplayName(firstName: string, lastName: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], currentUserPersonalDetails: DisplayNamePersonalDetails) {
+    if (!currentUserPersonalDetails.accountID) {
+        return;
+    }
+
+    const optimisticDetails = buildOptimisticDisplayNameDetails(firstName, lastName, formatPhoneNumber, currentUserPersonalDetails);
     const parameters: UpdateDisplayNameParams = {firstName, lastName};
 
     API.write(WRITE_COMMANDS.UPDATE_DISPLAY_NAME, parameters, {
         optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: {
-                    [currentUserAccountID]: {
-                        firstName,
-                        lastName,
-                        displayName: PersonalDetailsUtils.createDisplayName(
-                            currentUserEmail ?? '',
-                            {
-                                firstName,
-                                lastName,
-                            },
-                            formatPhoneNumber,
-                        ),
-                    },
+            PersonalDetailsUtils.buildPersonalDetailsUpdate({
+                [currentUserPersonalDetails.accountID]: optimisticDetails,
+            }),
+        ],
+        failureData: [
+            PersonalDetailsUtils.buildPersonalDetailsUpdate({
+                [currentUserPersonalDetails.accountID]: {
+                    firstName: currentUserPersonalDetails.firstName ?? null,
+                    lastName: currentUserPersonalDetails.lastName ?? null,
+                    displayName: currentUserPersonalDetails.displayName ?? null,
+                    ...(optimisticDetails.avatar && {avatar: currentUserPersonalDetails.avatar}),
                 },
-            },
+            }),
         ],
     });
 }
@@ -147,9 +160,10 @@ function updateLegalName(
     legalLastName: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'firstName' | 'lastName' | 'accountID' | 'email'>,
+    shouldGoBack = true,
 ) {
     const parameters: UpdateLegalNameParams = {legalFirstName, legalLastName};
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS> | PersonalDetailsUtils.PersonalDetailsOnyxUpdate> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
@@ -161,10 +175,8 @@ function updateLegalName(
     ];
     // In case the user does not have a display name, we will update the display name based on the legal name
     if (!currentUserPersonalDetail?.firstName && !currentUserPersonalDetail?.lastName) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
+        optimisticData.push(
+            PersonalDetailsUtils.buildPersonalDetailsUpdate({
                 [currentUserPersonalDetail.accountID]: {
                     displayName: PersonalDetailsUtils.createDisplayName(
                         currentUserPersonalDetail.email ?? '',
@@ -177,13 +189,15 @@ function updateLegalName(
                     firstName: legalFirstName,
                     lastName: legalLastName,
                 },
-            },
-        });
+            }),
+        );
     }
     API.write(WRITE_COMMANDS.UPDATE_LEGAL_NAME, parameters, {
         optimisticData,
     });
-    Navigation.goBack();
+    if (shouldGoBack) {
+        Navigation.goBack();
+    }
 }
 
 function updateAddress(addresses: Address[], street: string, street2: string, city: string, state: string, zip: string, country: Country | '') {
@@ -239,6 +253,10 @@ function updateAutomaticTimezone(timezone: Timezone, currentUserAccountID: numbe
         return;
     }
 
+    if (isSupportAuthToken()) {
+        return;
+    }
+
     const formattedTimezone = DateUtils.formatToSupportedTimezone(timezone);
     const parameters: UpdateAutomaticTimezoneParams = {
         timezone: JSON.stringify(formattedTimezone),
@@ -246,15 +264,11 @@ function updateAutomaticTimezone(timezone: Timezone, currentUserAccountID: numbe
 
     API.write(WRITE_COMMANDS.UPDATE_AUTOMATIC_TIMEZONE, parameters, {
         optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: {
-                    [currentUserAccountID]: {
-                        timezone: formattedTimezone,
-                    },
+            PersonalDetailsUtils.buildPersonalDetailsUpdate({
+                [currentUserAccountID]: {
+                    timezone: formattedTimezone,
                 },
-            },
+            }),
         ],
     });
 }
@@ -275,15 +289,11 @@ function updateSelectedTimezone(selectedTimezone: SelectedTimezone, currentUserA
     if (currentUserAccountID) {
         API.write(WRITE_COMMANDS.UPDATE_SELECTED_TIMEZONE, parameters, {
             optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [currentUserAccountID]: {
-                            timezone,
-                        },
+                PersonalDetailsUtils.buildPersonalDetailsUpdate({
+                    [currentUserAccountID]: {
+                        timezone,
                     },
-                },
+                }),
             ],
         });
     }
@@ -335,10 +345,18 @@ function openPublicProfilePage(accountID: number) {
 
     const parameters: OpenPublicProfilePageParams = {accountID};
 
-    API.read(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, parameters, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
-type DefaultAvatarResult = {uri: string; name: string; customExpensifyAvatarID: string};
+type DefaultAvatarResult = {
+    uri: string;
+    name: string;
+    customExpensifyAvatarID: string;
+};
 
 /**
  * Type guard to check if a file object is a DefaultAvatarResult
@@ -358,98 +376,157 @@ function updateAvatar(
         return;
     }
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [currentUserPersonalDetails.accountID]: {
-                    avatar: file.uri,
-                    avatarThumbnail: file.uri,
-                    originalFileName: file.name,
-                    errorFields: {
-                        avatar: null,
-                    },
-                    pendingFields: {
-                        avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        originalFileName: null,
-                    },
-                    fallbackIcon: file.uri,
+    const optimisticData: PersonalDetailsUtils.PersonalDetailsOnyxUpdate[] = [
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserPersonalDetails.accountID]: {
+                avatar: file.uri,
+                avatarThumbnail: file.uri,
+                originalFileName: file.name,
+                errorFields: {
+                    avatar: null,
+                },
+                pendingFields: {
+                    avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    originalFileName: null,
+                },
+                fallbackIcon: file.uri,
+            },
+        }),
+    ];
+    const successData: PersonalDetailsUtils.PersonalDetailsOnyxUpdate[] = [
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserPersonalDetails.accountID]: {
+                pendingFields: {
+                    avatar: null,
                 },
             },
-        },
+        }),
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [currentUserPersonalDetails.accountID]: {
-                    pendingFields: {
-                        avatar: null,
-                    },
+    const failureData: PersonalDetailsUtils.PersonalDetailsOnyxUpdate[] = [
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserPersonalDetails.accountID]: {
+                avatar: currentUserPersonalDetails?.avatar,
+                avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail ?? currentUserPersonalDetails?.avatar,
+                pendingFields: {
+                    avatar: null,
                 },
-            },
-        },
-    ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [currentUserPersonalDetails.accountID]: {
-                    avatar: currentUserPersonalDetails?.avatar,
-                    avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail ?? currentUserPersonalDetails?.avatar,
-                    pendingFields: {
-                        avatar: null,
-                    },
-                } as OnyxEntry<Partial<PersonalDetails>>,
-            },
-        },
+            } as OnyxEntry<Partial<PersonalDetails>>,
+        }),
     ];
 
     const parameters: UpdateUserAvatarParams = isDefaultAvatarResult(file) ? {customExpensifyAvatarID: file.customExpensifyAvatarID} : {file};
 
-    API.write(WRITE_COMMANDS.UPDATE_USER_AVATAR, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_USER_AVATAR, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+/**
+ * Updates the color of the user's letter avatar. The backend also clears any uploaded
+ * avatar image, since picking a letter color means using the letter avatar.
+ */
+function updateAvatarStyle(
+    color: LetterAvatarSchemeKey,
+    currentUserPersonalDetails: Pick<CurrentUserPersonalDetails, 'avatarStyle' | 'avatar' | 'fallbackIcon' | 'accountID' | 'email' | 'firstName' | 'lastName'>,
+) {
+    if (!currentUserPersonalDetails.accountID) {
+        return;
+    }
+
+    // The backend clears any stored avatar on a color pick; a generated letter URL is the materialized form of "no stored avatar".
+    const willClearAvatar = !!currentUserPersonalDetails.avatar && !UserAvatarUtils.isGeneratedLetterAvatarURL(currentUserPersonalDetails.avatar);
+
+    const optimisticData: PersonalDetailsUtils.PersonalDetailsOnyxUpdate[] = [
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserPersonalDetails.accountID]: {
+                avatarStyle: {color},
+                pendingFields: {
+                    avatarStyle: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                ...(willClearAvatar && {
+                    avatar: UserAvatarUtils.getDefaultAvatarURL({
+                        accountID: currentUserPersonalDetails.accountID,
+                        accountEmail: currentUserPersonalDetails.email,
+                        firstName: currentUserPersonalDetails.firstName,
+                        lastName: currentUserPersonalDetails.lastName,
+                    }),
+                    fallbackIcon: null,
+                }),
+            },
+        }),
+    ];
+    const successData: PersonalDetailsUtils.PersonalDetailsOnyxUpdate[] = [
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserPersonalDetails.accountID]: {
+                pendingFields: {
+                    avatarStyle: null,
+                },
+            },
+        }),
+    ];
+    const failureData: PersonalDetailsUtils.PersonalDetailsOnyxUpdate[] = [
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserPersonalDetails.accountID]: {
+                avatarStyle: currentUserPersonalDetails.avatarStyle ?? null,
+                pendingFields: {
+                    avatarStyle: null,
+                },
+                ...(willClearAvatar && {
+                    avatar: currentUserPersonalDetails.avatar,
+                    fallbackIcon: currentUserPersonalDetails.fallbackIcon,
+                }),
+            },
+        }),
+    ];
+
+    const parameters: UpdateUserAvatarParams = {color};
+
+    API.write(WRITE_COMMANDS.UPDATE_USER_AVATAR, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 /**
  * Replaces the user's avatar image with a default avatar
  */
-function deleteAvatar(currentUserPersonalDetails: Pick<CurrentUserPersonalDetails, 'fallbackIcon' | 'avatar' | 'accountID' | 'email'>) {
+function deleteAvatar(currentUserPersonalDetails: Pick<CurrentUserPersonalDetails, 'fallbackIcon' | 'avatar' | 'accountID' | 'email' | 'firstName' | 'lastName'>) {
     if (!currentUserPersonalDetails.accountID) {
         return;
     }
 
     // We want to use the old dot avatar here as this affects both platforms.
-    const defaultAvatar = UserAvatarUtils.getDefaultAvatarURL({accountID: currentUserPersonalDetails.accountID, accountEmail: currentUserPersonalDetails.email});
+    const defaultAvatar = UserAvatarUtils.getDefaultAvatarURL({
+        accountID: currentUserPersonalDetails.accountID,
+        accountEmail: currentUserPersonalDetails.email,
+        firstName: currentUserPersonalDetails.firstName,
+        lastName: currentUserPersonalDetails.lastName,
+    });
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [currentUserPersonalDetails.accountID]: {
-                    avatar: defaultAvatar,
-                    fallbackIcon: null,
-                },
+    const optimisticData: PersonalDetailsUtils.PersonalDetailsOnyxUpdate[] = [
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserPersonalDetails.accountID]: {
+                avatar: defaultAvatar,
+                fallbackIcon: null,
             },
-        },
+        }),
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [currentUserPersonalDetails.accountID]: {
-                    avatar: currentUserPersonalDetails?.avatar,
-                    fallbackIcon: currentUserPersonalDetails?.fallbackIcon,
-                },
+    const failureData: PersonalDetailsUtils.PersonalDetailsOnyxUpdate[] = [
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserPersonalDetails.accountID]: {
+                avatar: currentUserPersonalDetails?.avatar,
+                fallbackIcon: currentUserPersonalDetails?.fallbackIcon,
             },
-        },
+        }),
     ];
 
-    API.write(WRITE_COMMANDS.DELETE_USER_AVATAR, null, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_USER_AVATAR, null, {
+        optimisticData,
+        failureData,
+    });
 }
 
 /**
@@ -467,7 +544,7 @@ function updatePrivatePersonalDetails(values: FormOnyxValues<typeof ONYXKEYS.FOR
     const parameters: UpdatePrivatePersonalDetailsParams = {
         legalFirstName: values.legalFirstName?.trim() ?? '',
         legalLastName: values.legalLastName?.trim() ?? '',
-        phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? '', countryCode),
+        phoneNumber: LoginUtils.formatE164PhoneNumber(values.phoneNumber?.trim() ?? '', countryCode) ?? '',
         addressCity: (values.city ?? '').trim(),
         addressStreet: values.addressLine1?.trim() ?? '',
         addressStreet2: values.addressLine2?.trim() ?? '',
@@ -505,7 +582,9 @@ function updatePrivatePersonalDetails(values: FormOnyxValues<typeof ONYXKEYS.FOR
                 key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
                 value: {
                     isLoading: false,
-                    errorFields: {personalDetails: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                    errorFields: {
+                        personalDetails: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
                 },
             },
         ],
@@ -547,9 +626,9 @@ function setPersonalDetailsAndRevealExpensifyCard(
         })
             .then((response) => {
                 if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                    if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_MAGIC_CODE) {
+                    if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_VALIDATE_CODE) {
                         // eslint-disable-next-line prefer-promise-reject-errors
-                        reject('validateCodeForm.error.incorrectMagicCode');
+                        reject('validateCodeForm.error.incorrectSecurityCode');
                         return;
                     }
                     if (response?.jsonCode === CONST.HTTP_STATUS.INTERNAL_SERVER_ERROR) {
@@ -606,6 +685,7 @@ export {
     updateAddress,
     updateAutomaticTimezone,
     updateAvatar,
+    updateAvatarStyle,
     setDisplayName,
     updateDisplayName,
     updateLegalName,

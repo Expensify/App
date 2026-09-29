@@ -54,9 +54,9 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
 
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
         value: role,
-        text: translate('delegate.role', {role}),
+        text: translate('delegate.role', role),
         keyForList: role,
-        alternateText: translate('delegate.roleDescription', {role}),
+        alternateText: translate('delegate.roleDescription', role),
         isSelected: role === matchingRole,
     }));
 
@@ -80,7 +80,7 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                             Navigation.dismissModal();
                             return;
                         }
-                        Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE.getRoute(login, option?.value));
+                        Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_VALIDATE_CODE.getRoute(login, option?.value));
                     }}
                     data={roleOptions}
                     ListItem={SingleSelectListItem}

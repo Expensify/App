@@ -44,6 +44,8 @@ You’ll be asked to enter the following:
 
 Click **Save & Continue** to proceed.
 
+**Note:** If you enter a phone number that is different from the one already saved on your account, you’ll be asked to verify the change with a security code before continuing. A prompt titled **Let's make sure it's you** appears—enter the security code sent to your primary contact method to proceed.
+
 ---
 
 # Complete Identity Verification with Onfido
@@ -102,7 +104,7 @@ If verification fails after multiple attempts, contact Concierge. An agent can r
 If your wallet appears to be active but payments are not working:
 
 1. Confirm that a personal bank account is connected. Go to **Wallet** and check the **Bank accounts** section. If no bank account is listed, you will need to [connect a personal bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Personal-Bank-Account).
-2. Make sure the bank account is not in an error state. If you see an error badge, follow the instructions shown to resolve it.
+2. Make sure the bank account shows an **Active** badge. If it shows **Incomplete**, **Pending**, **Verifying**, or **Locked**, follow the message shown below the account row to resolve it. [Learn what each bank account connection status means](/articles/new-expensify/wallet-and-payments/Check-Bank-Account-and-Card-Connection-Status).
 3. Check that you have completed all wallet setup steps, including identity verification. A partially completed setup may show the wallet as enabled but restrict functionality.
 4. Try logging out and logging back in to refresh your wallet status.
 

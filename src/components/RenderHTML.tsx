@@ -1,4 +1,5 @@
 import useHasTextAncestor from '@hooks/useHasTextAncestor';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import Parser from '@libs/Parser';
@@ -25,13 +26,8 @@ const RE_EMOJI_OPEN_OR_CLOSE = /(<emoji[^>]*>)(?:<emoji[^>]*>)+|(<\/emoji[^>]*>)
 const RE_BR_CLEANUP = /(?:\s*<br\s*\/?>)+\s*(<\/(?:ul|ol)>)|(<\/li>)(?:\s*<br\s*\/?>)+\s*(?=<(?:li|\/(?:ul|ol))>)/gi;
 
 type RenderHTMLProps = {
-    /** HTML string to render */
     html: string;
-
-    /** Callback to handle link press */
     onLinkPress?: LinkPressHandler;
-
-    /** Callback to handle concierge-link press */
     onConciergeLinkPress?: ConciergeLinkPressHandler;
 
     /** Whether the rendered text should be selectable */
@@ -48,6 +44,7 @@ function RenderHTML({html: htmlParam, onLinkPress, onConciergeLinkPress, isSelec
         throw new Error('RenderHTML must not be rendered inside a <Text> component, as it will break the layout on iOS. Render it as a sibling instead.');
     }
 
+    const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const html = useMemo(() => {
         return (
@@ -92,7 +89,7 @@ function RenderHTML({html: htmlParam, onLinkPress, onConciergeLinkPress, isSelec
 
     return onLinkPress || onConciergeLinkPress ? (
         <RenderHTMLConfigProvider
-            defaultTextProps={{selectable: isSelectable ?? true, allowFontScaling: false}}
+            defaultTextProps={{selectable: isSelectable ?? true, allowFontScaling: false, style: styles.overflowVisible}}
             renderersProps={renderersProps}
             renderers={renderers}
         >

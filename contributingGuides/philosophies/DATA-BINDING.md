@@ -23,11 +23,37 @@ Do not wait for one action to finish before calling another action. If you find 
 ### - Action methods SHOULD not return a promise
 Returning a promise is the first sign that the rule above this is being broken. Let the UI react to changes to Onyx data that is modified in the action instead.
 
-### - Library files that are not connected or associated to any UI SHOULD use `Onyx.connectWithoutView()` to subscribe to changes in Onyx data
-Library files are located in `/src/lib` but excluding the actions in `/src/lib/actions` which have their own rule below.
-
-Exclusions:
-- If a library method is used by an action method (like a utility), then follow the rule below for action methods.
-
 ### - Action methods (`/src/lib/actions`) SHOULD be pure functions and not access global data
 Pure functions are ones that have all necessary data passed as parameters and do not create side-effects.
+
+```ts
+// GOOD ✅ — data is passed in, nothing is read from Onyx here
+function getReportName(report: Report): string {
+    return report.reportName ?? '';
+}
+
+// BAD ❌ — the function reaches into Onyx itself
+function getReportName(reportID: string): string {
+    const report = someOnyxCache[reportID];
+    return report?.reportName ?? '';
+}
+```
+
+### - Library files that are not connected or associated to any UI SHOULD use `Onyx.connectWithoutView()` to subscribe to changes in Onyx data
+Library files are located in `/src/lib` but excluding the actions in `/src/lib/actions` which have their own rule above.
+
+`useOnyx()` is the standard for accessing Onyx data for React components. Non-React library files should always prefer using pure functions that receive all data as parameters. `Onyx.connectWithoutView()` should only be used when a library file is unable to get the data with `useOnyx()` (eg. non-React code, network layer, etc.). Never add a reference to `Onyx.connectWithoutView()` just because nearby code uses it. See [Reading Onyx data: `useOnyx` vs `Onyx.connectWithoutView`](/contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md#reading-onyx-data-useonyx-vs-onyxconnectwithoutview) for the full rules.
+
+```ts
+// GOOD ✅ — non-React network layer keeps the auth token in module state
+let authToken: string | undefined;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        authToken = session?.authToken;
+    },
+});
+```
+
+Exclusions:
+- If a library method is used by an action method (like a utility), then follow the rule above for action methods.

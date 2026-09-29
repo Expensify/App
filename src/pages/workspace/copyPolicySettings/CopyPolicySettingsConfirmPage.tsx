@@ -2,7 +2,7 @@ import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -13,7 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {copyPolicySettings} from '@libs/actions/Policy/CopyPolicySettings';
-import {FEATURE_ROWS, isSourceProvisionedForTravel} from '@libs/CopyPolicySettingsUtils';
+import {FEATURE_ROWS, isSourceProvisionedForTravel, shouldShowCopyPolicySettingsUpgradeStep} from '@libs/CopyPolicySettingsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -50,6 +50,8 @@ function CopyPolicySettingsConfirmPage() {
 
     const targetPolicies = targetPolicyIDs.map((id) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]).filter((policy): policy is Policy => policy !== undefined);
 
+    const areAllTargetPoliciesResolved = targetPolicyIDs.every((id) => !!policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]);
+
     // Copying travel from a provisioned source re-provisions each target with its own Spotnana
     // entity, which requires accepting Expensify Travel terms. Capture that consent here.
     const requiresTravelTermsConsent = parts.includes('travel') && isSourceProvisionedForTravel(sourcePolicy);
@@ -79,7 +81,14 @@ function CopyPolicySettingsConfirmPage() {
         .join(', ');
 
     const handleCopyPolicySettings = () => {
-        if (!sourcePolicy) {
+        if (!sourcePolicy || !sourcePolicyID || !isDataLoaded || !areAllTargetPoliciesResolved) {
+            return;
+        }
+        // Editing the workspace selection from this screen can introduce a Collect (Team) target that
+        // requires an upgrade for the already-selected Control-only settings, bypassing the Upgrade step.
+        // Re-gate at submit time and route to the Upgrade step instead of copying when one is still required.
+        if (shouldShowCopyPolicySettingsUpgradeStep(targetPolicies, parts, sourcePolicy)) {
+            Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_UPGRADE.getRoute(sourcePolicyID));
             return;
         }
         copyPolicySettings(sourcePolicy, targetPolicies, parts, allPolicyCategories, allPolicyTags);
@@ -124,19 +133,17 @@ function CopyPolicySettingsConfirmPage() {
                         </View>
                     </View>
                     <View style={[styles.mt4]}>
-                        <MenuItemWithTopDescription
-                            title={translatedParts}
-                            description={translate('common.settings')}
+                        <MenuItemField
+                            name={translate('common.settings')}
+                            value={translatedParts}
+                            numberOfLinesValue={0}
                             onPress={navigateToSelectFeatures}
-                            shouldShowRightIcon
-                            numberOfLinesTitle={0}
                         />
-                        <MenuItemWithTopDescription
-                            title={targetPolicies.map((policy) => policy?.name).join(', ')}
-                            description={translate('common.workspaces')}
+                        <MenuItemField
+                            name={translate('common.workspaces')}
+                            value={targetPolicies.map((policy) => policy?.name).join(', ')}
+                            numberOfLinesValue={0}
                             onPress={navigateToSelectWorkspaces}
-                            shouldShowRightIcon
-                            numberOfLinesTitle={0}
                         />
                     </View>
                 </ScrollView>
@@ -159,12 +166,13 @@ function CopyPolicySettingsConfirmPage() {
                         </>
                     )}
                     <Button
-                        success
-                        large
-                        text={translate('workspace.copyPolicySettings.title')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={handleCopyPolicySettings}
                         isDisabled={parts.length === 0 || targetPolicyIDs.length === 0 || (requiresTravelTermsConsent && !hasAcceptedTravelTerms)}
-                    />
+                    >
+                        <Button.Text>{translate('workspace.copyPolicySettings.title')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

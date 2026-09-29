@@ -36,11 +36,12 @@ function DisabledPage() {
             />
             <FixedFooter style={[styles.flexGrow0]}>
                 <Button
-                    success
-                    large
-                    text={translate('common.buttonConfirm')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => quitAndNavigateBack(ROUTES.SETTINGS_SECURITY)}
-                />
+                >
+                    <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
+                </Button>
             </FixedFooter>
         </TwoFactorAuthWrapper>
     );

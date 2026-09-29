@@ -1,19 +1,18 @@
-import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatListScrollKey';
-
 import {isSafari} from '@libs/Browser';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isReportPreviewAction} from '@libs/ReportActionsUtils';
 import {getReportLastVisibleActionCreated, shouldReportAlignToTop} from '@libs/ReportUtils';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
+import {useActionListContext} from '@pages/inbox/ActionListContext';
 import useReportActionsNewActionLiveTail from '@pages/inbox/report/useReportActionsNewActionLiveTail';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
-import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 
 import {openReport} from '@userActions/Report';
 
@@ -22,20 +21,27 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {ViewableItemsChanged} from '@src/types/utils/ReactNativeCompat';
 
-import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
-import {useContext, useEffect, useEffectEvent, useState} from 'react';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {useEffect, useEffectEvent, useState} from 'react';
 
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useReportScrollManager from './useReportScrollManager';
 import useScrollToEndOnNewMessageReceived from './useScrollToEndOnNewMessageReceived';
+import useWindowDimensions from './useWindowDimensions';
 
 type UseReportActionsScrollParams = {
+    /** The Concierge chat report */
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
+
     /** The ID of the report currently being looked at */
     reportID: string;
 
@@ -45,11 +51,19 @@ type UseReportActionsScrollParams = {
     /** The transaction thread report associated with the current report, if any */
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
 
-    /** The report's parentReportAction */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** Sorted actions that should be visible to the user */
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
+
+    /** Actions actually rendered by the list (may include a synthetic draft), used for mount scroll positioning */
+    renderedVisibleReportActions: OnyxTypes.ReportAction[];
+
+    /** Extracts the list key for an action; used to locate the initial scroll target */
+    keyExtractor: (item: OnyxTypes.ReportAction) => string;
+
+    /** Whether the user has scrolled past the "visible" threshold */
+    hasScrolledOverThreshold: boolean;
 
     /** Marks the newest action as read and clears any pending skipped mark-as-read */
     markNewestActionAsRead: () => void;
@@ -60,7 +74,7 @@ type UseReportActionsScrollParams = {
     /** The report action ID the unread marker is anchored to, if any */
     unreadMarkerReportActionID: string | null;
 
-    /** The index of the unread report action in the sorted visible actions list (-1 if none) */
+    /** The index of the unread report action in the rendered actions list (-1 if none) */
     unreadMarkerReportActionIndex: number;
 
     /** Whether the report has newer actions to load */
@@ -82,14 +96,11 @@ type UseReportActionsScrollParams = {
 };
 
 type UseReportActionsScrollResult = {
-    /** Ref to attach to the inverted FlashList */
-    listRef: ReturnType<typeof useReportScrollManager>['ref'];
-
     /** Scroll handler that tracks vertical offset and floating counter visibility */
     trackVerticalScrolling: (event: NativeSyntheticEvent<NativeScrollEvent> | undefined) => void;
 
     /** Viewability handler that drives the floating counter and badge visibility */
-    onViewableItemsChanged: (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => void;
+    onViewableItemsChanged: ViewableItemsChanged;
 
     /** Whether the floating "new messages" counter is visible */
     isFloatingMessageCounterVisible: boolean;
@@ -97,10 +108,9 @@ type UseReportActionsScrollResult = {
     /** Whether the action badge target is above the viewport */
     isActionBadgeAboveViewport: boolean;
 
-    /** Scrolls to the newest action and marks the report as read */
+    /** Scrolls to the unread marker when available, otherwise to the newest action, and marks the report as read when appropriate */
     scrollToBottomAndMarkReportAsRead: () => void;
 
-    /** Scrolls to the action badge target */
     scrollToActionBadgeTarget: () => void;
 
     /** Completes a live-tail scroll-to-bottom once the list has laid out; call on every list layout */
@@ -116,23 +126,28 @@ type UseReportActionsScrollResult = {
     initialScrollKey: string | undefined;
 
     /** maintainVisibleContentPosition config for the inverted list */
-    maintainVisibleContentPosition:
-        | {
-              autoscrollToBottomThreshold?: number;
-              animateAutoScrollToBottom?: boolean;
-          }
-        | undefined;
+    maintainVisibleContentPosition: {disabled: boolean; autoscrollToBottomThreshold?: number; animateAutoScrollToBottom?: boolean};
+
+    /** The index the list should scroll to on mount (undefined to keep default position) */
+    initialScrollIndex: number | undefined;
+
+    /** Positioning params (viewPosition/viewOffset) paired with initialScrollIndex */
+    initialScrollIndexParams: {viewPosition?: number; viewOffset?: number} | undefined;
 
     /** onLoad handler that disables autoscroll-to-top once the initial render settles */
     onLoad: () => void;
 };
 
 function useReportActionsScroll({
+    conciergeChat,
     reportID,
     report,
     transactionThreadReport,
     parentReportAction,
     sortedVisibleReportActions,
+    renderedVisibleReportActions,
+    keyExtractor,
+    hasScrolledOverThreshold,
     markNewestActionAsRead,
     completeSkippedMarkAsRead,
     unreadMarkerReportActionID,
@@ -145,13 +160,15 @@ function useReportActionsScroll({
     setTreatAsNoPaginationAnchor,
 }: UseReportActionsScrollParams): UseReportActionsScrollResult {
     const reportScrollManager = useReportScrollManager();
-    const {scrollOffsetRef} = useContext(ActionListContext);
+    const {scrollOffsetRef} = useActionListContext();
+    const {windowHeight} = useWindowDimensions();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
     const backTo = route?.params?.backTo;
     const {isOffline} = useNetworkWithOfflineStatus();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${getNonEmptyStringOnyxID(reportID)}`);
     const prevIsLoadingInitialReportActions = usePrevious(reportLoadingState?.isLoadingInitialReportActions);
@@ -167,6 +184,13 @@ function useReportActionsScroll({
 
     const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
 
+    // A report opened from the "X Replies" link should land on the latest message, which is the opposite of the
+    // align-to-top mount that money-request and invoice reports normally get. Multi-expense reports get this from
+    // MoneyRequestReportActionsList. A report holding a single expense renders this list instead, so it has to honor
+    // the same route param. The value is latched on mount because clearing the param below must not flip the list
+    // back to the top while the user is reading.
+    const [shouldScrollToLatestOnOpen] = useState(() => route?.params?.[REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST] === 'true');
+
     // When the report is aligned to the top, only the linked action should drive the initial scroll position and the unread marker must be ignored.
     // Otherwise, prefer the linked action and fall back to the unread marker.
     let initialScrollKey = linkedReportActionID;
@@ -179,20 +203,20 @@ function useReportActionsScroll({
         initialScrollKey = undefined;
     }
 
-    const shouldFocusToTopOnMount = shouldBeAlignedToTop && !initialScrollKey;
+    const shouldFocusToTopOnMount = shouldBeAlignedToTop && !initialScrollKey && !shouldScrollToLatestOnOpen;
+    const shouldMaintainVisibleContentPosition = hasScrolledOverThreshold || shouldFocusToTopOnMount;
     const [shouldAutoscrollToBottom, setShouldAutoscrollToBottom] = useState(shouldFocusToTopOnMount);
-    // Once the initial pin to the visual top is released, the threshold must drop to 0 instead of removing the config:
-    // FlashList only clears its internal pending-autoscroll flag while `autoscrollToBottomThreshold >= 0`. Removing the
-    // config leaves a flag planted during the pin phase stale forever, and the next content change (e.g. marking a
-    // message as unread) would scroll the list back to the top.
-    const maintainVisibleContentPosition = shouldFocusToTopOnMount
-        ? {
-              autoscrollToBottomThreshold: shouldAutoscrollToBottom ? CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD : 0,
-              animateAutoScrollToBottom: false,
-          }
-        : undefined;
+    const [shouldDisablePillTracking, setShouldDisablePillTracking] = useState(!!initialScrollKey);
 
-    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, isActionBadgeAboveViewport, trackVerticalScrolling, onViewableItemsChanged} =
+    const maintainVisibleContentPosition = {
+        disabled: !shouldMaintainVisibleContentPosition,
+        // Focus-to-top mode: once autoscroll is released, keep the threshold at 0 rather than
+        // removing it — FlashList only clears its pending-autoscroll flag while threshold >= 0,
+        // otherwise the next content change (e.g. mark-as-unread) scrolls back to top.
+        ...(shouldFocusToTopOnMount ? {autoscrollToBottomThreshold: shouldAutoscrollToBottom ? CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD : 0, animateAutoScrollToBottom: false} : {}),
+    };
+
+    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, isActionBadgeAboveViewport, trackVerticalScrolling, onViewableItemsChanged, updatePillVisibility} =
         useReportUnreadMessageScrollTracking({
             reportID,
             currentVerticalScrollingOffsetRef: scrollOffsetRef,
@@ -200,6 +224,7 @@ function useReportActionsScroll({
             hasNewerActions,
             unreadMarkerReportActionIndex,
             isInverted: true,
+            shouldDisablePillTracking,
             onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
                 scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
             },
@@ -208,9 +233,11 @@ function useReportActionsScroll({
         });
 
     const {isScrollToBottomEnabled, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom} = useReportActionsNewActionLiveTail({
+        conciergeChat,
         reportID,
         introSelected,
-        betas,
+        isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+        hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
         isOffline,
         reportScrollManager,
         setIsFloatingMessageCounterVisible,
@@ -247,7 +274,7 @@ function useReportActionsScroll({
             return;
         }
 
-        if (scrollOffsetRef.current >= AUTOSCROLL_TO_TOP_THRESHOLD || !hasNewestReportAction) {
+        if (scrollOffsetRef.current >= CONST.REPORT.ACTIONS.AUTOSCROLL_TO_TOP_THRESHOLD || !hasNewestReportAction) {
             return;
         }
 
@@ -279,6 +306,16 @@ function useReportActionsScroll({
         const handle = scheduleInitialScrollToBottom();
         return () => handle?.cancel();
     }, []);
+
+    // Clear the shouldScrollToLatest route param once the mount scroll above has consumed it, so a later remount of
+    // this report doesn't pull the user down again. MoneyRequestReportActionsList clears it the same way for the
+    // multi-expense view.
+    useEffect(() => {
+        if (!shouldScrollToLatestOnOpen) {
+            return;
+        }
+        Navigation.setParams({[REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST]: undefined});
+    }, [shouldScrollToLatestOnOpen]);
 
     // Fixes Safari-specific issue where the whisper option is not highlighted correctly on hover after adding new transaction.
     // https://github.com/Expensify/App/issues/54520
@@ -330,11 +367,27 @@ function useReportActionsScroll({
     const scrollToBottomAndMarkReportAsRead = () => {
         setIsFloatingMessageCounterVisible(false);
 
+        if (unreadMarkerReportActionIndex >= 0) {
+            reportScrollManager.scrollToIndex(unreadMarkerReportActionIndex);
+            if (hasNewestReportAction) {
+                markNewestActionAsRead();
+            }
+            return;
+        }
+
         if (!hasNewestReportAction) {
             if (!Navigation.getReportRHPActiveRoute()) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, backTo));
             }
-            openReport({reportID, introSelected, betas});
+            openReport({
+                reportID,
+                introSelected,
+                conciergeChat,
+                hasReportActions: true,
+                currentUserAccountID,
+                isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+            });
             reportScrollManager.scrollToBottom();
             return;
         }
@@ -346,7 +399,7 @@ function useReportActionsScroll({
         if (actionBadgeTargetIndex < 0) {
             return;
         }
-        reportScrollManager.scrollToIndex(actionBadgeTargetIndex);
+        reportScrollManager.scrollToIndex(actionBadgeTargetIndex, {viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
     };
 
     const flushPendingScrollToBottom = () => {
@@ -359,14 +412,21 @@ function useReportActionsScroll({
     };
 
     // Data is ready at the moment FlashList finishes its first render.
-    // Wait one frame so the initial autoscroll-to-top can settle, then disable it.
     const onLoad = () => {
+        if (shouldDisablePillTracking) {
+            // Wait one frame so the initial positioning can settle, then disable it.
+            requestAnimationFrame(() => {
+                setShouldDisablePillTracking(false);
+                updatePillVisibility();
+            });
+        }
         if (!shouldFocusToTopOnMount) {
             return;
         }
         if (!reportLoadingState?.hasOnceLoadedReportActions && !isOffline) {
             return;
         }
+        // Wait one frame so the initial autoscroll-to-top can settle, then disable it.
         requestAnimationFrame(() => setShouldAutoscrollToBottom(false));
     };
     const prevHasOnceLoadedReportActions = usePrevious(reportLoadingState?.hasOnceLoadedReportActions);
@@ -383,8 +443,23 @@ function useReportActionsScroll({
         requestAnimationFrame(() => setShouldAutoscrollToBottom(false));
     }, [shouldFocusToTopOnMount, shouldAutoscrollToBottom, prevHasOnceLoadedReportActions, reportLoadingState?.hasOnceLoadedReportActions]);
 
+    // Decide where the list should be positioned on mount.
+    // 1. If we're opening a linked message (initialScrollKey), find that action in the list and scroll it to the top
+    //    of the viewport (viewPosition: 1) with a small offset so the message above is partly visible.
+    // 2. Otherwise, if the report should be opened at top (ex: for transaction threads), scroll to the top message and offset by
+    //    the window height so we land at top of the top message for sure.
+    const targetIndex = initialScrollKey ? renderedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey) : -1;
+    let initialScrollIndex: number | undefined;
+    let initialScrollIndexParams: {viewPosition?: number; viewOffset?: number} | undefined;
+    if (targetIndex > 0) {
+        initialScrollIndex = targetIndex;
+        initialScrollIndexParams = {viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET};
+    } else if (shouldFocusToTopOnMount) {
+        initialScrollIndex = renderedVisibleReportActions.length - 1;
+        initialScrollIndexParams = {viewOffset: windowHeight};
+    }
+
     return {
-        listRef: reportScrollManager.ref,
         trackVerticalScrolling,
         onViewableItemsChanged,
         isFloatingMessageCounterVisible,
@@ -396,6 +471,8 @@ function useReportActionsScroll({
         shouldFocusToTopOnMount,
         initialScrollKey,
         maintainVisibleContentPosition,
+        initialScrollIndex,
+        initialScrollIndexParams,
         onLoad,
     };
 }

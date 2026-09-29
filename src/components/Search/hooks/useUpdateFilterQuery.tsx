@@ -1,20 +1,23 @@
+import {useSearchQueryActions} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {buildFilterQueryWithSortDefaults} from '@libs/SearchQueryUtils';
+import {markQueryAsRefinement} from '@libs/SearchQueryRefinement';
+import {buildFilterQueryWithSortDefaults, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {filterValidHasValues} from '@libs/SearchUIUtils';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
     const {translate} = useLocalize();
+    const {getSearchKeyForQuery} = useSearchQueryActions();
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     function getUpdatedFilterFormValues(currentValues: Partial<SearchAdvancedFiltersForm>, newValues: Partial<SearchAdvancedFiltersForm>) {
         const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
@@ -24,8 +27,10 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
 
         if (updatedFilterFormValues.type !== currentValues.type) {
             updatedFilterFormValues.columns = [];
-            updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
+            updatedFilterFormValues.status = undefined;
+            updatedFilterFormValues.statusNot = undefined;
             updatedFilterFormValues.has = filterValidHasValues(updatedFilterFormValues.has, updatedFilterFormValues.type, translate);
+            updatedFilterFormValues.hasNot = filterValidHasValues(updatedFilterFormValues.hasNot, updatedFilterFormValues.type, translate);
         }
 
         if (updatedFilterFormValues.groupBy !== currentValues.groupBy) {
@@ -41,12 +46,18 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
                 values,
                 {view: searchAdvancedFiltersForm.view, groupBy: searchAdvancedFiltersForm.groupBy},
                 {sortBy: queryJSON?.sortBy, sortOrder: queryJSON?.sortOrder},
+                policies,
             ) ?? '';
         if (!queryString) {
             return;
         }
 
-        Navigation.setParams({q: queryString, rawQuery: undefined});
+        // Mark the query as a refinement so SearchPage holds the previous results while it loads
+        markQueryAsRefinement(queryString);
+
+        const shouldResetSearchKey = !!values.type && values.type !== searchAdvancedFiltersForm.type;
+
+        Navigation.setParams({q: queryString, rawQuery: undefined, ...(shouldResetSearchKey && {searchKey: getSearchKeyForQuery(buildSearchQueryJSON(queryString))})});
     }
 
     function updateFilterQueryParams(values: Partial<SearchAdvancedFiltersForm>) {

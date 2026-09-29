@@ -1,4 +1,4 @@
-import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
+import Button from '@components/Button';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 
 import useLocalize from '@hooks/useLocalize';
@@ -12,6 +12,8 @@ import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member'
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsSelector} from '@src/selectors/PersonalDetails';
+import {policyNameSelector} from '@src/selectors/Policy';
 import type {ReportAction} from '@src/types/onyx';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 
@@ -26,34 +28,28 @@ type JoinRequestContentProps = {
 
 function JoinRequestContent({action, actionOwnerReportID, policyID}: JoinRequestContentProps) {
     const {translate} = useLocalize();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyName = ''] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyNameSelector});
 
-    const buttons: ActionableItem[] =
-        getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution)
-            ? []
-            : [
-                  {
-                      text: 'actionableMentionJoinWorkspaceOptions.accept',
-                      key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT}`,
-                      onPress: () => acceptJoinRequest(actionOwnerReportID, action),
-                      isPrimary: true,
-                  },
-                  {
-                      text: 'actionableMentionJoinWorkspaceOptions.decline',
-                      key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.DECLINE}`,
-                      onPress: () => declineJoinRequest(actionOwnerReportID, action),
-                  },
-              ];
+    const originalMessage = getOriginalMessage(action);
+    const [requesterDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(originalMessage?.accountID)});
+
+    const isJoinRequestUnresolved = originalMessage?.choice === ('' as JoinWorkspaceResolution);
 
     return (
         <View>
-            <ReportActionItemBasicMessage message={getJoinRequestMessage(translate, policy, action)} />
-            {buttons.length > 0 && (
-                <ActionableItemButtons
-                    items={buttons}
-                    shouldUseLocalization
-                    layout="horizontal"
-                />
+            <ReportActionItemBasicMessage message={getJoinRequestMessage(translate, policyName, action, requesterDetails)} />
+            {isJoinRequestUnresolved && (
+                <ActionableItemButtons layout="horizontal">
+                    <Button
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        onPress={() => acceptJoinRequest(actionOwnerReportID, action)}
+                    >
+                        <Button.Text>{translate('actionableMentionJoinWorkspaceOptions.accept')}</Button.Text>
+                    </Button>
+                    <Button onPress={() => declineJoinRequest(actionOwnerReportID, action)}>
+                        <Button.Text>{translate('actionableMentionJoinWorkspaceOptions.decline')}</Button.Text>
+                    </Button>
+                </ActionableItemButtons>
             )}
         </View>
     );

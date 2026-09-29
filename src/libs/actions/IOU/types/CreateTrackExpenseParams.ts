@@ -1,3 +1,10 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
+import type {WriteReadyBarrier} from '@libs/API';
+
 import type {CurrentUser} from '@userActions/Policy/Policy';
 
 import type {IOUAction} from '@src/CONST';
@@ -12,6 +19,9 @@ import type {TrackExpenseTransactionParams} from './TrackExpenseTransactionParam
 
 type TrackExpenseAccountantParams = {
     accountant?: Accountant;
+    newAccountIDs: number[] | undefined;
+    newLogins: string[] | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type CreateTrackExpenseParams = {
@@ -33,20 +43,21 @@ type CreateTrackExpenseParams = {
     currentUser: CurrentUser;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean;
     defaultWorkspaceName?: string;
     currentUserLocalCurrency: string | undefined;
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
-    // TODO: delegateAccountID will be made required in PR 10 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
     reportActionsList: OnyxCollection<OnyxTypes.ReportActions> | undefined;
-    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
-    isDraftChatReport?: boolean;
-    // Personal details list is optional here because we only use/pass it for SHARE case
-    personalDetailsList?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    isDraftChatReport: boolean;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    /** Readiness barrier the API write waits on, handed down by whoever triggered the navigation. */
+    writeBarrier?: WriteReadyBarrier;
+    rules: OnyxCollection<OnyxTypes.Rule>;
+    personalDetailsByLogins?: PersonalDetailsByLogin;
 };
 
 export type {CreateTrackExpenseParams, TrackExpenseAccountantParams};

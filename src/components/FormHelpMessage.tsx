@@ -32,7 +32,6 @@ type FormHelpMessageProps = {
     /** Container style props */
     style?: StyleProp<ViewStyle>;
 
-    /** Whether to show dot indicator */
     shouldShowRedDotIndicator?: boolean;
 
     /** Whether should render error text as HTML or as Text */
@@ -132,7 +131,7 @@ function FormHelpMessage({
                 <Icon
                     src={icons.Exclamation}
                     fill={theme.icon}
-                    small
+                    size={CONST.ICON_SIZE.SMALL}
                     additionalStyles={[styles.mr1]}
                 />
             )}

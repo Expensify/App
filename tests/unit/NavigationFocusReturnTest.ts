@@ -1,5 +1,34 @@
 // Typed require with explicit .ts path — matches the project's test-file convention.
 
+// Mocked so isEnterWhileComposition's Safari-specific keyCode===229 path can be exercised without a real Safari UA.
+let mockBrowser = 'other';
+jest.mock('@libs/Browser', () => ({
+    __esModule: true,
+    getBrowser: () => mockBrowser,
+    isMobileChrome: () => false,
+    isSafari: () => mockBrowser === 'safari',
+}));
+
+// scheduleRestore defers through TransitionTracker; mock it so the deferred restore can be flushed deterministically (waitForUpcomingTransition is Promise-based and can't be driven by fake timers alone).
+type TtEntry = {cb: () => void; cancelled: boolean; waitForUpcomingTransition: boolean | 'navigation'};
+let mockTtQueue: TtEntry[] = [];
+jest.mock('../../src/libs/Navigation/TransitionTracker', () => ({
+    __esModule: true,
+    default: {
+        startTransition: jest.fn(),
+        endTransition: jest.fn(),
+        runAfterTransitions: ({callback, waitForUpcomingTransition = false}: {callback: () => void; waitForUpcomingTransition?: boolean | 'navigation'}) => {
+            const entry: TtEntry = {cb: callback, cancelled: false, waitForUpcomingTransition};
+            mockTtQueue.push(entry);
+            return {
+                cancel: () => {
+                    entry.cancelled = true;
+                },
+            };
+        },
+    },
+}));
+
 const {resetCycle: resetArbiter, tryClaim, Priorities} = require<{
     resetCycle: () => void;
     tryClaim: (priority: number) => boolean;
@@ -10,8 +39,6 @@ const {resetForTests: resetHadTabNavigation, setupHadTabNavigation} = require<{
     setupHadTabNavigation: () => void;
 }>('../../src/libs/hadTabNavigation.ts');
 const {
-    diffNavigationState,
-    collectRouteKeys,
     captureTriggerForRoute,
     restoreTriggerForRoute,
     handleStateChange,
@@ -23,13 +50,10 @@ const {
     cancelPendingFocusRestore,
     skipNextFocusRestore,
     isFocusRestoreInProgress,
-    compoundParamsKey,
     shouldSkipAutoFocusDueToExistingFocus,
     setupNavigationFocusReturn,
     teardownNavigationFocusReturn,
 } = require<{
-    diffNavigationState: (prev: unknown, next: unknown) => {action: {type: string; captureKey?: string; restoreKey?: string}; removedKeys: string[]};
-    collectRouteKeys: (state: unknown) => Set<string>;
     captureTriggerForRoute: (routeKey: string) => void;
     restoreTriggerForRoute: (routeKey: string) => boolean;
     handleStateChange: (state: unknown) => void;
@@ -41,14 +65,18 @@ const {
     cancelPendingFocusRestore: () => void;
     skipNextFocusRestore: () => void;
     isFocusRestoreInProgress: () => boolean;
-    compoundParamsKey: (routeKey: string, params: unknown) => string;
     shouldSkipAutoFocusDueToExistingFocus: () => boolean;
     setupNavigationFocusReturn: () => void;
     teardownNavigationFocusReturn: () => void;
-}>('../../src/libs/NavigationFocusReturn.ts');
-const {setActivePopoverLauncher, scheduleClearActivePopoverLauncher} = require<{
+}>('../../src/libs/NavigationFocusReturn/index.ts');
+const {diffNavigationState, collectRouteKeys} = require<{
+    diffNavigationState: (prev: unknown, next: unknown) => {action: {type: string; captureKey?: string; restoreKey?: string}; removedKeys: string[]};
+    collectRouteKeys: (state: unknown) => Set<string>;
+}>('../../src/libs/navigationStateDiff.ts');
+const {default: compoundParamsKey} = require<{default: (routeKey: string, params: unknown) => string}>('../../src/libs/compoundParamsKey.ts');
+const {setActivePopoverLauncher, markActivePopoverLauncherDeactivated} = require<{
     setActivePopoverLauncher: (element: HTMLElement) => void;
-    scheduleClearActivePopoverLauncher: (element?: HTMLElement) => void;
+    markActivePopoverLauncherDeactivated: (element?: HTMLElement) => void;
 }>('../../src/libs/LauncherStack.ts');
 const {default: hasFocusableAttributes} = require<{
     default: (el: Element) => boolean;
@@ -118,6 +146,18 @@ function withFakeTimers<T>(fn: () => T): T {
     }
 }
 
+// Runs the restore callbacks that scheduleRestore queued through the mocked TransitionTracker (mirrors a transition completing).
+function flushTransitions(): void {
+    const buffered = mockTtQueue;
+    mockTtQueue = [];
+    for (const entry of buffered) {
+        if (entry.cancelled) {
+            continue;
+        }
+        entry.cb();
+    }
+}
+
 setupHadTabNavigation();
 setupNavigationFocusReturn();
 
@@ -125,6 +165,7 @@ beforeEach(() => {
     resetForTests();
     resetArbiter();
     resetHadTabNavigation();
+    mockTtQueue = [];
     document.body.innerHTML = '';
 });
 
@@ -309,6 +350,889 @@ describe('captureTriggerForRoute', () => {
             captureTriggerForRoute('route-a');
             expect(restoreTriggerForRoute('route-a')).toBe(false);
         });
+
+        // Without the latch, RHP autofocus overwrites lastInteractiveElement before capture, so back-nav lands on <body>.
+        it('Enter-keydown latches the pre-activation element before destination autofocus can poison the capture (issue #96970)', () => {
+            const row = appendButton();
+            const destinationInput = appendInput();
+            row.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+            fireFocusIn(destinationInput);
+
+            captureTriggerForRoute('route-a');
+
+            destinationInput.remove();
+            row.blur();
+            expect(document.activeElement).toBe(document.body);
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(row);
+        });
+
+        it('NumpadEnter latches like Enter', () => {
+            const row = appendButton();
+            const destinationInput = appendInput();
+            row.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'NumpadEnter', bubbles: true}));
+            fireFocusIn(destinationInput);
+
+            captureTriggerForRoute('route-a');
+            destinationInput.remove();
+            row.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(row);
+        });
+
+        it('Space-keydown latches like Enter', () => {
+            const row = appendButton();
+            const destinationInput = appendInput();
+            row.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: ' ', code: 'Space', bubbles: true}));
+            fireFocusIn(destinationInput);
+
+            captureTriggerForRoute('route-a');
+            destinationInput.remove();
+            row.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(row);
+        });
+
+        it('does not latch on non-activation keys (Tab, arrows)', () => {
+            const row = appendButton();
+            row.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Tab', code: 'Tab', bubbles: true}));
+
+            const drifted = appendInput();
+            fireFocusIn(drifted);
+            setLastInteractiveElementForTests(row);
+
+            captureTriggerForRoute('route-a');
+            expect(restoreTriggerForRoute('route-a')).toBe(false);
+        });
+
+        it('a superseded latch is invalidated when a non-activation keydown intervenes', () => {
+            const rowA = appendButton();
+            const rowB = appendButton();
+            rowA.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Tab', code: 'Tab', bubbles: true}));
+            rowB.focus();
+            fireFocusIn(rowB);
+
+            captureTriggerForRoute('route-a');
+            rowB.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(rowB);
+        });
+
+        it('ignores the keydown latch past its TTL', () => {
+            withFakeTimers(() => {
+                const row = appendButton();
+                const destinationInput = appendInput();
+                row.focus();
+
+                document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+                fireFocusIn(destinationInput);
+                jest.advanceTimersByTime(4_000);
+
+                captureTriggerForRoute('route-a');
+                destinationInput.remove();
+                row.blur();
+                expect(restoreTriggerForRoute('route-a')).toBe(false);
+            });
+        });
+
+        it('does not latch when Enter fires while nothing is focused (body activeElement)', () => {
+            const row = appendButton();
+            setLastInteractiveElementForTests(row);
+            expect(document.activeElement).toBe(document.body);
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+            captureTriggerForRoute('route-a');
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+        });
+
+        it('does not latch when the focused element is inert or aria-disabled', () => {
+            const row = appendButton();
+            row.setAttribute('aria-disabled', 'true');
+            row.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+            const destinationInput = appendInput();
+            fireFocusIn(destinationInput);
+
+            captureTriggerForRoute('route-a');
+            destinationInput.remove();
+            row.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(false);
+        });
+
+        it('a later failed activation clears a prior valid latch when focus is on body', () => {
+            const rowA = appendButton();
+            const rowB = appendButton();
+            rowA.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+            rowA.blur();
+            expect(document.activeElement).toBe(document.body);
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+            rowB.focus();
+            fireFocusIn(rowB);
+            captureTriggerForRoute('route-a');
+            rowB.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(rowB);
+        });
+
+        it('a failed activation on a disabled target preserves a still-fresh valid latch', () => {
+            const rowA = appendButton();
+            const disabledB = appendButton();
+            disabledB.setAttribute('aria-disabled', 'true');
+            rowA.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+            disabledB.focus();
+            fireFocusIn(disabledB);
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+            captureTriggerForRoute('route-a');
+            disabledB.remove();
+            rowA.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(rowA);
+        });
+
+        it('IME Enter clears the latch', () => {
+            const rowA = appendButton();
+            const composer = appendInput();
+            rowA.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+            composer.focus();
+            const ime = new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true});
+            Object.defineProperty(ime, 'isComposing', {value: true, configurable: true});
+            document.dispatchEvent(ime);
+
+            fireFocusIn(composer);
+            captureTriggerForRoute('route-a');
+            composer.remove();
+            rowA.remove();
+            expect(restoreTriggerForRoute('route-a')).toBe(false);
+        });
+
+        it('skips a latch that became aria-disabled between keydown and capture', () => {
+            const submit = appendButton();
+            submit.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+            submit.setAttribute('aria-disabled', 'true');
+
+            captureTriggerForRoute('route-a');
+            submit.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(false);
+        });
+
+        it('does not latch on a native input[type=checkbox]', () => {
+            const checkbox = document.createElement('input');
+            const rowB = appendButton();
+            checkbox.type = 'checkbox';
+            document.body.appendChild(checkbox);
+            checkbox.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+            rowB.focus();
+            fireFocusIn(rowB);
+            captureTriggerForRoute('route-a');
+            checkbox.remove();
+            rowB.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(rowB);
+        });
+
+        // SelectionButton renders these roles and GettingStartedRow wires the Checkbox's onPress to Navigation.navigate.
+        it.each([['checkbox'], ['radio']])('latches on a role="%s" Pressable used as a navigation trigger', (role) => {
+            const trigger = document.createElement('div');
+            trigger.setAttribute('role', role);
+            trigger.tabIndex = 0;
+            document.body.appendChild(trigger);
+            trigger.focus();
+            fireFocusIn(trigger);
+
+            trigger.dispatchEvent(new KeyboardEvent('keydown', {key: ' ', code: 'Space', bubbles: true}));
+
+            const destinationInput = appendInput();
+            destinationInput.focus();
+            fireFocusIn(destinationInput);
+            captureTriggerForRoute('route-a');
+            destinationInput.remove();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(trigger);
+        });
+
+        it('does not latch on a Space code whose key value is a remapped printable character (OS-level keyboard remap)', () => {
+            const rowA = appendButton();
+            rowA.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'ñ', code: 'Space', bubbles: true}));
+
+            const destinationInput = appendInput();
+            fireFocusIn(destinationInput);
+            captureTriggerForRoute('route-a');
+            destinationInput.remove();
+            rowA.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(rowA);
+        });
+
+        it('does not clear the latch on noop state changes with removedKeys', () => {
+            const rowA = appendButton();
+            rowA.focus();
+
+            handleStateChange(
+                stackState(0, [
+                    {key: 'home', name: 'Home'},
+                    {key: 'orphan-modal', name: 'Modal'},
+                ]),
+            );
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+            handleStateChange(stackState(0, [{key: 'home', name: 'Home'}]));
+
+            captureTriggerForRoute('route-a');
+            rowA.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(rowA);
+        });
+
+        it('same-target click on a roving-tabindex ARIA element (role=menuitem) preserves the latch', () => {
+            const menuItem = document.createElement('div');
+            const destinationInput = appendInput();
+            menuItem.setAttribute('role', 'menuitem');
+            menuItem.setAttribute('tabindex', '-1');
+            document.body.appendChild(menuItem);
+            menuItem.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+            menuItem.dispatchEvent(new MouseEvent('click', {bubbles: true}));
+
+            fireFocusIn(destinationInput);
+            captureTriggerForRoute('route-a');
+            destinationInput.remove();
+            menuItem.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(menuItem);
+        });
+
+        it('a non-matching Enter/Space release preserves pending', () => {
+            withFakeTimers(() => {
+                const row = appendButton();
+                const destinationInput = appendInput();
+                row.focus();
+
+                document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+                jest.advanceTimersByTime(200);
+                row.dispatchEvent(new KeyboardEvent('keyup', {key: ' ', code: 'Space', bubbles: true}));
+
+                jest.advanceTimersByTime(600);
+                row.dispatchEvent(new KeyboardEvent('keyup', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+                fireFocusIn(destinationInput);
+                captureTriggerForRoute('route-a');
+                destinationInput.remove();
+                row.blur();
+                expect(restoreTriggerForRoute('route-a')).toBe(true);
+                expect(document.activeElement).toBe(row);
+            });
+        });
+
+        it('skipNextFocusRestore + notifyPushParamsBackward preserves lastInteractiveElement for a follow-up synchronous forward (save, goBack, openReport)', () => {
+            handleStateChange(stackState(0, [{key: 'home', name: 'Home'}]));
+            handleStateChange(
+                stackState(1, [
+                    {key: 'home', name: 'Home'},
+                    {key: 'search', name: 'Search'},
+                ]),
+            );
+
+            const rowA = appendButton();
+            rowA.focus();
+            fireFocusIn(rowA);
+            setLastInteractiveElementForTests(rowA);
+
+            skipNextFocusRestore();
+            notifyPushParamsBackward('search', {q: 'A'});
+
+            captureTriggerForRoute('post-save-route');
+            rowA.blur();
+            expect(restoreTriggerForRoute('post-save-route')).toBe(true);
+            expect(document.activeElement).toBe(rowA);
+        });
+
+        it('latches on modifier+Enter (Cmd/Ctrl/Alt/Shift)', () => {
+            const row = appendButton();
+            const destinationInput = appendInput();
+            row.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true, metaKey: true}));
+            fireFocusIn(destinationInput);
+            captureTriggerForRoute('route-a');
+
+            destinationInput.remove();
+            row.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(row);
+        });
+
+        it('clears the latch on mismatched keyup within TTL', () => {
+            const rowA = appendButton();
+            const rowB = appendButton();
+            rowA.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+            rowB.focus();
+            fireFocusIn(rowB);
+            rowB.dispatchEvent(new KeyboardEvent('keyup', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+            captureTriggerForRoute('route-a');
+            rowA.remove();
+            rowB.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(rowB);
+        });
+
+        it('does not refresh the latch when focus moves during a held key', () => {
+            withFakeTimers(() => {
+                const rowA = appendButton();
+                const rowB = appendButton();
+                rowA.focus();
+
+                document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+                rowB.focus();
+                fireFocusIn(rowB);
+                jest.advanceTimersByTime(600);
+                rowB.dispatchEvent(new KeyboardEvent('keyup', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+                captureTriggerForRoute('route-a');
+                rowA.remove();
+                rowB.blur();
+                expect(restoreTriggerForRoute('route-a')).toBe(true);
+                expect(document.activeElement).toBe(rowB);
+            });
+        });
+
+        it('preserves pending when a modifier is released before the held Enter (Shift+Enter, release Shift first)', () => {
+            withFakeTimers(() => {
+                const row = appendButton();
+                const destinationInput = appendInput();
+                row.focus();
+
+                document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true, shiftKey: true}));
+
+                jest.advanceTimersByTime(200);
+                row.dispatchEvent(new KeyboardEvent('keyup', {key: 'Shift', code: 'ShiftLeft', bubbles: true}));
+
+                // Enter release past TTL still refreshes.
+                jest.advanceTimersByTime(600);
+                row.dispatchEvent(new KeyboardEvent('keyup', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+                fireFocusIn(destinationInput);
+                captureTriggerForRoute('route-a');
+                destinationInput.remove();
+                row.blur();
+                expect(restoreTriggerForRoute('route-a')).toBe(true);
+                expect(document.activeElement).toBe(row);
+            });
+        });
+
+        it('refreshes the latch timestamp on Enter keyup', () => {
+            withFakeTimers(() => {
+                const row = appendButton();
+                const destinationInput = appendInput();
+                row.focus();
+
+                document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+                jest.advanceTimersByTime(800);
+                row.dispatchEvent(new KeyboardEvent('keyup', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+                fireFocusIn(destinationInput);
+                captureTriggerForRoute('route-a');
+
+                destinationInput.remove();
+                row.blur();
+                expect(restoreTriggerForRoute('route-a')).toBe(true);
+                expect(document.activeElement).toBe(row);
+            });
+        });
+
+        it('a newer physical pointerdown supersedes a stale keyboard latch', () => {
+            const rowA = appendButton();
+            const rowB = appendButton();
+            rowA.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+            rowB.dispatchEvent(new MouseEvent('pointerdown', {bubbles: true}));
+
+            captureTriggerForRoute('route-a');
+            rowA.remove();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(rowB);
+        });
+
+        it('AT-emitted click on a different target clears the latch', () => {
+            const rowA = appendButton();
+            const rowB = appendButton();
+            rowA.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+            rowB.dispatchEvent(new MouseEvent('click', {bubbles: true}));
+            rowB.focus();
+            fireFocusIn(rowB);
+
+            captureTriggerForRoute('route-a');
+            rowA.remove();
+            rowB.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(rowB);
+        });
+
+        it('does not latch on Safari IME-confirmation Enter (keyCode 229 without isComposing)', () => {
+            mockBrowser = 'safari';
+            try {
+                const composer = appendInput();
+                const rowB = appendButton();
+                composer.focus();
+
+                const event = new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true});
+                Object.defineProperty(event, 'keyCode', {value: 229, configurable: true});
+                document.dispatchEvent(event);
+
+                rowB.focus();
+                fireFocusIn(rowB);
+                captureTriggerForRoute('route-a');
+                composer.remove();
+                rowB.blur();
+                expect(restoreTriggerForRoute('route-a')).toBe(true);
+                expect(document.activeElement).toBe(rowB);
+            } finally {
+                mockBrowser = 'other';
+            }
+        });
+
+        it('a synthetic click from Enter/Space activation does not clear the latch', () => {
+            const row = appendButton();
+            const destinationInput = appendInput();
+            row.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+            row.dispatchEvent(new MouseEvent('click', {bubbles: true}));
+
+            fireFocusIn(destinationInput);
+            captureTriggerForRoute('route-a');
+            destinationInput.remove();
+            row.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(row);
+        });
+
+        it('a fresh keyboard latch trumps a stale mouse trigger even when hadTabNavigation is false', () => {
+            const rowA = appendButton();
+            const rowB = appendButton();
+
+            // hadTabNavigation stays false since neither mouse-click nor arrows flip it.
+            rowA.dispatchEvent(new MouseEvent('pointerdown', {bubbles: true}));
+            rowA.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowDown', code: 'ArrowDown', bubbles: true}));
+            rowB.focus();
+            fireFocusIn(rowB);
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+            captureTriggerForRoute('route-a');
+            rowA.remove();
+            rowB.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(rowB);
+        });
+
+        it('latches on Enter in a single-line text input (submit-driven nav like SearchPageInput.onSubmitEditing)', () => {
+            const searchInput = appendInput();
+            const destinationInput = appendInput();
+            searchInput.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+            fireFocusIn(destinationInput);
+            captureTriggerForRoute('route-a');
+
+            destinationInput.remove();
+            searchInput.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(searchInput);
+        });
+
+        it('does not latch on Space in a text input', () => {
+            const searchInput = appendInput();
+            const rowB = appendButton();
+            searchInput.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: ' ', code: 'Space', bubbles: true}));
+
+            rowB.focus();
+            fireFocusIn(rowB);
+            captureTriggerForRoute('route-a');
+            searchInput.remove();
+            rowB.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(rowB);
+        });
+
+        it('IME keyup does not revive a stale keyboard latch', () => {
+            withFakeTimers(() => {
+                const rowA = appendButton();
+                const rowB = appendButton();
+                rowA.focus();
+
+                document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+                document.dispatchEvent(new KeyboardEvent('keyup', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+                jest.advanceTimersByTime(600);
+                const composer = appendInput();
+                composer.focus();
+                const imeKeydown = new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true});
+                Object.defineProperty(imeKeydown, 'isComposing', {value: true, configurable: true});
+                document.dispatchEvent(imeKeydown);
+                document.dispatchEvent(new KeyboardEvent('keyup', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+                rowB.focus();
+                fireFocusIn(rowB);
+                captureTriggerForRoute('route-a');
+                rowA.remove();
+                rowB.blur();
+                expect(restoreTriggerForRoute('route-a')).toBe(true);
+                expect(document.activeElement).toBe(rowB);
+            });
+        });
+
+        it('does not refresh timestamp on keyup for a non-activation key', () => {
+            withFakeTimers(() => {
+                const row = appendButton();
+                const rowB = appendButton();
+                row.focus();
+
+                document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+                // Unrelated keyup (e.g. Meta released after Cmd+Tab) must not refresh.
+                jest.advanceTimersByTime(800);
+                document.dispatchEvent(new KeyboardEvent('keyup', {key: 'Meta', code: 'MetaLeft', bubbles: true}));
+
+                rowB.focus();
+                fireFocusIn(rowB);
+                captureTriggerForRoute('route-a');
+                row.remove();
+                rowB.blur();
+                expect(restoreTriggerForRoute('route-a')).toBe(true);
+                expect(document.activeElement).toBe(rowB);
+            });
+        });
+
+        it('a standalone modifier keydown does not clear a fresh Enter latch', () => {
+            const row = appendButton();
+            const destinationInput = appendInput();
+            row.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Shift', code: 'ShiftLeft', bubbles: true, shiftKey: true}));
+            fireFocusIn(destinationInput);
+            captureTriggerForRoute('route-a');
+
+            destinationInput.remove();
+            row.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(row);
+        });
+
+        it('does not latch when Enter fires in a textarea', () => {
+            const textarea = document.createElement('textarea');
+            const rowB = appendButton();
+            document.body.appendChild(textarea);
+            textarea.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+            rowB.focus();
+            fireFocusIn(rowB);
+            captureTriggerForRoute('route-a');
+
+            textarea.remove();
+            rowB.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(rowB);
+        });
+
+        it('does not latch when Space fires in a contenteditable', () => {
+            const composer = document.createElement('div');
+            const rowB = appendButton();
+            composer.setAttribute('contenteditable', 'true');
+            composer.setAttribute('tabindex', '0');
+            document.body.appendChild(composer);
+            composer.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: ' ', code: 'Space', bubbles: true}));
+
+            rowB.focus();
+            fireFocusIn(rowB);
+            captureTriggerForRoute('route-a');
+
+            composer.remove();
+            rowB.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(rowB);
+        });
+
+        it('does not latch during IME composition', () => {
+            const composer = appendInput();
+            const rowB = appendButton();
+            composer.focus();
+
+            const event = new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true});
+            Object.defineProperty(event, 'isComposing', {value: true, configurable: true});
+            document.dispatchEvent(event);
+
+            rowB.focus();
+            fireFocusIn(rowB);
+            captureTriggerForRoute('route-a');
+
+            composer.remove();
+            rowB.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(rowB);
+        });
+
+        it('does not refresh the latch timestamp on auto-repeat Enter', () => {
+            withFakeTimers(() => {
+                const rowA = appendButton();
+                const rowB = appendButton();
+                rowA.focus();
+
+                document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+                // Auto-repeats fire at t=200 and t=600. Timestamp must NOT be refreshed by either.
+                const repeat = new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true});
+                Object.defineProperty(repeat, 'repeat', {value: true, configurable: true});
+                jest.advanceTimersByTime(200);
+                document.dispatchEvent(repeat);
+                jest.advanceTimersByTime(400);
+                document.dispatchEvent(repeat);
+
+                rowB.focus();
+                fireFocusIn(rowB);
+                captureTriggerForRoute('route-a');
+                rowA.remove();
+                rowB.blur();
+                expect(restoreTriggerForRoute('route-a')).toBe(true);
+                expect(document.activeElement).toBe(rowB);
+            });
+        });
+
+        it.each([['-1'], ['0']])('does not latch a bare div with tabindex=%s (non-interactive focus-only helper)', (tabindex) => {
+            const helper = document.createElement('div');
+            const rowB = appendButton();
+            helper.setAttribute('tabindex', tabindex);
+            document.body.appendChild(helper);
+            helper.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+            rowB.focus();
+            fireFocusIn(rowB);
+            captureTriggerForRoute('route-a');
+
+            helper.remove();
+            rowB.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(rowB);
+        });
+
+        it('does not latch a role=img with tabindex=0 (presentational focusable, non-interactive)', () => {
+            const image = document.createElement('div');
+            const rowB = appendButton();
+            image.setAttribute('role', 'img');
+            image.setAttribute('tabindex', '0');
+            document.body.appendChild(image);
+            image.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+            rowB.focus();
+            fireFocusIn(rowB);
+            captureTriggerForRoute('route-a');
+
+            image.remove();
+            rowB.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(rowB);
+        });
+
+        it('latches a role=button with tabindex="-1" (roving-tabindex Pressable)', () => {
+            const row = document.createElement('div');
+            row.setAttribute('role', 'button');
+            row.setAttribute('tabindex', '-1');
+            document.body.appendChild(row);
+            const destinationInput = appendInput();
+            row.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+            fireFocusIn(destinationInput);
+            captureTriggerForRoute('route-a');
+
+            destinationInput.remove();
+            row.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(row);
+        });
+
+        it('two consecutive forward navigations do not reuse the first Enter latch', () => {
+            const rowA = appendButton();
+            handleStateChange(stackState(0, [{key: 'home', name: 'Home'}]));
+
+            rowA.focus();
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+            handleStateChange(
+                stackState(1, [
+                    {key: 'home', name: 'Home'},
+                    {key: 'route-a', name: 'A'},
+                ]),
+            );
+
+            // Second forward has no fresh Enter. A leaked latch would replay rowA for route-a.
+            handleStateChange(
+                stackState(2, [
+                    {key: 'home', name: 'Home'},
+                    {key: 'route-a', name: 'A'},
+                    {key: 'route-b', name: 'B'},
+                ]),
+            );
+
+            rowA.blur();
+            expect(restoreTriggerForRoute('home')).toBe(true);
+            expect(restoreTriggerForRoute('route-a')).toBe(false);
+        });
+
+        it('lateral state change (top-tab switch) clears the latch', () => {
+            const tabA = appendButton();
+            const tabB = appendButton();
+
+            tabA.focus();
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+            handleStateChange(
+                stackState(0, [
+                    {key: 'tab-a', name: 'TabA'},
+                    {key: 'tab-b', name: 'TabB'},
+                ]),
+            );
+            handleStateChange(
+                stackState(1, [
+                    {key: 'tab-a', name: 'TabA'},
+                    {key: 'tab-b', name: 'TabB'},
+                ]),
+            );
+
+            tabB.focus();
+            fireFocusIn(tabB);
+            captureTriggerForRoute('post-lateral-route');
+            tabB.blur();
+            expect(restoreTriggerForRoute('post-lateral-route')).toBe(true);
+            expect(document.activeElement).toBe(tabB);
+        });
+
+        it('launcher-mediated capture combines the fresh latch as primary with the launcher as fallback', () => {
+            const launcher = appendButton();
+            const rowInsideTrap = appendButton();
+            rowInsideTrap.focus();
+
+            setActivePopoverLauncher(launcher);
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+            captureTriggerForRoute('route-a');
+
+            // Row removed on trap close. Restore must fall back to launcher.
+            rowInsideTrap.remove();
+            const launcherSpy = jest.spyOn(launcher, 'focus');
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(launcherSpy).toHaveBeenCalled();
+        });
+
+        it('notifyPushParamsBackward clears the latch', () => {
+            const rowA = appendButton();
+            rowA.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+            notifyPushParamsBackward('search', {q: 'A'});
+
+            rowA.remove();
+            const rowB = appendButton();
+            rowB.focus();
+            fireFocusIn(rowB);
+            captureTriggerForRoute('post-back-route');
+            rowB.blur();
+            expect(restoreTriggerForRoute('post-back-route')).toBe(true);
+            expect(document.activeElement).toBe(rowB);
+        });
+
+        it('notifyPushParamsBackward clears the latch even on the skipped-restore branch (form-submit goBack)', () => {
+            const rowA = appendButton();
+            rowA.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+            skipNextFocusRestore();
+            notifyPushParamsBackward('search', {q: 'A'});
+
+            rowA.remove();
+            const rowB = appendButton();
+            rowB.focus();
+            fireFocusIn(rowB);
+            captureTriggerForRoute('post-back-route');
+            rowB.blur();
+            expect(restoreTriggerForRoute('post-back-route')).toBe(true);
+            expect(document.activeElement).toBe(rowB);
+        });
+
+        it('teardown removes the keydown listener', () => {
+            teardownNavigationFocusReturn();
+
+            const row = appendButton();
+            row.focus();
+            // Dispatched between teardown and setup. A leaked listener would set the latch here.
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+            setupNavigationFocusReturn();
+            simulateTab();
+            row.blur();
+
+            captureTriggerForRoute('route-a');
+            expect(restoreTriggerForRoute('route-a')).toBe(false);
+        });
     });
 
     describe('modality: arrow and named keys preserve keyboard modality', () => {
@@ -431,7 +1355,7 @@ describe('captureTriggerForRoute', () => {
 
             // Popover opens then closes: launcher set, deferred clear pending.
             setActivePopoverLauncher(launcher);
-            scheduleClearActivePopoverLauncher();
+            markActivePopoverLauncherDeactivated();
 
             // FocusTrap returnFocus puts focus on launcher first.
             launcher.focus();
@@ -871,6 +1795,23 @@ describe('restoreTriggerForRoute', () => {
         expect(triggerSpy).toHaveBeenCalled();
     });
 
+    it('should still preempt AUTO even after useAccessibilityFocus tail-resetCycle idles the cycle — recognize the programmatic-focus marker as app-driven', () => {
+        const trigger = appendButton();
+        const autoTarget = appendInput();
+        trigger.focus();
+        setLastInteractiveElementForTests(trigger);
+        captureTriggerForRoute('route-a');
+
+        tryClaim(Priorities.AUTO);
+        autoTarget.setAttribute('data-programmatic-focus', 'true');
+        autoTarget.focus();
+        resetArbiter();
+
+        const triggerSpy = jest.spyOn(trigger, 'focus');
+        expect(restoreTriggerForRoute('route-a')).toBe(true);
+        expect(triggerSpy).toHaveBeenCalled();
+    });
+
     it('releases the cycle at RETURN_HOLD_MS when the user has moved focus elsewhere so unrelated later AUTO claims are not blocked for 2s', () => {
         withFakeTimers(() => {
             const trigger = appendButton();
@@ -1037,6 +1978,30 @@ describe('restoreTriggerForRoute', () => {
         expect(launcherSpy).not.toHaveBeenCalled();
     });
 
+    it('re-seeds the redirect target (not the captured primary) as the trigger candidate for the next round trip', () => {
+        // Mouse modality: focusin does not re-record the restored element, so seedTriggerCandidate is the only source.
+        simulateMouse();
+        const primary = appendButton();
+        const redirectTarget = appendButton();
+        setLastMouseTriggerForTests(primary);
+        captureTriggerForRoute('route-a');
+
+        // Primary's .focus() handler redirects focus to redirectTarget (simulating a composite widget).
+        const focusSpy = jest.spyOn(primary, 'focus').mockImplementation(() => {
+            redirectTarget.focus();
+        });
+        expect(restoreTriggerForRoute('route-a')).toBe(true);
+        expect(document.activeElement).toBe(redirectTarget);
+        focusSpy.mockRestore();
+
+        // Second round trip, no click in between. The capture must reach for the element that actually holds focus,
+        // not the primary whose onFocus bounced away from it.
+        redirectTarget.blur();
+        captureTriggerForRoute('route-b');
+        expect(restoreTriggerForRoute('route-b')).toBe(true);
+        expect(document.activeElement).toBe(redirectTarget);
+    });
+
     it('must not treat pre-existing non-body focus as an onFocus redirect when the candidate silently no-ops', () => {
         const launcher = appendButton();
         const primary = appendButton();
@@ -1101,7 +2066,7 @@ describe('restoreTriggerForRoute', () => {
             const clearSpy = jest.spyOn(clearAfterButton, 'focus');
 
             // Scheduled restore fires; RETURN preempts AUTO and focus lands on "Clear after", not the Message input.
-            jest.runAllTimers();
+            flushTransitions();
             expect(clearSpy).toHaveBeenCalled();
             expect(messageSpy).not.toHaveBeenCalled();
         });
@@ -1126,7 +2091,7 @@ describe('restoreTriggerForRoute', () => {
 
             // Esc → backward → scheduled restore refocuses Clear after. Hold extends because the target is still focused.
             handleStateChange(onStatus);
-            jest.runAllTimers();
+            flushTransitions();
             expect(document.activeElement).toBe(clearAfterButton);
 
             // Late useAutoFocusInput: the guard catches it before it reaches tryClaim.
@@ -1139,6 +2104,26 @@ describe('restoreTriggerForRoute', () => {
 
             expect(messageSpy).not.toHaveBeenCalled();
             expect(document.activeElement).toBe(clearAfterButton);
+        });
+    });
+
+    it('stack-pop restore fires synchronously inside the transition callback (no rAF defer)', () => {
+        withFakeTimers(() => {
+            simulateTab();
+            const trigger = appendButton();
+            fireFocusIn(trigger);
+            handleStateChange(stackState(0, [{key: 'route-a', name: 'A'}]));
+            handleStateChange(
+                stackState(1, [
+                    {key: 'route-a', name: 'A'},
+                    {key: 'route-b', name: 'B'},
+                ]),
+            );
+            trigger.blur();
+            handleStateChange(stackState(0, [{key: 'route-a', name: 'A'}]));
+            const spy = jest.spyOn(trigger, 'focus');
+            flushTransitions();
+            expect(spy).toHaveBeenCalled();
         });
     });
 
@@ -1239,7 +2224,9 @@ describe('shouldSkipAutoFocusDueToExistingFocus', () => {
     }
 
     it('returns false when body holds focus (nothing else claimed)', () => {
-        (document.activeElement as HTMLElement | null)?.blur();
+        if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+        }
         expect(shouldSkipAutoFocusDueToExistingFocus()).toBe(false);
     });
 
@@ -1422,6 +2409,37 @@ describe('handleStateChange integration', () => {
         expect(stored || document.activeElement === trigger).toBe(true);
     });
 
+    it('restores on every round trip when the navigation is keyboard-shortcut driven in mouse modality (issue #99569)', () => {
+        withFakeTimers(() => {
+            handleStateChange(onA);
+
+            // User clicks into a composer and types, which puts us in mouse modality, so focusin never
+            // records lastInteractiveElement, and Cmd+Shift+K latches no Enter/Space activation.
+            const composer = document.createElement('textarea');
+            document.body.appendChild(composer);
+            composer.dispatchEvent(new MouseEvent('pointerdown', {bubbles: true}));
+            composer.focus();
+
+            // Round trip 1: open the RHP with the shortcut, then click Back.
+            handleStateChange(onAB);
+            const backButton = appendButton();
+            backButton.dispatchEvent(new MouseEvent('pointerdown', {bubbles: true}));
+            backButton.remove();
+            composer.blur();
+            handleStateChange(onA);
+            flushTransitions();
+            expect(document.activeElement).toBe(composer);
+
+            // Round trip 2: the shortcut again, with no click on the composer in between. The backward transition
+            // cleared the click-tracked trigger, so only the restore's re-seed can supply it.
+            handleStateChange(onAB);
+            composer.blur();
+            handleStateChange(onA);
+            flushTransitions();
+            expect(document.activeElement).toBe(composer);
+        });
+    });
+
     it('should do nothing when the focused route has not changed', () => {
         simulateTab();
         handleStateChange(onA);
@@ -1450,7 +2468,27 @@ describe('handleStateChange integration', () => {
             handleStateChange(onA);
 
             const spy = jest.spyOn(trigger, 'focus');
-            jest.runAllTimers();
+            flushTransitions();
+            expect(spy).toHaveBeenCalled();
+        });
+    });
+
+    it('clears an armed skipNextFocusRestore on a noop navigation so a later real Back still restores focus', () => {
+        withFakeTimers(() => {
+            simulateTab();
+            handleStateChange(onA);
+
+            const trigger = appendButton();
+            fireFocusIn(trigger);
+            handleStateChange(onAB);
+            trigger.blur();
+
+            skipNextFocusRestore();
+            handleStateChange(onAB);
+
+            const spy = jest.spyOn(trigger, 'focus');
+            handleStateChange(onA);
+            flushTransitions();
             expect(spy).toHaveBeenCalled();
         });
     });
@@ -1468,15 +2506,39 @@ describe('handleStateChange integration', () => {
             skipNextFocusRestore();
             const spy = jest.spyOn(trigger, 'focus');
             handleStateChange(onA);
-            jest.runAllTimers();
+            flushTransitions();
             expect(spy).not.toHaveBeenCalled();
 
-            // The flag is one-shot: a subsequent Back-button dismissal restores normally.
+            // The flag is one-shot: a fresh capture + Back-button dismissal restores normally.
+            fireFocusIn(trigger);
             handleStateChange(onAB);
             trigger.blur();
             handleStateChange(onA);
-            jest.runAllTimers();
+            flushTransitions();
             expect(spy).toHaveBeenCalled();
+        });
+    });
+
+    it('skipNextFocusRestore drops the entry, so a later same-key backward without re-capture does not replay a stale trigger', () => {
+        withFakeTimers(() => {
+            simulateTab();
+            handleStateChange(onA);
+
+            const trigger = appendButton();
+            fireFocusIn(trigger);
+            handleStateChange(onAB);
+            trigger.blur();
+
+            skipNextFocusRestore();
+            handleStateChange(onA);
+            flushTransitions();
+
+            const spy = jest.spyOn(trigger, 'focus');
+            handleStateChange(onAB);
+            trigger.blur();
+            handleStateChange(onA);
+            flushTransitions();
+            expect(spy).not.toHaveBeenCalled();
         });
     });
 
@@ -1494,7 +2556,7 @@ describe('handleStateChange integration', () => {
             trigger.blur();
             const spy = jest.spyOn(trigger, 'focus');
             handleStateChange(onA);
-            jest.runAllTimers();
+            flushTransitions();
             expect(spy).toHaveBeenCalled();
         });
     });
@@ -1535,7 +2597,7 @@ describe('handleStateChange integration', () => {
             handleStateChange(onTab2);
 
             const spy = jest.spyOn(trigger, 'focus');
-            jest.runAllTimers();
+            flushTransitions();
             expect(spy).not.toHaveBeenCalled();
         });
     });
@@ -1561,7 +2623,7 @@ describe('handleStateChange integration', () => {
             handleStateChange(onAC);
 
             const spy = jest.spyOn(trigger, 'focus');
-            jest.runAllTimers();
+            flushTransitions();
             expect(spy).not.toHaveBeenCalled();
         });
     });
@@ -1580,7 +2642,7 @@ describe('handleStateChange integration', () => {
         expect(restoreTriggerForRoute('a')).toBe(false);
     });
 
-    it('should drop the stale entry after MAX_RESTORE_ATTEMPTS retries all fail', () => {
+    it('should drop the stale entry after the retry budget is exhausted (trigger stays aria-hidden)', () => {
         withFakeTimers(() => {
             simulateTab();
             const hidden = document.createElement('div');
@@ -1595,7 +2657,8 @@ describe('handleStateChange integration', () => {
             trigger.blur();
             handleStateChange(onA);
 
-            // Trigger stays aria-hidden across all retry attempts — scheduleRestore gives up.
+            // Trigger stays aria-hidden across the transition + every rAF retry — scheduleRestore gives up.
+            flushTransitions();
             jest.runAllTimers();
             const spy = jest.spyOn(trigger, 'focus');
 
@@ -1682,6 +2745,27 @@ describe('PUSH_PARAMS notifications', () => {
 
             const spy = jest.spyOn(trigger, 'focus');
             notifyPushParamsBackward('search-x', {q: 'foo'});
+            flushTransitions();
+            jest.runAllTimers();
+            expect(spy).toHaveBeenCalled();
+        });
+    });
+
+    it('recovers focus when the trigger is detached at the first attempt and remounts within the retry budget', () => {
+        withFakeTimers(() => {
+            const trigger = appendInput();
+            fireFocusIn(trigger);
+            notifyPushParamsForward('search-x', {q: 'foo'});
+
+            trigger.remove();
+
+            const spy = jest.spyOn(trigger, 'focus');
+            notifyPushParamsBackward('search-x', {q: 'foo'});
+
+            flushTransitions();
+            expect(spy).not.toHaveBeenCalled();
+
+            document.body.appendChild(trigger);
             jest.runAllTimers();
             expect(spy).toHaveBeenCalled();
         });
@@ -1711,6 +2795,56 @@ describe('PUSH_PARAMS notifications', () => {
 
             const spy = jest.spyOn(trigger, 'focus');
             notifyPushParamsBackward('search-x', {q: 'baz'});
+            flushTransitions();
+            expect(spy).not.toHaveBeenCalled();
+        });
+    });
+
+    it('defers the first restore attempt by one frame so the post-commit render lands before focus', () => {
+        withFakeTimers(() => {
+            const trigger = appendInput();
+            fireFocusIn(trigger);
+            notifyPushParamsForward('search-x', {q: 'foo'});
+            trigger.blur();
+
+            const spy = jest.spyOn(trigger, 'focus');
+            notifyPushParamsBackward('search-x', {q: 'foo'});
+            flushTransitions();
+            expect(spy).not.toHaveBeenCalled();
+            jest.runAllTimers();
+            expect(spy).toHaveBeenCalled();
+        });
+    });
+
+    it('yields to a user focus that lands during the rAF defer (baseline-vs-activeElement check still wins)', () => {
+        withFakeTimers(() => {
+            const trigger = appendInput();
+            fireFocusIn(trigger);
+            notifyPushParamsForward('search-x', {q: 'foo'});
+            trigger.blur();
+
+            const triggerSpy = jest.spyOn(trigger, 'focus');
+            notifyPushParamsBackward('search-x', {q: 'foo'});
+            flushTransitions();
+            const userTarget = appendButton();
+            userTarget.focus();
+            jest.runAllTimers();
+            expect(triggerSpy).not.toHaveBeenCalled();
+            expect(document.activeElement).toBe(userTarget);
+        });
+    });
+
+    it('cancelPendingFocusRestore drops the rAF-deferred attempt so a later nav cannot replay it', () => {
+        withFakeTimers(() => {
+            const trigger = appendInput();
+            fireFocusIn(trigger);
+            notifyPushParamsForward('search-x', {q: 'foo'});
+            trigger.blur();
+
+            const spy = jest.spyOn(trigger, 'focus');
+            notifyPushParamsBackward('search-x', {q: 'foo'});
+            flushTransitions();
+            cancelPendingFocusRestore();
             jest.runAllTimers();
             expect(spy).not.toHaveBeenCalled();
         });
@@ -1789,7 +2923,7 @@ describe('teardown / setup lifecycle', () => {
 
             const spy = jest.spyOn(trigger, 'focus');
             teardownNavigationFocusReturn();
-            jest.runAllTimers(); // if cancellation failed, restore would fire here
+            flushTransitions(); // if cancellation failed, the restore would fire here
             expect(spy).not.toHaveBeenCalled();
         });
     });
@@ -1933,8 +3067,8 @@ describe('teardown / setup lifecycle', () => {
         const originalAddListener = navigationRef.addListener.bind(navigationRef);
         const originalIsReady = navigationRef.isReady.bind(navigationRef);
         const originalGetRootState = navigationRef.getRootState.bind(navigationRef);
-        const addListenerSpy = jest.fn(() => () => {});
-        navigationRef.addListener = addListenerSpy as unknown as typeof navigationRef.addListener;
+        const addListenerSpy = jest.fn<ReturnType<typeof navigationRef.addListener>, Parameters<typeof navigationRef.addListener>>(() => () => {});
+        navigationRef.addListener = addListenerSpy;
         navigationRef.isReady = () => false;
         navigationRef.getRootState = () => undefined;
         try {

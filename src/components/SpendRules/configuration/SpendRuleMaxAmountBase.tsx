@@ -4,7 +4,6 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
@@ -41,7 +40,7 @@ function SpendRuleMaxAmountBase({policyID, maxAmount, currencyCode, onMaxAmountC
 
     const onSubmit = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.SPEND_RULE_MAX_AMOUNT_FORM>) => {
         onMaxAmountChange(form.maxAmount.trim());
-        goBack();
+        Navigation.goBack(undefined, {shouldSkipFocusRestore: true});
     };
 
     return (
@@ -80,7 +79,6 @@ function SpendRuleMaxAmountBase({policyID, maxAmount, currencyCode, onMaxAmountC
                             defaultValue={maxAmount}
                             isCurrencyPressable={false}
                         />
-                        <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.spendRules.maxAmountHelp')}</Text>
                     </View>
                 </FormProvider>
             </ScreenWrapper>

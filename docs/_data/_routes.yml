@@ -48,11 +48,11 @@ topics:
     hub: /new-expensify/hubs/connect-credit-cards/
     links:
       - label: Connect commercial feed
-        href: /articles/new-expensify/connect-credit-cards/Commercial-feeds
+        href: /articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Feed-for-Company-Cards
       - label: Connect directly
-        href: /articles/new-expensify/connect-credit-cards/Direct-feeds
+        href: /articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Direct-Connection-for-Company-Cards
       - label: Map cards to GL
-        href: /articles/new-expensify/connect-credit-cards/Company-Card-Settings
+        href: /articles/new-expensify/connect-credit-cards/configure-and-manage-company-cards/Configure-Company-Card-Settings
 
   - title: Accounting
     icon: /assets/images/simple-illustration__monitor-remotesync.svg
@@ -276,7 +276,7 @@ platforms:
         description: Manage profile settings and notifications.
 
       - href: billing-and-subscriptions
-        title: Expensify Billing & Subscriptions
+        title: Billing & Subscriptions
         icon: /assets/images/subscription-annual.svg
         description: Review Expensify's subscription options, plan types, and payment methods.
 

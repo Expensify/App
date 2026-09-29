@@ -1,6 +1,7 @@
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 
@@ -69,15 +70,15 @@ function SageIntacctImportTaxPage({route}: SageIntacctImportTaxPageProps) {
                 isToggleTriggered={shouldAnimateAccordionSection}
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.TAX, CONST.SAGE_INTACCT_CONFIG.TAX_SOLUTION_ID], sageIntacctConfig?.pendingFields)}>
-                    <MenuItemWithTopDescription
-                        title={sageIntacctConfig?.tax?.taxSolutionID ?? sageIntacctData?.taxSolutionIDs?.at(0)}
-                        description={translate('workspace.sageIntacct.taxSolution')}
-                        shouldShowRightIcon
+                    <MenuItemField
+                        name={translate('workspace.sageIntacct.taxSolution')}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT_TAX_MAPPING.getRoute(policyID))}
-                        brickRoadIndicator={
-                            areSettingsInErrorFields([CONST.SAGE_INTACCT_CONFIG.TAX_SOLUTION_ID], sageIntacctConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
-                        }
-                    />
+                        value={sageIntacctConfig?.tax?.taxSolutionID ?? sageIntacctData?.taxSolutionIDs?.at(0)}
+                    >
+                        {areSettingsInErrorFields([CONST.SAGE_INTACCT_CONFIG.TAX_SOLUTION_ID], sageIntacctConfig?.errorFields) && (
+                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                        )}
+                    </MenuItemField>
                 </OfflineWithFeedback>
             </Accordion>
         </ConnectionLayout>

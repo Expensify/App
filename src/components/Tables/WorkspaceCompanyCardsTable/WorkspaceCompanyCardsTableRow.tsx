@@ -1,9 +1,9 @@
+import AccountAvatarWithCardFeed from '@components/Avatar/connected/AccountAvatarWithCardFeed';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {TableData} from '@components/Table';
 import Table from '@components/Table';
-import Text from '@components/Text';
+import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -28,27 +28,16 @@ import {View} from 'react-native';
 
 type WorkspaceCompanyCardTableRowData = TableData &
     CardAssignmentData & {
-        /** Whether the card is deleted */
         isCardDeleted: boolean;
-
-        /** Whether the card is assigned */
         isAssigned: boolean;
-
-        /** Assigned card */
         assignedCard?: Card;
-
-        /** On dismiss error callback */
+        exportAccountTitle?: string;
         onDismissError?: () => void;
     };
 
 type WorkspaceCompanyCardTableRowProps = {
-    /** The workspace company card table item */
     item: WorkspaceCompanyCardTableRowData;
-
-    /** Selected card feed */
     feedName?: CompanyCardFeedWithDomainID;
-
-    /** Card feed icon element */
     CardFeedIcon?: React.ReactNode;
 
     /** Whether to disable assign card button */
@@ -57,10 +46,10 @@ type WorkspaceCompanyCardTableRowProps = {
     /** Whether the current member can edit company cards */
     canWriteCompanyCards: boolean;
 
-    /** Whether to use narrow table row layout */
-    shouldUseNarrowTableLayout: boolean;
+    /** Whether the Export account column is shown, so the row must keep its cell in step with the column */
+    shouldShowExportAccountColumn: boolean;
 
-    /** The index of the row */
+    shouldUseNarrowTableLayout: boolean;
     rowIndex: number;
 
     /**
@@ -76,6 +65,7 @@ function WorkspaceCompanyCardTableRow({
     feedName,
     CardFeedIcon,
     shouldUseNarrowTableLayout,
+    shouldShowExportAccountColumn,
     rowIndex,
     isAssigningCardDisabled,
     canWriteCompanyCards,
@@ -83,8 +73,9 @@ function WorkspaceCompanyCardTableRow({
 }: WorkspaceCompanyCardTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     const {cardName, encryptedCardNumber, customCardName, cardholder, assignedCard, isAssigned, errors, pendingAction, isCardDeleted, onDismissError} = item;
 
@@ -92,10 +83,12 @@ function WorkspaceCompanyCardTableRow({
     const formattedCardDetails = formatMaskedCardName(cardName);
     const formattedCustomCardNameSuffix = formattedCustomCardName ? ` • ${formattedCustomCardName}` : '';
 
-    const cardholderLoginText = !shouldUseNarrowTableLayout && isAssigned ? Str.removeSMSDomain(cardholder?.login ?? '') : undefined;
+    const cardholderLoginText = !shouldUseNarrowTableLayout && isAssigned ? formatPhoneNumber(cardholder?.login ?? '') : undefined;
     const narrowWidthCardName = isAssigned ? `${formattedCardDetails}${formattedCustomCardNameSuffix}` : cardName;
 
-    const memberColumnTitle = isAssigned ? Str.removeSMSDomain(cardholder?.displayName ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards');
+    const cardholderDisplayName = cardholder?.displayName ?? '';
+    const formattedCardholderDisplayName = Str.isSMSLogin(cardholderDisplayName) ? formatPhoneNumber(cardholderDisplayName) : cardholderDisplayName;
+    const memberColumnTitle = isAssigned ? formattedCardholderDisplayName : translate('workspace.moreFeatures.companyCards.unassignedCards');
     const memberCardSubtitle = shouldUseNarrowTableLayout ? narrowWidthCardName : cardholderLoginText;
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
@@ -107,7 +100,7 @@ function WorkspaceCompanyCardTableRow({
     const canAssignCard = !isAssigned && canWriteCompanyCards && !isAssigningCardDisabled;
     const canPressRow = canOpenCardDetails || canAssignCard;
 
-    const handleRowPress = () => {
+    const assignCardOrOpenDetails = () => {
         if (!assignedCard) {
             if (!canAssignCard) {
                 return;
@@ -125,38 +118,46 @@ function WorkspaceCompanyCardTableRow({
         return Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(feedName, cardID.toString())));
     };
 
+    const accessibilityLabel = [memberColumnTitle, formattedCardDetails, formattedCustomCardName, item.exportAccountTitle].filter(Boolean).join(', ');
+
     return (
         <Table.Row
             interactive
             rowIndex={rowIndex}
+            accessibilityLabel={accessibilityLabel}
             disabled={isCardDeleted || !canPressRow}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TABLE_ITEM}
             offlineWithFeedback={{errors, pendingAction, onClose: onDismissError, shouldHideOnDelete: false}}
-            onPress={handleRowPress}
+            onPress={assignCardOrOpenDetails}
         >
             {({hovered}) => (
                 <>
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                    <View
+                        style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsCenter, styles.gap3]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
                         {isAssigned ? (
-                            <ReportActionAvatars
-                                noRightMarginOnSubscriptContainer
+                            <AccountAvatarWithCardFeed
+                                accountID={cardholder?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                                cardFeed={assignedCard?.bank as CompanyCardFeed}
+                                cardFeedIconSize={subscriptCardFeedIconSize}
+                                borderColor={hovered ? theme.hoverComponentBG : theme.highlightBG}
+                                containerStyle={styles.mr0}
                                 size={avatarSize}
-                                accountIDs={cardholder?.accountID ? [cardholder.accountID] : []}
-                                subscriptCardFeed={assignedCard?.bank as CompanyCardFeed}
-                                subscriptCardFeedIconSize={subscriptCardFeedIconSize}
-                                subscriptAvatarBorderColor={hovered ? theme.hoverComponentBG : theme.highlightBG}
                             />
                         ) : (
                             CardFeedIcon
                         )}
 
-                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, shouldUseNarrowTableLayout && styles.gap1]}>
+                        <View style={[styles.flex1, styles.mnw0, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, shouldUseNarrowTableLayout && styles.gap1]}>
                             <TextWithTooltip
+                                shouldShowTooltip
                                 text={memberColumnTitle}
                                 style={[styles.optionDisplayName, styles.pre, styles.justifyContentCenter]}
                             />
                             {!!memberCardSubtitle && (
                                 <TextWithTooltip
+                                    shouldShowTooltip
                                     text={memberCardSubtitle}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
                                 />
@@ -165,36 +166,60 @@ function WorkspaceCompanyCardTableRow({
                     </View>
 
                     {!shouldUseNarrowTableLayout && (
-                        <View style={[styles.flex1, styles.justifyContentCenter]}>
-                            <Text
+                        <View
+                            style={[styles.flex1, styles.mnw0, styles.justifyContentCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            <TextWithTooltip
+                                shouldShowTooltip
                                 numberOfLines={1}
+                                text={formattedCardDetails}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                            >
-                                {formattedCardDetails}
-                            </Text>
+                            />
                         </View>
                     )}
 
                     {!shouldUseNarrowTableLayout && (
-                        <View style={[styles.flex1, styles.justifyContentCenter]}>
-                            <Text
+                        <View
+                            style={[styles.flex1, styles.mnw0, styles.justifyContentCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            <TextWithTooltip
+                                shouldShowTooltip
                                 numberOfLines={1}
+                                text={customCardName ?? ''}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                            >
-                                {customCardName}
-                            </Text>
+                            />
                         </View>
                     )}
 
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}>
+                    {!shouldUseNarrowTableLayout && shouldShowExportAccountColumn && (
+                        <View
+                            style={[styles.flex1, styles.mnw0, styles.justifyContentCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                numberOfLines={1}
+                                text={item.exportAccountTitle ?? ''}
+                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                            />
+                        </View>
+                    )}
+
+                    <View
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
                         {!isAssigned && canWriteCompanyCards && (
                             <Button
-                                small
-                                success
-                                text={translate('workspace.companyCards.assign')}
-                                onPress={handleRowPress}
+                                size={CONST.BUTTON_SIZE.SMALL}
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                onPress={assignCardOrOpenDetails}
                                 isDisabled={isAssigningCardDisabled}
-                            />
+                            >
+                                <Button.Text>{translate('workspace.companyCards.assign')}</Button.Text>
+                            </Button>
                         )}
 
                         {canPressRow && (

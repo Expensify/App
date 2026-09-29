@@ -5,6 +5,8 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -27,11 +29,12 @@ function TestDriveBanner({onPress}: TestDriveBannerProps) {
                         : `${translate('testDrive.banner.currentlyTestDrivingExpensify')}. ${translate('testDrive.banner.readyForTheRealThing')}`}
                 </Text>
                 <Button
-                    text={translate('testDrive.banner.getStarted')}
-                    small
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.SMALL}
                     onPress={onPress}
-                />
+                >
+                    <Button.Text>{translate('testDrive.banner.getStarted')}</Button.Text>
+                </Button>
             </View>
         </View>
     );

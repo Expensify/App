@@ -26,8 +26,9 @@ Depending on the access level assigned to you, you may be able to:
  - View expenses and chats
  - Create and submit expenses
  - Review reports
- - Update account, workspace, and domain settings
- - Forward receipts to the account owner's account
+ - Update the member's account, workspace, and domain settings
+ - Merge accounts on the member's behalf
+ - Forward receipts to the member's account
 
 Some actions may be restricted if you've been granted Limited Access. 
 
@@ -56,7 +57,7 @@ The receipt is automatically SmartScanned to the account owner's Expensify accou
 ## How to exit a Copilot account and return to your own account
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
-2. At the top of the page, select the account owner's name to open the account switcher.
+2. At the top of the page, select **Switch** to open the account switcher.
 3. Select your name.
 
 ## What happens after you switch to a Copilot account

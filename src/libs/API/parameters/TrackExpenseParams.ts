@@ -38,8 +38,12 @@ type TrackExpenseParams = {
     customUnitRateID?: string;
     description?: string;
     distance?: number;
+    modifiedDistance?: number;
     gpsCoordinates?: string;
     distanceRequestType?: string;
+
+    /** Distance in meters of the alternate map route the user picked, so the backend doesn't fall back to the primary route */
+    selectedRouteDistance?: number;
     isDistance?: boolean;
     odometerStart?: number;
     odometerEnd?: number;

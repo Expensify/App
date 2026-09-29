@@ -14,6 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
@@ -58,11 +59,12 @@ function WorkspaceOwnerRestrictedAction() {
                     <Text style={[styles.textHeadlineH1, styles.mb4]}>{translate('workspace.restrictedAction.addPaymentCardToContinueUsingWorkspace')}</Text>
                     <Text style={[styles.textLabelSupportingEmptyValue, styles.mb5]}>{translate('workspace.restrictedAction.youWillNeedToAddOrUpdatePaymentCard')}</Text>
                     <Button
-                        text={translate('workspace.restrictedAction.addPaymentCard')}
                         onPress={addPaymentCard}
-                        success
-                        large
-                    />
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
+                    >
+                        <Button.Text>{translate('workspace.restrictedAction.addPaymentCard')}</Button.Text>
+                    </Button>
                 </View>
             </ScrollView>
         </ScreenWrapper>

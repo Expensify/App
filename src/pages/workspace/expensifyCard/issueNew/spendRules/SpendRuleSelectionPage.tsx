@@ -14,6 +14,7 @@ import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -51,6 +52,7 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
 
     const [shouldShowError, setShouldShowError] = useState(false);
     const [cardRuleID, setCardRuleID] = useState(issueCardForm?.data?.spendRuleID);
+    const {isLoading, startWithLoading} = usePressLoading();
 
     const isLoadingIssueCardForm = isLoadingOnyxValue(issueCardFormMetadata);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_SELECTION.path);
@@ -101,8 +103,10 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
         }
 
         setShouldShowError(false);
-        setIssueNewCardData(policyID, {spendRuleID: cardRuleID}).then(() => {
-            goBack();
+        startWithLoading(() => {
+            setIssueNewCardData(policyID, {spendRuleID: cardRuleID}).then(() => {
+                goBack();
+            });
         });
     };
 
@@ -141,10 +145,6 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
                             color={theme.spinner}
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={[styles.pl3]}
-                            reasonAttributes={{
-                                context: 'SpendRuleSelectionPage',
-                                isLoadingFromOnyx: true,
-                            }}
                         />
                     </View>
                 )}
@@ -176,6 +176,8 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
                             <FormAlertWithSubmitButton
                                 buttonText={translate('common.save')}
                                 onSubmit={onSubmit}
+                                shouldShowLoadingImmediatelyOnPress={false}
+                                isLoading={isLoading}
                                 isAlertVisible={shouldShowError}
                                 containerStyles={[!shouldShowError && styles.mt5]}
                                 message={translate('common.error.pleaseSelectOne')}

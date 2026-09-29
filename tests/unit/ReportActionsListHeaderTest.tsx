@@ -20,16 +20,16 @@ describe('ReportActionsListHeader', () => {
         jest.clearAllMocks();
     });
 
-    it('renders ConciergeThinkingMessage when there is no active draft', () => {
+    it('renders ConciergeThinkingMessage when no draft is pending completion', () => {
         render(<ReportActionsListHeader reportID={REPORT_ID} />);
         expect(screen.getByTestId('ConciergeThinkingMessage')).toBeTruthy();
     });
 
-    it('renders nothing when there is an active draft', () => {
+    it('renders nothing while a draft is still streaming in (pending completion)', () => {
         render(
             <ReportActionsListHeader
                 reportID={REPORT_ID}
-                hasActiveDraft
+                isDraftPendingCompletion
             />,
         );
         expect(screen.queryByTestId('ConciergeThinkingMessage')).toBeNull();

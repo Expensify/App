@@ -9,16 +9,19 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {loginSelector} from '@selectors/PersonalDetails';
 import {useMemo} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDistanceRateOriginalPolicy from './useDistanceRateOriginalPolicy';
 import useOnyx from './useOnyx';
+import {usePersonalDetail} from './usePersonalDetails';
 
 function useTransactionViolations(transactionID?: string, shouldShowRterForSettledReport = true, policyOverride?: OnyxEntry<Policy>): TransactionViolations {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [transactionViolations = getEmptyArray<TransactionViolation>()] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
+    const [ownerLogin] = usePersonalDetail(iouReport?.ownerAccountID, loginSelector);
     const [reportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const customUnitRateID = isDistanceRequest(transaction) ? transaction?.comment?.customUnit?.customUnitRateID : undefined;
     const shouldLookupDistancePolicy = !policyOverride && !!customUnitRateID && !getDistanceRateCustomUnitRate(reportPolicy, customUnitRateID);
@@ -35,10 +38,11 @@ function useTransactionViolations(transactionID?: string, shouldShowRterForSettl
             currentUserDetails.email ?? '',
             currentUserDetails.accountID,
             iouReport,
+            ownerLogin,
             policy,
             shouldShowRterForSettledReport,
         );
-    }, [transaction, transactionViolations, iouReport, policy, shouldShowRterForSettledReport, currentUserDetails.email, currentUserDetails.accountID]);
+    }, [transaction, transactionViolations, iouReport, ownerLogin, policy, shouldShowRterForSettledReport, currentUserDetails.email, currentUserDetails.accountID]);
 }
 
 export default useTransactionViolations;

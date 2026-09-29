@@ -6,6 +6,7 @@ import ScrollView from '@components/ScrollView';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -24,7 +25,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React, {useState} from 'react';
 
 type TermsStepProps = {
-    /** The user's wallet */
     userWallet: OnyxEntry<UserWallet>;
 };
 
@@ -52,6 +52,7 @@ function TermsStep(props: TermsStepProps) {
     const [error, setError] = useState(false);
     const {translate} = useLocalize();
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
+    const {isLoading, startWithLoading} = usePressLoading({isLoading: !!walletTerms?.isLoading});
     const shouldShowError = error && (!hasAcceptedDisclosure || !hasAcceptedPrivacyPolicyAndWalletAgreement);
     const errorMessage = shouldShowError ? translate('common.error.acceptTerms') : (getLatestErrorMessage(walletTerms ?? {}) ?? '');
 
@@ -93,15 +94,18 @@ function TermsStep(props: TermsStepProps) {
                         }
 
                         setError(false);
-                        acceptWalletTerms({
-                            hasAcceptedTerms: hasAcceptedDisclosure && hasAcceptedPrivacyPolicyAndWalletAgreement,
-                            // eslint-disable-next-line rulesdir/no-default-id-values
-                            reportID: walletTerms?.chatReportID ?? '',
+                        startWithLoading(() => {
+                            acceptWalletTerms({
+                                hasAcceptedTerms: hasAcceptedDisclosure && hasAcceptedPrivacyPolicyAndWalletAgreement,
+                                // eslint-disable-next-line rulesdir/no-default-id-values
+                                reportID: walletTerms?.chatReportID ?? '',
+                            });
                         });
                     }}
                     message={errorMessage}
                     isAlertVisible={shouldShowError || !!errorMessage}
-                    isLoading={!!walletTerms?.isLoading}
+                    shouldShowLoadingImmediatelyOnPress={false}
+                    isLoading={isLoading}
                     containerStyles={[styles.mh0, styles.mv4]}
                 />
             </ScrollView>

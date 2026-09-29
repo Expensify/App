@@ -21,7 +21,7 @@ jest.mock('@hooks/useLocalize', () => ({
 }));
 
 // eslint-disable-next-line @typescript-eslint/unbound-method
-const mockHtmlToText = Parser.htmlToText as jest.Mock;
+const mockHtmlToText = jest.mocked(Parser.htmlToText);
 
 describe('DisplayNames HTML Parsing', () => {
     beforeEach(() => {

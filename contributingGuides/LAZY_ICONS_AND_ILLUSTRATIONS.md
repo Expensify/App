@@ -30,7 +30,7 @@ Both systems follow similar patterns but are handled separately to optimize bund
 
 ### How It Works
 
-1. **Chunk Loading**: When an asset is requested, the entire chunk is loaded via dynamic `import()` with webpack chunking
+1. **Chunk Loading**: When an asset is requested, the entire chunk is loaded via dynamic `import()` with Rspack chunking
 2. **Caching**: Once loaded, chunks are cached in memory to avoid redundant network requests
 3. **Error Handling**: Failed loads fall back to `PlaceholderIcon` to prevent UI breakage
 

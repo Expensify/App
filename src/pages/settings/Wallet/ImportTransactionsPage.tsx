@@ -1,5 +1,6 @@
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -71,12 +72,9 @@ function ImportTransactionsPage() {
                         brickRoadIndicator={shouldShowError && !cardDisplayName ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={shouldShowError && !cardDisplayName ? translate('common.error.fieldRequired') : ''}
                     />
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        title={currency}
-                        description={translate('workspace.companyCards.importTransactions.currency')}
-                        style={styles.moneyRequestMenuItem}
-                        titleStyle={styles.flex1}
+                    <MenuItemField
+                        value={currency}
+                        name={translate('workspace.companyCards.importTransactions.currency')}
                         onPress={navigateToCurrencySelection}
                     />
                     <View style={[styles.mv3, styles.mh5]}>
@@ -98,11 +96,12 @@ function ImportTransactionsPage() {
                 </View>
                 <View style={[styles.mh5, styles.mb5]}>
                     <Button
-                        success
-                        large
-                        text={translate('common.next')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={handleNext}
-                    />
+                    >
+                        <Button.Text>{translate('common.next')}</Button.Text>
+                    </Button>
                 </View>
             </ScrollView>
         </ScreenWrapper>

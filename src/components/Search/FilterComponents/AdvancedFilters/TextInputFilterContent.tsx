@@ -1,55 +1,101 @@
 import Button from '@components/Button';
+import ScrollView from '@components/ScrollView';
+import NegatableFilter from '@components/Search/FilterComponents/NegatableFilter';
+import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';
+import type {ReportFieldTextKey, SearchTextFilterKeys} from '@components/Search/types';
+import TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type CONST from '@src/CONST';
+import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 
-import type {StyleProp, ViewStyle} from 'react-native';
+import CONST from '@src/CONST';
+
+import type {ComponentRef} from 'react';
+import type {TextInput as RNTextInput, StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-import FilterComponents from '..';
-
 type TextInputFilterContentProps = {
-    filterKey:
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE
-        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID;
+    baseFilterKey: Exclude<SearchTextFilterKeys, typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT | ReportFieldTextKey>;
     value: string | undefined;
-    largeButton?: boolean;
+    isNegated: boolean;
+    size?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, typeof CONST.BUTTON_SIZE.SMALL>;
     autoFocus?: boolean;
     style?: StyleProp<ViewStyle>;
-    onChange: (value: string | undefined) => void;
+    buttonText?: string;
+    onChange: (value: string | undefined, isNegated: boolean) => void;
 };
 
-function TextInputFilterContent({filterKey, value: initialValue, autoFocus, largeButton, style, onChange}: TextInputFilterContentProps) {
+function isTextInput(element: BaseTextInputRef | ComponentRef<typeof RNTextInput> | null): element is ComponentRef<typeof RNTextInput> {
+    return !!element && 'isFocused' in element;
+}
+
+function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: initialIsNegated, autoFocus, size, style, buttonText, onChange}: TextInputFilterContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [value, setValue] = useState(initialValue);
+    const [isNegated, setIsNegated] = useState(initialIsNegated);
+
+    const label = translate(FILTER_VIEW_MAP[baseFilterKey].labelKey);
+    const {inputCallbackRef} = useAutoFocusInput();
+    const error = useTextFilterValidation(baseFilterKey, value);
+    const shouldButtonBeInScrollView = useShouldFooterBeInsideList();
+
+    const button = (
+        <Button
+            style={[styles.ph5, styles.pb5]}
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={size}
+            onPress={() => {
+                if (error) {
+                    return;
+                }
+                onChange(value, isNegated);
+            }}
+        >
+            <Button.KeyboardShortcut />
+            <Button.Text>{buttonText ?? translate('common.confirm')}</Button.Text>
+        </Button>
+    );
 
     return (
         <View style={[styles.flex1, styles.justifyContentBetween, style]}>
-            <FilterComponents
-                value={value}
-                policyIDs={undefined}
-                filterKey={filterKey}
-                policyIDQuery={undefined}
-                autoFocus={autoFocus}
-                onChange={(v) => setValue(typeof v === 'string' ? v : undefined)}
-            />
-            <Button
-                style={[styles.ph5, styles.pb5]}
-                success
-                large={largeButton}
-                text={translate('common.confirm')}
-                pressOnEnter
-                onPress={() => onChange(value)}
-            />
+            <ScrollView
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={[styles.flexGrow1, styles.gap3]}
+            >
+                <NegatableFilter
+                    baseFilterKey={baseFilterKey}
+                    isNegated={isNegated}
+                    onNegationChange={setIsNegated}
+                >
+                    <TextInput
+                        ref={(ref) => {
+                            if (!autoFocus || !isTextInput(ref)) {
+                                return;
+                            }
+                            inputCallbackRef(ref);
+                        }}
+                        placeholder={label}
+                        value={value}
+                        errorText={error}
+                        hasError={!!error}
+                        onChangeText={setValue}
+                        accessibilityLabel={label}
+                        role={CONST.ROLE.PRESENTATION}
+                        containerStyles={[styles.ph5]}
+                    />
+                </NegatableFilter>
+                {shouldButtonBeInScrollView && button}
+            </ScrollView>
+            {!shouldButtonBeInScrollView && button}
         </View>
     );
 }

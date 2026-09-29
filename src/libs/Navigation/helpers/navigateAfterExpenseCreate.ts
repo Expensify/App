@@ -3,6 +3,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {getSearchKeyForDataType} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
@@ -23,6 +24,21 @@ type NavigateAfterExpenseCreateParams = {
     hasMultipleTransactions: boolean;
     shouldAddPendingNewTransactionIDs?: boolean;
     shouldNavigate?: boolean;
+
+    /**
+     * Whether the current user selected the "Looking around / Something else" (LOOKING_AROUND) onboarding choice.
+     * The caller reads the onboarding choice from Onyx in render context (via `useOnyx`) and passes the result in,
+     * so this helper stays a pure function instead of subscribing to Onyx itself.
+     */
+    isLookingAroundUser?: boolean;
+
+    /**
+     * Whether the sole destination for this expense is the current user's self-DM (Personal Space). The LOOKING_AROUND
+     * "route to Spend > Expenses" behaviour is scoped to this so it only applies when the expense actually lands in the
+     * self-DM. A LOOKING_AROUND user who later has a workspace and submits to a real report/friend keeps their normal
+     * destination instead of being permanently sent to Search by mistake.
+     */
+    isSelfDMDestination?: boolean;
 };
 
 function getNavigateAfterCreateSearchNavigatorState() {
@@ -48,8 +64,12 @@ function navigateAfterExpenseCreate({
     hasMultipleTransactions,
     shouldAddPendingNewTransactionIDs = false,
     shouldNavigate = true,
+    isLookingAroundUser = false,
+    isSelfDMDestination = false,
 }: NavigateAfterExpenseCreateParams) {
-    const isUserOnInbox = isReportTopmostSplitNavigator();
+    // Treat a LOOKING_AROUND user's self-DM create as "not on inbox" so it falls through to the Search navigation below
+    // (route to Spend > Expenses instead of Personal Space). Scoped to isSelfDMDestination so other destinations are unaffected.
+    const isUserOnInbox = isReportTopmostSplitNavigator() && !(isLookingAroundUser && isSelfDMDestination);
 
     // If the expense is not created from global create or is currently on the inbox tab,
     // we just need to dismiss the money request flow screens
@@ -69,6 +89,7 @@ function navigateAfterExpenseCreate({
     }
 
     const type = isInvoice ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
+    const searchKey = getSearchKeyForDataType(type);
 
     // When already on Search ROOT with the same type (expense vs invoice), we navigate to the same screen (no-op or refresh); record as dismiss_modal_only.
     // When on another Search sub-tab (e.g. Chats), or on Search with a different type (e.g. on Invoice, submitting expense), record as navigate_to_search.
@@ -92,12 +113,14 @@ function navigateAfterExpenseCreate({
         } else if (getIsNarrowLayout()) {
             const isRHPStillOnTop = navigationRef.getRootState()?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
             if (!alreadyOnSearchRoot || !isSameSearchType || isRHPStillOnTop) {
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
+                // forceReplace keeps other callers on the tab they submitted from; skipped for the LOOKING_AROUND self-DM
+                // flow so it actually navigates to Search.
+                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString, searchKey}), {forceReplace: !(isLookingAroundUser && isSelfDMDestination)});
             } else {
                 Log.info('[IOU] navigateToSearch: already on matching Search root with RHP dismissed - no-op');
             }
         } else {
-            Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
+            Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString, searchKey}));
         }
     };
 

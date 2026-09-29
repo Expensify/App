@@ -2,6 +2,12 @@ function clearTokenRefresh() {}
 
 function prefetchOnAppStart() {}
 
-export {clearTokenRefresh, prefetchOnAppStart};
+function registerTokenRefresh() {}
+
+function removeFromAutoPrefetch() {}
+
+function removeAllFromAutoprefetch() {}
+
+export {clearTokenRefresh, prefetchOnAppStart, registerTokenRefresh, removeFromAutoPrefetch, removeAllFromAutoprefetch};
 
 export default {};

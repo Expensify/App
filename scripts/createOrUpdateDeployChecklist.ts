@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env bun
 import CONST from '@github/libs/CONST';
 import {generateDeployChecklistBodyAndAssignees, getDeployChecklistData} from '@github/libs/DeployChecklistUtils';
 import type {ChecklistItem, DeployChecklistData} from '@github/libs/DeployChecklistUtils';
@@ -334,7 +334,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
     }
 }
 
-if (require.main === module) {
+if (import.meta.main) {
     run();
 }
 

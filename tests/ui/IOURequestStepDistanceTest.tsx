@@ -9,13 +9,15 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 
-import IOURequestStepDistance from '@pages/iou/request/step/IOURequestStepDistance';
+import DynamicIOURequestStepDistance from '@pages/iou/request/step/DynamicIOURequestStepDistance';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report, Transaction} from '@src/types/onyx';
 
@@ -25,6 +27,7 @@ import Onyx from 'react-native-onyx';
 import type * as IOU from '../../src/libs/actions/IOU';
 
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -77,6 +80,8 @@ jest.mock('@libs/actions/IOU/UpdateMoneyRequest', () => ({
 
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     handleMoneyRequestStepDistanceNavigation: jest.fn(),
+    getMoneyRequestParticipantsFromReport: jest.fn(() => []),
+    getMoneyRequestParticipantOptions: jest.fn(() => []),
 }));
 
 jest.mock('@libs/actions/MapboxToken', () => ({
@@ -122,10 +127,17 @@ jest.mock('@hooks/useEnvironment', () => () => ({environment: 'development', env
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     getCurrentRoute: jest.fn(() => ({
-        name: 'Money_Request_Step_Distance',
+        name: 'Dynamic_Money_Request_Step_Distance',
         params: {},
     })),
     getState: jest.fn(() => ({})),
+    isReady: jest.fn(() => false),
+    addListener: jest.fn(() => jest.fn()),
+}));
+
+jest.mock('@hooks/useDynamicBackPath', () => ({
+    __esModule: true,
+    default: () => 'r/1',
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => {
@@ -160,6 +172,7 @@ jest.mock('@react-navigation/native', () => {
         getState: jest.fn(() => ({})),
     };
     return {
+        ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
         createNavigationContainerRef: jest.fn(() => mockRef),
         useIsFocused: () => true,
         useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
@@ -184,6 +197,20 @@ const ACCOUNT_LOGIN = 'test@user.com';
 const REPORT_ID = 'report-1';
 const TRANSACTION_ID = 'txn-1';
 const PARTICIPANT_ACCOUNT_ID = 2;
+type IOURequestStepDistanceProps = React.ComponentProps<typeof DynamicIOURequestStepDistance>;
+
+const mockNavigation = createMock<IOURequestStepDistanceProps['navigation']>({});
+const createRoute = (action: IOURequestStepDistanceProps['route']['params']['action']): IOURequestStepDistanceProps['route'] =>
+    createMock<IOURequestStepDistanceProps['route']>({
+        key: 'Money_Request_Step_Distance-test',
+        name: SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE,
+        params: {
+            action,
+            iouType: CONST.IOU.TYPE.SUBMIT,
+            reportID: REPORT_ID,
+            transactionID: TRANSACTION_ID,
+        },
+    });
 
 function createTestReport(): Report {
     return {
@@ -232,20 +259,9 @@ function renderEditMode() {
     return render(
         <OnyxListItemProvider>
             <CurrentUserPersonalDetailsProvider>
-                <IOURequestStepDistance
-                    route={{
-                        key: 'Money_Request_Step_Distance-test',
-                        name: SCREENS.MONEY_REQUEST.STEP_DISTANCE,
-                        params: {
-                            action: CONST.IOU.ACTION.EDIT as never,
-                            iouType: CONST.IOU.TYPE.SUBMIT,
-                            reportID: REPORT_ID,
-                            transactionID: TRANSACTION_ID,
-                            backTo: undefined as never,
-                        },
-                    }}
-                    // @ts-expect-error minimal navigation for test
-                    navigation={undefined}
+                <DynamicIOURequestStepDistance
+                    route={createRoute(CONST.IOU.ACTION.EDIT)}
+                    navigation={mockNavigation}
                 />
             </CurrentUserPersonalDetailsProvider>
         </OnyxListItemProvider>,
@@ -280,20 +296,9 @@ describe('IOURequestStepDistance - draft transactions coverage', () => {
         render(
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
-                    <IOURequestStepDistance
-                        route={{
-                            key: 'Money_Request_Step_Distance-test',
-                            name: SCREENS.MONEY_REQUEST.STEP_DISTANCE,
-                            params: {
-                                action: CONST.IOU.ACTION.CREATE as never,
-                                iouType: CONST.IOU.TYPE.SUBMIT,
-                                reportID: REPORT_ID,
-                                transactionID: TRANSACTION_ID,
-                                backTo: undefined as never,
-                            },
-                        }}
-                        // @ts-expect-error minimal navigation for test
-                        navigation={undefined}
+                    <DynamicIOURequestStepDistance
+                        route={createRoute(CONST.IOU.ACTION.CREATE)}
+                        navigation={mockNavigation}
                     />
                 </CurrentUserPersonalDetailsProvider>
             </OnyxListItemProvider>,
@@ -323,20 +328,9 @@ describe('IOURequestStepDistance - draft transactions coverage', () => {
         render(
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
-                    <IOURequestStepDistance
-                        route={{
-                            key: 'Money_Request_Step_Distance-test',
-                            name: SCREENS.MONEY_REQUEST.STEP_DISTANCE,
-                            params: {
-                                action: CONST.IOU.ACTION.CREATE as never,
-                                iouType: CONST.IOU.TYPE.SUBMIT,
-                                reportID: REPORT_ID,
-                                transactionID: TRANSACTION_ID,
-                                backTo: undefined as never,
-                            },
-                        }}
-                        // @ts-expect-error minimal navigation for test
-                        navigation={undefined}
+                    <DynamicIOURequestStepDistance
+                        route={createRoute(CONST.IOU.ACTION.CREATE)}
+                        navigation={mockNavigation}
                     />
                 </CurrentUserPersonalDetailsProvider>
             </OnyxListItemProvider>,
@@ -486,7 +480,7 @@ describe('IOURequestStepDistance - navigateToWaypointEditPage backTo (GH #90037)
         await waitForBatchedUpdates();
     });
 
-    it('uses the explicit step-distance route as backTo in the edit flow (the tab navigator would otherwise add a tab suffix that breaks goBack)', async () => {
+    it('uses the explicit step-distance route as the waypoint base in the edit flow (the tab navigator would otherwise add a tab suffix that breaks goBack)', async () => {
         await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
         const report = createTestReport();
 
@@ -504,18 +498,14 @@ describe('IOURequestStepDistance - navigateToWaypointEditPage backTo (GH #90037)
         fireEvent.press(startWaypoint, {nativeEvent: {}, type: 'press', target: startWaypoint, currentTarget: startWaypoint});
 
         expect(Navigation.navigate).toHaveBeenCalledWith(
-            ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(
-                CONST.IOU.ACTION.EDIT,
-                CONST.IOU.TYPE.SUBMIT,
-                TRANSACTION_ID,
-                REPORT_ID,
-                '0',
-                ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID),
+            createDynamicRoute(
+                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(0),
+                createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID), 'r/1' as Route),
             ),
         );
     });
 
-    it('uses the current active route as backTo in the create flow (no tab navigator, so the production getActiveRoute path is correct)', async () => {
+    it('uses the current active route as the waypoint base in the create flow (no tab navigator, so the production getActiveRoute path is correct)', async () => {
         await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
         const report = createTestReport();
         const activeRoute = ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID);
@@ -530,20 +520,9 @@ describe('IOURequestStepDistance - navigateToWaypointEditPage backTo (GH #90037)
         render(
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
-                    <IOURequestStepDistance
-                        route={{
-                            key: 'Money_Request_Step_Distance-test',
-                            name: SCREENS.MONEY_REQUEST.STEP_DISTANCE,
-                            params: {
-                                action: CONST.IOU.ACTION.CREATE as never,
-                                iouType: CONST.IOU.TYPE.SUBMIT,
-                                reportID: REPORT_ID,
-                                transactionID: TRANSACTION_ID,
-                                backTo: undefined as never,
-                            },
-                        }}
-                        // @ts-expect-error minimal navigation for test
-                        navigation={undefined}
+                    <DynamicIOURequestStepDistance
+                        route={createRoute(CONST.IOU.ACTION.CREATE)}
+                        navigation={mockNavigation}
                     />
                 </CurrentUserPersonalDetailsProvider>
             </OnyxListItemProvider>,
@@ -553,9 +532,7 @@ describe('IOURequestStepDistance - navigateToWaypointEditPage backTo (GH #90037)
         const startWaypoint = screen.getByAccessibilityHint(/123 Main St/);
         fireEvent.press(startWaypoint, {nativeEvent: {}, type: 'press', target: startWaypoint, currentTarget: startWaypoint});
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(
-            ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID, '0', activeRoute),
-        );
+        expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(0), activeRoute));
     });
 });
 
@@ -565,11 +542,27 @@ describe('IOURequestStepDistance - manual tab follows the recalculated route dis
     const initialRouteMeters = DistanceRequestUtils.convertToDistanceInMeters(100, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
     const distanceTransactionWithRoute = (): Transaction => ({
         ...createDistanceTransaction(),
-        routes: {route0: {distance: initialRouteMeters, geometry: {coordinates: [[0, 0] as const, [1, 1] as const]}}},
+        routes: {
+            route0: {
+                distance: initialRouteMeters,
+                geometry: {
+                    coordinates: [
+                        [0, 0],
+                        [1, 1],
+                    ],
+                },
+            },
+        },
     });
     // `getAllByLabelText` matches both the field label <Text> and the underlying <TextInput>; pick the input.
     const distanceInput = () => screen.getAllByLabelText(/common\.distance/).find((element) => 'value' in element.props)!;
-    const displayedDistance = () => distanceInput().props.value as string;
+    const displayedDistance = () => {
+        const value = distanceInput().props.value;
+        if (typeof value !== 'string') {
+            throw new Error('Expected distance input value to be a string.');
+        }
+        return value;
+    };
     const distanceUnit = () =>
         String(distanceInput().props.accessibilityLabel ?? '').includes(`common.${CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}`)
             ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS
@@ -649,7 +642,7 @@ describe('IOURequestStepDistance - manual tab follows the recalculated route dis
     });
 });
 
-describe('IOURequestStepDistance - re-saving a waypoint resets a manual distance override (GH #90105)', () => {
+describe('IOURequestStepDistance - re-saving a waypoint with a manual distance override (GH #90105)', () => {
     const {updateMoneyRequestDistance} = jest.requireMock<{updateMoneyRequestDistance: jest.Mock}>('@libs/actions/IOU/UpdateMoneyRequest');
     const routeMeters = DistanceRequestUtils.convertToDistanceInMeters(100, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
     // Seed the full distance transaction, then set just the route + the (possibly cleared) manual quantity.
@@ -688,7 +681,7 @@ describe('IOURequestStepDistance - re-saving a waypoint resets a manual distance
         await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
     });
 
-    it('sends an update with the route distance when a manual override was cleared by saveWaypoint', async () => {
+    it('sends the route selection when a manual override was cleared by saveWaypoint', async () => {
         await act(async () => {
             // Saved state had a manual override (200 mi); current state is post-`saveWaypoint` (quantity cleared, route re-fetched to its real value).
             await seedDistanceTransaction(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${TRANSACTION_ID}`, 200);
@@ -701,7 +694,24 @@ describe('IOURequestStepDistance - re-saving a waypoint resets a manual distance
         // The Map-tab Save button is the first "common.save" → submitWaypoints
         fireEvent.press(screen.getAllByText('common.save').at(0)!);
 
-        expect(updateMoneyRequestDistance).toHaveBeenCalledWith(expect.objectContaining({distance: expect.any(Number)}));
+        expect(updateMoneyRequestDistance).toHaveBeenCalledWith(expect.objectContaining({selectedRouteKey: 'route0'}));
+        expect(updateMoneyRequestDistance).not.toHaveBeenCalledWith(expect.objectContaining({distance: expect.anything()}));
+    });
+
+    it('sends the route selection when the manual override is still in place and no waypoint was touched', async () => {
+        await act(async () => {
+            // The user never entered the waypoint editor, so the 200 mi override is still on the current transaction.
+            await seedDistanceTransaction(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${TRANSACTION_ID}`, 200);
+            await seedDistanceTransaction(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, 200);
+        });
+
+        renderEditMode();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getAllByText('common.save').at(0)!);
+
+        expect(updateMoneyRequestDistance).toHaveBeenCalledWith(expect.objectContaining({selectedRouteKey: 'route0'}));
+        expect(updateMoneyRequestDistance).not.toHaveBeenCalledWith(expect.objectContaining({distance: expect.anything()}));
     });
 
     it('does not send an update when the waypoints and distance are unchanged', async () => {
@@ -716,5 +726,193 @@ describe('IOURequestStepDistance - re-saving a waypoint resets a manual distance
         fireEvent.press(screen.getAllByText('common.save').at(0)!);
 
         expect(updateMoneyRequestDistance).not.toHaveBeenCalled();
+    });
+});
+
+describe('IOURequestStepDistance - editing the waypoints of an expense with an alternate route selected', () => {
+    const {updateMoneyRequestDistance} = jest.requireMock<{updateMoneyRequestDistance: jest.Mock}>('@libs/actions/IOU/UpdateMoneyRequest');
+    const miles = (value: number) => DistanceRequestUtils.convertToDistanceInMeters(value, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+    const geometry = (coordinates: Array<[number, number]>) => ({coordinates});
+    const inMiles = (meters: number) => roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(meters, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES));
+    const savedRoutes = {
+        route0: {distance: miles(100), geometry: geometry([[0, 0]])},
+        route1: {distance: miles(120), geometry: geometry([[0, 1]])},
+    };
+    // The saved state: original waypoints, the routes they produced, and the given route selected. The BE only echoes
+    // the selection as `routeDistanceMeters`, so that is what the saved selection has to be recovered from.
+    const seedBackup = async (selectedRouteKey: 'route0' | 'route1' = 'route0', manualQuantity?: number) => {
+        const key = `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${TRANSACTION_ID}` as const;
+        await Onyx.merge(key, createDistanceTransaction());
+        await Onyx.merge(key, {
+            comment: {
+                customUnit: {
+                    // A manual override replaces the displayed quantity; `routeDistanceMeters` still records the route it overrides.
+                    quantity: manualQuantity ?? inMiles(savedRoutes[selectedRouteKey].distance),
+                    routeDistanceMeters: savedRoutes[selectedRouteKey].distance,
+                },
+            },
+            routes: savedRoutes,
+        });
+    };
+    // The state after editing a waypoint and then reverting it to the original address: same waypoints, the routes
+    // re-fetched for them (identical distances), and `customUnit.quantity`/`routeDistanceMeters` cleared for good by
+    // `saveWaypoint`. `selectedRouteKey` is the route the user (re-)picked on the re-fetched routes.
+    const seedRevertedToOriginal = async (selectedRouteKey: 'route0' | 'route1') => {
+        const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}` as const;
+        await Onyx.merge(key, createDistanceTransaction());
+        await Onyx.merge(key, {
+            comment: {
+                customUnit: {quantity: null, routeDistanceMeters: null},
+                ...(selectedRouteKey === 'route0' ? {} : {selectedRouteKey}),
+            },
+            routes: savedRoutes,
+        });
+    };
+    // The post-edit state: a changed waypoint, the re-fetched routes, and the given route picked on them.
+    const seedCurrent = async (selectedRouteKey: 'route0' | 'route1') => {
+        const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}` as const;
+        const routes = {
+            route0: {distance: miles(80), geometry: geometry([[1, 0]])},
+            route1: {distance: miles(90), geometry: geometry([[1, 1]])},
+        };
+        await Onyx.merge(key, createDistanceTransaction());
+        await Onyx.merge(key, {
+            comment: {
+                waypoints: {waypoint1: {address: '789 New Ave', lat: 41.5, lng: -73.5, keyForList: 'stop_waypoint'}},
+                // `saveWaypoint` clears both, then the route fetch fills the quantity back in from the selected route
+                customUnit: {
+                    quantity: roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(routes[selectedRouteKey].distance, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)),
+                    routeDistanceMeters: null,
+                },
+                ...(selectedRouteKey === 'route0' ? {} : {selectedRouteKey}),
+            },
+            routes,
+        });
+    };
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS]});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        await Onyx.clear();
+        await waitForBatchedUpdates();
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createTestReport());
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, null);
+        await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+    });
+
+    it('sends the picked route instead of a manual distance override', async () => {
+        await act(async () => {
+            await seedBackup();
+            await seedCurrent('route1');
+        });
+
+        renderEditMode();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getAllByText('common.save').at(0)!);
+
+        // `selectedRouteKey` is what makes `updateMoneyRequestDistance` send `selectedRouteDistance`; a `distance` on top
+        // of it would be stored as a manual override of the route distance.
+        expect(updateMoneyRequestDistance).toHaveBeenCalledWith(expect.objectContaining({selectedRouteKey: 'route1'}));
+        expect(updateMoneyRequestDistance).not.toHaveBeenCalledWith(expect.objectContaining({distance: expect.anything()}));
+    });
+
+    it('sends the re-fetched routes and no route selection when the primary route is selected', async () => {
+        await act(async () => {
+            await seedBackup();
+            await seedCurrent('route0');
+        });
+
+        renderEditMode();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getAllByText('common.save').at(0)!);
+
+        expect(updateMoneyRequestDistance).toHaveBeenCalledWith(expect.objectContaining({routes: expect.objectContaining({route0: expect.objectContaining({distance: miles(80)})})}));
+        expect(updateMoneyRequestDistance).not.toHaveBeenCalledWith(expect.objectContaining({distance: expect.anything()}));
+        expect(updateMoneyRequestDistance).not.toHaveBeenCalledWith(expect.objectContaining({selectedRouteKey: expect.anything()}));
+    });
+
+    it('does not send an update when the waypoints are reverted to the original ones and the same alternate route is picked', async () => {
+        await act(async () => {
+            await seedBackup('route1');
+            await seedRevertedToOriginal('route1');
+        });
+
+        renderEditMode();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getAllByText('common.save').at(0)!);
+
+        expect(updateMoneyRequestDistance).not.toHaveBeenCalled();
+    });
+
+    it('does not send an update when the waypoints are reverted to the original ones and the primary route stays selected', async () => {
+        await act(async () => {
+            await seedBackup('route0');
+            await seedRevertedToOriginal('route0');
+        });
+
+        renderEditMode();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getAllByText('common.save').at(0)!);
+
+        expect(updateMoneyRequestDistance).not.toHaveBeenCalled();
+    });
+
+    it('sends an update when the waypoints are reverted to the original ones but a different route is picked', async () => {
+        await act(async () => {
+            await seedBackup('route0');
+            await seedRevertedToOriginal('route1');
+        });
+
+        renderEditMode();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getAllByText('common.save').at(0)!);
+
+        expect(updateMoneyRequestDistance).toHaveBeenCalledWith(expect.objectContaining({selectedRouteKey: 'route1'}));
+    });
+
+    it('drops a manual override onto the selected alternate route rather than the primary one', async () => {
+        await act(async () => {
+            // 200 mi typed on top of route1 (120 mi), then nothing but the Map-tab Save.
+            await seedBackup('route1', 200);
+            await seedRevertedToOriginal('route1');
+        });
+
+        renderEditMode();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getAllByText('common.save').at(0)!);
+
+        // Comparing the override against the primary route0 (100 mi) instead would read as "no override" and skip the
+        // save, leaving the 200 mi override on an expense the user has switched to a 120 mi route.
+        expect(updateMoneyRequestDistance).toHaveBeenCalledWith(expect.objectContaining({selectedRouteKey: 'route1'}));
+        expect(updateMoneyRequestDistance).not.toHaveBeenCalledWith(expect.objectContaining({distance: expect.anything()}));
+    });
+
+    it('keeps the selected alternate route when a manual distance is saved on a map-based expense', async () => {
+        await act(async () => {
+            await seedBackup('route1');
+            await seedRevertedToOriginal('route1');
+        });
+
+        renderEditMode();
+        await waitForBatchedUpdatesWithAct();
+
+        // `getAllByLabelText` matches both the field label <Text> and the underlying <TextInput>; pick the input.
+        fireEvent.changeText(screen.getAllByLabelText(/common\.distance/).find((element) => 'value' in element.props)!, '150');
+        // The Manual-tab Save button is the second "common.save" → submitManualDistance
+        fireEvent.press(screen.getAllByText('common.save').at(1)!);
+
+        // The manual value has to travel with the route selection: without `selectedRouteKey` the BE would fall back
+        // to the primary route and silently drop the user's pick.
+        expect(updateMoneyRequestDistance).toHaveBeenCalledWith(expect.objectContaining({distance: 150, selectedRouteKey: 'route1'}));
     });
 });
