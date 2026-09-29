@@ -57,24 +57,27 @@ function EarlyRenewalOfferPage() {
         setErrorMessage('');
     };
 
-    const renewWithSelectedOffer = async () => {
+    const showRenewalError = (message?: string) => {
+        setErrorMessage(message ?? translate('common.genericErrorMessage'));
+        setIsRenewing(false);
+    };
+
+    const renewWithSelectedOffer = () => {
         if (!selectedOfferID) {
             setErrorMessage(translate('earlyRenewal.offer.chooseOptionError'));
             return;
         }
 
         setIsRenewing(true);
-        try {
-            const response = await acceptEarlyRenewalOffer(selectedOfferID);
-            if (response?.jsonCode === CONST.JSON_CODE.SUCCESS) {
-                Navigation.goBack();
-                return;
-            }
-            setErrorMessage(response?.message ?? translate('common.genericErrorMessage'));
-        } catch {
-            setErrorMessage(translate('common.genericErrorMessage'));
-        }
-        setIsRenewing(false);
+        acceptEarlyRenewalOffer(selectedOfferID)
+            .then((response) => {
+                if (response?.jsonCode === CONST.JSON_CODE.SUCCESS) {
+                    Navigation.goBack();
+                    return;
+                }
+                showRenewalError(response?.message);
+            })
+            .catch(() => showRenewalError());
     };
 
     return (
