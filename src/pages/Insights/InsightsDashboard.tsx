@@ -17,6 +17,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getInsights} from '@libs/actions/Insights';
 
+import variables from '@styles/variables';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InsightsDashboardID} from '@src/types/onyx';
 
@@ -70,6 +72,21 @@ function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry, o
                 title={translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout})}
                 subtitle={translate('errorPage.subtitle')}
                 buttonTranslationKey="common.tryAgain"
+                onButtonPress={onRetry}
+            />
+        );
+    }
+
+    if (state === INSIGHTS_DASHBOARD_STATE.STALE) {
+        return (
+            <FullPageErrorView
+                shouldShow
+                title={translate('search.searchResults.staleResults.title')}
+                subtitle={translate('search.searchResults.staleResults.subtitle')}
+                illustration="FolderSync"
+                illustrationWidth={variables.iconSizeUltraLarge}
+                illustrationHeight={variables.iconSizeUltraLarge}
+                buttonTranslationKey="search.searchResults.staleResults.buttonText"
                 onButtonPress={onRetry}
             />
         );
