@@ -1364,7 +1364,7 @@ describe('useSearchBulkActions - export options', () => {
             // When the export menu is built for a search grouped by card
             const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
-            // Then the template is offered just the same, because both shapes a card group selection can take have to reach the carve-out or the option would come and go with how far the list happened to be scrolled
+            // Then the template is offered just the same, because both shapes a card group selection can take have to reach the card group exception or the option would come and go with how far the list happened to be scrolled
             await waitFor(() => {
                 expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView', 'export.reconciliationAllExpenses']);
             });
@@ -1379,7 +1379,7 @@ describe('useSearchBulkActions - export options', () => {
             // When the export menu is built for a search grouped by category instead of by card
             const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
-            // Then no template is offered at all, because the carve-out is limited to card groups and every other grouping keeps the existing rule that a group cannot be scoped
+            // Then no template is offered at all, because the exception is limited to card groups and every other grouping keeps the existing rule that a group cannot be scoped
             await waitFor(() => {
                 expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView']);
             });
@@ -1393,7 +1393,7 @@ describe('useSearchBulkActions - export options', () => {
             // When the export menu is built for a search grouped by card
             const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
-            // Then only Current view is offered, because the carve-out narrows the templates the user was already entitled to and must never hand out one they were not
+            // Then only Current view is offered, because the card group exception only narrows the templates the user was already entitled to and must never hand out one they were not
             await waitFor(() => {
                 expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView']);
             });
