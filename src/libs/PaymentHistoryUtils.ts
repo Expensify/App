@@ -32,7 +32,7 @@ const TRANSFER_BILLING_TYPES: ReadonlySet<string> = new Set([
 
 /**
  * Builds one table row per bill, newest first.
- * Refunds, disputes, and balance transfers are separate purchases that point at the bill they change, so they are folded onto that bill instead of listed on their own.
+ * Refunds, disputes, balance transfers, and cleared payments are separate purchases that point at the bill they change, so they are folded onto that bill instead of listed on their own.
  */
 function getPaymentHistoryRows(purchaseList: Purchase[] | null | undefined): PaymentHistoryRow[] {
     if (!purchaseList?.length) {
@@ -90,6 +90,9 @@ function getParentPurchaseID(purchase: Purchase): number | undefined {
     if (isBalanceTransfer(purchase)) {
         return purchase.message.fromPurchaseID;
     }
+    if (isClear(purchase)) {
+        return purchase.message.failedPurchaseID;
+    }
     return undefined;
 }
 
@@ -103,21 +106,16 @@ function getModifierState(purchase: Purchase): PaymentHistoryState | undefined {
     if (isBalanceTransfer(purchase)) {
         return CONST.PAYMENT_HISTORY.STATE.BALANCE_TRANSFER;
     }
+    if (isClear(purchase)) {
+        return CONST.PAYMENT_HISTORY.STATE.CLEARED;
+    }
     return undefined;
 }
 
 function getOwnState(purchase: Purchase): PaymentHistoryState {
-    if (isDispute(purchase)) {
-        return CONST.PAYMENT_HISTORY.STATE.DISPUTED;
-    }
-    if (isRefund(purchase)) {
-        return CONST.PAYMENT_HISTORY.STATE.REFUNDED;
-    }
-    if (isBalanceTransfer(purchase)) {
-        return CONST.PAYMENT_HISTORY.STATE.BALANCE_TRANSFER;
-    }
-    if (purchase.message.billingType === CONST.BILLING.TYPE_CLEAR) {
-        return CONST.PAYMENT_HISTORY.STATE.CLEARED;
+    const modifierState = getModifierState(purchase);
+    if (modifierState) {
+        return modifierState;
     }
     if (purchase.message.billingType && FAILED_BILLING_TYPES.has(purchase.message.billingType)) {
         return CONST.PAYMENT_HISTORY.STATE.FAILED;
@@ -131,6 +129,10 @@ function isRefund(purchase: Purchase): boolean {
 
 function isDispute(purchase: Purchase): boolean {
     return purchase.message.billingType === CONST.BILLING.TYPE_DISPUTE;
+}
+
+function isClear(purchase: Purchase): boolean {
+    return purchase.message.billingType === CONST.BILLING.TYPE_CLEAR;
 }
 
 function isBalanceTransfer(purchase: Purchase): boolean {

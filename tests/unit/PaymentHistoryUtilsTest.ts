@@ -46,6 +46,23 @@ describe('getPaymentHistoryRows', () => {
         expect(rows.map((row) => row.state)).toEqual([CONST.PAYMENT_HISTORY.STATE.BALANCE_TRANSFER, CONST.PAYMENT_HISTORY.STATE.DISPUTED, CONST.PAYMENT_HISTORY.STATE.REFUNDED]);
     });
 
+    it('folds a cleared payment onto the failed bill it pays', () => {
+        // Given a failed bill that was paid on a later clear purchase
+        const purchaseList = [
+            createPurchase(10, '2026-02-01', {billingType: CONST.BILLING.TYPE_FAILED, billableAmount: 2700}, 0),
+            createPurchase(20, '2026-03-01', {billingType: CONST.BILLING.TYPE_CLEAR, failedPurchaseID: 10}, 2700),
+        ];
+
+        // When the table rows are built
+        const rows = getPaymentHistoryRows(purchaseList);
+
+        // Then the clear is not its own row, and the original bill shows as cleared for the amount that was due
+        expect(rows).toHaveLength(1);
+        expect(rows.at(0)?.purchaseID).toBe(10);
+        expect(rows.at(0)?.state).toBe(CONST.PAYMENT_HISTORY.STATE.CLEARED);
+        expect(rows.at(0)?.amount).toBe(2700);
+    });
+
     it('keeps the later change when a bill is both disputed and refunded', () => {
         // Given a bill that was disputed and then refunded
         const purchaseList = [

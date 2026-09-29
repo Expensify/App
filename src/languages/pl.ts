@@ -10953,7 +10953,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             empty: 'Brak płatności.',
             activeUsers: ({count}: {count: number}) => ({
                 one: '1 aktywny użytkownik',
-                few: `${count} aktywnych użytkowników`,
+                few: `${count} aktywni użytkownicy`,
                 many: `${count} aktywnych użytkowników`,
                 other: `${count} aktywnego użytkownika`,
             }),
