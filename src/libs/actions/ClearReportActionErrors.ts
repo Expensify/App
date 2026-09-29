@@ -25,7 +25,6 @@ Onyx.connectWithoutView({
     callback: (value) => (allReportActions = value),
 });
 
-// TODO: Remove this transitional fallback once all callers pass the `reports` param (https://github.com/Expensify/App/issues/96140)
 let allReports: OnyxCollection<OnyxTypes.Report>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -121,7 +120,6 @@ function clearReportActionErrors(reportAction: ReportAction, originalReportID: s
  *
 ignore: `undefined` means we want to check both parent and children report actions
 ignore: `parent` or `child` means we want to ignore checking parent or child report actions because they've been previously checked
-reports: parent hierarchy data used to walk up the ancestor chain, keyed by `${ONYXKEYS.COLLECTION.REPORT}${reportID}` — in components read it via `useReportsParentHierarchy`
  */
 function clearAllRelatedReportActionErrors(
     reportID: string | undefined,
@@ -139,8 +137,6 @@ function clearAllRelatedReportActionErrors(
 
     clearReportActionErrors(reportAction, originalReportID, keys);
 
-    // The fallback is chosen once on whether the param was supplied (never per key), so a supplied collection
-    // that legitimately lacks the report never silently reads from the module-level cache.
     const report = (reports ?? allReports)?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (report?.parentReportID && report?.parentReportActionID && ignore !== 'parent') {
         const parentReportAction = getReportAction(report.parentReportID, report.parentReportActionID);

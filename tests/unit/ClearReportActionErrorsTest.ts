@@ -12,9 +12,11 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 const REPORT_ID = '1';
 const PARENT_REPORT_ID = '2';
 const CHILD_REPORT_ID = '3';
+const GRANDPARENT_REPORT_ID = '4';
 const REPORT_ACTION_ID = '100';
 const PARENT_REPORT_ACTION_ID = '200';
 const CHILD_REPORT_ACTION_ID = '300';
+const GRANDPARENT_REPORT_ACTION_ID = '400';
 
 function getReportActionsFromOnyx(reportID: string): Promise<ReportActions | undefined> {
     return new Promise((resolve) => {
@@ -404,6 +406,45 @@ describe('ClearReportActionErrors', () => {
             // Then the parent action's matching error should be cleared
             const parentReportActions = await getReportActionsFromOnyx(PARENT_REPORT_ID);
             expect(parentReportActions?.[PARENT_REPORT_ACTION_ID]?.errors).toEqual({});
+        });
+
+        it('should clear errors across a multi-level ancestor chain supplied via the reports parameter', async () => {
+            // Given a three-level chain (report -> parent -> grandparent) whose hierarchy exists ONLY in the
+            // reports parameter (the REPORT collection is not seeded), so the walk can only reach the
+            // grandparent if the recursive call threads the parameter into every frame
+            const reportAction = getFakeReportAction(Number(REPORT_ACTION_ID), {
+                errors: {sharedError: 'Error message'},
+            });
+            const parentReportAction = getFakeReportAction(Number(PARENT_REPORT_ACTION_ID), {
+                errors: {sharedError: 'Parent error message'},
+            });
+            const grandparentReportAction = getFakeReportAction(Number(GRANDPARENT_REPORT_ACTION_ID), {
+                errors: {sharedError: 'Grandparent error message'},
+            });
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                [REPORT_ACTION_ID]: reportAction,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`, {
+                [PARENT_REPORT_ACTION_ID]: parentReportAction,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${GRANDPARENT_REPORT_ID}`, {
+                [GRANDPARENT_REPORT_ACTION_ID]: grandparentReportAction,
+            });
+            await waitForBatchedUpdates();
+
+            // When clearAllRelatedReportActionErrors is called with the full hierarchy in the reports parameter
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, false, undefined, undefined, {
+                [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]: {parentReportID: PARENT_REPORT_ID, parentReportActionID: PARENT_REPORT_ACTION_ID},
+                [`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`]: {parentReportID: GRANDPARENT_REPORT_ID, parentReportActionID: GRANDPARENT_REPORT_ACTION_ID},
+            });
+            await waitForBatchedUpdates();
+
+            // Then the matching errors should be cleared at every level of the chain
+            const parentReportActions = await getReportActionsFromOnyx(PARENT_REPORT_ID);
+            expect(parentReportActions?.[PARENT_REPORT_ACTION_ID]?.errors).toEqual({});
+            const grandparentReportActions = await getReportActionsFromOnyx(GRANDPARENT_REPORT_ID);
+            expect(grandparentReportActions?.[GRANDPARENT_REPORT_ACTION_ID]?.errors).toEqual({});
         });
 
         it('should not clear parent errors when the supplied reports collection does not contain the report', async () => {
