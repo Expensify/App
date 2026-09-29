@@ -1,4 +1,5 @@
-import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
+import CollapsibleHeaderOnKeyboardGroup from '@components/CollapsibleHeaderOnKeyboard/Group';
+import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -15,8 +16,6 @@ import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -74,9 +73,6 @@ function getSkippedPages(skipAccountTypeStep: boolean, skipAccountHolderInformat
     }
     return skippedSteps;
 }
-
-const SUBHEADER_BOTTOM_MARGIN = 24;
-const SUBHEADER_HEIGHT = variables.lineHeightXXLarge + SUBHEADER_BOTTOM_MARGIN;
 
 function InternationalDepositAccountContent({
     privatePersonalDetails,
@@ -180,14 +176,14 @@ function InternationalDepositAccountContent({
             {isRedirecting || isAccountLoading ? (
                 <FullScreenLoadingIndicator />
             ) : (
-                <>
-                    <CollapsibleHeaderOnKeyboard collapsibleHeaderOffset={SUBHEADER_HEIGHT}>
+                <CollapsibleHeaderOnKeyboardGroup>
+                    <CollapsibleHeaderOnKeyboardGroupMember>
                         <HeaderWithBackButton
                             title={translate('bankAccount.addBankAccount')}
                             shouldShowBackButton={pageIndex !== CONST.CORPAY_FIELDS.INDEXES.MAPPING.SUCCESS}
                             onBackButtonPress={handleBackButtonPress}
                         />
-                    </CollapsibleHeaderOnKeyboard>
+                    </CollapsibleHeaderOnKeyboardGroupMember>
                     <CurrentPage
                         isEditing={isEditing}
                         onNext={handleNextScreen}
@@ -195,7 +191,7 @@ function InternationalDepositAccountContent({
                         formValues={values}
                         fieldsMap={fieldsMap}
                     />
-                </>
+                </CollapsibleHeaderOnKeyboardGroup>
             )}
         </ScreenWrapper>
     );

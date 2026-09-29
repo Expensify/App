@@ -1,4 +1,5 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
@@ -82,9 +83,11 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
 
     return (
         <FullPageOfflineBlockingView>
-            <View style={styles.ph5}>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.countrySelectionStepHeader')}</Text>
-            </View>
+            <CollapsibleHeaderOnKeyboardGroupMember>
+                <View style={styles.ph5}>
+                    <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.countrySelectionStepHeader')}</Text>
+                </View>
+            </CollapsibleHeaderOnKeyboardGroupMember>
             <SelectionList
                 // Remount the list when the focus-refreshed initial selection changes so FlashList resets its preserved viewport.
                 key={initialSelectedValue ?? ''}
