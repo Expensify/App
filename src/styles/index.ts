@@ -86,15 +86,17 @@ type SelectionListPopover = {
 // Shared chrome of every RHP card in the stacked report flow, where the frame is invisible and each card draws its own inset bordered modal. Only the width differs.
 const getRHPExtendedCardFrame = (theme: ThemeColors): ViewStyle => ({
     position: 'absolute',
-    top: variables.rhpFloatingCardMargin,
-    bottom: variables.rhpFloatingCardMargin,
+    top: Platform.OS === 'web' ? variables.rhpFloatingCardMargin : 0,
+    bottom: Platform.OS === 'web' ? variables.rhpFloatingCardMargin : 0,
     right: 0,
-    height: 'auto',
-    borderRadius: variables.componentBorderRadiusLarge,
-    borderWidth: variables.rhpFloatingCardBorderWidth,
-    borderColor: theme.border,
+    height: Platform.OS === 'web' ? 'auto' : '100%',
+    ...(Platform.OS === 'web' && {
+        borderRadius: variables.componentBorderRadiusLarge,
+        borderWidth: variables.rhpFloatingCardBorderWidth,
+        borderColor: theme.border,
+        boxShadow: theme.shadow,
+    }),
     overflow: 'hidden',
-    boxShadow: theme.shadow,
 });
 
 const getReceiptDropZoneViewStyle = (theme: ThemeColors, margin: number, paddingVertical: number): ViewStyle => ({
@@ -737,9 +739,15 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tabNavigatorBarContainer: {
-            width: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
-            marginRight: -variables.sideBarWithLHBWidth,
+            ...Platform.select({
+                web: {width: variables.navigationTabBarSize + variables.sideBarWithLHBWidth, marginRight: -variables.sideBarWithLHBWidth},
+                default: {width: variables.navigationTabBarSize},
+            }),
             overflow: 'visible',
+        },
+
+        nativeSplitSidebar: {
+            width: variables.sideBarWithLHBWidth,
         },
 
         navigationTabBarContainer: {
@@ -784,6 +792,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         leftNavigationTabBarItem: {
             height: variables.navigationTabBarSize,
+            width: '100%',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
@@ -6884,7 +6893,7 @@ const dynamicStyles = (theme: ThemeColors) =>
         // The width is shrunk by the Side Panel offset at the call site (passed in), so the super wide
         // sheet's left edge stays put instead of being pushed off-screen while the Side Panel is open.
         // See https://github.com/Expensify/App/issues/99035
-        getSuperWideRHPExtendedCardInterpolatorStyles: (width: Animated.AnimatedSubtraction<number>) =>
+        getSuperWideRHPExtendedCardInterpolatorStyles: (width: number | Animated.AnimatedSubtraction<number>) =>
             ({
                 ...getRHPExtendedCardFrame(theme),
                 width,
@@ -6983,7 +6992,6 @@ const dynamicStyles = (theme: ThemeColors) =>
             maxOpacity: number;
         }) =>
             ({
-                // We need to stretch the overlay to cover the sidebar and the translate animation distance.
                 left: positionLeftValue,
                 right: positionRightValue,
                 top: positionTopValue,
@@ -7056,8 +7064,15 @@ const dynamicStyles = (theme: ThemeColors) =>
             } satisfies ViewStyle;
         },
 
+        // Web positions sidebar cards with a negative margin; native reserves the sidebar as a sibling.
         rootNavigatorContainerStyles: (isSmallScreenWidth: boolean, sidebarWidth: number = variables.sideBarWithLHBWidth) =>
-            ({marginLeft: isSmallScreenWidth ? 0 : sidebarWidth, flex: 1}) satisfies ViewStyle,
+            ({marginLeft: Platform.OS === 'web' && !isSmallScreenWidth ? sidebarWidth : 0, flex: 1}) satisfies ViewStyle,
+
+        navigationTabBarSafeAreaInsets: (paddingTop: number, paddingBottom: number) => ({paddingTop, paddingBottom}) satisfies ViewStyle,
+
+        leftNavigationTabBarFABPosition: (bottom: number) => ({position: 'absolute', bottom, left: 0, width: variables.navigationTabBarSize}) satisfies ViewStyle,
+
+        nativeRHPContent: (width: number) => ({width, maxWidth: '100%', alignSelf: 'flex-end'}) satisfies ViewStyle,
 
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
 
