@@ -488,16 +488,10 @@ function ReportFetchHandler() {
         updateLoadingInitialReportAction(reportIDFromRoute, true);
     }, [reportIDFromRoute, reportLoadingState.hasOnceLoadedReportActions]);
 
-    // `hasOnceLoadedReportActions` is memory-only too, so "Clear cache and restart" drops it underneath an
-    // already-mounted report screen. Nothing re-fetches in that case - the fetch effect below only re-runs on a
-    // route change - so the effect above would re-arm `isLoadingInitialReportActions` for a load that is never
-    // issued, pinning every consumer of the flag (e.g. the report preview carousel) on a spinner forever.
-    // Re-fetch when the stamp is lost so the flag can settle again. See issue #100524.
-    //
-    // This is deliberately gated on losing a stamp this screen saw for the same report rather than on the flag simply
-    // being falsy, so a normal report open does not double up on the fetch effect below. The stamp is recorded by
-    // reportID because the wipe can land while the screen is blurred, offline or in a preloaded tab, and because this
-    // screen can be re-parameterized to a different report without unmounting.
+    // "Clear cache and restart" drops the memory-only `hasOnceLoadedReportActions` under a mounted report screen, and
+    // nothing re-fetches, so the effect above re-arms `isLoadingInitialReportActions` for a load that never comes and
+    // the report preview spins forever. Re-fetch only when a stamp this screen saw for the same reportID is lost, so a
+    // normal open or a switch to another report does not double up on the fetch effect below. See issue #100524.
     const stampedReportIDRef = useRef<string | undefined>(undefined);
     useEffect(() => {
         if (reportLoadingState.hasOnceLoadedReportActions) {
