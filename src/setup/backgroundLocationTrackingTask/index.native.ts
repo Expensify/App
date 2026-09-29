@@ -77,7 +77,13 @@ async function updateStartAddress(gpsPoints: GPSPoint[][], isOffline: boolean) {
         // To avoid race conditions, we need to get the latest gpsDraftDetails, because reverse geocoding may even take a few seconds
         const gpsDraftDetailsPromiseResult = await getGpsDraftDetails().catch(() => undefined);
         const updatedGpsDraftDetails = gpsDraftDetailsPromiseResult ?? undefined;
-        const updatedGpsPoints = updatedGpsDraftDetails ? getGpsPoints(updatedGpsDraftDetails) : gpsPoints;
+
+        // A trip discarded during the lookup is gone, and writing its address onto the points read before would bring it back
+        if (!updatedGpsDraftDetails) {
+            return;
+        }
+
+        const updatedGpsPoints = getGpsPoints(updatedGpsDraftDetails);
 
         if (address !== null) {
             setStartWaypointAddress({value: address, type: 'address'}, tripSegmentIndex, updatedGpsPoints);

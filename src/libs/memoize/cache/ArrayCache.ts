@@ -71,6 +71,10 @@ function ArrayCache<K, V>(config: CacheConfig<K>): Cache<K, V> {
             return {value};
         },
 
+        clear() {
+            cache.length = 0;
+        },
+
         snapshot: {
             keys: () => cache.map((entry) => entry[0]),
             values: () => cache.map((entry) => entry[1]),

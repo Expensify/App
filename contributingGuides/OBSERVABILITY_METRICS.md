@@ -152,14 +152,47 @@ This document lists all implemented telemetry metrics in the Expensify App.
 **Start**: Message submitted in composer, only when scrolled to bottom ([`src/pages/inbox/report/ReportActionCompose/useComposerSubmit.ts`](https://github.com/Expensify/App/blob/main/src/pages/inbox/report/ReportActionCompose/useComposerSubmit.ts))
 **End**:
 - User sees: Their message appears in chat
-- Technical: Message layout complete (`onLayout` event) in [`src/pages/inbox/report/comment/TextCommentFragment.tsx`](https://github.com/Expensify/App/blob/main/src/pages/inbox/report/comment/TextCommentFragment.tsx)
+- Technical: Message layout complete (`onLayout` event) in [`src/pages/inbox/report/comment/TextCommentFragment.tsx`](https://github.com/Expensify/App/blob/main/src/pages/inbox/report/comment/TextCommentFragment.tsx), or in [`AttachmentCommentFragment.tsx`](https://github.com/Expensify/App/blob/main/src/pages/inbox/report/comment/AttachmentCommentFragment.tsx) when the sent text parses to an attachment-only message (markdown video). Both use `useSendMessageSpanMarks`.
 **Span ID**: `${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${reportActionID}` (optimistic report action ID)
 **Attributes**: `report_id`, `message_length`, `canceled_by_skeleton`, `send_message_source`, `report_action_count`, `money_request_preview_count`
-**Cancellation (report-actions skeleton)**: While a report-actions skeleton is on screen, we listen for `ManualSendMessageVisible` spans started for that report and cancel them immediately, tagging `canceled: true` plus `canceled_by_skeleton` with the skeleton that caused it.
+**Cancellation (report-actions skeleton)**: While a report-actions skeleton is on screen, we listen for `ManualSendMessageVisible` spans started for that report and cancel them immediately, tagging `canceled: true` plus `canceled_by_skeleton` with the skeleton that caused it. Its child phase spans (below) are cancelled first.
 - `canceled_by_skeleton` values (`CONST.TELEMETRY.CANCELED_BY_SKELETON`) based on skeleton condition
 **Cancellation (report unmount / navigate away)**: If the user leaves the report before their message renders, any pending `ManualSendMessageVisible` span is cancelled via `cancelSpansByPrefix()` to avoid orphaned spans. Cancelled this way the span gets `canceled: true` but **no** `canceled_by_skeleton` (a blanket cancel by span-id prefix, not scoped to one `report_id`).
 **Notes**: `send_message_source` = `<tab>_<scenario>` (+ `_rhp` in the RHP, + `_from_report` when drilled in from a report) — slice the metric by send path.
 `report_action_count` / `money_request_preview_count` — how many renderable actions the chat's list holds and how many of them are `REPORT_PREVIEW` items — slice the metric by list weight (e.g. chats with many `MoneyRequestReportPreview` items).
+
+### Send Message (Propagate)
+
+**Constant**: `CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE`
+**Sentry Name**: `ManualSendMessagePropagate`
+**Threshold**: none, read as a slice of `ManualSendMessageVisible`
+**What's Measured**: Time from queueing the optimistic write to React committing the sent row: Onyx applying the merge, notifying subscribers, and React rendering and committing up to that row
+**Start**: `API.write` returns in `addActions` ([`src/libs/actions/Report/index.ts`](https://github.com/Expensify/App/blob/main/src/libs/actions/Report/index.ts))
+**End**: The sent row's layout effect ([`src/libs/telemetry/useSendMessageSpanMarks.ts`](https://github.com/Expensify/App/blob/main/src/libs/telemetry/useSendMessageSpanMarks.ts))
+**Span ID**: `${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE}_${reportActionID}`, child of the `ManualSendMessageVisible` span with the same `reportActionID`
+**Notes**: Layout effects run inside the commit and innermost component first, so this ends mid-commit. The time before it starts is the submit itself, which has no span.
+
+### Send Message (Post Commit)
+
+**Constant**: `CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.POST_COMMIT`
+**Sentry Name**: `ManualSendMessagePostCommit`
+**Threshold**: none, read as a slice of `ManualSendMessageVisible`
+**What's Measured**: Time from React committing the sent row to the platform laying it out: the rest of the commit, passive effects, derived recomputes and the re-renders their writes cause, then platform layout
+**Start**: The sent row's layout effect ([`src/libs/telemetry/useSendMessageSpanMarks.ts`](https://github.com/Expensify/App/blob/main/src/libs/telemetry/useSendMessageSpanMarks.ts))
+**End**: `onLayout` on the sent row, the same event that ends the parent
+**Span ID**: `${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.POST_COMMIT}_${reportActionID}`, child of the `ManualSendMessageVisible` span with the same `reportActionID`
+**Notes**: Excludes the sent row's own render, which happened in `Propagate`. Both phases live in [`src/libs/telemetry/sendMessageSpans.ts`](https://github.com/Expensify/App/blob/main/src/libs/telemetry/sendMessageSpans.ts): they no-op unless the parent is active, and are closed before it, since Sentry discards a child still running when the root span becomes a transaction.
+
+### Onyx Derived Compute
+
+**Constant**: `CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE`
+**Sentry Name**: `OnyxDerivedCompute`
+**Threshold**: none, read as a slice of its parent
+**What's Measured**: One derived-value recompute, from the compute function to its `setDerivedValue` write. Excludes the re-render that write causes in subscribers
+**Start**: Before the compute function runs ([`src/libs/actions/OnyxDerived/index.ts`](https://github.com/Expensify/App/blob/main/src/libs/actions/OnyxDerived/index.ts))
+**End**: After `setDerivedValue` writes the result
+**Attributes**: `derivedKey` (which value recomputed), `triggeredKeys` (which dependencies fired it), `is_startup`
+**Notes**: Recorded only when a parent span is open: app startup, or a send when exactly one `ManualSendMessageVisible` is active. The engine coalesces a dependency burst into one compute per key, so with two sends in flight the compute gets no parent rather than a guessed one. Which phase a compute lands in varies between sends, so read these for cost and cause, not for position.
 
 ## Failure Rates
 

@@ -34,7 +34,7 @@ After your business bank account is approved:
 When you see the three test amounts post to your bank account: 
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile) go to **Account > Wallet**.
-2. In the **Bank accounts** section, click the business bank account with the **Pending** badge. It shows the message **Please confirm test transactions** and a **Confirm** action.
+2. In the **Bank accounts** section, find the business bank account with the **Pending** badge and the message **Please confirm test transactions**, then click **Confirm**.
 3. If **Continue setup** and **Start over** appear instead of the validation screen, click **Continue setup**. Don't click **Start over**, which clears the setup already completed for the account.
 4. On the **Validate your bank account** screen, enter each amount in **Transaction 1**, **Transaction 2**, and **Transaction 3**.
 5. Click **Validate**.
@@ -133,7 +133,7 @@ If you have confirmed all of the above and validation still fails, contact Conci
 
 ## The Fix or Unlock button is missing
 
-If your bank account shows a **Locked** badge but you do not see a **Fix** or **Unlock account** option:
+A locked bank account shows a **Locked** badge with the message **This account requires attention** and an **Unlock** button. If you do not see that button:
 
 1. Check **Account > Wallet** in the **Bank accounts** section and click the locked bank account.
 2. If no option appears there, check **Workspaces > [Workspace name] > Workflows** in the **Payments** section.

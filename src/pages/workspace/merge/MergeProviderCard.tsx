@@ -1,5 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -73,12 +74,14 @@ function MergeProviderCard({card, policy, handleConnect, canWriteMoreFeatures, s
         lastSyncErrorMessage = (
             <>
                 {`${translate('workspace.merge.authenticationError', card.displayName)} `}
-                <TextLink
-                    style={[styles.link, styles.fontSizeLabel]}
-                    onPress={handleConnect}
-                >
-                    {translate('workspace.merge.reconnectLink')}
-                </TextLink>
+                {!isOffline && (
+                    <TextLink
+                        style={[styles.link, styles.fontSizeLabel]}
+                        onPress={handleConnect}
+                    >
+                        {translate('workspace.merge.reconnectLink')}
+                    </TextLink>
+                )}
             </>
         );
     } else if (card.hasError) {
@@ -151,15 +154,14 @@ function MergeProviderCard({card, policy, handleConnect, canWriteMoreFeatures, s
     let rightInset: React.ReactNode;
     if (!card.isConnected) {
         rightInset = (
-            <Button
+            <ButtonDisabledWhenOffline
                 size={CONST.BUTTON_SIZE.SMALL}
                 onPress={handleConnect}
                 innerStyles={!canWriteMoreFeatures ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                 hoverStyles={!canWriteMoreFeatures ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
-                isDisabled={isOffline}
             >
                 <Button.Text>{translate('workspace.merge.connect')}</Button.Text>
-            </Button>
+            </ButtonDisabledWhenOffline>
         );
     } else if (card.isSyncInProgress) {
         rightInset = <ActivityIndicator style={[styles.popoverMenuIcon, styles.alignSelfCenter]} />;
@@ -219,6 +221,7 @@ function MergeProviderCard({card, policy, handleConnect, canWriteMoreFeatures, s
                                     description={row.description}
                                     title={row.title}
                                     icon={row.icon}
+                                    numberOfLinesTitle={row.numberOfLinesTitle}
                                     style={styles.sectionMenuItemTopDescription}
                                     shouldShowRightIcon={canWriteMoreFeatures}
                                     brickRoadIndicator={row.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}

@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import RenderHTML from '@components/RenderHTML';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 

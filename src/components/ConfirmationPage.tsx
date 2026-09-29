@@ -14,7 +14,7 @@ import {StyleSheet, View} from 'react-native';
 
 import type DotLottieAnimation from './LottieAnimations/types';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import FixedFooter from './FixedFooter';
 import ImageSVG from './ImageSVG';
 import Lottie from './Lottie';

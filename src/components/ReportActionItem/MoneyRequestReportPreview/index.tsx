@@ -3,13 +3,12 @@ import TransactionPreview from '@components/ReportActionItem/TransactionPreview'
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsReportVisible from '@hooks/useIsReportVisible';
 import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
-import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
@@ -77,14 +76,12 @@ function MoneyRequestReportPreview({
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayoutIgnoringWideRHP, isSmallScreenWidth} = useResponsiveLayoutOnWideRHP();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {markReportRHPWidth, unmarkReportRHPWidth} = useWideRHPActions();
-    // Deferred presses need focus, which is narrower than the visibility the highlight below is gated on.
-    const isFocused = useIsFocused();
     const personalDetailsList = usePersonalDetails();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
@@ -162,8 +159,8 @@ function MoneyRequestReportPreview({
     );
 
     const reportPreviewStyles = useMemo(
-        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayoutIgnoringWideRHP, transactions.length, widths.currentWidth, widths.currentWrapperWidth),
-        [StyleUtils, widths, shouldUseNarrowLayoutIgnoringWideRHP, transactions.length],
+        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length, widths.currentWidth, widths.currentWrapperWidth),
+        [StyleUtils, widths, shouldUseNarrowLayout, transactions.length],
     );
     const shouldShowPayerAndReceiver = useMemo(() => {
         if (!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU) {
@@ -216,6 +213,7 @@ function MoneyRequestReportPreview({
     const [pendingNewTransactionIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {
         selector: pendingNewTransactionIDsSelector,
     });
+    const isFocused = useIsFocused();
     // Transactions arrive in batches and `useNewTransactions` would diff each batch as newly added expenses.
     // Withhold the list until every transaction the report claims has arrived.
     const expectedTransactionCount = iouReport?.transactionCount ?? 0;
@@ -228,10 +226,9 @@ function MoneyRequestReportPreview({
         setHasCompletedDelivery(true);
     }
     const transactionsForDiff = isDeliveryComplete || hasCompletedDelivery ? transactions : undefined;
+    const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactionsForDiff, pendingNewTransactionIDs, chatReportID, isFocused);
     // Don't surface the highlight while the preview is covered — it'd animate the one-shot off-screen and be missed.
-    // A modal pane can be covered at any width, so this reads the flag unadjusted for wide RHP.
-    const isReportVisible = useIsReportVisible(shouldUseNarrowLayoutIgnoringWideRHP);
-    const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactionsForDiff, pendingNewTransactionIDs, chatReportID, isReportVisible);
+    const isReportVisible = shouldUseNarrowLayout ? isFocused : true;
     const newTransactionIDs = new Set(isReportVisible ? newTransactions.map((transaction) => transaction.transactionID) : []);
 
     const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
@@ -261,7 +258,6 @@ function MoneyRequestReportPreview({
                         conciergeChat,
                         currentUserLogin: currentUserEmail ?? '',
                         currentUserAccountID,
-                        betas,
                         iouReport,
                         iouReportAction: transactionIOUAction,
                         personalDetails: personalDetailsList,
@@ -270,7 +266,7 @@ function MoneyRequestReportPreview({
             }
             return childReportID;
         },
-        [betas, conciergeChat, currentUserAccountID, currentUserEmail, introSelected, iouReport, personalDetailsList, policyID],
+        [conciergeChat, currentUserAccountID, currentUserEmail, introSelected, iouReport, personalDetailsList, policyID],
     );
 
     // `routeAtPress` is captured when the user pressed, not read live: a second press inside the cascade window
@@ -377,7 +373,7 @@ function MoneyRequestReportPreview({
                         openReportFromPreview();
                         return;
                     }
-                    openReport({reportID: iouReportID, introSelected, conciergeChat, betas, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
+                    openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
                 }
                 navigateToExpense(childReportID, routeAtPress);
                 return;
@@ -385,14 +381,13 @@ function MoneyRequestReportPreview({
 
             if (!isIOUActionLoaded && iouReportID && !isOffline) {
                 pendingExpenseTransactionRef.current = {transaction, originRoute: routeAtPress};
-                openReport({reportID: iouReportID, introSelected, conciergeChat, betas, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
+                openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
                 return;
             }
 
             openReportFromPreview();
         },
         [
-            betas,
             conciergeChat,
             currentUserAccountID,
             hasIOUReportActions,

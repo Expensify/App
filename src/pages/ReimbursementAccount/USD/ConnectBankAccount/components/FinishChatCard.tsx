@@ -53,7 +53,6 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, se
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
@@ -64,17 +63,14 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, se
     });
 
     const handleNavigateToConciergeChat = () =>
-        navigateToConciergeChat(
+        navigateToConciergeChat({
             conciergeReportID,
             introSelected,
             currentUserAccountID,
             isSelfTourViewed,
-            betas,
-            true,
-            undefined,
-            undefined,
-            reimbursementAccount?.achData?.ACHRequestReportActionID,
-        );
+            shouldDismissModal: true,
+            reportActionID: reimbursementAccount?.achData?.ACHRequestReportActionID,
+        });
 
     const icons = useMemoizedLazyExpensifyIcons(['ChatBubble', 'Pencil', 'RotateLeft']);
     const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble']);

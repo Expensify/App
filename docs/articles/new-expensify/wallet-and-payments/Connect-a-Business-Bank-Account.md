@@ -1,8 +1,8 @@
 ---
 title: Connect a US Business Bank Account
 description: Learn how to connect and verify a US business bank account in Expensify for reimbursements, Expensify Card payments, and invoice payouts.
-keywords: [New Expensify, business bank account, connect bank account, verified business bank account, reimbursement, Expensify Card, Plaid, Wallet, workspace payments, link bank account, ACH, verification documents, Tax ID Verification, address verification, verification failed, KYB documents]
-internalScope: Audience is Workspace Admins and Payments Admins. Covers connecting a new US business bank account from a workspace or Wallet, and linking an existing one to a workspace for reimbursements. Does not cover validating test transactions, sharing, unsharing, or unlocking a business bank account.
+keywords: [New Expensify, business bank account, connect bank account, verified business bank account, reimbursement, Expensify Card, Plaid, Wallet, workspace payments, link bank account, ACH, verification documents, Tax ID Verification, address verification, verification failed, KYB documents, invoice payments, validate your account, security code]
+internalScope: Audience is Workspace Admins and Payments Admins. Covers connecting a new US business bank account from a workspace or Wallet, and reusing an existing account for a workspace. Does not cover validating test transactions, sharing, unsharing, or unlocking a business bank account, or enabling invoicing.
 ---
 
 # Connect a US Business Bank Account
@@ -97,7 +97,10 @@ Provide the following company information:
 ## How to add Beneficial Owner details
 
 1. Check the appropriate box under **Beneficial Owner**. A Beneficial Owner is an individual who owns 25% or more of the business. If no individual owns 25% or more, leave both boxes unchecked.
-2. Accept the agreement terms and verify that all details are true and accurate.
+2. For each Beneficial Owner, enter their legal name, date of birth, the last four digits of their Social Security Number, and address.
+3. Accept the agreement terms and verify that all details are true and accurate.
+
+Expensify asks only for the last four digits of each Beneficial Owner's Social Security Number, in the **Last 4 of SSN** field. This matches your own personal details. Expensify does not run a personal credit check.
 
 ---
 
@@ -115,12 +118,14 @@ After you submit your details:
 
 Once connected, your business bank account appears in **Account > Wallet**. If you have both personal and business bank accounts, Wallet separates them into **Personal bank accounts** and **Business bank accounts** sections.
 
-An account that still needs your attention displays a badge that tells you what is left to do:
+Every bank account shows a status badge. A finished account shows **Active**. An account that still needs your attention shows a badge that tells you what is left to do:
 
-- **Incomplete** with a **Finish** action means setup was not submitted. Click the account row to resume setup from where you left off.
+- **Incomplete** with a **Finish adding bank account** message and a **Finish** action means setup was not submitted. Click **Finish** to resume setup from where you left off.
 - **Pending** with a **Please confirm test transactions** message and a **Confirm** action means the account was submitted and is waiting on test transactions. Click the account row to open **Validate your bank account**. If **Continue setup** and **Start over** appear first, click **Continue setup** to reach it. Learn how to [validate a business bank account](/articles/new-expensify/wallet-and-payments/Validate-a-Business-Bank-Account).
 - **Verifying** means Expensify is reviewing your documentation and no action is needed from you.
 - **Locked** means the account requires attention before it can be used. Learn how to [unlock a business bank account](/articles/new-expensify/wallet-and-payments/Unlock-a-Business-Bank-Account).
+
+[Learn what each bank account connection status means](/articles/new-expensify/wallet-and-payments/Check-Bank-Account-and-Card-Connection-Status).
 
 <!-- SCREENSHOT:
 Suggestion: Wallet page showing separate Personal and Business bank account sections, with an Incomplete badge on one account and a Pending badge on another
@@ -154,6 +159,10 @@ Expensify cannot process direct payments for businesses in the following industr
 - Marijuana-related businesses
 - Firearm-related businesses (manufacturing and selling)
 - NFT (non-fungible token) services
+
+## Why am I asked for a security code when I add a bank account?
+
+Connecting a bank account requires a validated Expensify account. If yours isn't validated yet, a **Validate your account** step appears when you select **Add bank account**. Enter the security code sent to your email address and click **Verify**. Expensify then continues where you left off, so if you already have a business bank account that matches the Workspace currency, you can choose it instead of setting up a new one.
 
 ## What is a Beneficial Owner?
 
