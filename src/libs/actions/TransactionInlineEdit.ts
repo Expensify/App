@@ -23,7 +23,6 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
-    Beta,
     IntroSelected,
     PersonalDetailsList,
     Policy,
@@ -47,7 +46,7 @@ import type {ValueOf} from 'type-fest';
  * Actions for inline editing of transactions from the Search results table and the Expense Report page.
  *
  * These functions are pure: every Onyx value they need (the transaction and violation
- * collections, the resolved reports/report action, session, betas, etc.) is passed in by
+ * collections, the resolved reports/report action, session, etc.) is passed in by
  * the caller (`useTransactionInlineEdit`), which reads it via `useOnyx`. Each function
  * delegates to the corresponding IOU action which owns the canonical Onyx record, the API
  * write, failure rollback, and snapshot updates (when a hash is provided).
@@ -144,9 +143,6 @@ type GetIouParamsInput = {
     /** Violations for the transaction being edited plus any of its duplicates, scoped by the caller. */
     transactionViolations: OnyxCollection<TransactionViolations>;
 
-    /** Betas the current user has access to, forwarded when a transaction thread report has to be built. */
-    betas: Beta[] | undefined;
-
     /** Resolved by the caller through usePermissions so local beta overrides apply here too. */
     isASAPSubmitBetaEnabled: boolean;
 
@@ -197,7 +193,6 @@ function getIouParamsForTransaction({
     getCurrencyDecimals,
     getCurrencySymbol,
     transactionViolations,
-    betas,
     isASAPSubmitBetaEnabled,
     introSelected,
     currentUserAccountID,
@@ -218,7 +213,6 @@ function getIouParamsForTransaction({
             conciergeChat,
             currentUserLogin: currentUserEmail,
             currentUserAccountID,
-            betas,
             iouReport: parentReport,
             iouReportAction: parentReportAction,
             transaction,

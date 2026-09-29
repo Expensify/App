@@ -74,9 +74,9 @@ function useMoneyRequestReportColumns({report, policy, transactions, reportActio
     const isExpenseReportViewFromIOUReport = isIOUReport(report);
     const shouldShowBillableColumn = isBillableEnabledOnPolicy(policy);
     const shouldShowCommentsColumn = Object.values(reportActions ?? {}).some((action) => (action?.childVisibleActionCount ?? 0) > 0);
-    // The saved column list is account-wide, so drop the vendor column on reports whose workspace lacks the vendor feature.
+    // The saved column list is account-wide, so the vendor column only shows on reports whose workspace has the vendor feature.
     const isVendorColumnAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
-    const savedColumns = (reportDetailsColumns ?? []).filter(isReportDetailsCustomColumn).filter((column) => isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR);
+    const savedColumns = (reportDetailsColumns ?? []).filter(isReportDetailsCustomColumn);
     const columnsToShow = getColumnsToShow({
         currentAccountID: currentUserDetails?.accountID,
         data: transactions,
@@ -89,6 +89,7 @@ function useMoneyRequestReportColumns({report, policy, transactions, reportActio
         shouldShowReimbursableColumn: hasNonReimbursableTransactions(transactions),
         reportCurrency: report?.currency,
         isPolicyTaxEnabled: isPolicyTaxEnabled(policy),
+        isVendorColumnAvailable,
     });
 
     const isAmountColumnWide = transactions.some((transaction) => isTransactionAmountTooLong(transaction));
