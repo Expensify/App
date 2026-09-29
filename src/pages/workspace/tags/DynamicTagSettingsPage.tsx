@@ -213,7 +213,7 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                             onPress={navigateToEditGlCode}
                             iconRight={hasAccountingConnections ? expensifyIcons.Lock : undefined}
                             interactive={canWriteTags && !hasAccountingConnections}
-                            shouldShowRightIcon={canWriteTags && !hasAccountingConnections}
+                            shouldShowRightIcon={canWriteTags}
                         />
                     </OfflineWithFeedback>
 
