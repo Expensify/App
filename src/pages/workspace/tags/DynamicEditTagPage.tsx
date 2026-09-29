@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getCleanedTagName, getTagListByOrderWeight} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 import {getTagNameError, getTagNameErrorMessage} from '@libs/TagUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -67,10 +68,10 @@ function DynamicEditTagPage({route}: DynamicEditTagPageProps) {
 
     const editTag = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            const tagName = values.tagName.trim();
+            const tagName = StringUtils.sanitizeName(values.tagName);
             // Do not call the API if the edited tag name is the same as the current tag name
             if (currentTagName !== tagName) {
-                renamePolicyTag(policyData, {oldName: route.params.tagName, newName: values.tagName.trim()}, orderWeight, isVendorMatchingBetaEnabled);
+                renamePolicyTag(policyData, {oldName: route.params.tagName, newName: tagName}, orderWeight, isVendorMatchingBetaEnabled);
             }
             Keyboard.dismiss();
             Navigation.goBack(backPath);

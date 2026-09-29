@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getTagList, hasCustomCategories} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 import {getTagNameError, getTagNameErrorMessage} from '@libs/TagUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -86,7 +87,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
         createPolicyTag({
             isVendorMatchingBetaEnabled,
             policyData,
-            tagName: values.tagName.trim(),
+            tagName: StringUtils.sanitizeName(values.tagName),
             setupTagsTaskReport,
             setupTagsTaskParentReport,
             isSetupTagsTaskParentReportArchived,
