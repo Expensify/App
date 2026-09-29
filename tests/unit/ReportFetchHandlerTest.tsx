@@ -43,7 +43,7 @@ jest.mock('@hooks/useNetwork', () => ({
     default: () => ({isOffline: mockIsOffline}),
 }));
 
-const mockOpenReport = jest.fn();
+const mockOpenReport = jest.fn<void, Parameters<typeof UserActionsReport.openReport>>();
 jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof UserActionsReport>('@userActions/Report'),
     openReport: (...args: Parameters<typeof UserActionsReport.openReport>) => {
@@ -236,7 +236,7 @@ describe('ReportFetchHandler', () => {
         await waitForBatchedUpdates();
 
         // Then the other report is fetched exactly once, by the normal fetch effect, not again by the cache-clear re-fetch
-        expect(mockOpenReport.mock.calls.filter(([params]) => (params as {reportID?: string}).reportID === OTHER_REPORT_ID)).toHaveLength(1);
+        expect(mockOpenReport.mock.calls.filter(([params]) => params.reportID === OTHER_REPORT_ID)).toHaveLength(1);
     });
 
     it('holds the re-fetch of a wiped loaded stamp while the Inbox tab is preloaded and resumes it once it opens', async () => {
