@@ -36,6 +36,17 @@ function getLastRequestJsonQuery(): unknown {
     return parsedJsonQuery;
 }
 
+function getLastRequestOptimisticIsLoading(): unknown {
+    const optimisticData = mockedMakeRequestWithSideEffects.mock.calls.at(-1)?.[2]?.optimisticData ?? [];
+    for (const update of optimisticData) {
+        const value: unknown = update.value;
+        if (value && typeof value === 'object' && 'search' in value && value.search && typeof value.search === 'object' && 'isLoading' in value.search) {
+            return value.search.isLoading;
+        }
+    }
+    return undefined;
+}
+
 // The backend only saves a query to the recent searches NVP when the payload declares it was
 // user-submitted, so these tests pin down exactly when the flag is (and is not) serialized.
 describe('search shouldSaveRecentSearch flag', () => {
@@ -200,6 +211,77 @@ describe('search shouldSaveRecentSearch flag', () => {
         // Then a single follow-up request fires carrying both the totals and the save flags
         expect(mockedMakeRequestWithSideEffects.mock.calls).toHaveLength(2);
         expect(getLastRequestJsonQuery()).toEqual(expect.objectContaining({shouldCalculateTotals: true, shouldSaveRecentSearch: true}));
+    });
+
+    it('does not show loading again when a save-only re-fire follows a successful totals request', async () => {
+        // Given a totals request without the flag that is still waiting for its response, like the select-all totals request
+        const queryJSON = getQueryJSON('type:expense merchant:tram');
+        let resolveFirstRequest: () => void = () => {};
+        const firstRequestPromise = new Promise<{jsonCode: number}>((resolve) => {
+            resolveFirstRequest = () => resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
+        });
+        mockedMakeRequestWithSideEffects.mockImplementationOnce(() => firstRequestPromise);
+
+        const firstSearch = search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 0,
+            shouldCalculateTotals: true,
+            isLoading: false,
+        });
+
+        // When the Search page sends the same query with the flag, and the first request then succeeds
+        search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 0,
+            isLoading: false,
+            shouldSaveRecentSearch: true,
+        });
+        resolveFirstRequest();
+        await firstSearch;
+        await Promise.resolve();
+
+        // Then the flagged re-fire is still sent, but it doesn't set isLoading, because the totals it returns are already
+        // on screen and a loading state would flash the footer skeleton over them
+        expect(mockedMakeRequestWithSideEffects.mock.calls).toHaveLength(2);
+        expect(getLastRequestJsonQuery()).toEqual(expect.objectContaining({shouldCalculateTotals: true, shouldSaveRecentSearch: true}));
+        expect(getLastRequestOptimisticIsLoading()).toBeUndefined();
+    });
+
+    it('shows loading on a re-fire that adds totals the finished request did not calculate', async () => {
+        // Given a search without totals that is still waiting for its response
+        const queryJSON = getQueryJSON('type:expense merchant:bus');
+        let resolveFirstRequest: () => void = () => {};
+        const firstRequestPromise = new Promise<{jsonCode: number}>((resolve) => {
+            resolveFirstRequest = () => resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
+        });
+        mockedMakeRequestWithSideEffects.mockImplementationOnce(() => firstRequestPromise);
+
+        const firstSearch = search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 0,
+            shouldCalculateTotals: false,
+            isLoading: false,
+        });
+
+        // When a flagged totals request collides with it, and the first request then succeeds
+        search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 0,
+            shouldCalculateTotals: true,
+            isLoading: false,
+            shouldSaveRecentSearch: true,
+        });
+        resolveFirstRequest();
+        await firstSearch;
+        await Promise.resolve();
+
+        // Then the re-fire still shows loading, because the totals it brings aren't on screen yet
+        expect(mockedMakeRequestWithSideEffects.mock.calls).toHaveLength(2);
+        expect(getLastRequestOptimisticIsLoading()).toBe(true);
     });
 
     // The original bug was a wiring problem: programmatic callers looked identical to user submits.
