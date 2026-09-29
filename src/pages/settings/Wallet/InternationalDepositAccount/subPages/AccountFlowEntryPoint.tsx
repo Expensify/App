@@ -50,6 +50,7 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
     const [, plaidDataResult] = useOnyx(ONYXKEYS.PLAID_DATA);
     const isLoadingPersonalBankAccount = isLoadingOnyxValue(personalBankAccountResult);
     const isLoadingResumeState = isLoadingOnyxValue(personalBankAccountDraftResult, plaidDataResult);
+
     useEffect(() => {
         if (isLoadingPersonalBankAccount || isLoadingResumeState || personalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET) {
             return;
