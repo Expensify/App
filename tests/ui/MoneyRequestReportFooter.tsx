@@ -21,8 +21,8 @@ import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/t
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-// The manual form renders its selectable rows as bordered fields. Stand them in for the same shape the
-// `MenuItemWithTopDescription` mock above produces, so the assertions read the same either way.
+// The manual form renders its selectable rows as bordered fields, stood in for a plain View exposing name, value and
+// disabled state.
 jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View, Text} = require('react-native');
@@ -196,7 +196,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-Report');
-        expect(reportItem.props.role).toBe(CONST.ROLE.BUTTON);
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
     });
 
     it('should disable report field when there is only 1 outstanding report and creating from policy chat', async () => {
@@ -227,7 +227,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-Report');
-        expect(reportItem.props.role).toBeUndefined();
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
     });
 
     it('should disable report field when there are no reports available', async () => {
@@ -249,7 +249,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-Report');
-        expect(reportItem.props.role).toBeUndefined();
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
     });
 
     it('should disable report field when transaction has reportID and creating from FAB with only 1 outstanding report', async () => {
@@ -280,7 +280,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-Report');
-        expect(reportItem.props.role).toBeUndefined();
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
     });
 
     it('should allow editing report field when transaction is unReported and creating from FAB with only 1 outstanding report', async () => {
@@ -311,6 +311,6 @@ describe('MoneyRequestConfirmationListFooter', () => {
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-Report');
-        expect(reportItem.props.role).toBe(CONST.ROLE.BUTTON);
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
     });
 });

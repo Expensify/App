@@ -12,6 +12,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setMoneyRequestDescription} from '@libs/actions/IOU/MoneyRequest';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 
 import variables from '@styles/variables';
@@ -20,6 +22,7 @@ import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {ComponentRef} from 'react';
@@ -39,7 +42,7 @@ type DescriptionFieldProps = {
 };
 
 function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps) {
-    const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm, isReadOnly, didConfirm, transactionID, reportID} = useConfirmationFields();
+    const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -117,21 +120,14 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
         />
     ) : (
-        <MenuItemWithTopDescription
-            shouldShowRightIcon={!isReadOnly}
-            shouldParseTitle
-            excludedMarkdownRules={!policy ? ['reportMentions'] : []}
-            title={iouComment}
-            description={translate('common.description')}
-            onPress={openDescriptionPage}
-            style={[styles.moneyRequestMenuItem]}
-            titleStyle={styles.flex1}
-            disabled={didConfirm}
-            interactive={!isReadOnly}
-            numberOfLinesTitle={2}
-            rightLabel={isDescriptionRequired ? translate('common.required') : ''}
+        <MenuItemFieldHTML
+            name={translate('common.description')}
+            value={iouComment ? Parser.replace(iouComment, {disabledRules: !policy ? ['reportMentions'] : []}) : undefined}
+            isDisabled={didConfirm}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
-        />
+        >
+            {!iouComment && isDescriptionRequired && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
+        </MenuItemFieldHTML>
     );
 
     return (
@@ -160,17 +156,7 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
                                 />
                             </View>
                         ) : (
-                            <>
-                                {readOnlyDescription}
-                                <MenuItemFieldHTML
-                                    name={translate('common.description')}
-                                    value={iouComment ? Parser.replace(iouComment, {disabledRules: !policy ? ['reportMentions'] : []}) : undefined}
-                                    isDisabled={didConfirm}
-                                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
-                                >
-                                    {!iouComment && isDescriptionRequired && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
-                                </MenuItemFieldHTML>
-                            </>
+                            readOnlyDescription
                         )}
                     </MentionReportContext.Provider>
                 </ShowContextMenuActionsContext.Provider>
