@@ -1,7 +1,6 @@
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
-import type {Filter} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 
@@ -34,7 +33,6 @@ type FilterItemCallbacks = {
 
 type FilterListProps = FilterItemCallbacks & {
     type: SearchDataTypes | undefined;
-    policyID: Filter;
     selectedFilter?: SearchFilter['key'];
     style?: StyleProp<ViewStyle>;
     contentContainerStyle?: StyleProp<ViewStyle>;
@@ -110,9 +108,9 @@ function FilterItem({filterKey, isSelected, type, onPress, onHoverIn, onFocus}: 
     );
 }
 
-function FilterList({type, policyID, selectedFilter, style, contentContainerStyle, onHoverIn, onFocus, onPress, onPointerMove, onPointerLeave}: FilterListProps) {
+function FilterList({type, selectedFilter, style, contentContainerStyle, onHoverIn, onFocus, onPress, onPointerMove, onPointerLeave}: FilterListProps) {
     const styles = useThemeStyles();
-    const typeFiltersKeys = useAdvancedSearchFilters(type, policyID);
+    const typeFiltersKeys = useAdvancedSearchFilters(type);
 
     return (
         <ScrollView

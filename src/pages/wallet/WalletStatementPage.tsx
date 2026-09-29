@@ -1,6 +1,6 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import Header from '@components/Header';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
-import HeaderDownloadButton from '@components/Header/primitives/HeaderDownloadButton';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WalletStatementModal from '@components/WalletStatementModal';
@@ -100,7 +100,7 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
         >
             <HeaderWithBackButtonAndTitle title={Str.recapitalize(translate('statementPage.title', year, monthName))}>
                 {(!isOffline || isDownloading) && (
-                    <HeaderDownloadButton
+                    <Header.DownloadButton
                         onPress={processDownload}
                         isLoading={isDownloading}
                     />
