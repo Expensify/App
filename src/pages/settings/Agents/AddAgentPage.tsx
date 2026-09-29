@@ -74,6 +74,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     const [avatarDraft, avatarDraftMetadata] = useOnyx(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT);
     const isDraftLoading = isLoadingOnyxValue(avatarDraftMetadata);
     const hasSubmittedRef = useRef(false);
+    const hasLeftPageRef = useRef(false);
     const formRef = useRef<FormRef>(null);
 
     const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
@@ -115,6 +116,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     // Reset the draft when the add flow is dismissed without creating the agent, so the next session starts fresh.
     useBeforeRemove(
         useCallback(() => {
+            hasLeftPageRef.current = true;
             if (hasSubmittedRef.current || !avatarDraft) {
                 return;
             }
@@ -138,27 +140,45 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
         // Pure optimistic flow: `createAgent` writes the agent and the owner<->agent DM to Onyx under a
         // reportID it generates client-side, and CreateAgent creates the DM under that exact ID (see
         // CreateAgent.cpp), so we can navigate to the DM immediately, online or offline, without waiting.
-        const {optimisticReportID} = uploadedAvatar?.uri
+        const {optimisticReportID, optimisticPersonalDetailPromise} = uploadedAvatar?.uri
             ? createAgent(firstName, prompt, ownerAccountID, ownerLogin, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri, policyID)
             : createAgent(firstName, prompt, ownerAccountID, ownerLogin, selectedPresetID ?? AGENT_AVATARS.getRandomID(), undefined, undefined, policyID);
 
         clearNewAgentTemplate();
-        clearNewAgentAvatarDraft();
 
         // Not useResponsiveLayout: this page itself lives inside the RHP modal stack, so
         // shouldUseNarrowLayout/isSmallScreenWidth from that hook would always read as "narrow"
         // regardless of window size. getIsNarrowLayout() reflects the actual window width.
-        if (getIsNarrowLayout()) {
-            // Reveal the DM under the modal before dismissing so we navigate directly to it in one animation,
-            // instead of dismissing to the agents list first and navigating to the DM afterward.
-            Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, ROUTES.SETTINGS_AGENTS));
-            return;
-        }
+        const isNarrowLayout = getIsNarrowLayout();
 
-        // On wide layouts, open the DM in a dedicated RHP screen instead of the fullscreen report split.
-        // forceReplace swaps this screen out for the DM instead of pushing on top of it, so the
-        // already-submitted form can't be reached again via the close/back button.
-        Navigation.navigate(ROUTES.AGENT_REPORT.getRoute(optimisticReportID), {forceReplace: true});
+        optimisticPersonalDetailPromise.then(() => {
+            // The user left the builder before the write resolved, so don't pull them into the DM from whatever screen is now active.
+            if (hasLeftPageRef.current) {
+                clearNewAgentAvatarDraft();
+                return;
+            }
+
+            if (isNarrowLayout) {
+                // Reveal the DM under the modal before dismissing so we navigate directly to it in one animation,
+                // instead of dismissing to the agents list first and navigating to the DM afterward.
+                Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, ROUTES.SETTINGS_AGENTS), {
+                    afterTransition: () => {
+                        clearNewAgentAvatarDraft();
+                    },
+                });
+                return;
+            }
+
+            // On wide layouts, open the DM in a dedicated RHP screen instead of the fullscreen report split.
+            // forceReplace swaps this screen out for the DM instead of pushing on top of it, so the
+            // already-submitted form can't be reached again via the close/back button.
+            Navigation.navigate(ROUTES.AGENT_REPORT.getRoute(optimisticReportID), {
+                forceReplace: true,
+                afterTransition: () => {
+                    clearNewAgentAvatarDraft();
+                },
+            });
+        });
     };
 
     const promptTopOffsetRef = useRef(0);
