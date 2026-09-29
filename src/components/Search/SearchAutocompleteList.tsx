@@ -197,6 +197,7 @@ function SearchAutocompleteList({
         selector: expensifyLoginsSelector,
     });
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
@@ -292,6 +293,7 @@ function SearchAutocompleteList({
             localeCompare,
             formatPhoneNumber,
             conciergeReportID,
+            allPolicyTags,
             isTrackIntentUser,
             translate,
             getReportByID,
@@ -308,6 +310,7 @@ function SearchAutocompleteList({
         currentUserAccountID,
         currentUserEmail,
         policies,
+        allPolicyTags,
         personalDetails,
         reportAttributes,
         sortedActions,

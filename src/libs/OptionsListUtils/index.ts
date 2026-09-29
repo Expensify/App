@@ -2195,7 +2195,7 @@ function prepareReportOptionsForDisplay(
     const preferRecentExpenseReports = action === CONST.IOU.ACTION.CREATE;
 
     syncAlternateTextCache([
-        allReports,
+        getReportByID,
         policiesCollection,
         personalDetails,
         visibleReportActionsData,
@@ -2225,7 +2225,7 @@ function prepareReportOptionsForDisplay(
         const report = option.item;
         const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
-        const parentReport = report.parentReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : undefined;
+        const parentReport = getReportByID(report.parentReportID);
         let invoiceReceiverPolicyID: string | undefined;
         if (report.invoiceReceiver && 'policyID' in report.invoiceReceiver) {
             invoiceReceiverPolicyID = report.invoiceReceiver.policyID;

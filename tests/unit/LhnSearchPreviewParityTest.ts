@@ -430,6 +430,7 @@ async function computeBothSurfaces({
         conciergeReportID: CONCIERGE_REPORT_ID,
         isTrackIntentUser,
         translate: translateLocal,
+        getReportByID: (reportID: string | undefined) => (reportID ? reportsCollection[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] : undefined),
         rules: undefined,
     });
 

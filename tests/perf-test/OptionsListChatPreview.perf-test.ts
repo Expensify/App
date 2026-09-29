@@ -244,9 +244,19 @@ const buildOptionList = () =>
         undefined,
     );
 
+// Mirrors the resolver production passes in (see `useFilteredOptions`), backed by both fixture report maps.
+const getReportByID = (reportID: string | undefined): Report | undefined => {
+    if (!reportID) {
+        return undefined;
+    }
+    const key = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+    return reports[key] ?? threadReports[key];
+};
+
 const getPreviewOptionsConfig = (maxElements: number) => ({
     dateFnsLocale: undefined,
     convertToDisplayString,
+    getReportByID,
     betas: Object.values(CONST.BETAS),
     includeRecentReports: true,
     includeTasks: true,
