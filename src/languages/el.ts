@@ -1239,6 +1239,8 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `Ουπς! Ένα υποχρεωτικό πεδίο («${fieldName}») δεν έχει αντιστοιχιστεί. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         singleFieldMultipleColumns: (fieldName: string) => `Ωχ! Έχετε αντιστοιχίσει ένα μόνο πεδίο («${fieldName}») σε πολλές στήλες. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         emptyMappedField: (fieldName: string) => `Ωχ! Το πεδίο («${fieldName}») περιέχει μία ή περισσότερες κενές τιμές. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
+        fieldValueTooLong: (fieldName: string, limit: number) =>
+            `Ωχ! Το πεδίο («${fieldName}») περιέχει μία ή περισσότερες τιμές μεγαλύτερες από ${limit} χαρακτήρες. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         importSuccessfulTitle: 'Η εισαγωγή ήταν επιτυχής',
         importCategoriesNoneAddedOrUpdated: 'Δεν έχουν προστεθεί ή ενημερωθεί κατηγορίες.',
         importCategoriesAdded: ({count}: {count: number}) => ({
@@ -1637,6 +1639,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noReimbursableExpenses: 'Αυτή η αναφορά έχει μη έγκυρο ποσό',
         pendingConversionMessage: 'Το σύνολο θα ενημερωθεί όταν είστε ξανά συνδεδεμένοι στο διαδίκτυο',
         changedTheExpense: 'τροποποίησε την δαπάνη',
+        addedReceipt: 'πρόσθεσε μια απόδειξη',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `η τιμή ${valueName} σε ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `ορίστηκε το ${translatedChangedField} σε ${newMerchant}, το οποίο όρισε το ποσό σε ${newAmountToDisplay}`,
@@ -5132,6 +5135,9 @@ ${amount} για ${merchant} - ${date}`,
                 autoSyncDescription: 'Το Expensify θα συγχρονίζεται αυτόματα με το QuickBooks Desktop κάθε μέρα.',
                 createEntities: 'Αυτόματη δημιουργία οντοτήτων',
                 createEntitiesDescription: 'Η Expensify θα δημιουργεί αυτόματα προμηθευτές στο QuickBooks Desktop, αν δεν υπάρχουν ήδη.',
+                fxExpenseAccount: 'Λογαριασμός προμήθειας μετατροπής συναλλάγματος',
+                fxExpenseAccountDescription:
+                    'Όταν η εταιρεία σας καλύπτει το κόστος μετατροπής νομίσματος σε μια αποζημίωση που καταβάλλεται στο εξωτερικό, θα το προσθέτουμε στην εξαγωγή ως επιπλέον γραμμή που θα κωδικοποιείται σε αυτόν τον λογαριασμό.',
             },
             itemsDescription: 'Επιλέξτε πώς θέλετε να χειρίζεστε τα στοιχεία QuickBooks Desktop στο Expensify.',
             accountingMethods: {
@@ -11229,6 +11235,7 @@ ${reportName}`,
                 invalid: 'Αυτός ο κωδικός δεν είναι έγκυρος',
             },
         },
+        paymentHistory: {title: 'Προβολή ιστορικού πληρωμών', subtitle: 'Το πλήρες ιστορικό των μηνιαίων πληρωμών που χρεώθηκαν σε αυτόν τον λογαριασμό.'},
         subscriptionSettings: {
             title: 'Ρυθμίσεις συνδρομής',
             editSubscription: 'Επεξεργασία συνδρομής',

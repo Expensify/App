@@ -1180,6 +1180,7 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `おっと！必須フィールド（「${fieldName}」）がマッピングされていません。確認してもう一度お試しください。`,
         singleFieldMultipleColumns: (fieldName: string) => `おっと！1 つのフィールド（「${fieldName}」）を複数の列に割り当てています。確認してもう一度お試しください。`,
         emptyMappedField: (fieldName: string) => `おっと！フィールド（「${fieldName}」）に1つ以上の空の値が含まれています。確認してもう一度お試しください。`,
+        fieldValueTooLong: (fieldName: string, limit: number) => `おっと！フィールド（「${fieldName}」）に${limit}文字を超える値が1つ以上含まれています。確認してもう一度お試しください。`,
         importSuccessfulTitle: 'インポートに成功しました',
         importCategoriesNoneAddedOrUpdated: 'カテゴリーは追加も更新もされていません。',
         importCategoriesAdded: ({count}: {count: number}) => ({
@@ -1567,6 +1568,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noReimbursableExpenses: 'このレポートには無効な金額が含まれています',
         pendingConversionMessage: 'オンラインに戻ると合計が更新されます',
         changedTheExpense: '経費を変更しました',
+        addedReceipt: '領収書を追加しました',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `${valueName} を ${newValueToDisplay} に`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `${translatedChangedField} を ${newMerchant} に設定し、その結果金額が ${newAmountToDisplay} に設定されました`,
@@ -4987,6 +4989,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 autoSyncDescription: 'Expensify は毎日、自動的に QuickBooks Desktop と同期します。',
                 createEntities: 'エンティティを自動作成',
                 createEntitiesDescription: 'Expensify は、存在しない場合は QuickBooks Desktop にベンダーを自動的に作成します。',
+                fxExpenseAccount: '為替換算手数料勘定',
+                fxExpenseAccountDescription: '海外で支払われる精算に対する為替手数料を会社が負担する場合、その金額をこの勘定科目にコードされた追加行としてエクスポートに含めます。',
             },
             itemsDescription: 'Expensify で QuickBooks Desktop の品目をどのように処理するかを選択してください。',
             accountingMethods: {
@@ -10796,6 +10800,7 @@ ${reportName}`,
                 invalid: 'このコードは無効です',
             },
         },
+        paymentHistory: {title: '支払い履歴を表示', subtitle: 'このアカウントに請求された毎月の支払い履歴のすべてです。'},
         subscriptionSettings: {
             title: 'サブスクリプション設定',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>

@@ -1145,6 +1145,7 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `哎呀！有一个必填字段（“${fieldName}”）尚未映射。请检查后重试。`,
         singleFieldMultipleColumns: (fieldName: string) => `哎呀！你已将单个字段（“${fieldName}”）映射到多个列。请检查后重试。`,
         emptyMappedField: (fieldName: string) => `哎呀！字段（“${fieldName}”）包含一个或多个空值。请检查后重试。`,
+        fieldValueTooLong: (fieldName: string, limit: number) => `哎呀！字段（“${fieldName}”）包含一个或多个超过 ${limit} 个字符的值。请检查后重试。`,
         importSuccessfulTitle: '导入成功',
         importCategoriesNoneAddedOrUpdated: '尚未添加或更新任何类别。',
         importCategoriesAdded: ({count}: {count: number}) => ({
@@ -1525,6 +1526,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noReimbursableExpenses: '此报表的金额无效',
         pendingConversionMessage: '当你重新联网时，总金额会更新',
         changedTheExpense: '更改了报销单',
+        addedReceipt: '添加了收据',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `将 ${valueName} 更改为 ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `将 ${translatedChangedField} 设置为 ${newMerchant}，这会将金额设置为 ${newAmountToDisplay}`,
@@ -4862,6 +4864,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 autoSyncDescription: 'Expensify 将每天自动与 QuickBooks Desktop 同步。',
                 createEntities: '自动创建实体',
                 createEntitiesDescription: '如果供应商尚未在 QuickBooks Desktop 中存在，Expensify 将自动创建这些供应商。',
+                fxExpenseAccount: '货币转换手续费科目',
+                fxExpenseAccountDescription: '当您的公司承担一笔支付到海外的报销所产生的货币兑换费用时，我们会在导出内容中额外添加一行，将其归入此科目。',
             },
             itemsDescription: '选择如何在 Expensify 中处理 QuickBooks Desktop 项目。',
             accountingMethods: {
@@ -10515,6 +10519,7 @@ ${reportName}`,
                 invalid: '此代码无效',
             },
         },
+        paymentHistory: {title: '查看付款记录', subtitle: '此账户每月全部付款记录。'},
         subscriptionSettings: {
             title: '订阅设置',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>

@@ -1194,6 +1194,8 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `Ups! Ein erforderliches Feld („${fieldName}“) wurde nicht zugeordnet. Bitte überprüfe es und versuche es erneut.`,
         singleFieldMultipleColumns: (fieldName: string) => `Ups! Du hast ein einzelnes Feld („${fieldName}“) mehreren Spalten zugeordnet. Bitte überprüfe dies und versuche es erneut.`,
         emptyMappedField: (fieldName: string) => `Ups! Das Feld („${fieldName}“) enthält einen oder mehrere leere Werte. Bitte überprüfe es und versuche es erneut.`,
+        fieldValueTooLong: (fieldName: string, limit: number) =>
+            `Ups! Das Feld („${fieldName}“) enthält einen oder mehrere Werte mit mehr als ${limit} Zeichen. Bitte überprüfe es und versuche es erneut.`,
         importSuccessfulTitle: 'Import erfolgreich',
         importCategoriesNoneAddedOrUpdated: 'Es wurden keine Kategorien hinzugefügt oder aktualisiert.',
         importCategoriesAdded: ({count}: {count: number}) => ({
@@ -1586,6 +1588,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noReimbursableExpenses: 'Dieser Bericht enthält einen ungültigen Betrag',
         pendingConversionMessage: 'Die Gesamtsumme wird aktualisiert, sobald du wieder online bist',
         changedTheExpense: 'hat die Ausgabe geändert',
+        addedReceipt: 'hat einen Beleg hinzugefügt',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `den Wert ${valueName} auf ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `lege ${translatedChangedField} auf ${newMerchant} fest, wodurch der Betrag auf ${newAmountToDisplay} gesetzt wurde`,
@@ -5058,6 +5061,9 @@ ${amount} für ${merchant} – ${date}`,
                 autoSyncDescription: 'Expensify wird automatisch jeden Tag mit QuickBooks Desktop synchronisiert.',
                 createEntities: 'Entitäten automatisch erstellen',
                 createEntitiesDescription: 'Expensify erstellt in QuickBooks Desktop automatisch Kreditoren, wenn sie noch nicht vorhanden sind.',
+                fxExpenseAccount: 'Konto für Währungsumrechnungsgebühren',
+                fxExpenseAccountDescription:
+                    'Wenn Ihr Unternehmen die Kosten für die Währungsumrechnung bei einer im Ausland ausgezahlten Erstattung übernimmt, fügen wir sie dem Export als zusätzliche Zeile hinzu, die diesem Konto zugeordnet wird.',
             },
             itemsDescription: 'Wählen Sie aus, wie QuickBooks Desktop-Positionen in Expensify verarbeitet werden sollen.',
             accountingMethods: {
@@ -11008,6 +11014,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 invalid: 'Dieser Code ist ungültig',
             },
         },
+        paymentHistory: {title: 'Zahlungsverlauf anzeigen', subtitle: 'Ihre vollständige monatliche Zahlungshistorie, die diesem Konto belastet wurde.'},
         subscriptionSettings: {
             title: 'Abonnementeinstellungen',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
