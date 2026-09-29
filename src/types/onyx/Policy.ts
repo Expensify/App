@@ -2204,7 +2204,7 @@ type DualEntryConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
  * A subsidiary (entity) configured in Campfire.
  */
 type CampfireSubsidiary = {
-    /** Unique identifier of the account. */
+    /** Unique identifier of the subsidiary. */
     id: string;
 
     /** Name of the account. */
@@ -2254,7 +2254,7 @@ type CampfireAccount = {
  * Field retrieved from Campfire.
  */
 type CampfireField = {
-    /** Unique identifier of the account. */
+    /** Unique identifier of the field. */
     id: string;
 
     /** Name of the field. */
@@ -3829,6 +3829,8 @@ export type {
     CampfireVendor,
     CampfireAccount,
     CampfireExport,
+    CampfireAutoSync,
+    CampfireSync,
     BusinessCentralCompany,
     BusinessCentralCoding,
     BusinessCentralCodingOfflineFeedbackKeys,
