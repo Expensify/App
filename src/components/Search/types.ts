@@ -171,6 +171,7 @@ type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type SearchView = ValueOf<typeof CONST.SEARCH.VIEW>;
 type SearchFooterCount = ValueOf<typeof CONST.SEARCH.FOOTER_COUNT>;
 type SearchFooterTotal = ValueOf<typeof CONST.SEARCH.FOOTER_TOTAL>;
+type SearchCompareMode = ValueOf<typeof CONST.SEARCH.COMPARE>;
 // PieChart is not implemented so we exclude it here to prevent TypeScript errors in `SearchChartView.tsx`.
 type ChartView = Exclude<SearchView, 'table'>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
@@ -375,7 +376,8 @@ type SearchFilterKey =
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT;
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COMPARE;
 
 type RawFilterKey = SyntaxFilterKey | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
 
@@ -397,7 +399,9 @@ type SearchQueryAST = {
     filters: ASTNode;
     rawFilterList?: RawQueryFilter[];
     columns?: SearchCustomColumnIds | SearchCustomColumnIds[];
+    groupColumns?: SearchColumnType[];
     limit?: number;
+    compare?: SearchCompareMode;
 };
 
 type SearchQueryJSON = {

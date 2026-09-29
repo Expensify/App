@@ -270,6 +270,7 @@ const FILTER_KEYS = {
     FOOTER_COUNT: 'footerCount',
     FOOTER_TOTAL: 'footerTotal',
     FOOTER_CURRENCY: 'footerCurrency',
+    COMPARE: 'compare',
 } as const;
 
 const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
@@ -934,6 +935,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.FOOTER_COUNT]: SearchFooterCount;
         [FILTER_KEYS.FOOTER_TOTAL]: SearchFooterTotal;
         [FILTER_KEYS.FOOTER_CURRENCY]: string;
+        [FILTER_KEYS.COMPARE]: string;
     } & Record<ReportFieldTextKey, string> &
         Record<ReportFieldDateKey, string> &
         Record<ReportFieldNegatedKey, string>
