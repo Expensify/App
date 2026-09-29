@@ -1,4 +1,5 @@
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
+import type {ActionSheetAwareScrollViewProps} from '@components/ActionSheetAwareScrollView/types';
 import allowLegendListItemOverflow from '@components/LegendList/allowLegendListItemOverflow';
 import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBanner';
 import {ReportActionsAnimatedSkeletonCover} from '@components/ReportActionsSkeletonCover';
@@ -726,7 +727,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     drawDistance={REPORT_ACTIONS_DRAW_DISTANCE}
                     recycleItems
                     experimental_hideItemsUntilMeasured
-                    renderScrollComponent={renderActionSheetAwareScrollView}
+                    renderScrollComponent={renderReportActionsScrollView}
                     contentContainerStyle={[styles.chatContentScrollView, styles.pb0]}
                     onEndReached={loadNewerChatsAfterTransitions}
                     onEndReachedThreshold={PAGINATION_THRESHOLD}
@@ -792,3 +793,9 @@ function ReportActionsList({reportID, conciergeChat, onLayout}: ReportActionsLis
 }
 
 export default ReportActionsList;
+
+function renderReportActionsScrollView(props: ActionSheetAwareScrollViewProps) {
+    // LegendList passes 0 to custom scroll views. On web that only emits the first and last event,
+    // allowing the hover-suppression timer to expire during a continuous scroll.
+    return renderActionSheetAwareScrollView({...props, scrollEventThrottle: 16});
+}
