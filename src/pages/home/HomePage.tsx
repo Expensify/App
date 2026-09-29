@@ -23,7 +23,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ComponentRef} from 'react';
 
 import {PortalHost} from '@gorhom/portal';
-import {useEffect, useRef, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import ForYouSection from './ForYouSection';
@@ -51,9 +52,9 @@ function HomePage() {
     const shouldShowHomeSkeleton = useAppLoadSkeletonVisibility();
     const receiptDropTargetRef = useRef<ComponentRef<typeof View>>(null);
 
-    useEffect(() => {
+    useFocusEffect(() => {
         openHomePage();
-    }, []);
+    });
 
     // Owned here (above the narrow/wide layout branch) so the Concierge "+" menu survives the ForYouSection remount that
     // happens on breakpoint change, converting between anchored popover and bottom-docked modal instead of vanishing.
