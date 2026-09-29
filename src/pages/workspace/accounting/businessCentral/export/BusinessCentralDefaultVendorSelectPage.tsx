@@ -37,7 +37,7 @@ function BusinessCentralDefaultVendorSelectPage({policy}: WithPolicyConnectionsP
     const defaultVendorID = businessCentralConfig?.export?.defaultVendorID;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT.getRoute(policyID) : undefined;
 
-    // Business Central rejects documents for a vendor blocked for all transactions, so it can't be the fallback vendor
+    // Business Central rejects documents with a vendor blocked for all transactions, so it can't be the fallback vendor
     const vendors = (policy?.connections?.businessCentral?.data?.vendors ?? []).filter((vendor) => vendor.blocked !== CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.ALL);
     const data: VendorListItem[] = sortVendors(vendors, localeCompare).map((vendor) => ({
         value: vendor.id,
