@@ -101,7 +101,8 @@ function canFontRenderText(text: string | undefined, fontManager: SkTypefaceFont
  */
 function measureTextWidth(text: string, fontManager: SkTypefaceFontProvider, fontSize: number): number {
     const para = buildChartParagraph(text, fontManager, fontSize);
-    para.layout(MAX_X_AXIS_LABEL_WIDTH);
+    // Unbounded width so text never wraps; a wrapped getLongestLine would underestimate long labels.
+    para.layout(Number.MAX_SAFE_INTEGER);
     return para.getLongestLine();
 }
 
