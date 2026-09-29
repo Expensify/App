@@ -3497,6 +3497,45 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.inputHeight + 2 * (variables.formErrorLineHeight + 8),
         },
 
+        // Bordered container of a confirmation row that picks a value (category, tag, tax, ...), so it reads as
+        // one of the form's fields rather than as a link out of the flow. Mirrors `textInputContainer`, down to
+        // taking its height from the same place the text fields beside it do, so all of them scale together with
+        // the device font size.
+        moneyRequestFieldRow: {
+            minHeight: variables.inputHeight,
+            paddingHorizontal: 8,
+            paddingVertical: 6,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            borderColor: theme.bordersBold,
+            overflow: 'hidden',
+        },
+
+        // `moneyRequestFieldRow` for a field the user cannot change. Takes its fill and border straight from
+        // `textInputDisabledContainer`, so a locked row reads as the disabled input it is rather than as a field
+        // still waiting to be filled in.
+        moneyRequestFieldRowDisabled: {
+            backgroundColor: theme.highlightBG,
+            borderColor: theme.borderLighter,
+        },
+
+        // Fill behind `moneyRequestFieldRow`. The row's own background would cover anything drawn under it, so the
+        // fill is a layer of its own for a highlight animation to take over.
+        moneyRequestFieldRowFill: {
+            borderRadius: variables.componentBorderRadiusNormal,
+            backgroundColor: theme.appBG,
+        },
+
+        // Circular icon-only button sitting beside the amount field, standing in for the full-width add-receipt button.
+        moneyRequestAddReceiptButton: {
+            width: variables.inputHeight,
+            height: variables.inputHeight,
+            borderRadius: variables.inputHeight / 2,
+            backgroundColor: theme.buttonDefaultBG,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
         moneyRequestPreviewBox: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
