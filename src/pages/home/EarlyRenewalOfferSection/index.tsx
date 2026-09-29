@@ -10,7 +10,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
@@ -30,7 +29,6 @@ function EarlyRenewalOfferSection() {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const theme = useTheme();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['SubscriptionAnnual']);
 
@@ -41,7 +39,7 @@ function EarlyRenewalOfferSection() {
     return (
         <WidgetContainer
             title={translate('earlyRenewal.title')}
-            containerStyles={{backgroundColor: theme.trialBannerBackgroundColor}}
+            containerStyles={styles.trialBannerBackgroundColor}
         >
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3, styles.pb8, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
                 <Icon
