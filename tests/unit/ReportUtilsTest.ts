@@ -194,9 +194,11 @@ import {
     isReportManager,
     isReportOutstanding,
     isReportPendingDelete,
+    isResolvedSupportTicket,
     isRootGroupChat,
     isSelfDMOrSelfDMThread,
     isSortableColumnName,
+    isSupportTicket,
     isUnread,
     isUploadingAttachmentRemovedFromDraft,
     isWorkspaceMemberLeavingWorkspaceRoom,
@@ -26255,6 +26257,39 @@ describe('getPendingChatMembers', () => {
         const result = getPendingChatMembers(accountIDs, previousPendingChatMembers, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
         expect(result).toEqual(previousPendingChatMembers);
+    });
+});
+
+describe('support tickets', () => {
+    const openSupportTicket: Report = {
+        reportID: 'support-ticket',
+        type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+    };
+
+    it('identifies support tickets and their resolved state', () => {
+        expect(isSupportTicket(openSupportTicket)).toBe(true);
+        expect(isResolvedSupportTicket(openSupportTicket)).toBe(false);
+
+        expect(
+            isResolvedSupportTicket({
+                ...openSupportTicket,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            }),
+        ).toBe(true);
+    });
+
+    it('uses the parent preview when the ticket is not loaded', () => {
+        expect(
+            isResolvedSupportTicket(null, {
+                ...createRandomReportAction(1),
+                childType: CONST.REPORT.TYPE.SUPPORT_TICKET,
+                childStateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                childStatusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            }),
+        ).toBe(true);
     });
 });
 
