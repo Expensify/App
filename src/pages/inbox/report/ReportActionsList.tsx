@@ -482,12 +482,10 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         }
     };
 
-    const handleListLoad = () => {
+    const handleListReady = () => {
+        // onLoad only means rows rendered; keep their estimated positions covered until initial scrolling settles.
         onLoad();
         setLoadedInitialViewportListID(listID);
-    };
-
-    const handleListReady = () => {
         readyEndListIDRef.current = listID;
         shouldFollowEndOnResizeRef.current = initialScrollIndex === undefined && !hasNewerActions && userScrolledListIDRef.current !== listID;
         lastScrollMetricsRef.current = undefined;
@@ -752,7 +750,6 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     // Leave the end-follow region as soon as the user starts reading older messages.
                     maintainScrollAtEndThreshold={MAINTAIN_SCROLL_AT_END_THRESHOLD}
                     maintainVisibleContentPosition
-                    onLoad={handleListLoad}
                     onReady={handleListReady}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);

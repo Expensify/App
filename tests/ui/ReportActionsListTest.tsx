@@ -631,7 +631,7 @@ describe('ReportActionsList (body)', () => {
         expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
 
         act(() => {
-            getCapturedListProps()?.onLoad?.();
+            getCapturedListProps()?.onReady?.();
         });
         expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
 
@@ -648,12 +648,12 @@ describe('ReportActionsList (body)', () => {
         expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
 
         act(() => {
-            getCapturedListProps()?.onLoad?.();
+            getCapturedListProps()?.onReady?.();
         });
         expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
     });
 
-    it('forwards the list load event so initial scroll tracking can resume', () => {
+    it('resumes initial scroll tracking after layout and scrolling are ready', () => {
         // Given a report with its action list ready to mount.
         mockShouldCallLegendListOnLoad = false;
         renderReportActionsList();
@@ -661,8 +661,8 @@ describe('ReportActionsList (body)', () => {
         const onLoad = scrollHookResult?.onLoad;
         expect(onLoad).not.toHaveBeenCalled();
 
-        // When LegendList reports that its first layout is complete.
-        act(() => getCapturedListProps()?.onLoad?.());
+        // When LegendList reports that layout and initial scrolling are complete.
+        act(() => getCapturedListProps()?.onReady?.());
 
         // Then the scroll hook receives that event to finish initial positioning.
         expect(onLoad).toHaveBeenCalledTimes(1);
@@ -681,6 +681,9 @@ describe('ReportActionsList (body)', () => {
         expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
 
         act(() => getCapturedListProps()?.onLoad?.());
+        expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
+
+        act(() => getCapturedListProps()?.onReady?.());
         expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
     });
 
@@ -694,7 +697,7 @@ describe('ReportActionsList (body)', () => {
         expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
 
         act(() => {
-            getCapturedListProps()?.onLoad?.();
+            getCapturedListProps()?.onReady?.();
         });
 
         expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
@@ -709,7 +712,7 @@ describe('ReportActionsList (body)', () => {
         const view = renderReportActionsList();
 
         act(() => {
-            getCapturedListProps()?.onLoad?.();
+            getCapturedListProps()?.onReady?.();
         });
         expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
 
