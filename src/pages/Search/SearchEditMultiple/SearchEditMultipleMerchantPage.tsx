@@ -57,10 +57,7 @@ function SearchEditMultipleMerchantPage() {
             shouldEnableMaxHeight
             testID="SearchEditMultipleMerchantPage"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('common.merchant')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('common.merchant')} />
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_MERCHANT_FORM}

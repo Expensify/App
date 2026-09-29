@@ -142,10 +142,7 @@ function SearchEditMultipleAmountPage() {
             shouldEnableMaxHeight
             testID="SearchEditMultipleAmountPage"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('iou.amount')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('iou.amount')} />
             <IOURequestStepCurrencyModal
                 isPickerVisible={isCurrencyPickerVisible}
                 hidePickerModal={() => setIsCurrencyPickerVisible(false)}

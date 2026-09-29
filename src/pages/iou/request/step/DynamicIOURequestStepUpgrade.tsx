@@ -390,12 +390,7 @@ function DynamicIOURequestStepUpgrade({
             offlineIndicatorStyle={styles.mtAuto}
             shouldShowOfflineIndicatorInWideScreen={!isUpgraded && !showConfirmationForm}
         >
-            {(!!isUpgraded || !showConfirmationForm) && (
-                <HeaderWithBackButtonAndTitle
-                    title={translate('common.upgrade')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
-            )}
+            {(!!isUpgraded || !showConfirmationForm) && <HeaderWithBackButtonAndTitle title={translate('common.upgrade')} />}
             {!showConfirmationForm && (
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
                     {!!isUpgraded && (

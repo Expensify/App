@@ -55,10 +55,7 @@ function SearchEditMultipleDescriptionPage() {
             shouldEnableMaxHeight
             testID="SearchEditMultipleDescriptionPage"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('common.description')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('common.description')} />
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DESCRIPTION_FORM}

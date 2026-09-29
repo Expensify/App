@@ -342,10 +342,7 @@ function SearchChangeApproverPage() {
             // Show the non-blocking offline indicator if reports are available in Onyx, otherwise show the blocking offline view because this page requires the Onyx data
             shouldShowOfflineIndicator={!isLoadingBulkChangeApproverPage}
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('iou.changeApprover.title')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('iou.changeApprover.title')} />
             {!!isLoadingBulkChangeApproverPage && !!isOffline ? (
                 <FullPageOfflineBlockingView>
                     <View />

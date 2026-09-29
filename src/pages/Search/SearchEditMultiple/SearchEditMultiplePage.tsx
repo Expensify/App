@@ -399,10 +399,7 @@ function SearchEditMultiplePage() {
             testID="SearchEditMultiplePage"
             includeSafeAreaPaddingBottom
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('search.bulkActions.editMultipleTitle')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('search.bulkActions.editMultipleTitle')} />
             <View style={[styles.flex1]}>
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
                     <Text style={[styles.ph5, styles.mb5, styles.textSupporting]}>{translate('search.bulkActions.editMultipleDescription')}</Text>

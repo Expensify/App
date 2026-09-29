@@ -54,10 +54,7 @@ function SearchEditMultipleTaxPage() {
             shouldEnableMaxHeight
             testID="SearchEditMultipleTaxPage"
         >
-            <HeaderWithBackButtonAndTitle
-                title={policy?.taxRates?.name ?? translate('common.tax')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButtonAndTitle title={policy?.taxRates?.name ?? translate('common.tax')} />
             <View style={[styles.flex1, styles.w100]}>
                 <TaxPicker
                     selectedTaxRate={selectedTaxRate}

@@ -50,10 +50,7 @@ function SearchEditMultipleDatePage() {
             shouldEnableMaxHeight
             testID="SearchEditMultipleDatePage"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('common.date')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('common.date')} />
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DATE_FORM}

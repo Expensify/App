@@ -84,10 +84,7 @@ function SearchEditMultipleBooleanPage() {
             shouldEnableMaxHeight
             testID={testID}
         >
-            <HeaderWithBackButtonAndTitle
-                title={title}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButtonAndTitle title={title} />
             <View style={[styles.flex1]}>
                 <SelectionList
                     shouldSingleExecuteRowSelect

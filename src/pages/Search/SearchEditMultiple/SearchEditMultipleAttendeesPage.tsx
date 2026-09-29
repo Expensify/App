@@ -42,10 +42,7 @@ function SearchEditMultipleAttendeesPage() {
             shouldEnableMaxHeight
             testID="SearchEditMultipleAttendeesPage"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('iou.attendees')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('iou.attendees')} />
             <MoneyRequestAttendeeSelector
                 onFinish={saveAttendees}
                 onAttendeesAdded={setAttendees}

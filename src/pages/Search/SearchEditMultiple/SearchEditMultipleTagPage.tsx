@@ -95,10 +95,7 @@ function SearchEditMultipleTagPage() {
             shouldEnableMaxHeight
             testID="SearchEditMultipleTagPage"
         >
-            <HeaderWithBackButtonAndTitle
-                title={headerTitle}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButtonAndTitle title={headerTitle} />
             <TagPicker
                 policyID={policyID}
                 selectedTag={currentTag}

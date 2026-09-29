@@ -44,10 +44,7 @@ function SearchEditMultipleCategoryPage() {
             shouldEnableMaxHeight
             testID="SearchEditMultipleCategoryPage"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('common.category')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('common.category')} />
             <CategoryPicker
                 policyID={policyID}
                 selectedCategory={currentCategory}
