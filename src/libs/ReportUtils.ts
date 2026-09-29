@@ -3058,27 +3058,32 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, rules
 }
 
 /**
+ * Checks whether an instant-submit, Submit & Close policy rejects a report that only contains non-reimbursable transactions.
+ */
+function isInstantSubmitAndCloseWithOnlyNonReimbursableTransactions(policy: OnyxEntry<Policy>, hasOnlyNonReimbursable: boolean): boolean {
+    return isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && hasOnlyNonReimbursable;
+}
+
+/**
  * Checks whether moving an expense into a report would be rejected because the report only contains non-reimbursable transactions.
  */
-function isReportIneligibleForMoveExpenses(moneyRequestReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
-    if (
-        !isExpenseReport(moneyRequestReport) ||
-        !isInstantSubmitEnabled(policy) ||
-        !isSubmitAndClose(policy) ||
-        (isOpenExpenseReport(moneyRequestReport) && (hasReportBeenReopened(moneyRequestReport) || hasReportBeenRetracted(moneyRequestReport)))
-    ) {
+function isReportIneligibleForMoveExpenses(moneyRequestReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, transactions: Transaction[]): boolean {
+    if (!isExpenseReport(moneyRequestReport) || (isOpenExpenseReport(moneyRequestReport) && (hasReportBeenReopened(moneyRequestReport) || hasReportBeenRetracted(moneyRequestReport)))) {
         return false;
     }
 
-    const hasOnlyNonReimbursableTransactionsLocal = hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID);
+    const hasOnlyNonReimbursableTransactionsLocal =
+        moneyRequestReport?.transactionCount !== undefined &&
+        moneyRequestReport.transactionCount === transactions.length &&
+        hasOnlyNonReimbursableTransactions(moneyRequestReport.reportID, transactions);
     const hasOnlyNonReimbursableTransactionsFromReportTotals =
         moneyRequestReport?.transactionCount !== undefined &&
         moneyRequestReport.transactionCount > 0 &&
         moneyRequestReport.total !== undefined &&
         moneyRequestReport.nonReimbursableTotal !== undefined &&
-        moneyRequestReport.total === moneyRequestReport.nonReimbursableTotal;
+        getReimbursableTotal(moneyRequestReport) === 0;
 
-    return hasOnlyNonReimbursableTransactionsLocal || hasOnlyNonReimbursableTransactionsFromReportTotals;
+    return isInstantSubmitAndCloseWithOnlyNonReimbursableTransactions(policy, hasOnlyNonReimbursableTransactionsLocal || hasOnlyNonReimbursableTransactionsFromReportTotals);
 }
 
 /**
@@ -3101,12 +3106,13 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, rules: OnyxCol
         return false;
     }
 
-    if (
-        isInstantSubmitEnabled(policy) &&
-        isSubmitAndClose(policy) &&
-        (hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID) ||
-            (!isMovingTransaction && !isOpenExpenseReport(moneyRequestReport) && getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO))
-    ) {
+    const isInstantSubmitAndClose = isInstantSubmitEnabled(policy) && isSubmitAndClose(policy);
+    const hasOnlyNonReimbursableTransactionsLocal = hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID);
+    const isRejectedForOnlyNonReimbursableTransactions = isInstantSubmitAndCloseWithOnlyNonReimbursableTransactions(policy, hasOnlyNonReimbursableTransactionsLocal);
+    const isRejectedForDisabledReimbursement =
+        isInstantSubmitAndClose && !isMovingTransaction && !isOpenExpenseReport(moneyRequestReport) && getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+
+    if (isRejectedForOnlyNonReimbursableTransactions || isRejectedForDisabledReimbursement) {
         return false;
     }
 

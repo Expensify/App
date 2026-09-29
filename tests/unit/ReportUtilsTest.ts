@@ -11926,7 +11926,7 @@ describe('ReportUtils', () => {
             };
 
             // When the move eligibility is checked without a locally cached transaction
-            const result = isReportIneligibleForMoveExpenses(report, instantSubmitPolicy);
+            const result = isReportIneligibleForMoveExpenses(report, instantSubmitPolicy, []);
 
             // Then the report is excluded before it can be selected as a move destination
             expect(result).toBe(true);
@@ -11947,7 +11947,7 @@ describe('ReportUtils', () => {
             };
 
             // When the move eligibility is checked
-            const result = isReportIneligibleForMoveExpenses(report, instantSubmitPolicy);
+            const result = isReportIneligibleForMoveExpenses(report, instantSubmitPolicy, []);
 
             // Then the draft remains available because Auth allows transactions to be moved into it
             expect(result).toBe(false);
@@ -11965,9 +11965,45 @@ describe('ReportUtils', () => {
             };
 
             // When the move eligibility is checked
-            const result = isReportIneligibleForMoveExpenses(report, instantSubmitPolicy);
+            const result = isReportIneligibleForMoveExpenses(report, instantSubmitPolicy, []);
 
             // Then the report remains available as a destination
+            expect(result).toBe(false);
+        });
+
+        it('returns false when only a partial set of destination transactions is loaded', () => {
+            // Given a report with two transactions whose first loaded transaction is non-reimbursable
+            const report: Report = {
+                ...createRandomReport(30004, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: instantSubmitPolicy.id,
+                transactionCount: 2,
+            };
+            const transactions: Transaction[] = [{...createRandomTransaction(30004), reportID: report.reportID, reimbursable: false}];
+
+            // When move eligibility is checked before all destination transactions are available
+            const result = isReportIneligibleForMoveExpenses(report, instantSubmitPolicy, transactions);
+
+            // Then the report remains available until the complete transaction set can be evaluated
+            expect(result).toBe(false);
+        });
+
+        it('uses the fresh reimbursable total when legacy report totals are stale', () => {
+            // Given report totals that still look non-reimbursable but a fresh reimbursable total from the backend
+            const report: Report = {
+                ...createRandomReport(30005, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: instantSubmitPolicy.id,
+                transactionCount: 2,
+                total: -100,
+                nonReimbursableTotal: -100,
+                reimbursableTotal: -100,
+            };
+
+            // When move eligibility is checked without cached destination transactions
+            const result = isReportIneligibleForMoveExpenses(report, instantSubmitPolicy, []);
+
+            // Then the report remains available because the fresh total records a reimbursable amount
             expect(result).toBe(false);
         });
     });
