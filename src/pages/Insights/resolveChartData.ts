@@ -24,7 +24,7 @@ type ResolveInsightsChartDataParams = {
     /** The chart to resolve, as its dashboard declares it */
     chart: InsightsChartSpec;
 
-    /** The dashboard's stored record, which names the snapshot GetInsights filled for each chart */
+    /** The dashboard's stored record, which says which charts' snapshots GetInsights filled */
     dashboard: OnyxEntry<InsightsDashboard>;
 
     /** The snapshot stored under the chart's own query, which GetInsights or Search can fill */
@@ -47,7 +47,7 @@ type InsightsChartData = {
     state: InsightsChartState;
 };
 
-/** Says whether the dashboard's response named a snapshot for the chart, and whether that snapshot, or one a Search request settled, holds its data. */
+/** Says whether the dashboard's response filled the chart's snapshot, and whether that snapshot holds data for the chart's query. */
 function getInsightsChartLoadState({chart, dashboard, snapshot, queryJSON}: Pick<ResolveInsightsChartDataParams, 'chart' | 'dashboard' | 'snapshot' | 'queryJSON'>) {
     const isNamedByDashboard = !!dashboard?.graphs?.[chart.graphKey]?.snapshotHash;
     return {isNamedByDashboard, isLoaded: (isNamedByDashboard && !!snapshot?.data) || isSearchDataLoaded(snapshot, queryJSON)};

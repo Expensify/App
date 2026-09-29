@@ -21,7 +21,7 @@ type InsightsGraph = {
 
 /** What the backend returns for one dashboard and set of filters */
 type InsightsDashboard = {
-    /** Where each chart finds its data, keyed by the graph slot its spec declares */
+    /** Snapshots the response filled, keyed by the graph slot each chart's spec declares */
     graphs?: Partial<Record<InsightsGraphKey, InsightsGraph>>;
 
     /** Whether the account has any expenses at all, regardless of the query, so an empty account can be told apart from filters that matched nothing */
