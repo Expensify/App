@@ -22,6 +22,7 @@ import {clearFooterConversion, search} from '@libs/actions/Search';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {isQueryARefinement} from '@libs/SearchQueryRefinement';
+import {getQueryHashWithoutFooterSelections} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -121,7 +122,13 @@ function SearchPage({route}: SearchPageProps) {
     // query would mount it with no data and flash a skeleton in the middle of the fade. Key it on the last query
     // that actually resolved instead: the current results stay on screen until the new ones arrive, then the area
     // swaps once.
-    const isSearchResolvedForCurrentQuery = isCurrentSearchResolved && !!searchResults && !!currentSearchQueryJSON;
+    // `state: loaded` lands in the snapshot before the rows do — the client writes that state when the request
+    // settles, and the response's own data is a separate Onyx merge. Ending the hold on it hands the results area a
+    // row-less snapshot for a render, which reads as an emptied result: the list swaps out and the selection
+    // reconcile wipes what was selected. A snapshot the server described as empty (`hasResults: false`) is a real
+    // answer and resolves immediately.
+    const hasRowsForCurrentQuery = currentSearchResults?.data !== undefined || currentSearchResults?.search?.hasResults === false || !!currentSearchResults?.errors;
+    const isSearchResolvedForCurrentQuery = isCurrentSearchResolved && hasRowsForCurrentQuery && !!searchResults && !!currentSearchQueryJSON;
     if (isSearchResolvedForCurrentQuery && currentSearchQueryJSON && searchResults && lastResolvedSearch?.searchResults !== searchResults) {
         setLastResolvedSearch({queryJSON: currentSearchQueryJSON, searchResults});
     }
@@ -141,9 +148,17 @@ function SearchPage({route}: SearchPageProps) {
 
     const hasStaleHoldTimedOut = staleHoldTimedOutHash !== undefined && staleHoldTimedOutHash === currentQueryHash;
 
-    // Only a filter refinement is worth holding for. A sidebar item or saved search is a different search, so its
-    // results area starts from the skeleton rather than showing rows that belong to the query the user just left.
-    const shouldHoldLastResolvedSearch = !isSearchResolvedForCurrentQuery && !!lastResolvedSearch && !hasStaleHoldTimedOut && isQueryARefinement(currentSearchQueryJSON?.inputQuery);
+    // A Spend footer selection asks the backend for a different aggregate over the very same rows, so the results area
+    // holds what is on screen for as long as that search takes: the rows cannot change, and letting the hold lapse
+    // would unmount the list and take the selection with it.
+    const isFooterSelectionChangeOnly =
+        !!currentSearchQueryJSON && !!lastResolvedSearch && getQueryHashWithoutFooterSelections(currentSearchQueryJSON) === getQueryHashWithoutFooterSelections(lastResolvedSearch.queryJSON);
+
+    // Otherwise only a filter refinement is worth holding for, and only briefly. A sidebar item or saved search is a
+    // different search, so its results area starts from the skeleton rather than showing rows that belong to the query
+    // the user just left.
+    const shouldHoldLastResolvedSearch =
+        !isSearchResolvedForCurrentQuery && !!lastResolvedSearch && (isFooterSelectionChangeOnly || (!hasStaleHoldTimedOut && isQueryARefinement(currentSearchQueryJSON?.inputQuery)));
     const contentQueryJSON = shouldHoldLastResolvedSearch ? lastResolvedSearch.queryJSON : currentSearchQueryJSON;
     const contentSearchResults = shouldHoldLastResolvedSearch ? lastResolvedSearch.searchResults : searchResults;
 

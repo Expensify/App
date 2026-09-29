@@ -168,7 +168,7 @@ function SearchPageWide({
                                     {/* Floats over the bottom of the list, which already ends above SearchSelectionFooter. */}
                                     <SearchBulkActionsBarWide queryJSON={queryJSON} />
                                 </View>
-                                <SearchSelectionFooter searchResults={searchResults} />
+                                <SearchSelectionFooter searchResults={contentSearchResults} />
                             </>
                         )}
                     </FullPageNotFoundView>

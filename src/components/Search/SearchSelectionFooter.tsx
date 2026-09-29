@@ -6,6 +6,7 @@ import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotal
 import {close} from '@libs/actions/Modal';
 import {getFooterConvertedAmounts} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {markQueryAsRefinement} from '@libs/SearchQueryRefinement';
 import {buildSearchQueryJSON, getFooterSelectionFromQuery, getQueryWithFooterSelection} from '@libs/SearchQueryUtils';
 import {doesTransactionMatchFooterTotal, isGroupEntry} from '@libs/SearchUIUtils';
 
@@ -107,7 +108,7 @@ function areAllSelectedReportsConverted(selectedReportIDs: string[], isReportFre
 // footer — not SearchPage and the <Search> list it contains.
 function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected, selectedReports} = useSearchSelectionContext();
-    const {currentSearchResults} = useSearchResultsContext();
+    const {currentSearchResults, shouldUseLiveData} = useSearchResultsContext();
     const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, true, areAllMatchingItemsSelected);
     const {isOffline} = useNetwork();
@@ -325,7 +326,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
 
     // The other case with no answer to give: the whole-search report count comes from the server, and a search that
     // returned none of it (a grouped search, or a to-do search counting live Onyx data) has nothing to switch to.
-    const shouldShowCountSelector = (isExpenseType || isReportsSearch) && !hasGroupSelection;
+    const shouldShowCountSelector = (isExpenseType || isReportsSearch) && !hasGroupSelection && (hasPartialSelection || (!shouldUseLiveData && typeof metadataReportCount === 'number'));
     const footerCountType = shouldShowCountSelector ? (footerSelection.footerCount ?? defaultFooterCountType) : undefined;
 
     // An empty result set has no total to break down, so it keeps the plain total spend with no selector.
@@ -556,6 +557,10 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         }
 
         const nextQuery = getQueryWithFooterSelection(currentSearchQueryJSON, selection);
+        // `footerTotal` moves the search hash, so the new query has no snapshot of its own yet. Marking it a
+        // refinement is what keeps the rows, the selection and the figures on screen while it loads, instead of
+        // unmounting the list to a skeleton over a change that matches exactly the same rows.
+        markQueryAsRefinement(nextQuery);
         close(() => {
             Navigation.setParams({q: nextQuery, rawQuery: undefined});
         });
