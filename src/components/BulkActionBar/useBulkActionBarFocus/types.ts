@@ -11,4 +11,3 @@ type BulkActionBarFocus = {
 type UseBulkActionBarFocus = (barRef: RefObject<unknown>) => BulkActionBarFocus;
 
 export default UseBulkActionBarFocus;
-export type {BulkActionBarFocus};
