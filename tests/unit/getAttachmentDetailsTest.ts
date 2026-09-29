@@ -4,37 +4,79 @@ const source = 'https://www.expensify.com/chat-attachments/123/w_62c85849a4867ea
 
 describe('getAttachmentDetails', () => {
     it('reads the source and file name from a freshly uploaded anchor', () => {
+        // Given an anchor exactly as a fresh upload stores it, with its attachment attributes
         const html = `<a href="${source}" data-expensify-source="${source}" data-attachment-id="1">PerDiem-test.csv</a>`;
-        expect(getAttachmentDetails(html)).toMatchObject({sourceURL: source, originalFileName: 'PerDiem-test.csv'});
+
+        // When the attachment details are read from it
+        const details = getAttachmentDetails(html);
+
+        // Then the source attribute and the anchor text are used
+        expect(details).toMatchObject({sourceURL: source, originalFileName: 'PerDiem-test.csv'});
     });
 
     it('falls back to the href when the source attribute was dropped by an edit', () => {
+        // Given an edited anchor that lost its source attribute on the server but kept its attachment id
         const html = `<a href="${source}" data-attachment-id="1" target="_blank" rel="noreferrer noopener">edited per diem</a>`;
-        expect(getAttachmentDetails(html)).toMatchObject({sourceURL: source, originalFileName: 'edited per diem'});
+
+        // When the attachment details are read from it
+        const details = getAttachmentDetails(html);
+
+        // Then the href stands in for the missing source, and the renamed label is the file name
+        expect(details).toMatchObject({sourceURL: source, originalFileName: 'edited per diem'});
     });
 
     it('falls back to a chat-attachments href even without the attachment id', () => {
+        // Given an edited anchor that kept neither attachment attribute, only its chat-attachments href
         const html = `<a href="${source}" target="_blank" rel="noreferrer noopener">edited per diem</a>`;
-        expect(getAttachmentDetails(html).sourceURL).toBe(source);
+
+        // When the attachment details are read from it
+        const details = getAttachmentDetails(html);
+
+        // Then the Expensify-hosted href alone is enough to use as the source
+        expect(details.sourceURL).toBe(source);
     });
 
     it('picks the attachment anchor over an earlier plain link when the source attribute is gone', () => {
+        // Given an edited comment with an ordinary link before the file anchor, and no source attribute on either
         const html = `See <a href="https://google.com" target="_blank" rel="noreferrer noopener">google</a><br /><br /><a href="${source}" data-attachment-id="1">file.csv</a>`;
-        expect(getAttachmentDetails(html)).toMatchObject({sourceURL: source, originalFileName: 'file.csv'});
+
+        // When the attachment details are read from it
+        const details = getAttachmentDetails(html);
+
+        // Then the file anchor is picked, so Download does not open the other link
+        expect(details).toMatchObject({sourceURL: source, originalFileName: 'file.csv'});
     });
 
     it('does not treat an external href as the source just because the message has an attachment id', () => {
+        // Given an anchor to an external site that happens to carry an attachment id
         const html = '<a href="https://google.com" data-attachment-id="1">google</a>';
-        expect(getAttachmentDetails(html).sourceURL).toBe('');
+
+        // When the attachment details are read from it
+        const details = getAttachmentDetails(html);
+
+        // Then no source is read, because the auth token is only ever appended to Expensify-hosted URLs
+        expect(details.sourceURL).toBe('');
     });
 
     it('leaves a plain link with no source', () => {
+        // Given an ordinary link with no attachment attributes
         const html = '<a href="https://google.com" target="_blank" rel="noreferrer noopener">google</a>';
-        expect(getAttachmentDetails(html).sourceURL).toBe('');
+
+        // When the attachment details are read from it
+        const details = getAttachmentDetails(html);
+
+        // Then no source is read
+        expect(details.sourceURL).toBe('');
     });
 
     it('does not read an href from an image without a source attribute', () => {
+        // Given an image tag with no source attribute
         const html = '<img src="https://example.com/x.png" data-name="x.png" />';
-        expect(getAttachmentDetails(html).sourceURL).toBe('');
+
+        // When the attachment details are read from it
+        const details = getAttachmentDetails(html);
+
+        // Then the anchor fallback is not applied to images, so no source is read
+        expect(details.sourceURL).toBe('');
     });
 });

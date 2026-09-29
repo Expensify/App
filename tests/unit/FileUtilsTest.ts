@@ -579,27 +579,69 @@ describe('FileUtils', () => {
         const source = 'https://staging.expensify.com/chat-attachments/123/w_9cb3daa39e7b4276ab18285ee51d65b461b38aa5.csv';
 
         it('leaves a name that already carries its extension alone', () => {
-            expect(getDownloadFileName('PerDiem-2024-11-21_10_02_48.939.csv', source)).toBe('PerDiem-2024-11-21_10_02_48.939.csv');
+            // Given a display name that already ends in the stored file extension
+            const displayName = 'PerDiem-2024-11-21_10_02_48.939.csv';
+
+            // When the download name is built from it
+            const downloadName = getDownloadFileName(displayName, source);
+
+            // Then the name is used as is, with no second extension appended
+            expect(downloadName).toBe('PerDiem-2024-11-21_10_02_48.939.csv');
         });
 
         it('takes the extension from the source when a rename dropped it', () => {
-            expect(getDownloadFileName('1234', source)).toBe('1234.csv');
+            // Given a label the author renamed to something without an extension
+            const displayName = '1234';
+
+            // When the download name is built from it
+            const downloadName = getDownloadFileName(displayName, source);
+
+            // Then the stored file extension is appended so the download still opens as a csv
+            expect(downloadName).toBe('1234.csv');
         });
 
         it('appends the extension when the only dot in the name is not an extension', () => {
-            expect(getDownloadFileName('Q3.2026 numbers', source)).toBe('Q3.2026 numbers.csv');
+            // Given a label whose only dot is part of the text rather than an extension
+            const displayName = 'Q3.2026 numbers';
+
+            // When the download name is built from it
+            const downloadName = getDownloadFileName(displayName, source);
+
+            // Then the stored file extension is still appended
+            expect(downloadName).toBe('Q3.2026 numbers.csv');
         });
 
         it('keeps the source extension even when the name ends in a different one', () => {
-            expect(getDownloadFileName('report.txt', source)).toBe('report.txt.csv');
+            // Given a label that ends in a different extension from the stored file
+            const displayName = 'report.txt';
+
+            // When the download name is built from it
+            const downloadName = getDownloadFileName(displayName, source);
+
+            // Then the stored file extension wins, since it is the real file type
+            expect(downloadName).toBe('report.txt.csv');
         });
 
         it('matches the extension case-insensitively', () => {
-            expect(getDownloadFileName('report.CSV', source)).toBe('report.CSV');
+            // Given a label that carries the stored file extension in upper case
+            const displayName = 'report.CSV';
+
+            // When the download name is built from it
+            const downloadName = getDownloadFileName(displayName, source);
+
+            // Then the extension is recognized and not appended again
+            expect(downloadName).toBe('report.CSV');
         });
 
         it('leaves the name alone when the source has no extension either', () => {
-            expect(getDownloadFileName('1234', 'https://staging.expensify.com/chat-attachments/123/w_9cb3daa')).toBe('1234');
+            // Given a label without an extension, stored under a URL that has none to borrow
+            const displayName = '1234';
+
+            // When the download name is built from it
+            const downloadName = getDownloadFileName(displayName, 'https://staging.expensify.com/chat-attachments/123/w_9cb3daa');
+
+            // Then the name is left as is rather than gaining an empty extension
+            expect(downloadName).toBe('1234');
         });
     });
 });

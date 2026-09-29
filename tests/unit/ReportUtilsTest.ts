@@ -7361,12 +7361,15 @@ describe('ReportUtils', () => {
         });
 
         it('keeps a name the author gave the attachment while it was still uploading', () => {
+            // Given an attachment that has synced, and a draft written while it uploaded that renamed it
             const syncedDocHtml = `Hello<br /><br /><a href="https://www.expensify.com/chat-attachments/${reportActionID}/file.doc" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/file.doc">file.doc</a>`;
             const draft = 'Hello edited\n\n[124.csv](blob:https://dev.new.expensify.com:8082/uuid-1)';
 
-            expect(replaceLocalAttachmentReferences(draft, syncedDocHtml, reportActionID)).toBe(
-                `Hello edited\n\n[124.csv](https://www.expensify.com/chat-attachments/${reportActionID}/file.doc)`,
-            );
+            // When the local reference is swapped for the synced one
+            const replaced = replaceLocalAttachmentReferences(draft, syncedDocHtml, reportActionID);
+
+            // Then the synced URL is used but the name the author typed is kept, instead of the uploaded name
+            expect(replaced).toBe(`Hello edited\n\n[124.csv](https://www.expensify.com/chat-attachments/${reportActionID}/file.doc)`);
         });
 
         it('does not re-add an attachment the user intentionally removed from the draft', () => {
@@ -7407,9 +7410,14 @@ describe('ReportUtils', () => {
         });
 
         it('returns nothing to re-append for a synced file attachment, so an edit replayed after the upload cannot park itself again', () => {
+            // Given a comment whose file attachment has already synced
             const syncedFileHtml = `Hello<br /><br /><a href="https://www.expensify.com/chat-attachments/${reportActionID}/file.doc" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/file.doc">file.doc</a>`;
 
-            expect(getUploadingAttachmentHtmlFromComment(syncedFileHtml)).toBeUndefined();
+            // When the uploading attachment tag is read from it
+            const uploadingTag = getUploadingAttachmentHtmlFromComment(syncedFileHtml);
+
+            // Then there is none, so a replayed edit is sent as a normal edit instead of being deferred again
+            expect(uploadingTag).toBeUndefined();
         });
 
         describe('buildEditedCommentWithAttachment', () => {
@@ -7453,33 +7461,58 @@ describe('ReportUtils', () => {
             const uploadingFileHtml = `Hello<br /><br /><a href="${localSource}" data-optimistic-src="${localSource}" data-expensify-source="${localSource}" data-name="data.csv">data.csv</a>`;
 
             it('reads the label the draft gives the attachment', () => {
+                // Given a draft that references the uploading file under a new label
                 const draft = `Hello\n\n[renamed.csv](${localSource})`;
 
-                expect(getUploadingAttachmentLabelFromDraft(draft, localSource)).toBe('renamed.csv');
+                // When the label is read for that file
+                const label = getUploadingAttachmentLabelFromDraft(draft, localSource);
+
+                // Then it is the label the author typed
+                expect(label).toBe('renamed.csv');
             });
 
             it('reads no label from an image reference written without one', () => {
+                // Given a draft that references the uploading image with no label, the way the parser writes it
                 const draft = `Hello\n\n!(${localSource})`;
 
-                expect(getUploadingAttachmentLabelFromDraft(draft, localSource)).toBeUndefined();
+                // When the label is read for that file
+                const label = getUploadingAttachmentLabelFromDraft(draft, localSource);
+
+                // Then there is none, so the image keeps its own name
+                expect(label).toBeUndefined();
             });
 
             it('carries the renamed label into the re-appended file attachment', () => {
+                // Given the tag of a file that is still uploading
                 const tag = getUploadingAttachmentHtmlFromComment(uploadingFileHtml) ?? '';
 
-                expect(applyLabelToUploadingAttachmentHtml(tag, 'renamed.csv')).toContain('>renamed.csv</a>');
+                // When the draft label is applied to it
+                const labelled = applyLabelToUploadingAttachmentHtml(tag, 'renamed.csv');
+
+                // Then the anchor shows the new name, which is what the file card renders
+                expect(labelled).toContain('>renamed.csv</a>');
             });
 
             it('carries the renamed label into the re-appended image attachment', () => {
+                // Given the tag of an image that is still uploading
                 const tag = getUploadingAttachmentHtmlFromComment(uploadingImageHtml) ?? '';
 
-                expect(applyLabelToUploadingAttachmentHtml(tag, 'renamed.png')).toContain('alt="renamed.png"');
+                // When the draft label is applied to it
+                const labelled = applyLabelToUploadingAttachmentHtml(tag, 'renamed.png');
+
+                // Then the new name lands in the alt text, since an image has no anchor text to carry it
+                expect(labelled).toContain('alt="renamed.png"');
             });
 
             it('keeps the original label when the draft did not rename the attachment', () => {
+                // Given the tag of a file that is still uploading
                 const tag = getUploadingAttachmentHtmlFromComment(uploadingFileHtml) ?? '';
 
-                expect(applyLabelToUploadingAttachmentHtml(tag, undefined)).toBe(tag);
+                // When the edit carries no new label
+                const labelled = applyLabelToUploadingAttachmentHtml(tag, undefined);
+
+                // Then the tag is returned as it was
+                expect(labelled).toBe(tag);
             });
 
             it('treats a label holding a replacement token as literal text', () => {
@@ -7568,41 +7601,68 @@ describe('ReportUtils', () => {
         const roundTrippedHtml = `Hello edited<br /><br /><a href="${docUrl}" target="_blank" rel="noreferrer noopener">file.doc</a>`;
 
         it('re-applies the attachment attributes an edit dropped from a doc anchor', () => {
+            // Given an edited comment whose file anchor came back from the parser as an ordinary link
+            // When the attributes are restored from the original comment
             const restored = restoreAttachmentAnchorAttributes(roundTrippedHtml, originalDocHtml);
 
+            // Then the anchor is an attachment again, and the edited text is kept
             expect(restored).toContain(`data-expensify-source="${docUrl}"`);
             expect(restored).toContain('data-name="file.doc"');
             expect(restored).toContain('Hello edited');
         });
 
         it('leaves an anchor that still carries its attachment attributes untouched', () => {
-            expect(restoreAttachmentAnchorAttributes(originalDocHtml, originalDocHtml)).toBe(originalDocHtml);
+            // Given an anchor that kept its attachment attributes through the edit
+            // When the attributes are restored
+            const restored = restoreAttachmentAnchorAttributes(originalDocHtml, originalDocHtml);
+
+            // Then nothing is added twice
+            expect(restored).toBe(originalDocHtml);
         });
 
         it('never turns an ordinary link into an attachment', () => {
+            // Given an edit that replaced the file with an ordinary link to another page
             const ordinaryLinkHtml = 'Hello edited<br /><br /><a href="https://example.com/page" target="_blank" rel="noreferrer noopener">example</a>';
 
-            expect(restoreAttachmentAnchorAttributes(ordinaryLinkHtml, originalDocHtml)).toBe(ordinaryLinkHtml);
+            // When the attributes are restored from the original comment
+            const restored = restoreAttachmentAnchorAttributes(ordinaryLinkHtml, originalDocHtml);
+
+            // Then the link stays plain, because its href matches no original attachment
+            expect(restored).toBe(ordinaryLinkHtml);
         });
 
         it('leaves the html alone when the original comment had no attachment', () => {
+            // Given an original comment with only an ordinary link, and its edit
             const plainOriginal = 'Hello<br /><br /><a href="https://example.com/page">example</a>';
             const edited = 'Hello edited<br /><br /><a href="https://example.com/page" target="_blank" rel="noreferrer noopener">example</a>';
 
-            expect(restoreAttachmentAnchorAttributes(edited, plainOriginal)).toBe(edited);
+            // When the attributes are restored
+            const restored = restoreAttachmentAnchorAttributes(edited, plainOriginal);
+
+            // Then the edit is returned as it was
+            expect(restored).toBe(edited);
         });
 
         it('recognizes the attachment on a second edit, when only the attachment ID is left', () => {
+            // Given a comment the server already stripped down to the attachment id, and a second edit of it
             const afterServerRoundTrip = `Hello edited<br /><br /><a href="${docUrl}" data-attachment-id="98765" target="_blank" rel="noreferrer noopener">file.doc</a>`;
             const secondEdit = `Hello edited twice<br /><br /><a href="${docUrl}" target="_blank" rel="noreferrer noopener">file.doc</a>`;
 
-            expect(restoreAttachmentAnchorAttributes(secondEdit, afterServerRoundTrip)).toContain('data-attachment-id="98765"');
+            // When the attributes are restored from the stripped comment
+            const restored = restoreAttachmentAnchorAttributes(secondEdit, afterServerRoundTrip);
+
+            // Then the attachment id is carried over, so the second edit still renders a file card
+            expect(restored).toContain('data-attachment-id="98765"');
         });
 
         it('only restores the anchor whose href matches, leaving other links plain', () => {
+            // Given an edit holding both an ordinary link and the file anchor
             const mixedHtml = `Hello edited<br /><br /><a href="https://example.com/page" target="_blank" rel="noreferrer noopener">example</a><br /><br /><a href="${docUrl}" target="_blank" rel="noreferrer noopener">file.doc</a>`;
+
+            // When the attributes are restored from the original comment
             const restored = restoreAttachmentAnchorAttributes(mixedHtml, originalDocHtml);
 
+            // Then only the file anchor gets them back
             expect(restored).toContain(`<a href="${docUrl}" target="_blank" rel="noreferrer noopener" data-expensify-source="${docUrl}" data-name="file.doc">`);
             expect(restored).toContain('<a href="https://example.com/page" target="_blank" rel="noreferrer noopener">example</a>');
         });

@@ -180,6 +180,7 @@ describe('ReportActionItem', () => {
 
         it('renders a renamed attachment as a named card with the edited label once the server dropped its source attribute', async () => {
             // Given an attachment-only comment renamed through an edit, as the server returns it
+            // When the comment is rendered
             renderComment(`<a href="${attachmentURL}" data-attachment-id="1" target="_blank" rel="noreferrer noopener">renamed_file.csv</a>`, '[Attachment]');
             await waitForBatchedUpdatesWithAct();
 
@@ -190,6 +191,7 @@ describe('ReportActionItem', () => {
 
         it('shows the edited label for an attachment-only comment that still carries its source attribute', async () => {
             // Given an attachment-only comment edited while offline, whose optimistic html keeps the attachment attributes
+            // When the comment is rendered
             renderComment(`<a href="${attachmentURL}" data-expensify-source="${attachmentURL}" data-attachment-id="1">offline_rename.csv</a>`, '[Attachment]');
             await waitForBatchedUpdatesWithAct();
 
@@ -200,6 +202,7 @@ describe('ReportActionItem', () => {
 
         it('names the card from every text node when the label came back wrapped in emphasis', async () => {
             // Given a stored anchor whose underscored label was parsed into emphasis tags
+            // When the comment is rendered
             renderComment(`<a href="${attachmentURL}" target="_blank" rel="noreferrer noopener"><em>n_d_m_t</em><em>ch</em>__<em>ng</em>.csv</a>`, 'n_d_m_tch__ng.csv', false);
             await waitForBatchedUpdatesWithAct();
 
@@ -209,6 +212,7 @@ describe('ReportActionItem', () => {
 
         it('keeps the text on both sides of a file when the comment was edited around it', async () => {
             // Given an edited comment with text before and after the file
+            // When the comment is rendered
             renderComment(`Help<br /><br /><a href="${attachmentURL}" data-attachment-id="1" target="_blank" rel="noreferrer noopener">file.csv</a><br />Text`, 'Help\n\n[Attachment]\nText');
             await waitForBatchedUpdatesWithAct();
 

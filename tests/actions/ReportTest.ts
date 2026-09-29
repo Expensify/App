@@ -2696,6 +2696,7 @@ describe('actions/Report', () => {
         const getUpdateCommentRequests = () => PersistedRequests.getAll().filter((request) => request.command === WRITE_COMMANDS.UPDATE_COMMENT);
 
         it('lets a later edit that removes the attachment win over the edit still waiting on the upload', async () => {
+            // Given a comment whose attachment is still uploading, and an edit that keeps the attachment
             global.fetch = TestHelper.createGlobalFetchMock();
             setHasRadio(false);
             await seedUploadingComment();
@@ -2703,16 +2704,20 @@ describe('actions/Report', () => {
             Report.editReportComment({reportID}, await getAction(), editKeepingAttachment, undefined, '', undefined);
             await waitForBatchedUpdates();
 
+            // Then that edit is parked until the upload lands instead of being sent
             expect(getUpdateCommentRequests()).toHaveLength(0);
             expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]?.textForNewComment).toBe(editKeepingAttachment);
 
+            // When a second edit removes the attachment
             Report.editReportComment({reportID}, await getAction(), 'hello removed', undefined, '', undefined);
             await waitForBatchedUpdates();
 
+            // Then the parked edit is dropped
             expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]).toBeUndefined();
 
             await syncAttachment();
 
+            // And once the attachment syncs, only the removal reaches the server
             const requests = getUpdateCommentRequests();
             expect(requests).toHaveLength(1);
             expect(requests.at(0)?.data?.reportComment).toBe('hello removed');
@@ -2724,8 +2729,9 @@ describe('actions/Report', () => {
             await seedUploadingComment();
             const action = await getAction();
 
-            // Given an edit deferred on the upload, and a second edit removing the attachment before Onyx
-            // echoed the deferral back, which is the only thing the clear is allowed to read
+            // Given a comment whose attachment is still uploading
+            // When an edit is deferred on the upload and a second edit removes the attachment before Onyx echoes
+            // the deferral back, which is the only thing the clear is allowed to read
             Report.editReportComment({reportID}, action, editKeepingAttachment, undefined, '', undefined);
             Report.editReportComment({reportID}, action, 'hello removed', undefined, '', undefined);
             await waitForBatchedUpdates();
@@ -2742,6 +2748,7 @@ describe('actions/Report', () => {
         });
 
         it('replays an edit restored from Onyx once the attachment has synced', async () => {
+            // Given a comment whose attachment is still uploading, and a deferred edit already in Onyx, as after an app restart
             global.fetch = TestHelper.createGlobalFetchMock();
             setHasRadio(false);
             await seedUploadingComment();
@@ -2749,10 +2756,13 @@ describe('actions/Report', () => {
             await Onyx.merge(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS, {[reportActionID]: {reportID, textForNewComment: editKeepingAttachment, currentUserLogin: ''}});
             await waitForBatchedUpdates();
 
+            // Then nothing is sent while the upload is pending
             expect(getUpdateCommentRequests()).toHaveLength(0);
 
+            // When the attachment syncs
             await syncAttachment();
 
+            // Then the restored edit is sent once, against the synced attachment, and cleared from Onyx
             const requests = getUpdateCommentRequests();
             expect(requests).toHaveLength(1);
             expect(requests.at(0)?.data?.reportComment).toContain('hello edited');
