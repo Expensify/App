@@ -54,6 +54,7 @@ const FAKE_OPEN_REPORT_ID = 'FAKE_OPEN_REPORT_ID';
 const FAKE_OPEN_REPORT_SECOND_USER_ID = 'FAKE_OPEN_REPORT_SECOND_USER_ID';
 const FAKE_PROCESSING_REPORT_ID = 'FAKE_PROCESSING_REPORT_ID';
 const FAKE_APPROVED_REPORT_ID = 'FAKE_APPROVED_REPORT_ID';
+const FAKE_SETTLED_REPORT_ID = 'FAKE_SETTLED_REPORT_ID';
 const FAKE_CHAT_REPORT_ID = '12345';
 const openReport = {
     reportID: FAKE_OPEN_REPORT_ID,
@@ -74,6 +75,13 @@ const approvedReport = {
     type: CONST.REPORT.TYPE.EXPENSE,
     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
 };
+const settledReport = {
+    reportID: FAKE_SETTLED_REPORT_ID,
+    ownerAccountID: CURRENT_USER_ID,
+    type: CONST.REPORT.TYPE.EXPENSE,
+    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+};
 const secondUserOpenReport = {
     reportID: FAKE_OPEN_REPORT_SECOND_USER_ID,
     ownerAccountID: SECOND_USER_ID,
@@ -92,6 +100,7 @@ const reportCollectionDataSet = {
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_ID}`]: openReport,
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_PROCESSING_REPORT_ID}`]: processingReport,
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_APPROVED_REPORT_ID}`]: approvedReport,
+    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_SETTLED_REPORT_ID}`]: settledReport,
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_SECOND_USER_ID}`]: secondUserOpenReport,
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_CHAT_REPORT_ID}`]: chatReport,
 } as OnyxCollection<Report>;
@@ -2007,6 +2016,115 @@ describe('TransactionUtils', () => {
 
             expect(showBrokenConnectionViolation).toBe(false);
         });
+
+        it('should return false for the report status bar when the expense report has been paid', () => {
+            const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
+            const transaction = generateTransaction();
+            const transactionViolations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [
+                    {
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        name: CONST.VIOLATIONS.RTER,
+                        data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH},
+                    },
+                ],
+            };
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
+                [transaction],
+                settledReport,
+                CURRENT_USER_EMAIL,
+                policy,
+                transactionViolations,
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ID,
+            );
+
+            expect(showBrokenConnectionViolation).toBe(false);
+        });
+
+        it('should return true for the report status bar when the same expense report is still processing', () => {
+            const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
+            const transaction = generateTransaction();
+            const transactionViolations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [
+                    {
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        name: CONST.VIOLATIONS.RTER,
+                        data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH},
+                    },
+                ],
+            };
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
+                [transaction],
+                processingReport,
+                CURRENT_USER_EMAIL,
+                policy,
+                transactionViolations,
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ID,
+            );
+
+            expect(showBrokenConnectionViolation).toBe(true);
+        });
+    });
+
+    describe('getVisibleTransactionViolations', () => {
+        const brokenConnectionViolation: TransactionViolation = {
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            name: CONST.VIOLATIONS.RTER,
+            data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH},
+        };
+
+        it('should hide an RTER violation on a paid report when shouldShowRterForSettledReport is false', () => {
+            const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
+            const transaction = generateTransaction({reportID: FAKE_SETTLED_REPORT_ID});
+            const visibleViolations = TransactionUtils.getVisibleTransactionViolations(
+                transaction,
+                [brokenConnectionViolation],
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ID,
+                settledReport,
+                CURRENT_USER_EMAIL,
+                policy,
+                false,
+            );
+
+            expect(visibleViolations).toEqual([]);
+        });
+
+        it('should keep an RTER violation on a paid report when shouldShowRterForSettledReport is true', () => {
+            const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
+            const transaction = generateTransaction({reportID: FAKE_SETTLED_REPORT_ID});
+            const visibleViolations = TransactionUtils.getVisibleTransactionViolations(
+                transaction,
+                [brokenConnectionViolation],
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ID,
+                settledReport,
+                CURRENT_USER_EMAIL,
+                policy,
+                true,
+            );
+
+            expect(visibleViolations).toEqual([brokenConnectionViolation]);
+        });
+
+        it('should keep an RTER violation on a report that has not been paid even when shouldShowRterForSettledReport is false', () => {
+            const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
+            const transaction = generateTransaction({reportID: FAKE_PROCESSING_REPORT_ID});
+            const visibleViolations = TransactionUtils.getVisibleTransactionViolations(
+                transaction,
+                [brokenConnectionViolation],
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ID,
+                processingReport,
+                CURRENT_USER_EMAIL,
+                policy,
+                false,
+            );
+
+            expect(visibleViolations).toEqual([brokenConnectionViolation]);
+        });
     });
 
     describe('hasPendingRTERViolation', () => {
@@ -3338,6 +3456,61 @@ describe('TransactionUtils', () => {
             });
 
             expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, invoiceReport)).toBe(false);
+        });
+    });
+
+    describe('willFieldBeAutomaticallyFilled', () => {
+        it('should promise an automatic category on a manual expense', () => {
+            // Given a manually created expense, which carries no receipt to read a category off
+            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL, category: ''});
+
+            // When asking whether the category will be filled in for the user
+            // Then it is, because categorization runs once the expense is created rather than off a receipt
+            expect(TransactionUtils.willFieldBeAutomaticallyFilled(transaction, 'category')).toBe(true);
+        });
+
+        it('should not promise anything but the category on a manual expense', () => {
+            // Given the same manual expense
+            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL, category: ''});
+
+            // When asking about the fields that are only ever read off a receipt
+            // Then none of them is promised, since a manual expense has no receipt to read them from
+            expect(TransactionUtils.willFieldBeAutomaticallyFilled(transaction, 'amount')).toBe(false);
+            expect(TransactionUtils.willFieldBeAutomaticallyFilled(transaction, 'merchant')).toBe(false);
+            expect(TransactionUtils.willFieldBeAutomaticallyFilled(transaction, 'date')).toBe(false);
+        });
+
+        it('should not promise an automatic category on a distance expense', () => {
+            // Given a distance expense, whose fields are computed from the route rather than categorized on create
+            const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE, category: ''});
+
+            // When asking whether the category will be filled in for the user
+            // Then it is not, so the row keeps showing what the workspace still needs from them
+            expect(TransactionUtils.willFieldBeAutomaticallyFilled(transaction, 'category')).toBe(false);
+        });
+
+        it('should promise the scanned fields on a scan expense with a receipt', () => {
+            // Given a scan expense that has a receipt for SmartScan to read
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {receiptID: 1, source: 'source', state: CONST.IOU.RECEIPT_STATE.SCAN_READY},
+                amount: 0,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+            });
+
+            // When asking about each field SmartScan fills in
+            // Then all of them are promised, because they are read off that receipt
+            expect(TransactionUtils.willFieldBeAutomaticallyFilled(transaction, 'amount')).toBe(true);
+            expect(TransactionUtils.willFieldBeAutomaticallyFilled(transaction, 'merchant')).toBe(true);
+            expect(TransactionUtils.willFieldBeAutomaticallyFilled(transaction, 'date')).toBe(true);
+            expect(TransactionUtils.willFieldBeAutomaticallyFilled(transaction, 'category')).toBe(true);
+        });
+
+        it('should promise nothing when there is no transaction', () => {
+            // Given no transaction at all, e.g. before the draft has been written
+            // When asking whether a field will be filled in
+            // Then nothing is promised, so no row claims a value it can't deliver
+            expect(TransactionUtils.willFieldBeAutomaticallyFilled(undefined, 'category')).toBe(false);
         });
     });
 
