@@ -46,7 +46,7 @@ function useMCPConnectionListings(policy: OnyxEntry<Policy>): ConnectionListing[
                 return;
             }
             if (!isMCPEnabled(policy)) {
-                enablePolicyMCP(policyID, true);
+                enablePolicyMCP(policyID, true, false);
             }
             openExternalLink(url);
         },

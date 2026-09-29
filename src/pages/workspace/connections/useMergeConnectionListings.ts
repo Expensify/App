@@ -106,7 +106,7 @@ function useMergeConnectionListings(policy: OnyxEntry<Policy>, onStartSetup: (se
         }
 
         if (!policy?.[config.featureName]) {
-            config.enableFeature(policyID, true);
+            config.enableFeature(policyID, true, false);
         }
         onStartSetup(card.setupLink, card.category);
     };

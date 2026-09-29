@@ -3,6 +3,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -12,8 +13,10 @@ import {isMergeConnectionName} from '@libs/merge/MergeUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import useRedirectUnconnectedPanelToConnections from '@pages/workspace/connections/useRedirectUnconnectedPanelToConnections';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import React, {useEffect, useState} from 'react';
@@ -122,6 +125,12 @@ function MergeConnectionsPageBaseContent({policyID, category, cards}: MergeConne
 
 function MergeConnectionsPageBase({policyID, category, cards, shouldBeBlocked}: MergeConnectionsPageBaseProps) {
     const {featureName, openPage} = PAGE_CONFIG[category];
+    const [hasConnectionsDataBeenFetched] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policyID}`);
+    useRedirectUnconnectedPanelToConnections(
+        policyID,
+        !!hasConnectionsDataBeenFetched,
+        cards.some((card) => card.isConnected),
+    );
 
     useWorkspaceDocumentTitle(undefined, `workspace.common.${category}`);
 

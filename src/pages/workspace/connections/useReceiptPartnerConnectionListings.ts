@@ -50,7 +50,7 @@ function useReceiptPartnerConnectionListings(policy: OnyxEntry<Policy>): Connect
             return;
         }
         if (!policy?.receiptPartners?.enabled) {
-            enablePolicyReceiptPartners(policyID, true);
+            enablePolicyReceiptPartners(policyID, true, false);
         }
         openExternalLink(`${CONST.UBER_CONNECT_URL}?${policy?.receiptPartners?.uber?.connectFormData}`);
     };

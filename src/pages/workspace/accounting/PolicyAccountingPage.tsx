@@ -47,6 +47,7 @@ import {
 import Navigation from '@navigation/Navigation';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import useRedirectUnconnectedPanelToConnections from '@pages/workspace/connections/useRedirectUnconnectedPanelToConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
 import {openOldDotLink} from '@userActions/Link';
@@ -146,6 +147,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress, accountingIntegrations);
     const hasUnsupportedNDIntegration = !isEmptyObject(policy?.connections) && hasSupportedOnlyOnOldDotIntegration(policy);
+    useRedirectUnconnectedPanelToConnections(policyID, true, !!connectedIntegration || hasUnsupportedNDIntegration);
 
     const tenants = useMemo(() => getXeroTenants(policy), [policy]);
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
