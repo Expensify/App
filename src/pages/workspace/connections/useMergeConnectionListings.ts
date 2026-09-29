@@ -1,13 +1,15 @@
-import useConfirmModal from '@hooks/useConfirmModal';
 /**
  * Builds the People listings (HR and, behind the Merge ATS beta, recruiting providers) for the Connections page.
  */
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
@@ -15,6 +17,8 @@ import {isControlPolicy} from '@libs/PolicyUtils';
 import {getHRCards} from '@pages/workspace/hr/utils';
 import type {MergeProviderCardCategory, MergeProviderCardDescriptor} from '@pages/workspace/merge/types';
 import {getRecruitingCards} from '@pages/workspace/recruiting/utils';
+
+import variables from '@styles/variables';
 
 import {enablePolicyHR, enablePolicyRecruiting} from '@userActions/Policy/Policy';
 
@@ -49,6 +53,8 @@ function useMergeConnectionListings(policy: OnyxEntry<Policy>, onStartSetup: (se
     const {translate, getLocalDateFromDatetime, datetimeToCalendarTime, formatPhoneNumber} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
+    const StyleUtils = useStyleUtils();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const policyEmployeePersonalDetails = usePersonalDetailsByLogins([...Object.keys(policy?.employeeList ?? {})]);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const {canWrite, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
@@ -94,6 +100,7 @@ function useMergeConnectionListings(policy: OnyxEntry<Policy>, onStartSetup: (se
                 prompt: translate(`workspace.${card.category}.alreadyConnectedPrompt`),
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
+                innerContainerStyle: shouldUseNarrowLayout ? undefined : StyleUtils.getWidthStyle(variables.wideConfirmModalWidth),
             });
             return;
         }

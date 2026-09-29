@@ -171,7 +171,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
 
             showConfirmModal({
                 // `startIntegrationFlow` can run more than once for the same flow (the `useFocusEffect` in
-                // `PolicyAccountingPage` re-fires whenever `startIntegrationFlow` is re-created). A stable id keeps the
+                // `WorkspaceConnectionsPage` re-fires whenever `startIntegrationFlow` is re-created). A stable id keeps the
                 // repeat call updating this prompt in place instead of stacking a second copy behind it.
                 id: ACCOUNTING_CONNECTION_CONFIRMATION_MODAL_ID,
                 title: translate('workspace.accounting.alreadyConnectedTitle'),

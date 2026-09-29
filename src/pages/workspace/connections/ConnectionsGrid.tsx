@@ -31,6 +31,7 @@ function ConnectionsGrid({listings}: ConnectionsGridProps) {
                 <ConnectionCard
                     key={listing.key}
                     listing={listing}
+                    shouldUseFullWidth={shouldUseSingleColumn}
                 />
             ))}
             {needsFiller && (

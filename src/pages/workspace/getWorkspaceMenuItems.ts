@@ -209,7 +209,7 @@ function getWorkspaceMenuItems({
             });
         }
 
-        if (canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.ACCOUNTING) || canReadMoreFeatures) {
+        if (canReadMoreFeatures) {
             items.push({
                 translationKey: 'workspace.common.connections',
                 icon: icons.Connect,

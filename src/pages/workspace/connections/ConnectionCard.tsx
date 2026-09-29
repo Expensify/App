@@ -10,7 +10,6 @@ import MenuItem from '@components/MenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,15 +25,17 @@ import type {ConnectionListing} from './types';
 
 type ConnectionCardProps = {
     listing: ConnectionListing;
+
+    /** Whether the card takes the whole row instead of sharing it with a second card */
+    shouldUseFullWidth: boolean;
 };
 
-function ConnectionCard({listing}: ConnectionCardProps) {
+function ConnectionCard({listing, shouldUseFullWidth}: ConnectionCardProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'Plus']);
     const {title, icon, status, onConnect, onConfigure, registerConnectButton} = listing;
 
@@ -55,22 +56,14 @@ function ConnectionCard({listing}: ConnectionCardProps) {
             variant={status.isBroken ? CONST.BUTTON_VARIANT.DANGER : undefined}
             onPress={onConfigure}
             style={[styles.alignSelfCenter, styles.ml3]}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.CONFIGURE_BUTTON}
         >
             <Button.Text>{translate(status.isBroken ? 'workspace.connections.fix' : 'workspace.connections.configure')}</Button.Text>
         </Button>
     );
 
     return (
-        <View
-            style={[
-                styles.workspaceSectionMoreFeaturesItem,
-                styles.p0,
-                styles.mt0,
-                styles.overflowHidden,
-                StyleUtils.getMinimumWidth(0),
-                (shouldUseNarrowLayout || isMediumScreenWidth) && styles.flexBasis100,
-            ]}
-        >
+        <View style={[styles.workspaceSectionMoreFeaturesItem, styles.p0, styles.mt0, styles.overflowHidden, StyleUtils.getMinimumWidth(0), shouldUseFullWidth && styles.flexBasis100]}>
             <MenuItem
                 ref={registerConnectButton}
                 title={title}
@@ -93,6 +86,7 @@ function ConnectionCard({listing}: ConnectionCardProps) {
                 numberOfLinesDescription={1}
                 wrapperStyle={[styles.pv4, styles.ph4]}
                 onPress={status ? onConfigure : onConnect}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.CARD}
                 disabled={!status && isOffline}
                 shouldShowRightComponent
                 rightComponent={status ? statusButton : connectIcon}

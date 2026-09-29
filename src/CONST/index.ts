@@ -9730,6 +9730,8 @@ const CONST = {
                 THREE_DOT_MENU: 'WorkspaceAccounting-ThreeDotMenu',
             },
             CONNECTIONS: {
+                CARD: 'WorkspaceConnections-Card',
+                CONFIGURE_BUTTON: 'WorkspaceConnections-ConfigureButton',
                 SUGGEST_INTEGRATION: 'WorkspaceConnections-SuggestIntegration',
             },
             RULES: {

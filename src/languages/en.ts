@@ -4869,7 +4869,6 @@ const translations = {
             accounting: 'Accounting',
             hr: 'HR',
             recruiting: 'Recruiting',
-            mcp: 'MCP',
             receiptPartners: 'Receipt partners',
             connections: 'Connections',
             rules: 'Rules',
@@ -5016,22 +5015,14 @@ const translations = {
             description: 'Great news 🎉. Reach out to us if they need any help with the setup.',
         },
         mcp: {
-            connectors: 'Connectors',
-            connectorsSubtitle: 'Connect an AI assistant to your Expensify account.',
-            connect: 'Connect',
-            helpPrompt: 'Need help connecting?',
-            helpLink: 'Read our guide.',
             claude: {
                 title: 'Claude',
-                subtitle: 'by Anthropic',
             },
             cursor: {
                 title: 'Cursor',
-                subtitle: 'by Anysphere',
             },
             chatgpt: {
                 title: 'ChatGPT',
-                subtitle: 'by OpenAI',
             },
         },
         connections: {
@@ -5049,7 +5040,6 @@ const translations = {
             active: 'Active',
             broken: 'Broken',
             brokenConnection: 'Cannot sync due to broken connection',
-            syncing: 'Syncing',
             synced: (calendarTime: string) => `Synced ${calendarTime}`,
             hrisListing: (providerName: string) => `${providerName} (HRIS)`,
             atsListing: (providerName: string) => `${providerName} (ATS)`,
@@ -6661,10 +6651,6 @@ const translations = {
                 title: 'Organize',
                 subtitle: 'Group and analyze spend, record every tax paid.',
             },
-            integrateSection: {
-                title: 'Integrate',
-                subtitle: 'Connect Expensify to popular financial products.',
-            },
             distanceRates: {
                 title: 'Distance rates',
                 subtitle: 'Add, update, and enforce rates.',
@@ -6897,33 +6883,18 @@ const translations = {
             },
             connections: {
                 title: 'Accounting',
-                subtitle: 'Sync your chart of accounts and more.',
-            },
-            mcp: {
-                title: 'MCP',
-                subtitle: 'Connect an AI assistant to your Expensify account.',
             },
             receiptPartners: {
                 title: 'Receipt partners',
-                subtitle: 'Automatically import receipts.',
             },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Not so fast...',
                 featureEnabledText: "To enable or disable this feature, you'll need to change your accounting import settings.",
-                disconnectText: "To disable accounting, you'll need to disconnect your accounting connection from your workspace.",
                 manageSettings: 'Manage settings',
             },
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Disconnect Uber',
-                disconnectText: 'To disable this feature, please disconnect the Uber for Business integration first.',
                 description: 'Are you sure you want to disconnect this integration?',
-                confirmText: 'Got it',
-            },
-            hrWarningModal: {
-                disconnectText: ({integration}: {integration: string}) => `To disable HR, please disconnect ${integration} from this workspace first.`,
-            },
-            recruitingWarningModal: {
-                disconnectText: ({integration}: {integration: string}) => `To disable Recruiting, please disconnect ${integration} from this workspace first.`,
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Not so fast...',
@@ -7727,9 +7698,6 @@ const translations = {
         },
         hr: {
             title: 'HR',
-            connectionsSubtitle:
-                "Connect to your HR system to sync employee data, auto-match reimbursements to the right people, and keep your team's expenses accurate without the manual work.",
-            subtitle: 'Connect HR tools and keep employee approvals in sync.',
             alreadyConnectedTitle: 'Cannot connect to multiple HR platforms',
             alreadyConnectedPrompt: 'You must disconnect your current HR platform before connecting another.',
             connectionDescription: (providerName: string) => `Connect ${providerName} to keep employee approvals in sync with your workspace.`,
@@ -7786,9 +7754,6 @@ const translations = {
         },
         recruiting: {
             title: 'Recruiting',
-            subtitle: 'Connect Recruiting tools and keep candidate approvals in sync.',
-            connectionsSubtitle:
-                "Connect to your recruiting system to sync candidate data, auto-match reimbursements to the right people, and keep your team's expenses accurate without the manual work.",
             alreadyConnectedTitle: 'Cannot connect to multiple ATS platforms',
             alreadyConnectedPrompt: 'You must disconnect your current ATS before connecting another.',
             syncing: 'Syncing candidates',
@@ -7800,7 +7765,6 @@ const translations = {
             },
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Connected. ${setupLink ? `<a href="${setupLink}">Complete setup</a>` : 'Complete setup'} to import candidates.</muted-text-label>`,
-            dontSeeYourATS: `<muted-text-label>Don't see your ATS here? <a href="#">Ask Concierge</a> and we can add it.</muted-text-label>`,
             importSettings: 'Import settings',
             defaultApprover: 'Default approver',
             approverField: `First approver`,
@@ -7841,9 +7805,6 @@ const translations = {
             },
         },
         merge: {
-            connections: 'Connections',
-            connect: 'Connect',
-            findIntegration: 'Find integration',
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
             disconnectTitle: (providerName: string) => `Disconnect ${providerName}`,

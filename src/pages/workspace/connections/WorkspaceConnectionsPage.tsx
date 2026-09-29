@@ -97,7 +97,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const shouldUseNarrowGridLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+    const shouldUseSingleColumn = shouldUseNarrowLayout || isMediumScreenWidth;
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const {isBetaEnabled} = usePermissions();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
@@ -181,25 +181,26 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
         title: translate(`workspace.connections.tabs.${tab}`),
     }));
 
+    const searchLabel = translate('workspace.connections.findConnections');
     const searchBar = (
         <TextInput
             hideFocusedState
             multiline={false}
             spellCheck={false}
             autoCorrect={false}
-            placeholder={translate('workspace.connections.findConnections')}
+            placeholder={searchLabel}
             value={searchValue}
             role={CONST.ROLE.SEARCHBOX}
             inputMode={CONST.INPUT_MODE.TEXT}
             placeholderTextColor={theme.textSupporting}
             inputStyle={styles.textLabel}
-            containerStyles={shouldUseNarrowGridLayout && styles.flex1}
+            containerStyles={shouldUseSingleColumn && styles.flex1}
             textInputContainerStyles={[styles.border, styles.borderRadiusComponentNormal, styles.appBG, styles.p2, isSearchFocused && styles.borderColorFocus]}
-            touchableInputWrapperStyle={[styles.mnw200, shouldUseNarrowGridLayout ? styles.h11 : styles.h8]}
-            accessibilityLabel={translate('workspace.connections.findConnections')}
+            touchableInputWrapperStyle={[styles.mnw200, shouldUseSingleColumn ? styles.h11 : styles.h8]}
+            accessibilityLabel={searchLabel}
             shouldHideClearButton={!searchValue}
-            clearButtonStyle={shouldUseNarrowGridLayout ? undefined : styles.mr0}
-            clearButtonIconSize={shouldUseNarrowGridLayout ? undefined : variables.iconSizeSmall}
+            clearButtonStyle={shouldUseSingleColumn ? undefined : styles.mr0}
+            clearButtonIconSize={shouldUseSingleColumn ? undefined : variables.iconSizeSmall}
             onFocus={() => setIsSearchFocused(true)}
             onBlur={() => setIsSearchFocused(false)}
             onChangeText={setSearchValue}
@@ -263,7 +264,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                         <ConnectionsGrid listings={connectedListings} />
                     </View>
                 )}
-                <View style={[connectedListings.length > 0 ? styles.mt6 : styles.mt3, !shouldUseNarrowGridLayout && [styles.flexRow, styles.alignItemsCenter, styles.gap5]]}>
+                <View style={[connectedListings.length > 0 ? styles.mt6 : styles.mt3, !shouldUseSingleColumn && [styles.flexRow, styles.alignItemsCenter, styles.gap5]]}>
                     <View style={[styles.flex1, styles.flexRow]}>
                         <TabSelectorContextProvider activeTabKey={activeTab}>
                             <TabSelectorBase
@@ -275,7 +276,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                             />
                         </TabSelectorContextProvider>
                     </View>
-                    <View style={shouldUseNarrowGridLayout && [styles.flexRow, styles.mt5]}>{searchBar}</View>
+                    <View style={shouldUseSingleColumn && [styles.flexRow, styles.mt5]}>{searchBar}</View>
                 </View>
                 {shouldShowNoResults ? (
                     <View style={styles.pt3}>
@@ -316,6 +317,7 @@ function WorkspaceConnectionsPageWrapper(props: WithPolicyConnectionsProps) {
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={props.policy?.id}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
         >
             <AccountingContextProvider policy={props.policy}>
                 <WorkspaceConnectionsPage {...props} />
