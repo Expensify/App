@@ -4639,7 +4639,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             memberAlternateText: '提交并审批报销报告。',
             adminAlternateText: '管理报表和工作区设置。',
             auditorAlternateText: '查看并评论报表。',
-            guestAlternateText: '提交和批准报表，仅使用受邀聊天。',
+            guestAlternateText: '提交和审批报销单，并使用仅限受邀的聊天。',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
@@ -4651,11 +4651,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                     case CONST.POLICY.ROLE.GUEST:
                         return '访客';
                     case CONST.POLICY.ROLE.EDITOR:
-                        return '编辑者';
+                        return '编辑器';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return '卡片管理员';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return '人员管理员';
+                        return '人员管理';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return '付款管理员';
                     case CONST.POLICY.ROLE.USER:

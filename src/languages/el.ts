@@ -4909,6 +4909,8 @@ ${amount} για ${merchant} - ${date}`,
                         return 'Διαχειριστής χώρου εργασίας';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Ελεγκτής';
+                    case CONST.POLICY.ROLE.GUEST:
+                        return 'Επισκέπτης';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Επεξεργαστής';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
@@ -4916,7 +4918,7 @@ ${amount} για ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
                         return 'Διαχείριση προσώπων';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
-                        return 'διαχείριση πληρωμών';
+                        return 'Διαχείριση πληρωμών';
                     case CONST.POLICY.ROLE.USER:
                         return 'Μέλος';
                     default:
@@ -7221,8 +7223,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 other: 'Δημιουργία ελεγκτών',
             }),
             makeGuest: () => ({
-                one: 'Ορισμός ως επισκέπτη',
-                other: 'Ορισμός ως επισκέπτες',
+                one: 'Κάντε επισκέπτη',
+                other: 'Κάντε επισκέπτες',
             }),
             makeCardAdmin: () => ({
                 one: 'Ορισμός διαχειριστή κάρτας',
