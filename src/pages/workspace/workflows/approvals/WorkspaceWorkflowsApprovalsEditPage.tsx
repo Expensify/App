@@ -237,10 +237,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                     onLinkPress={goBackFromInvalidPolicy}
                     addBottomSafeAreaPadding
                 >
-                    <HeaderWithBackButtonAndTitle
-                        title={translate('workflowsEditApprovalsPage.title')}
-                        onBackButtonPress={Navigation.goBack}
-                    />
+                    <HeaderWithBackButtonAndTitle title={translate('workflowsEditApprovalsPage.title')} />
                     {!!approvalWorkflow && !!initialApprovalWorkflow && (
                         <>
                             <ApprovalWorkflowEditor

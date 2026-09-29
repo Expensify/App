@@ -122,7 +122,6 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
             <HeaderWithBackButtonAndTitle
                 title={translate('bankAccount.addBankAccount')}
                 subtitle={policyName}
-                onBackButtonPress={Navigation.goBack}
             />
             {isSelectingBankAccount ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>

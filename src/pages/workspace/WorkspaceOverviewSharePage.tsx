@@ -20,7 +20,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Clipboard from '@libs/Clipboard';
-import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar, getRoom} from '@libs/ReportUtils';
 import shouldAllowDownloadQRCode from '@libs/shouldAllowDownloadQRCode';
 import addTrailingForwardSlash from '@libs/UrlUtils';
@@ -84,10 +83,7 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <HeaderWithBackButtonAndTitle
-                    title={translate('common.share')}
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('common.share')} />
                 <ScrollView
                     style={[styles.flex1, styles.pt3]}
                     addBottomSafeAreaPadding

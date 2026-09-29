@@ -79,10 +79,7 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="WorkspaceOverviewDescriptionPage"
             >
-                <HeaderWithBackButtonAndTitle
-                    title={translate('workspace.editor.descriptionInputLabel')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.editor.descriptionInputLabel')} />
                 <View style={[styles.ph5, styles.pb5]}>
                     <Text>{translate('workspace.common.descriptionHint')}</Text>
                 </View>

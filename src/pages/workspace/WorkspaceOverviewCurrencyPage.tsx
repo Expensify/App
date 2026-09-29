@@ -87,10 +87,7 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
                 shouldEnableMaxHeight
                 testID="WorkspaceOverviewCurrencyPage"
             >
-                <HeaderWithBackButtonAndTitle
-                    title={translate('workspace.editor.currencyInputLabel')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.editor.currencyInputLabel')} />
 
                 <CurrencySelectionList
                     searchInputLabel={translate('workspace.editor.currencyInputLabel')}

@@ -210,10 +210,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                     onLinkPress={goBackFromInvalidPolicy}
                     addBottomSafeAreaPadding
                 >
-                    <HeaderWithBackButtonAndTitle
-                        title={isEditFlow ? translate('workflowsPage.approver') : translate('workflowsApprovalLimitPage.title')}
-                        onBackButtonPress={() => Navigation.goBack()}
-                    />
+                    <HeaderWithBackButtonAndTitle title={isEditFlow ? translate('workflowsPage.approver') : translate('workflowsApprovalLimitPage.title')} />
                     <ScrollView
                         style={styles.flex1}
                         contentContainerStyle={styles.flexGrow1}

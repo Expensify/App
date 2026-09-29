@@ -107,10 +107,7 @@ function WorkspaceWorkflowsCurrencyConversionFeesPage({policy, route}: Workspace
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="WorkspaceWorkflowsCurrencyConversionFeesPage"
             >
-                <HeaderWithBackButtonAndTitle
-                    title={translate('workflowsCurrencyConversionFeesPage.title')}
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workflowsCurrencyConversionFeesPage.title')} />
                 <OfflineWithFeedback
                     pendingAction={policy?.pendingFields?.globalReimbursementFXPreferCompany}
                     errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}

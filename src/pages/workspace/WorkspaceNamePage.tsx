@@ -74,10 +74,7 @@ function WorkspaceNamePage({policy}: Props) {
                 shouldEnableMaxHeight
                 testID="WorkspaceNamePage"
             >
-                <HeaderWithBackButtonAndTitle
-                    title={translate('workspace.common.workspaceName')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.common.workspaceName')} />
 
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}

@@ -56,10 +56,7 @@ function WorkspaceOverviewClientIDPage({policy}: Props) {
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="WorkspaceOverviewClientIDPage"
             >
-                <HeaderWithBackButtonAndTitle
-                    title={translate('workspace.common.clientID')}
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.common.clientID')} />
                 <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.common.clientIDInputHint')}</Text>
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_CLIENT_ID_FORM}

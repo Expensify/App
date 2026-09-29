@@ -368,7 +368,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                     <HeaderWithBackButtonAndTitle
                         title={translate('workflowsPayerPage.title')}
                         subtitle={policyName}
-                        onBackButtonPress={Navigation.goBack}
                     />
                     {shouldShowSuccess && selectedPayer ? (
                         <WorkspaceWorkflowsPayerSuccessPage />

@@ -156,10 +156,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                     subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
                     addBottomSafeAreaPadding
                 >
-                    <HeaderWithBackButtonAndTitle
-                        title={translate('common.frequency')}
-                        onBackButtonPress={Navigation.goBack}
-                    />
+                    <HeaderWithBackButtonAndTitle title={translate('common.frequency')} />
                     <OfflineWithFeedback
                         pendingAction={policy?.pendingFields?.autoReportingFrequency}
                         errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
