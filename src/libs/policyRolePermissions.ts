@@ -1,19 +1,17 @@
 import CONST from '@src/CONST';
 
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 
 type PolicyFeature = ValueOf<typeof CONST.POLICY.POLICY_FEATURE>;
 type PolicyFeatureAccess = ValueOf<typeof CONST.POLICY.POLICY_FEATURE_ACCESS>;
 
-const WRITE_ALL_POLICY_FEATURES = Object.fromEntries(Object.values(CONST.POLICY.POLICY_FEATURE).map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE])) as Record<
-    PolicyFeature,
-    PolicyFeatureAccess
->;
+const WRITE_ALL_POLICY_FEATURES: Record<string, PolicyFeatureAccess> = Object.fromEntries(
+    Object.values(CONST.POLICY.POLICY_FEATURE).map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE]),
+);
 
-const READ_ALL_POLICY_FEATURES = Object.fromEntries(Object.values(CONST.POLICY.POLICY_FEATURE).map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.READ])) as Record<
-    PolicyFeature,
-    PolicyFeatureAccess
->;
+const READ_ALL_POLICY_FEATURES: Record<string, PolicyFeatureAccess> = Object.fromEntries(
+    Object.values(CONST.POLICY.POLICY_FEATURE).map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.READ]),
+);
 
 const EDITOR_POLICY_FEATURES = Object.fromEntries(
     Object.values(CONST.POLICY.POLICY_FEATURE)
