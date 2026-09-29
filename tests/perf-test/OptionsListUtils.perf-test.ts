@@ -10,7 +10,7 @@ import type Login from '@src/types/onyx/Login';
 import type Report from '@src/types/onyx/Report';
 
 import type * as NativeNavigation from '@react-navigation/native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {rand} from '@ngneat/falso';
 import Onyx from 'react-native-onyx';
@@ -117,8 +117,12 @@ const options = createFilteredOptionList(
     undefined,
 );
 
+// Mirrors the `getReportByID` resolver production code passes in (see `useFilteredOptions`).
+const getReportByID = (reportID: string | undefined): OnyxEntry<Report> => (mockedReportsMap as OnyxCollection<Report>)?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
 const ValidOptionsConfig = {
     dateFnsLocale: undefined,
+    getReportByID,
     convertToDisplayString,
     isDefaultRoomsBetaEnabled: true,
     includeRecentReports: true,
@@ -168,6 +172,7 @@ describe('OptionsListUtils', () => {
                 personalDetails,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                getReportByID,
                 rules: undefined,
             }),
         );
@@ -255,6 +260,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     dateFnsLocale: undefined,
+                    getReportByID,
                     convertToDisplayString,
                     isDefaultRoomsBetaEnabled: true,
                     includeMultipleParticipantReports: true,
@@ -324,6 +330,7 @@ describe('OptionsListUtils', () => {
                 translateLocal,
                 convertToDisplayString,
                 undefined,
+                getReportByID,
                 undefined,
                 mockedPersonalDetails,
                 true,
@@ -349,6 +356,7 @@ describe('OptionsListUtils', () => {
                 translateLocal,
                 convertToDisplayString,
                 undefined,
+                getReportByID,
                 undefined,
                 mockedPersonalDetails,
                 true,
@@ -491,6 +499,7 @@ describe('OptionsListUtils', () => {
                 maxResults: 20,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                getReportByID,
                 rules: undefined,
             }),
         );

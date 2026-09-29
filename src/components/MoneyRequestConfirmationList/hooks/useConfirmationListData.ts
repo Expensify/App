@@ -306,7 +306,14 @@ function useConfirmationListDataWithPolicy({
         // Footer prop bundles, shared by every variant's footer
         amountDisplay: {amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee},
         requiredFlags: {isCategoryRequired, isMerchantRequired, isDescriptionRequired},
-        visibilityFlags: {shouldShowSmartScanFields, shouldShowAmountField: !isPerDiemRequest, shouldShowMerchant, shouldShowCategories, shouldShowTax},
+        visibilityFlags: {
+            shouldShowSmartScanFields,
+            shouldShowAmountField: !isPerDiemRequest,
+            shouldShowMerchant,
+            shouldShowCategories,
+            shouldShowTax,
+            hasParticipantSection: sections.length > 0,
+        },
         errorState: {shouldDisplayFieldError, formError, clearFormErrors, setFormError},
 
         // Shared values, read from context by the side-effect controllers and passed on to the footers

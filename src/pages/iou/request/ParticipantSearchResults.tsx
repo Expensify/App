@@ -318,12 +318,12 @@ function ParticipantSearchResults({
             translate,
             convertToDisplayString,
             dateFnsLocale,
+            getReportByID,
             rules,
             personalDetails,
             true,
             undefined,
             reportAttributesDerived,
-            getReportByID,
         );
         sections.push({...formatResults.section, sectionIndex: 0});
 
