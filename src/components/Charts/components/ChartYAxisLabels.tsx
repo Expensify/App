@@ -1,6 +1,6 @@
 import {useChartParagraphs} from '@components/Charts/hooks';
 import {getFontLineMetrics, measureTextWidth, truncateLabel} from '@components/Charts/utils';
-import VictoryTheme, {ELLIPSIS, GLYPH_PADDING, LABEL_PADDING, MAX_X_AXIS_LABEL_WIDTH, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
+import {ELLIPSIS, GLYPH_PADDING, LABEL_PADDING, MAX_X_AXIS_LABEL_WIDTH, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
 
 import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import type {ChartBounds, Scale} from 'victory-native';
@@ -33,25 +33,11 @@ type ChartYAxisLabelsProps = {
     /** When true, labels are left-aligned starting at the left edge of the chart instead of right-aligned. */
     leftAlign?: boolean;
 
-    /** Horizontal gap between the labels and the chart's left edge. Defaults to the shared axis gap. */
-    labelGap?: number;
-
     /** When true, thin out labels so vertically stacked rows never overlap (used by the horizontal chart's category axis). */
     avoidOverlap?: boolean;
 };
 
-function ChartYAxisLabels({
-    yTicks,
-    yScale,
-    chartBounds,
-    fontSize,
-    fontManager,
-    labelColor,
-    formatValue,
-    leftAlign = false,
-    labelGap = VictoryTheme.axis.labelGap,
-    avoidOverlap = false,
-}: ChartYAxisLabelsProps) {
+function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontManager, labelColor, formatValue, leftAlign = false, avoidOverlap = false}: ChartYAxisLabelsProps) {
     const formattedLabels = yTicks.map((tick) => formatValue(tick));
 
     // Truncate to a single line: labels wider than the max would otherwise wrap onto a second line and
@@ -61,7 +47,6 @@ function ChartYAxisLabels({
 
     // Lay out at the wide width so the already-truncated labels never wrap.
     const paragraphs = useChartParagraphs(truncatedLabels, fontManager, fontSize, labelColor, MAX_X_AXIS_LABEL_WIDTH);
-    const maxWidth = Math.max(0, ...paragraphs.map((item) => item.width));
 
     const {ascent, descent} = getFontLineMetrics(fontManager, fontSize);
     const lineHeight = ascent + descent;
@@ -94,7 +79,9 @@ function ChartYAxisLabels({
             return null;
         }
 
-        const x = chartBounds.left - labelGap + GLYPH_PADDING - (leftAlign ? maxWidth : paraData.width);
+        // Left-aligned labels (horizontal bar chart) start at the canvas origin so they sit on the same left
+        // key line as the chart title. Right-aligned labels end just inside the plot's left edge.
+        const x = leftAlign ? 0 : chartBounds.left + GLYPH_PADDING - paraData.width;
         const tickY = yScale(tick);
 
         return (

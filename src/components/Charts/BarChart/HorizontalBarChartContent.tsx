@@ -5,7 +5,7 @@ import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import type {HitTestArgs, ResolveTargetIndexArgs} from '@components/Charts/hooks';
 import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartParagraphs} from '@components/Charts/hooks';
 import {findClosestPoint} from '@components/Charts/hooks/useChartInteractions';
-import {calculateMinDomainPadding, getFontLineMetrics, getHorizontalChartHeight, getNiceValueDomain, getNiceValueTicks, measureTextWidth} from '@components/Charts/utils';
+import {getFontLineMetrics, getHorizontalChartHeight, getNiceValueDomain, getNiceValueTicks, measureTextWidth} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
@@ -155,7 +155,6 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
     const [chartWidth, setChartWidth] = useState(0);
-    const [barAreaHeight, setBarAreaHeight] = useState(0);
 
     // Transpose: value on the x-axis, category index on the y-axis.
     // Categories are reversed (index 0 mapped to the top row) so a descending-sorted ranking reads top-to-bottom.
@@ -187,14 +186,6 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         setChartWidth(event.nativeEvent.layout.width);
     };
 
-    const domainPadding = (() => {
-        if (barAreaHeight === 0) {
-            return HORIZONTAL_BAR_DOMAIN_PADDING;
-        }
-        const verticalPadding = calculateMinDomainPadding(barAreaHeight, data.length, HORIZONTAL_BAR_PADDING);
-        return {...HORIZONTAL_BAR_DOMAIN_PADDING, top: verticalPadding, bottom: verticalPadding};
-    })();
-
     const barThickness = useSharedValue(0);
     const rowHeight = useSharedValue(0);
     const xZero = useSharedValue(0);
@@ -202,7 +193,6 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
 
     const handleChartBoundsChange = (bounds: ChartBounds) => {
         const plotHeight = bounds.bottom - bounds.top;
-        setBarAreaHeight(plotHeight);
         barThickness.set(data.length > 0 ? (1 - HORIZONTAL_BAR_PADDING) * (plotHeight / data.length) : 0);
         plotLeft.set(bounds.left);
     };
@@ -341,7 +331,6 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
                     fontManager={fontManager}
                     labelColor={theme.textSupporting}
                     formatValue={(yValue: number) => data.at(lastIndex - yValue)?.label ?? ''}
-                    labelGap={CATEGORY_LABEL_GAP}
                     leftAlign
                     avoidOverlap
                 />
@@ -352,7 +341,9 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
     const chartPadding = {
         ...VictoryTheme.axis.padding,
         right: VictoryTheme.axis.padding.right + valueLabelRightGutter,
-        bottom: labelSpace + VictoryTheme.axis.padding.bottom,
+        // Just enough to hold the axis-label gap and the label itself. The card's own bottom padding sits below the
+        // canvas, so no extra padding is needed here and the labels stay a card-padding's distance from the edge.
+        bottom: labelSpace,
         left: categoryLabelWidth + CATEGORY_LABEL_GAP + GLYPH_PADDING,
     };
 
@@ -415,7 +406,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
                         padding={chartPadding}
                         yKeys={['y']}
                         domain={valueDomain ? {x: valueDomain} : undefined}
-                        domainPadding={domainPadding}
+                        domainPadding={HORIZONTAL_BAR_DOMAIN_PADDING}
                         onChartBoundsChange={handleChartBoundsChange}
                         onScaleChange={handleScaleChange}
                         renderOutside={renderOutside}
