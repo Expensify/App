@@ -16,8 +16,7 @@ Per `STYLING.md`, styles belong to the shared style system. Before a new entry i
 const styles = {
     myCardWrapper: {
         backgroundColor: theme.componentBG,
-        borderColor: theme.border,
-        borderWidth: 1,
+        borderColor: theme.componentBG,
         padding: 8,
     },
 };
@@ -39,16 +38,18 @@ Flag ONLY when ALL of these are true:
 
 - The changed code adds a new named style to `src/styles` (or a local style object built in a component)
 - An equivalent already exists in `src/styles`, or the same shape can be produced by an existing `StyleUtils` function
+- Swapping in the existing style or helper renders identically: every property the new style sets comes out with the same value
 - The new style is a plain composition of existing utility styles (spacing, flex, colors) rather than something genuinely new
 
 **DO NOT flag if:**
 
 - No existing style or `StyleUtils` helper produces the same result, and the new style is genuinely novel
+- Swapping in the closest helper would change how the style renders (for example `getBackgroundAndBorderStyle` paints the border in the background color and sets no `borderWidth`, so it cannot replace a style with a separate border color or width)
 - The style is a one-off override required by a third-party component's API
 - The new entry is itself a `StyleUtils` function intended for reuse
 - The code is a test or story
 
 **Search Patterns** (hints for reviewers):
 - added keys in `src/styles/index.ts` / `src/styles/utils/`
-- `backgroundColor:` and `borderColor:` set together (usually `getBackgroundAndBorderStyle`)
+- `backgroundColor:` and `borderColor:` set to the same value (`getBackgroundAndBorderStyle`)
 - `padding:` / `margin:` / `flex:` numeric literals in a new style object
