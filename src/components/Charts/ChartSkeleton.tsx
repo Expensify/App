@@ -25,6 +25,7 @@ const LINE_TEST_ID = 'chartSkeletonLine';
 const MARKER_TEST_ID = 'chartSkeletonMarker';
 const PIE_TEST_ID = 'chartSkeletonPie';
 
+/** Stands in for the y-axis label column, which the loaded chart sizes from its data and the placeholder cannot. */
 const Y_AXIS_GUTTER = 64;
 
 const AXIS_THICKNESS = 1;
@@ -70,6 +71,7 @@ const PIE_LEGEND_ITEM_MARGIN_BOTTOM = 8;
 const PIE_LEGEND_ROW_HEIGHT = variables.qrShareHorizontalPadding + variables.fontSizeNormalHeight + PIE_LEGEND_ITEM_MARGIN_BOTTOM;
 
 type ChartSkeletonLayers = {
+    /** Drawn beneath the shimmer in a paint of its own */
     chrome?: ReactElement;
 
     /** Becomes the shimmer's clip path, so only fill geometry counts and a stroked shape draws nothing */
@@ -327,6 +329,7 @@ function renderPieShape(width: number): ChartSkeletonLayers {
     };
 }
 
+// Each height is the box its chart draws into, so the box holds its size when the chart replaces the placeholder.
 const PLACEHOLDER_BY_VIEW: Record<ChartView, {render: (width: number) => ChartSkeletonLayers; height: number}> = {
     [CONST.SEARCH.VIEW.BAR]: {render: renderBarShape, height: getCartesianChartHeight()},
     [CONST.SEARCH.VIEW.LINE]: {render: renderLineShape, height: getCartesianChartHeight()},
@@ -344,6 +347,7 @@ function ChartSkeleton({view, shouldShowLegend = true}: ChartSkeletonProps) {
     const theme = useTheme();
     const {ref, onLayout, containerWidth} = useContainerWidth();
     const {render, height} = PLACEHOLDER_BY_VIEW[view];
+    // The legend row is left empty, since the design draws no legend placeholder.
     const legendHeight = view === CONST.SEARCH.VIEW.PIE && shouldShowLegend ? PIE_LEGEND_ROW_HEIGHT : 0;
     const {chrome, shimmer} = render(containerWidth);
 
