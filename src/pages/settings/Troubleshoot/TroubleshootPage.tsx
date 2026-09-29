@@ -1,16 +1,14 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Header from '@components/Header';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportOnyxState from '@components/ImportOnyxState';
 import MenuItemList from '@components/MenuItemList';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchQueryActions} from '@components/Search/SearchContext';
-import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import Section from '@components/Section';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import SentryDebugToolMenu from '@components/SentryDebugToolMenu';
-import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import Switch from '@components/Switch';
 import TestToolMenu from '@components/TestToolMenu';
 import TestToolRow from '@components/TestToolRow';
@@ -29,7 +27,9 @@ import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {openOldDotLink} from '@libs/actions/Link';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import {openTroubleshootSettingsPage} from '@libs/actions/User';
-import ExportOnyxState from '@libs/ExportOnyxState';
+import {getErrorMessage} from '@libs/ErrorUtils';
+import {maskOnyxState, readOnyxState, saveOnyxStateFile} from '@libs/ExportOnyxState';
+import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
@@ -49,7 +49,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import {differenceInDays} from 'date-fns';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import useTroubleshootSectionIllustration from './useTroubleshootSectionIllustration';
@@ -90,12 +90,21 @@ function TroubleshootPage() {
         setShouldResetSearchQuery(true);
         clearOnyxAndResetApp();
     };
-    const exportOnyxState = useCallback(() => {
-        ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
-            const dataToShare = ExportOnyxState.maskOnyxState(value, shouldMaskOnyxState);
-            ExportOnyxState.shareAsFile(JSON.stringify(dataToShare));
-        });
-    }, [shouldMaskOnyxState]);
+    const exportOnyxState = async () => {
+        try {
+            const value = await readOnyxState();
+            const dataToShare = maskOnyxState(value, shouldMaskOnyxState);
+            await saveOnyxStateFile(JSON.stringify(dataToShare));
+        } catch (error) {
+            Log.warn('[Troubleshoot] Unable to export Onyx state', {error: getErrorMessage(error)});
+            await showConfirmModal({
+                title: translate('genericErrorPage.title'),
+                prompt: translate('common.genericErrorMessage'),
+                confirmText: translate('common.ok'),
+                shouldShowCancelButton: false,
+            });
+        }
+    };
 
     const getSurveyCompletedWithinLastMonth = () => {
         const surveyThresholdInDays = 30;
@@ -198,17 +207,14 @@ function TroubleshootPage() {
             shouldShowOfflineIndicatorInWideScreen
             testID="TroubleshootPage"
         >
-            <Header>
-                {shouldUseNarrowLayout && <Header.BackButton onPress={Navigation.goBack} />}
-                <Header.Title
-                    title={translate('initialSettingsPage.aboutPage.troubleshoot')}
-                    shouldUseHeadlineHeader
-                />
-                <Header.Right>
-                    <SearchButton />
-                    <SidePanelButton />
-                </Header.Right>
-            </Header>
+            <HeaderWithBackButton
+                title={translate('initialSettingsPage.aboutPage.troubleshoot')}
+                shouldShowBackButton={shouldUseNarrowLayout}
+                shouldDisplaySearchRouter
+                shouldDisplayHelpButton
+                onBackButtonPress={Navigation.goBack}
+                shouldUseHeadlineHeader
+            />
             <View style={styles.flex1}>
                 <ScrollView contentContainerStyle={styles.pt3}>
                     <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

@@ -1,20 +1,19 @@
 import Badge from '@components/Badge';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import Header from '@components/Header';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemList from '@components/MenuItemList';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
-import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
@@ -50,7 +49,7 @@ import type Account from '@src/types/onyx/Account';
 import type {Delegate, DelegateRole} from '@src/types/onyx/Account';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 
 import debounce from 'lodash/debounce';
@@ -442,7 +441,7 @@ function CopilotPage() {
         openSecuritySettingsPage();
     }, []);
 
-    const delegateAnchorRef = delegateButtonRef as RefObject<View | null>;
+    const delegateAnchorRef = delegateButtonRef as RefObject<ComponentRef<typeof View> | null>;
 
     return (
         <ScreenWrapper
@@ -453,17 +452,14 @@ function CopilotPage() {
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
-                    <Header>
-                        {shouldUseNarrowLayout && <Header.BackButton onPress={Navigation.goBack} />}
-                        <Header.Title
-                            title={translate('delegate.copilot')}
-                            shouldUseHeadlineHeader
-                        />
-                        <Header.Right>
-                            <SearchButton />
-                            <SidePanelButton />
-                        </Header.Right>
-                    </Header>
+                    <HeaderWithBackButton
+                        title={translate('delegate.copilot')}
+                        shouldShowBackButton={shouldUseNarrowLayout}
+                        onBackButtonPress={Navigation.goBack}
+                        shouldUseHeadlineHeader
+                        shouldDisplaySearchRouter
+                        shouldDisplayHelpButton
+                    />
                     <ScrollView contentContainerStyle={styles.pt3}>
                         <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, safeAreaPaddingBottomStyle]}>
                             <Section
@@ -512,9 +508,7 @@ function CopilotPage() {
                                     </>
                                 )}
                                 {isAgentAccount === false ? (
-                                    <MenuItem
-                                        title={translate('delegate.addCopilot')}
-                                        icon={icons.UserPlus}
+                                    <MenuItemSectionRoot
                                         sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.ADD_COPILOT}
                                         onPress={() => {
                                             if (isActingAsDelegate) {
@@ -531,9 +525,17 @@ function CopilotPage() {
                                             }
                                             Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE);
                                         }}
-                                        shouldShowRightIcon
-                                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                    />
+                                    >
+                                        <MenuItem.Row>
+                                            <MenuItem.Icon src={icons.UserPlus} />
+                                            <MenuItem.Content>
+                                                <MenuItem.Title>{translate('delegate.addCopilot')}</MenuItem.Title>
+                                            </MenuItem.Content>
+                                            <MenuItem.Trailing>
+                                                <MenuItem.Chevron />
+                                            </MenuItem.Trailing>
+                                        </MenuItem.Row>
+                                    </MenuItemSectionRoot>
                                 ) : null}
                             </Section>
                             <PopoverMenu

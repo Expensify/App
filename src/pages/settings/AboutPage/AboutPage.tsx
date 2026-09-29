@@ -1,11 +1,9 @@
-import Header from '@components/Header';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemList from '@components/MenuItemList';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import Section from '@components/Section';
-import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -35,6 +33,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
+import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
@@ -69,14 +68,13 @@ function AboutPage() {
     const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Link', 'Keyboard', 'Eye', 'MoneyBag', 'Bug']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const popoverAnchor = useRef<View>(null);
+    const popoverAnchor = useRef<ComponentRef<typeof View>>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     useDocumentTitle(translate('initialSettingsPage.about'));
     const aboutIllustration = useAboutSectionIllustration();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
@@ -121,7 +119,7 @@ function AboutPage() {
                 icon: icons.Bug,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.REPORT_A_BUG,
                 action: waitForNavigate(() => {
-                    navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false});
+                    navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false});
                 }),
             },
         ];
@@ -148,7 +146,7 @@ function AboutPage() {
             wrapperStyle: [styles.sectionMenuItemTopDescription],
             sentryLabel,
         }));
-    }, [icons, styles, translate, waitForNavigate, conciergeReportID, introSelected, isSelfTourViewed, currentUserAccountID, betas]);
+    }, [icons, styles, translate, waitForNavigate, conciergeReportID, introSelected, isSelfTourViewed, currentUserAccountID]);
 
     const overlayContent = useCallback(
         () => (
@@ -172,17 +170,14 @@ function AboutPage() {
             shouldShowOfflineIndicatorInWideScreen
             testID="AboutPage"
         >
-            <Header>
-                {shouldUseNarrowLayout && <Header.BackButton onPress={Navigation.goBack} />}
-                <Header.Title
-                    title={translate('initialSettingsPage.about')}
-                    shouldUseHeadlineHeader
-                />
-                <Header.Right>
-                    <SearchButton />
-                    <SidePanelButton />
-                </Header.Right>
-            </Header>
+            <HeaderWithBackButton
+                title={translate('initialSettingsPage.about')}
+                shouldShowBackButton={shouldUseNarrowLayout}
+                shouldDisplaySearchRouter
+                shouldDisplayHelpButton
+                onBackButtonPress={Navigation.goBack}
+                shouldUseHeadlineHeader
+            />
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section

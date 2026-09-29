@@ -2,10 +2,9 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import Header from '@components/Header';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import type {PersonalExpenseRuleRowData} from '@components/Tables/PersonalExpenseRulesTable';
 import PersonalExpenseRulesTable from '@components/Tables/PersonalExpenseRulesTable';
 import Text from '@components/Text';
@@ -213,29 +212,23 @@ function ExpenseRulesPage() {
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <Header>
-                {shouldUseNarrowLayout && (
-                    <Header.BackButton
-                        onPress={() => {
-                            if (isMobileSelectionModeEnabled) {
-                                setSelectedRules([]);
-                                turnOffMobileSelectionMode();
-                                return;
-                            }
+            <HeaderWithBackButton
+                onBackButtonPress={() => {
+                    if (isMobileSelectionModeEnabled) {
+                        setSelectedRules([]);
+                        turnOffMobileSelectionMode();
+                        return;
+                    }
 
-                            Navigation.goBack();
-                        }}
-                    />
-                )}
-                <Header.Title
-                    title={selectionModeHeader ? translate('common.selectMultiple') : translate('expenseRulesPage.title')}
-                    shouldUseHeadlineHeader={!selectionModeHeader}
-                />
-                <Header.Right>
-                    {!shouldDisplayButtonsInSeparateLine && hasRules && headerButton}
-                    <SidePanelButton />
-                </Header.Right>
-            </Header>
+                    Navigation.goBack();
+                }}
+                shouldShowBackButton={shouldUseNarrowLayout}
+                shouldUseHeadlineHeader={!selectionModeHeader}
+                shouldDisplayHelpButton
+                title={selectionModeHeader ? translate('common.selectMultiple') : translate('expenseRulesPage.title')}
+            >
+                {!shouldDisplayButtonsInSeparateLine && hasRules && headerButton}
+            </HeaderWithBackButton>
             {shouldDisplayButtonsInSeparateLine && hasRules && <View style={[styles.pl5, styles.pr5]}>{headerButton}</View>}
 
             {!hasRules && expenseRulesSubtitle}

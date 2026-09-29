@@ -1,11 +1,9 @@
 import BookCallButton from '@components/BookCallButton';
-import Header from '@components/Header';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import Section from '@components/Section';
-import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -60,7 +58,6 @@ function HelpPage() {
     const guideDetails = usePersonalDetailByLogin(account?.guideDetails?.email);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -86,7 +83,6 @@ function HelpPage() {
                           introSelected,
                           guidedSetupAndTourStatus?.isSelfTourViewed,
                           guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                          betas,
                           personalDetails,
                           conciergeChat,
                       ),
@@ -120,7 +116,6 @@ function HelpPage() {
                           introSelected,
                           guidedSetupAndTourStatus?.isSelfTourViewed,
                           guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                          betas,
                           personalDetails,
                           conciergeChat,
                       ),
@@ -154,7 +149,6 @@ function HelpPage() {
                           introSelected,
                           guidedSetupAndTourStatus?.isSelfTourViewed,
                           guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                          betas,
                           personalDetails,
                           conciergeChat,
                       ),
@@ -213,17 +207,14 @@ function HelpPage() {
             shouldShowOfflineIndicatorInWideScreen
             testID="HelpPage"
         >
-            <Header>
-                {shouldUseNarrowLayout && <Header.BackButton onPress={Navigation.goBack} />}
-                <Header.Title
-                    title={translate('common.help')}
-                    shouldUseHeadlineHeader
-                />
-                <Header.Right>
-                    <SearchButton />
-                    <SidePanelButton />
-                </Header.Right>
-            </Header>
+            <HeaderWithBackButton
+                title={translate('common.help')}
+                shouldUseHeadlineHeader
+                shouldShowBackButton={shouldUseNarrowLayout}
+                shouldDisplaySearchRouter
+                shouldDisplayHelpButton
+                onBackButtonPress={Navigation.goBack}
+            />
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
