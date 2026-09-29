@@ -11,7 +11,7 @@ import type {InsightsFilters} from './insightsFilters';
 
 import INSIGHTS_DASHBOARD_SPECS from './dashboardSpecs';
 
-/** How many periods before the one on screen the Average mode spans (Typical on the ranking charts) */
+/** How many periods before the selected date range the Average mode spans (Typical on the ranking charts) */
 const COMPARE_TYPICAL_PERIOD_COUNT = 1;
 
 /** Builds the date filter in the shape a search query is built from. */
