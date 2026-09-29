@@ -15,6 +15,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -55,7 +56,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {ComponentRef} from 'react';
+import type {ComponentRef, ReactNode} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -111,6 +112,8 @@ function ProfilePage() {
     const vacationDelegateClearDate = hasVacationDelegate
         ? formatVacationDelegateClearDate(getVacationDelegateClearDate(vacationDelegate?.clearAfter, currentUserPersonalDetails?.timezone?.selected), dateFnsLocale)
         : '';
+    const vacationDelegateUntilText = vacationDelegateClearDate ? translate('statusPage.vacationDelegate.until', vacationDelegateClearDate) : '';
+    const vacationDelegateBrickRoadIndicator = isEmptyObject(getVacationDelegateErrors(vacationDelegate)) ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const publicOptions: Array<{
@@ -121,6 +124,12 @@ function ProfilePage() {
         brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
         testID?: string;
         sentryLabel?: string;
+
+        /** Replaces the default name and value line, for a value that is not plain text */
+        content?: ReactNode;
+
+        /** Accessibility label for a row whose `content` is not plain text */
+        accessibilityLabel?: string;
     }> = [
         {
             description: translate('displayNamePage.headerTitle'),
@@ -149,14 +158,26 @@ function ProfilePage() {
         },
         {
             description: translate('common.vacationDelegate'),
-            title: vacationDelegateClearDate ? `${vacationDelegateName} · ${translate('statusPage.vacationDelegate.until', vacationDelegateClearDate)}` : vacationDelegateName,
+            title: vacationDelegateName,
+            content: hasVacationDelegate ? (
+                <VacationDelegateMenuItem.Row
+                    label={translate('common.vacationDelegate')}
+                    displayName={vacationDelegateName}
+                    avatar={vacationDelegatePersonalDetails?.avatar}
+                    accountID={vacationDelegatePersonalDetails?.accountID}
+                    login={vacationDelegatePersonalDetails?.login ?? vacationDelegate?.delegate}
+                    untilText={vacationDelegateUntilText}
+                    brickRoadIndicator={vacationDelegateBrickRoadIndicator}
+                />
+            ) : undefined,
+            accessibilityLabel: hasVacationDelegate ? [translate('common.vacationDelegate'), vacationDelegateName, vacationDelegateUntilText].filter(Boolean).join(', ') : undefined,
             // With no delegate there is nothing to show on the form yet, so go straight to picking one.
             pageRoute: hasVacationDelegate ? ROUTES.SETTINGS_VACATION_DELEGATE : ROUTES.SETTINGS_VACATION_DELEGATE_SELECT,
             onPress: () => {
                 clearDraftValues(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM);
                 Navigation.navigate(hasVacationDelegate ? ROUTES.SETTINGS_VACATION_DELEGATE : ROUTES.SETTINGS_VACATION_DELEGATE_SELECT);
             },
-            brickRoadIndicator: isEmptyObject(getVacationDelegateErrors(vacationDelegate)) ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            brickRoadIndicator: vacationDelegateBrickRoadIndicator,
             testID: 'vacation-delegate-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.VACATION_DELEGATE,
         },
@@ -307,18 +328,21 @@ function ProfilePage() {
                                         onPress={detail.onPress ?? (pageRoute ? () => Navigation.navigate(pageRoute) : undefined)}
                                         testID={detail?.testID}
                                         sentryLabel={detail.sentryLabel}
+                                        accessibilityLabel={detail.accessibilityLabel}
                                     >
-                                        <MenuItemField.Row
-                                            name={detail.description}
-                                            value={detail.title}
-                                        >
-                                            {(!!detail.brickRoadIndicator || !!pageRoute) && (
-                                                <>
-                                                    {!!detail.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={detail.brickRoadIndicator} />}
-                                                    {!!pageRoute && <MenuItem.Chevron />}
-                                                </>
-                                            )}
-                                        </MenuItemField.Row>
+                                        {detail.content ?? (
+                                            <MenuItemField.Row
+                                                name={detail.description}
+                                                value={detail.title}
+                                            >
+                                                {(!!detail.brickRoadIndicator || !!pageRoute) && (
+                                                    <>
+                                                        {!!detail.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={detail.brickRoadIndicator} />}
+                                                        {!!pageRoute && <MenuItem.Chevron />}
+                                                    </>
+                                                )}
+                                            </MenuItemField.Row>
+                                        )}
                                     </MenuItemSectionRoot>
                                 );
                             })}

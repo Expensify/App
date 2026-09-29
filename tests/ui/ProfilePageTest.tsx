@@ -352,7 +352,8 @@ describe('ProfilePage - agent account', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the row shows the delegate and the end date, so the user can see reports are routed elsewhere
-        expect(screen.getByText(/delegate@expensify\.com · Until/)).toBeDefined();
+        expect(screen.getByText('delegate@expensify.com')).toBeDefined();
+        expect(screen.getByText(/^Until /)).toBeDefined();
 
         // When the row is pressed
         fireEvent.press(screen.getByTestId('vacation-delegate-menu-item'), {nativeEvent: {}});

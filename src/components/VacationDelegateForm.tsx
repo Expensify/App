@@ -99,6 +99,7 @@ function VacationDelegateForm({vacationDelegate, description, onChangeDelegate, 
             {!!description && <Text style={[styles.mh5, styles.mb4]}>{description}</Text>}
             <VacationDelegateMenuItem
                 vacationDelegate={{delegate}}
+                label={translate('statusPage.vacationDelegate.chooseDelegate')}
                 errors={errors}
                 pendingAction={pendingAction}
                 onCloseError={onCloseError}
@@ -111,6 +112,7 @@ function VacationDelegateForm({vacationDelegate, description, onChangeDelegate, 
                     label={translate('statusPage.vacationDelegate.clearAfterRecommended')}
                     defaultValue={savedClearDate}
                     minDate={new Date()}
+                    shouldForceActiveLabel={false}
                     shouldSaveDraft
                 />
                 {!!formattedClearDate && <Text style={[styles.textLabelSupporting, styles.mt2]}>{translate('statusPage.vacationDelegate.willClearOn', formattedClearDate)}</Text>}

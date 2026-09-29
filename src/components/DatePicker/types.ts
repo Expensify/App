@@ -82,6 +82,13 @@ type DateInputWithPickerProps = DatePickerBaseProps &
          * @default false
          */
         shouldHideCalendarIcon?: boolean;
+
+        /**
+         * Keeps the label above the input even when it is empty and not focused, so the date format placeholder always shows.
+         * Pass `false` to let the empty label sit inside the input, like a regular text input.
+         * @default true
+         */
+        shouldForceActiveLabel?: boolean;
     };
 
 type DatePickerProps = {

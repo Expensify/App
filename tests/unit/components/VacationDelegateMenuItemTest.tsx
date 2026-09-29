@@ -109,9 +109,8 @@ describe('VacationDelegateMenuItem', () => {
             // When the menu item renders that delegate
             renderMenuItem(EMAIL_DELEGATE);
 
-            // Then the name, email, and avatar all show as-is, since an email login has no SMS artifacts to strip
+            // Then the pill shows the name and avatar as-is, since an email login has no SMS artifacts to strip
             expect(screen.getByText('Jane Doe')).toBeTruthy();
-            expect(screen.getByText(EMAIL_DELEGATE)).toBeTruthy();
             expect(lastAvatarProps().accountID).toBe(42);
             expect(screen.queryByText(/@expensify\.sms/)).toBeNull();
         });
@@ -129,8 +128,8 @@ describe('VacationDelegateMenuItem', () => {
             // When the menu item renders that delegate
             renderMenuItem(PHONE_DELEGATE_WITH_SMS_DOMAIN);
 
-            // Then the title is formatted into the localized number rather than shown as the raw E.164 login it is
-            expect(textOccurrences(PHONE_DELEGATE_LOCALIZED)).toBe(2);
+            // Then the pill is formatted into the localized number rather than shown as the raw E.164 login it is
+            expect(textOccurrences(PHONE_DELEGATE_LOCALIZED)).toBe(1);
             expect(screen.queryByText(PHONE_DELEGATE_RAW)).toBeNull();
             expect(lastAvatarProps().accountID).toBe(43);
             expect(screen.queryByText(/@expensify\.sms/)).toBeNull();
@@ -149,13 +148,13 @@ describe('VacationDelegateMenuItem', () => {
             // When the menu item renders that delegate
             renderMenuItem(PHONE_DELEGATE_WITH_SMS_DOMAIN);
 
-            // Then the title is still localized instead of reaching the screen as a raw E.164 number, which is
+            // Then the pill is still localized instead of reaching the screen as a raw E.164 number, which is
             // what used to happen because stripping the domain alone isn't the same as detecting a phone number
-            expect(textOccurrences(PHONE_DELEGATE_LOCALIZED)).toBe(2);
+            expect(textOccurrences(PHONE_DELEGATE_LOCALIZED)).toBe(1);
             expect(screen.queryByText(PHONE_DELEGATE_RAW)).toBeNull();
         });
 
-        it('keeps the name a phone-number account did set, and localizes the number below it', () => {
+        it('keeps the name a phone-number account did set', () => {
             // Given a phone-number account that did set a real display name of its own
             const personalDetails: PersonalDetails = {
                 accountID: 44,
@@ -167,10 +166,10 @@ describe('VacationDelegateMenuItem', () => {
             // When the menu item renders that delegate
             renderMenuItem(PHONE_DELEGATE_WITH_SMS_DOMAIN);
 
-            // Then the real name is left untouched and only the number below it is localized, so formatting logic
-            // built for the no-name case doesn't clobber a name the account actually has
+            // Then the pill shows the real name untouched, so formatting logic built for the no-name case doesn't
+            // clobber a name the account actually has
             expect(screen.getByText('Jane Doe')).toBeTruthy();
-            expect(textOccurrences(PHONE_DELEGATE_LOCALIZED)).toBe(1);
+            expect(screen.queryByText(PHONE_DELEGATE_LOCALIZED)).toBeNull();
             expect(screen.queryByText(PHONE_DELEGATE_RAW)).toBeNull();
         });
 
@@ -187,16 +186,14 @@ describe('VacationDelegateMenuItem', () => {
             // When the menu item renders that delegate
             renderMenuItem('9789942470@expensify.sms');
 
-            // Then the title is localized rather than left as the raw E.164 display name, and the login below it
-            // still shows in its stored national form
+            // Then the pill is localized rather than left as the raw E.164 display name
             expect(screen.getByText(PHONE_DELEGATE_LOCALIZED)).toBeTruthy();
-            expect(screen.getByText('9789942470')).toBeTruthy();
             expect(screen.queryByText(PHONE_DELEGATE_RAW)).toBeNull();
         });
     });
 
     describe('new account (personal details missing, e.g. after cache clear)', () => {
-        it('renders the raw email as title and description when no personal details exist', () => {
+        it('renders the raw email in the pill when no personal details exist', () => {
             // Given a new account with no personal details loaded yet (e.g. right after a cache clear), for an
             // email delegate
             mockUseVacationDelegatePersonalDetails.mockReturnValue(undefined);
@@ -204,9 +201,9 @@ describe('VacationDelegateMenuItem', () => {
             // When the menu item renders that delegate
             renderMenuItem(EMAIL_DELEGATE);
 
-            // Then the raw email is used for both title and description, since there is no name to fall back on
-            // and an email login has nothing to format
-            expect(textOccurrences(EMAIL_DELEGATE)).toBe(2);
+            // Then the pill shows the raw email, since there is no name to fall back on and an email login has
+            // nothing to format
+            expect(textOccurrences(EMAIL_DELEGATE)).toBe(1);
             expect(screen.queryByText(/@expensify\.sms/)).toBeNull();
         });
 
@@ -220,7 +217,7 @@ describe('VacationDelegateMenuItem', () => {
 
             // Then the number is still localized from the login alone, rather than showing the raw E.164 login
             // or leaking its SMS domain
-            expect(textOccurrences(PHONE_DELEGATE_LOCALIZED)).toBe(2);
+            expect(textOccurrences(PHONE_DELEGATE_LOCALIZED)).toBe(1);
             expect(screen.queryByText(PHONE_DELEGATE_RAW)).toBeNull();
             expect(screen.queryByText(/@expensify\.sms/)).toBeNull();
         });
@@ -276,7 +273,8 @@ describe('VacationDelegateMenuItem', () => {
             />,
         );
 
-        // Then the "until" line is shown under the login, so the vacationer and admins can see when it ends
-        expect(screen.getByText(`${EMAIL_DELEGATE}\nstatusPage.vacationDelegate.until`)).toBeTruthy();
+        // Then the "until" line is shown under the pill, so the vacationer and admins can see when it ends
+        expect(screen.getByText('Jane Doe')).toBeTruthy();
+        expect(screen.getByText('statusPage.vacationDelegate.until')).toBeTruthy();
     });
 });
