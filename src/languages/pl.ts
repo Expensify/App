@@ -3432,8 +3432,8 @@ ${amount} dla ${merchant} - ${date}`,
         },
         interestedFeatures: {
             title: 'Jakie funkcje Cię interesują?',
-            featuresAlreadyEnabled: 'Oto nasze najpopularniejsze funkcje:',
-            featureYouMayBeInterestedIn: 'Włącz dodatkowe funkcje:',
+            featuresAlreadyEnabled: 'Popularne funkcje',
+            featureYouMayBeInterestedIn: 'Dodatkowe funkcje',
         },
         error: {
             requiredFirstName: 'Podaj swoje imię, aby kontynuować',

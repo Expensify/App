@@ -3285,8 +3285,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         },
         interestedFeatures: {
             title: '你对哪些功能感兴趣？',
-            featuresAlreadyEnabled: '以下是我们最受欢迎的功能：',
-            featureYouMayBeInterestedIn: '启用更多功能：',
+            featuresAlreadyEnabled: '热门功能',
+            featureYouMayBeInterestedIn: '其他功能',
         },
         error: {
             requiredFirstName: '请输入您的名以继续',

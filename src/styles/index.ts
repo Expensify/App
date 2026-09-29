@@ -5761,11 +5761,54 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
             padding: 16,
             display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            flex: 1,
+            minWidth: 0,
+            position: 'relative',
+            alignItems: 'stretch',
+            justifyContent: 'center',
+        },
+
+        onboardingInterestedFeaturesItemWrapper: {
             flexGrow: 1,
             flexShrink: 1,
+            minWidth: 0,
+            minHeight: 180,
+        },
+
+        // Four tiles fit beside the gaps on wide layouts; two fit on narrow layouts.
+        onboardingInterestedFeaturesItemWide: {
+            flexBasis: '23.25%',
+            maxWidth: '23.25%',
+        },
+
+        onboardingInterestedFeaturesItemNarrow: {
+            flexBasis: '47.25%',
+            maxWidth: '47.25%',
+        },
+
+        onboardingInterestedFeaturesItemSelected: {
+            backgroundColor: theme.selectedOptionBG,
+        },
+
+        onboardingInterestedFeaturesItemContent: {
+            flex: 1,
+            minWidth: 0,
+            width: '100%',
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingTop: 24,
+        },
+
+        onboardingInterestedFeaturesItemText: {
+            width: '100%',
+            minWidth: 0,
+            alignItems: 'center',
+        },
+
+        onboardingInterestedFeaturesSelectionButton: {
+            position: 'absolute',
+            top: 12,
+            left: 12,
         },
 
         checkboxWithLabelCheckboxStyle: {
