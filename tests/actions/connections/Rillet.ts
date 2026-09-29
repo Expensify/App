@@ -22,7 +22,7 @@ const writeSpy = jest.spyOn(API, 'write');
 const MOCK_POLICY_ID = 'MOCK_POLICY_ID';
 const POLICY_KEY = `${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}` as const;
 
-// Asymmetric matchers are typed `any`; bind them to `unknown` so they can be nested inside `toMatchObject` payloads without tripping `no-unsafe-assignment`.
+// Asymmetric matchers are typed `any`. Bind them to `unknown` so they can be nested inside `toMatchObject` payloads without tripping `no-unsafe-assignment`.
 const ANY_VALUE: unknown = expect.anything();
 
 /** Returns the `onyxData` argument (third param) passed to the first `API.write` call. */
