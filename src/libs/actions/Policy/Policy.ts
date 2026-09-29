@@ -2174,6 +2174,8 @@ function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currency
                 },
                 name,
                 outputCurrency: currency,
+                // The server clears the stored government rate country whenever the currency changes, so mirror that here
+                ...(currencyPendingAction !== undefined && {autoUpdateGovernmentRateCountry: null}),
                 ...(customUnitID && {
                     customUnits: {
                         ...policy.customUnits,
@@ -2223,6 +2225,8 @@ function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currency
                 errorFields,
                 name: policy.name,
                 outputCurrency: policy.outputCurrency,
+                // Restore the government rate country that the optimistic currency change cleared
+                ...(currencyPendingAction !== undefined && {autoUpdateGovernmentRateCountry: policy.autoUpdateGovernmentRateCountry ?? null}),
                 ...(customUnitID && {
                     customUnits: {
                         [customUnitID]: {

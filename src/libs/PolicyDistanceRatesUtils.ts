@@ -13,10 +13,13 @@ import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import type {Option} from './searchOptions';
+
 import {getMicroSecondOnyxErrorWithTranslationKey} from './ErrorUtils';
 import getPermittedDecimalSeparator from './getPermittedDecimalSeparator';
 import {replaceAllDigits} from './MoneyRequestUtils';
 import {parseFloatAnyLocale} from './NumberUtils';
+import StringUtils from './StringUtils';
 import {isRequiredFulfilled} from './ValidationUtils';
 
 type RateValueForm = typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM | typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM;
@@ -230,7 +233,7 @@ function isGovernmentRateUnmodified(rate: Rate, currentUnit?: Unit): boolean {
     return isRateAmountMatching && (rate.startDate ?? undefined) === governmentRate.startDate && (rate.endDate ?? undefined) === governmentRate.endDate;
 }
 
-/** The country publishing government mileage rates for a currency, or undefined when we can't auto-update them. */
+/** The country publishing government mileage rates for a currency, or undefined when the currency alone cannot pick one. */
 function getGovernmentRateCountryForCurrency(currency?: string): GovernmentRateCountry | undefined {
     if (!currency) {
         return undefined;
@@ -240,25 +243,66 @@ function getGovernmentRateCountryForCurrency(currency?: string): GovernmentRateC
     return currencyToCountry[currency];
 }
 
+/** Whether the currency is shared by several supported countries, so the workspace chooses the country itself. */
+function isSharedGovernmentRateCurrency(currency?: string): boolean {
+    return currency === CONST.CURRENCY.EUR;
+}
+
 /** Whether we can auto-update government distance rates for this output currency. */
 function isCurrencySupportedForAutoUpdate(currency?: string): boolean {
-    return !!getGovernmentRateCountryForCurrency(currency);
+    return !!getGovernmentRateCountryForCurrency(currency) || isSharedGovernmentRateCurrency(currency);
+}
+
+/** The country whose government mileage rates this policy auto-updates: the stored choice for EUR, derived from the currency otherwise. */
+function getAutoUpdateGovernmentRateCountry(policy: Policy | null | undefined): GovernmentRateCountry | undefined {
+    if (!policy) {
+        return undefined;
+    }
+
+    if (isSharedGovernmentRateCurrency(policy.outputCurrency)) {
+        const selectedCountry = policy.autoUpdateGovernmentRateCountry;
+        return CONST.CUSTOM_UNITS.GOVERNMENT_RATE_SUPPORTED_EUR_COUNTRIES.find((country) => country === selectedCountry);
+    }
+
+    return getGovernmentRateCountryForCurrency(policy.outputCurrency);
+}
+
+/** The unit a country publishes its mileage rates in. */
+function getExpectedUnitForCountry(country?: string): Unit | undefined {
+    if (!country) {
+        return undefined;
+    }
+
+    const countryToUnit: Partial<Record<string, Unit>> = CONST.CUSTOM_UNITS.GOVERNMENT_RATE_COUNTRY_TO_UNIT;
+    return countryToUnit[country];
 }
 
 /** The unit the currency's country publishes its mileage rates in. */
 function getExpectedUnitForCurrency(currency?: string): Unit | undefined {
-    const country = getGovernmentRateCountryForCurrency(currency);
-    return country ? CONST.CUSTOM_UNITS.GOVERNMENT_RATE_COUNTRY_TO_UNIT[country] : undefined;
+    return getExpectedUnitForCountry(getGovernmentRateCountryForCurrency(currency));
 }
 
 /** Translation key for the country phrase in the auto-update copy, e.g. "the United States". */
-function getGovernmentRateCountryPhraseTranslationKey(currency?: string): TranslationPaths | undefined {
-    const country = getGovernmentRateCountryForCurrency(currency);
+function getGovernmentRateCountryPhraseTranslationKey(country?: GovernmentRateCountry): TranslationPaths | undefined {
     if (!country) {
         return undefined;
     }
 
     return `workspace.distanceRates.governmentRateCountries.${country}`;
+}
+
+/** Sorted, searchable options for the countries that share the EUR government mileage rates. */
+function getGovernmentRateCountryOptions(translate: LocalizedTranslate, localeCompare: (a: string, b: string) => number, selectedCountry?: string): Option[] {
+    return CONST.CUSTOM_UNITS.GOVERNMENT_RATE_SUPPORTED_EUR_COUNTRIES.map((countryCode) => {
+        const countryName = translate(`allCountries.${countryCode}` as TranslationPaths);
+        return {
+            value: countryCode as string,
+            keyForList: countryCode as string,
+            text: countryName,
+            isSelected: selectedCountry === countryCode,
+            searchValue: StringUtils.sanitizeString(`${countryCode}${countryName}`),
+        };
+    }).sort((a, b) => localeCompare(a.text, b.text));
 }
 
 function isCommuterExclusionEnabled(policy: Policy | null | undefined): policy is Policy & {id: string; commuterExclusions: NonNullable<Policy['commuterExclusions']>} {
@@ -301,9 +345,13 @@ export {
     buildOnyxDataForPolicyDistanceRateUpdates,
     getRateStatus,
     getGovernmentRateCountryForCurrency,
+    isSharedGovernmentRateCurrency,
     isCurrencySupportedForAutoUpdate,
+    getAutoUpdateGovernmentRateCountry,
+    getExpectedUnitForCountry,
     getExpectedUnitForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
+    getGovernmentRateCountryOptions,
     isCommuterExclusionEnabled,
     isMapOrGPSRequired,
     getDistanceExpenseTypeForPolicy,
