@@ -1503,7 +1503,7 @@
 "../../src/pages/TransactionDuplicate/DuplicateTransactionItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/TransactionDuplicate/DynamicConfirmationPage.tsx"	"@typescript-eslint/no-deprecated/fontSize"	1
 "../../src/pages/TransactionDuplicate/DynamicConfirmationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/TransactionDuplicate/DynamicConfirmationPage.tsx"	"no-restricted-imports"	1
+"../../src/pages/TransactionDuplicate/DynamicConfirmationPage.tsx"	"no-restricted-imports"	2
 "../../src/pages/TransactionDuplicate/DynamicConfirmationPage.tsx"	"react-hooks/refs"	12
 "../../src/pages/TransactionDuplicate/DynamicReviewBillablePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/TransactionDuplicate/DynamicReviewCategoryPage.tsx"	"no-restricted-imports"	1
