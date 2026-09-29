@@ -10,9 +10,11 @@ import MenuItemChevron from '@components/MenuItem/leaves/trailing/icons/MenuItem
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
+import type {PropsWithChildren} from 'react';
+
 import React from 'react';
 
-type MenuItemFieldProps = Omit<MenuItemRootProps, 'accessibilityLabel'> & {
+type MenuItemFieldRowProps = PropsWithChildren<{
     /** Name of the field */
     name: string;
 
@@ -21,10 +23,38 @@ type MenuItemFieldProps = Omit<MenuItemRootProps, 'accessibilityLabel'> & {
 
     /** How many lines the value may take. Defaults to 1, and `0` lets it grow unbounded */
     numberOfLinesValue?: number;
-};
+}>;
 
-/** Field preset: a field name plus its value. With no `value` the name takes over the row */
-function MenuItemField({name, value, numberOfLinesValue, children, onPress, isDisabled = false, sentryLabel, testID}: MenuItemFieldProps) {
+type MenuItemFieldProps = Omit<MenuItemRootProps, 'accessibilityLabel'> & Omit<MenuItemFieldRowProps, 'children'>;
+
+/**
+ * The line a field preset draws, without a `MenuItem.Root` of its own. Reach for it over the
+ * `MenuItemField` preset when the row needs siblings inside the same `Root` (an error or a hint
+ * line under the row).
+ */
+function MenuItemFieldRow({name, value, numberOfLinesValue, children}: MenuItemFieldRowProps) {
+    return (
+        <MenuItemRow>
+            <MenuItemContent>
+                {value ? (
+                    <>
+                        <MenuItemFieldName>{name}</MenuItemFieldName>
+                        <MenuItemFieldValue numberOfLines={numberOfLinesValue}>{value}</MenuItemFieldValue>
+                    </>
+                ) : (
+                    <MenuItemFieldNamePlaceholder>{name}</MenuItemFieldNamePlaceholder>
+                )}
+            </MenuItemContent>
+            {!!children && <MenuItemTrailing>{children}</MenuItemTrailing>}
+        </MenuItemRow>
+    );
+}
+
+/**
+ * Field preset: a field name plus its value. With no `value` the name takes over the row.
+ * `children` land in the trailing cell, next to the chevron.
+ */
+function MenuItemFieldPreset({name, value, numberOfLinesValue, children, onPress, isDisabled = false, sentryLabel, testID}: MenuItemFieldProps) {
     return (
         <MenuItemRoot
             onPress={onPress ? callFunctionIfActionIsAllowed(onPress) : undefined}
@@ -32,26 +62,22 @@ function MenuItemField({name, value, numberOfLinesValue, children, onPress, isDi
             sentryLabel={sentryLabel}
             testID={testID}
         >
-            <MenuItemRow>
-                <MenuItemContent>
-                    {value ? (
-                        <>
-                            <MenuItemFieldName>{name}</MenuItemFieldName>
-                            <MenuItemFieldValue numberOfLines={numberOfLinesValue}>{value}</MenuItemFieldValue>
-                        </>
-                    ) : (
-                        <MenuItemFieldNamePlaceholder>{name}</MenuItemFieldNamePlaceholder>
-                    )}
-                </MenuItemContent>
+            <MenuItemFieldRow
+                name={name}
+                value={value}
+                numberOfLinesValue={numberOfLinesValue}
+            >
                 {(!!children || !!onPress) && (
-                    <MenuItemTrailing>
+                    <>
                         {children}
                         {!!onPress && <MenuItemChevron />}
-                    </MenuItemTrailing>
+                    </>
                 )}
-            </MenuItemRow>
+            </MenuItemFieldRow>
         </MenuItemRoot>
     );
 }
+
+const MenuItemField = Object.assign(MenuItemFieldPreset, {Row: MenuItemFieldRow});
 
 export default MenuItemField;
