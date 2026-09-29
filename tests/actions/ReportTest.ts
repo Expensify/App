@@ -5817,6 +5817,8 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [unheldTransaction, heldTransaction],
+                delegateAccountID: undefined,
             });
 
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
