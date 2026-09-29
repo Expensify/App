@@ -1,13 +1,10 @@
 import ConnectToMergeFlow from '@components/ConnectToMergeFlow';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
-import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {openPolicyHRPage, openPolicyRecruitingPage} from '@libs/actions/PolicyConnections';
@@ -59,7 +56,6 @@ type MergeConnectionsPageBaseProps = MergeConnectionsPageBaseContentProps & {
 
 function MergeConnectionsPageBaseContent({policyID, category, cards}: MergeConnectionsPageBaseContentProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const policy = usePolicy(policyID);
     const [activeSetupFlow, setActiveSetupFlow] = useState<{setupLink: string; key: number} | undefined>();
 
@@ -109,25 +105,17 @@ function MergeConnectionsPageBaseContent({policyID, category, cards}: MergeConne
                     onDone={() => setActiveSetupFlow(undefined)}
                 />
             )}
-            <HeaderWithBackButton
-                title={connectedCard?.displayName ?? translate(`workspace.${category}.title`)}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))}
-            />
-            <ScrollView
-                contentContainerStyle={[styles.pt3, styles.ph5]}
-                addBottomSafeAreaPadding
-            >
-                {!!connectedCard && (
-                    <MergeProviderCard
-                        card={connectedCard}
-                        policy={policy}
-                        handleConnect={() => handleReconnect(connectedCard)}
-                        onDisconnect={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))}
-                        canWriteMoreFeatures={canWriteMoreFeatures}
-                        showReadOnlyModal={showReadOnlyModal}
-                    />
-                )}
-            </ScrollView>
+            {!!connectedCard && (
+                <MergeProviderCard
+                    card={connectedCard}
+                    policy={policy}
+                    handleConnect={() => handleReconnect(connectedCard)}
+                    onDisconnect={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))}
+                    canWriteMoreFeatures={canWriteMoreFeatures}
+                    showReadOnlyModal={showReadOnlyModal}
+                />
+            )}
         </ScreenWrapper>
     );
 }

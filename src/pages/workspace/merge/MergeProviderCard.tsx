@@ -1,13 +1,13 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
-import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
+import FormHelpMessage from '@components/FormHelpMessage';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
+import ScrollView from '@components/ScrollView';
 import TextLink from '@components/TextLink';
-import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -45,6 +45,9 @@ type MergeProviderCardProps = {
     /** Called once the user confirms disconnecting, right before the connection is removed */
     onDisconnect?: () => void;
 
+    /** Called when the header's back button is pressed. */
+    onBackButtonPress: () => void;
+
     /** Whether the current user can edit this Merge connection. */
     canWriteMoreFeatures: boolean;
 
@@ -52,7 +55,7 @@ type MergeProviderCardProps = {
     showReadOnlyModal: () => void;
 };
 
-function MergeProviderCard({card, policy, handleConnect, onDisconnect, canWriteMoreFeatures, showReadOnlyModal}: MergeProviderCardProps) {
+function MergeProviderCard({card, policy, handleConnect, onDisconnect, onBackButtonPress, canWriteMoreFeatures, showReadOnlyModal}: MergeProviderCardProps) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
@@ -155,88 +158,66 @@ function MergeProviderCard({card, policy, handleConnect, onDisconnect, canWriteM
         },
     ];
 
-    let rightInset: React.ReactNode;
-    if (!card.isConnected) {
-        rightInset = (
-            <ButtonDisabledWhenOffline
-                size={CONST.BUTTON_SIZE.SMALL}
-                onPress={handleConnect}
-                innerStyles={!canWriteMoreFeatures ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
-                hoverStyles={!canWriteMoreFeatures ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
-            >
-                <Button.Text>{translate('workspace.merge.connect')}</Button.Text>
-            </ButtonDisabledWhenOffline>
-        );
-    } else if (card.isSyncInProgress) {
-        rightInset = <ActivityIndicator style={[styles.popoverMenuIcon, styles.alignSelfCenter]} />;
-    } else {
-        rightInset = (
-            <ThreeDotsMenu
-                shouldSelfPosition
-                menuItems={overflowMenu}
-                anchorAlignment={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                }}
-            />
-        );
-    }
-
-    const rightComponent = <View style={styles.alignSelfCenter}>{rightInset}</View>;
-
     // While the setup is incomplete only the rows that failed to save are shown, so the admin is steered to the setup flow first.
     const visibleConfigRows = card.isConnected && !card.isInitialSyncInProgress ? (card.configRows ?? []).filter((row) => !card.completeSetupRoute || !!row.errors) : [];
 
     return (
         <>
-            <MenuItem
+            <HeaderWithBackButton
                 title={card.displayName}
-                icon={cardIcon}
-                iconType={CONST.ICON_TYPE_AVATAR}
-                wrapperStyle={[styles.ph0, styles.pv2, !!lastSyncErrorMessage && styles.pb0]}
-                interactive={false}
-                description={!card.completeSetupRoute && card.isConnected ? connectionDescription : undefined}
-                descriptionAddon={
-                    card.completeSetupRoute ? (
+                subtitle={!card.completeSetupRoute && card.isConnected ? connectionDescription : undefined}
+                titleStyles={[styles.textNormal, styles.lineHeightLarge]}
+                policyAvatar={{source: cardIcon, type: CONST.ICON_TYPE_AVATAR, name: card.displayName}}
+                shouldShowThreeDotsButton={card.isConnected && !card.isSyncInProgress}
+                threeDotsMenuItems={overflowMenu}
+                threeDotsAnchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
+                onBackButtonPress={onBackButtonPress}
+            >
+                {card.isSyncInProgress && <ActivityIndicator style={styles.popoverMenuIcon} />}
+            </HeaderWithBackButton>
+            <ScrollView
+                contentContainerStyle={styles.pt3}
+                addBottomSafeAreaPadding
+            >
+                {!!card.completeSetupRoute && (
+                    <View style={[styles.ph5, styles.mb3]}>
                         <RenderHTML html={translate(`workspace.${card.category}.setupIncomplete`, canWriteMoreFeatures ? `${environmentURL}/${card.completeSetupRoute}` : undefined)} />
-                    ) : undefined
-                }
-                errorText={lastSyncErrorMessage}
-                errorTextStyle={styles.mt5}
-                shouldShowRedDotIndicator
-                shouldShowRightComponent={!!rightInset}
-                brickRoadIndicator={card.completeSetupRoute ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined}
-                rightComponent={rightComponent}
-                fallbackIcon={fallbackIcon}
-            />
-            {visibleConfigRows.length > 0 && (
-                <View style={styles.mt2}>
-                    {visibleConfigRows.map((row) => {
-                        const RowMenuItem = row.shouldRenderAsMenuItem ? MenuItem : MenuItemWithTopDescription;
+                    </View>
+                )}
+                {!!lastSyncErrorMessage && (
+                    <FormHelpMessage
+                        isError
+                        message={lastSyncErrorMessage}
+                        style={[styles.ph5, styles.mb3]}
+                    />
+                )}
+                {visibleConfigRows.map((row) => {
+                    const RowMenuItem = row.shouldRenderAsMenuItem ? MenuItem : MenuItemWithTopDescription;
 
-                        return (
-                            <OfflineWithFeedback
-                                key={row.field}
-                                pendingAction={row.pendingAction}
-                                errors={row.errors}
-                                onClose={() => clearMergeConnectionErrorField(policy?.id, card.connectionName, row.field)}
-                            >
-                                <RowMenuItem
-                                    description={row.description}
-                                    title={row.title}
-                                    icon={row.icon}
-                                    numberOfLinesTitle={row.numberOfLinesTitle}
-                                    style={styles.sectionMenuItemTopDescription}
-                                    shouldShowRightIcon={canWriteMoreFeatures}
-                                    brickRoadIndicator={row.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                    onPress={() => Navigation.navigate(row.route)}
-                                    interactive={canWriteMoreFeatures}
-                                />
-                            </OfflineWithFeedback>
-                        );
-                    })}
-                </View>
-            )}
+                    return (
+                        <OfflineWithFeedback
+                            key={row.field}
+                            pendingAction={row.pendingAction}
+                            errors={row.errors}
+                            onClose={() => clearMergeConnectionErrorField(policy?.id, card.connectionName, row.field)}
+                        >
+                            <RowMenuItem
+                                description={row.description}
+                                title={row.title}
+                                icon={row.icon}
+                                numberOfLinesTitle={row.numberOfLinesTitle}
+                                shouldShowRightIcon={canWriteMoreFeatures}
+                                brickRoadIndicator={row.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                onPress={() => Navigation.navigate(row.route)}
+                                interactive={canWriteMoreFeatures}
+                            />
+                        </OfflineWithFeedback>
+                    );
+                })}
+            </ScrollView>
         </>
     );
 }
