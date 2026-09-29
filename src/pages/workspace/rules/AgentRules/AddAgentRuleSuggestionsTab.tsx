@@ -4,7 +4,7 @@
  */
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -111,6 +111,7 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
                     accessibilityLabel={translate('workspace.rules.agentRules.findSuggestion')}
                     value={searchValue}
                     onChangeText={setSearchValue}
+                    shouldHideClearButton={false}
                     autoGrowHeight={false}
                     role={CONST.ROLE.SEARCHBOX}
                 />

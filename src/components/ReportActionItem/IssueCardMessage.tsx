@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import {useSession} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
 

@@ -1,5 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 
@@ -110,8 +111,6 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
         {
             description: translate('workspace.qbo.exportExpensifyCard'),
             title: translate('workspace.qbo.accounts.credit_card'),
-            shouldShowRightIcon: false,
-            interactive: false,
         },
     ];
 
@@ -134,20 +133,17 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
                     key={menuItem.description}
                     pendingAction={settingsPendingAction(menuItem?.subscribedSettings, qboConfig?.pendingFields)}
                 >
-                    <MenuItemWithTopDescription
-                        title={menuItem.title}
-                        interactive={menuItem?.interactive ?? true}
-                        description={menuItem.description}
-                        shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
+                    <MenuItemField
+                        name={menuItem.description}
                         onPress={menuItem?.onPress}
-                        brickRoadIndicator={
+                        value={menuItem.title}
+                    >
+                        {!!(
                             areSettingsInErrorFields(menuItem?.subscribedSettings, errorFields) ||
                             (menuItem.subscribedSettings?.some((setting) => setting === CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION) &&
                                 shouldShowQBOReimbursableExportDestinationAccountError(policy))
-                                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                : undefined
-                        }
-                    />
+                        ) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    </MenuItemField>
                 </OfflineWithFeedback>
             ))}
             <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.mt2]}>

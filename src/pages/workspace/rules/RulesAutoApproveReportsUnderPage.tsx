@@ -50,7 +50,7 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={isWorkflowsEnabled && (!policy?.shouldShowAutoApprovalOptions || workflowApprovalsUnavailable)}
+            shouldBeBlocked={isWorkflowsEnabled && (!(!!policy?.shouldShowAutoApprovalOptions || (policy?.autoApproval?.limit ?? 0) > 0) || workflowApprovalsUnavailable)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

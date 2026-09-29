@@ -1,5 +1,5 @@
 import AccountAvatarWithCardFeed from '@components/Avatar/connected/AccountAvatarWithCardFeed';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import type {TableData} from '@components/Table';
 import Table from '@components/Table';
@@ -31,6 +31,7 @@ type WorkspaceCompanyCardTableRowData = TableData &
         isCardDeleted: boolean;
         isAssigned: boolean;
         assignedCard?: Card;
+        exportAccountTitle?: string;
         onDismissError?: () => void;
     };
 
@@ -44,6 +45,9 @@ type WorkspaceCompanyCardTableRowProps = {
 
     /** Whether the current member can edit company cards */
     canWriteCompanyCards: boolean;
+
+    /** Whether the Export account column is shown, so the row must keep its cell in step with the column */
+    shouldShowExportAccountColumn: boolean;
 
     shouldUseNarrowTableLayout: boolean;
     rowIndex: number;
@@ -61,6 +65,7 @@ function WorkspaceCompanyCardTableRow({
     feedName,
     CardFeedIcon,
     shouldUseNarrowTableLayout,
+    shouldShowExportAccountColumn,
     rowIndex,
     isAssigningCardDisabled,
     canWriteCompanyCards,
@@ -68,7 +73,7 @@ function WorkspaceCompanyCardTableRow({
 }: WorkspaceCompanyCardTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
@@ -78,10 +83,12 @@ function WorkspaceCompanyCardTableRow({
     const formattedCardDetails = formatMaskedCardName(cardName);
     const formattedCustomCardNameSuffix = formattedCustomCardName ? ` • ${formattedCustomCardName}` : '';
 
-    const cardholderLoginText = !shouldUseNarrowTableLayout && isAssigned ? Str.removeSMSDomain(cardholder?.login ?? '') : undefined;
+    const cardholderLoginText = !shouldUseNarrowTableLayout && isAssigned ? formatPhoneNumber(cardholder?.login ?? '') : undefined;
     const narrowWidthCardName = isAssigned ? `${formattedCardDetails}${formattedCustomCardNameSuffix}` : cardName;
 
-    const memberColumnTitle = isAssigned ? Str.removeSMSDomain(cardholder?.displayName ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards');
+    const cardholderDisplayName = cardholder?.displayName ?? '';
+    const formattedCardholderDisplayName = Str.isSMSLogin(cardholderDisplayName) ? formatPhoneNumber(cardholderDisplayName) : cardholderDisplayName;
+    const memberColumnTitle = isAssigned ? formattedCardholderDisplayName : translate('workspace.moreFeatures.companyCards.unassignedCards');
     const memberCardSubtitle = shouldUseNarrowTableLayout ? narrowWidthCardName : cardholderLoginText;
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
@@ -111,7 +118,7 @@ function WorkspaceCompanyCardTableRow({
         return Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(feedName, cardID.toString())));
     };
 
-    const accessibilityLabel = [memberColumnTitle, formattedCardDetails, formattedCustomCardName].filter(Boolean).join(', ');
+    const accessibilityLabel = [memberColumnTitle, formattedCardDetails, formattedCustomCardName, item.exportAccountTitle].filter(Boolean).join(', ');
 
     return (
         <Table.Row
@@ -126,7 +133,7 @@ function WorkspaceCompanyCardTableRow({
             {({hovered}) => (
                 <>
                     <View
-                        style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}
+                        style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsCenter, styles.gap3]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
                         {isAssigned ? (
@@ -142,7 +149,7 @@ function WorkspaceCompanyCardTableRow({
                             CardFeedIcon
                         )}
 
-                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, shouldUseNarrowTableLayout && styles.gap1]}>
+                        <View style={[styles.flex1, styles.mnw0, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, shouldUseNarrowTableLayout && styles.gap1]}>
                             <TextWithTooltip
                                 shouldShowTooltip
                                 text={memberColumnTitle}
@@ -160,7 +167,7 @@ function WorkspaceCompanyCardTableRow({
 
                     {!shouldUseNarrowTableLayout && (
                         <View
-                            style={[styles.flex1, styles.justifyContentCenter]}
+                            style={[styles.flex1, styles.mnw0, styles.justifyContentCenter]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
                             <TextWithTooltip
@@ -174,13 +181,27 @@ function WorkspaceCompanyCardTableRow({
 
                     {!shouldUseNarrowTableLayout && (
                         <View
-                            style={[styles.flex1, styles.justifyContentCenter]}
+                            style={[styles.flex1, styles.mnw0, styles.justifyContentCenter]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
                             <TextWithTooltip
                                 shouldShowTooltip
                                 numberOfLines={1}
                                 text={customCardName ?? ''}
+                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                            />
+                        </View>
+                    )}
+
+                    {!shouldUseNarrowTableLayout && shouldShowExportAccountColumn && (
+                        <View
+                            style={[styles.flex1, styles.mnw0, styles.justifyContentCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                numberOfLines={1}
+                                text={item.exportAccountTitle ?? ''}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                             />
                         </View>

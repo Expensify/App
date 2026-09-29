@@ -5,6 +5,7 @@ import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext'
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -34,14 +35,16 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
     const activePolicy = usePolicy(activePolicyID);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(iouReport?.policyID)}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+    const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${iouReport?.invoiceReceiver && 'policyID' in iouReport.invoiceReceiver ? iouReport.invoiceReceiver.policyID : ''}`,
     );
 
-    const nextApproverAccountID = getNextApproverAccountID(iouReport);
+    const nextApproverAccountID = getNextApproverAccountID(iouReport, rules);
     const isSubmitterSameAsNextApprover = isReportOwner(iouReport) && (nextApproverAccountID === iouReport?.ownerAccountID || iouReport?.managerID === iouReport?.ownerAccountID);
     const isBlockSubmitDueToPreventSelfApproval = isSubmitterSameAsNextApprover && expenseReportPolicy?.preventSelfApproval;
 
@@ -57,12 +60,23 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
         currentUserAccountID,
         undefined,
         false,
-        undefined,
+        isChatReportArchived,
         invoiceReceiverPolicy,
     );
     const onlyShowPayElsewhere =
         !canIOUBePaid &&
-        canIOUBePaidAction(iouReport, chatReport, activePolicy, bankAccountList, currentUserDetails.login ?? '', currentUserAccountID, undefined, true, undefined, invoiceReceiverPolicy);
+        canIOUBePaidAction(
+            iouReport,
+            chatReport,
+            activePolicy,
+            bankAccountList,
+            currentUserDetails.login ?? '',
+            currentUserAccountID,
+            undefined,
+            true,
+            isChatReportArchived,
+            invoiceReceiverPolicy,
+        );
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
 
     const {onApprove} = useConfirmApproval(reportID, startApprovedAnimation);

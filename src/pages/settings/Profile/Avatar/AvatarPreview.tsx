@@ -1,6 +1,6 @@
 import AttachmentPicker from '@components/AttachmentPicker';
 import UserAvatar from '@components/Avatar/UserAvatar';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import UserInitialsAvatar from '@components/UserInitialsAvatar';
 

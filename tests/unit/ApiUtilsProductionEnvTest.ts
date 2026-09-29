@@ -55,8 +55,24 @@ beforeEach(async () => {
 });
 
 describe('a production build', () => {
-    it.each([CONST.SERVER.STAGING, CONST.SERVER.QA])('ignores a stored %s and stays on production', async (storedServer) => {
-        await setActiveServer(storedServer);
+    it('stays on production when nothing is stored', async () => {
+        await setActiveServer(null);
+
+        expect(ApiUtils.getActiveServer()).toBe(CONST.SERVER.PRODUCTION);
+        expect(ApiUtils.getApiRoot()).toBe('https://www.expensify.com/');
+    });
+
+    it('honors a stored staging', async () => {
+        // Support hands staging to customers on store builds, and testers on a Play testing track have no
+        // other way in, so a deliberate choice outranks the build's own default
+        await setActiveServer(CONST.SERVER.STAGING);
+
+        expect(ApiUtils.getActiveServer()).toBe(CONST.SERVER.STAGING);
+    });
+
+    it('ignores a stored qa and stays on production', async () => {
+        // Unlike staging, QA has no host a production build could reach
+        await setActiveServer(CONST.SERVER.QA);
 
         expect(ApiUtils.getActiveServer()).toBe(CONST.SERVER.PRODUCTION);
         expect(ApiUtils.isQAServerActive()).toBe(false);

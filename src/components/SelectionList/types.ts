@@ -1,15 +1,39 @@
+import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import type CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-import type {ReactElement, Ref} from 'react';
+import type {Ref} from 'react';
 import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import type {ListItem, ValidListItem} from './ListItem/types';
+import type BareUserListItem from './ListItem/BareUserListItem';
+import type InviteMemberListItem from './ListItem/InviteMemberListItem';
+import type MultiSelectListItem from './ListItem/MultiSelectListItem';
+import type SingleSelectListItem from './ListItem/SingleSelectListItem';
+import type SingleSelectWithAvatarListItem from './ListItem/SingleSelectWithAvatarListItem';
+import type SpendCategorySelectorListItem from './ListItem/SpendCategorySelectorListItem';
+import type SplitListItem from './ListItem/SplitListItem';
+import type TravelDomainListItem from './ListItem/TravelDomainListItem';
+import type {ListItem} from './ListItem/types';
+import type UserListItem from './ListItem/UserListItem';
+import type UserSelectionListItem from './ListItem/UserSelectionListItem';
 import type {SelectionListWithSectionsHandle, SelectionListWithSectionsProps} from './SelectionListWithSections/types';
+
+type ValidListItem =
+    | typeof InviteMemberListItem
+    | typeof MultiSelectListItem
+    | typeof SearchRouterItem
+    | typeof SingleSelectListItem
+    | typeof SingleSelectWithAvatarListItem
+    | typeof SpendCategorySelectorListItem
+    | typeof SplitListItem
+    | typeof TravelDomainListItem
+    | typeof BareUserListItem
+    | typeof UserListItem
+    | typeof UserSelectionListItem;
 
 /**
  * Base props shared between SelectionList and SelectionListWithSections.
@@ -21,9 +45,12 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     onSelectRow: (item: TItem) => void;
     canSelectMultiple?: boolean;
     footerContent?: React.ReactNode;
+
+    /** Whether to place the footer in the list so it scrolls with data instead of being fixed to the bottom */
+    shouldFooterBeInsideList?: boolean;
+
     listFooterContent?: React.JSX.Element | null | undefined;
     shouldShowLoadingPlaceholder?: boolean;
-    rightHandSideComponent?: ((item: TItem, isFocused?: boolean) => ReactElement | null | undefined) | ReactElement | null;
     shouldShowTooltips?: boolean;
     customListHeaderContent?: React.JSX.Element | null;
     onSelectionButtonPress?: (item: TItem) => void;
@@ -134,9 +161,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
 
         shouldUseUserSkeletonView?: boolean;
 
-        /** Whether to show the right caret icon */
-        shouldShowRightCaret?: boolean;
-
         /** Whether to place customListHeader in the list so it scrolls with data */
         shouldHeaderBeInsideList?: boolean;
 
@@ -235,6 +259,20 @@ type ConfirmButtonOptions<TItem extends ListItem> = {
      * Defaults to large for backwards compatibility.
      */
     confirmButtonSize?: 'large' | 'medium' | 'small';
+
+    /**
+     * Whether a custom footer confirm control can handle a plain Enter key on the current platform.
+     * Defaults to `true` — footers built with an unconditional `<Button.KeyboardShortcut />` are Enter-capable everywhere.
+     * Pass `false` when the footer is intentionally unable to handle Enter on a platform.
+     */
+    isFooterConfirmEnterKeyEnabled?: boolean;
+
+    /**
+     * Whether a custom footer confirm control is currently rendered and enabled.
+     * Defaults to inferring the state from the rendered rows. Pass the authoritative state when the footer's
+     * enabled state depends on selection that may not be reflected in the currently rendered rows.
+     */
+    isFooterConfirmEnabled?: boolean;
 };
 
 type SelectionListHandle<TItem extends ListItem> = {

@@ -17,10 +17,12 @@ on:
         type: boolean
       app_pull_request_url:
         description: 'The Expensify/App pull request URL.'
+        type: string
         required: false
         default: ''
       mobile_expensify_pull_request_url:
         description: 'The Expensify/Mobile-Expensify pull request URL to check out the submodule.'
+        type: string
         required: false
         default: ''
       reviewed_code:
@@ -51,8 +53,8 @@ jobs:
       build_targets: ${{ steps.getArtifactBuildTargets.outputs.BUILD_TARGETS }}
     steps:
       - name: Checkout
-        # v1.6.0
-        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815
+        # v1.7.0
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056
         with:
           submodules: true
           ref: ${{ github.event.before || 'main' }}

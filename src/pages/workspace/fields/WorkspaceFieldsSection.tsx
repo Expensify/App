@@ -1,5 +1,6 @@
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import MenuItem from '@components/MenuItem';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
@@ -116,7 +117,10 @@ function WorkspaceFieldsSection({
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const fieldList = policy?.fieldList;
-    const hasImportedField = useMemo(() => Object.values(fieldList ?? {}).some((field) => fieldFilter(field) && isReportFieldImportedFromIntegration(field)), [fieldFilter, fieldList]);
+    const hasImportedField = useMemo(
+        () => Object.values(fieldList ?? {}).some((field) => fieldFilter(field) && isReportFieldImportedFromIntegration(field, policy)),
+        [fieldFilter, fieldList, policy],
+    );
     const {canWrite, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, policyFeature);
 
     const fetchFields = useCallback(() => {
@@ -265,15 +269,21 @@ function WorkspaceFieldsSection({
                                 )}
                             </View>
                             {canWrite && (
-                                <MenuItem
+                                <MenuItemSectionRoot
                                     onPress={() => {
                                         setInitialCreateReportFieldsForm();
                                         Navigation.navigate(createRoute);
                                     }}
-                                    title={translate(addFieldKey)}
-                                    icon={icons.Plus}
-                                    style={[styles.sectionMenuItemTopDescription]}
-                                />
+                                >
+                                    <MenuItem.Row>
+                                        <MenuItem.Leading>
+                                            <MenuItem.Icon src={icons.Plus} />
+                                        </MenuItem.Leading>
+                                        <MenuItem.Content>
+                                            <MenuItem.Title>{translate(addFieldKey)}</MenuItem.Title>
+                                        </MenuItem.Content>
+                                    </MenuItem.Row>
+                                </MenuItemSectionRoot>
                             )}
                         </>
                     )
