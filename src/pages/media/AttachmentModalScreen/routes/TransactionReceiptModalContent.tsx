@@ -5,6 +5,8 @@ import type {CropRect} from '@components/ReceiptCropView';
 
 import useAllTransactions from '@hooks/useAllTransactions';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -54,6 +56,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type {RotationDegrees} from 'react-fast-pdf';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {transactionThreadReportIDSelector} from '@selectors/ReportAction';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -78,12 +81,13 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const policy = usePolicy(report?.policyID);
+    const delegateAccountID = useDelegateAccountID();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
 
@@ -115,6 +119,10 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     useRestartOnOdometerImagesFailure(isDraftTransaction && isOdometerDistanceRequest(transaction) ? transaction : undefined, reportID, iouTypeParam ?? CONST.IOU.TYPE.SUBMIT, backToReport);
 
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+    const [transactionThreadReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {
+        selector: transactionThreadReportIDSelector(transaction?.transactionID),
+    });
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
     const receiptURIs = getThumbnailAndImageURIs(transaction);
     const isLocalFile = receiptURIs.isLocalFile;
@@ -201,7 +209,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             reportID,
             introSelected,
             conciergeChat,
-            betas,
             hasReportActions,
             currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
@@ -285,9 +292,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
      * Detach the receipt and close the modal.
      */
     const deleteReceiptAndClose = useCallback(() => {
-        detachReceipt(transaction, policy, policyTagList, transactionViolations, transactionReport, isVendorMatchingBetaEnabled, policyCategories);
+        detachReceipt(transaction, policy, policyTagList, transactionViolations, transactionReport, isVendorMatchingBetaEnabled, transactionThreadReportID, policyCategories);
         navigation.goBack();
-    }, [transaction, policy, policyTagList, transactionViolations, transactionReport, isVendorMatchingBetaEnabled, policyCategories, navigation]);
+    }, [transaction, policy, policyTagList, transactionViolations, transactionReport, isVendorMatchingBetaEnabled, transactionThreadReportID, policyCategories, navigation]);
 
     /**
      * Remove odometer image and close the modal.
@@ -340,6 +347,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                             transactionPolicyTagList: policyTagList,
                             transactionViolations,
                             transactionReport,
+                            delegateAccountID,
+                            currentUserPersonalDetails,
+                            transactionThreadReport,
                             ...(isSameReceipt ? {state: transaction?.receipt?.state, isSameReceipt: true} : {}),
                         });
                     }
@@ -358,6 +368,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             transactionViolations,
             transactionReport,
             isVendorMatchingBetaEnabled,
+            delegateAccountID,
+            currentUserPersonalDetails,
+            transactionThreadReport,
         ],
     );
 
@@ -461,7 +474,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 const file = croppedImage as File;
                 const croppedFilename = file.name ?? receiptFilename;
 
-                return applyDurableReceipt(imageUriResult, croppedFilename, file).then(() => {
+                return applyDurableReceipt(imageUriResult, croppedFilename, file, true).then(() => {
                     setIsCropSaving(false);
                     exitCropMode();
                 });
