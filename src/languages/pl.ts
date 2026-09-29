@@ -8516,10 +8516,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 buildManually: 'Utwórz regułę ręcznie',
                 createAgentRuleInstead: 'Utwórz zamiast tego regułę agenta',
                 promptErrors: {
-                    unsupported: ({area}) =>
-                        area
-                            ? `Reguły „${area}” nie są jeszcze obsługiwane — pracujemy nad tym. Na razie spróbuj innej reguły.`
-                            : 'Ta reguła nie jest jeszcze obsługiwana — pracujemy nad tym. Na razie spróbuj innej reguły.',
+                    unsupported: 'Ta reguła nie jest jeszcze obsługiwana — pracujemy nad tym. Na razie spróbuj innej reguły.',
                     unintelligible: 'Spróbuj sformułować regułę tak: jeśli wydatek przekracza 100 $, wymagaj paragonu.',
                     multipleRules: 'Jedna reguła naraz — opisz pojedynczą regułę, na przykład: zablokuj zakupy detaliczne na wszystkich kartach.',
                 },

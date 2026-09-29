@@ -8586,10 +8586,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 buildManually: 'Créer la règle manuellement',
                 createAgentRuleInstead: 'Créer plutôt une règle d’agent',
                 promptErrors: {
-                    unsupported: ({area}) =>
-                        area
-                            ? `Les règles ${area} ne sont pas encore prises en charge — nous y travaillons. Essayez une autre règle pour le moment.`
-                            : 'Cette règle n’est pas encore prise en charge — nous y travaillons. Essayez une autre règle pour le moment.',
+                    unsupported: 'Cette règle n’est pas encore prise en charge — nous y travaillons. Essayez une autre règle pour le moment.',
                     unintelligible: 'Essayez de formuler votre règle ainsi : si les dépenses dépassent 100 $, exigez un reçu.',
                     multipleRules: 'Une règle à la fois, s’il vous plaît — essayez de décrire une seule règle, comme : bloquer les achats en magasin sur toutes les cartes.',
                 },

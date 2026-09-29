@@ -8492,10 +8492,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 buildManually: 'Regel handmatig maken',
                 createAgentRuleInstead: 'Maak in plaats daarvan een agentregel',
                 promptErrors: {
-                    unsupported: ({area}) =>
-                        area
-                            ? `${area}-regels worden nog niet ondersteund — we werken eraan. Probeer voorlopig een andere regel.`
-                            : 'Die regel wordt nog niet ondersteund — we werken eraan. Probeer voorlopig een andere regel.',
+                    unsupported: 'Die regel wordt nog niet ondersteund — we werken eraan. Probeer voorlopig een andere regel.',
                     unintelligible: 'Formuleer je regel bijvoorbeeld zo: als uitgaven hoger zijn dan $100, vraag dan een bon.',
                     multipleRules: 'Eén regel per keer graag — beschrijf één enkele regel, bijvoorbeeld: retailaankopen op alle kaarten blokkeren.',
                 },

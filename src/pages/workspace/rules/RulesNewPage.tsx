@@ -111,7 +111,7 @@ function applyGeneratedRule(rule: GeneratedRule, policyID: string, policyCategor
     }
 
     if (rule.state === CONST.GENERATED_RULE.STATE.UNSUPPORTED) {
-        setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unsupported', {area: rule.unsupportedArea ?? ''}));
+        setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unsupported'));
         return;
     }
 

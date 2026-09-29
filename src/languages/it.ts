@@ -8516,10 +8516,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 buildManually: 'Crea la regola manualmente',
                 createAgentRuleInstead: 'Crea invece una regola agente',
                 promptErrors: {
-                    unsupported: ({area}) =>
-                        area
-                            ? `Le regole ${area} non sono ancora supportate: ci stiamo lavorando. Per ora prova una regola diversa.`
-                            : 'Questa regola non è ancora supportata: ci stiamo lavorando. Per ora prova una regola diversa.',
+                    unsupported: 'Questa regola non è ancora supportata: ci stiamo lavorando. Per ora prova una regola diversa.',
                     unintelligible: 'Prova a formulare la regola così: se le spese superano i 100 $, richiedi una ricevuta.',
                     multipleRules: 'Una regola alla volta, per favore: prova a descrivere una singola regola, ad esempio bloccare gli acquisti al dettaglio su tutte le carte.',
                 },
