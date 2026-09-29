@@ -2,12 +2,11 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import Header from '@components/Header';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
-import SidePanelButton from '@components/SidePanel/SidePanelButton';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
@@ -93,16 +92,13 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                 shouldForceFullScreen
                 shouldDisplaySearchRouter
             >
-                <Header>
-                    {shouldUseNarrowLayout && <Header.BackButton onPress={Navigation.goBack} />}
-                    <Header.Title
-                        title={translate('domain.saml')}
-                        shouldUseHeadlineHeader
-                    />
-                    <Header.Right>
-                        <SidePanelButton />
-                    </Header.Right>
-                </Header>
+                <HeaderWithBackButton
+                    title={translate('domain.saml')}
+                    shouldUseHeadlineHeader
+                    onBackButtonPress={Navigation.goBack}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldDisplayHelpButton
+                />
 
                 <ScrollView
                     keyboardShouldPersistTaps="handled"
@@ -135,7 +131,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                                         subtitleMuted
                                         isCentralPane
                                         titleStyles={styles.accountSettingsSectionTitle}
-                                        childrenStyles={[styles.gap6, styles.pt6]}
+                                        childrenStyles={[styles.pt6]}
                                     >
                                         <SamlConfigurationDetailsSectionContent
                                             accountID={domainAccountID}
