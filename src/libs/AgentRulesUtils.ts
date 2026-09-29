@@ -1,3 +1,5 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import type {AgentRule} from '@src/types/onyx/Policy';
@@ -65,7 +67,7 @@ function isRuleBotEnforcingRulesOnAnyPolicy(accountID: number | undefined, polic
     return !!getRuleBotEnforcedPolicy(accountID, policies);
 }
 
-function groupSuggestedAgentRulesByCategory(suggestions: SuggestedAgentRule[]): SuggestedAgentRuleSection[] {
+function groupSuggestedAgentRulesByCategory(suggestions: SuggestedAgentRule[], localeCompare: LocaleContextProps['localeCompare']): SuggestedAgentRuleSection[] {
     const suggestionsByCategory = new Map<string, SuggestedAgentRule[]>();
     for (const suggestion of suggestions) {
         const category = suggestion.category ?? '';
@@ -76,7 +78,10 @@ function groupSuggestedAgentRulesByCategory(suggestions: SuggestedAgentRule[]): 
             suggestionsByCategory.set(category, [suggestion]);
         }
     }
-    return Array.from(suggestionsByCategory, ([category, categorySuggestions]) => ({category, suggestions: categorySuggestions}));
+    return Array.from(suggestionsByCategory, ([category, categorySuggestions]) => ({
+        category,
+        suggestions: categorySuggestions.sort((a, b) => localeCompare(a.title, b.title)),
+    }));
 }
 
 export {getAgentRuleDisplayTitle, getVisibleAgentRules, getRuleBotEnforcedPolicy, groupSuggestedAgentRulesByCategory, isRuleBotEnforcingRules, isRuleBotEnforcingRulesOnAnyPolicy};

@@ -20,8 +20,12 @@ function buildAgentRule(ruleID: string, overrides: Partial<AgentRule> = {}): Age
     };
 }
 
-function buildSuggestion(id: string, category?: string): SuggestedAgentRule {
-    return {id, category, title: `Title for ${id}`, prompt: `Prompt for ${id}`};
+function buildSuggestion(id: string, category?: string, title = `Title for ${id}`): SuggestedAgentRule {
+    return {id, category, title, prompt: `Prompt for ${id}`};
+}
+
+function localeCompare(a: string, b: string): number {
+    return a.localeCompare(b);
 }
 
 function buildPolicyWithAgentRules(agentRules: Record<string, AgentRule> | undefined, ruleBotAccountID: number | undefined = RULE_BOT_ACCOUNT_ID): Policy {
@@ -143,7 +147,7 @@ describe('AgentRulesUtils', () => {
             const reportTotalOver = buildSuggestion('report-total-over', 'Amount and spending');
 
             // When the suggestions are grouped
-            const sections = groupSuggestedAgentRulesByCategory([expenseOver, merchantIs, reportTotalOver]);
+            const sections = groupSuggestedAgentRulesByCategory([expenseOver, merchantIs, reportTotalOver], localeCompare);
 
             // Then each category is one section, so the Suggestions tab shows no duplicate header, and the sections keep the list order
             expect(sections).toEqual([
@@ -158,10 +162,22 @@ describe('AgentRulesUtils', () => {
             const emptyCategory = buildSuggestion('empty', '');
 
             // When the suggestions are grouped
-            const sections = groupSuggestedAgentRulesByCategory([missingCategory, emptyCategory]);
+            const sections = groupSuggestedAgentRulesByCategory([missingCategory, emptyCategory], localeCompare);
 
             // Then they share one section, which the Suggestions tab renders without a header
-            expect(sections).toEqual([{category: '', suggestions: [missingCategory, emptyCategory]}]);
+            expect(sections).toEqual([{category: '', suggestions: [emptyCategory, missingCategory]}]);
+        });
+
+        it('sorts the suggestions in each section by title', () => {
+            // Given a section whose suggestions arrive out of alphabetical order
+            const reportOverLimit = buildSuggestion('report-total-over', 'Amount and spending', 'Report over limit');
+            const expenseOverLimit = buildSuggestion('expense-amount-over', 'Amount and spending', 'Expense over limit');
+
+            // When the suggestions are grouped
+            const sections = groupSuggestedAgentRulesByCategory([reportOverLimit, expenseOverLimit], localeCompare);
+
+            // Then the section lists them by title, so an admin can scan the section in a predictable order
+            expect(sections).toEqual([{category: 'Amount and spending', suggestions: [expenseOverLimit, reportOverLimit]}]);
         });
     });
 });

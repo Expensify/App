@@ -10,15 +10,18 @@ import type SuggestedAgentRule from '@src/types/onyx/SuggestedAgentRule';
 import React from 'react';
 
 jest.mock('@hooks/useLazyAsset', () => ({
+    useMemoizedLazyExpensifyIcons: jest.fn(() => ({DownArrow: 'DownArrow', UpArrow: 'UpArrow'})),
     useMemoizedLazyIllustrations: jest.fn(() => ({Lightbulb: 'Lightbulb'})),
 }));
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: (key: string) => key,
+        localeCompare: (a: string, b: string) => a.localeCompare(b),
     })),
 );
 jest.mock('@hooks/useNetwork');
 jest.mock('@hooks/useSuggestedAgentRules');
+jest.mock('@hooks/useTheme', () => jest.fn(() => ({icon: '#000'})));
 jest.mock('@hooks/useThemeStyles', () =>
     jest.fn(
         () =>
@@ -35,6 +38,7 @@ jest.mock('@components/ActivityIndicator', () => {
     const {View} = jest.requireActual<{View: React.ComponentType<{testID?: string}>}>('react-native');
     return jest.fn(() => ReactModule.createElement(View, {testID: 'suggestions-loading-indicator'}));
 });
+jest.mock('@components/Icon', () => jest.fn(() => null));
 jest.mock('@components/TextInput', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {TextInput} = jest.requireActual<{
@@ -222,6 +226,43 @@ describe('AddAgentRuleSuggestionsTab', () => {
         // Then the amount header goes away with its only suggestion, so no empty section stays on screen
         expect(screen.queryByRole('heading', {name: AMOUNT_CATEGORY})).toBeNull();
         expect(screen.getByRole('heading', {name: MERCHANT_CATEGORY})).toBeOnTheScreen();
+    });
+
+    it('hides the suggestions of a section when its header is pressed', () => {
+        // Given one amount suggestion and one merchant suggestion
+        render(<AddAgentRuleSuggestionsTab onSelectSuggestion={jest.fn()} />);
+
+        // When the amount header is pressed
+        fireEvent.press(screen.getByLabelText(AMOUNT_CATEGORY));
+
+        // Then only the amount suggestion is hidden, and its header stays so the admin can expand the section again
+        expect(screen.queryByText(SUGGESTIONS.at(0)?.title ?? '')).toBeNull();
+        expect(screen.getByText(SUGGESTIONS.at(1)?.title ?? '')).toBeOnTheScreen();
+        expect(screen.getByRole('heading', {name: AMOUNT_CATEGORY})).toBeOnTheScreen();
+    });
+
+    it('shows the suggestions of a collapsed section again when its header is pressed', () => {
+        // Given the amount section is collapsed
+        render(<AddAgentRuleSuggestionsTab onSelectSuggestion={jest.fn()} />);
+        fireEvent.press(screen.getByLabelText(AMOUNT_CATEGORY));
+
+        // When the amount header is pressed again
+        fireEvent.press(screen.getByLabelText(AMOUNT_CATEGORY));
+
+        // Then the amount suggestion shows again
+        expect(screen.getByText(SUGGESTIONS.at(0)?.title ?? '')).toBeOnTheScreen();
+    });
+
+    it('expands every section when the search changes', () => {
+        // Given the amount section is collapsed
+        render(<AddAgentRuleSuggestionsTab onSelectSuggestion={jest.fn()} />);
+        fireEvent.press(screen.getByLabelText(AMOUNT_CATEGORY));
+
+        // When the admin searches for text that only the amount suggestion contains
+        fireEvent.changeText(screen.getByLabelText('workspace.rules.agentRules.findSuggestion'), 'approve');
+
+        // Then the amount suggestion shows, because a collapsed section must not hide a search result
+        expect(screen.getByText(SUGGESTIONS.at(0)?.title ?? '')).toBeOnTheScreen();
     });
 
     it('filters the list by search text against categories', () => {
