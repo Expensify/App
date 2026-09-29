@@ -20,11 +20,6 @@ import type en from './en';
 import type {AllConnectionName, PolicyConnectionSyncStage} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 const translations: TranslationDeepObject<typeof en> = {
-    bulkActionBar: {
-        label: 'Acciones masivas',
-        clearSelection: 'Borrar selección',
-        loadingSelection: 'Cargando selección',
-    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 día`,
