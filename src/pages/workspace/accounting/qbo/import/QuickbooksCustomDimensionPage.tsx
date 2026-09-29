@@ -1,5 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,6 +21,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
+import {View} from 'react-native';
 
 type QuickbooksCustomDimensionPageProps = WithPolicyConnectionsProps & {
     route: {
@@ -69,12 +71,14 @@ function QuickbooksCustomDimensionPage({policy, route}: QuickbooksCustomDimensio
                 errors={getLatestErrorField(qboConfig, dimensionSetting)}
                 onCloseError={() => clearQBOErrorField(policyID, dimensionSetting)}
                 subMenuItems={
-                    <MenuItemWithTopDescription
-                        title={translate('workspace.common.tags')}
-                        description={translate('workspace.common.displayedAs')}
-                        interactive={false}
-                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt4]}
-                    />
+                    <View style={styles.mt4}>
+                        <MenuItemSectionRoot>
+                            <MenuItemField.Row
+                                name={translate('workspace.common.displayedAs')}
+                                value={translate('workspace.common.tags')}
+                            />
+                        </MenuItemSectionRoot>
+                    </View>
                 }
             />
         </ConnectionLayout>
