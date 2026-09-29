@@ -212,13 +212,11 @@ function canIOUBePaid(
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
     currentUserLogin: string,
     currentUserAccountID: number,
-    transactions?: OnyxTypes.Transaction[],
-    onlyShowPayElsewhere = false,
-    chatReportRNVP?: OnyxTypes.ReportNameValuePairs,
+    transactions: OnyxTypes.Transaction[] | undefined,
+    onlyShowPayElsewhere: boolean,
+    isChatReportArchived: boolean,
     invoiceReceiverPolicy?: OnyxTypes.Policy,
 ) {
-    const reportNameValuePairs = chatReportRNVP ?? getAllReportNameValuePairs()?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`];
-    const isChatReportArchived = isArchivedReport(reportNameValuePairs);
     const iouSettled = isSettled(iouReport);
 
     if (isEmptyObject(iouReport)) {
@@ -343,10 +341,14 @@ function getBadgeFromIOUReport(
         return undefined;
     }
 
+    // TODO: https://github.com/Expensify/App/issues/66518
+    // Transitional: resolve the chat report's archived state from the module-level cache until this function threads it down from its callers.
+    const isChatReportArchived = isArchivedReport(getAllReportNameValuePairs()?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`]);
+
     const isReportPayer = isPayerReportUtils(currentUserAccountID, currentUserLogin, iouReport, undefined, policy, false);
     const canBePaidNow =
         (isInvoiceReportReportUtils(iouReport) || isReportPayer) &&
-        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, undefined, undefined, invoiceReceiverPolicy);
+        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, false, isChatReportArchived, invoiceReceiverPolicy);
     if (canBePaidNow) {
         return CONST.REPORT.ACTION_BADGE.PAY;
     }
@@ -356,7 +358,7 @@ function getBadgeFromIOUReport(
     const canPayElsewhereActor = isPayerReportUtils(currentUserAccountID, currentUserLogin, iouReport, undefined, policy, true);
     const canBePaidElsewhere =
         (isInvoiceReportReportUtils(iouReport) || canPayElsewhereActor) &&
-        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, true, undefined, invoiceReceiverPolicy);
+        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, true, isChatReportArchived, invoiceReceiverPolicy);
     if (canBePaidElsewhere) {
         return hasOnlyNonReimbursableTransactions(iouReport?.reportID) ? undefined : CONST.REPORT.ACTION_BADGE.PAY;
     }
@@ -373,6 +375,8 @@ function getBadgeFromIOUReport(
         getAllTransactionViolations(),
         currentUserLogin,
         currentUserAccountID,
+        // TODO: Pass iouReportOwnerLogin in PR 23. canSubmitAndIsAwaitingForCurrentUser falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
+        undefined,
         iouReportActions,
     );
     if (isWaitingSubmitFromCurrentUser) {
@@ -1710,7 +1714,8 @@ function assignReportToMe(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     rules: OnyxCollection<OnyxTypes.Rule>,
 ) {
-    const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID, formatPhoneNumber);
+    // Taking the report over bypasses the remaining approvers, so the current user becomes the final approver.
+    const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID, formatPhoneNumber, false, undefined, true);
 
     const optimisticNextStep = buildOptimisticNextStep({
         report: {...report, managerID: accountID},
@@ -1826,6 +1831,9 @@ type AddReportApproverOptions = {
 
     /** Locale-aware formatter used for optimistic approver display names. */
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+
+    /** Whether the new approver replaces the report's current approver instead of being added to the workflow. */
+    isReassignment?: boolean;
 };
 
 function addReportApprover({
@@ -1840,8 +1848,9 @@ function addReportApprover({
     isASAPSubmitBetaEnabled,
     isTrackIntentUser,
     formatPhoneNumber,
+    isReassignment = false,
 }: AddReportApproverOptions) {
-    const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID, accountID, formatPhoneNumber);
+    const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID, accountID, formatPhoneNumber, isReassignment, report.managerID);
 
     const optimisticNextStep = buildOptimisticNextStep({
         report: {...report, managerID: newApproverAccountID},
@@ -1894,6 +1903,7 @@ function addReportApprover({
                 value: {
                     [takeControlReportAction.reportActionID]: {
                         pendingAction: null,
+                        isOptimisticAction: null,
                         errors: null,
                     },
                 },
@@ -1918,6 +1928,7 @@ function addReportApprover({
         reportID: report.reportID,
         reportActionID: takeControlReportAction.reportActionID,
         newApproverEmail,
+        isReassignment,
     };
 
     API.write(WRITE_COMMANDS.ADD_REPORT_APPROVER, params, onyxData);

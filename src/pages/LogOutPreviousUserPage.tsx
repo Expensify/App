@@ -3,6 +3,7 @@ import {useInitialURLState} from '@components/InitialURLContextProvider';
 
 import useOnyx from '@hooks/useOnyx';
 
+import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getLastShortAuthToken} from '@libs/Network/NetworkStore';
 import {isLoggingInAsDelegate as isLoggingInAsDelegateSessionUtils, isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
@@ -10,7 +11,7 @@ import {isLoggingInAsDelegate as isLoggingInAsDelegateSessionUtils, isLoggingInA
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
 
-import {signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
+import {isDelegateSession, signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -41,6 +42,11 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         const isSupportalLogin = authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 
         if (isLoggingInAsNewUser) {
+            Log.info('[LogOutPreviousUserPage] Signing out for a transition to another user', false, {
+                isLinkNamingDelegator: isLoggingInAsDelegateSessionUtils(transitionURL ?? undefined),
+                isDelegateSession: isDelegateSession(session),
+                isSupportalLogin,
+            });
             // We don't want to close react-native app in this particular case.
             signOutAndRedirectToSignIn(false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
             return;
