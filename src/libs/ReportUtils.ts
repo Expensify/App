@@ -5519,7 +5519,7 @@ function canEditFieldOfMoneyRequest({
                     moneyRequestReport?.policyID,
                     moneyRequestReport?.ownerAccountID,
                     rules,
-                    reportNameValuePairs ?? {},
+                    reportNameValuePairs,
                     outstandingReportsByPolicyID?.[moneyRequestReport?.policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
                 ).length > 0
             );
@@ -5544,7 +5544,7 @@ function canEditFieldOfMoneyRequest({
                 currentPolicy.id,
                 moneyRequestReport?.ownerAccountID,
                 rules,
-                reportNameValuePairs ?? {},
+                reportNameValuePairs,
                 outstandingReportsByPolicyID?.[currentPolicy?.id] ?? {},
             );
             outstandingReportsCount += reports.length;
