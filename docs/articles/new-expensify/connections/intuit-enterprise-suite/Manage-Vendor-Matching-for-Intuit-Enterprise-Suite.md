@@ -2,21 +2,21 @@
 title: Manage Vendor Matching for Intuit Enterprise Suite
 description: Learn how Intuit Enterprise Suite vendor matching assigns vendors to non-reimbursable company card expenses before they export, including automatic matching, manual selection, and default vendor behavior.
 keywords: [Intuit Enterprise Suite, IES, vendor matching, vendor, company card expenses, default company card vendor, credit cards, company card export]
-internalScope: Audience is Workspace Admins using the Intuit Enterprise Suite connection for company card exports. Covers imported Intuit Enterprise Suite vendors, automatic and manual vendor assignment, default company card vendor behavior, and vendors that are no longer valid. Does not cover Intuit Enterprise Suite connection setup, other Intuit Enterprise Suite configuration settings, or vendor matching for other accounting connections.
+internalScope: Audience is workspace admins using the Intuit Enterprise Suite connection for company card exports. Covers imported Intuit Enterprise Suite vendors, automatic and manual vendor assignment, default company card vendor behavior, and vendors that are no longer valid. Does not cover Intuit Enterprise Suite connection setup, other Intuit Enterprise Suite configuration settings, or vendor matching for other accounting connections.
 ---
 
 # Manage Vendor Matching for Intuit Enterprise Suite
 
-Intuit Enterprise Suite vendor matching lets Workspace Admins review and update the vendor assigned to non-reimbursable company card expenses before they export to Intuit Enterprise Suite. Expensify imports your Intuit Enterprise Suite vendor list, automatically matches vendors where possible, and lets admins set or update the **Vendor** field before export. This helps ensure expenses export with the correct vendor instead of requiring manual corrections in Intuit Enterprise Suite.
+Intuit Enterprise Suite vendor matching lets workspace admins review and update the vendor assigned to non-reimbursable company card expenses before they export to Intuit Enterprise Suite. Expensify imports your Intuit Enterprise Suite vendor list, automatically matches vendors where possible, and lets admins set or update the **Vendor** field before export. This helps ensure expenses export with the correct vendor instead of requiring manual corrections in Intuit Enterprise Suite.
 
 ## Who can use Intuit Enterprise Suite vendor matching
 
-This feature is available to Workspace Admins whose Workspace:
+This feature is available to workspace admins whose workspace:
 
  - Is connected to Intuit Enterprise Suite.
- - Has finished configuring the Intuit Enterprise Suite connection.
+ - Has **Export company card expenses as** set **Credit card** in the Intuit Enterprise Suite configuration in Expensify.
 
-If your Workspace isn't connected to Intuit Enterprise Suite yet, learn how to [connect to Intuit Enterprise Suite](/articles/new-expensify/connections/intuit-enterprise-suite/Connect-to-Intuit-Enterprise-Suite).
+If your workspace isn't connected to Intuit Enterprise Suite yet, learn how to [connect to Intuit Enterprise Suite](/articles/new-expensify/connections/intuit-enterprise-suite/Connect-to-Intuit-Enterprise-Suite).
 
 ## How vendors are matched to Intuit Enterprise Suite company card expenses
 
@@ -24,7 +24,7 @@ Expensify assigns vendors automatically in the following order:
 
  - If a workspace merchant rule specifies a vendor, that vendor is assigned.
  - Otherwise, Expensify automatically matches the merchant name against your imported Intuit Enterprise Suite vendor list. For example, **STARBUCKS #456 DOWNTOWN** matches **Starbucks**.
- - If no match is found, the **Vendor** field remains empty until a Workspace Admin selects one.
+ - If no match is found, the **Vendor** field remains empty until a workspace admin selects one.
 
 Whenever a vendor is assigned automatically, Concierge posts a system message on the expense indicating whether the vendor was set by a merchant rule or by vendor matching.
 
@@ -38,12 +38,6 @@ The **Vendor** field appears only on non-reimbursable expenses. It isn't shown o
 4. Select the vendor you want to assign.
 
 Once a vendor is selected manually, Expensify preserves that selection and won't overwrite it with automatic matching.
-
-<!-- SCREENSHOT:
-Suggestion: The expense details view for a non-reimbursable company card expense on an Intuit Enterprise Suite-connected Workspace, with the Vendor row visible directly below Category and a matched vendor name shown.
-Location: Immediately after the steps in "How to select an Intuit Enterprise Suite vendor on an expense".
-Purpose: Admins report not knowing where the Vendor field lives on an expense, and it only renders on non-reimbursable expenses, so a written description alone leaves them unsure whether they're looking at the right expense type.
--->
 
 ## Where to find your imported Intuit Enterprise Suite vendors
 
@@ -86,7 +80,7 @@ Expensify automatically attempts to match a vendor using your imported Intuit En
 
 ## Does manually assigning a vendor stop automatic matching?
 
-Yes. Once a Workspace Admin manually assigns a vendor to an expense, Expensify preserves that selection and won't replace it with automatic matching.
+Yes. Once a workspace admin manually assigns a vendor to an expense, Expensify preserves that selection and won't replace it with automatic matching.
 
 ## Why don't I see any vendors to choose from?
 
