@@ -138,7 +138,6 @@ import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
 import BillComSquare from '@assets/images/integrationicons/bill-com-icon-square.svg';
-import BusinessCentralSquare from '@assets/images/integrationicons/business-central-icon-square.svg';
 import CampfireSquare from '@assets/images/integrationicons/campfire-icon-square.svg';
 import CertiniaSquare from '@assets/images/integrationicons/certinia-icon-square.svg';
 import ChatGPTSquare from '@assets/images/integrationicons/chatgpt-icon-square.svg';
@@ -296,6 +295,8 @@ import Wrench from '@assets/images/wrench.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
 
+// This icon is a React component because its gradient ids must be unique to each rendered copy
+import BusinessCentralSquare from '@components/Icon/BusinessCentralSquare';
 // These icons are React components because they have
 // drop shadow that is NOT handled by babel-plugin-transform-react-native-svg
 import MapCurrentLocation from '@components/MapView/Icons/MapCurrentLocation';
