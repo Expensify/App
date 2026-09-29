@@ -1310,8 +1310,9 @@ describe('ReportActionItem', () => {
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
 
-            const auditMessage = `${actorEmail} updated this agent's instructions.\nPrevious instructions:\nCategorize coffee as Meals.\nNew instructions:\nCategorize coffee as Meals and taxi trips as Travel.`;
-            expect(screen.getByText(auditMessage)).toBeOnTheScreen();
+            expect(screen.getByTestId('mention-user')).toHaveTextContent(`@${actorEmail}`);
+            const promptDiff = ` updated this agent's instructions.\nPrevious instructions:\nCategorize coffee as Meals.\nNew instructions:\nCategorize coffee as Meals and taxi trips as Travel.`;
+            expect(screen.getByText(promptDiff)).toBeOnTheScreen();
             expect(
                 screen.getByLabelText(
                     /test@test\.com updated this agent's instructions\.[\s\S]*Previous instructions:[\s\S]*Categorize coffee as Meals\.[\s\S]*New instructions:[\s\S]*taxi trips as Travel\./,
