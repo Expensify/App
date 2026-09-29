@@ -35,7 +35,6 @@ import {
     hasOdometerImageSource,
     hasReceipt,
     hasReceiptSource,
-    isMapBasedDistanceRequest,
     isOdometerDistanceRequest,
     isReceiptBeingScanned,
 } from '@libs/TransactionUtils';
@@ -311,11 +310,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         draftTransactionID,
     });
 
-    // A map-based distance receipt is drawn from the expense in the enlarged view, like a card e-receipt (see AttachmentView).
-    // Its stored file is the Classic PDF of the routed trip, which is not what is on screen, so it is not offered for download,
-    // neither in the three-dots menu nor by the header.
-    const isMapBasedDistanceReceipt = isMapBasedDistanceRequest(transaction);
-    const allowDownload = !isEReceipt && !isMapBasedDistanceReceipt;
+    const allowDownload = !isEReceipt;
 
     const applyDurableReceipt = useCallback(
         (imageUri: string, filename: string, file: File, isSameReceipt?: boolean) => {
@@ -698,7 +693,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             shouldShowCarousel: false,
             shouldShowRotateButton: false,
             pdfRotation,
-            onDownloadAttachment: allowDownload || isMapBasedDistanceReceipt ? undefined : onDownloadAttachment,
+            onDownloadAttachment: allowDownload ? undefined : onDownloadAttachment,
             transaction,
             shouldMinimizeMenuButton: false,
             footerActionButtons,
@@ -717,7 +712,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             reportLoadingState?.isLoadingInitialReportActions,
             shouldShowNotFoundPage,
             allowDownload,
-            isMapBasedDistanceReceipt,
             onDownloadAttachment,
             pdfRotation,
             footerActionButtons,
