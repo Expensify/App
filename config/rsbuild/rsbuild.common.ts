@@ -327,6 +327,9 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
  */
 const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevServer = false}: Environment): Promise<RsbuildConfig> => {
     const isDevelopment = file === '.env' || file === '.env.development';
+
+    // The maps `eval-source-map` embeds per module leave Safari's Web Inspector permanently blank on a bundle this size.
+    const devSourceMap = process.env.SAFARI_DEBUG === 'true' ? 'cheap-module-source-map' : 'eval-source-map';
     const shared = getSharedConfiguration({file, platform, isDevServer});
     const sharedRspackTool = shared.tools?.rspack;
     const sentryWebpackPlugin = isDevelopment ? undefined : (await import('@sentry/webpack-plugin')).sentryWebpackPlugin;
@@ -380,7 +383,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
             },
             assetPrefix: '/',
             sourceMap: {
-                js: isDevelopment ? 'eval-source-map' : 'source-map',
+                js: isDevelopment ? devSourceMap : 'source-map',
             },
             cleanDistPath: true,
             copy: [
