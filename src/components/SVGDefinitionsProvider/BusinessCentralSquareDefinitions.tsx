@@ -1,0 +1,243 @@
+import React from 'react';
+
+/**
+ * Global definitions for @assets/images/integrationicons/business-central-icon-square.svg
+ */
+function BusinessCentralSquareDefinitions() {
+    return (
+        <>
+            <linearGradient
+                id="business-central-icon-square_svg__c"
+                x1="30"
+                x2="67"
+                y1="9.5"
+                y2="25"
+                gradientUnits="userSpaceOnUse"
+            >
+                <stop stopColor="#0c74a1" />
+                <stop
+                    offset=".468"
+                    stopColor="#1384b1"
+                />
+                <stop
+                    offset="1"
+                    stopColor="#16bbda"
+                />
+            </linearGradient>
+            <linearGradient
+                id="business-central-icon-square_svg__e"
+                x1="49"
+                x2="26.5"
+                y1="14"
+                y2="24"
+                gradientUnits="userSpaceOnUse"
+            >
+                <stop
+                    stopColor="#1384b1"
+                    stopOpacity="0"
+                />
+                <stop
+                    offset="1"
+                    stopColor="#004695"
+                />
+            </linearGradient>
+            <linearGradient
+                id="business-central-icon-square_svg__f"
+                x1="68.5"
+                x2="29"
+                y1="79.5"
+                y2="71"
+                gradientUnits="userSpaceOnUse"
+            >
+                <stop stopColor="#06517b" />
+                <stop
+                    offset=".509"
+                    stopColor="#09638e"
+                />
+                <stop
+                    offset="1"
+                    stopColor="#0c74a1"
+                />
+            </linearGradient>
+            <linearGradient
+                id="business-central-icon-square_svg__g"
+                x1="53"
+                x2="69.5"
+                y1="76"
+                y2="72"
+                gradientUnits="userSpaceOnUse"
+            >
+                <stop
+                    stopColor="#09638e"
+                    stopOpacity="0"
+                />
+                <stop
+                    offset="1"
+                    stopColor="#003580"
+                />
+            </linearGradient>
+            <linearGradient
+                id="business-central-icon-square_svg__i"
+                x1="44.5"
+                x2="45"
+                y1="29.5"
+                y2="68.5"
+                gradientUnits="userSpaceOnUse"
+            >
+                <stop stopColor="#43e5ca" />
+                <stop
+                    offset=".372"
+                    stopColor="#26cfe8"
+                />
+                <stop
+                    offset="1"
+                    stopColor="#1384b1"
+                />
+            </linearGradient>
+            <linearGradient
+                id="business-central-icon-square_svg__l"
+                x1="14.5"
+                x2="43.5"
+                y1="26"
+                y2="55"
+                gradientUnits="userSpaceOnUse"
+            >
+                <stop stopColor="#b6f6c7" />
+                <stop
+                    offset=".278"
+                    stopColor="#43e5ca"
+                />
+                <stop
+                    offset="1"
+                    stopColor="#26cfe8"
+                />
+            </linearGradient>
+            <linearGradient
+                id="business-central-icon-square_svg__n"
+                x1="63"
+                x2="92.5"
+                y1="30"
+                y2="59.5"
+                gradientUnits="userSpaceOnUse"
+            >
+                <stop stopColor="#9ff2e4" />
+                <stop
+                    offset=".266"
+                    stopColor="#2bdabe"
+                />
+                <stop
+                    offset=".621"
+                    stopColor="#16bbda"
+                />
+                <stop
+                    offset="1"
+                    stopColor="#1384b1"
+                />
+            </linearGradient>
+            <radialGradient
+                id="business-central-icon-square_svg__d"
+                cx="0"
+                cy="0"
+                r="1"
+                gradientTransform="rotate(-90 48 0)scale(29.5)"
+                gradientUnits="userSpaceOnUse"
+            >
+                <stop
+                    offset=".456"
+                    stopColor="#0057aa"
+                />
+                <stop
+                    offset="1"
+                    stopColor="#1384b1"
+                    stopOpacity="0"
+                />
+            </radialGradient>
+            <radialGradient
+                id="business-central-icon-square_svg__h"
+                cx="0"
+                cy="0"
+                r="1"
+                gradientTransform="rotate(90 0 48)scale(36)"
+                gradientUnits="userSpaceOnUse"
+            >
+                <stop
+                    offset=".423"
+                    stopColor="#003580"
+                />
+                <stop
+                    offset="1"
+                    stopColor="#09638e"
+                    stopOpacity="0"
+                />
+            </radialGradient>
+            <radialGradient
+                id="business-central-icon-square_svg__j"
+                cx="0"
+                cy="0"
+                r="1"
+                gradientTransform="matrix(0 32 -32 0 76 48)"
+                gradientUnits="userSpaceOnUse"
+            >
+                <stop
+                    offset=".4"
+                    stopColor="#09638e"
+                />
+                <stop
+                    offset="1"
+                    stopColor="#119fc5"
+                    stopOpacity="0"
+                />
+            </radialGradient>
+            <radialGradient
+                id="business-central-icon-square_svg__k"
+                cx="0"
+                cy="0"
+                r="1"
+                gradientTransform="matrix(0 34 -34 0 20 48)"
+                gradientUnits="userSpaceOnUse"
+            >
+                <stop
+                    offset=".4"
+                    stopColor="#09638e"
+                />
+                <stop
+                    offset="1"
+                    stopColor="#119fc5"
+                    stopOpacity="0"
+                />
+            </radialGradient>
+            <radialGradient
+                id="business-central-icon-square_svg__m"
+                cx="0"
+                cy="0"
+                r="1"
+                gradientTransform="matrix(18.50004 40.5 -40.76334 18.62033 11.5 26)"
+                gradientUnits="userSpaceOnUse"
+            >
+                <stop
+                    offset=".585"
+                    stopColor="#2bdabe"
+                    stopOpacity="0"
+                />
+                <stop
+                    offset="1"
+                    stopColor="#119fc5"
+                />
+            </radialGradient>
+            <clipPath id="business-central-icon-square_svg__a">
+                <path
+                    fill="#fff"
+                    d="M0 0h96v96H0z"
+                />
+            </clipPath>
+            <clipPath id="business-central-icon-square_svg__b">
+                <path
+                    fill="#fff"
+                    d="M0 0h96v96H0z"
+                />
+            </clipPath>
+        </>
+    );
+}
+
+export default BusinessCentralSquareDefinitions;

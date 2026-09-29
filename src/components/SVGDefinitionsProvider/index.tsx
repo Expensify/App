@@ -4,6 +4,7 @@ import type {ReactElement} from 'react';
 
 import React from 'react';
 
+import BusinessCentralSquareDefinitions from './BusinessCentralSquareDefinitions';
 import LinearGradientEmptyStateBackground from './LinearGradientEmptyStateBackground';
 
 /**
@@ -20,6 +21,7 @@ function SVGDefinitions(): ReactElement | null {
             <defs>
                 <LinearGradientEmptyStateBackground />
                 <LinearGradientEmptyStateBackground isDarkTheme />
+                <BusinessCentralSquareDefinitions />
             </defs>
         </svg>
     );
