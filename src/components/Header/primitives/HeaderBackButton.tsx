@@ -1,3 +1,5 @@
+import {useHeaderContext} from '@components/Header/context/HeaderContext';
+
 import useInitialFocusRef from '@hooks/useInitialFocusRef';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -17,15 +19,13 @@ type HeaderBackButtonProps = {
 
     /** Optional fill color for the icon. */
     iconFill?: string;
-
-    /** Whether to skip focus of the back button after the RHP transition (screen reader). */
-    shouldSkipFocusAfterTransition?: boolean;
 };
 
-function HeaderBackButton({onPress = () => Navigation.goBack(), iconFill, shouldSkipFocusAfterTransition = false}: HeaderBackButtonProps) {
+function HeaderBackButton({onPress = () => Navigation.goBack(), iconFill}: HeaderBackButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
+    const {shouldSkipFocusAfterTransition} = useHeaderContext();
     const setBackButtonRef = useInitialFocusRef({shouldSkip: shouldSkipFocusAfterTransition});
 
     return (

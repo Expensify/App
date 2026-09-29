@@ -99,7 +99,6 @@ function AuthScreensInitHandler() {
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -161,7 +160,13 @@ function AuthScreensInitHandler() {
             return;
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, formatPhoneNumber, () => reportAttributesRef.current);
+        initializePusher(
+            session?.accountID,
+            session?.email,
+            () => topmostOneTransactionThreadReportIDRef.current,
+            formatPhoneNumber,
+            () => reportAttributesRef.current,
+        );
         // eslint-disable-next-line react-hooks/exhaustive-deps -- This handler should only be re-registered when the session changes.
     }, [session?.accountID, session?.email]);
 
@@ -171,6 +176,11 @@ function AuthScreensInitHandler() {
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
         const isSupportalTransition = currentUrl.includes('authTokenType=support');
         if (isLoggingInAsNewUser && isTransitioning) {
+            Log.info('[AuthScreensInitHandler] Signing out for a transition to another user', false, {
+                isLinkNamingDelegator: SessionUtils.isLoggingInAsDelegate(currentUrl),
+                isDelegateSession: Session.isDelegateSession(session),
+                isSupportalTransition,
+            });
             Session.signOutAndRedirectToSignIn(false, isSupportalTransition, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
             return () => {
                 Session.cleanupSession();
@@ -185,7 +195,13 @@ function AuthScreensInitHandler() {
         });
         PusherConnectionManager.init();
 
-        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, formatPhoneNumber, () => reportAttributesRef.current).finally(() => {
+        initializePusher(
+            session?.accountID,
+            session?.email,
+            () => topmostOneTransactionThreadReportIDRef.current,
+            formatPhoneNumber,
+            () => reportAttributesRef.current,
+        ).finally(() => {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
         });
 
@@ -206,7 +222,6 @@ function AuthScreensInitHandler() {
                 Report.openReport({
                     reportID,
                     introSelected,
-                    betas,
                     conciergeChat,
                     hasReportActions: false,
                     currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -228,7 +243,6 @@ function AuthScreensInitHandler() {
             currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             activePolicy,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
-            betas,
             hasActiveAdminPolicies,
             hasOwnedPaidPolicy,
             lastWorkspaceNumber,
