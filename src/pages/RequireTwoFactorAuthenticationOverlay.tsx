@@ -92,7 +92,9 @@ function RequireTwoFactorAuthenticationOverlay() {
 
     const handleOnPress = () => {
         snapshotOnboardingResumePathIfNeeded();
-        Navigation.navigate(getTwoFactorAuthRoute(ROUTES.SETTINGS_SECURITY, {forceSetup: true}));
+        // Use Home as the base so DynamicSuccessPage can tell this forced entry apart from the voluntary Settings > Security one
+        // and send the user Home after they press "Got it".
+        Navigation.navigate(getTwoFactorAuthRoute(ROUTES.HOME, {forceSetup: true}));
     };
 
     if (!shouldShowRequire2FAPage || isIn2FASetupFlow) {
