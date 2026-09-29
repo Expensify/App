@@ -4,6 +4,7 @@
  */
 import Badge from '@components/Badge';
 import Button from '@components/Button';
+import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -11,7 +12,10 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
@@ -27,11 +31,23 @@ type ConnectionCardProps = {
 function ConnectionCard({listing}: ConnectionCardProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'Plus']);
     const {title, icon, status, onConnect, onConfigure, registerConnectButton} = listing;
+
+    const connectIcon = (
+        <View style={[styles.justifyContentCenter, styles.ml3]}>
+            <Icon
+                src={icons.Plus}
+                width={variables.iconSizeSmall}
+                height={variables.iconSizeSmall}
+                fill={theme.icon}
+            />
+        </View>
+    );
 
     const statusButton = !!status && (
         <Button
@@ -45,7 +61,15 @@ function ConnectionCard({listing}: ConnectionCardProps) {
     );
 
     return (
-        <View style={[styles.workspaceSectionMoreFeaturesItem, styles.p0, styles.overflowHidden, shouldUseNarrowLayout && [styles.flexBasis100, StyleUtils.getMinimumWidth(0)]]}>
+        <View
+            style={[
+                styles.workspaceSectionMoreFeaturesItem,
+                styles.p0,
+                styles.mt0,
+                styles.overflowHidden,
+                (shouldUseNarrowLayout || isMediumScreenWidth) && [styles.flexBasis100, StyleUtils.getMinimumWidth(0)],
+            ]}
+        >
             <MenuItem
                 ref={registerConnectButton}
                 title={title}
@@ -66,13 +90,11 @@ function ConnectionCard({listing}: ConnectionCardProps) {
                 }
                 description={status?.message}
                 numberOfLinesDescription={1}
-                wrapperStyle={styles.pv4}
+                wrapperStyle={[styles.pv4, styles.ph4]}
                 onPress={status ? onConfigure : onConnect}
                 disabled={!status && isOffline}
-                shouldShowRightIcon={!status}
-                iconRight={icons.Plus}
-                shouldShowRightComponent={!!status}
-                rightComponent={statusButton}
+                shouldShowRightComponent
+                rightComponent={status ? statusButton : connectIcon}
             />
         </View>
     );

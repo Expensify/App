@@ -4,14 +4,18 @@
  */
 import ConnectToMergeFlow from '@components/ConnectToMergeFlow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import CompactSearchBar from '@components/SearchBar/CompactSearchBar';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
-import TextLink from '@components/TextLink';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
 
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
@@ -19,6 +23,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
@@ -34,6 +39,8 @@ import MergeSyncResultsListener from '@pages/workspace/merge/MergeSyncResultsLis
 import type {MergeProviderCardCategory} from '@pages/workspace/merge/types';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+
+import variables from '@styles/variables';
 
 import {openPolicyReceiptPartnersPage} from '@userActions/Policy/Policy';
 
@@ -86,8 +93,12 @@ function fetchConnectionsData(policyID: string | undefined, canUseMergeConnectio
 function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id;
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const shouldUseNarrowGridLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+    const [isSearchFocused, setIsSearchFocused] = useState(false);
     const {isBetaEnabled} = usePermissions();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
     const {startIntegrationFlow} = useAccountingActions();
@@ -123,6 +134,9 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
         (listing, searchInput) => tokenizedSearch([listing], searchInput, (item) => [item.title]).length > 0,
     );
     const visibleListings = searchValue.trim() ? searchResults : getListingsForTab(availableListings, activeTab);
+    const noResultsMessage = translate('common.noResultsFoundMatching', searchValue);
+    const shouldShowNoResults = !!searchValue.trim() && !searchResults.length;
+    useDebouncedAccessibilityAnnouncement(noResultsMessage, shouldShowNoResults, searchValue);
 
     // Upgrade and setup flows that leave the app come back here with the integration to connect in the route params.
     // `startIntegrationFlow` changes identity whenever `policy` does, and the params are only cleared in a later render,
@@ -168,12 +182,27 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     }));
 
     const searchBar = (
-        <CompactSearchBar
-            label={translate('workspace.connections.findConnections')}
-            inputValue={searchValue}
+        <TextInput
+            hideFocusedState
+            multiline={false}
+            spellCheck={false}
+            autoCorrect={false}
+            placeholder={translate('workspace.connections.findConnections')}
+            value={searchValue}
+            role={CONST.ROLE.SEARCHBOX}
+            inputMode={CONST.INPUT_MODE.TEXT}
+            placeholderTextColor={theme.textSupporting}
+            inputStyle={styles.textLabel}
+            containerStyles={shouldUseNarrowGridLayout && styles.flex1}
+            textInputContainerStyles={[styles.border, styles.borderRadiusComponentNormal, styles.appBG, styles.p2, isSearchFocused && styles.borderColorFocus]}
+            touchableInputWrapperStyle={[styles.mnw200, shouldUseNarrowGridLayout ? styles.h11 : styles.h8]}
+            accessibilityLabel={translate('workspace.connections.findConnections')}
+            shouldHideClearButton={!searchValue}
+            clearButtonStyle={shouldUseNarrowGridLayout ? undefined : styles.mr0}
+            clearButtonIconSize={shouldUseNarrowGridLayout ? undefined : variables.iconSizeSmall}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setIsSearchFocused(false)}
             onChangeText={setSearchValue}
-            shouldShowEmptyState={!searchResults.length}
-            style={[styles.ml0, !shouldUseNarrowLayout && styles.flexShrink0]}
         />
     );
 
@@ -230,32 +259,52 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                 keyboardShouldPersistTaps="handled"
             >
                 {connectedListings.length > 0 && (
-                    <View style={styles.mb5}>
+                    <View style={styles.mb4}>
                         <ConnectionsGrid listings={connectedListings} />
                     </View>
                 )}
-                <View style={[styles.mt3, !shouldUseNarrowLayout && [styles.flexRow, styles.alignItemsCenter, styles.gap3]]}>
+                <View style={[connectedListings.length > 0 ? styles.mt6 : styles.mt3, !shouldUseNarrowGridLayout && [styles.flexRow, styles.alignItemsCenter, styles.gap5]]}>
                     <View style={[styles.flex1, styles.flexRow]}>
                         <TabSelectorContextProvider activeTabKey={activeTab}>
                             <TabSelectorBase
                                 tabs={tabs}
                                 activeTabKey={activeTab}
                                 onTabPress={setActiveTab}
-                                contentContainerStyles={styles.ph0}
+                                contentContainerStyles={[styles.ph0, styles.pb0]}
                             />
                         </TabSelectorContextProvider>
                     </View>
-                    <View style={shouldUseNarrowLayout && styles.mt3}>{searchBar}</View>
+                    <View style={shouldUseNarrowGridLayout && [styles.flexRow, styles.mt3]}>{searchBar}</View>
                 </View>
-                <ConnectionsGrid listings={visibleListings} />
-                <View style={[styles.mt5, styles.flexRow]}>
-                    <TextLink
-                        style={styles.textLabelSupporting}
-                        onPress={() => openConciergeAnywhere({forceConcierge: true})}
-                    >
-                        {translate('workspace.connections.suggestIntegration')}
-                    </TextLink>
-                </View>
+                {shouldShowNoResults ? (
+                    <View style={[styles.pt3, styles.pb5]}>
+                        <Text
+                            style={[styles.textNormal, styles.colorMuted]}
+                            aria-hidden
+                        >
+                            {noResultsMessage}
+                        </Text>
+                    </View>
+                ) : (
+                    <View style={styles.mt4}>
+                        <ConnectionsGrid listings={visibleListings} />
+                    </View>
+                )}
+                <PressableWithFeedback
+                    onPress={() => openConciergeAnywhere({forceConcierge: true})}
+                    accessibilityLabel={translate('workspace.connections.suggestIntegration')}
+                    role={CONST.ROLE.LINK}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.SUGGEST_INTEGRATION}
+                    style={[styles.mt4, styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart, styles.gap1]}
+                >
+                    <Text style={styles.textLabelSupporting}>{translate('workspace.connections.suggestIntegration')}</Text>
+                    <Icon
+                        src={icons.ArrowRight}
+                        width={variables.iconSizeExtraSmall}
+                        height={variables.iconSizeExtraSmall}
+                        fill={theme.icon}
+                    />
+                </PressableWithFeedback>
             </ScrollView>
         </ScreenWrapper>
     );

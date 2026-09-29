@@ -1,5 +1,5 @@
 /**
- * Lays out connection cards in two columns on wide screens and one column on narrow ones.
+ * Lays out connection cards in two columns on wide screens and one column on narrow and medium ones.
  */
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,13 +17,14 @@ type ConnectionsGridProps = {
 
 function ConnectionsGrid({listings}: ConnectionsGridProps) {
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const shouldUseSingleColumn = shouldUseNarrowLayout || isMediumScreenWidth;
 
     // An odd number of cards gets an invisible filler so the last card keeps its column width
-    const needsFiller = !shouldUseNarrowLayout && listings.length % 2 === 1;
+    const needsFiller = !shouldUseSingleColumn && listings.length % 2 === 1;
 
     return (
-        <View style={[styles.flexRow, styles.flexWrap, styles.columnGap3]}>
+        <View style={[styles.flexRow, styles.flexWrap, styles.gap4]}>
             {listings.map((listing) => (
                 <ConnectionCard
                     key={listing.key}
@@ -34,7 +35,7 @@ function ConnectionsGrid({listings}: ConnectionsGridProps) {
                 <View
                     aria-hidden
                     accessibilityElementsHidden
-                    style={[styles.workspaceSectionMoreFeaturesItem, styles.p0, styles.visibilityHidden, styles.bgTransparent]}
+                    style={[styles.workspaceSectionMoreFeaturesItem, styles.p0, styles.mt0, styles.visibilityHidden, styles.bgTransparent]}
                 />
             )}
         </View>

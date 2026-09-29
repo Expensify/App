@@ -9729,6 +9729,9 @@ const CONST = {
                 CARD_SECTION_ADD_BUTTON: 'WorkspaceAccounting-CardSectionAddButton',
                 THREE_DOT_MENU: 'WorkspaceAccounting-ThreeDotMenu',
             },
+            CONNECTIONS: {
+                SUGGEST_INTEGRATION: 'WorkspaceConnections-SuggestIntegration',
+            },
             RULES: {
                 ADD_SPEND_RULE: 'WorkspaceRules-AddSpendRule',
                 INDIVIDUAL_EXPENSES_MENU_ITEM: 'WorkspaceRules-IndividualExpensesMenuItem',
