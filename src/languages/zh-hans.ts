@@ -4597,6 +4597,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             deleteOpenExpensifyCardsError: '您的公司仍在使用 Expensify 卡。请<concierge-link>联系 Concierge</concierge-link>以停用它们。',
             deleteTravelInvoicingError: '您的公司仍然启用了合并差旅账单。',
             outstandingBalanceWarning: '您有一笔未结清的余额，必须在删除最后一个工作区之前结清。请前往订阅设置以解决付款问题。',
+            outstandingBalanceArchiveWarning:
+                'You have an outstanding balance that must be settled before archiving your last workspace. Please go to your subscription settings to resolve the payment.',
             settleBalance: '前往订阅',
             unavailable: '工作区不可用',
             memberNotFound: '未找到成员。要邀请新成员加入此工作区，请使用上方的邀请按钮。',

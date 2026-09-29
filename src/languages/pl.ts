@@ -4780,6 +4780,8 @@ ${amount} dla ${merchant} - ${date}`,
             deleteTravelInvoicingError: 'Twoja firma nadal ma włączone Skonsolidowane Rozliczanie Podróży.',
             outstandingBalanceWarning:
                 'Masz zaległe saldo, które musi zostać uregulowane przed usunięciem ostatniego miejsca pracy. Przejdź do ustawień subskrypcji, aby uregulować płatność.',
+            outstandingBalanceArchiveWarning:
+                'You have an outstanding balance that must be settled before archiving your last workspace. Please go to your subscription settings to resolve the payment.',
             settleBalance: 'Przejdź do subskrypcji',
             unavailable: 'Niedostępne miejsce pracy',
             memberNotFound: 'Nie znaleziono członka. Aby zaprosić nową osobę do przestrzeni roboczej, użyj przycisku zaproszenia powyżej.',

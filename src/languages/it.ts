@@ -4750,6 +4750,8 @@ ${amount} per ${merchant} - ${date}`,
             deleteTravelInvoicingError: 'La tua azienda ha ancora la Fatturazione Viaggi Consolidata attivata.',
             outstandingBalanceWarning:
                 'Hai un saldo in sospeso che deve essere saldato prima di eliminare il tuo ultimo workspace. Vai alle impostazioni dell’abbonamento per risolvere il pagamento.',
+            outstandingBalanceArchiveWarning:
+                'You have an outstanding balance that must be settled before archiving your last workspace. Please go to your subscription settings to resolve the payment.',
             settleBalance: 'Vai all’abbonamento',
             unavailable: 'Spazio di lavoro non disponibile',
             memberNotFound: 'Membro non trovato. Per invitare un nuovo membro allo spazio di lavoro, usa il pulsante di invito qui sopra.',

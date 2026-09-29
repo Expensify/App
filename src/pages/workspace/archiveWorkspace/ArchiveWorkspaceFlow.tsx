@@ -111,7 +111,7 @@ function ArchiveWorkspaceFlow({policyID, onDismiss, onArchiveComplete}: ArchiveW
     const prevIsPendingArchive = usePrevious(isPendingArchive);
 
     const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
-    const {shouldBlockDeletion} = useOutstandingBalanceGuard(ownedPaidPoliciesCounts?.active ?? 0, onDismiss);
+    const {shouldBlockDeletion} = useOutstandingBalanceGuard({ownedPaidPoliciesCount: ownedPaidPoliciesCounts?.active ?? 0, isArchiving: true, onModalDismissed: onDismiss});
 
     const hideArchiveErrorModal = useCallback(() => {
         dismissWorkspaceError(policyID, policy?.pendingAction);

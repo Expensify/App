@@ -4849,6 +4849,8 @@ ${amount} για ${merchant} - ${date}`,
             deleteOpenExpensifyCardsError: 'Η εταιρεία σας έχει ακόμη Κάρτες Expensify. Παρακαλούμε <concierge-link>επικοινωνήστε με το Concierge</concierge-link> για να τις αφαιρέσετε.',
             outstandingBalanceWarning:
                 'Έχετε ένα ανεξόφλητο υπόλοιπο που πρέπει να τακτοποιηθεί πριν διαγράψετε τον τελευταίο χώρο εργασίας σας. Παρακαλούμε μεταβείτε στις ρυθμίσεις συνδρομής σας για να τακτοποιήσετε την πληρωμή.',
+            outstandingBalanceArchiveWarning:
+                'You have an outstanding balance that must be settled before archiving your last workspace. Please go to your subscription settings to resolve the payment.',
             settleBalance: 'Μετάβαση στη συνδρομή',
             unavailable: 'Μη διαθέσιμος χώρος εργασίας',
             memberNotFound: 'Το μέλος δεν βρέθηκε. Για να προσκαλέσετε ένα νέο μέλος στον χώρο εργασίας, χρησιμοποιήστε το κουμπί πρόσκλησης παραπάνω.',
