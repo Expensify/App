@@ -42,7 +42,7 @@ There are four ways to read Onyx data, and `Onyx.connect` is deprecated:
 1. **`useOnyx`** (from `@hooks/useOnyx`) — the default for anything a React component renders.
 2. **`Onyx.connectWithoutView`** — an imperative subscription for non-render logic, used only when `useOnyx` genuinely does not fit.
 3. **`Onyx.get()`**: an asynchronous, one-shot read of the cache that never subscribes, for event handlers in components, pages and hooks.
-4. **`Onyx.multiGet()`**: a thin wrapper around `Onyx.get()` that calls it for each key in an array and resolves the values in the same order. Every `Onyx.get()` rule below applies to it and to each key it reads.
+4. **`Onyx.multiGet()`**: takes an array of keys and resolves each one the way `Onyx.get()` does, in the order given. Every `Onyx.get()` rule below applies to it and to each key it reads.
 
 ### - Prefer a pure function over reading Onyx at all
 A pure function does not read Onyx itself — it receives the data it needs as parameters, and its caller does the reading (with `useOnyx` or `Onyx.connectWithoutView`) and passes it in. Before adding either subscription, check whether the code can be a pure function instead: it needs no connection, is trivial to test, and cannot cause extra rerenders. Prefer this even when it means passing more arguments. This takes precedence over everything below.
