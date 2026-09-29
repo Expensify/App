@@ -82,7 +82,7 @@ function BulkActionBarContent<TValueType>({
     const {calculatePopoverPosition} = usePopoverPosition();
 
     const barElementRef = useRef<ComponentRef<typeof View> | null>(null);
-    const {handleFocusBeforeClose, isFocusInsideBar} = useBulkActionBarFocus(barElementRef);
+    const {suppressStrayFocusRing, isFocusInsideBar} = useBulkActionBarFocus(barElementRef);
 
     const moreAnchorRef = useRef<ComponentRef<typeof View> | null>(null);
     const [isMoreMenuVisible, setIsMoreMenuVisible] = useState(false);
@@ -101,13 +101,15 @@ function BulkActionBarContent<TValueType>({
     const isCoveredByModal = !!modal?.isVisible && !(isFocused && modal?.type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED);
     const shouldClearSelectionOnEscape = !modal?.willAlertModalBecomeVisible && !isCoveredByModal;
 
-    const clearSelection = () => {
-        handleFocusBeforeClose();
-        onClearSelection();
-    };
-
     // Esc inside a text field is how you leave the field, so leave the selection alone there.
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, clearSelection, {isActive: shouldClearSelectionOnEscape, captureOnInputs: false});
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ESCAPE,
+        () => {
+            suppressStrayFocusRing();
+            onClearSelection();
+        },
+        {isActive: shouldClearSelectionOnEscape, captureOnInputs: false},
+    );
 
     // The lists this bar floats over run a global Enter shortcut off a keyboard cursor that outlives tabbing away from
     // the rows. While one of the bar's own buttons is focused, claim Enter without bubbling so pressing it only works
@@ -220,7 +222,7 @@ function BulkActionBarContent<TValueType>({
                 </>
             )}
             <PressableWithFeedback
-                onPress={clearSelection}
+                onPress={onClearSelection}
                 accessibilityLabel={translate('bulkActionBar.clearSelection')}
                 role={CONST.ROLE.BUTTON}
                 style={styles.bulkActionBarCloseButton}
