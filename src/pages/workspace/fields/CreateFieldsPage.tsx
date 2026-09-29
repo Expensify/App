@@ -175,10 +175,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, ge
                 testID={testID}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButtonAndTitle
-                    title={translate(isInvoiceField ? 'workspace.invoiceFields.addField' : 'workspace.reportFields.addField')}
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <HeaderWithBackButtonAndTitle title={translate(isInvoiceField ? 'workspace.invoiceFields.addField' : 'workspace.reportFields.addField')} />
                 <FormProvider
                     ref={formRef}
                     style={[styles.mh5, styles.flex1]}

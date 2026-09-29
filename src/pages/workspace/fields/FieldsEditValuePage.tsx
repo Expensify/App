@@ -83,10 +83,7 @@ function FieldsEditValuePage({policy, policyID, valueIndex, featureName, policyF
                 testID={testID}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButtonAndTitle
-                    title={translate('workspace.reportFields.editValue')}
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.reportFields.editValue')} />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
                     onSubmit={editValue}

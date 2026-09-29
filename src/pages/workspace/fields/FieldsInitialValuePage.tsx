@@ -122,10 +122,7 @@ function FieldsInitialValuePage({policy, policyID, reportFieldID, featureName, e
                 testID={testID}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButtonAndTitle
-                    title={translate('common.initialValue')}
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('common.initialValue')} />
                 {isListFieldType && (
                     <View style={[styles.ph5, styles.pb4]}>
                         <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>

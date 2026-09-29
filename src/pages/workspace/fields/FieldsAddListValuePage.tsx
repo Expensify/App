@@ -104,10 +104,7 @@ function FieldsAddListValuePage({policy, policyID, reportFieldID, featureName, p
                 testID={testID}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButtonAndTitle
-                    title={translate('workspace.reportFields.addValue')}
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.reportFields.addValue')} />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
                     onSubmit={createValue}
