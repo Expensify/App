@@ -1,5 +1,6 @@
+import {isRecord} from '@libs/ObjectUtils';
+
 import CONST from '@src/CONST';
-import {isRecord} from '@src/libs/ObjectUtils';
 
 import {useRoute} from '@react-navigation/native';
 import {CONST as COMMON_CONST} from 'expensify-common';
@@ -8,12 +9,13 @@ type State = keyof typeof COMMON_CONST.STATES;
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 type StateAndCountry = {state?: State; country?: Country};
 
-function isState(value: string): value is State {
-    return Object.hasOwn(COMMON_CONST.STATES, value);
+// Own keys exclude prototype properties such as `constructor` and `toString`, which are not valid state or country codes.
+function isState(value: unknown): value is State {
+    return typeof value === 'string' && Object.hasOwn(COMMON_CONST.STATES, value);
 }
 
-function isCountry(value: string): value is Country {
-    return Object.hasOwn(CONST.ALL_COUNTRIES, value);
+function isCountry(value: unknown): value is Country {
+    return typeof value === 'string' && Object.hasOwn(CONST.ALL_COUNTRIES, value);
 }
 
 /**
@@ -35,7 +37,7 @@ export default function useGeographicalStateAndCountryFromRoute(stateParamName =
     const countryFromUrl = routeParams[countryParamName];
 
     return {
-        state: typeof stateFromUrl === 'string' && isState(stateFromUrl) ? COMMON_CONST.STATES[stateFromUrl].stateISO : undefined,
-        country: typeof countryFromUrl === 'string' && isCountry(countryFromUrl) ? countryFromUrl : undefined,
+        state: isState(stateFromUrl) ? COMMON_CONST.STATES[stateFromUrl].stateISO : undefined,
+        country: isCountry(countryFromUrl) ? countryFromUrl : undefined,
     };
 }
