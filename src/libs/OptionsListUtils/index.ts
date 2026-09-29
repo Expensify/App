@@ -30,8 +30,7 @@ import {
     isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getIOUReportIDFromReportActionPreview, getOneTransactionThreadReportID, isActionOfType} from '@libs/ReportActionsUtils';
-import type {LastActionContext} from '@libs/ReportAlternateTextUtils';
-import {getLastMessageTextForReport, getReportAlternateText, resolveLastActionContext} from '@libs/ReportAlternateTextUtils';
+import {getReportAlternateText, resolveLastActionContext} from '@libs/ReportAlternateTextUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
@@ -233,8 +232,6 @@ type GetAlternateTextConfig = {
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     policyTags?: OnyxEntry<PolicyTagLists>;
     conciergeReportID: string | undefined;
-    // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
-    sortedActions?: Record<string, ReportAction[]>;
     transactionThreadIDs?: Record<string, string | undefined>;
     lastActions?: Record<string, ReportAction>;
     isTrackIntentUser?: boolean;
@@ -245,8 +242,6 @@ type GetAlternateTextConfig = {
     currentUserLogin?: string;
     localeCompare?: LocaleContextProps['localeCompare'];
     formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
-    /** Resolved by the caller when it already did the lookup, so the last-action scan is not repeated here. */
-    lastActionContext?: LastActionContext;
     rules: OnyxCollection<Rule>;
 };
 
@@ -284,7 +279,6 @@ function getAlternateText(
         reportAttributesDerived,
         policyTags,
         conciergeReportID,
-        sortedActions,
         transactionThreadIDs,
         lastActions,
         isTrackIntentUser,
@@ -292,7 +286,6 @@ function getAlternateText(
         currentUserLogin,
         localeCompare,
         formatPhoneNumber,
-        lastActionContext,
         rules,
     }: GetAlternateTextConfig,
 ) {
@@ -308,8 +301,7 @@ function getAlternateText(
         if (report) {
             const resolvedCurrentUserAccountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
             const oneTransactionThreadReportID = transactionThreadIDs?.[report.reportID];
-            const {lastAction, lastActionReport, movedFromReport, movedToReport} =
-                lastActionContext ?? resolveLastActionContext(report, isReportArchived, visibleReportActionsData, oneTransactionThreadReportID);
+            const {lastAction, lastActionReport, movedFromReport, movedToReport} = resolveLastActionContext(report, isReportArchived, visibleReportActionsData, oneTransactionThreadReportID);
             return getReportAlternateText({
                 report,
                 lastAction,
@@ -327,7 +319,8 @@ function getAlternateText(
                 conciergeReportID,
                 reportAttributesDerived,
                 visibleReportActionsData,
-                sortedActions,
+                // The LHN passes no `sortedActions`, so its preview reads the parent-only actions. The derived value
+                // combines one-transaction reports with their thread and drops the IOU action the report preview needs.
                 oneTransactionThreadReportID,
                 lastOriginalAction: lastActions?.[report.reportID],
                 currentUserAccountID: resolvedCurrentUserAccountID,
@@ -457,7 +450,6 @@ function createOption({
     dateFnsLocale,
     isTrackIntentUser,
     conciergeReportID,
-    sortedActions,
     transactionThreadIDs,
     lastActions,
     currentUserAccountID,
@@ -538,34 +530,6 @@ function createOption({
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || reportUtilsIsGroupChat(report);
         subtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translateFn, rules, true, result.private_isArchived);
 
-        // If displaying chat preview line is needed, let's overwrite the default alternate text
-        const lastActorDetails = personalDetails?.[report?.lastActorAccountID ?? String(CONST.DEFAULT_NUMBER_ID)] ?? {};
-        const lastActionContext = resolveLastActionContext(report, result.private_isArchived, visibleReportActionsData, transactionThreadIDs?.[report.reportID]);
-        const {lastAction, movedFromReport, movedToReport} = lastActionContext;
-        result.lastMessageText = getLastMessageTextForReport({
-            translate: translateFn,
-            convertToDisplayString,
-            dateFnsLocale,
-            report,
-            personalDetails,
-            lastActorDetails,
-            lastAction,
-            movedFromReport,
-            movedToReport,
-            policy,
-            isReportArchived: result.private_isArchived,
-            visibleReportActionsDataParam: visibleReportActionsData,
-            reportAttributesDerived,
-            policyTags,
-            conciergeReportID,
-            sortedActions,
-            isTrackIntentUser,
-            currentUserAccountID,
-            currentUserLogin,
-            oneTransactionThreadReportID: transactionThreadIDs?.[report.reportID],
-            lastOriginalAction: lastActions?.[report.reportID],
-            rules,
-        });
         result.alternateText =
             showPersonalDetails && personalDetail?.login
                 ? personalDetail.login
@@ -584,13 +548,11 @@ function createOption({
                           reportAttributesDerived,
                           policyTags,
                           conciergeReportID,
-                          sortedActions,
                           transactionThreadIDs,
                           lastActions,
                           isTrackIntentUser,
                           currentUserAccountID,
                           currentUserLogin,
-                          lastActionContext,
                           rules,
                       },
                   );
@@ -2255,7 +2217,6 @@ function prepareReportOptionsForDisplay(
                     reportAttributesDerived,
                     policyTags: reportPolicyTags,
                     conciergeReportID,
-                    sortedActions,
                     transactionThreadIDs,
                     lastActions,
                     isTrackIntentUser,

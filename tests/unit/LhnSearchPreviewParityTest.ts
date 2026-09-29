@@ -15,7 +15,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardList, PersonalDetailsList, Policy, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {Card, CardList, PersonalDetailsList, Policy, PolicyTagLists, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -270,6 +270,8 @@ type ParityCase = {
     lateReportActions?: Record<string, ReportAction[]>;
     policy?: OnyxEntry<Policy>;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
+    policyTags?: PolicyTagLists;
+    transactions?: Transaction[];
     cardList?: OnyxEntry<CardList>;
     isReportArchived?: boolean;
     isTrackIntentUser?: boolean;
@@ -290,6 +292,8 @@ async function computeBothSurfaces({
     lateReportActions = {},
     policy,
     invoiceReceiverPolicy,
+    policyTags,
+    transactions = [],
     cardList,
     isReportArchived = false,
     isTrackIntentUser = false,
@@ -308,6 +312,7 @@ async function computeBothSurfaces({
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, toReportActions(seededMainActions));
         }
         await Promise.all(Object.entries(extraReportActions).map(([reportID, actions]) => Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, toReportActions(actions))));
+        await Promise.all(transactions.map((transaction) => Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction)));
     });
     await waitForBatchedUpdatesWithAct();
 
@@ -368,7 +373,7 @@ async function computeBothSurfaces({
         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
         visibleReportActionsData: undefined,
         reportAttributesDerived,
-        policyTags: undefined,
+        policyTags,
         currentUserLogin: CURRENT_USER_LOGIN,
         isTrackIntentUser,
         formatPhoneNumber,
@@ -417,6 +422,7 @@ async function computeBothSurfaces({
         loginList: {},
         isDefaultRoomsBetaEnabled: true,
         policyCollection: policiesCollection,
+        allPolicyTags: policyTags ? {[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`]: policyTags} : undefined,
         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
         currentUserEmail: CURRENT_USER_LOGIN,
         currentUserLogin: CURRENT_USER_LOGIN,
@@ -881,6 +887,117 @@ describe('LHN vs Search preview parity', () => {
                 extraReportActions: {[rid(400)]: [threadCreatedAction]},
                 lateReportActions: {[rid(400)]: [threadCommentAction]},
             });
+        });
+
+        it('should match for a tag edit that uses the policy tag list name', async () => {
+            // Given a tag edit on a policy whose tag list is named "Department"; without real tags the preview says "tag"
+            const policyTags: PolicyTagLists = {
+                Department: {name: 'Department', orderWeight: 0, required: false, tags: {Engineering: {name: 'Engineering', enabled: true}, Sales: {name: 'Sales', enabled: true}}},
+            };
+
+            // When both surfaces render the preview with the same policy tags
+            const {lhnText, searchText, searchOptionFound} = await computeBothSurfaces({
+                lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {originalMessage: {oldTag: 'Sales', tag: 'Engineering'}}),
+                policyTags,
+            });
+
+            // Then Search shows the named tag list exactly like the LHN
+            expect(searchOptionFound).toBe(true);
+            expect(lhnText).toContain('Department');
+            expect(searchText).toBe(lhnText);
+        });
+
+        it('should match for a second-level tag edit on multi-level tags', async () => {
+            // Given multi-level tags where only the second level changed; the default tag list cannot resolve level 2
+            const policyTags: PolicyTagLists = {
+                Department: {name: 'Department', orderWeight: 0, required: false, tags: {Engineering: {name: 'Engineering', enabled: true}}},
+                Team: {name: 'Team', orderWeight: 1, required: false, tags: {Backend: {name: 'Backend', enabled: true}, Frontend: {name: 'Frontend', enabled: true}}},
+            };
+
+            // When both surfaces render the preview with the same policy tags
+            const {lhnText, searchText, searchOptionFound} = await computeBothSurfaces({
+                lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {originalMessage: {oldTag: 'Engineering:Frontend', tag: 'Engineering:Backend'}}),
+                policyTags,
+            });
+
+            // Then Search names the changed level exactly like the LHN
+            expect(searchOptionFound).toBe(true);
+            expect(lhnText).toContain('Team');
+            expect(searchText).toBe(lhnText);
+        });
+
+        it('should match for a DM whose last action previews a single-expense IOU report', async () => {
+            // Given a DM whose last action previews an IOU report with one expense, so that IOU report has a one-transaction thread
+            const iouReportID = rid(200);
+            const transactionThreadReportID = rid(400);
+            const transactionID = `t${rid(1)}`;
+            const reportPreviewAction = makeAction(CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, {
+                reportActionID: '10',
+                created: '2024-01-02 00:00:00.000',
+                actorAccountID: 2,
+                childReportID: iouReportID,
+                childMoneyRequestCount: 1,
+                originalMessage: {linkedReportID: iouReportID},
+            });
+            const iouCreatedAction = makeAction(CONST.REPORT.ACTIONS.TYPE.CREATED, {reportActionID: '20', created: '2024-01-01 00:00:00.000', actorAccountID: 2});
+            const iouAction = makeAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                reportActionID: '21',
+                created: '2024-01-02 00:00:00.000',
+                actorAccountID: 2,
+                childReportID: transactionThreadReportID,
+                originalMessage: {IOUReportID: iouReportID, IOUTransactionID: transactionID, amount: 1234, currency: 'USD', type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+            });
+
+            // When both surfaces render the DM preview
+            const {lhnText, searchText, searchOptionFound} = await computeBothSurfaces({
+                report: makeReport({
+                    chatType: undefined,
+                    reportName: '',
+                    policyID: CONST.POLICY.ID_FAKE,
+                    lastActorAccountID: 2,
+                    iouReportID,
+                    lastVisibleActionCreated: '2024-01-02 00:00:00.000',
+                    participants: {
+                        2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                }),
+                mainReportActions: [reportPreviewAction],
+                extraReports: [
+                    makeReport({
+                        reportID: iouReportID,
+                        type: CONST.REPORT.TYPE.IOU,
+                        chatType: undefined,
+                        reportName: 'IOU',
+                        policyID: CONST.POLICY.ID_FAKE,
+                        chatReportID: rid(100),
+                        ownerAccountID: 2,
+                        managerID: CURRENT_USER_ACCOUNT_ID,
+                        currency: 'USD',
+                        total: 1234,
+                        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                        statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    }),
+                    makeReport({reportID: transactionThreadReportID, chatType: undefined, reportName: 'Transaction thread', parentReportID: iouReportID, parentReportActionID: '21'}),
+                ],
+                extraReportActions: {[iouReportID]: [iouCreatedAction, iouAction]},
+                transactions: [
+                    {
+                        transactionID,
+                        reportID: iouReportID,
+                        amount: 1234,
+                        currency: 'USD',
+                        merchant: 'Lunch',
+                        comment: {comment: 'Lunch'},
+                        created: '2024-01-02',
+                    } as Transaction,
+                ],
+            });
+
+            // Then Search finds the linked expense like the LHN does, because both read the IOU report's own actions
+            expect(searchOptionFound).toBe(true);
+            expect(lhnText).toContain('Lunch');
+            expect(searchText).toBe(lhnText);
         });
 
         it('should match for an attachment-only last message', async () => {

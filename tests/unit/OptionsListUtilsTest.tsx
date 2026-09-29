@@ -5794,9 +5794,10 @@ describe('OptionsListUtils', () => {
     describe('Alternative text', () => {
         it("The text should not contain the last actor's name at prefix if the report is archived.", async () => {
             renderLocaleContextProvider();
-            // When we set the preferred locale to English and create an ADD_COMMENT report action
+            // Given the English locale, report 10 in Onyx (the preview reads it from there) and an ADD_COMMENT report action
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_PREFERRED_LOCALE]: CONST.LOCALES.EN,
+                [`${ONYXKEYS.COLLECTION.REPORT}10` as const]: REPORTS?.['10'],
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}10` as const]: {
                     '1': getFakeAdvancedReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT),
                 },
@@ -5823,9 +5824,25 @@ describe('OptionsListUtils', () => {
                 undefined,
             ).reports;
             const archivedReport = reports.find((report) => report.reportID === '10');
+            const alternateText = archivedReport
+                ? getAlternateText(
+                      archivedReport,
+                      {showChatPreviewLine: true},
+                      {
+                          isReportArchived: true,
+                          personalDetails: PERSONAL_DETAILS,
+                          dateFnsLocale: undefined,
+                          convertToDisplayString,
+                          conciergeReportID: undefined,
+                          translate: translateLocal,
+                          currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                          rules: undefined,
+                      },
+                  )
+                : undefined;
 
-            // Then the returned report should contain default archived reason
-            expect(archivedReport?.lastMessageText).toBe('This chat room has been archived.');
+            // Then the chat preview shows the default archived reason without an actor prefix
+            expect(alternateText).toBe('This chat room has been archived.');
         });
     });
 
