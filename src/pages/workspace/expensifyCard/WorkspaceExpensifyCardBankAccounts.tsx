@@ -162,10 +162,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                 shouldShowOfflineIndicator={false}
             >
                 <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.SUBMITTER]}>
-                    <HeaderWithBackButtonAndTitle
-                        onBackButtonPress={() => Navigation.goBack()}
-                        title={getHeaderButtonText()}
-                    />
+                    <HeaderWithBackButtonAndTitle title={getHeaderButtonText()} />
                     <BankAccountVerificationView
                         verificationState={verificationState}
                         onVerifiedButtonPress={handleVerifiedButtonPress}
