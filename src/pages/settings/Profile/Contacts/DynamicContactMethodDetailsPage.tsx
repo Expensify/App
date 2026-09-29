@@ -211,18 +211,6 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
         openDeleteModal();
     }, [contactMethod, loginList, backTo, showRemoveContactMethodModal]);
 
-    const getThreeDotsMenuItems = useCallback(() => {
-        const menuItems = [];
-        if (isValidateCodeFormVisible && !isDefaultContactMethod) {
-            menuItems.push({
-                icon: icons.Trashcan,
-                text: translate('common.remove'),
-                onSelected: () => close(turnOnDeleteModal),
-            });
-        }
-        return menuItems;
-    }, [isValidateCodeFormVisible, translate, turnOnDeleteModal, isDefaultContactMethod, icons.Trashcan]);
-
     if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
         return <FullscreenLoadingIndicator />;
     }
@@ -331,9 +319,15 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
                 <Header.BackButton onPress={() => Navigation.goBack(listPath)} />
                 <Header.Title title={formattedContactMethod} />
                 <Header.Right>
-                    {getThreeDotsMenuItems().length > 0 && (
+                    {isValidateCodeFormVisible && !isDefaultContactMethod && (
                         <Header.ThreeDotsMenu
-                            items={getThreeDotsMenuItems()}
+                            items={[
+                                {
+                                    icon: icons.Trashcan,
+                                    text: translate('common.remove'),
+                                    onSelected: () => close(turnOnDeleteModal),
+                                },
+                            ]}
                             shouldOverlay
                             onIconPress={() => {
                                 // Hide the keyboard when the user clicks the three-dot menu.
