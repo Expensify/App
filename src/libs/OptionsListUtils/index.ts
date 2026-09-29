@@ -29,7 +29,7 @@ import {
 } from '@libs/PolicyUtils';
 import {getIOUReportIDFromReportActionPreview, getOneTransactionThreadReportID, isActionOfType} from '@libs/ReportActionsUtils';
 import {deprecatedCachedOneTransactionThreadReportIDs, getLastMessageTextForReport} from '@libs/ReportAlternateTextUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     canUserPerformWriteAction,
@@ -74,7 +74,6 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
-    Beta,
     Locale,
     Login,
     OnyxInputOrEntry,
@@ -135,14 +134,6 @@ import {doesPersonalDetailMatchSearchTerm, getCurrentUserSearchTerms, getPersona
  * be configured to display different results based on the options passed to the private getOptions() method. Public
  * methods should be named for the views they build options for and then exported for use in a component.
  */
-
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (value) => {
-        allReports = value;
-    },
-});
 
 let activePolicyID: OnyxEntry<string>;
 Onyx.connect({
@@ -386,6 +377,8 @@ type CreateOptionParams = {
     sortedActions?: Record<string, ReportAction[]>;
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
+    // TODO: Remove optional (?) once all callers pass pendingDeleteMemberAccountIDs. Refactor issue: https://github.com/Expensify/App/issues/66421
+    pendingDeleteMemberAccountIDs?: string[];
 };
 
 /** Shared by createOption and shells so filtering uses the final display text. */
@@ -403,7 +396,7 @@ function getPersonalDetailOptionText({accountID, hasReport, personalDetails, log
             accountID,
             personalDetailsData: hasReport ? undefined : (personalDetails ?? undefined),
             formatPhoneNumber: formatPhoneNumberPhoneUtils,
-            translate,
+            hiddenTranslation: translate('common.hidden'),
         }) || formatPhoneNumberPhoneUtils(login ?? '')
     );
 }
@@ -429,6 +422,7 @@ function createOption({
     conciergeReportID,
     sortedActions,
     currentUserAccountID,
+    pendingDeleteMemberAccountIDs,
 }: CreateOptionParams): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
     const translateFn = translate ?? translateLocal;
@@ -486,6 +480,10 @@ function createOption({
     let subtitle;
     let reportName;
     result.participantsList = personalDetailList;
+
+    // Resolve display-name translations once per option, then pass the strings to getDisplayNameForParticipant.
+    const hiddenText = translateFn('common.hidden');
+    const youText = translateFn('common.you').toLowerCase();
 
     if (report) {
         result.private_isArchived = privateIsArchived;
@@ -545,14 +543,15 @@ function createOption({
                   );
 
         const computedReportName =
-            deprecatedGetReportName(report, reportAttributesDerived) ||
+            getReportName(report, report?.reportID ? reportAttributesDerived?.[report.reportID]?.reportName : undefined) ||
             (result.isSelfDM
                 ? getDisplayNameForParticipant({
                       accountID: report.ownerAccountID,
                       shouldAddCurrentUserPostfix: true,
                       personalDetailsData: personalDetails ?? undefined,
                       formatPhoneNumber: formatPhoneNumberPhoneUtils,
-                      translate: translateFn,
+                      hiddenTranslation: hiddenText,
+                      youTranslation: youText,
                   })
                 : '');
 
@@ -579,7 +578,7 @@ function createOption({
         null,
         undefined,
         result?.private_isArchived,
-        undefined,
+        pendingDeleteMemberAccountIDs,
         conciergeReportID,
     );
     result.subtitle = subtitle;
@@ -656,7 +655,7 @@ function getReportOption({
     if (option.isSelfDM) {
         option.alternateText = translate('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = deprecatedGetReportName(report, reportAttributesDerived);
+        option.text = getReportName(report, report?.reportID ? reportAttributesDerived?.[report.reportID]?.reportName : undefined);
         option.alternateText = translate('workspace.common.invoices');
     } else {
         option.text = getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')});
@@ -744,7 +743,7 @@ function getReportDisplayOption({
     if (option.isSelfDM) {
         option.alternateText = translate('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = deprecatedGetReportName(report, reportAttributesDerived);
+        option.text = getReportName(report, report?.reportID ? reportAttributesDerived?.[report.reportID]?.reportName : undefined);
         option.alternateText = translate('workspace.common.invoices');
     } else if (unknownUserDetails) {
         option.text = unknownUserDetails.text ?? unknownUserDetails.login;
@@ -794,6 +793,8 @@ function getPolicyExpenseReportOption(
         rules,
         // Passing conciergeReportID as undefined is intentional, a policy expense chat is never the Concierge chat.
         conciergeReportID: undefined,
+        // Passing pendingDeleteMemberAccountIDs as undefined is intentional, a policy expense chat is never a group chat.
+        pendingDeleteMemberAccountIDs: undefined,
         config: {
             showChatPreviewLine: false,
             forcePolicyNamePreview: false,
@@ -885,10 +886,17 @@ function getSearchValueForPhoneOrEmail(searchTerm: string, countryCode: number) 
 }
 
 /**
+ * Verifies that a single option (category or tag) is enabled and not pending deletion
+ */
+function isOptionEnabled(option?: PolicyTag | PolicyCategory): boolean {
+    return !!option?.enabled && option.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
+/**
  * Verifies that there is at least one enabled option
  */
 function hasEnabledOptions(options: PolicyCategories | PolicyTag[]): boolean {
-    return Object.values(options).some((option: PolicyTag | PolicyCategory) => option.enabled && option.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    return Object.values(options).some(isOptionEnabled);
 }
 
 /**
@@ -921,9 +929,11 @@ function processReport(
         isTrackIntentUser,
         sortedActions,
         currentUserAccountID,
+        pendingDeleteMemberAccountIDs,
         convertToDisplayString,
     }: {
         currentUserAccountID: number;
+        pendingDeleteMemberAccountIDs?: string[];
         convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
         reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
         policyTags?: OnyxEntry<PolicyTagLists>;
@@ -972,6 +982,7 @@ function processReport(
                 isTrackIntentUser,
                 sortedActions,
                 currentUserAccountID,
+                pendingDeleteMemberAccountIDs,
             }),
         },
     };
@@ -1083,6 +1094,8 @@ function buildFullOption(
             visibleReportActionsData,
             currentUserAccountID,
             translate,
+            // Passing pendingDeleteMemberAccountIDs as undefined is intentional, `report` here is always a 1:1 DM, never a group chat.
+            pendingDeleteMemberAccountIDs: undefined,
         }),
         isHydrated: true,
     };
@@ -1165,6 +1178,11 @@ function createFilteredOptionList(
          */
         deferContactsUntilSearch?: boolean;
         locale?: Locale;
+        /**
+         * Account IDs pending removal, keyed by reportID, so group chat names and avatar labels leave them out.
+         * TODO: Make it required once every caller passes it. Refactor issue: https://github.com/Expensify/App/issues/66421
+         */
+        pendingDeleteMemberAccountIDsByReportID?: Record<string, string[]>;
     },
     rules: OnyxCollection<Rule>,
     policyTags?: OnyxCollection<PolicyTagLists>,
@@ -1173,7 +1191,16 @@ function createFilteredOptionList(
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>,
 ): OptionList {
-    const {currentUserAccountID, conciergeReportID, maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false, locale} = options;
+    const {
+        currentUserAccountID,
+        conciergeReportID,
+        maxRecentReports = 500,
+        includeP2P = true,
+        isSearching = false,
+        deferContactsUntilSearch = false,
+        locale,
+        pendingDeleteMemberAccountIDsByReportID,
+    } = options;
 
     // Use the cache-key locale for translated contact fields.
     const activeLocale = locale ?? IntlStore.getCurrentLocale();
@@ -1211,6 +1238,7 @@ function createFilteredOptionList(
         // so its reference signals that the underlying report actions changed.
         sortedActions,
         currentUserAccountID,
+        pendingDeleteMemberAccountIDsByReportID,
     ];
     const cachedEntry = shouldUseCache ? filteredOptionListCache.get(cacheEntryKey) : undefined;
     if (cachedEntry && cacheInputs.every((value, index) => value === cachedEntry.inputs.at(index))) {
@@ -1279,6 +1307,7 @@ function createFilteredOptionList(
                 isTrackIntentUser,
                 sortedActions,
                 currentUserAccountID,
+                pendingDeleteMemberAccountIDs: pendingDeleteMemberAccountIDsByReportID?.[report.reportID],
             },
             rules,
         );
@@ -1364,6 +1393,7 @@ type CreateOptionFromReportParams = {
     policyTags?: OnyxEntry<PolicyTagLists>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     isTrackIntentUser?: boolean;
+    currentUserAccountID: number;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
@@ -1381,6 +1411,7 @@ function createOptionFromReport({
     policyTags,
     visibleReportActionsData = {},
     isTrackIntentUser,
+    currentUserAccountID,
     convertToDisplayString,
 }: CreateOptionFromReportParams) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
@@ -1403,6 +1434,7 @@ function createOptionFromReport({
             visibleReportActionsData,
             sortedActions,
             isTrackIntentUser,
+            currentUserAccountID,
         }),
     };
 }
@@ -1719,6 +1751,7 @@ function getUserToInviteOption({
     countryCode = CONST.DEFAULT_COUNTRY_CODE,
     loginList = {},
     currentUserEmail,
+    currentUserAccountID,
     visibleReportActionsData = {},
     rules,
 }: GetUserToInviteConfig & {visibleReportActionsData?: VisibleReportActionsDerivedValue; dateFnsLocale: DateFnsLocale | undefined; rules: OnyxCollection<Rule>}): SearchOptionData | null {
@@ -1763,8 +1796,11 @@ function getUserToInviteOption({
         rules,
         // Passing conciergeReportID as undefined is intentional, the invite option is built without a report, so it can never be the Concierge chat.
         conciergeReportID: undefined,
+        // Passing pendingDeleteMemberAccountIDs as undefined is intentional, there is no report to build a group chat name from.
+        pendingDeleteMemberAccountIDs: undefined,
         config: {showChatPreviewLine},
         visibleReportActionsData,
+        currentUserAccountID,
     });
     userToInvite.isOptimisticAccount = true;
     userToInvite.login = searchValue;
@@ -1802,9 +1838,10 @@ function isValidReport(
     draftComment: string | undefined,
     chatReport: OnyxEntry<Report>,
     hasGuidesEmails: boolean,
+    derivedIsEmptyReport: boolean | undefined,
 ): boolean {
     const {
-        betas = [],
+        isDefaultRoomsBetaEnabled = false,
         includeMultipleParticipantReports = false,
         includeOwnedWorkspaceChats = false,
         includeThreads = false,
@@ -1834,7 +1871,7 @@ function isValidReport(
         report: option.item,
         chatReport,
         currentReportId: topmostReportId,
-        betas,
+        isDefaultRoomsBetaEnabled,
         doesReportHaveViolations,
         isInFocusMode: false,
         excludeEmptyChats: false,
@@ -1847,6 +1884,7 @@ function isValidReport(
         currentUserAccountID,
         conciergeReportID,
         hasGuidesEmails,
+        derivedIsEmptyReport,
     });
 
     if (!shouldBeInOptionList) {
@@ -1988,6 +2026,7 @@ function prepareReportOptionsForDisplay(
         shouldUnreadBeBold = false,
         personalDetails,
         translate,
+        getReportByID,
         convertToDisplayString,
         currentUserAccountID,
     } = config;
@@ -2035,14 +2074,14 @@ function prepareReportOptionsForDisplay(
 
         let isOptionUnread = option.isUnread;
         if (shouldUnreadBeBold) {
-            const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
+            const chatReport = getReportByID(report.chatReportID);
             const oneTransactionThreadReportID =
                 report.type === CONST.REPORT.TYPE.IOU || report.type === CONST.REPORT.TYPE.EXPENSE || report.type === CONST.REPORT.TYPE.INVOICE
                     ? getOneTransactionThreadReportID(report, chatReport, sortedActions?.[report.reportID], isOffline)
                     : undefined;
-            const oneTransactionThreadReport = oneTransactionThreadReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`] : undefined;
+            const oneTransactionThreadReport = oneTransactionThreadReportID ? getReportByID(oneTransactionThreadReportID) : undefined;
 
-            isOptionUnread = isUnread(report, oneTransactionThreadReport, option.private_isArchived) && !!report.lastActorAccountID;
+            isOptionUnread = isUnread(report, oneTransactionThreadReport, option.private_isArchived, reportAttributesDerived?.[report.reportID]?.isEmpty) && !!report.lastActorAccountID;
         }
 
         let lastIOUCreationDate;
@@ -2238,8 +2277,7 @@ function getValidOptions(
             }
 
             const draftComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`];
-            // TODO: This allReports usage is temporary and will be removed once the full Onyx.connect() refactor is complete (https://github.com/Expensify/App/issues/66378)
-            const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.item.chatReportID}`];
+            const chatReport = getValidReportsConfig.getReportByID(report.item.chatReportID);
 
             return isValidReport(
                 report,
@@ -2257,6 +2295,7 @@ function getValidOptions(
                 chatReport,
                 // TODO: Pass guideAccountIDs once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); hasExpensifyGuidesEmails falls back to allPersonalDetails
                 isDefaultRoom(report.item) ? hasExpensifyGuidesEmails(Object.keys(report.item?.participants ?? {}).map(Number), undefined) : false,
+                report.reportID ? reportAttributesDerived?.[report.reportID]?.isEmpty : undefined,
             );
         };
 
@@ -2464,6 +2503,7 @@ function getValidOptions(
                 excludeLogins: loginsToExclude,
                 shouldAcceptName,
                 searchInputValue,
+                currentUserAccountID,
             },
             rules,
         );
@@ -2487,7 +2527,7 @@ type SearchOptionsConfig = {
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     options: OptionList;
     draftComments: OnyxCollection<string>;
-    betas?: Beta[];
+    isDefaultRoomsBetaEnabled?: boolean;
     isUsedInChatFinder?: boolean;
     includeReadOnly?: boolean;
     searchQuery?: string;
@@ -2511,6 +2551,8 @@ type SearchOptionsConfig = {
     excludeFromSuggestionsOnly?: Record<string, boolean>;
     isTrackIntentUser?: boolean;
     translate: LocalizedTranslate;
+    /** @see GetValidReportsConfig['getReportByID'] */
+    getReportByID: GetOptionsConfig['getReportByID'];
     rules: OnyxCollection<Rule>;
 };
 
@@ -2521,7 +2563,7 @@ function getSearchOptions({
     dateFnsLocale,
     options,
     draftComments,
-    betas,
+    isDefaultRoomsBetaEnabled,
     isUsedInChatFinder = true,
     includeReadOnly = true,
     searchQuery = '',
@@ -2545,6 +2587,7 @@ function getSearchOptions({
     excludeFromSuggestionsOnly = {},
     isTrackIntentUser,
     translate,
+    getReportByID,
     convertToDisplayString,
     rules,
 }: SearchOptionsConfig): OptionsResult {
@@ -2559,7 +2602,7 @@ function getSearchOptions({
         {
             dateFnsLocale,
             convertToDisplayString,
-            betas,
+            isDefaultRoomsBetaEnabled,
             includeRecentReports,
             includeMultipleParticipantReports: true,
             showChatPreviewLine: isUsedInChatFinder,
@@ -2586,6 +2629,7 @@ function getSearchOptions({
             sortedActions,
             excludeFromSuggestionsOnly,
             isTrackIntentUser,
+            getReportByID,
         },
         translate,
         rules,
@@ -2723,14 +2767,13 @@ function formatSectionsFromSearchTerm(
     translate: LocalizedTranslate,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     dateFnsLocale: DateFnsLocale | undefined,
+    // Resolves a single report by ID instead of receiving the whole reports collection, so callers only subscribe to the reports they actually need.
+    getReportByID: (reportID: string | undefined) => OnyxEntry<Report>,
     rules: OnyxCollection<Rule>,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: SearchOptionData[] = [],
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    // Resolves a single report by ID instead of receiving the whole reports collection, so callers only subscribe to the reports they actually need.
-    // The default falls back to the module-level Onyx.connect() cache until every caller passes a resolver (tracked in https://github.com/Expensify/App/issues/66378).
-    getReportByID: (reportID: string | undefined) => OnyxEntry<Report> = (reportID) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`],
 ): SectionForSearchTerm {
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
@@ -2906,7 +2949,7 @@ function filterUserToInvite(
     config: FilterUserToInviteConfig,
     rules: OnyxCollection<Rule>,
 ): SearchOptionData | null {
-    const {canInviteUser = true, excludeLogins = {}} = config;
+    const {canInviteUser = true, excludeLogins = {}, currentUserAccountID} = config;
     if (!canInviteUser) {
         return null;
     }
@@ -2935,6 +2978,7 @@ function filterUserToInvite(
         currentUserEmail,
         rules,
         ...config,
+        currentUserAccountID,
     });
 }
 
@@ -2977,6 +3021,7 @@ function filterOptions<T extends SearchOptionData>(
         {
             ...config,
             searchInputValue: searchInputValueForInvite,
+            currentUserAccountID,
         },
         rules,
     );
@@ -3150,6 +3195,7 @@ export {
     isDisablingOrDeletingLastEnabledCategory,
     isDisablingOrDeletingLastEnabledTag,
     isMakingLastRequiredTagListOptional,
+    isOptionEnabled,
     isPersonalDetailsReady,
     optionsOrderAndGroupBy,
     optionsOrderBy,

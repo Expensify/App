@@ -35,7 +35,7 @@ function DynamicIOURequestStepAccountant({
     },
 }: DynamicIOURequestStepAccountantProps) {
     const {translate} = useLocalize();
-    const {accountID, email = '', localCurrencyCode} = useCurrentUserPersonalDetails();
+    const {accountID, email = '', displayName, localCurrencyCode} = useCurrentUserPersonalDetails();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const lastWorkspaceNumber = useLastWorkspaceNumber();
@@ -52,7 +52,7 @@ function DynamicIOURequestStepAccountant({
                 introSelected,
                 transactionID,
                 action,
-                generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                generateDefaultWorkspaceName(email, displayName, lastWorkspaceNumber, translate),
                 accountID,
                 email,
                 localCurrencyCode ?? CONST.CURRENCY.USD,

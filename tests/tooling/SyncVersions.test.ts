@@ -320,6 +320,7 @@ describe('syncVersions.sh sync (submodule only)', () => {
 describeMacOS('syncVersions.sh sync (full version)', () => {
     it('rewrites the App version across package.json, Android and iOS, then pushes and verifies', () => {
         setUpFixture('9.3.10-1', '9.3.11-48', true);
+
         // A real version drift always comes with the submodule pointer being behind, since Mobile-Expensify is bumped first
         advanceMobileExpensify();
         runScript('check');
@@ -376,6 +377,7 @@ describeMacOS('syncVersions.sh sync (full version)', () => {
 
     it('uses TARGET_VERSION when it is provided', () => {
         setUpFixture('9.3.10-1', '9.3.11-48', true);
+
         // A real version drift always comes with the submodule pointer being behind, since Mobile-Expensify is bumped first
         advanceMobileExpensify();
         runScript('check');

@@ -131,7 +131,6 @@ function SubmitDetailsPage({
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
 
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalPolicy = usePersonalPolicy();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -148,7 +147,8 @@ function SubmitDetailsPage({
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const fileUri = shouldUsePreValidatedFile ? (validFilesToUpload?.uri ?? '') : (currentAttachment?.content ?? '');
     const fileName = shouldUsePreValidatedFile ? getFileName(validFilesToUpload?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
     const fileType = shouldUsePreValidatedFile ? (validFilesToUpload?.type ?? CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG) : (currentAttachment?.mimeType ?? '');
@@ -419,7 +419,6 @@ function SubmitDetailsPage({
                     conciergeChat,
                     quickAction,
                     recentWaypoints,
-                    betas,
                     draftTransactionIDs,
                     isSelfTourViewed,
                     optimisticTransactionID,
@@ -432,6 +431,7 @@ function SubmitDetailsPage({
                 const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
                 requestMoney({
+                    isVendorMatchingBetaEnabled,
                     getCurrencyDecimals,
                     report: reportToSubmit,
                     participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
@@ -470,7 +470,6 @@ function SubmitDetailsPage({
                     draftTransactionIDs,
                     isSelfTourViewed,
                     conciergeChat,
-                    betas,
                     personalDetails,
                     optimisticTransactionID,
                     isTrackIntentUser,
@@ -691,26 +690,28 @@ function SubmitDetailsPage({
                         policyID={policy?.id}
                         isConfirming={isConfirming}
                         onConfirm={() => onConfirm(true)}
-                        receiptPath={currentReceiptSource}
-                        receiptFilename={currentReceiptName}
                         reportID={reportOrAccountID}
                         shouldShowSmartScanFields={false}
-                        shouldDisplayReceipt
-                        isReceiptEditable
                         action={CONST.IOU.ACTION.CREATE}
-                        onPDFLoadError={() => {
-                            if (errorTitle) {
-                                return;
-                            }
-                            setErrorTitle(translate('attachmentPicker.attachmentError'));
-                            setErrorMessage(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                        }}
-                        onPDFPassword={() => {
-                            if (errorTitle) {
-                                return;
-                            }
-                            setErrorTitle(translate('attachmentPicker.attachmentError'));
-                            setErrorMessage(translate('attachmentPicker.protectedPDFNotSupported'));
+                        receiptOptions={{
+                            receiptPath: currentReceiptSource,
+                            receiptFilename: currentReceiptName,
+                            shouldDisplayReceipt: true,
+                            isReceiptEditable: true,
+                            onPDFLoadError: () => {
+                                if (errorTitle) {
+                                    return;
+                                }
+                                setErrorTitle(translate('attachmentPicker.attachmentError'));
+                                setErrorMessage(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                            },
+                            onPDFPassword: () => {
+                                if (errorTitle) {
+                                    return;
+                                }
+                                setErrorTitle(translate('attachmentPicker.attachmentError'));
+                                setErrorMessage(translate('attachmentPicker.protectedPDFNotSupported'));
+                            },
                         }}
                     />
                 </View>

@@ -17,6 +17,7 @@ import useFilteredOptions from '@hooks/useFilteredOptions';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
@@ -141,7 +142,7 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
         return <SearchQueryListItem {...props} />;
     }
 
-    const {item, isFocused, showTooltip, isDisabled, onSelectRow, onDismissError, shouldPreventEnterKeySubmit, rightHandSideComponent, onFocus, shouldSyncFocus, wrapperStyle} = props;
+    const {item, isFocused, showTooltip, isDisabled, onSelectRow, onDismissError, shouldPreventEnterKeySubmit, onFocus, shouldSyncFocus, wrapperStyle} = props;
     const fsClass = FS.getChatFSClass((item as SearchOption<Report> | undefined)?.item);
 
     return (
@@ -153,7 +154,6 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            rightHandSideComponent={rightHandSideComponent}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             wrapperStyle={wrapperStyle}
@@ -186,7 +186,8 @@ function SearchAutocompleteList({
         style: [styles.pb2, styles.ph2],
     });
 
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {isBetaEnabled} = usePermissions();
+    const isDefaultRoomsBetaEnabled = isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const reportAttributes = useReportAttributes();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
@@ -226,6 +227,7 @@ function SearchAutocompleteList({
         isLoading: isLoadingOptions,
         loadAll: loadAllRecentReports,
         hasMore: hasMoreRecentReports,
+        getReportByID,
     } = useFilteredOptions({
         ...SEARCH_ROUTER_OPTIONS_CONFIG,
         isSearching: !!autocompleteQueryValue.trim(),
@@ -260,7 +262,7 @@ function SearchAutocompleteList({
             convertToDisplayString,
             options: listOptions,
             draftComments,
-            betas: betas ?? [],
+            isDefaultRoomsBetaEnabled,
             isUsedInChatFinder: true,
             includeReadOnly: true,
             searchQuery: autocompleteQueryValue,
@@ -281,12 +283,13 @@ function SearchAutocompleteList({
             conciergeReportID,
             isTrackIntentUser,
             translate,
+            getReportByID,
             rules,
         }).options;
     }, [
         listOptions,
         draftComments,
-        betas,
+        isDefaultRoomsBetaEnabled,
         autocompleteQueryValue,
         countryCode,
         loginList,
@@ -299,6 +302,7 @@ function SearchAutocompleteList({
         conciergeReportID,
         isTrackIntentUser,
         translate,
+        getReportByID,
         dateFnsLocale,
         convertToDisplayString,
         rules,
@@ -349,8 +353,9 @@ function SearchAutocompleteList({
         allCards,
         allFeeds,
         options: listOptions ?? emptyOptionList,
+        getReportByID,
         draftComments,
-        betas,
+        isDefaultRoomsBetaEnabled,
         countryCode,
         loginList,
         policies,
@@ -535,7 +540,6 @@ function SearchAutocompleteList({
                 keyForList,
                 pressableStyle: styles.br2,
                 text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
-                wrapperStyle: [styles.pr3, styles.pl3],
             } as AutocompleteListItem;
         });
 

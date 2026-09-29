@@ -4,27 +4,23 @@ import MenuItem from '@components/MenuItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {Policy} from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
-
 import React from 'react';
 import {View} from 'react-native';
 
 type WorkspaceRowProps = {
     policyID: string;
 
-    /** Undefined when the workspace is not available to the current user */
-    policy: OnyxEntry<Policy>;
+    title: string;
+
+    avatarURL: string | undefined;
 
     /** The last row of a section skips the separator */
     shouldShowSeparator: boolean;
 };
 
-function WorkspaceRow({policyID, policy, shouldShowSeparator}: WorkspaceRowProps) {
+function WorkspaceRow({policyID, title, avatarURL, shouldShowSeparator}: WorkspaceRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const title = policy?.name ?? translate('workspace.common.unavailable');
 
     return (
         <View style={shouldShowSeparator ? styles.borderBottom : undefined}>
@@ -32,7 +28,7 @@ function WorkspaceRow({policyID, policy, shouldShowSeparator}: WorkspaceRowProps
                 <MenuItem.Row>
                     <MenuItem.Leading>
                         <WorkspaceAvatar
-                            source={policy?.avatarURL}
+                            source={avatarURL}
                             name={title}
                             avatarID={policyID}
                         />

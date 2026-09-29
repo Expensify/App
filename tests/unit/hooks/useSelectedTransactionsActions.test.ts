@@ -138,6 +138,7 @@ jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
     default: () => ({
         isBetaEnabled: () => true,
+        isBetaEnabledOrUnknown: () => true,
     }),
 }));
 
