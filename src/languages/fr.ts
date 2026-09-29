@@ -1200,6 +1200,8 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `Oups ! Un champ obligatoire (« ${fieldName} ») n’a pas été associé. Veuillez examiner et réessayer.`,
         singleFieldMultipleColumns: (fieldName: string) => `Oups ! Vous avez associé un seul champ (« ${fieldName} ») à plusieurs colonnes. Veuillez vérifier et réessayer.`,
         emptyMappedField: (fieldName: string) => `Oups ! Le champ (« ${fieldName} ») contient une ou plusieurs valeurs vides. Veuillez vérifier et réessayer.`,
+        fieldValueTooLong: (fieldName: string, limit: number) =>
+            `Oups ! Le champ (« ${fieldName} ») contient une ou plusieurs valeurs de plus de ${limit} caractères. Veuillez vérifier et réessayer.`,
         importSuccessfulTitle: 'Importation réussie',
         importCategoriesNoneAddedOrUpdated: 'Aucune catégorie n’a été ajoutée ou mise à jour.',
         importCategoriesAdded: ({count}: {count: number}) => ({
@@ -1591,6 +1593,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noReimbursableExpenses: 'Cette note de frais a un montant non valide',
         pendingConversionMessage: 'Le total sera mis à jour quand vous serez de nouveau en ligne',
         changedTheExpense: 'a modifié la dépense',
+        addedReceipt: 'a ajouté un reçu',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `le ${valueName} sur ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `défini le ${translatedChangedField} sur ${newMerchant}, ce qui a défini le montant sur ${newAmountToDisplay}`,
@@ -5065,6 +5068,9 @@ ${amount} pour ${merchant} - ${date}`,
                 autoSyncDescription: 'Expensify se synchronisera automatiquement avec QuickBooks Desktop chaque jour.',
                 createEntities: 'Créer automatiquement les entités',
                 createEntitiesDescription: "Expensify créera automatiquement des fournisseurs dans QuickBooks Desktop s'ils n'existent pas déjà.",
+                fxExpenseAccount: 'Compte de frais de conversion de devise',
+                fxExpenseAccountDescription:
+                    'Lorsque votre entreprise prend en charge les frais de conversion de devise pour un remboursement payé à l’étranger, nous l’ajouterons à l’export comme une ligne supplémentaire imputée à ce compte.',
             },
             itemsDescription: 'Choisissez comment gérer les éléments QuickBooks Desktop dans Expensify.',
             accountingMethods: {
@@ -8366,7 +8372,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 matchTypeContains: 'Contient',
                 matchTypeExact: 'Correspond exactement',
                 maxAmount: 'Montant maximal',
-                maxAmountHelp: 'Toute transaction supérieure à ce montant sera refusée, indépendamment des restrictions liées au commerçant et à la catégorie de dépense.',
                 maxAmountCurrencyMismatchTitle: 'Incohérence de devise',
                 maxAmountCurrencyMismatchPrompt: 'Pour définir un montant maximal, sélectionnez des cartes qui sont réglées dans la même devise.',
                 reviewSelectedCards: 'Examiner les cartes sélectionnées',
@@ -8445,9 +8450,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     cta: 'Obtenir la carte',
                 },
                 restrictCardSpendTitle: 'Limiter les dépenses de la carte',
-                restrictCardSpendSubtitle: 'Bloquez ou limitez les dépenses au point de vente.',
-                ifAnyCardMatches: 'Si une carte correspond :',
-                thenDoThisAtPointOfSale: 'Ensuite, faites ceci au point de vente :',
                 setRestrictions: 'Définir des restrictions',
                 merchantRestrictions: 'Restrictions du commerçant',
                 blockedMerchant: 'Commerçant bloqué',
@@ -8461,15 +8463,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 currencies: 'Devises',
                 permittedCurrencies: 'Devises autorisées',
                 allCurrencies: 'Toutes les devises',
-                permittedCurrenciesSubtitle: 'Choisissez d’autoriser toutes les devises ou seulement certaines devises',
                 settlementCurrencyPermittedSubtitle: 'La devise de règlement de la carte est toujours autorisée',
                 currenciesCurrencyMismatchTitle: 'Incohérence de devise',
                 currenciesCurrencyMismatchPrompt: 'Pour définir des devises préférées, sélectionnez les cartes qui sont réglées dans la même devise.',
-                restrictMerchantsOffSubtitle: 'Les frais sont approuvés pour les devises autorisées qui n’excèdent pas un montant maximal',
-                restrictMerchantsAllowSubtitle:
-                    'Les frais sont approuvés pour les devises autorisées qui ne dépassent pas un montant maximal, et lorsque le commerçant ou le type de commerçant correspond.',
-                restrictMerchantsBlockSubtitle:
-                    'Les dépenses sont approuvées pour les devises autorisées qui ne dépassent pas un montant maximal, ou lorsque le commerçant ou le type de commerçant correspond.',
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Autorisé ${shownCount > 1 ? 'devises' : 'devise'} : ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
                 defaultRulesCannotBeDeleted: 'Les règles par défaut ne peuvent pas être supprimées',
@@ -11072,6 +11068,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 invalid: "Ce code n'est pas valide",
             },
         },
+        paymentHistory: {title: 'Afficher l’historique des paiements', subtitle: 'Votre historique complet des paiements mensuels facturés sur ce compte.'},
         subscriptionSettings: {
             title: 'Paramètres d’abonnement',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>

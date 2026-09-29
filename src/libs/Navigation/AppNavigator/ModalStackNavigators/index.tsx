@@ -534,6 +534,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/VacationDelegateMissingWorkspacesPage').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/SubscriptionSize').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.EXPENSIFY_CODE]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/ExpensifyCodePage').default,
+    [SCREENS.SETTINGS.SUBSCRIPTION.PAYMENT_HISTORY]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentHistoryPage').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/SubscriptionSettings').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.DISABLE_AUTO_RENEW_SURVEY]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/DisableAutoRenewSurveyPage').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.CANCEL_SUBSCRIPTION]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/CancelSubscriptionPage').default,
@@ -705,6 +706,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/export/DynamicQuickbooksDesktopExportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_ADVANCED]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/advanced/DynamicQuickbooksDesktopAdvancedPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT_SELECT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/advanced/DynamicQuickbooksDesktopFxExpenseAccountSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_AUTO_SYNC]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/advanced/QuickbooksDesktopAutoSyncPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD]: () =>

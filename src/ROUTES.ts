@@ -940,6 +940,10 @@ const DYNAMIC_ROUTES = {
         path: 'quickbooks-desktop/advanced',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT_SELECT: {
+        path: 'qbd-fx-expense-account-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_ADVANCED],
+    },
     WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
         path: 'account-reconciliation-settings',
         entryScreens: [
@@ -2295,6 +2299,7 @@ const ROUTES = {
     SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY: 'settings/subscription/change-billing-currency',
     SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY: 'settings/subscription/disable-auto-renew-survey',
     SETTINGS_SUBSCRIPTION_CANCEL_SUBSCRIPTION: 'settings/subscription/cancel-subscription-survey',
+    SETTINGS_SUBSCRIPTION_PAYMENT_HISTORY: 'settings/subscription/payment-history',
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
     SETTINGS_PAYMENT_CURRENCY: 'setting/preferences/payment-currency',
