@@ -1,3 +1,6 @@
+/**
+ * Picks which header DynamicReportDetailsPage renders (HeaderView, MoneyRequestHeader or MoneyReportHeader) from the report's type flags.
+ */
 import type {CaseID} from './types';
 
 import {CASES} from './types';
