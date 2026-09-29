@@ -1,3 +1,8 @@
+/**
+ * Helpers for an expense's tax: resolving the default and category tax rates, calculating the tax amount,
+ * and building the tax names and titles shown in the UI.
+ * Extracted from TransactionUtils/index.ts to keep that file smaller.
+ */
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {getCategoryDefaultTaxRate} from '@libs/CategoryUtils';

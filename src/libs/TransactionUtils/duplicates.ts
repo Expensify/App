@@ -1,3 +1,8 @@
+/**
+ * Helpers for reviewing and merging duplicate expenses: comparing duplicate fields, checking whether duplicates can be merged,
+ * building the merge request params, and removing a transaction from duplicate-transaction violations.
+ * Extracted from TransactionUtils/index.ts to keep that file smaller.
+ */
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import Log from '@libs/Log';
 import {getTaxByID, isMultiLevelTags as isMultiLevelTagsPolicyUtils, resolveCurrentTaxCode} from '@libs/PolicyUtils';
