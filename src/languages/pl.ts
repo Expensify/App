@@ -10945,7 +10945,27 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 invalid: 'Ten kod jest nieprawidłowy',
             },
         },
-        paymentHistory: {title: 'Zobacz historię płatności', subtitle: 'Pełna miesięczna historia płatności obciążających to konto.'},
+        paymentHistory: {
+            title: 'Zobacz historię płatności',
+            subtitle: 'Pełna miesięczna historia płatności obciążających to konto.',
+            payments: 'Płatności',
+            inclTax: 'z podatkiem',
+            empty: 'Brak płatności.',
+            activeUsers: ({count}: {count: number}) => ({
+                one: '1 aktywny użytkownik',
+                few: `${count} aktywnych użytkowników`,
+                many: `${count} aktywnych użytkowników`,
+                other: `${count} aktywnego użytkownika`,
+            }),
+            state: {
+                paid: 'Opłacono',
+                cleared: 'Rozliczono',
+                failed: 'Niepowodzenie',
+                refunded: 'Zwrócono',
+                disputed: 'Zakwestionowano',
+                balanceTransfer: 'Transfer salda',
+            },
+        },
         subscriptionSettings: {
             title: 'Ustawienia subskrypcji',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>

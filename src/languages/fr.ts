@@ -11039,7 +11039,25 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 invalid: "Ce code n'est pas valide",
             },
         },
-        paymentHistory: {title: 'Afficher l’historique des paiements', subtitle: 'Votre historique complet des paiements mensuels facturés sur ce compte.'},
+        paymentHistory: {
+            title: 'Afficher l’historique des paiements',
+            subtitle: 'Votre historique complet des paiements mensuels facturés sur ce compte.',
+            payments: 'Paiements',
+            inclTax: 'TTC',
+            empty: 'Aucun paiement pour le moment.',
+            activeUsers: ({count}: {count: number}) => ({
+                one: '1 utilisateur actif',
+                other: `${count} utilisateurs actifs`,
+            }),
+            state: {
+                paid: 'Payé',
+                cleared: 'Régularisé',
+                failed: 'Échoué',
+                refunded: 'Remboursé',
+                disputed: 'Contesté',
+                balanceTransfer: 'Transfert de solde',
+            },
+        },
         subscriptionSettings: {
             title: 'Paramètres d’abonnement',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>

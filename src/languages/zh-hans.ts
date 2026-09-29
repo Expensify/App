@@ -10519,7 +10519,25 @@ ${reportName}`,
                 invalid: '此代码无效',
             },
         },
-        paymentHistory: {title: '查看付款记录', subtitle: '此账户每月全部付款记录。'},
+        paymentHistory: {
+            title: '查看付款记录',
+            subtitle: '此账户每月全部付款记录。',
+            payments: '付款',
+            inclTax: '含税',
+            empty: '暂无付款。',
+            activeUsers: ({count}: {count: number}) => ({
+                one: '1 位活跃用户',
+                other: `${count} 位活跃用户`,
+            }),
+            state: {
+                paid: '已支付',
+                cleared: '已结清',
+                failed: '失败',
+                refunded: '已退款',
+                disputed: '已争议',
+                balanceTransfer: '余额转移',
+            },
+        },
         subscriptionSettings: {
             title: '订阅设置',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>

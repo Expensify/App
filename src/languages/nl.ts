@@ -10927,7 +10927,25 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 invalid: 'Deze code is ongeldig',
             },
         },
-        paymentHistory: {title: 'Bekijk betalingsgeschiedenis', subtitle: 'Je volledige maandelijkse betalingsgeschiedenis die op deze rekening in rekening is gebracht.'},
+        paymentHistory: {
+            title: 'Bekijk betalingsgeschiedenis',
+            subtitle: 'Je volledige maandelijkse betalingsgeschiedenis die op deze rekening in rekening is gebracht.',
+            payments: 'Betalingen',
+            inclTax: 'incl. btw',
+            empty: 'Nog geen betalingen.',
+            activeUsers: ({count}: {count: number}) => ({
+                one: '1 actieve gebruiker',
+                other: `${count} actieve gebruikers`,
+            }),
+            state: {
+                paid: 'Betaald',
+                cleared: 'Vereffend',
+                failed: 'Mislukt',
+                refunded: 'Terugbetaald',
+                disputed: 'Betwist',
+                balanceTransfer: 'Saldo-overdracht',
+            },
+        },
         subscriptionSettings: {
             title: 'Abonnementsinstellingen',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>

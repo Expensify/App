@@ -9072,8 +9072,28 @@ const CONST = {
     OFFLINE_INDICATOR_HEIGHT: 25,
 
     BILLING: {
+        TYPE_FAILED: 'failed',
         TYPE_FAILED_2018: 'failed_2018',
+        TYPE_FAILED_SMARTSCAN: 'failed_smartscan2018',
         TYPE_STRIPE_FAILED_AUTHENTICATION: 'failed_stripe_authentication',
+        TYPE_CLEAR: 'clear',
+        TYPE_REFUND: 'refund',
+        TYPE_CC_REFUND: 'ccRefund',
+        TYPE_DISPUTE: 'dispute',
+        TYPE_TRANSFER: 'transfer',
+        TYPE_TRANSFER_TO: 'transfer_to',
+        TYPE_TRANSFER_FAILED: 'transfer_failed',
+        TYPE_TRANSFER_OLD: 'transfer_old',
+    },
+    PAYMENT_HISTORY: {
+        STATE: {
+            PAID: 'paid',
+            CLEARED: 'cleared',
+            FAILED: 'failed',
+            REFUNDED: 'refunded',
+            DISPUTED: 'disputed',
+            BALANCE_TRANSFER: 'balanceTransfer',
+        },
     },
 
     ONBOARDING_HELP: {
@@ -10005,6 +10025,7 @@ const CONST = {
             RETRY_PAYMENT: 'SettingsSubscription-RetryPayment',
             AUTHENTICATE_PAYMENT: 'SettingsSubscription-AuthenticatePayment',
             VIEW_PAYMENT_HISTORY: 'SettingsSubscription-ViewPaymentHistory',
+            PAYMENT_HISTORY_ROW: 'SettingsSubscription-PaymentHistoryRow',
             REQUEST_REFUND: 'SettingsSubscription-RequestRefund',
             CANCEL_SUBSCRIPTION: 'SettingsSubscription-CancelSubscription',
         },

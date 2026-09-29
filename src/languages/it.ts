@@ -10962,7 +10962,25 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 invalid: 'Questo codice non è valido',
             },
         },
-        paymentHistory: {title: 'Vedi cronologia pagamenti', subtitle: 'Il tuo storico completo dei pagamenti mensili addebitati su questo conto.'},
+        paymentHistory: {
+            title: 'Vedi cronologia pagamenti',
+            subtitle: 'Il tuo storico completo dei pagamenti mensili addebitati su questo conto.',
+            payments: 'Pagamenti',
+            inclTax: 'incl. imposte',
+            empty: 'Ancora nessun pagamento.',
+            activeUsers: ({count}: {count: number}) => ({
+                one: '1 utente attivo',
+                other: `${count} utenti attivi`,
+            }),
+            state: {
+                paid: 'Pagato',
+                cleared: 'Saldato',
+                failed: 'Non riuscito',
+                refunded: 'Rimborsato',
+                disputed: 'Contestato',
+                balanceTransfer: 'Trasferimento di saldo',
+            },
+        },
         subscriptionSettings: {
             title: 'Impostazioni abbonamento',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>

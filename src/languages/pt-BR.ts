@@ -10921,7 +10921,25 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 invalid: 'Este código é inválido',
             },
         },
-        paymentHistory: {title: 'Ver histórico de pagamento', subtitle: 'Seu histórico completo de pagamentos mensais cobrados nesta conta.'},
+        paymentHistory: {
+            title: 'Ver histórico de pagamento',
+            subtitle: 'Seu histórico completo de pagamentos mensais cobrados nesta conta.',
+            payments: 'Pagamentos',
+            inclTax: 'incl. impostos',
+            empty: 'Nenhum pagamento ainda.',
+            activeUsers: ({count}: {count: number}) => ({
+                one: '1 usuário ativo',
+                other: `${count} usuários ativos`,
+            }),
+            state: {
+                paid: 'Pago',
+                cleared: 'Quitado',
+                failed: 'Falhou',
+                refunded: 'Reembolsado',
+                disputed: 'Contestado',
+                balanceTransfer: 'Transferência de saldo',
+            },
+        },
         subscriptionSettings: {
             title: 'Configurações de assinatura',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>

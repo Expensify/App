@@ -10800,7 +10800,25 @@ ${reportName}`,
                 invalid: 'このコードは無効です',
             },
         },
-        paymentHistory: {title: '支払い履歴を表示', subtitle: 'このアカウントに請求された毎月の支払い履歴のすべてです。'},
+        paymentHistory: {
+            title: '支払い履歴を表示',
+            subtitle: 'このアカウントに請求された毎月の支払い履歴のすべてです。',
+            payments: '支払い',
+            inclTax: '税込',
+            empty: '支払いはまだありません。',
+            activeUsers: ({count}: {count: number}) => ({
+                one: 'アクティブユーザー1人',
+                other: `アクティブユーザー${count}人`,
+            }),
+            state: {
+                paid: '支払済み',
+                cleared: '精算済み',
+                failed: '失敗',
+                refunded: '返金済み',
+                disputed: '異議申し立て',
+                balanceTransfer: '残高の移行',
+            },
+        },
         subscriptionSettings: {
             title: 'サブスクリプション設定',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
