@@ -41,7 +41,7 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {cardEdgeToEdge} = useLayoutSpacing();
+    const {cardEdgeToEdge, cardMenuItemInset} = useLayoutSpacing();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bank', 'Connect', 'Lightbulb', 'Lock']);
 
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
@@ -111,17 +111,19 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
                         </Text>
                     </View>
                     <View style={[styles.mt4, cardEdgeToEdge]}>
-                        <MenuItemNavigation
-                            title={translate('bankAccount.connectOnlineWithPlaid')}
-                            icon={expensifyIcons.Bank}
-                            isDisabled={!!isPlaidDisabled}
-                            onPress={handleConnectPlaid}
-                        />
-                        <MenuItemNavigation
-                            title={translate('bankAccount.connectManually')}
-                            icon={expensifyIcons.Connect}
-                            onPress={handleConnectManually}
-                        />
+                        <View style={cardMenuItemInset}>
+                            <MenuItemNavigation
+                                title={translate('bankAccount.connectOnlineWithPlaid')}
+                                icon={expensifyIcons.Bank}
+                                isDisabled={!!isPlaidDisabled}
+                                onPress={handleConnectPlaid}
+                            />
+                            <MenuItemNavigation
+                                title={translate('bankAccount.connectManually')}
+                                icon={expensifyIcons.Connect}
+                                onPress={handleConnectManually}
+                            />
+                        </View>
                     </View>
                 </Section>
                 <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
