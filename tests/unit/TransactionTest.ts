@@ -757,6 +757,43 @@ describe('Transaction', () => {
             mockAPIWrite.mockRestore();
         });
 
+        it('does not create an IOU action in the selfDM when undeleting a managed card transaction that belongs to another user', async () => {
+            // Given a deleted managed card transaction whose card is not in the current user's card list, so it belongs to another user
+            const transaction = generateTransaction({
+                reportID: FAKE_OLD_REPORT_ID,
+                managedCard: true,
+                cardID: 12345,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(ONYXKEYS.SELF_DM_REPORT_ID, FAKE_SELF_DM_REPORT_ID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_SELF_DM_REPORT_ID}`, selfDM);
+            await loadReports();
+            const mockAPIWrite = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+
+            // When the transaction is undeleted by moving it to the unreported report
+            changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                policy: undefined,
+                allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction},
+                policyTagList: undefined,
+                reports,
+                isTrackIntentUser: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then no IOU action is written to the selfDM, since the current user has no access to the other user's selfDM
+            const optimisticData = mockAPIWrite.mock.calls.at(0)?.[2]?.optimisticData ?? [];
+            const selfDMActionsUpdate = optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_SELF_DM_REPORT_ID}`);
+            expect(selfDMActionsUpdate).toBeUndefined();
+
+            mockAPIWrite.mockRestore();
+        });
+
         it('should update the target report total when the currency is the same', async () => {
             const transaction = {
                 ...generateTransaction({
