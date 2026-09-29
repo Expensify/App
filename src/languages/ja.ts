@@ -8715,6 +8715,35 @@ ${reportName}`,
             syncTravelInvoicingSettlements: '出張請求の精算を同期',
             travelInvoicingSettlementAccount: {label: '出張請求精算口座', description: '精算に使う口座を選択してください。選択された口座で、Campfire に支払いを作成します。'},
             travelInvoicingPayableAccount: {label: '旅行請求買掛金勘定'},
+            exportToMultipleAccounts: '複数の勘定科目へのエクスポートを設定する',
+            cardProgramAccount: {
+                label: 'カードプログラム口座',
+                description: 'これらのカードプログラムのワークスペースアカウントを上書きします。',
+                descriptionLevel2: 'このカードプログラムのワークスペース口座を上書きします。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'すべてのプログラムはデフォルトアカウントを使用します';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `カスタム勘定科目を使用するプログラム：${customAccountsCount} 件`;
+                    }
+                    return `${customAccountsCount} 件のプログラム（カスタムアカウントあり）`;
+                },
+            },
+            cardAccount: {
+                label: 'カード単位の口座',
+                description: '個々のカードに対してプログラム口座を上書きします。',
+                descriptionLevel2: 'これらのカードのプログラム口座を上書きします。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'すべてのカードはプログラムアカウントを使用します';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `カスタム口座付きカード ${customAccountsCount} 枚`;
+                    }
+                    return `カスタム口座のあるカードが ${customAccountsCount} 枚`;
+                },
+            },
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central のセットアップ',
