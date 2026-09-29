@@ -40,10 +40,9 @@ function SearchEditMultipleTagPage() {
     const commonDependentTag = getCommonDependentTag(selectedTransactions);
     const draftTag = draftTransaction?.tag;
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
-    // Only dependent tags auto-select the shared value on first open: their levels are a single chain, so
-    // seeding the common tag is what lets child levels filter and rebuild. Independent lists are unrelated,
-    // so seeding one list's shared value would drag a sibling list into the draft and a later deselect of
-    // that untouched level would clear it (issue #100538). Keep them empty until the user picks.
+    // Dependent tags are one chain, so we seed the shared value on first open to let the child levels filter.
+    // Independent lists are separate, so seeding one would pull an untouched sibling into the draft and a later
+    // deselect there would wipe it (#100538). Leave those empty until the user actually picks something.
     const autoSelectedTag = hasDependentTags ? (commonDependentTag ?? '') : '';
     const transactionTag = draftTag === undefined ? autoSelectedTag : draftTag;
     const currentTag = getTagArrayFromName(draftTag ?? '').at(tagListIndex) ?? '';
@@ -53,7 +52,7 @@ function SearchEditMultipleTagPage() {
 
     const saveTag = (item: Partial<OptionData>) => {
         const selectedTagName = item.searchText ?? '';
-        // Tapping the level's own committed value deselects it.
+        // Tapping the value that's already set on this level clears it.
         const isDeselecting = selectedTagName === currentTag;
         const recordedTagChanges = draftTransaction?.bulkEditTagChanges ?? {};
 
@@ -67,11 +66,11 @@ function SearchEditMultipleTagPage() {
             hasMultipleTagLists: policy?.hasMultipleTagLists ?? false,
         });
 
-        // Deselecting a pick made in this same draft drops the intent (net no-op). Any other deselect stays '' as a real clear.
+        // If they're just undoing a pick they made in this same draft, drop the intent so it nets to nothing. Any other deselect is a real clear.
         const isUndoingOwnPick = isDeselecting && recordedTagChanges[tagListIndex] === currentTag;
         const deselectValue = isUndoingOwnPick ? null : '';
         const bulkEditTagChanges: Record<string, string | null> = {[tagListIndex]: isDeselecting ? deselectValue : selectedTagName};
-        // Dependent tags: editing a level invalidates deeper ones, so drop any stale child intents (merged draft would replay them).
+        // For dependent tags, changing a level makes the deeper ones stale, so clear any child intents still in the draft before they get replayed.
         if (hasDependentTags) {
             for (const recordedIndex of Object.keys(recordedTagChanges)) {
                 if (Number(recordedIndex) <= tagListIndex) {
@@ -82,7 +81,7 @@ function SearchEditMultipleTagPage() {
         }
 
         updateBulkEditDraftTransaction({
-            // The flattened tag is display-only. bulkEditTagChanges is the single source of truth for the save.
+            // tag is only for display here, bulkEditTagChanges is what drives the save.
             tag: updatedTag,
             bulkEditTagChanges,
         });
