@@ -246,6 +246,7 @@ const SCREENS = {
             DYNAMIC_PAYMENT_CARD_CURRENCY_SELECTOR: 'Dynamic_Settings_Subscription_Payment_Card_Currency_Selector',
             CANCEL_SUBSCRIPTION: 'Settings_Subscription_CancelSubscription',
             DYNAMIC_SUBSCRIPTION_DOWNGRADE_BLOCKED: 'Dynamic_Settings_Subscription_DowngradeBlocked',
+            PAYMENT_HISTORY: 'Settings_Subscription_PaymentHistory',
         },
     },
     TWO_FACTOR_AUTH: {
@@ -571,6 +572,7 @@ const SCREENS = {
             DYNAMIC_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT: 'Dynamic_Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense',
             QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Non_Reimbursable_Default_Vendor_Select',
             DYNAMIC_QUICKBOOKS_DESKTOP_ADVANCED: 'Dynamic_Policy_Accounting_Quickbooks_Desktop_Advanced',
+            DYNAMIC_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT_SELECT: 'Dynamic_Workspace_Accounting_Quickbooks_Desktop_Fx_Expense_Account_Select',
             QUICKBOOKS_DESKTOP_AUTO_SYNC: 'Policy_Accounting_Quickbooks_Desktop_Auto_Sync',
             QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD: 'Policy_Accounting_Quickbooks_Desktop_Accounting_Method',
             DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT: 'Dynamic_Workspace_Accounting_Quickbooks_Desktop_Export_Date_Select',

@@ -54,7 +54,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
     const {convertToDisplayString} = useCurrencyListActions();
     const personalDetails = usePersonalDetails();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const {options, isLoading} = useFilteredOptions({
+    const {options, isLoading, getReportByID} = useFilteredOptions({
         enabled: ready,
         isSearching: !!debouncedSearchTerm.trim(),
         // The sections below read recentReports and never personalDetails, so contacts would never reach the list.
@@ -156,6 +156,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                   conciergeReportID,
                   isTrackIntentUser,
                   translate,
+                  getReportByID,
                   rules,
               }).options;
 

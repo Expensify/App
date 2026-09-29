@@ -1143,6 +1143,7 @@ const CONST = {
         REPORT_MERGE: 'reportMerge',
         INSIGHTS_PAGE: 'insightsPage',
         INSIGHTS_COMPARE: 'insightsCompare',
+        PAYMENT_HISTORY: 'paymentHistory',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -3184,8 +3185,8 @@ const CONST = {
             CUSTOMERS: 'customers',
         },
         IMPORT_ITEMS: 'importItems',
-        AUTO_SYNC_ENABLED: 'enabled',
         ACCOUNTING_METHOD: 'accountingMethod',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
     },
 
     QUICKBOOKS_CONFIG: {
@@ -6891,8 +6892,6 @@ const CONST = {
         HIDDEN_BORDER_BOTTOM_WIDTH: 0,
     },
 
-    MISSING_TRANSLATION: 'MISSING TRANSLATION',
-
     /**
      * The count of characters we'll allow the user to type after reaching SEARCH_MAX_LENGTH in an input.
      */
@@ -7973,12 +7972,18 @@ const CONST = {
             GROUP_BY: 'groupBy',
             COLUMNS: 'columns',
             LIMIT: 'limit',
+            COMPARE: 'compare',
         },
         VIEW: {
             TABLE: 'table',
             BAR: 'bar',
             LINE: 'line',
             PIE: 'pie',
+        },
+        // Comparison modes for Insights queries, defined by the API.
+        COMPARE: {
+            PREVIOUS_PERIOD: 'previousPeriod',
+            AVERAGE: 'average',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
@@ -8120,6 +8125,7 @@ const CONST = {
             ORDER_DEAL_NUMBERS: 'order-deal-numbers',
             COLUMNS: 'columns',
             LIMIT: 'limit',
+            COMPARE: 'compare',
         },
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
@@ -8758,7 +8764,7 @@ const CONST = {
         CATEGORY: 'category',
         DATE: 'date',
         MERCHANT: 'merchant',
-        TRANSACTION_FIELDS: ['date', 'merchant', 'amount', 'category'] as const,
+        TRANSACTION_FIELDS: ['date', 'merchant', 'amount', 'category', 'tag'] as const,
         CARD_NUMBER: 'cardNumber',
         CARD_NAME: 'cardName',
         POSTED_DATE: 'postedDate',
@@ -9476,6 +9482,7 @@ const CONST = {
             TIME_FIELD: 'RequestConfirmationList-TimeField',
             SUBRATE_FIELD: 'RequestConfirmationList-SubrateField',
             SEND_FROM_FIELD: 'RequestConfirmationList-SendFromField',
+            ADD_RECEIPT_BUTTON: 'RequestConfirmationList-AddReceiptButton',
         },
         TRANSACTION_PREVIEW: {
             CARD: 'TransactionPreview-Card',
