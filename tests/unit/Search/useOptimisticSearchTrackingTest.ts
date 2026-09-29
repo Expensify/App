@@ -36,7 +36,7 @@ const transactions: OnyxCollection<Transaction> = {
 };
 
 function makeQueryJSON(hash: number): SearchQueryJSON {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the hook reads only these four fields off the query
     return {
         hash,
         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -46,7 +46,7 @@ function makeQueryJSON(hash: number): SearchQueryJSON {
 }
 
 function makeSearchResults(): SearchResults {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: an empty snapshot is all the augmentation needs to start from
     return {
         data: {personalDetailsList: {}},
         search: {isLoading: false, hasMoreResults: false, type: CONST.SEARCH.DATA_TYPES.EXPENSE},
