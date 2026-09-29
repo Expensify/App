@@ -27,7 +27,7 @@
 #
 # Outputs (via GITHUB_OUTPUT):
 #   - check: IN_SYNC, NEED_FULL_VERSION_SYNC, ACTUAL_SHA
-#   - sync:  POST_SYNC_APP_VERSION
+#   - sync:  POST_SYNC_APP_VERSION, SUBMODULE_MATCHES_REMOTE
 #
 # Side effects:
 #   - `check` is not read-only: it runs `git submodule update --remote`.
@@ -249,6 +249,7 @@ function verify_sync {
         # let the next run collect the newer commit.
         if [[ "$recorded" == "$EXPECTED_SUBMODULE_SHA" ]]; then
             echo "::warning::Mobile-Expensify main advanced to $remote_sha while syncing. App main records $recorded, which is what this run set out to record. Re-run to pick up the newer commit."
+            set_output SUBMODULE_MATCHES_REMOTE false
         else
             echo "::error::Submodule on App main ($recorded) still differs from Mobile-Expensify origin/main ($remote_sha)"
             exit 1
@@ -256,7 +257,12 @@ function verify_sync {
     fi
 
     set_output POST_SYNC_APP_VERSION "$app_version"
-    echo "::notice::✅ Verified versions ($app_version) and submodule match Mobile-Expensify main ($recorded)"
+    if [[ "$recorded" == "$remote_sha" ]]; then
+        set_output SUBMODULE_MATCHES_REMOTE true
+        echo "::notice::✅ Verified versions ($app_version) and submodule match Mobile-Expensify main ($recorded)"
+    else
+        echo "::notice::✅ Verified versions ($app_version); submodule records $recorded, one behind Mobile-Expensify main"
+    fi
 }
 
 function cmd_sync {

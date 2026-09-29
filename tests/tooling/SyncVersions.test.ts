@@ -259,6 +259,7 @@ describe('syncVersions.sh sync (submodule only)', () => {
 
         expect(result.status).toBe(0);
         expect(result.outputs.POST_SYNC_APP_VERSION).toBe('9.3.11-48');
+        expect(result.outputs.SUBMODULE_MATCHES_REMOTE).toBe('true');
         expect(git(appDir, 'ls-tree', 'origin/main', 'Mobile-Expensify')).toContain(newSubmoduleSha);
         expect(git(appDir, 'log', '-1', '--format=%s', 'origin/main')).toBe(`Bump Mobile-Expensify submodule to latest main (${newSubmoduleSha})`);
     });
@@ -275,6 +276,7 @@ describe('syncVersions.sh sync (submodule only)', () => {
         expect(result.status).toBe(0);
         expect(result.stdout).toContain(`::warning::Mobile-Expensify main advanced to ${laterSha} while syncing`);
         expect(result.outputs.POST_SYNC_APP_VERSION).toBe('9.3.11-48');
+        expect(result.outputs.SUBMODULE_MATCHES_REMOTE).toBe('false');
         expect(git(appDir, 'ls-tree', 'origin/main', 'Mobile-Expensify')).toContain(shaAtCheck);
     });
 
