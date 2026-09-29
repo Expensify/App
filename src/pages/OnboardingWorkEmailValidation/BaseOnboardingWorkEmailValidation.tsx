@@ -22,7 +22,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
@@ -43,7 +42,6 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
-    const isFocused = useIsFocused();
 
     useEffect(() => {
         if (onboardingValues?.isMergeAccountStepCompleted === undefined) {
@@ -67,7 +65,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         }
 
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
-    }, [onboardingValues?.isMergeAccountStepCompleted, onboardingValues?.shouldRedirectToClassicAfterMerge, onboardingValues?.isMergeAccountStepSkipped, isVsb, isSmb, isFocused]);
+    }, [onboardingValues?.isMergeAccountStepCompleted, onboardingValues?.shouldRedirectToClassicAfterMerge, onboardingValues?.isMergeAccountStepSkipped, isVsb, isSmb]);
 
     // The work email screen force-replaces itself with this one, so Android's system Back would otherwise pop the whole
     // onboarding modal while `shouldValidate` is still set. Run the same cleanup and fallback as the header Back button.
