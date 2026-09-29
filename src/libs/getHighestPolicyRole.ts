@@ -1,8 +1,7 @@
-import CONST from '@src/CONST';
-import type {Policy} from '@src/types/onyx';
-
-import type {OnyxInputOrEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
+
+import CONST from '@src/CONST';
+import type {OnyxInputOrEntry, Policy} from '@src/types/onyx';
 
 /**
  * Workspace roles from highest to lowest privilege, matching the role hierarchy in Auth.
@@ -31,7 +30,5 @@ function getHighestPolicyRole(policyList: Array<OnyxInputOrEntry<Pick<Policy, 'r
     }
     return CONST.POLICY.ROLE.USER;
 }
-
-export type HighestPolicyRole = TupleToUnion<typeof POLICY_ROLE_RANKING>;
 
 export default getHighestPolicyRole;
