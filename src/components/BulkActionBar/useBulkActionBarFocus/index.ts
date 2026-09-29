@@ -1,7 +1,7 @@
 import isHTMLElement from '@libs/isHTMLElement';
 import markProgrammaticFocus from '@libs/programmaticFocus';
 
-import {useEffect, useRef} from 'react';
+import {useEffect, useRef, useState} from 'react';
 
 import type UseBulkActionBarFocus from './types';
 
@@ -17,10 +17,12 @@ function isShowingFocusRing(element: HTMLElement): boolean {
     }
 }
 
-/** Settles where focus goes when the selection is cleared and the bar that describes it disappears. */
+/** Tracks where focus is relative to the bar, and settles where it goes when the selection is cleared. */
 const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef) => {
     // Where focus was before the bar took it. The bar goes away with the selection, so focus has to be handed back.
     const lastFocusedOutsideRef = useRef<HTMLElement | null>(null);
+
+    const [isFocusInsideBar, setIsFocusInsideBar] = useState(false);
 
     useEffect(() => {
         const handleFocusIn = (event: FocusEvent) => {
@@ -31,15 +33,30 @@ const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef) => {
 
             const bar = barRef.current;
             if (isHTMLElement(bar) && bar.contains(target)) {
+                setIsFocusInsideBar(true);
                 return;
             }
 
+            setIsFocusInsideBar(false);
             lastFocusedOutsideRef.current = target;
         };
 
-        document.addEventListener('focusin', handleFocusIn);
+        // Focus can also leave for nothing at all, such as an element being removed, which fires no matching focusin.
+        const handleFocusOut = (event: FocusEvent) => {
+            if (event.relatedTarget) {
+                return;
+            }
 
-        return () => document.removeEventListener('focusin', handleFocusIn);
+            setIsFocusInsideBar(false);
+        };
+
+        document.addEventListener('focusin', handleFocusIn);
+        document.addEventListener('focusout', handleFocusOut);
+
+        return () => {
+            document.removeEventListener('focusin', handleFocusIn);
+            document.removeEventListener('focusout', handleFocusOut);
+        };
     }, [barRef]);
 
     const handleFocusBeforeClose = () => {
@@ -69,7 +86,7 @@ const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef) => {
         }
     };
 
-    return {handleFocusBeforeClose};
+    return {handleFocusBeforeClose, isFocusInsideBar};
 };
 
 export default useBulkActionBarFocus;

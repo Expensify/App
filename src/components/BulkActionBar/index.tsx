@@ -42,6 +42,8 @@ import BulkActionBarMenuTheme from './BulkActionBarMenuTheme';
 import {defaultPopoverAnchorPosition, MORE_MENU_ANCHOR_ALIGNMENT} from './popoverPosition';
 import useBulkActionBarFocus from './useBulkActionBarFocus';
 
+const noop = () => {};
+
 /**
  * The bar's contents. Everything here takes its colors from the theme it is rendered under, which `BulkActionBar`
  * inverts, so the surface, the buttons and the "More" menu all read as one layer without any of them being styled
@@ -80,7 +82,7 @@ function BulkActionBarContent<TValueType>({
     const {calculatePopoverPosition} = usePopoverPosition();
 
     const barElementRef = useRef<ComponentRef<typeof View> | null>(null);
-    const {handleFocusBeforeClose} = useBulkActionBarFocus(barElementRef);
+    const {handleFocusBeforeClose, isFocusInsideBar} = useBulkActionBarFocus(barElementRef);
 
     const moreAnchorRef = useRef<ComponentRef<typeof View> | null>(null);
     const [isMoreMenuVisible, setIsMoreMenuVisible] = useState(false);
@@ -106,6 +108,11 @@ function BulkActionBarContent<TValueType>({
 
     // Esc inside a text field is how you leave the field, so leave the selection alone there.
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, clearSelection, {isActive: shouldClearSelectionOnEscape, captureOnInputs: false});
+
+    // The lists this bar floats over run a global Enter shortcut off a keyboard cursor that outlives tabbing away from
+    // the rows. While one of the bar's own buttons is focused, claim Enter without bubbling so pressing it only works
+    // that button instead of also opening whichever row the cursor was left on. Same guard as SearchPageFooter's.
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, noop, {isActive: isFocusInsideBar, shouldBubble: false, shouldPreventDefault: false});
 
     // Whichever Esc handler subscribed last runs first, so holding the pane back keeps it from closing out from under
     // a selection Esc was meant to clear.

@@ -6,6 +6,9 @@ type BulkActionBarFocus = {
      * that clears the selection.
      */
     handleFocusBeforeClose: () => void;
+
+    /** Whether one of the bar's own controls currently holds focus. */
+    isFocusInsideBar: boolean;
 };
 
 type UseBulkActionBarFocus = (barRef: RefObject<unknown>) => BulkActionBarFocus;
