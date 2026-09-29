@@ -11431,14 +11431,14 @@ describe('ReportUtils', () => {
     });
 
     describe('getOutstandingReportsForUser', () => {
-        const policy: Policy = {
+        const testPolicy: Policy = {
             ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM, 'Outstanding Test Policy'),
             id: 'policy_outstanding_1',
         };
         const reportOwnerAccountID = 100;
         const activeReport: Report = {
             ...createRandomReport(1, undefined),
-            policyID: policy.id,
+            policyID: testPolicy.id,
             ownerAccountID: reportOwnerAccountID,
             type: CONST.REPORT.TYPE.EXPENSE,
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
@@ -11446,7 +11446,7 @@ describe('ReportUtils', () => {
         };
         const archivedReport: Report = {
             ...createRandomReport(2, undefined),
-            policyID: policy.id,
+            policyID: testPolicy.id,
             ownerAccountID: reportOwnerAccountID,
             type: CONST.REPORT.TYPE.EXPENSE,
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
@@ -11463,7 +11463,7 @@ describe('ReportUtils', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: '2024-01-01 00:00:00.000'},
             };
 
-            const result = getOutstandingReportsForUser(policy.id, reportOwnerAccountID, undefined, reportNameValuePairs, reports);
+            const result = getOutstandingReportsForUser(testPolicy.id, reportOwnerAccountID, undefined, reportNameValuePairs, reports);
             expect(result).toHaveLength(1);
             expect(result.at(0)?.reportID).toBe(activeReport.reportID);
         });
