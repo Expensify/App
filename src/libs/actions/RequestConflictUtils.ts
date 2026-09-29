@@ -281,7 +281,9 @@ function resolveCommentDeletionConflicts<TKey extends OnyxKey>(persistedRequests
  */
 function renameQueuedAttachment(file: unknown, name: string): unknown {
     if (typeof File !== 'undefined' && file instanceof File) {
-        return new File([file], name, {type: file.type, lastModified: file.lastModified});
+        // The constructor copies only the standard fields, so `uri` and `source` are put back: the native payload
+        // reads them to find the file on disk, and a share lands here as a File rather than a plain object.
+        return Object.assign(new File([file], name, {type: file.type, lastModified: file.lastModified}), {uri: file.uri, source: file.source});
     }
     if (typeof file !== 'object' || file === null) {
         return file;

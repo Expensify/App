@@ -196,6 +196,25 @@ describe('RequestConflictUtils', () => {
         expect(renamedFile.type).toBe('text/csv');
     });
 
+    it('resolveEditCommentWithNewAddCommentRequest should keep the native upload properties when it renames a File', () => {
+        // Given a queued attachment shaped the way readFileAsync builds one for the native share flow
+        const reportActionID = '2';
+        const localUri = 'file:///storage/emulated/0/Android/data/com.expensify.chat/files/Download/Receipts-Upload/data.csv';
+        const file = Object.assign(new File(['id,total\n1,2'], 'data.csv', {type: 'text/csv'}), {uri: localUri, source: localUri});
+        const queuedRequest = {command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file, attachmentID: '5'}};
+        const persistedRequests = [queuedRequest, {command: 'OpenReport'}];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
+
+        // When an offline edit renames it
+        resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, false, 'renamed.csv');
+        const renamedFile = queuedRequest.data.file;
+
+        // Then the properties the native payload reads to find the file on disk survive the rename
+        expect(renamedFile.name).toBe('renamed.csv');
+        expect(renamedFile.source).toBe(localUri);
+        expect(renamedFile.uri).toBe(localUri);
+    });
+
     it('resolveEditCommentWithNewAddCommentRequest should keep the queued attachment when the edit kept it', () => {
         const reportActionID = '2';
         const persistedRequests = [{command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local'}, attachmentID: '5'}}, {command: 'OpenReport'}];
