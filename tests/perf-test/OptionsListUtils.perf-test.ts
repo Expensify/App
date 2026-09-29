@@ -210,6 +210,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 },
+                translateLocal,
                 undefined,
                 'policy1',
             );
@@ -243,6 +244,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 },
+                translateLocal,
                 undefined,
                 'policy1',
             );
@@ -461,6 +463,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 },
+                translateLocal,
                 undefined,
                 'policy1',
             );

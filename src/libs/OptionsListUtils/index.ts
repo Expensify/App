@@ -2424,12 +2424,12 @@ function getValidOptions(
             }
 
             // Keep this pre-filter a superset of filterPersonalDetails().
-            if (searchTerms.length > 0 && filterPersonalDetails([personalDetail], searchTerms, currentUserAccountID).length > 0) {
+            if (searchTerms.length > 0 && filterPersonalDetails([personalDetail], searchTerms, currentUserAccountID, translate).length > 0) {
                 return true;
             }
 
             return searchTerms.every((term) =>
-                doesPersonalDetailMatchSearchTerm(personalDetail, currentUserAccountID, term, {
+                doesPersonalDetailMatchSearchTerm(personalDetail, currentUserAccountID, term, translate, {
                     useLocaleLowerCase: true,
                     transformSearchText: (concatenatedSearchTerms) => deburr(`${concatenatedSearchTerms} ${(personalDetail.text ?? '').toLocaleLowerCase()}`),
                 }),
@@ -2798,7 +2798,7 @@ function formatSectionsFromSearchTerm(
     // This will add them to the list of options, deduping them if they already exist in the other lists
     const selectedParticipantsWithoutDetails = selectedOptions.filter((participant) => {
         const accountID = participant.accountID ?? null;
-        const isPartOfSearchTerm = doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm);
+        const isPartOfSearchTerm = doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm, translate);
         const isReportInRecentReports = filteredRecentReports.some((report) => report.accountID === accountID) || filteredWorkspaceChats.some((report) => report.accountID === accountID);
         const isReportInPersonalDetails = filteredPersonalDetails.some((personalDetail) => personalDetail.accountID === accountID);
 
@@ -2925,24 +2925,24 @@ function filterWorkspaceChats(reports: SearchOptionData[], searchTerms: string[]
     return filteredReports;
 }
 
-function filterPersonalDetails<T extends SearchOptionData>(personalDetails: T[], searchTerms: string[], currentUserAccountID: number): T[] {
+function filterPersonalDetails<T extends SearchOptionData>(personalDetails: T[], searchTerms: string[], currentUserAccountID: number, translate: LocalizedTranslate): T[] {
     return searchTerms.reduceRight(
         (items, term) =>
             filterArrayByMatch(items, term, (item) => {
-                const values = getPersonalDetailSearchTerms(item, currentUserAccountID);
+                const values = getPersonalDetailSearchTerms(item, currentUserAccountID, translate);
                 return uniqFast(values);
             }),
         personalDetails,
     );
 }
 
-function filterCurrentUserOption<T extends SearchOptionData>(currentUserOption: T | null | undefined, searchTerms: string[]): T | null | undefined {
+function filterCurrentUserOption<T extends SearchOptionData>(currentUserOption: T | null | undefined, searchTerms: string[], translate: LocalizedTranslate): T | null | undefined {
     return searchTerms.reduceRight<T | null | undefined>((item, term) => {
         if (!item) {
             return null;
         }
 
-        const currentUserOptionSearchText = uniqFast(getCurrentUserSearchTerms(item)).join(' ');
+        const currentUserOptionSearchText = uniqFast(getCurrentUserSearchTerms(item, translate)).join(' ');
         return isSearchStringMatch(term, currentUserOptionSearchText) ? item : null;
     }, currentUserOption);
 }
@@ -3003,6 +3003,7 @@ function filterOptions<T extends SearchOptionData>(
     currentUserAccountID: number,
     personalDetailsCollection: OnyxEntry<PersonalDetailsList>,
     config: FilterUserToInviteConfig,
+    translate: LocalizedTranslate,
     rules: OnyxCollection<Rule>,
 ): Options<T> {
     const trimmedSearchInput = searchInputValue.trim();
@@ -3013,8 +3014,8 @@ function filterOptions<T extends SearchOptionData>(
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
     const recentReports = filterReports(options.recentReports, searchTerms);
-    const personalDetails = filterPersonalDetails(options.personalDetails, searchTerms, currentUserAccountID);
-    const currentUserOption = filterCurrentUserOption(options.currentUserOption, searchTerms);
+    const personalDetails = filterPersonalDetails(options.personalDetails, searchTerms, currentUserAccountID, translate);
+    const currentUserOption = filterCurrentUserOption(options.currentUserOption, searchTerms, translate);
     const userToInvite = filterUserToInvite(
         {
             recentReports,
@@ -3095,12 +3096,13 @@ function filterAndOrderOptions<T extends SearchOptionData>(
     currentUserAccountID: number,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     config: FilterAndOrderConfig,
+    translate: LocalizedTranslate,
     rules: OnyxCollection<Rule>,
     activePolicyID: OnyxEntry<string>,
 ): Options<T> {
     let filterResult = options;
     if (searchInputValue.trim().length > 0) {
-        filterResult = filterOptions(options, searchInputValue, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, config, rules);
+        filterResult = filterOptions(options, searchInputValue, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, config, translate, rules);
     }
 
     const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filterResult, searchInputValue, activePolicyID, config);

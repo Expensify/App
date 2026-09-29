@@ -1462,6 +1462,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -2119,6 +2120,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -3558,6 +3560,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -3603,6 +3606,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     sortByReportTypeInSearch: true,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -3654,6 +3658,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -3718,6 +3723,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -3780,6 +3786,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     sortByReportTypeInSearch: true,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -3825,6 +3832,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -3870,6 +3878,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -3925,6 +3934,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -3970,6 +3980,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -4017,6 +4028,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -4061,6 +4073,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -4105,6 +4118,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -4149,6 +4163,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     maxRecentReportsToShow: 2,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -4172,6 +4187,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     maxRecentReportsToShow: 0,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -4215,6 +4231,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -4278,6 +4295,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -4344,6 +4362,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -4410,6 +4429,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -4450,6 +4470,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -4793,6 +4814,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -4834,6 +4856,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -4877,6 +4900,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -4920,6 +4944,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -4962,6 +4987,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -5002,6 +5028,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -5047,6 +5074,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -5092,6 +5120,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -5137,6 +5166,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -5184,6 +5214,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     shouldAcceptName: false,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -5228,6 +5259,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     shouldAcceptName: true,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -5268,6 +5300,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -5309,6 +5342,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     sortByReportTypeInSearch: true,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -5354,6 +5388,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     maxRecentReportsToShow: 5,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -5402,6 +5437,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -5445,6 +5481,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -5502,6 +5539,7 @@ describe('OptionsListUtils', () => {
                         CURRENT_USER_ACCOUNT_ID,
                         PERSONAL_DETAILS_WITH_PERIODS,
                         {dateFnsLocale: undefined, convertToDisplayString, sortByReportTypeInSearch: true, currentUserAccountID: CURRENT_USER_ACCOUNT_ID},
+                        translateLocal,
                         undefined,
                         activePolicyID,
                     );
@@ -5552,6 +5590,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -5613,6 +5652,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -5654,6 +5694,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -5670,6 +5711,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -7576,9 +7618,9 @@ describe('OptionsListUtils', () => {
     describe('getPersonalDetailSearchTerms', () => {
         it('should include display name', () => {
             const displayName = 'test';
-            const searchTerms = getPersonalDetailSearchTerms({displayName}, CURRENT_USER_ACCOUNT_ID);
+            const searchTerms = getPersonalDetailSearchTerms({displayName}, CURRENT_USER_ACCOUNT_ID, translateLocal);
             expect(searchTerms.includes(displayName)).toBe(true);
-            const searchTerms2 = getPersonalDetailSearchTerms({participantsList: [{displayName, accountID: 123}]}, CURRENT_USER_ACCOUNT_ID);
+            const searchTerms2 = getPersonalDetailSearchTerms({participantsList: [{displayName, accountID: 123}]}, CURRENT_USER_ACCOUNT_ID, translateLocal);
             expect(searchTerms2.includes(displayName)).toBe(true);
         });
     });
@@ -7586,9 +7628,9 @@ describe('OptionsListUtils', () => {
     describe('getCurrentUserSearchTerms', () => {
         it('should include display name', () => {
             const displayName = 'test';
-            const searchTerms = getCurrentUserSearchTerms({displayName});
+            const searchTerms = getCurrentUserSearchTerms({displayName}, translateLocal);
             expect(searchTerms.includes(displayName)).toBe(true);
-            const searchTerms2 = getCurrentUserSearchTerms({text: displayName});
+            const searchTerms2 = getCurrentUserSearchTerms({text: displayName}, translateLocal);
             expect(searchTerms2.includes(displayName)).toBe(true);
         });
     });
@@ -10180,6 +10222,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -10216,6 +10259,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -10251,6 +10295,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
@@ -10448,6 +10493,7 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
+                translateLocal,
                 undefined,
                 activePolicyID,
             );
