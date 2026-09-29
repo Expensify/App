@@ -79,10 +79,7 @@ function PolicyDistanceRateEditPage({route}: PolicyDistanceRateEditPageProps) {
                 testID="PolicyDistanceRateEditPage"
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButtonAndTitle
-                    title={translate('workspace.distanceRates.rate')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.distanceRates.rate')} />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM}
                     submitButtonText={translate('common.save')}

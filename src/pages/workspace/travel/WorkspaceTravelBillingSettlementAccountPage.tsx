@@ -134,10 +134,7 @@ function WorkspaceTravelBillingSettlementAccountPage({route}: WorkspaceTravelBil
                 shouldShowOfflineIndicator={false}
             >
                 <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.SUBMITTER]}>
-                    <HeaderWithBackButtonAndTitle
-                        title={getHeaderTitle()}
-                        onBackButtonPress={() => Navigation.goBack()}
-                    />
+                    <HeaderWithBackButtonAndTitle title={getHeaderTitle()} />
                     <BankAccountVerificationView
                         verificationState={verificationState}
                         onVerifiedButtonPress={() => Navigation.goBack()}

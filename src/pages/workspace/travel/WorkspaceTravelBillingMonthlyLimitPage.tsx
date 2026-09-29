@@ -87,10 +87,7 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
             shouldEnableMaxHeight
             testID="WorkspaceTravelBillingMonthlyLimitPage"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.monthlySpendLimitLabel')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.monthlySpendLimitLabel')} />
             <FormProvider
                 style={[styles.flexGrow1, styles.mh5]}
                 formID={ONYXKEYS.FORMS.EDIT_TRAVEL_BILLING_MONTHLY_LIMIT_FORM}

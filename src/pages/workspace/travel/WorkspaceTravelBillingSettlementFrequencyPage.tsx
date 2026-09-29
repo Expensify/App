@@ -86,10 +86,7 @@ function WorkspaceTravelBillingSettlementFrequencyPage({route}: WorkspaceTravelB
             shouldEnableMaxHeight
             testID="WorkspaceTravelBillingSettlementFrequencyPage"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementFrequencyLabel')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementFrequencyLabel')} />
             <SelectionList<FrequencyItem>
                 data={data}
                 onSelectRow={(item) => setDraftFrequency(item.value)}
