@@ -319,6 +319,11 @@ function getForReportAction({
     const changeFragments: string[] = [];
 
     const isReportActionOriginalMessageAnObject = reportActionOriginalMessage && typeof reportActionOriginalMessage === 'object';
+
+    if (isReportActionOriginalMessageAnObject && reportActionOriginalMessage.receiptAdded) {
+        return translate('iou.addedReceipt');
+    }
+
     // oldCurrency isn't required here: confirming a failed-scan placeholder amount (e.g. re-entering 0 to clear the
     // scan error) has no real previous value, so neither the optimistic message nor the server's confirmed action
     // include oldAmount/oldCurrency for it. Falling through to hasModifiedAmount=false would otherwise hide the

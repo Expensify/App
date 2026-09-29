@@ -10,6 +10,7 @@ import {
     isCreatedMissing,
     isFailedScanAmountPlaceholder,
     isMerchantMissing,
+    isScanRequest,
     willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
 
@@ -108,7 +109,7 @@ const createTagDisplaySelector = (tagIndex: number) => (t: OnyxEntry<Transaction
 
 // --- CategoryField ---
 
-type CategoryState = {category: string; willAutoFill: boolean};
+type CategoryState = {category: string; willAutoFill: boolean; isAutoFillFromReceipt: boolean};
 
 const categoryStateSelector = (t: OnyxEntry<Transaction>): CategoryState | undefined => {
     if (!t) {
@@ -117,6 +118,10 @@ const categoryStateSelector = (t: OnyxEntry<Transaction>): CategoryState | undef
     return {
         category: getCategory(t),
         willAutoFill: willFieldBeAutomaticallyFilled(t, 'category'),
+        // On a scan the category is read off the receipt, so `Automatic` describes the value the row ends up
+        // holding. On a manual expense it is a promise about a field that is still empty, since categorization
+        // only runs once the expense is created.
+        isAutoFillFromReceipt: isScanRequest(t),
     };
 };
 
