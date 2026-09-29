@@ -9474,6 +9474,13 @@ ${reportName}`,
         deleteTask: 'Eliminar tarea',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta tarea?',
     },
+    supportTicket: {
+        title: ({date, customer, supportRep}) => `Ticket de soporte, ${date}: ${customer} y ${supportRep}`,
+        description: 'Esta es una conversación con un representante de soporte humano. Las respuestas pueden tardar más que Concierge, así que resume lo que necesitas.',
+        checkboxTooltip: 'Tu representante de soporte marcará esto cuando se resuelva.',
+        genericCreateSupportTicketFailureMessage: 'No pudimos crear este ticket de soporte. Descarta este error e inténtalo de nuevo.',
+        fallbackTitle: 'Ticket de soporte',
+    },
     statementPage: {
         title: (year, monthName) => `Estado de cuenta de ${monthName} ${year}`,
     },

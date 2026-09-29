@@ -9579,6 +9579,13 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         deleteTask: 'Usuń zadanie',
         deleteConfirmation: 'Czy na pewno chcesz usunąć to zadanie?',
     },
+    supportTicket: {
+        title: ({date, customer, supportRep}) => `Zgłoszenie do pomocy technicznej, ${date}: ${customer} i ${supportRep}`,
+        description: 'To rozmowa z pracownikiem pomocy technicznej. Odpowiedzi mogą trwać dłużej niż w Concierge, więc podsumuj, jakiej pomocy potrzebujesz.',
+        checkboxTooltip: 'Pracownik pomocy technicznej zaznaczy to po rozwiązaniu sprawy.',
+        genericCreateSupportTicketFailureMessage: 'Nie udało się utworzyć tego zgłoszenia. Zamknij ten błąd i spróbuj ponownie.',
+        fallbackTitle: 'Zgłoszenie do pomocy technicznej',
+    },
     statementPage: {
         title: (year: number | string, monthName: string) => `Wyciąg za ${monthName} ${year}`,
     },

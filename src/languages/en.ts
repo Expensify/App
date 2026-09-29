@@ -9808,6 +9808,13 @@ const translations = {
         deleteTask: 'Delete task',
         deleteConfirmation: 'Are you sure you want to delete this task?',
     },
+    supportTicket: {
+        title: ({date, customer, supportRep}: {date: string; customer: string; supportRep: string}) => `Support ticket, ${date}: ${customer} and ${supportRep}`,
+        description: 'This is a conversation with a human support representative. Replies may take longer than Concierge, so please summarize what you need help with.',
+        checkboxTooltip: 'Your support rep will check this when it is resolved.',
+        genericCreateSupportTicketFailureMessage: "We couldn't create this support ticket. Please dismiss this error and try again.",
+        fallbackTitle: 'Support ticket',
+    },
     statementPage: {
         title: (year: number | string, monthName: string) => `${monthName} ${year} statement`,
     },

@@ -9569,6 +9569,13 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         deleteTask: 'Taak verwijderen',
         deleteConfirmation: 'Weet je zeker dat je deze taak wilt verwijderen?',
     },
+    supportTicket: {
+        title: ({date, customer, supportRep}) => `Supportticket, ${date}: ${customer} en ${supportRep}`,
+        description: 'Dit is een gesprek met een menselijke supportmedewerker. Antwoorden kunnen langer duren dan bij Concierge, dus vat samen waarmee je hulp nodig hebt.',
+        checkboxTooltip: 'Je supportmedewerker vinkt dit aan wanneer het is opgelost.',
+        genericCreateSupportTicketFailureMessage: 'We konden dit supportticket niet maken. Sluit deze foutmelding en probeer het opnieuw.',
+        fallbackTitle: 'Supportticket',
+    },
     statementPage: {
         title: (year: number | string, monthName: string) => `Overzicht van ${monthName} ${year}`,
     },

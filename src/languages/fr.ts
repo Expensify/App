@@ -9673,6 +9673,13 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         deleteTask: 'Supprimer la tâche',
         deleteConfirmation: 'Voulez-vous vraiment supprimer cette tâche ?',
     },
+    supportTicket: {
+        title: ({date, customer, supportRep}) => `Ticket d’assistance, ${date} : ${customer} et ${supportRep}`,
+        description: 'Cette conversation est avec un représentant de l’assistance. Les réponses peuvent prendre plus de temps que Concierge, alors résumez ce dont vous avez besoin.',
+        checkboxTooltip: 'Votre représentant de l’assistance cochera cette case lorsque le ticket sera résolu.',
+        genericCreateSupportTicketFailureMessage: 'Nous n’avons pas pu créer ce ticket d’assistance. Fermez cette erreur et réessayez.',
+        fallbackTitle: 'Ticket d’assistance',
+    },
     statementPage: {
         title: (year: number | string, monthName: string) => `Relevé de ${monthName} ${year}`,
     },

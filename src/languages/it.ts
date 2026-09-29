@@ -9601,6 +9601,14 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         deleteTask: 'Elimina attività',
         deleteConfirmation: 'Sei sicuro di voler eliminare questa attività?',
     },
+    supportTicket: {
+        title: ({date, customer, supportRep}) => `Ticket di assistenza, ${date}: ${customer} e ${supportRep}`,
+        description:
+            'Questa è una conversazione con un rappresentante dell’assistenza. Le risposte potrebbero richiedere più tempo rispetto a Concierge, quindi riassumi ciò di cui hai bisogno.',
+        checkboxTooltip: 'Il tuo rappresentante dell’assistenza lo selezionerà quando sarà risolto.',
+        genericCreateSupportTicketFailureMessage: 'Non siamo riusciti a creare questo ticket di assistenza. Chiudi questo errore e riprova.',
+        fallbackTitle: 'Ticket di assistenza',
+    },
     statementPage: {
         title: (year: number | string, monthName: string) => `Estratto conto di ${monthName} ${year}`,
     },

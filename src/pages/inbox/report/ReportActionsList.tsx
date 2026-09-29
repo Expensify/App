@@ -44,6 +44,7 @@ import {
     isInvoiceReport,
     isIOUReport,
     isTaskReport,
+    isSupportTicket,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
@@ -367,6 +368,10 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
         if (isTaskReport(report)) {
             return !isCanceledTaskReport(report, parentReportAction);
+        }
+
+        if (isSupportTicket(report)) {
+            return true;
         }
 
         return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);

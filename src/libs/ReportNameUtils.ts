@@ -23,6 +23,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import {format} from 'date-fns';
 /**
  * This file contains utility functions for managing and computing report names
  */
@@ -185,6 +186,7 @@ import {
     isProcessingReport,
     isReportApproved,
     isSelfDM,
+    isSupportTicket,
     isSettled,
     isTaskReport,
     isThread,
@@ -218,6 +220,29 @@ type ComputeReportName = {
     pendingDeleteMemberAccountIDs?: string[];
     rules: OnyxCollection<Rule>;
 };
+
+function getSupportTicketReportName(report: Report, personalDetailsList: PersonalDetailsList | undefined, dateFnsLocale: DateFnsLocale | undefined, translate: LocalizedTranslate): string {
+    const customer = temporaryGetDisplayNameOrDefault({
+        passedPersonalDetails: report.ownerAccountID ? personalDetailsList?.[report.ownerAccountID] : undefined,
+        defaultValue: '',
+        shouldFallbackToHidden: false,
+        translate,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
+    });
+    const supportRep = temporaryGetDisplayNameOrDefault({
+        passedPersonalDetails: report.managerID ? personalDetailsList?.[report.managerID] : undefined,
+        defaultValue: '',
+        shouldFallbackToHidden: false,
+        translate,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
+    });
+
+    if (!report.created || !customer || !supportRep) {
+        return report.reportName || translate('supportTicket.fallbackTitle');
+    }
+
+    return translate('supportTicket.title', {date: format(new Date(report.created), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale}), customer, supportRep});
+}
 
 function generateArchivedReportName(reportName: string, translate: LocalizedTranslate): string {
     return `${reportName} (${translate('common.archived')}) `;
@@ -1234,6 +1259,10 @@ function computeReportName({
         const taskName = report?.reportName ?? '';
 
         return Parser.isHTML(taskName) ? Parser.htmlToText(taskName).trim() : taskName.trim();
+    }
+
+    if (isSupportTicket(report)) {
+        return getSupportTicketReportName(report, personalDetailsList, dateFnsLocale, translate);
     }
 
     const privateIsArchivedValue = !!allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;

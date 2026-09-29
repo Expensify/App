@@ -9835,6 +9835,13 @@ ${reportName}`,
         deleteTask: 'Διαγραφή εργασίας',
         deleteConfirmation: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτήν την εργασία;',
     },
+    supportTicket: {
+        title: ({date, customer, supportRep}) => `Αίτημα υποστήριξης, ${date}: ${customer} και ${supportRep}`,
+        description: 'Αυτή είναι μια συνομιλία με εκπρόσωπο υποστήριξης. Οι απαντήσεις μπορεί να διαρκέσουν περισσότερο από το Concierge, οπότε συνοψίστε τι χρειάζεστε.',
+        checkboxTooltip: 'Ο εκπρόσωπος υποστήριξής σας θα το επιλέξει όταν επιλυθεί.',
+        genericCreateSupportTicketFailureMessage: 'Δεν ήταν δυνατή η δημιουργία αυτού του αιτήματος υποστήριξης. Κλείστε αυτό το σφάλμα και δοκιμάστε ξανά.',
+        fallbackTitle: 'Αίτημα υποστήριξης',
+    },
     statementPage: {
         title: (year: number | string, monthName: string) => `αντίγραφο κίνησης ${monthName} ${year}`,
     },

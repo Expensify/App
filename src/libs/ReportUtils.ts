@@ -1501,7 +1501,7 @@ function isSupportTicket(report: OnyxInputOrEntry<Report>): boolean {
     return report?.type === CONST.REPORT.TYPE.SUPPORT_TICKET;
 }
 
-function isResolvedSupportTicket(report: OnyxInputOrEntry<Report>, parentReportAction: OnyxEntry<ReportAction> = null): boolean {
+function isResolvedSupportTicket(report: OnyxInputOrEntry<Report>, parentReportAction?: OnyxEntry<ReportAction>): boolean {
     if (!report) {
         return (
             parentReportAction?.childType === CONST.REPORT.TYPE.SUPPORT_TICKET &&
@@ -1878,7 +1878,7 @@ function isGroupChat(report: OnyxEntry<Report> | Partial<Report>): boolean {
  * so inviting is limited to the submitter and policy admins, and only while the report is still open.
  */
 function canInviteMembersToReport(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isReportArchived: boolean, currentUserAccountID?: number): boolean {
-    if (isReportArchived) {
+    if (isReportArchived || isSupportTicket(report)) {
         return false;
     }
     if (isGroupChat(report)) {
@@ -3436,7 +3436,7 @@ function getReportRecipientAccountIDs(report: OnyxEntry<Report>, currentLoginAcc
     let finalReport: OnyxEntry<Report> = report;
     // In 1:1 chat threads, the participants will be the same as parent report. If a report is specifically a 1:1 chat thread then we will
     // get parent report and use its participants array.
-    if (isThread(report) && !(isTaskReport(report) || isMoneyRequestReport(report))) {
+    if (isThread(report) && !(isTaskReport(report) || isSupportTicket(report) || isMoneyRequestReport(report))) {
         const parentReport = getReport(report?.parentReportID, deprecatedAllReports);
         if (isOneOnOneChat(parentReport)) {
             finalReport = parentReport;
@@ -7306,6 +7306,34 @@ function buildOptimisticTaskCommentReportAction(
     return reportAction;
 }
 
+function buildOptimisticSupportTicketCommentReportAction(
+    supportTicketReportID: string,
+    parentReportID: string,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+): OptimisticReportAction {
+    const reportAction = buildOptimisticAddCommentReportAction({
+        text: 'support ticket',
+        reportID: supportTicketReportID,
+        currentUserEmail,
+        currentUserAccountID,
+        delegateAccountIDParam: undefined,
+    });
+
+    reportAction.reportAction.originalMessage = {
+        html: getReportActionHtml(reportAction.reportAction),
+        whisperedTo: [],
+    };
+    reportAction.reportAction.childReportID = supportTicketReportID;
+    reportAction.reportAction.parentReportID = parentReportID;
+    reportAction.reportAction.childType = CONST.REPORT.TYPE.SUPPORT_TICKET;
+    reportAction.reportAction.childReportName = 'Support ticket';
+    reportAction.reportAction.childStatusNum = CONST.REPORT.STATUS_NUM.OPEN;
+    reportAction.reportAction.childStateNum = CONST.REPORT.STATE_NUM.OPEN;
+
+    return reportAction;
+}
+
 function buildOptimisticSelfDMReport(created: string, reportID?: string): Report {
     return {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -9681,6 +9709,25 @@ function buildOptimisticTaskReport(
     };
 }
 
+function buildOptimisticSupportTicketReport(ownerAccountID: number, parentReportID: string): Report {
+    const created = DateUtils.getDBTime();
+    return {
+        reportID: generateReportID(),
+        created,
+        reportName: 'Support ticket',
+        ownerAccountID,
+        participants: {
+            [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+        },
+        type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+        parentReportID,
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        lastVisibleActionCreated: created,
+        hasParentAccess: true,
+    };
+}
+
 /**
  * Builds an optimistic EXPORTED_TO_INTEGRATION report action
  *
@@ -10932,7 +10979,7 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport: OnyxInputOrEntry<Repo
 // TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
 function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, otherParticipants: number[], rules: OnyxCollection<Rule>, currentUserAccountID?: number): boolean {
     // User cannot submit expenses in a chat thread, task report or in a chat room
-    if (isChatThread(report) || isTaskReport(report) || isChatRoom(report) || isSelfDM(report) || isGroupChat(report)) {
+    if (isChatThread(report) || isTaskReport(report) || isSupportTicket(report) || isChatRoom(report) || isSelfDM(report) || isGroupChat(report)) {
         return false;
     }
 
@@ -11022,7 +11069,7 @@ function getMoneyRequestOptions(
     const isTeachersUniteReportValue = isTeachersUniteReport(report);
 
     // In any thread, task report or trip room, we do not allow any new expenses
-    if (isChatThread(report) || isTaskReport(report) || isInvoiceReport(report) || isSystemChat(report) || isReportArchived || isTripRoom(report)) {
+    if (isChatThread(report) || isTaskReport(report) || isSupportTicket(report) || isInvoiceReport(report) || isSystemChat(report) || isReportArchived || isTripRoom(report)) {
         return [];
     }
 
@@ -11384,7 +11431,7 @@ function canCreateRequest(
 ): boolean {
     const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
 
-    if (!canUserPerformWriteAction(report, isReportArchived)) {
+    if (isSupportTicket(report) || !canUserPerformWriteAction(report, isReportArchived)) {
         return false;
     }
 
@@ -14546,6 +14593,8 @@ export {
     buildOptimisticSubmittedReportAction,
     buildOptimisticTaskCommentReportAction,
     buildOptimisticTaskReport,
+    buildOptimisticSupportTicketCommentReportAction,
+    buildOptimisticSupportTicketReport,
     buildOptimisticTaskReportAction,
     buildOptimisticUnHoldReportAction,
     buildOptimisticAnnounceChat,

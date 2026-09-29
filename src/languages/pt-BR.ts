@@ -9567,6 +9567,13 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         deleteTask: 'Excluir tarefa',
         deleteConfirmation: 'Tem certeza de que deseja excluir esta tarefa?',
     },
+    supportTicket: {
+        title: ({date, customer, supportRep}) => `Chamado de suporte, ${date}: ${customer} e ${supportRep}`,
+        description: 'Esta é uma conversa com um representante humano de suporte. As respostas podem demorar mais do que no Concierge, então resuma a ajuda de que você precisa.',
+        checkboxTooltip: 'Seu representante de suporte marcará isto quando for resolvido.',
+        genericCreateSupportTicketFailureMessage: 'Não foi possível criar este chamado de suporte. Feche este erro e tente novamente.',
+        fallbackTitle: 'Chamado de suporte',
+    },
     statementPage: {
         title: (year: number | string, monthName: string) => `Extrato de ${monthName} de ${year}`,
     },

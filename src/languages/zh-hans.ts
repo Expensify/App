@@ -9208,6 +9208,13 @@ ${reportName}`,
         deleteTask: '删除任务',
         deleteConfirmation: '确定要删除此任务吗？',
     },
+    supportTicket: {
+        title: ({date, customer, supportRep}) => `支持工单，${date}: ${customer} 和 ${supportRep}`,
+        description: '这是与人工支持代表的对话。回复可能比 Concierge 更慢，请概括您需要的帮助。',
+        checkboxTooltip: '问题解决后，您的支持代表会勾选此项。',
+        genericCreateSupportTicketFailureMessage: '无法创建此支持工单。请关闭此错误后重试。',
+        fallbackTitle: '支持工单',
+    },
     statementPage: {
         title: (year: number | string, monthName: string) => `${year}年${monthName}对账单`,
     },

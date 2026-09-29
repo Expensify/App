@@ -9647,6 +9647,14 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         deleteTask: 'Aufgabe löschen',
         deleteConfirmation: 'Sind Sie sicher, dass Sie diese Aufgabe löschen möchten?',
     },
+    supportTicket: {
+        title: ({date, customer, supportRep}) => `Support-Ticket, ${date}: ${customer} und ${supportRep}`,
+        description:
+            'Dies ist eine Unterhaltung mit einem menschlichen Support-Mitarbeiter. Antworten können länger dauern als bei Concierge. Bitte fasse zusammen, wobei du Hilfe benötigst.',
+        checkboxTooltip: 'Dein Support-Mitarbeiter markiert dies als erledigt.',
+        genericCreateSupportTicketFailureMessage: 'Dieses Support-Ticket konnte nicht erstellt werden. Bitte schließe diesen Fehler und versuche es erneut.',
+        fallbackTitle: 'Support-Ticket',
+    },
     statementPage: {
         title: (year: number | string, monthName: string) => `Abrechnung ${monthName} ${year}`,
     },

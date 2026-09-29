@@ -9462,6 +9462,13 @@ ${reportName}`,
         deleteTask: 'タスクを削除',
         deleteConfirmation: 'このタスクを削除してもよろしいですか？',
     },
+    supportTicket: {
+        title: ({date, customer, supportRep}) => `サポートチケット、${date}: ${customer} と ${supportRep}`,
+        description: 'これは人間のサポート担当者との会話です。返信にはConciergeより時間がかかる場合があるため、必要な支援をまとめてください。',
+        checkboxTooltip: '解決時にサポート担当者がこれをチェックします。',
+        genericCreateSupportTicketFailureMessage: 'このサポートチケットを作成できませんでした。このエラーを閉じて、もう一度お試しください。',
+        fallbackTitle: 'サポートチケット',
+    },
     statementPage: {
         title: (year: number | string, monthName: string) => `${year}年${monthName}の明細書`,
     },

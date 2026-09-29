@@ -206,6 +206,7 @@ const WRITE_COMMANDS = {
     DELETE_POLICY_TAGS: 'DeletePolicyTags',
     UPDATE_POLICY_TAG_GL_CODE: 'UpdatePolicyTagGLCode',
     CREATE_TASK: 'CreateTask',
+    CREATE_SUPPORT_TICKET: 'CreateSupportTicket',
     CANCEL_TASK: 'CancelTask',
     EDIT_TASK_ASSIGNEE: 'EditTaskAssignee',
     EDIT_TASK: 'EditTask',
@@ -931,6 +932,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_POLICY_TAGS_ENABLED]: Parameters.SetPolicyTagsEnabled;
     [WRITE_COMMANDS.DELETE_POLICY_TAGS]: Parameters.DeletePolicyTagsParams;
     [WRITE_COMMANDS.CREATE_TASK]: Parameters.CreateTaskParams;
+    [WRITE_COMMANDS.CREATE_SUPPORT_TICKET]: Parameters.CreateSupportTicketParams;
     [WRITE_COMMANDS.CANCEL_TASK]: Parameters.CancelTaskParams;
     [WRITE_COMMANDS.EDIT_TASK_ASSIGNEE]: Parameters.EditTaskAssigneeParams;
     [WRITE_COMMANDS.EDIT_TASK]: Parameters.EditTaskParams;
