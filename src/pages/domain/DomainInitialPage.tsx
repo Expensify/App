@@ -119,7 +119,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                     <Header.BackButton onPress={() => Navigation.goBack(ROUTES.DOMAINS_LIST.route)} />
                     <Header.Title
                         title={domainName ?? ''}
-                        shouldUseHeadlineHeader
+                        isHeadline
                     />
                     <Header.Right>
                         {shouldUseNarrowLayout && <SidePanelButton />}

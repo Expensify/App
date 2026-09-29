@@ -10,8 +10,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import Navigation from '@navigation/Navigation';
-
 import React from 'react';
 import {View} from 'react-native';
 
@@ -78,10 +76,10 @@ function BaseDomainMembersPage({
                 testID="BaseDomainMembersPage"
             >
                 <Header>
-                    {shouldUseNarrowLayout && <Header.BackButton onPress={onBackButtonPress ?? Navigation.goBack} />}
+                    {shouldUseNarrowLayout && <Header.BackButton onPress={onBackButtonPress} />}
                     <Header.Title
                         title={useSelectionModeHeader ? translate('common.selectMultiple') : headerTitle}
-                        shouldUseHeadlineHeader={!useSelectionModeHeader}
+                        isHeadline={!useSelectionModeHeader}
                     />
                     <Header.Right>
                         {!shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
