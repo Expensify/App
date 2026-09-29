@@ -1,22 +1,52 @@
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- baseProps is a minimal test fixture; casting via `as unknown` keeps the test focused on mount-stability instead of dragging in every field of WithCurrentUserPersonalDetailsProps */
-import {render} from '@testing-library/react-native';
+import {act, render, renderHook} from '@testing-library/react-native';
 
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
-import {NavigateGlobalCreateProvider} from '@pages/iou/request/step/IOURequestStepScan/components/NavigateGlobalCreateContext';
+import Navigation from '@libs/Navigation/Navigation';
+
+import {NavigateGlobalCreateProvider, useNavigateGlobalCreate} from '@pages/iou/request/step/IOURequestStepScan/components/NavigateGlobalCreateContext';
 
 import CONST from '@src/CONST';
+import type {IOUType} from '@src/CONST';
+import type {Report} from '@src/types/onyx';
 
 import React, {useEffect} from 'react';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-// Stub the heavy hooks the Subscriber pulls in — this test only cares about
-// mount stability of the children subtree across the isReady transition.
+const SELF_DM_REPORT = {reportID: 'selfDM1', chatType: CONST.REPORT.CHAT_TYPE.SELF_DM} as Report;
+
+let mockSelfDMReport: Report | undefined;
+
 jest.mock('@hooks/useDefaultExpensePolicy', () => ({__esModule: true, default: () => undefined}));
 jest.mock('@hooks/usePersonalPolicy', () => ({__esModule: true, default: () => undefined}));
-jest.mock('@hooks/useSelfDMReport', () => ({__esModule: true, default: () => undefined}));
+jest.mock('@hooks/useSelfDMReport', () => ({__esModule: true, default: () => mockSelfDMReport}));
 jest.mock('@hooks/useOnyx', () => ({__esModule: true, default: () => [undefined]}));
+
+jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
+jest.mock('@libs/telemetry/activeSpans', () => ({endSpan: jest.fn()}));
+jest.mock('@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan', () => ({__esModule: true, default: jest.fn()}));
+jest.mock('@pages/iou/request/step/IOURequestStepScan/utils/endScanProcessAndStartConfirmationMountSpan', () => ({__esModule: true, default: jest.fn()}));
+
+const mockNavigateToParticipantPage = jest.fn();
+jest.mock('@libs/IOUUtils', () => ({
+    navigateToParticipantPage: (...args: unknown[]) => {
+        mockNavigateToParticipantPage(...args);
+    },
+    navigateToConfirmationPage: jest.fn(),
+}));
+
+const mockSetTransactionReport = jest.fn();
+jest.mock('@userActions/Transaction', () => ({
+    setTransactionReport: (...args: unknown[]) => {
+        mockSetTransactionReport(...args);
+    },
+}));
+jest.mock('@userActions/IOU/MoneyRequest', () => ({
+    setMoneyRequestParticipants: jest.fn(() => Promise.resolve()),
+    setMoneyRequestParticipantsFromReport: jest.fn(() => Promise.resolve()),
+}));
 
 const baseProps = {
     iouType: CONST.IOU.TYPE.CREATE,
@@ -26,7 +56,7 @@ const baseProps = {
     backToReport: undefined,
     currentUserPersonalDetails: {accountID: 1, login: 'a@b.com'},
 } as unknown as WithCurrentUserPersonalDetailsProps & {
-    iouType: typeof CONST.IOU.TYPE.CREATE;
+    iouType: IOUType;
     reportID: string;
     transactionID: string;
     transaction: undefined;
@@ -34,6 +64,11 @@ const baseProps = {
 };
 
 describe('NavigateGlobalCreateProvider', () => {
+    beforeEach(() => {
+        mockSelfDMReport = undefined;
+        jest.clearAllMocks();
+    });
+
     it('does not remount children across the isReady transition', async () => {
         const onMount = jest.fn();
 
@@ -59,5 +94,36 @@ describe('NavigateGlobalCreateProvider', () => {
         // flip, React would tear down and rebuild the children subtree — the
         // Camera would remount, and onMount would fire a second time.
         expect(onMount).toHaveBeenCalledTimes(1);
+    });
+
+    it('routes a track expense to the self DM confirmation instead of the recipient picker', async () => {
+        // Given the Manual tab already settled a submissions-disabled expense on the self DM, which flipped the shared route to TRACK
+        mockSelfDMReport = SELF_DM_REPORT;
+
+        function TrackProvider({children}: {children: React.ReactNode}) {
+            return (
+                <NavigateGlobalCreateProvider
+                    {...baseProps}
+                    iouType={CONST.IOU.TYPE.TRACK}
+                >
+                    {children}
+                </NavigateGlobalCreateProvider>
+            );
+        }
+
+        const {result} = renderHook(() => useNavigateGlobalCreate(), {wrapper: TrackProvider});
+
+        await waitForBatchedUpdates();
+        await waitForBatchedUpdates();
+
+        // When a receipt is captured on the Scan tab, after the Subscriber has published its navigate function
+        act(() => result.current(['t1'], false));
+        await waitForBatchedUpdates();
+        await waitForBatchedUpdates();
+
+        // Then the scan opens the self DM confirmation, because the route type already resolved the destination
+        expect(mockNavigateToParticipantPage).not.toHaveBeenCalled();
+        expect(mockSetTransactionReport).toHaveBeenCalledWith('t1', {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
+        expect(Navigation.navigate).toHaveBeenCalledWith(expect.stringContaining(`create/${CONST.IOU.TYPE.TRACK}/confirmation/t1/${SELF_DM_REPORT.reportID}`));
     });
 });
