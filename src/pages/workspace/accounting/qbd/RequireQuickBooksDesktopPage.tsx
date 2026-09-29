@@ -31,10 +31,7 @@ function RequireQuickBooksDesktopModal() {
             testID="RequireQuickBooksDesktopModal"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('workspace.qbd.qbdSetup')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('workspace.qbd.qbdSetup')} />
             <View style={[styles.flex1, styles.gap2]}>
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, styles.ph5]}>
                     <View style={[styles.alignSelfCenter, styles.pendingStateCardIllustration]}>

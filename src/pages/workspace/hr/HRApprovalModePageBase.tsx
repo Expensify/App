@@ -128,10 +128,7 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
                 shouldEnableMaxHeight
                 testID={config.testID}
             >
-                <HeaderWithBackButtonAndTitle
-                    title={config.getHeaderTitle(providerName)}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={config.getHeaderTitle(providerName)} />
                 <View style={styles.flex1}>
                     <Text style={[styles.textSupporting, styles.ph5, styles.mt3, styles.mb3]}>{translate('workspace.hr.approvalModeDescription', providerName)}</Text>
                     <SelectionList

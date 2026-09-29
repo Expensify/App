@@ -144,10 +144,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
             shouldShowOfflineIndicatorInWideScreen
             testID="RequireQuickBooksDesktopModal"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('workspace.qbd.qbdSetup')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('workspace.qbd.qbdSetup')} />
             {hasResultOfFetchingSetupLink ? children : <FullPageOfflineBlockingView addBottomSafeAreaPadding>{children}</FullPageOfflineBlockingView>}
         </ScreenWrapper>
     );

@@ -60,10 +60,7 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
             testID="EnterSageIntacctCredentialsPage"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('workspace.intacct.sageIntacctSetup')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('workspace.intacct.sageIntacctSetup')} />
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM}

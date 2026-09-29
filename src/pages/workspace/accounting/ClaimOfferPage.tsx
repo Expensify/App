@@ -152,10 +152,7 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
                 shouldEnableMaxHeight
                 testID={ClaimOfferPage.displayName}
             >
-                <HeaderWithBackButtonAndTitle
-                    title={config.headerTitle}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={config.headerTitle} />
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}>
                     <View style={[styles.flexGrow1, styles.justifyContentCenter]}>
                         <View style={[styles.alignItemsCenter, styles.mb5]}>
