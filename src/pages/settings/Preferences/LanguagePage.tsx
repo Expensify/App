@@ -58,10 +58,7 @@ function LanguagePage() {
             enableEdgeToEdgeBottomSafeAreaPadding
             testID="LanguagePage"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('languagePage.language')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('languagePage.language')} />
             <FullPageOfflineBlockingView>
                 <SelectionList
                     data={locales}

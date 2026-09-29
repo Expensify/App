@@ -11,7 +11,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openExternalLink} from '@libs/actions/Link';
-import Navigation from '@libs/Navigation/Navigation';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
@@ -26,10 +25,7 @@ function AppDownloadLinksPage() {
 
     return (
         <ScreenWrapper testID="AppDownloadLinksPage">
-            <HeaderWithBackButtonAndTitle
-                title={translate('initialSettingsPage.aboutPage.appDownloadLinks')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('initialSettingsPage.aboutPage.appDownloadLinks')} />
 
             <QRShare
                 url={CONST.EXPENSIFY_MOBILE_URL}

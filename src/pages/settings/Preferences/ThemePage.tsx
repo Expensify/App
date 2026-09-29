@@ -10,8 +10,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import Navigation from '@libs/Navigation/Navigation';
-
 import {getBaseTheme, getContrastTheme, isHighContrastTheme} from '@styles/theme/utils';
 
 import {updateTheme as updateThemeUserAction} from '@userActions/User';
@@ -74,10 +72,7 @@ function ThemePage() {
             enableEdgeToEdgeBottomSafeAreaPadding
             testID="ThemePage"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('themePage.theme')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('themePage.theme')} />
             <Text style={[styles.mh5, styles.mv4]}>{translate('themePage.chooseThemeBelowOrSync')}</Text>
             <View style={styles.flex1}>
                 <SelectionList

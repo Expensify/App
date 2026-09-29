@@ -9,7 +9,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateChatPriorityMode} from '@libs/actions/User';
-import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,10 +61,7 @@ function PriorityModePage() {
             enableEdgeToEdgeBottomSafeAreaPadding
             testID="PriorityModePage"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('priorityModePage.priorityMode')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('priorityModePage.priorityMode')} />
             <Text style={[styles.mh5, styles.mv3]}>{translate('priorityModePage.explainerText')}</Text>
             <SelectionList
                 data={priorityModes}
