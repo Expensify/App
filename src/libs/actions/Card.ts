@@ -17,6 +17,7 @@ import type {
     SetPersonalCardReimbursableParams,
     StartIssueNewCardFlowParams,
     UnassignCardParams,
+    UpdateCardSettlementFrequencyParams,
     UpdateCardTransactionStartDateParams,
     UpdateCompanyCardNameParams,
     UpdateExpensifyCardLimitParams,
@@ -25,7 +26,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CardProgramKey} from '@libs/CardUtils';
-import {getTranslationKeyForLimitType} from '@libs/CardUtils';
+import {buildCardFeedKey, getFeedCountryForCardProgram, getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -701,9 +702,10 @@ function updateSettlementFrequency(
         },
     ];
 
-    const parameters = {
+    const parameters: UpdateCardSettlementFrequencyParams = {
         policyAccountID: workspaceAccountID,
         settlementFrequency,
+        feedCountry: getFeedCountryForCardProgram(programKey),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY, parameters, {optimisticData, successData, failureData});
@@ -1429,7 +1431,14 @@ function configureExpensifyCardsForPolicy(policyID: string, workspaceAccountID: 
     });
 }
 
-function issueExpensifyCard(domainAccountID: number, policyID: string | undefined, validateCode: string, timeZone: SelectedTimezone | undefined, data?: IssueNewCardData) {
+function issueExpensifyCard(
+    domainAccountID: number,
+    policyID: string | undefined,
+    feedCountry: string,
+    validateCode: string,
+    timeZone: SelectedTimezone | undefined,
+    data?: IssueNewCardData,
+) {
     if (!data) {
         return;
     }
@@ -1481,6 +1490,7 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
         limit,
         limitType,
         cardTitle,
+        feedCountry,
         validateCode,
         domainAccountID,
     };
@@ -1549,6 +1559,7 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
         WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD,
         {
             ...parameters,
+            feedCountry,
             policyID,
             validFrom: validFrom ? DateUtils.normalizeDateToStartOfDay(validFrom, timeZone) : undefined,
             validThru: validThru ? DateUtils.normalizeDateToEndOfDay(validThru, timeZone) : undefined,
@@ -1702,18 +1713,15 @@ function updateSelectedFeed(feed: CompanyCardFeedWithDomainID, policyID: string 
     ]);
 }
 
-function updateSelectedExpensifyCardFeed(feed: number, policyID: string | undefined) {
+function updateSelectedExpensifyCardFeed(feed: number, policyID: string | undefined, programKey: CardProgramKey) {
     if (!policyID) {
         return;
     }
 
-    Onyx.update([
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`,
-            value: feed,
-        },
-    ]);
+    // A single feed (fundID) can hold more than one program (US/GB), so the selection is stored as a `fundID_programKey`
+    // composite. Keeping both in one value makes it impossible for the feed and program to drift apart, so the card list,
+    // currency and details always resolve to the right program.
+    Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`, buildCardFeedKey(feed, programKey));
 }
 
 function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: number) {

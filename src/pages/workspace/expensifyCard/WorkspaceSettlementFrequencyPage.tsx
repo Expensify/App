@@ -4,13 +4,13 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateSettlementFrequency as updateSettlementFrequencyUtil} from '@libs/actions/Card';
-import {getCardProgramKey, getCardSettings} from '@libs/CardUtils';
+import {getCardSettings} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -34,10 +34,9 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
-    const defaultFundID = useDefaultFundID(policyID);
+    const {fundID: defaultFundID, programKey} = useDefaultCardFeed(policyID);
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const programKey = getCardProgramKey(cardSettings);
     const settings = getCardSettings(cardSettings, programKey);
 
     const shouldShowMonthlyOption = settings?.isMonthlySettlementAllowed ?? false;

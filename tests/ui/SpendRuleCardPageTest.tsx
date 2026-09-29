@@ -61,7 +61,7 @@ jest.mock('@hooks/useLazyAsset', () => ({useMemoizedLazyIllustrations: jest.fn((
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 jest.mock('@hooks/useCanWriteCardSpendRules', () => jest.fn(() => true));
 jest.mock('@hooks/useControlOnlyRuleUpgradeRedirect', () => jest.fn());
-jest.mock('@hooks/useDefaultFundID', () => jest.fn(() => 'fund1'));
+jest.mock('@hooks/useDefaultCardFeed', () => jest.fn(() => ({fundID: 1, programKey: 'US'})));
 jest.mock('@hooks/usePressLoading', () => jest.fn(() => ({isLoading: false, startWithLoading: (fn: () => void) => fn()})));
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({

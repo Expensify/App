@@ -7,10 +7,13 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
 
+import type {CardProgramKey} from './CardUtils';
+
 import {
     getDomainByFundID,
     getDomainNameFromExpensifyCardSettings,
     getFundIdFromSettingsKey,
+    getLinkedPolicyIDsForExpensifyCardProgram,
     getLinkedPolicyIDsFromExpensifyCardSettings,
     getPreferredPolicyFromExpensifyCardSettings,
     isPolicyIDInLinkedExpensifyCardPolicyList,
@@ -22,42 +25,39 @@ type ExpensifyCardFeedEntry = {
     settingsKey: string;
     fundID: number;
     settings: ExpensifyCardSettings;
+
+    /**
+     * The card or travel program this entry represents. A single settings NVP can hold more than one provisioned program,
+     * in which case each program gets its own entry (and its own selector row) that shares the same `fundID`.
+     */
+    programKey: CardProgramKey;
 };
 
 /** Which program blocks of the card settings NVP count as a configured feed. Regular card feeds use US/GB; Travel Billing uses TRAVEL_US. */
-type ExpensifyCardFeedProgram = 'US' | 'CURRENT' | 'GB' | 'TRAVEL_US';
+type ExpensifyCardFeedProgram = CardProgramKey;
 
 const DEFAULT_CARD_FEED_PROGRAMS: ExpensifyCardFeedProgram[] = [CONST.COUNTRY.US, CONST.COUNTRY.GB];
 
-/** A feed qualifies when a program block has a settlement method: a bank account for cards, or a bank account or pay-by-invoice for travel. */
-function hasConfiguredExpensifyCardFeed(settings: ExpensifyCardSettings | undefined, programs: ExpensifyCardFeedProgram[]): boolean {
+/** Returns the requested program blocks that have a settlement method: a bank account for cards, or a bank account or pay-by-invoice for travel. */
+function getConfiguredExpensifyCardFeedPrograms(settings: ExpensifyCardSettings | undefined, programs: ExpensifyCardFeedProgram[]): ExpensifyCardFeedProgram[] {
     if (!settings) {
-        return false;
+        return [];
     }
 
-    for (const programKey of programs) {
+    return programs.filter((programKey) => {
         const nested = settings[programKey];
         if (!nested || typeof nested !== 'object' || Array.isArray(nested)) {
-            continue;
+            return false;
         }
         if (programKey === CONST.TRAVEL.PROGRAM_TRAVEL_US) {
-            if (hasTravelBillingSettlementAccount(nested) || getIsTravelBillingPayByInvoice(nested)) {
-                return true;
-            }
-            continue;
+            return hasTravelBillingSettlementAccount(nested) || getIsTravelBillingPayByInvoice(nested);
         }
-        if (nested.paymentBankAccountID != null) {
-            return true;
-        }
-    }
-
-    return false;
+        return nested.paymentBankAccountID != null;
+    });
 }
 
 /**
- * Determines whether an Expensify card feed should be visible to the current user.
- *
- * A feed is gathered from one of two sources, regardless of its `linkedPolicyIDs`:
+ * Whether the current user administers the feed backed by `fundID`, from one of two sources regardless of `linkedPolicyIDs`:
  *  1. The user is an admin of the domain whose account ID matches the feed's fundID.
  *  2. The user is an admin of a non-deleted policy whose `policyAccountID` matches the feed's
  *     fundID (i.e. the fund backs that workspace account).
@@ -66,18 +66,7 @@ function hasConfiguredExpensifyCardFeed(settings: ExpensifyCardSettings | undefi
  * separately by `isFeedPrimaryForPolicy` using `linkedPolicyIDs`. There is intentionally no
  * decision based on `preferredPolicy` (oldDot-only) nor on whether a card has been issued.
  */
-function isExpensifyCardFeedVisibleToAdmin(
-    settings: ExpensifyCardSettings,
-    policies: OnyxCollection<Policy>,
-    fundID: number,
-    domains: OnyxCollection<Domain>,
-    currentUserAccountID: number,
-    programs: ExpensifyCardFeedProgram[],
-): boolean {
-    if (!hasConfiguredExpensifyCardFeed(settings, programs)) {
-        return false;
-    }
-
+function isExpensifyCardFeedAdmin(policies: OnyxCollection<Policy>, fundID: number, domains: OnyxCollection<Domain>, currentUserAccountID: number): boolean {
     // Source 1: the user is an admin of the domain whose ID matches the fundID.
     const domain = getDomainByFundID(domains, fundID);
     if (isAdminSelector(currentUserAccountID)(domain)) {
@@ -90,9 +79,13 @@ function isExpensifyCardFeedVisibleToAdmin(
     );
 }
 
-/** A feed shows as available for a policy when that policy is in the feed's `linkedPolicyIDs`; otherwise it shows under "From other workspaces". */
+/**
+ * A feed shows as available for a policy when that policy is in the linked list for the entry's own program; otherwise it
+ * shows under "From other workspaces". A domain with more than one program links each program independently, so linking a
+ * policy to the US program must not make the GB program show as available for that policy (and vice versa).
+ */
 function isFeedPrimaryForPolicy(entry: ExpensifyCardFeedEntry, policyID: string): boolean {
-    return isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIDsFromExpensifyCardSettings(entry.settings), policyID);
+    return isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIDsForExpensifyCardProgram(entry.settings, entry.programKey), policyID);
 }
 
 function getAdminExpensifyCardFeedEntries(
@@ -106,11 +99,17 @@ function getAdminExpensifyCardFeedEntries(
         if (!settings) {
             return [];
         }
-        const fundID = getFundIdFromSettingsKey(settingsKey);
-        if (!isExpensifyCardFeedVisibleToAdmin(settings, policies, fundID, domains, currentUserAccountID, programs)) {
+        // A domain provisioned with more than one requested program yields one entry per configured program so each
+        // renders as its own selector row.
+        const programKeys = getConfiguredExpensifyCardFeedPrograms(settings, programs);
+        if (programKeys.length === 0) {
             return [];
         }
-        return [{settingsKey, fundID, settings}];
+        const fundID = getFundIdFromSettingsKey(settingsKey);
+        if (!isExpensifyCardFeedAdmin(policies, fundID, domains, currentUserAccountID)) {
+            return [];
+        }
+        return programKeys.map((programKey) => ({settingsKey, fundID, settings, programKey}));
     });
 }
 

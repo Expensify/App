@@ -12,6 +12,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const workspaceAccountID = 22588762;
 const programKey = CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT;
+const feedCountry = CONST.COUNTRY.US;
 const settingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}` as const;
 
 // The day the workspace already settles on, standing in for what the backend previously sent.
@@ -137,10 +138,20 @@ describe('actions/Card', () => {
             expect(getLastSettlementFrequencyRequestParams()).toEqual(
                 expect.objectContaining({
                     policyAccountID: String(workspaceAccountID),
+                    feedCountry,
                     settlementFrequency: CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY,
                 }),
             );
             expect(getLastSettlementFrequencyRequestParams()).not.toHaveProperty('monthlySettlementDate');
+        });
+
+        it('derives the API feed country from the selected program', async () => {
+            updateSettlementFrequency(workspaceAccountID, CONST.COUNTRY.GB, CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY);
+            await waitForBatchedUpdates();
+            await mockFetch.resume?.();
+            await waitForBatchedUpdates();
+
+            expect(getLastSettlementFrequencyRequestParams()).toEqual(expect.objectContaining({feedCountry: CONST.COUNTRY.GB}));
         });
     });
 });

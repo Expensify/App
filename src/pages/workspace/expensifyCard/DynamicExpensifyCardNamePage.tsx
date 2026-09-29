@@ -6,7 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -35,7 +35,7 @@ type DynamicExpensifyCardNamePageProps = PlatformStackScreenProps<SettingsNaviga
 
 function DynamicExpensifyCardNamePage({route}: DynamicExpensifyCardNamePageProps) {
     const {policyID, cardID} = route.params;
-    const defaultFundID = useDefaultFundID(policyID);
+    const {fundID: defaultFundID} = useDefaultCardFeed(policyID);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.EXPENSIFY_CARD_NAME.path);
 
     const {translate} = useLocalize();

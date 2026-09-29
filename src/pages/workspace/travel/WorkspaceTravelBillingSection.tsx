@@ -9,7 +9,7 @@ import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultTravelFeed from '@hooks/useDefaultTravelFeed';
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -76,9 +76,8 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const defaultFundID = useDefaultFundID(policyID);
+    const {fundID: defaultFundID} = useDefaultTravelFeed(policyID);
     const {allFeeds: accessibleTravelFeeds} = useExpensifyCardFeedsForFeedSelector(policyID, [CONST.TRAVEL.PROGRAM_TRAVEL_US]);
-
     const {showConfirmModal, closeModal} = useConfirmModal();
 
     // Ref to track if the "Update to USD" modal is open

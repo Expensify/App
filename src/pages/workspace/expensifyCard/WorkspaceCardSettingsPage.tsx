@@ -6,7 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import TextLink from '@components/TextLink';
 
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearCashbackToBillError, toggleCashbackToBill} from '@libs/actions/Card';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import {getCardProgramKey, getCardSettings, toMonthlySettlementDate} from '@libs/CardUtils';
+import {getCardSettings, toMonthlySettlementDate} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
@@ -42,12 +42,11 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
     const policyID = route.params?.policyID;
-    const defaultFundID = useDefaultFundID(policyID);
+    const {fundID: defaultFundID, programKey} = useDefaultCardFeed(policyID);
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const settings = getCardSettings(cardSettings);
-    const programKey = getCardProgramKey(cardSettings);
+    const settings = getCardSettings(cardSettings, programKey);
     const privateSubscription = usePrivateSubscription();
     const isUSProgram = programKey === CONST.COUNTRY.US || programKey === CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT;
     const shouldShowCashbackToggle = isUSProgram && !isSubscriptionTypeOfInvoicing(privateSubscription?.type);

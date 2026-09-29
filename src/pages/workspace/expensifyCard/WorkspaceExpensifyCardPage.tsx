@@ -1,7 +1,7 @@
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -9,7 +9,7 @@ import usePolicy from '@hooks/usePolicy';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
-import {filterInactiveCardsForWorkspace, getCardSettings} from '@libs/CardUtils';
+import {filterCardsListByProgram, filterInactiveCardsForWorkspace, getCardSettings} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 
@@ -33,17 +33,20 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.expensifyCard');
-    const defaultFundID = useDefaultFundID(policyID);
+    const {fundID: defaultFundID, programKey: selectedProgramKey} = useDefaultCardFeed(policyID);
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const settings = getCardSettings(cardSettings);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCardsForWorkspace});
+    const settings = getCardSettings(cardSettings, selectedProgramKey);
+    const [allProgramsCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCardsForWorkspace});
+
+    // A single fund can hold both programs' cards in one Onyx list, so keep only the selected program's cards.
+    const cardsList = filterCardsListByProgram(allProgramsCardsList, selectedProgramKey);
     const [cardsPageLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE}${policyID}`);
 
     const fetchExpensifyCards = useCallback(() => {
-        updateSelectedExpensifyCardFeed(defaultFundID, policyID);
+        updateSelectedExpensifyCardFeed(defaultFundID, policyID, selectedProgramKey);
         openPolicyExpensifyCardsPage(policyID, defaultFundID);
-    }, [policyID, defaultFundID]);
+    }, [policyID, defaultFundID, selectedProgramKey]);
 
     const {isOffline} = useNetwork({onReconnect: fetchExpensifyCards});
 
@@ -77,6 +80,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
                 <WorkspaceExpensifyCardListPage
                     cardsList={cardsList}
                     fundID={defaultFundID}
+                    programKey={selectedProgramKey}
                     route={route}
                 />
             );
