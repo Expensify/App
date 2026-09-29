@@ -56,7 +56,7 @@ describe('resolveComparisonWindows', () => {
 
     it('compares a custom range against the range of the same length before it, named by its length', () => {
         // When the page reports on ten days in March
-        const windows = resolveComparisonWindows({after: '2026-03-11', before: '2026-03-20'}, translateLocal);
+        const windows = resolveComparisonWindows({from: '2026-03-11', to: '2026-03-20'}, translateLocal);
 
         // Then the compared window is the ten days ending the day before it starts
         expect(windows?.current.range).toEqual({start: '2026-03-11', end: '2026-03-20'});
@@ -67,7 +67,7 @@ describe('resolveComparisonWindows', () => {
 
     it('names a custom range that covers whole months in months', () => {
         // When the page reports on a quarter
-        const windows = resolveComparisonWindows({after: '2026-04-01', before: '2026-06-30'}, translateLocal);
+        const windows = resolveComparisonWindows({from: '2026-04-01', to: '2026-06-30'}, translateLocal);
 
         // Then the compared window is the quarter before it, named in months rather than days
         expect(windows?.previous.range).toEqual({start: '2026-01-01', end: '2026-03-31'});
@@ -76,7 +76,7 @@ describe('resolveComparisonWindows', () => {
 
     it('compares a single day against the day before it', () => {
         // When the page reports on one day
-        const windows = resolveComparisonWindows({after: '2026-12-03', before: '2026-12-03'}, translateLocal);
+        const windows = resolveComparisonWindows({on: '2026-12-03'}, translateLocal);
 
         // Then both windows are named by their date
         expect(windows?.current.range).toEqual({start: '2026-12-03', end: '2026-12-03'});

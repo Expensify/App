@@ -1256,6 +1256,11 @@ const translations = {
             label: 'Compare',
             previousPeriod: 'Previous period',
             average: 'Average',
+            yearToDate: (year: number) => `YTD ${year}`,
+            lastTwelveMonths: 'Last 12 months',
+            changeAgainst: (change: number, period: string) => `${change > 0 ? '+' : ''}${change}% vs ${period}`,
+            priorMonths: (count: number) => `Prior ${count} months`,
+            priorDays: (count: number) => `Prior ${count} days`,
         },
         emptyState: {
             title: 'Nothing to show',
@@ -1264,13 +1269,6 @@ const translations = {
         noExpensesState: {
             title: 'See where your money goes',
             subtitle: 'Once you have expenses, you’ll find spending trends, top merchants, and more.',
-        },
-        compare: {
-            yearToDate: (year: number) => `YTD ${year}`,
-            lastTwelveMonths: 'Last 12 months',
-            changeAgainst: (change: number, period: string) => `${change > 0 ? '+' : ''}${change}% vs ${period}`,
-            priorMonths: (count: number) => `Prior ${count} months`,
-            priorDays: (count: number) => `Prior ${count} days`,
         },
     },
     allSettingsScreen: {

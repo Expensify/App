@@ -59,7 +59,7 @@ function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, onGrou
     const groupBy = queryJSON?.groupBy;
     const windows = resolveComparisonWindows(filters.date, translate);
     const comparison =
-        isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE) && previousPeriodData && windows
+        isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE) && filters.compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD && previousPeriodData && windows
             ? {
                   data: previousPeriodData,
                   current: {...windows.current, color: chart.color ?? VictoryTheme.colors.default},

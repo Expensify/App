@@ -113,8 +113,8 @@ function resolveComparisonWindows(date: InsightsFilters['date'], translate: Loca
         }
     }
 
-    const start = parseISO(date.after);
-    const end = parseISO(date.before);
+    const start = parseISO('on' in date ? date.on : date.from);
+    const end = parseISO('on' in date ? date.on : date.to);
     // A range covering whole months is compared month for month, so its length and the period it opens agree.
     const coversWholeMonths = isSameDay(start, startOfMonth(start)) && isSameDay(end, endOfMonth(end));
     const monthCount = differenceInCalendarMonths(end, start) + 1;
