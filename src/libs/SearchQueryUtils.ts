@@ -908,6 +908,9 @@ function getQueryHashes(query: SearchQueryJSON) {
     if (query.limit !== undefined) {
         orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${query.limit}`;
     }
+    if (query.compare) {
+        orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.COMPARE}:${query.compare}`;
+    }
     const primaryHash = hashText(orderedQuery, 2 ** 32);
 
     return {primaryHash, recentSearchHash, similarSearchHash};
@@ -999,6 +1002,11 @@ function getCachedSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQue
         if (result.limit !== undefined) {
             const num = Number(result.limit);
             result.limit = Number.isInteger(num) && num > 0 ? num : undefined;
+        }
+
+        // Normalize compare before computing hashes so invalid values don't affect hash
+        if (result.compare !== undefined && !Object.values(CONST.SEARCH.COMPARE).includes(result.compare)) {
+            result.compare = undefined;
         }
 
         const {primaryHash, recentSearchHash, similarSearchHash} = getQueryHashes(result);
@@ -1378,6 +1386,14 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         }
     }
 
+    // compare is a root key with no dedicated filter UI, so it is carried through from the original form values
+    // rather than the type-stripped set to avoid dropping it when other filters change.
+    const compareValue = filterValues.compare;
+    const validCompareModes: string[] = Object.values(CONST.SEARCH.COMPARE);
+    if (compareValue && validCompareModes.includes(compareValue)) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COMPARE}:${sanitizeSearchValue(compareValue)}`);
+    }
+
     return filtersString.filter(Boolean).join(' ').trim();
 }
 
@@ -1603,11 +1619,9 @@ function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: s
  * Reverse operation of buildQueryStringFromFilterFormValues()
  */
 // Adds bankAccountList and currentUserAccountID for the new bank account and from:me filters. Refactoring this to a params object would touch every call site and is out of scope here.
-// eslint-disable-next-line @typescript-eslint/max-params
 function buildFilterFormValuesFromQuery(
     queryJSON: SearchQueryJSON,
     policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>,
-    policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>,
     currencyList: OnyxTypes.CurrencyList,
     personalDetails: OnyxTypes.PersonalDetailsList | undefined,
     cardList: OnyxTypes.CardList | undefined,
@@ -1748,17 +1762,8 @@ function buildFilterFormValuesFromQuery(
             filtersForm[filterKey] = filterValues.find((currency) => validCurrencies.has(currency));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
-            const uniqueTags = new Set<string>();
-            const tagLists = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, policyTags);
-            for (const tagList of tagLists) {
-                for (const policyTagList of Object.values(tagList ?? {})) {
-                    for (const tag of Object.values(policyTagList.tags ?? {})) {
-                        uniqueTags.add(tag.name);
-                    }
-                }
-            }
-            uniqueTags.add(CONST.SEARCH.TAG_EMPTY_VALUE);
-            filtersForm[addNegation(filterKey, isNegated)] = filterValues.filter((name) => uniqueTags.has(name));
+            // Tag values are kept as-is: with server-side tag pagination the local tag data is never complete, so validating against it would silently drop valid tags
+            filtersForm[addNegation(filterKey, isNegated)] = filterValues;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
             const uniqueCategories = new Set<string>();
@@ -1955,6 +1960,10 @@ function buildFilterFormValuesFromQuery(
 
     if (queryJSON.limit !== undefined) {
         filtersForm[FILTER_KEYS.LIMIT] = queryJSON.limit.toString();
+    }
+
+    if (queryJSON.compare) {
+        filtersForm[FILTER_KEYS.COMPARE] = queryJSON.compare;
     }
 
     return filtersForm;
@@ -2588,9 +2597,21 @@ function getSearchQueryJSONFromRouteParams(params: unknown) {
     return buildSearchQueryJSON(params.q, params.rawQuery);
 }
 
-function getCurrentSearchQueryJSON() {
-    const rootState = navigationRef.getRootState();
-    const lastTabNavigator = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+/**
+ * Resolves the params of the Search root route that the app is currently showing (or would return to),
+ * from a navigation state tree.
+ *
+ * This deliberately does NOT look at the focused route: when an RHP (e.g. a report) is stacked on top of
+ * the Search tab, the focused route is the RHP and carries no `q`, but the Search root route underneath
+ * still does. It also does not walk only the live tree. A non-focused tab navigator has its nested state
+ * dropped from the tree, so the preserved-state map is consulted as well (see `usePreserveNavigatorState`).
+ *
+ * Note: the preserved-state map has no subscription, so a `useRootNavigationState` selector built on this
+ * only re-reads it on navigation events. Call `getCurrentSearchQueryJSON` imperatively where you need the
+ * value at an arbitrary moment (e.g. right after a delegate switch, which clears the map without navigating).
+ */
+function getSearchRootParamsFromRootState(rootState: unknown): SearchRootParams | undefined {
+    const lastTabNavigator = getLastRouteByName(rootState, NAVIGATORS.TAB_NAVIGATOR);
     const tabStateFromParams = getParamsState(lastTabNavigator?.params);
     const tabState = lastTabNavigator?.state ?? (lastTabNavigator?.key ? getPreservedNavigatorState(lastTabNavigator.key) : undefined) ?? tabStateFromParams;
     const lastSearchNavigator = getLastRouteByName(tabState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
@@ -2606,22 +2627,19 @@ function getCurrentSearchQueryJSON() {
 
     // When the SearchFullscreenNavigator has never been mounted (e.g. lazy tab not yet visited),
     // neither .state nor the preserved state map will have an entry. Use nested route params when
-    // React Navigation provided them, otherwise fall back to the default initialParams query.
+    // React Navigation provided them and they parse, otherwise fall back to the default initialParams query.
     if (!lastSearchNavigatorState) {
-        const nestedQueryJSON = getSearchQueryJSONFromRouteParams(nestedSearchRootParams);
-        if (nestedQueryJSON) {
-            return nestedQueryJSON;
+        if (nestedSearchRootParams && getSearchQueryJSONFromRouteParams(nestedSearchRootParams)) {
+            return nestedSearchRootParams;
         }
-        return buildSearchQueryJSON(buildSearchQueryString());
+        return {q: buildSearchQueryString()};
     }
 
-    const lastSearchRoute = getLastRouteByName(lastSearchNavigatorState, SCREENS.SEARCH.ROOT);
-    const queryJSON = getSearchQueryJSONFromRouteParams(lastSearchRoute?.params);
-    if (!queryJSON) {
-        return;
-    }
+    return getSearchRootParamsFromSearchNavigatorState(lastSearchNavigatorState);
+}
 
-    return queryJSON;
+function getCurrentSearchQueryJSON() {
+    return getSearchQueryJSONFromRouteParams(getSearchRootParamsFromRootState(navigationRef.getRootState()));
 }
 
 /**
@@ -2958,6 +2976,7 @@ export {
     getQueryWithUpdatedValues,
     getKeywordQueryWithCurrentSearchContext,
     getCurrentSearchQueryJSON,
+    getSearchRootParamsFromRootState,
     getQueryWithoutFilters,
     isDefaultExpensesQuery,
     isDefaultExpenseReportsQuery,
