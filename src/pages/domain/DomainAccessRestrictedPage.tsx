@@ -65,10 +65,7 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
         >
             {(domainName) => (
                 <ScreenWrapper testID="DomainAccessRestrictedPage">
-                    <HeaderWithBackButtonAndTitle
-                        title={translate('domain.accessRestricted.headerTitle')}
-                        onBackButtonPress={Navigation.goBack}
-                    />
+                    <HeaderWithBackButtonAndTitle title={translate('domain.accessRestricted.headerTitle')} />
                     <ConfirmationPage
                         illustration={icons.EmptyStateSpyPigeon}
                         heading={translate('domain.accessRestricted.title')}

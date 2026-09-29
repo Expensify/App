@@ -89,10 +89,7 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
             testID="DomainResetDomainPage"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('domain.admins.resetDomain')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('domain.admins.resetDomain')} />
 
             <FormProvider
                 formID={ONYXKEYS.FORMS.RESET_DOMAIN_FORM}
