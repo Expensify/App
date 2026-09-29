@@ -1,6 +1,6 @@
 import type {Route} from '@src/ROUTES';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 import type {View} from 'react-native';
 
 type USDPageProps = {
@@ -15,7 +15,7 @@ type USDPageProps = {
     stepNames?: readonly string[];
 
     /** Reference to the outer element (used by RequestorStep) */
-    ref?: ForwardedRef<View>;
+    ref?: ForwardedRef<ComponentRef<typeof View>>;
 
     /** Back to URL for preserving navigation context */
     backTo?: Route;
