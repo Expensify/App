@@ -726,7 +726,10 @@ function getQueryWithFooterSelection(
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL, nextSelection.footerTotal],
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY, nextSelection.footerCurrency],
     ] as const) {
-        if (!value) {
+        // The plain total is what a query with no selection already shows, and it is the one selection that keys the
+        // snapshot: writing it would send the user back to a hash they came from as if it were a different search,
+        // costing a request for figures already cached under the query they started on.
+        if (!value || (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL && value === CONST.SEARCH.FOOTER_TOTAL.TOTAL)) {
             continue;
         }
         flatFilters.push({key, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value}]});
@@ -979,8 +982,10 @@ function getQueryHashes(query: SearchQueryJSON) {
     // The total the footer asks for changes the aggregate the backend answers with, so it is part of the primary
     // hash — the snapshot key. It joins here, after the recent and similar hashes are taken, so switching the
     // breakdown is still the same search in the recent list and still matches the same saved search.
+    // The plain total is what the backend answers without being asked, so a query carrying it explicitly — a saved
+    // search or a hand-typed link — keys the same snapshot as one that leaves it out.
     const {footerTotal} = getFooterSelectionFromQuery(query);
-    if (footerTotal) {
+    if (footerTotal && footerTotal !== CONST.SEARCH.FOOTER_TOTAL.TOTAL) {
         orderedQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL}:${footerTotal}`;
     }
 

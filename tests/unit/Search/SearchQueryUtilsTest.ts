@@ -25,6 +25,7 @@ import {
     getFilterFormValues,
     getFilterFromQuery,
     getFooterSelectionFromQuery,
+    getQueryWithFooterSelection,
     getQueryHashWithoutFooterSelections,
     queryHasViolationFilter,
     hasValuesIncludeViolationFilter,
@@ -2584,6 +2585,24 @@ describe('SearchQueryUtils', () => {
             expect(expenses?.hash).toEqual(noSelection?.hash);
             expect(expenses?.recentSearchHash).toEqual(noSelection?.recentSearchHash);
             expect(expenses?.similarSearchHash).toEqual(noSelection?.similarSearchHash);
+        });
+
+        it('leaves the plain total out of the query, so switching back to it returns to the search it came from', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense footerTotal:billable footerCurrency:EUR');
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const backToPlainTotal = getQueryWithFooterSelection(queryJSON, {footerTotal: CONST.SEARCH.FOOTER_TOTAL.TOTAL});
+
+            expect(backToPlainTotal).not.toContain('footerTotal');
+            // The currency rides along untouched, and the hash is the one the untouched search has.
+            expect(backToPlainTotal).toContain('footerCurrency:EUR');
+            expect(buildSearchQueryJSON(backToPlainTotal)?.hash).toBe(buildSearchQueryJSON('type:expense')?.hash);
+        });
+
+        it('hashes a query that spells out the plain total like one that leaves it out, so a saved search keys one snapshot', () => {
+            expect(buildSearchQueryJSON('type:expense footerTotal:total')?.hash).toBe(buildSearchQueryJSON('type:expense')?.hash);
         });
 
         it('moves the primary hash for the footer total, which is the one selection the backend answers differently', () => {
