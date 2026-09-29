@@ -21,6 +21,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -118,10 +119,11 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const settlementCurrency = useCurrencyForExpensifyCard({policyID, fundID});
     const shouldShowEuUkDisclaimer = isCurrencySupportedForECards(settlementCurrency);
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const allCards = useMemo(() => {
-        const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList));
+        const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails));
         return getCardsByCardholderName(cardsList, policyMembersAccountIDs);
-    }, [cardsList, policy?.employeeList]);
+    }, [cardsList, policy?.employeeList, employeePersonalDetails]);
 
     const isCardListEmpty = allCards.length === 0;
     const [selectedCardKeys, setSelectedCardKeys] = useState<string[]>([]);

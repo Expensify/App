@@ -116,6 +116,7 @@ Selecting an option does not change the setting on its own — the new frequency
 
 To switch to **Monthly**, you'll need to connect your bank account via Plaid and have a positive 90-day balance history.
 
+
 ## When your Expensify Cards settle each month
 
 When your settlement frequency is set to **Monthly**, the **Settings** page shows the recurring day of the month your cards settle. On the Expensify Card **Settings** page, the **Settlement frequency** row displays supporting text below it, such as *Expensify cards will settle on the 27th of each month.*
