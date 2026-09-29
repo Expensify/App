@@ -1,7 +1,7 @@
-import type {TupleToUnion} from 'type-fest';
-
 import CONST from '@src/CONST';
 import type {OnyxInputOrEntry, Policy} from '@src/types/onyx';
+
+import type {TupleToUnion} from 'type-fest';
 
 /**
  * Workspace roles from highest to lowest privilege, matching the role hierarchy in Auth.
