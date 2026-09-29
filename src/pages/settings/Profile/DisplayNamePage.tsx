@@ -81,10 +81,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
             shouldEnableMaxHeight
             testID="DisplayNamePage"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('displayNamePage.headerTitle')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('displayNamePage.headerTitle')} />
             {isLoadingApp ? (
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
                     <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />

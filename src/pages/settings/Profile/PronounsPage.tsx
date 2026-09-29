@@ -118,10 +118,7 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
             ) : (
                 <>
                     <CollapsibleHeaderOnKeyboard>
-                        <HeaderWithBackButtonAndTitle
-                            title={translate('pronounsPage.pronouns')}
-                            onBackButtonPress={() => Navigation.goBack()}
-                        />
+                        <HeaderWithBackButtonAndTitle title={translate('pronounsPage.pronouns')} />
                         <Text style={[styles.ph5, styles.mb3]}>{translate('pronounsPage.isShownOnProfile')}</Text>
                     </CollapsibleHeaderOnKeyboard>
 

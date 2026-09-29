@@ -23,10 +23,7 @@ function FailedToLockAccountPage() {
             testID="FailedToLockAccountPage"
             includeSafeAreaPaddingBottom
         >
-            <HeaderWithBackButtonAndTitle
-                onBackButtonPress={() => Navigation.goBack()}
-                title={translate('lockAccountPage.lockAccount')}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('lockAccountPage.lockAccount')} />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <ConfirmationPage
                     illustration={illustrations.LockOpen}

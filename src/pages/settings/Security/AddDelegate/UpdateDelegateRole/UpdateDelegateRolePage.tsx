@@ -66,10 +66,7 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
             testID="UpdateDelegateRolePage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <HeaderWithBackButtonAndTitle
-                    title={translate('delegate.accessLevel')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('delegate.accessLevel')} />
                 <SelectionList
                     alternateNumberOfSupportedLines={4}
                     initiallyFocusedItemKey={matchingRole}

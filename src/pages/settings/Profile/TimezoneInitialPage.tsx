@@ -33,10 +33,7 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
 
     return (
         <ScreenWrapper testID="TimezoneInitialPage">
-            <HeaderWithBackButtonAndTitle
-                title={translate('timezonePage.timezone')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('timezonePage.timezone')} />
             <View style={styles.flex1}>
                 <View style={[styles.ph5]}>
                     <Text style={[styles.mb5]}>{translate('timezonePage.isShownOnProfile')}</Text>

@@ -180,10 +180,7 @@ function StatusPage() {
             testID="HeaderPageLayout"
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('statusPage.status')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('statusPage.status')} />
             <FormProvider
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM}
                 style={[styles.flexGrow1, styles.flex1]}

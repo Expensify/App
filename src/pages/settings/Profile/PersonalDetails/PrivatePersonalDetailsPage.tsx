@@ -235,10 +235,7 @@ function PrivatePersonalDetailsPage() {
             testID="PrivatePersonalDetailsPage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <HeaderWithBackButtonAndTitle
-                    title={translate('privatePersonalDetails.personalDetails')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('privatePersonalDetails.personalDetails')} />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM}

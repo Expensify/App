@@ -112,10 +112,7 @@ function CloseAccountPage() {
             testID="CloseAccountPage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <HeaderWithBackButtonAndTitle
-                    title={translate('closeAccountPage.closeAccount')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('closeAccountPage.closeAccount')} />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM}
                     validate={validate}

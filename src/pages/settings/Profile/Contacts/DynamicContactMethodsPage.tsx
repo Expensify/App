@@ -61,10 +61,7 @@ function DynamicContactMethodsPage() {
             shouldEnableKeyboardAvoidingView={false}
             testID="DynamicContactMethodsPage"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('contacts.contactMethods')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('contacts.contactMethods')} />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap]}>
                     <RenderHTML html={translate('contacts.helpText', {email: CONST.EMAIL.RECEIPTS})} />
