@@ -61,8 +61,6 @@ function CloseAccountValidateCodePage() {
         }
     }, [draftValuesMetadata, reasonForLeaving, ruleBotEnforcedPolicy, showRuleBotGuardModal]);
 
-    useEffect(() => () => clearDraftValues(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM), []);
-
     const handleSendValidateCode = () => {
         if (!reasonForLeaving) {
             Navigation.goBack(ROUTES.SETTINGS_CLOSE);
