@@ -151,8 +151,14 @@ function SearchPage({route}: SearchPageProps) {
     // A Spend footer selection asks the backend for a different aggregate over the very same rows, so the results area
     // holds what is on screen for as long as that search takes: the rows cannot change, and letting the hold lapse
     // would unmount the list and take the selection with it.
+    // Only across a *different* query: the same one un-resolving is a reload of what is on screen (an error being
+    // cleared so it can be requested again, say), and holding the last results through that would pin whatever they
+    // carried, error included.
     const isFooterSelectionChangeOnly =
-        !!currentSearchQueryJSON && !!lastResolvedSearch && getQueryHashWithoutFooterSelections(currentSearchQueryJSON) === getQueryHashWithoutFooterSelections(lastResolvedSearch.queryJSON);
+        !!currentSearchQueryJSON &&
+        !!lastResolvedSearch &&
+        currentSearchQueryJSON.hash !== lastResolvedSearch.queryJSON.hash &&
+        getQueryHashWithoutFooterSelections(currentSearchQueryJSON) === getQueryHashWithoutFooterSelections(lastResolvedSearch.queryJSON);
 
     // Otherwise only a filter refinement is worth holding for, and only briefly. A sidebar item or saved search is a
     // different search, so its results area starts from the skeleton rather than showing rows that belong to the query
