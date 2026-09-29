@@ -722,7 +722,8 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    it('hides the vendor row on Xero without the vendorMatching beta because Xero (R3) is still pre-GA', async () => {
+    it('shows the supplier row on Xero without the vendorMatching beta because Xero (R3) is generally available', async () => {
+        // Given a non-reimbursable expense whose vendor is one of the synced Xero contacts
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
             parentReportID: expenseReportID,
@@ -738,6 +739,7 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
+        // When the expense renders on a configured Xero workspace without the vendorMatching beta
         renderMoneyRequestView(threadReport, {
             connections: {
                 [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
@@ -748,6 +750,54 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
+        // Then the row uses the Supplier label that Xero uses and shows the contact name
+        await waitFor(() => {
+            expect(screen.getByTestId('menu-item-title-common.supplier')).toHaveTextContent('Acme Xero');
+        });
+        expect(screen.queryByTestId('menu-item-common.vendor')).not.toBeOnTheScreen();
+    });
+
+    it('hides the vendor row on Business Central without the vendorMatching beta because Business Central is still beta-gated', async () => {
+        // Given a non-reimbursable expense whose vendor is one of the synced Business Central vendors
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable: false,
+                comment: {vendor: {externalID: 'bc-1', wasManuallySet: false}},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the expense renders on a configured Business Central workspace without the vendorMatching beta
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                    config: {isConfigured: true},
+                    data: {
+                        vendors: [
+                            {
+                                id: 'bc-1',
+                                number: 'V00010',
+                                name: 'Contoso Supplies',
+                                email: 'ap@contoso.com',
+                                blocked: CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.NONE,
+                                expensifyVendorId: '',
+                                lastModifiedDateTime: '',
+                            },
+                        ],
+                    },
+                },
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no vendor row is shown because Business Central still depends on the beta
         await waitFor(() => {
             expect(screen.queryByTestId('menu-item-common.supplier')).not.toBeOnTheScreen();
             expect(screen.queryByTestId('menu-item-common.vendor')).not.toBeOnTheScreen();
