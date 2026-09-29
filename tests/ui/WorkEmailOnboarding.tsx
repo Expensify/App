@@ -830,7 +830,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should navigate to Onboarding workspaces page when validate code step is successful and there is no signupQualifier', async () => {
+    it('should navigate to the name step when validate code step is successful and there is no signupQualifier', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -852,7 +852,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
         });
 
         unmount();

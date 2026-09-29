@@ -86,7 +86,13 @@ function getDomainPrefix(context: OnboardingFlowContext): OnboardingScreen[] {
             return [];
         }
         if (context.isMergeAccountStepSkipped === false) {
-            return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION, ONBOARDING.WORKSPACES];
+            const isVsbOrSmb = context.signupQualifier === ONBOARDING_SIGNUP_QUALIFIERS.VSB || context.signupQualifier === ONBOARDING_SIGNUP_QUALIFIERS.SMB;
+            // VSB/SMB skip name and go to employees after the magic code. Everyone else matches private-domain
+            // signup: name, then Join a workspace.
+            if (isVsbOrSmb) {
+                return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION, ONBOARDING.WORKSPACES];
+            }
+            return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION, ONBOARDING.PERSONAL_DETAILS, ONBOARDING.WORKSPACES];
         }
         return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION];
     }
@@ -118,7 +124,9 @@ function getOnboardingFlow(context: OnboardingFlowContext): OnboardingScreen[] |
     }
 
     const suffix = purposeSuffixes[context.purposeSelected];
-    const adjustedSuffix = getAdjustedSuffix(isPrivateDomain ? suffix.filter((s) => s !== ONBOARDING.PERSONAL_DETAILS) : suffix, context);
+    // Private-domain and post-merge users already entered their name in the prefix, so drop it from the purpose suffix.
+    const alreadyCollectedName = isPrivateDomain || context.isMergeAccountStepSkipped === false;
+    const adjustedSuffix = getAdjustedSuffix(alreadyCollectedName ? suffix.filter((s) => s !== ONBOARDING.PERSONAL_DETAILS) : suffix, context);
     return [...prefix, ONBOARDING.PURPOSE, ...adjustedSuffix];
 }
 

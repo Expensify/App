@@ -15,6 +15,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 
+import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
 import OnboardingWorkEmail from '@pages/OnboardingWorkEmail';
 import OnboardingWorkEmailValidation from '@pages/OnboardingWorkEmailValidation';
 import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
@@ -54,12 +55,6 @@ const OnboardingStack = createPlatformStackNavigator<OnboardingModalNavigatorPar
 
 const workEmail = 'testprivateemail@privateEmail.com';
 
-// The real "Join a workspace" screen is not under test here, only how many times it ends up on the stack, so a stub
-// keeps this test about navigation instead of about SelectionList and the getAccessiblePolicies request.
-function OnboardingWorkspacesStub() {
-    return <View testID="onboarding-workspaces-stub" />;
-}
-
 // Stands in for whatever screen precedes a later visit to "Join a workspace"; only its presence on the stack matters.
 function OnboardingPersonalDetailsStub() {
     return <View testID="onboarding-personal-details-stub" />;
@@ -77,29 +72,8 @@ function OnboardingModalNavigator() {
                 component={OnboardingWorkEmailValidation}
             />
             <OnboardingStack.Screen
-                name={SCREENS.ONBOARDING.WORKSPACES}
-                component={OnboardingWorkspacesStub}
-            />
-        </OnboardingStack.Navigator>
-    );
-}
-
-// Drives the whole merge like `OnboardingModalNavigator`, but with the real "Join a workspace" screen, so the absence
-// of its Back button can be asserted against the stack the merge actually leaves behind.
-function OnboardingModalNavigatorWithRealWorkspaces() {
-    return (
-        <OnboardingStack.Navigator screenOptions={{headerShown: false}}>
-            <OnboardingStack.Screen
-                name={SCREENS.ONBOARDING.WORK_EMAIL}
-                component={OnboardingWorkEmail}
-            />
-            <OnboardingStack.Screen
-                name={SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION}
-                component={OnboardingWorkEmailValidation}
-            />
-            <OnboardingStack.Screen
-                name={SCREENS.ONBOARDING.WORKSPACES}
-                component={OnboardingWorkspaces}
+                name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
+                component={OnboardingPersonalDetails}
             />
         </OnboardingStack.Navigator>
     );
@@ -212,7 +186,7 @@ describe('Onboarding work email navigation', () => {
         jest.clearAllMocks();
     });
 
-    it('should leave exactly one Join a workspace route on the stack after merging a work email', async () => {
+    it('should leave exactly one name-step route on the stack after merging a work email', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -226,7 +200,7 @@ describe('Onboarding work email navigation', () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: true});
         });
 
-        renderOnboardingStack([SCREENS.ONBOARDING.WORK_EMAIL], OnboardingModalNavigatorWithRealWorkspaces);
+        renderOnboardingStack([SCREENS.ONBOARDING.WORK_EMAIL]);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -242,7 +216,6 @@ describe('Onboarding work email navigation', () => {
 
         expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION]);
 
-        // The merge succeeds and moves the flow on to "Join a workspace".
         restoreXhr = mockResponseOnce({isMergeAccountStepCompleted: true});
         await act(async () => {
             MergeIntoAccountAndLogin(workEmail, '123456', 1);
@@ -252,24 +225,22 @@ describe('Onboarding work email navigation', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.WORKSPACES]);
+        expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.PERSONAL_DETAILS]);
 
-        // Nothing is left behind this screen, so it must not offer Back. Asserted here, on the stack the real merge
-        // produced, rather than against an injected prop: this is the only place the whole chain is exercised.
         await waitFor(() => {
             expect(screen.queryByLabelText(TestHelper.translateLocal('common.back'))).not.toBeOnTheScreen();
         });
 
         // OpenApp lands after the merge and flips the account fields the work email screen's effect depends on. When
         // that screen was pushed rather than replaced it was still mounted here, re-ran its effect, and stacked a
-        // second copy of the flow, which is what made Back on "Join a workspace" look dead.
+        // second copy of the remaining flow.
         await act(async () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, isFromPublicDomain: false});
         });
 
         await waitForBatchedUpdatesWithAct();
 
-        expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.WORKSPACES]);
+        expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.PERSONAL_DETAILS]);
     });
 
     it('should land back on the work email screen even though the force replace removed it from the stack', async () => {

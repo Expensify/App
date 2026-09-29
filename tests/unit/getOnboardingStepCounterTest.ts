@@ -101,10 +101,11 @@ describe('getOnboardingFlow', () => {
         ]);
     });
 
-    it('returns 7-step flow for public + merge + individual + MANAGE_TEAM', () => {
+    it('returns 8-step flow for public + merge + individual + MANAGE_TEAM', () => {
         expect(getOnboardingFlow({signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: false, purposeSelected: ONBOARDING_CHOICES.MANAGE_TEAM})).toEqual([
             O.WORK_EMAIL,
             O.WORK_EMAIL_VALIDATION,
+            O.PERSONAL_DETAILS,
             O.WORKSPACES,
             O.PURPOSE,
             O.EMPLOYEES,
@@ -117,9 +118,9 @@ describe('getOnboardingFlow', () => {
         expect(getOnboardingFlow({signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: false, purposeSelected: ONBOARDING_CHOICES.PERSONAL_SPEND})).toEqual([
             SCREENS.ONBOARDING.WORK_EMAIL,
             SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION,
+            SCREENS.ONBOARDING.PERSONAL_DETAILS,
             SCREENS.ONBOARDING.WORKSPACES,
             SCREENS.ONBOARDING.PURPOSE,
-            SCREENS.ONBOARDING.PERSONAL_DETAILS,
         ]);
     });
 
@@ -127,10 +128,10 @@ describe('getOnboardingFlow', () => {
         expect(getOnboardingFlow({signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: false, purposeSelected: ONBOARDING_CHOICES.TRACK_PERSONAL})).toEqual([
             SCREENS.ONBOARDING.WORK_EMAIL,
             SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION,
+            SCREENS.ONBOARDING.PERSONAL_DETAILS,
             SCREENS.ONBOARDING.WORKSPACES,
             SCREENS.ONBOARDING.PURPOSE,
             SCREENS.ONBOARDING.PERSONAL_TRACK_GOAL,
-            SCREENS.ONBOARDING.PERSONAL_DETAILS,
         ]);
     });
 
@@ -322,13 +323,14 @@ describe('getOnboardingStepCounter', () => {
 
     it('returns correct step/total for public + merge + individual + MANAGE_TEAM', () => {
         const ctx: OnboardingFlowContext = {signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: false, purposeSelected: ONBOARDING_CHOICES.MANAGE_TEAM};
-        expect(getOnboardingStepCounter(O.WORK_EMAIL, ctx)).toEqual({stepCounter: {step: 1, total: 7}});
-        expect(getOnboardingStepCounter(O.WORK_EMAIL_VALIDATION, ctx)).toEqual({stepCounter: {step: 2, total: 7}});
-        expect(getOnboardingStepCounter(O.WORKSPACES, ctx)).toEqual({stepCounter: {step: 3, total: 7}});
-        expect(getOnboardingStepCounter(O.PURPOSE, ctx)).toEqual({stepCounter: {step: 4, total: 7}});
-        expect(getOnboardingStepCounter(O.EMPLOYEES, ctx)).toEqual({stepCounter: {step: 5, total: 7}});
-        expect(getOnboardingStepCounter(O.INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 6, total: 7}});
-        expect(getOnboardingStepCounter(O.ACCOUNTING, ctx)).toEqual({stepCounter: {step: 7, total: 7}});
+        expect(getOnboardingStepCounter(O.WORK_EMAIL, ctx)).toEqual({stepCounter: {step: 1, total: 8}});
+        expect(getOnboardingStepCounter(O.WORK_EMAIL_VALIDATION, ctx)).toEqual({stepCounter: {step: 2, total: 8}});
+        expect(getOnboardingStepCounter(O.PERSONAL_DETAILS, ctx)).toEqual({stepCounter: {step: 3, total: 8}});
+        expect(getOnboardingStepCounter(O.WORKSPACES, ctx)).toEqual({stepCounter: {step: 4, total: 8}});
+        expect(getOnboardingStepCounter(O.PURPOSE, ctx)).toEqual({stepCounter: {step: 5, total: 8}});
+        expect(getOnboardingStepCounter(O.EMPLOYEES, ctx)).toEqual({stepCounter: {step: 6, total: 8}});
+        expect(getOnboardingStepCounter(O.INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 7, total: 8}});
+        expect(getOnboardingStepCounter(O.ACCOUNTING, ctx)).toEqual({stepCounter: {step: 8, total: 8}});
     });
 
     it('returns correct step/total for public + skipped + individual + MANAGE_TEAM (no gaps)', () => {
@@ -451,11 +453,12 @@ describe('getOnboardingStepCounter', () => {
             {
                 label: 'public-merge',
                 ctx: {signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: false},
-                expectedPurposeStep: 4,
+                expectedPurposeStep: 5,
                 prefixPages: [
                     {page: O.WORK_EMAIL, step: 1},
                     {page: O.WORK_EMAIL_VALIDATION, step: 2},
-                    {page: O.WORKSPACES, step: 3},
+                    {page: O.PERSONAL_DETAILS, step: 3},
+                    {page: O.WORKSPACES, step: 4},
                 ],
             },
             {

@@ -234,9 +234,9 @@ describe('Onboarding work email validation (Android system back)', () => {
         expect((await getOnboardingValues())?.shouldValidate).toBeUndefined();
     });
 
-    it('should swallow a system back press on the post-merge Join a workspace screen', async () => {
-        // Given the stack the merge leaves behind: "Join a workspace" is the only onboarding route, so an unhandled
-        // system back would bubble to the root stack and pop the whole onboarding modal mid-flow
+    it('should swallow a system back press when Join a workspace is the only onboarding route', async () => {
+        // Given a force-replace left this as the only onboarding route, so an unhandled system back would bubble to
+        // the root stack and pop the whole onboarding modal mid-flow
         await TestHelper.signInWithTestUser();
 
         await act(async () => {

@@ -88,8 +88,8 @@ function OnboardingPersonalDetailsStub() {
 
 /**
  * `shouldRenderScreenBehind` seeds a real route behind "Join a workspace". Leaving it off is not a detail of the
- * harness: it is the stack the work email merge and the private domain screen actually leave behind when they
- * force-replace into this screen, which is what makes Back impossible there.
+ * harness: it is the stack the private domain screen actually leaves behind when it force-replaces into this screen,
+ * which is what makes Back impossible there.
  */
 const renderOnboardingWorkspacesPage = (
     initialRouteName: typeof SCREENS.ONBOARDING.WORKSPACES,
@@ -249,7 +249,7 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should not show the back button on join workspace after merging a work email', async () => {
+    it('should not show the back button on join workspace when it is the only onboarding route', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -261,8 +261,8 @@ describe('OnboardingWorkspaces Page', () => {
             });
         });
 
-        // The merge force-replaces into this screen, which discards every route before it, so this screen is the only
-        // one left in the onboarding stack and there is nothing to go back to.
+        // A force-replace (private-domain joinable policies) discards every route before this one, so there is
+        // nothing to go back to.
         const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: undefined});
 
         await waitForBatchedUpdatesWithAct();

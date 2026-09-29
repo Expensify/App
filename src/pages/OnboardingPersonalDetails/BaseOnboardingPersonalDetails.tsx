@@ -37,6 +37,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 
+import {useNavigationState} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -155,6 +156,13 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             clearPersonalDetailsDraft();
             setPersonalDetails(firstName, lastName);
 
+            // Merge success lands here before Join a workspace. OpenApp may not have flipped isFromPublicDomain yet,
+            // so the private-domain branch below can miss and complete onboarding with no workspace picker.
+            if (onboardingValues?.isMergeAccountStepCompleted && !onboardingValues?.isMergeAccountStepSkipped) {
+                Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()));
+                return;
+            }
+
             if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER) {
                 if (isPrivateDomainAndHasAccessiblePolicies && isValidated) {
                     Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(route.params?.backTo));
@@ -198,6 +206,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             route.params?.backTo,
             autoCreateTrackWorkspace,
             autoCreateSubmitWorkspace,
+            onboardingValues?.isMergeAccountStepCompleted,
+            onboardingValues?.isMergeAccountStepSkipped,
         ],
     );
 
@@ -238,6 +248,10 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         return errors;
     };
 
+    // Force-replace from work-email validation leaves this as the only onboarding route. Merge flags stay set after
+    // that, so they cannot tell this landing apart from a later visit — the stack behind the screen can.
+    const shouldHideBackButton = useNavigationState((state) => state.routes.length === 1);
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -246,7 +260,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <OnboardingHeader
-                shouldShowBackButton={!isPrivateDomainAndHasAccessiblePolicies}
+                shouldShowBackButton={!isPrivateDomainAndHasAccessiblePolicies && !shouldHideBackButton}
                 onBackButtonPress={() => {
                     // Based on the `handleSubmit` function to reverse where to return
                     if (isPrivateDomainAndHasAccessiblePolicies) {
