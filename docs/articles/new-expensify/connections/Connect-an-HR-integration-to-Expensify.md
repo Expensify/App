@@ -18,6 +18,8 @@ Once connected, an HR integration can:
 
 You can connect only one HR platform to a workspace at a time.
 
+To import candidates from an applicant tracking system (ATS), such as Greenhouse, use the **Recruiting** page instead of the **HR** page. Learn how to [connect Greenhouse to Expensify](/articles/new-expensify/connections/Connect-Greenhouse-to-Expensify).
+
 ---
 
 ## Who can connect an HR integration to Expensify
@@ -129,7 +131,7 @@ No. You can connect only one HR platform to a workspace at a time. If you try to
 
 ## Can I sync employees to different Expensify workspaces?
 
-No. Each HR integration syncs all employees to a single Expensify workspace. You must choose one workspace when connecting.
+Yes. You can select which group to connect to each workspace, and connect different groups to different workspaces.
 
 ## Why is my HR integration connected but my employees haven't synced?
 
