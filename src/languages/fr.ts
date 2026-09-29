@@ -8897,6 +8897,33 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             companyCardAccount: {label: 'Compte de carte d’entreprise', description: 'Choisissez où exporter les transactions de carte d’entreprise.'},
             noAccountsFound: 'Aucun compte trouvé',
             noAccountsFoundDescription: 'Veuillez ajouter des comptes dans Campfire et synchroniser à nouveau la connexion',
+            autoSyncDescription: 'Synchronisez Campfire et Expensify automatiquement, chaque jour. Les notes de frais se synchronisent en temps réel.',
+            accountingMethods: {
+                label: 'Méthode d’exportation',
+                description: 'Choisissez quand exporter les dépenses.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Comptabilité d’engagement',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Espèces',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Les dépenses hors poche seront exportées une fois approuvées définitivement',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Les dépenses hors poche seront exportées une fois payées',
+                },
+            },
+            syncReimbursedReports: 'Synchroniser les notes de frais remboursées',
+            syncReimbursedReportsDescription: 'Lorsqu’une note de frais est payée par virement ACH, un paiement de facture sera généré sur ce compte.',
+            billPaymentAccount: {
+                label: 'Compte de paiement des factures',
+                description: 'Choisissez le compte de compensation des crédits Campfire lorsque Expensify marque une facture comme payée.',
+            },
+            syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
+            settlementAccount: {label: 'Compte de règlement de la Carte Expensify', description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Campfire.'},
+            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage',
+            travelInvoicingSettlementAccount: {
+                label: 'Compte de règlement de facturation de voyage',
+                description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Campfire.',
+            },
+            travelInvoicingPayableAccount: {label: 'Compte fournisseur pour la facturation de voyage'},
         },
         businessCentral: {
             businessCentralSetup: 'Configuration de Dynamics 365 Business Central',
@@ -9793,6 +9820,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: '12 derniers mois',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Dernier relevé',
                 },
+                customDay: 'Jour personnalisé',
             },
             status: 'Statut',
             keyword: 'Mot-clé',
