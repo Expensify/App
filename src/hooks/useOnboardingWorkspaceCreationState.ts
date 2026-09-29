@@ -23,7 +23,6 @@ function useOnboardingWorkspaceCreationState() {
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.login ?? '';
@@ -44,7 +43,6 @@ function useOnboardingWorkspaceCreationState() {
         onboardingAdminsChatReportID,
         introSelected,
         isSelfTourViewed,
-        betas,
         currentUserPersonalDetails,
         currentUserEmail,
         currentUserAccountID,

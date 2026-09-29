@@ -7,7 +7,7 @@ import type CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {RotationDegrees} from 'react-fast-pdf';
 import type {StyleProp, View, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -95,7 +95,7 @@ type AttachmentModalBaseContentProps = {
     attachmentLink?: string;
 
     /** Ref to the submit button */
-    submitRef?: RefObject<View | HTMLElement | null>;
+    submitRef?: RefObject<ComponentRef<typeof View> | HTMLElement | null>;
 
     AttachmentContent?: AttachmentContent;
 
