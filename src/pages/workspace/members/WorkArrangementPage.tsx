@@ -32,9 +32,13 @@ import React from 'react';
 import {View} from 'react-native';
 
 type WorkArrangementOption = ListItem & {
+    /** Whether selecting this option sets the member to office-based. */
     value: boolean;
+    /** The localized label shown for this work arrangement. */
     text: string;
+    /** The localized description shown beneath the label. */
     alternateText: string;
+    /** Whether this option matches the member's current work arrangement. */
     isSelected: boolean;
 };
 
