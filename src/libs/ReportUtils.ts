@@ -25,6 +25,8 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {
     BankAccountList,
+    Card,
+    CardList,
     GuideAccountIDsDerivedValue,
     IntroSelected,
     OnyxInputOrEntry,
@@ -111,6 +113,7 @@ import hasCreditBankAccount from './actions/ReimbursementAccount/hasCreditBankAc
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {getOnboardingMessages} from './actions/Welcome/OnboardingFlow';
 import {convertAttendeesToArray, normalizeAttendees} from './AttendeeUtils';
+import {isCardWithPotentialFraud} from './CardUtils';
 import {getCategoryGLCode} from './CategoryUtils';
 import {convertToDisplayStringEnLocale} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -4558,13 +4561,14 @@ function getUnresolvedCardFraudAlertAction(reportID: string, reportActions?: Ony
 }
 
 /**
- * Checks if a given report or option has an unresolved card fraud alert.
+ * Checks if the card has live potential fraud whose alert, posted to the given report, is still unresolved.
  */
-function hasUnresolvedCardFraudAlert(reportOrOption: OnyxEntry<Report> | OptionData): boolean {
-    if (!reportOrOption?.reportID) {
+function isCardFraudAlertUnresolved(card: OnyxEntry<Card>, reportID: string | undefined, reportActions?: OnyxEntry<ReportActions>): boolean {
+    const fraudAlertReportID = card?.nameValuePairs?.possibleFraud?.fraudAlertReportID;
+    if (!card || !reportID || !fraudAlertReportID || String(fraudAlertReportID) !== reportID || !isCardWithPotentialFraud(card)) {
         return false;
     }
-    return !!getUnresolvedCardFraudAlertAction(reportOrOption.reportID);
+    return !!getUnresolvedCardFraudAlertAction(reportID, reportActions);
 }
 
 function getReasonAndReportActionThatRequiresAttention(
@@ -4577,6 +4581,7 @@ function getReasonAndReportActionThatRequiresAttention(
     reports?: OnyxCollection<Report>,
     policiesParam?: OnyxCollection<Policy>,
     reportMetadataParam?: OnyxEntry<ReportMetadata>,
+    cardList?: OnyxEntry<CardList>,
 ): ReasonAndReportActionThatRequiresAttention | null {
     if (!optionOrReport) {
         return null;
@@ -4599,10 +4604,11 @@ function getReasonAndReportActionThatRequiresAttention(
         }
     }
 
-    if (hasUnresolvedCardFraudAlert(optionOrReport)) {
+    // CARD_LIST only holds the current user's cards, so a card match also limits the green dot to the cardholder.
+    if (!isReportArchived && Object.values(cardList ?? {}).some((card) => isCardFraudAlertUnresolved(card, optionOrReport.reportID, reportActions))) {
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_UNRESOLVED_CARD_FRAUD_ALERT,
-            reportAction: getUnresolvedCardFraudAlertAction(optionOrReport.reportID),
+            reportAction: getUnresolvedCardFraudAlertAction(optionOrReport.reportID, reportActions),
         };
     }
 
@@ -13710,6 +13716,7 @@ function generateReportAttributes({
     reports,
     policies,
     reportMetadata,
+    cardList,
     currentUserLogin,
     currentUserAccountID,
 }: {
@@ -13726,6 +13733,7 @@ function generateReportAttributes({
     reports?: OnyxCollection<Report>;
     policies?: OnyxCollection<Policy>;
     reportMetadata?: OnyxEntry<ReportMetadata>;
+    cardList?: OnyxEntry<CardList>;
 }) {
     const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`];
     const parentReportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
@@ -13754,6 +13762,7 @@ function generateReportAttributes({
             reports,
             policies,
             reportMetadata,
+            cardList,
         ) ?? {};
 
     return {
@@ -14828,6 +14837,7 @@ export {
     reasonForReportToBeInOptionList,
     getReasonAndReportActionThatRequiresAttention,
     getUnresolvedCardFraudAlertAction,
+    isCardFraudAlertUnresolved,
     buildOptimisticChangeFieldAction,
     isPolicyRelatedReport,
     hasReportErrorsOtherThanFailedReceipt,
