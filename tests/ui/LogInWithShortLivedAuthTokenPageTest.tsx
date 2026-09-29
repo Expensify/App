@@ -25,7 +25,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@userActions/Session', () => ({
-    signInWithShortLivedAuthToken: jest.fn(),
+    signInWithShortLivedAuthToken: jest.fn(() => Promise.resolve()),
     signInWithSupportAuthToken: jest.fn(),
     setAccountError: jest.fn(),
 }));
