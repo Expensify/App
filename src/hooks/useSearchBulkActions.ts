@@ -959,7 +959,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     true,
                 );
             } else {
-                const isGroupExport = !!queryJSON?.groupBy && selectedTransactionsKeys.some((key) => key.startsWith(CONST.SEARCH.GROUP_PREFIX));
+                // Match `handleCSVExport`: an expanded group is stored as one entry per loaded child (tagged `isSelectedViaGroup`) rather than a `group_` stub,
+                // and it must still export through the group query, otherwise children that `limit:` left unloaded are silently dropped.
+                const isGroupExport = !!queryJSON?.groupBy && Object.entries(selectedTransactions).some(([key, transaction]) => isGroupSelection(key, transaction));
                 queueExportSearchWithTemplate(
                     {
                         templateName,
@@ -2216,7 +2218,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
 
             // A group selection is exported through a query filter (see `addSelectedGroupsFilter`) rather than a list of IDs, so the templates work for it just like they do for an individual selection.
-            if (!allSelectedAreDeleted) {
+            // A template export sends either that query or an ID list, never both, so a selection mixing a group with individually picked expenses keeps only "Current view" rather than dropping one side.
+            const selectedEntries = Object.entries(selectedTransactions);
+            const hasMixedGroupSelection =
+                isGroupedSearch &&
+                selectedEntries.some(([key, transaction]) => isGroupSelection(key, transaction)) &&
+                selectedEntries.some(([key, transaction]) => !isGroupSelection(key, transaction));
+            if (!allSelectedAreDeleted && !hasMixedGroupSelection) {
                 // Builds a single export sub-menu item for a template. `isDefaultTemplate` picks the icon and `addSeparatorBefore` draws the divider at the top of each group.
                 const buildExportOption = (template: ExportTemplate, isDefaultTemplate: boolean, addSeparatorBefore: boolean): ExportMenuItem => {
                     // The basic export is a plain CSV download, so it uses its own handler rather than the template export flow

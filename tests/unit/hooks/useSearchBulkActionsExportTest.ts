@@ -6,7 +6,7 @@ import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@comp
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 
 import {markAsManuallyExported} from '@libs/actions/Report';
-import {exportSearchItemsToCSV, exportToIntegrationOnSearch, getExportTemplates} from '@libs/actions/Search';
+import {exportSearchItemsToCSV, exportToIntegrationOnSearch, getExportTemplates, queueExportSearchWithTemplate} from '@libs/actions/Search';
 import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryActionUtils';
 
 import CONST from '@src/CONST';
@@ -1255,6 +1255,48 @@ describe('useSearchBulkActions - export options', () => {
             expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(
                 expect.arrayContaining(['export.currentView', 'Custom template', 'export.expenseLevelExport', 'export.reportLevelExport']),
             );
+        });
+    });
+
+    it('exports an expanded group through the group query when a template is picked', async () => {
+        // Given an expanded group selected through its header, stored as one entry per loaded child rather than a `group_` stub
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction({
+                groupKey: `${CONST.SEARCH.GROUP_PREFIX}category`,
+                isSelectedViaGroup: true,
+            }),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'Custom template')).toBeDefined();
+        });
+
+        // When a template is picked
+        getExportOptionByText(result.current.headerButtonsOptions, 'Custom template')?.onSelected?.();
+
+        // Then it exports through the grouped query instead of the loaded IDs, so children that `limit:` left unloaded are not dropped
+        expect(queueExportSearchWithTemplate).toHaveBeenCalledTimes(1);
+        const [parameters] = jest.mocked(queueExportSearchWithTemplate).mock.calls.at(0) ?? [];
+        expect(parameters?.transactionIDList).toEqual([]);
+        expect(parameters?.reportIDList).toEqual([]);
+        expect(JSON.parse(parameters?.jsonQuery ?? '{}')).toEqual(expect.objectContaining({groupBy: CONST.SEARCH.GROUP_BY.CATEGORY}));
+    });
+
+    it('hides templates when a group selection is mixed with individually picked expenses', async () => {
+        // Given a group selected through its header alongside an expense picked on its own from another group
+        mockSelectedTransactions = {
+            [`${CONST.SEARCH.GROUP_PREFIX}category`]: makeSelectedTransaction(),
+            tx2: makeSelectedTransaction(),
+        };
+
+        // When the export options are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // Then only "Current view" is offered, because a template export sends either the group query or an ID list and would drop one side
+        await waitFor(() => {
+            expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView']);
         });
     });
 
