@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
@@ -58,7 +58,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const [hasAttemptedSave, setHasAttemptedSave] = useState(false);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -241,9 +241,10 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             textInputOptions={textInputOptions}
             confirmButtonOptions={{
                 onConfirm: confirmSelection,
+                isFooterConfirmEnabled: selectedOptions.length > 0,
             }}
             footerContent={footerContent}
-            isLoadingNewOptions={!!isSearchingForReports}
+            isLoadingNewOptions={!!isSearchingForUsers}
             shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
             shouldShowListEmptyContent={shouldShowListEmptyContent}
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}

@@ -1,5 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useLocalize from '@hooks/useLocalize';
@@ -45,27 +46,26 @@ function QuickbooksTravelBillingConfigurationPage({policy}: WithPolicyConnection
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID))}
         >
-            <MenuItemWithTopDescription
-                title={translate(`workspace.qbo.accounts.${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}`)}
-                description={translate('workspace.accounting.exportAs')}
-                interactive={false}
+            <MenuItemField
+                name={translate('workspace.accounting.exportAs')}
+                value={translate(`workspace.qbo.accounts.${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}`)}
             />
             <OfflineWithFeedback
                 pendingAction={settingsPendingAction(payableAccount, qboConfig?.pendingFields)}
                 errorRowStyles={[styles.ph5]}
             >
-                <MenuItemWithTopDescription
-                    title={travelPayableAccount?.name}
-                    description={translate('workspace.qbo.creditCardAccount')}
+                <MenuItemField
+                    name={translate('workspace.qbo.creditCardAccount')}
                     onPress={() => {
                         if (!policyID) {
                             return;
                         }
                         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT.getRoute(policyID));
                     }}
-                    shouldShowRightIcon
-                    brickRoadIndicator={areSettingsInErrorFields(payableAccount, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                    value={travelPayableAccount?.name}
+                >
+                    {areSettingsInErrorFields(payableAccount, qboConfig?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                </MenuItemField>
             </OfflineWithFeedback>
             <TravelBillingContinuousReconciliationSection
                 policy={policy}

@@ -1,26 +1,31 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
 import {getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils} from '@libs/PolicyUtils';
-import {canEditFieldOfMoneyRequest, isInvoiceReport, isIOUReport} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, isInvoiceReport, isIOUReport, isReportApproved, isSettled} from '@libs/ReportUtils';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
-import {hasEnabledTags, shouldShowDependentTagList} from '@libs/TagsOptionsListUtils';
+import {getDependentTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getAttendeesListDisplayString,
     getTagArrayFromName,
@@ -35,7 +40,6 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
 
@@ -57,11 +61,14 @@ import {
 
 function SearchEditMultiplePage() {
     const {translate, localeCompare} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {convertToDisplayStringWithoutCurrency, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {currentSearchHash} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
+    const {showConfirmModal} = useConfirmModal();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const personalPolicy = usePersonalPolicy();
     const delegateAccountID = useDelegateAccountID();
@@ -85,6 +92,7 @@ function SearchEditMultiplePage() {
     });
 
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const snapshotData = currentSearchResults?.data;
     const mergedTransactions = withSnapshotTransactions(allTransactions, snapshotData);
@@ -102,13 +110,26 @@ function SearchEditMultiplePage() {
 
     const hasSplitTransaction = hasSplitExpenseInSelection(selectedTransactionContexts.map(({transaction}) => transaction));
 
+    // Expenses on approved or paid reports are finalized records. Editing them in bulk is allowed for admins, but it
+    // needs an explicit confirmation first so a large selection can't quietly rewrite them.
+    const finalizedTransactionCount = selectedTransactionContexts.filter(({report}) => isReportApproved({report}) || isSettled(report)).length;
+
     const isFieldDisabledForAnyTransaction = (field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) =>
-        selectedTransactionContexts.some(({transaction, report, reportAction, transactionPolicy}) => {
+        selectedTransactionContexts.some(({transaction, report, reportAction, reportActions, transactionPolicy}) => {
             // Unreported expenses have no report actions yet but are always editable
             if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 return false;
             }
-            return !canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report, policy: transactionPolicy, reportNameValuePairs});
+            return !canEditFieldOfMoneyRequest({
+                reportAction,
+                fieldToEdit: field,
+                transaction,
+                report,
+                policy: transactionPolicy,
+                reportNameValuePairs,
+                reportActions,
+                rules,
+            });
         });
 
     const hasPartiallyEditableTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.AMOUNT);
@@ -119,6 +140,8 @@ function SearchEditMultiplePage() {
         isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.TAX_RATE) || selectedTransactionContexts.some(({transaction}) => isDistanceRequest(transaction));
 
     const hasPartiallyEditableDateTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.DATE);
+
+    const hasPartiallyEditableReimbursableTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.REIMBURSABLE);
 
     const areSelectedTransactionsBillable = selectedTransactionContexts.every(({transaction, transactionPolicy}) => {
         // Unreported expenses have no policy yet but billable is always applicable
@@ -157,6 +180,44 @@ function SearchEditMultiplePage() {
     }, []);
 
     const [isSaving, setIsSaving] = useState(false);
+
+    const commit = (changes: TransactionChanges) => {
+        setIsSaving(true);
+
+        // Defer the bulk edit loop so the loading spinner has a chance to paint
+        // before the synchronous Onyx writes block the JS thread.
+        requestAnimationFrame(() => {
+            updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled,
+                transactionIDs: selectedTransactionIDs,
+                changes,
+                bulkEditTagChanges: draftTransaction?.bulkEditTagChanges,
+                policy,
+                reports: mergedReports,
+                transactions: mergedTransactions,
+                reportActions: mergedReportActions,
+                policyCategories: allPolicyCategories,
+                policyTags: allPolicyTags,
+                violations: allTransactionViolations,
+                reportNameValuePairs,
+                hash: currentSearchHash,
+                allPolicies: policies,
+                currentUserAccountID,
+                delegateAccountID,
+                personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                personalDetailsList,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+                rules,
+            });
+            // Bulk edit can start from report (ID-based selection) or search (map-based selection),
+            // so clear both stores to keep deselection behavior consistent.
+            clearSelectedTransactions(true);
+            clearSelectedTransactions();
+
+            Navigation.dismissToPreviousRHP();
+        });
+    };
 
     const save = () => {
         if (!draftTransaction || isSaving) {
@@ -200,38 +261,22 @@ function SearchEditMultiplePage() {
             return;
         }
 
-        setIsSaving(true);
-
-        // Defer the bulk edit loop so the loading spinner has a chance to paint
-        // before the synchronous Onyx writes block the JS thread.
-        requestAnimationFrame(() => {
-            updateMultipleMoneyRequests({
-                transactionIDs: selectedTransactionIDs,
-                changes,
-                policy,
-                reports: mergedReports,
-                transactions: mergedTransactions,
-                reportActions: mergedReportActions,
-                policyCategories: allPolicyCategories,
-                policyTags: allPolicyTags,
-                violations: allTransactionViolations,
-                reportNameValuePairs,
-                hash: currentSearchHash,
-                allPolicies: policies,
-                currentUserAccountID,
-                delegateAccountID,
-                personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
-                personalDetailsList,
-                getCurrencyDecimals,
-                getCurrencySymbol,
+        if (finalizedTransactionCount > 0) {
+            showConfirmModal({
+                title: translate('search.bulkActions.editFinalizedExpensesTitle'),
+                prompt: translate('search.bulkActions.editFinalizedExpensesConfirmation', {count: finalizedTransactionCount, total: selectedTransactionContexts.length}),
+                confirmText: translate('common.yesContinue'),
+                cancelText: translate('common.cancel'),
+            }).then(({action}) => {
+                if (action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                commit(changes);
             });
-            // Bulk edit can start from report (ID-based selection) or search (map-based selection),
-            // so clear both stores to keep deselection behavior consistent.
-            clearSelectedTransactions(true);
-            clearSelectedTransactions();
+            return;
+        }
 
-            Navigation.dismissToPreviousRHP();
-        });
+        commit(changes);
     };
 
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -239,32 +284,7 @@ function SearchEditMultiplePage() {
     // TODO: Currency editing and currency symbol should be handled in a separate PR
     const tagsArray = getTagArrayFromName(draftTransaction?.tag ?? '');
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
-    const tagFields: Array<{description: string; title: string; route: Route; disabled?: boolean}> = areTagsEnabled
-        ? policyTagLists.flatMap((tagList, tagListIndex) => {
-              const tagName = tagsArray.at(tagListIndex) ?? '';
-              const tagTitle = tagName ? getCleanedTagName(tagName) : '';
-              const description = tagList.name || translate('common.tag');
-              let shouldShow = true;
-
-              if (hasDependentTags) {
-                  shouldShow = shouldShowDependentTagList(tagListIndex, draftTransaction?.tag, tagList.tags);
-              }
-
-              if (!shouldShow) {
-                  return [];
-              }
-
-              return [
-                  {
-                      description: description || translate('common.tag'),
-                      title: tagTitle,
-                      route: ROUTES.SEARCH_EDIT_MULTIPLE_TAG_RHP.getRoute(tagListIndex),
-                      disabled: false,
-                  },
-              ];
-          })
-        : [];
-
+    const shouldShowTagList = hasDependentTags ? getDependentTagVisibility(policyTagLists, draftTransaction?.tag) : [];
     const getBooleanTitle = (value?: boolean) => {
         if (value === undefined) {
             return '';
@@ -272,80 +292,11 @@ function SearchEditMultiplePage() {
         return value ? translate('common.yes') : translate('common.no');
     };
 
-    const fields: Array<{description: string; title: string; route: Route; disabled?: boolean; shouldParseTitle?: boolean}> = [
-        {
-            description: translate('iou.amount'),
-            title: draftTransaction?.amount !== undefined ? convertToDisplayStringWithoutCurrency(draftTransaction.amount, currency) : '',
-            route: ROUTES.SEARCH_EDIT_MULTIPLE_AMOUNT_RHP,
-            disabled: hasCustomUnitTransaction || hasPartiallyEditableTransaction || hasSplitTransaction,
-        },
-        {
-            description: translate('common.description'),
-            title: draftTransaction?.comment?.comment ?? '',
-            route: ROUTES.SEARCH_EDIT_MULTIPLE_DESCRIPTION_RHP,
-            shouldParseTitle: true,
-        },
-        {
-            description: translate('common.merchant'),
-            title: draftTransaction?.merchant ?? '',
-            route: ROUTES.SEARCH_EDIT_MULTIPLE_MERCHANT_RHP,
-            disabled: hasPartiallyEditableMerchantTransaction,
-        },
-        {
-            description: translate('common.date'),
-            title: draftTransaction?.created ?? '',
-            route: ROUTES.SEARCH_EDIT_MULTIPLE_DATE_RHP,
-            disabled: hasPartiallyEditableDateTransaction,
-        },
-        ...(areCategoriesEnabled
-            ? [
-                  {
-                      description: translate('common.category'),
-                      title: draftTransaction?.category ?? '',
-                      route: ROUTES.SEARCH_EDIT_MULTIPLE_CATEGORY_RHP,
-                  },
-              ]
-            : []),
-        ...tagFields,
-        ...(isTaxTrackingEnabled
-            ? [
-                  {
-                      description: policy?.taxRates?.name ?? translate('common.tax'),
-                      title: draftTransaction?.taxCode ? (getTaxName(policy, draftTransaction) ?? '') : '',
-                      route: ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP,
-                      disabled: hasPartiallyEditableTaxRateTransaction || hasSplitTransaction,
-                  },
-              ]
-            : []),
-        ...(areSelectedTransactionsBillable
-            ? [
-                  {
-                      description: translate('common.billable'),
-                      title: getBooleanTitle(draftTransaction?.billable),
-                      route: ROUTES.SEARCH_EDIT_MULTIPLE_BILLABLE_RHP,
-                  },
-              ]
-            : []),
-        ...(areSelectedTransactionsReimbursable
-            ? [
-                  {
-                      description: translate('common.reimbursable'),
-                      title: getBooleanTitle(draftTransaction?.reimbursable),
-                      route: ROUTES.SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP,
-                  },
-              ]
-            : []),
-        ...(areAttendeesEnabled
-            ? [
-                  {
-                      description: translate('iou.attendees'),
-                      title: draftTransaction?.comment?.attendees?.length ? getAttendeesListDisplayString(draftTransaction.comment.attendees, localeCompare) : '',
-                      route: ROUTES.SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP,
-                      disabled: isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.ATTENDEES),
-                  },
-              ]
-            : []),
-    ];
+    const isAmountDisabled = hasCustomUnitTransaction || hasPartiallyEditableTransaction || hasSplitTransaction;
+    const isTaxDisabled = hasPartiallyEditableTaxRateTransaction || hasSplitTransaction;
+    const isBillableDisabled = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.BILLABLE);
+    const isAttendeesDisabled = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.ATTENDEES);
+    const description = draftTransaction?.comment?.comment;
 
     return (
         <ScreenWrapper
@@ -359,18 +310,83 @@ function SearchEditMultiplePage() {
             <View style={[styles.flex1]}>
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
                     <Text style={[styles.ph5, styles.mb5, styles.textSupporting]}>{translate('search.bulkActions.editMultipleDescription')}</Text>
-                    {fields.map((field) => (
-                        <MenuItemWithTopDescription
-                            key={field.route}
-                            title={field.title}
-                            description={field.description}
-                            onPress={() => Navigation.navigate(field.route)}
-                            shouldShowRightIcon={!field.disabled}
-                            disabled={field.disabled}
-                            interactive={!field.disabled}
-                            shouldParseTitle={field.shouldParseTitle}
+                    <MenuItemField
+                        name={translate('iou.amount')}
+                        value={draftTransaction?.amount !== undefined ? convertToDisplayStringWithoutCurrency(draftTransaction.amount, currency) : ''}
+                        onPress={isAmountDisabled ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_AMOUNT_RHP)}
+                        isDisabled={isAmountDisabled}
+                    />
+                    <MenuItemFieldHTML
+                        name={translate('common.description')}
+                        value={description ? Parser.replace(description) : undefined}
+                        onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_DESCRIPTION_RHP)}
+                    />
+                    <MenuItemField
+                        name={translate('common.merchant')}
+                        value={draftTransaction?.merchant}
+                        onPress={hasPartiallyEditableMerchantTransaction ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_MERCHANT_RHP)}
+                        isDisabled={hasPartiallyEditableMerchantTransaction}
+                    />
+                    <MenuItemField
+                        name={translate('common.date')}
+                        value={draftTransaction?.created}
+                        onPress={hasPartiallyEditableDateTransaction ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_DATE_RHP)}
+                        isDisabled={hasPartiallyEditableDateTransaction}
+                    />
+                    {areCategoriesEnabled && (
+                        <MenuItemField
+                            name={translate('common.category')}
+                            value={draftTransaction?.category}
+                            onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_CATEGORY_RHP)}
                         />
-                    ))}
+                    )}
+                    {areTagsEnabled &&
+                        policyTagLists.map((tagList, tagListIndex) => {
+                            if (hasDependentTags && !shouldShowTagList.at(tagListIndex)) {
+                                return null;
+                            }
+                            const tagName = tagsArray.at(tagListIndex) ?? '';
+                            return (
+                                <MenuItemField
+                                    key={tagList.name}
+                                    name={tagList.name || translate('common.tag')}
+                                    value={tagName ? getCleanedTagName(tagName) : ''}
+                                    onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_TAG_RHP.getRoute(tagListIndex))}
+                                />
+                            );
+                        })}
+                    {isTaxTrackingEnabled && (
+                        <MenuItemField
+                            name={policy?.taxRates?.name ?? translate('common.tax')}
+                            value={draftTransaction?.taxCode ? getTaxName(policy, draftTransaction) : ''}
+                            onPress={isTaxDisabled ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP)}
+                            isDisabled={isTaxDisabled}
+                        />
+                    )}
+                    {areSelectedTransactionsBillable && (
+                        <MenuItemField
+                            name={translate('common.billable')}
+                            value={getBooleanTitle(draftTransaction?.billable)}
+                            onPress={isBillableDisabled ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_BILLABLE_RHP)}
+                            isDisabled={isBillableDisabled}
+                        />
+                    )}
+                    {areSelectedTransactionsReimbursable && (
+                        <MenuItemField
+                            name={translate('common.reimbursable')}
+                            value={getBooleanTitle(draftTransaction?.reimbursable)}
+                            onPress={hasPartiallyEditableReimbursableTransaction ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP)}
+                            isDisabled={hasPartiallyEditableReimbursableTransaction}
+                        />
+                    )}
+                    {areAttendeesEnabled && (
+                        <MenuItemField
+                            name={translate('iou.attendees')}
+                            value={draftTransaction?.comment?.attendees?.length ? getAttendeesListDisplayString(draftTransaction.comment.attendees, localeCompare) : ''}
+                            onPress={isAttendeesDisabled ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP)}
+                            isDisabled={isAttendeesDisabled}
+                        />
+                    )}
                 </ScrollView>
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}

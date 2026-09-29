@@ -67,7 +67,6 @@ type VerifiedBankAccountFlowEntryPointProps = {
     /** Back to url passed from page */
     backTo?: Route;
 
-    /** Should show the continue setup button */
     shouldShowContinueSetupButton: boolean | null;
 
     /** Whether the workspace currency is set to non USD currency */
@@ -79,7 +78,6 @@ type VerifiedBankAccountFlowEntryPointProps = {
     /** Method to set the state of shouldShowContinueSetupButton */
     setShouldShowContinueSetupButton?: (shouldShowContinueSetupButton: boolean) => void;
 
-    /** Whether the user is coming from the expensify card */
     isComingFromExpensifyCard?: boolean;
 
     /** Whether this instance is starting a fresh setup from a "change bank account" flow */

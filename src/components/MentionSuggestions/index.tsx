@@ -8,13 +8,11 @@ import type Mention from './types';
 import MentionSuggestionItem from './MentionSuggestionItem';
 
 type MentionSuggestionsProps = {
-    /** The index of the highlighted mention */
     highlightedMentionIndex?: number;
 
     /** Array of suggested mentions */
     mentions: Mention[];
 
-    /** Fired when the user selects a mention */
     onSelect: (highlightedMentionIndex: number) => void;
 
     /** Mention prefix that follows the @ sign  */

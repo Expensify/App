@@ -98,6 +98,33 @@ describe('getImageSource', () => {
         ).toEqual({source: undefined, shouldReauthenticate: true});
     });
 
+    it('returns an authenticated source for an expired session running on a delegate token', () => {
+        const propsSource = {uri: MOCK_URI};
+        const session: Session = {
+            encryptedAuthToken: MOCK_TOKEN,
+            creationDate: NOW.getTime() - CONST.SESSION_EXPIRATION_TIME_MS - 1,
+            authTokenType: CONST.AUTH_TOKEN_TYPES.DELEGATE,
+        };
+
+        expect(
+            getImageSource({
+                propsSource,
+                session,
+                isAuthTokenRequired: true,
+                isOffline: false,
+            }),
+        ).toEqual({
+            source: {
+                ...propsSource,
+                cacheKey: MOCK_URI,
+                headers: {
+                    [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: MOCK_TOKEN,
+                },
+            },
+            shouldReauthenticate: false,
+        });
+    });
+
     it('preserves numeric image sources', () => {
         // @ts-expect-error -- Numeric object URIs intentionally exercise the runtime compatibility branch not represented by the public image source model.
         const propsSource: Parameters<typeof getImageSource>[0]['propsSource'] = {uri: 42};
