@@ -245,7 +245,7 @@ describe('getMoneyRequestInformation', () => {
     });
 
     describe('report preview action ID', () => {
-        const buildScanTransaction = (transactionID: string): Transaction => ({
+        const buildScanExpense = (transactionID: string): Transaction => ({
             transactionID,
             reportID: CHAT_REPORT_ID,
             amount: 0,
@@ -260,7 +260,7 @@ describe('getMoneyRequestInformation', () => {
                 ...baseParams,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 action: CONST.IOU.ACTION.CREATE,
-                existingTransaction: buildScanTransaction(transactionID),
+                existingTransaction: buildScanExpense(transactionID),
                 existingIOUReport,
                 optimisticIOUReportID,
                 optimisticReportPreviewActionID: OPTIMISTIC_REPORT_PREVIEW_ACTION_ID,

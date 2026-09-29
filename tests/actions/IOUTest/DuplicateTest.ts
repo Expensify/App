@@ -3353,20 +3353,37 @@ describe('actions/Duplicate', () => {
             expect(requestMoneyCall?.[1]).toEqual(expect.objectContaining({merchant: 'Modified Merchant'}));
         });
 
-        it('should pass the same reportPreviewReportActionID to all expense calls', async () => {
+        it('should pass the same reportPreviewReportActionID to all expense calls added to one report', async () => {
+            // Given a workspace and session that allow every duplicated expense to be added to one open report
+            const targetPolicy: Policy = {
+                ...mockPolicy,
+                type: CONST.POLICY.TYPE.TEAM,
+                autoReporting: false,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+            };
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${targetPolicy.id}`, targetPolicy);
+            await waitForBatchedUpdates();
+
             const tx1 = createCashTransaction('tx1');
             const tx2 = createCashTransaction('tx2');
             const tx3 = createCashTransaction('tx3');
 
-            duplicateReport(getDefaultParams([tx1, tx2, tx3]));
+            // When the report is duplicated
+            duplicateReport(getDefaultParams([tx1, tx2, tx3], {targetPolicy}));
             await waitForBatchedUpdates();
 
+            // Then all expense calls target one report and share its preview action ID
             const requestMoneyCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCalls).toHaveLength(3);
 
+            const firstReportID = requestMoneyCalls.at(0)?.[1]?.iouReportID;
             const firstPreviewID = requestMoneyCalls.at(0)?.[1]?.reportPreviewReportActionID;
+            expect(firstReportID).toBeDefined();
             expect(firstPreviewID).toBeDefined();
             for (const call of requestMoneyCalls) {
+                expect(call[1].iouReportID).toBe(firstReportID);
                 expect(call[1].reportPreviewReportActionID).toBe(firstPreviewID);
             }
         });
