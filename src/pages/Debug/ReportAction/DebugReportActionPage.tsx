@@ -113,10 +113,7 @@ function DebugReportActionPage({
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                    <HeaderWithBackButtonAndTitle
-                        title={`${translate('debug.debug')} - ${translate('debug.reportAction')}`}
-                        onBackButtonPress={Navigation.goBack}
-                    />
+                    <HeaderWithBackButtonAndTitle title={`${translate('debug.debug')} - ${translate('debug.reportAction')}`} />
                     <DebugTabNavigator
                         id={CONST.TAB.DEBUG_TAB_ID}
                         routes={routes}

@@ -105,10 +105,7 @@ function DebugTransactionViolationCreatePage({
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                    <HeaderWithBackButtonAndTitle
-                        title={`${translate('debug.debug')} - ${translate('debug.createTransactionViolation')}`}
-                        onBackButtonPress={Navigation.goBack}
-                    />
+                    <HeaderWithBackButtonAndTitle title={`${translate('debug.debug')} - ${translate('debug.createTransactionViolation')}`} />
                     <ScrollView contentContainerStyle={[styles.ph5, styles.pb5, styles.gap5]}>
                         <View>
                             <Text style={[styles.textLabelSupporting, styles.mb2]}>{translate('debug.editJson')}</Text>

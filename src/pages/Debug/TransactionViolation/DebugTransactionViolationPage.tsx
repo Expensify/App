@@ -96,10 +96,7 @@ function DebugTransactionViolationPage({
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                    <HeaderWithBackButtonAndTitle
-                        title={`${translate('debug.debug')} - ${translate('debug.transactionViolation')}`}
-                        onBackButtonPress={Navigation.goBack}
-                    />
+                    <HeaderWithBackButtonAndTitle title={`${translate('debug.debug')} - ${translate('debug.transactionViolation')}`} />
                     <DebugTabNavigator
                         id={CONST.TAB.DEBUG_TAB_ID}
                         routes={routes}
