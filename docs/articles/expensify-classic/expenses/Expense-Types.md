@@ -24,7 +24,7 @@ The right side of every report displays total expenses, broken down by **reimbur
 ## Reimbursable Expenses
 Expenses paid by employees on behalf of the business, including:
 - **Cash & Personal Card:** Out-of-pocket business expenses.
-- **Per Diem:** Daily expense allowances configured in your [workspace settings](https://help.expensify.com/articles/expensify-classic/workspaces/Enable-per-diem-expenses).
+- **Per Diem:** Daily expense allowances configured in your [workspace settings](https://help.expensify.com/articles/expensify-classic/workspaces/Enable-per-diem-expenses). Per diem is only available on the Control plan.
 - **Time:** Hourly wages for jobs, typically used for contractor invoicing. Configure rates [here](https://help.expensify.com/articles/expensify-classic/workspaces/Set-time-and-distance-rates).
 - **Distance:** Mileage-related expenses.
 

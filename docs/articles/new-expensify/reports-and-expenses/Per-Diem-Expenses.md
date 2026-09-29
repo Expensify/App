@@ -21,7 +21,7 @@ Per diem expenses let you claim daily allowances for meals, lodging, and inciden
 7. Optionally add more **sub-rates**, or fill in a **category, tag, or description**.
 8. Review your information, then click or tap **Create expense**.
 
-💡 **Note:** The Per Diem option only appears if a workspace has **per diem** enabled. It won’t appear in group chats, DM, or if your workspace doesn't have **Per diem** enabled.
+💡 **Note:** The Per Diem option only appears if a workspace has **per diem** enabled. Per diem is only available on the Control plan. It won’t appear in group chats, DM, or if your workspace doesn't have **Per diem** enabled.
 
 ![Open the expense submission flow, and follow the prompts to submit a Per Diem expense]({{site.url}}/assets/images/perdiem_05.png){:width="100%"}
 
@@ -30,7 +30,7 @@ Per diem expenses let you claim daily allowances for meals, lodging, and inciden
 # FAQ
 
 ## Why don’t I see the per diem option?
-The option only appears if the workspace you're submitting the expense on has Per Diem enabled. It won't show if you’re submitting an expense in a group chat, direct message, or if your workspace doesn't have that setting enabled.
+The option only appears if the workspace you're submitting the expense on has Per Diem enabled. It won't show if you’re submitting an expense in a group chat, direct message, or if your workspace doesn't have that setting enabled. Per Diem is only available on workspaces on the Control plan.
 
 ## Can I create per diem expenses for multiple days?
 Yes! Just set your Start and End dates across the full period and add one or more sub-rates for each day or meal.

@@ -7,6 +7,8 @@ keywords: [New Expensify, per diem, expense settings, daily rate, import per die
 
 Per Diem allows workspace admins to assign fixed daily rates for travel or other recurring allowances. Once enabled, it appears as its own menu item in the workspace settings, giving you full control over importing, editing, and categorizing daily allowances.
 
+**Note:** Per Diem is only available on the Control plan. If your workspace is on the Collect or Submit plan, you'll be prompted to upgrade to Control when you turn on Per Diem.
+
 ---
 
 # Enable Per Diem in a Workspace
@@ -17,6 +19,7 @@ To enable the Per Diem feature:
 2. Click your **workspace name** to open settings.
 3. Click **More Features** in the left menu.
 4. Under the **Spend** section, toggle on **Per Diem**.
+5. If your workspace isn't on the Control plan, click **Upgrade** to move it to Control.
 
 Once enabled, **Per Diem** will appear as a dedicated item in the left-hand menu under the workspace settings.
 
@@ -77,6 +80,10 @@ You can assign a default expense category to all Per Diem entries:
 ## Why Don’t I See the Per Diem Option When Submitting an Expense?
 
 Per Diem is only available when submitting expenses within a workspace where the feature is enabled. It will not appear in DMs, group chats, or expenses submitted outside a workspace.
+
+## Which Plan Do I Need to Use Per Diem?
+
+Per Diem is only available on the Control plan. It isn't available on the Collect or Submit plans.
 
 ## Can I Bulk-Edit or Delete Per Diem Rates?
 

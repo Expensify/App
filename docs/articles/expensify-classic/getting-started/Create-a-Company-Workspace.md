@@ -106,7 +106,7 @@ You can flag rule violations for:
    - **Delay submission** – Auto-submit based on a set schedule.
 7. Go to **Settings > Workspace > [Workspace Name] > Report fields** to customize reports or invoices.
 8. Click the **Travel** tab to define flight class or hotel preferences.
-9. Use the **Per diem** tab to import location-specific expense rules.
+9. Use the **Per diem** tab to import location-specific expense rules (Control plan only).
 
 ---
 

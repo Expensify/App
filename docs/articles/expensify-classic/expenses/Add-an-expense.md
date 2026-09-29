@@ -45,7 +45,7 @@ Add, track, and manage all types of expenses in Expensify—from SmartScanned re
 
 A **per diem** is a fixed daily allowance for business travel expenses like meals and lodging.
 
-**Note:** Per diem must be enabled by a Workspace Admin. If this option is unavailable, contact your Workspace Admin to update the per diem settings.
+**Note:** Per diem is only available on the Control plan and must be enabled by a Workspace Admin. If this option is unavailable, contact your Workspace Admin to update the per diem settings.
 
 ---
 

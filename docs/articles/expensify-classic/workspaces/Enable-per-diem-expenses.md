@@ -6,6 +6,8 @@ keywords: [Expensify Classic, per diem, per diem rates, enable per diem, daily a
 
 A Workspace Admin must first enable per diem expenses and set the per diem rates for Workspace Members to submit per diem expenses. 
 
+**Note:** Per diem is only available on the Control plan. To enable per diem, your workspace must be on the Control plan.
+
 ---
 
 # Set Per Diem Rates
