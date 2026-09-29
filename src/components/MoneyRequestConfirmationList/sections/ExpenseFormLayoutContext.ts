@@ -5,7 +5,7 @@ import {createContext, useContext} from 'react';
 type ExpenseFormLayoutContextValue = {
     /**
      * Whether a selectable field renders as one of the form's bordered rows with a down caret, instead of as a
-     * borderless push row. Every create-expense form asks for the bordered treatment except per diem.
+     * borderless push row. Every create-expense form asks for the bordered treatment.
      */
     shouldUseDropdownRows: boolean;
 
