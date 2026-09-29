@@ -23,13 +23,21 @@ type ReuseRouteListItemData = ListItem & {
     route: ReusableDistanceRoute;
 };
 
-type ReuseRouteListItemProps = SelectableListItemProps<ReuseRouteListItemData>;
-
 /**
  * Card for the "reuse prior route" list. Shows the map receipt of the source expense
  * with a "Last used" badge, plus Start and End rows.
  */
-function ReuseRouteListItem({item, isFocused, isFocusVisible, showTooltip, isDisabled, onSelectRow, onDismissError, onFocus, shouldSyncFocus}: ReuseRouteListItemProps) {
+function ReuseRouteListItem<TItem extends ReuseRouteListItemData>({
+    item,
+    isFocused,
+    isFocusVisible,
+    showTooltip,
+    isDisabled,
+    onSelectRow,
+    onDismissError,
+    onFocus,
+    shouldSyncFocus,
+}: SelectableListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();

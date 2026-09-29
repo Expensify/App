@@ -16,7 +16,7 @@ const createRoute = (transactionID: string, addresses: string[]): ReusableDistan
 describe('ReusableDistanceRoutesUtils', () => {
     describe('filterRoutes', () => {
         const routes = [
-            createRoute('1', ['Expensify Lounge, San Francisco, CA', 'Crissy Field East Beach, San Francisco, CA']),
+            createRoute('1', ['Expensify Lounge, San Francisco, CA', 'Marina Green East Beach, San Francisco, CA']),
             createRoute('2', ['Home, Portland, OR', 'Office, Portland, OR']),
             createRoute('3', ['Start, Austin, TX', 'Mid Stop, Dallas, TX', 'End, Houston, TX']),
         ];
@@ -31,7 +31,7 @@ describe('ReusableDistanceRoutesUtils', () => {
         });
 
         it('matches against the last waypoint address', () => {
-            expect(filterRoutes(routes, 'Crissy')).toEqual([routes.at(0)]);
+            expect(filterRoutes(routes, 'Marina')).toEqual([routes.at(0)]);
         });
 
         it('matches against intermediate stop addresses', () => {

@@ -2,6 +2,8 @@ import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import type ReuseRouteListItem from '@pages/iou/request/step/ReuseRouteListItem';
+
 import type CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -31,7 +33,8 @@ type ValidListItem =
     | typeof SplitListItem
     | typeof BareUserListItem
     | typeof UserListItem
-    | typeof UserSelectionListItem;
+    | typeof UserSelectionListItem
+    | typeof ReuseRouteListItem;
 
 /**
  * Base props shared between SelectionList and SelectionListWithSections.

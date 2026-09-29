@@ -10151,6 +10151,12 @@ ${reportName}`,
     distance: {
         addStop: '経由地を追加',
         address: '住所',
+        reuseRoute: 'Reuse route',
+        reusePriorRoute: 'Reuse prior route',
+        choosePreviousRoute: 'Choose a previous route below:',
+        findARoute: 'Find a route',
+        lastUsed: ({date}: {date: string}) => `Last used ${date}`,
+        end: 'End',
         waypointDescription: {
             start: '開始',
             stop: '停止',

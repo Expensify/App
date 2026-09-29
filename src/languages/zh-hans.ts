@@ -9885,6 +9885,12 @@ ${reportName}`,
     distance: {
         addStop: '添加站点',
         address: '地址',
+        reuseRoute: 'Reuse route',
+        reusePriorRoute: 'Reuse prior route',
+        choosePreviousRoute: 'Choose a previous route below:',
+        findARoute: 'Find a route',
+        lastUsed: ({date}: {date: string}) => `Last used ${date}`,
+        end: 'End',
         waypointDescription: {
             start: '开始',
             stop: '停止',

@@ -1055,6 +1055,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'hasEReceipt':
         case 'shouldShowOriginalAmount':
         case 'managedCard':
+        case 'isReusedRoute':
             return validateBoolean(value);
         case 'amount':
         case 'taxAmount':
@@ -1225,6 +1226,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     isCreatedSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     selectedRouteKey: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     rejectFailedFromReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isReusedRoute: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
