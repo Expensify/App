@@ -16,12 +16,16 @@ import deleteReport from './Report/DeleteReport';
 
 type IgnoreDirection = 'parent' | 'child';
 
+/** The subset of report data needed to walk the parent hierarchy when clearing related errors */
+type ReportHierarchyInfo = Pick<OnyxTypes.Report, 'parentReportID' | 'parentReportActionID'>;
+
 let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (value) => (allReportActions = value),
 });
 
+// TODO: Remove this transitional fallback once all callers pass the `reports` param (https://github.com/Expensify/App/issues/96140)
 let allReports: OnyxCollection<OnyxTypes.Report>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -117,6 +121,7 @@ function clearReportActionErrors(reportAction: ReportAction, originalReportID: s
  *
 ignore: `undefined` means we want to check both parent and children report actions
 ignore: `parent` or `child` means we want to ignore checking parent or child report actions because they've been previously checked
+reports: parent hierarchy data used to walk up the ancestor chain, keyed by `${ONYXKEYS.COLLECTION.REPORT}${reportID}` — in components read it via `useReportsParentHierarchy`
  */
 function clearAllRelatedReportActionErrors(
     reportID: string | undefined,
@@ -125,6 +130,7 @@ function clearAllRelatedReportActionErrors(
     isOffline: boolean,
     ignore?: IgnoreDirection,
     keys?: string[],
+    reports?: OnyxCollection<ReportHierarchyInfo>,
 ) {
     const errorKeys = keys ?? Object.keys(reportAction?.errors ?? {});
     if (!reportAction || errorKeys.length === 0 || !reportID) {
@@ -133,14 +139,16 @@ function clearAllRelatedReportActionErrors(
 
     clearReportActionErrors(reportAction, originalReportID, keys);
 
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    // The fallback is chosen once on whether the param was supplied (never per key), so a supplied collection
+    // that legitimately lacks the report never silently reads from the module-level cache.
+    const report = (reports ?? allReports)?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (report?.parentReportID && report?.parentReportActionID && ignore !== 'parent') {
         const parentReportAction = getReportAction(report.parentReportID, report.parentReportActionID);
         const parentErrorKeys = Object.keys(parentReportAction?.errors ?? {}).filter((err) => errorKeys.includes(err));
         const parentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`] ?? {};
         const parentOriginalReportID = getOriginalReportID(report.parentReportID, parentReportAction, parentReportActions, isOffline);
 
-        clearAllRelatedReportActionErrors(report.parentReportID, parentReportAction, parentOriginalReportID, isOffline, 'child', parentErrorKeys);
+        clearAllRelatedReportActionErrors(report.parentReportID, parentReportAction, parentOriginalReportID, isOffline, 'child', parentErrorKeys, reports);
     }
 
     if (reportAction.childReportID && ignore !== 'child') {
@@ -148,10 +156,10 @@ function clearAllRelatedReportActionErrors(
         for (const action of Object.values(childActions)) {
             const childErrorKeys = Object.keys(action.errors ?? {}).filter((err) => errorKeys.includes(err));
             const childOriginalReportID = getOriginalReportID(reportAction.childReportID, action, childActions, isOffline);
-            clearAllRelatedReportActionErrors(reportAction.childReportID, action, childOriginalReportID, isOffline, 'parent', childErrorKeys);
+            clearAllRelatedReportActionErrors(reportAction.childReportID, action, childOriginalReportID, isOffline, 'parent', childErrorKeys, reports);
         }
     }
 }
 
-export type {IgnoreDirection};
+export type {IgnoreDirection, ReportHierarchyInfo};
 export {clearAllRelatedReportActionErrors};
