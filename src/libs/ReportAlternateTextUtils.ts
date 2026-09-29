@@ -1708,4 +1708,3 @@ export {
     resolveLastActionContext,
     shouldShowLastActorDisplayName,
 };
-export type {LastActionContext};
