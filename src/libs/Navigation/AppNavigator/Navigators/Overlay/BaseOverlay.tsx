@@ -2,7 +2,8 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {OverlayStylesParams} from '@styles/index';
+import type {OverlayPositionValue, OverlayStylesParams} from '@styles/index';
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
@@ -23,17 +24,39 @@ type BaseOverlayProps = {
     progress?: OverlayStylesParams;
 
     /** Overlay position from the left edge of the container */
-    positionLeftValue?: number | Animated.Value | Animated.AnimatedAddition<number>;
+    positionLeftValue?: OverlayPositionValue;
 
     /** Overlay position from the right edge of the container */
-    positionRightValue?: number | Animated.Value | Animated.AnimatedAddition<number>;
+    positionRightValue?: OverlayPositionValue;
 
     /** Pointer dismissal stops at this right inset, independently of the visual scrim. */
-    dismissalPositionRight?: number | Animated.Value | Animated.AnimatedAddition<number>;
+    dismissalPositionRight?: OverlayPositionValue;
+
+    /** Peak opacity the overlay fades to, defaults to variables.overlayOpacity */
+    maxOpacity?: number;
+
+    /** Overlay position from the top edge of the container, in px */
+    positionTopValue?: number;
+
+    /** Overlay position from the bottom edge of the container, in px */
+    positionBottomValue?: number;
+
+    /** Stays positioned and pressable, just paints nothing. */
+    transparent?: boolean;
 };
 
 // Visual dimming and pointer dismissal are separate. Screen readers dismiss through the active panel's controls.
-function BaseOverlay({onPress, progress, positionLeftValue = 0, positionRightValue = 0, dismissalPositionRight}: BaseOverlayProps) {
+function BaseOverlay({
+    onPress,
+    progress,
+    positionLeftValue = 0,
+    positionRightValue = 0,
+    dismissalPositionRight,
+    positionTopValue = 0,
+    positionBottomValue = 0,
+    maxOpacity = variables.overlayOpacity,
+    transparent = false,
+}: BaseOverlayProps) {
     const styles = useThemeStyles();
     const {current} = useCardAnimation();
     const isFocused = useIsFocused();
@@ -51,10 +74,15 @@ function BaseOverlay({onPress, progress, positionLeftValue = 0, positionRightVal
                 importantForAccessibility="no-hide-descendants"
                 style={[
                     styles.pAbsolute,
-                    styles.t0,
-                    styles.b0,
-                    styles.overlayBackground,
-                    styles.overlayStyles({progress: progress ?? current.progress, positionLeftValue: left, positionRightValue}),
+                    !transparent && styles.overlayBackground,
+                    styles.overlayStyles({
+                        progress: progress ?? current.progress,
+                        positionLeftValue: left,
+                        positionRightValue,
+                        positionTopValue,
+                        positionBottomValue,
+                        maxOpacity,
+                    }),
                 ]}
             />
             {!!onPress && isFocused && (
@@ -68,7 +96,12 @@ function BaseOverlay({onPress, progress, positionLeftValue = 0, positionRightVal
                     importantForAccessibility="no-hide-descendants"
                     shouldUseAutoHitSlop={false}
                     tabIndex={-1}
-                    style={[styles.pAbsolute, styles.t0, styles.b0, styles.boxShadowNone, styles.cursorAuto, {left, right: dismissalPositionRight ?? positionRightValue}]}
+                    style={[
+                        styles.pAbsolute,
+                        styles.boxShadowNone,
+                        styles.cursorAuto,
+                        {left, right: dismissalPositionRight ?? positionRightValue, top: positionTopValue, bottom: positionBottomValue},
+                    ]}
                     sentryLabel="RHPOverlay-Dismiss"
                 />
             )}

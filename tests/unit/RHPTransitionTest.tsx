@@ -1,4 +1,4 @@
-import {renderHook} from '@testing-library/react-native';
+import {render, renderHook, screen} from '@testing-library/react-native';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import type * as ReactNavigationStack from '@react-navigation/stack';
 
 import {useCardAnimation} from '@react-navigation/stack';
+import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, Platform} from 'react-native';
 
@@ -57,7 +58,13 @@ describe.each(['ios', 'android', 'web'] as const)('RHP transition ownership on %
         expect(host).not.toHaveProperty('paddingRight');
         expect(result.current.frame?.opacity).toBe(animation.current.progress);
         expect(result.current.frame?.transform).toHaveLength(1);
-        expect(result.current.frame?.right).toBe(platform === 'web' ? sidePanelOffset : 0);
+        render(
+            <Animated.View
+                testID="rhp-frame"
+                style={result.current.frame}
+            />,
+        );
+        expect(screen.getByTestId('rhp-frame')).toHaveStyle({right: platform === 'web' ? 332 : 0});
         expect(result.current.frame).not.toHaveProperty('width');
         expect(result.current.frame).not.toHaveProperty('height');
         expect(result.current.frame).not.toHaveProperty('position');

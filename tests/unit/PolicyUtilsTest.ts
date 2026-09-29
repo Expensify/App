@@ -30,6 +30,7 @@ import {
     getDefaultTimeTrackingRate,
     getDefaultWorkspacePlanType,
     getDualEntryVendors,
+    getCertiniaVendors,
     getEligibleBankAccountShareRecipientEmails,
     getExcludedUsers,
     getExpensifyTeamExclusions,
@@ -57,6 +58,7 @@ import {
     getSubmitToEmail,
     getTagApproverRule,
     findPolicyTagAtLevel,
+    findPolicyTagEntryByParentFilter,
     getTagGLCode,
     isTagInPolicy,
     matchesParentTagPath,
@@ -82,10 +84,12 @@ import {
     isBusinessCentralVendorMatchingActive,
     isArchivedPolicy,
     isDualEntryVendorMatchingActive,
+    isCertiniaVendorMatchingActive,
     isInvoiceFieldsEnabled,
     isMatchingVendorListLoaded,
     isMaxExpenseAmountSet,
     isMergeHRCompleteSetupNeededSelector,
+    isQBORefreshTokenExpiringSoonSelector,
     isPerDiemEligiblePolicy,
     isPerDiemEnabled,
     isPolicyFeatureEnabled,
@@ -109,7 +113,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTags, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
-import type {Connections, DualEntryVendor, QBONonReimbursableExportAccountType, SageIntacctExportConfig, TaxRates} from '@src/types/onyx/Policy';
+import type {Connections, DualEntryVendor, FinancialForceSyncedEntity, QBONonReimbursableExportAccountType, SageIntacctExportConfig, TaxRates} from '@src/types/onyx/Policy';
 import type Rule from '@src/types/onyx/Rule';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 
@@ -1969,6 +1973,31 @@ describe('PolicyUtils', () => {
 
             expect(findPolicyTagAtLevel(escapedParentTags, 'Roadshow', 'Sales\\:EMEA')?.name).toBe('Roadshow');
             expect(findPolicyTagAtLevel(escapedParentTags, 'Roadshow', 'Sales')).toBeUndefined();
+        });
+    });
+
+    describe('findPolicyTagEntryByParentFilter', () => {
+        const dependentTags: PolicyTags = {
+            Roadshow: {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Marketing$'}},
+            'Roadshow-1': {name: 'Roadshow', enabled: true, 'GL Code': '2222', rules: {parentTagsFilter: '^Engineering$'}},
+        };
+
+        it('returns the tag and storage key when parentTagsFilter matches', () => {
+            expect(findPolicyTagEntryByParentFilter(dependentTags, 'Roadshow', '^Engineering$')).toEqual({
+                tag: dependentTags['Roadshow-1'],
+                tagKey: 'Roadshow-1',
+            });
+        });
+
+        it('returns the tag by name when parentTagsFilter is not provided', () => {
+            expect(findPolicyTagEntryByParentFilter(dependentTags, 'Roadshow')).toEqual({
+                tag: dependentTags.Roadshow,
+                tagKey: 'Roadshow',
+            });
+        });
+
+        it('returns undefined when parentTagsFilter does not match any tag', () => {
+            expect(findPolicyTagEntryByParentFilter(dependentTags, 'Roadshow', '^Sales$')).toBeUndefined();
         });
     });
 
@@ -4770,6 +4799,117 @@ describe('PolicyUtils', () => {
             });
         });
 
+        describe('Certinia vendors', () => {
+            const vendors: FinancialForceSyncedEntity[] = [
+                {id: 'certinia-1', name: 'Acme Supplies'},
+                {id: 'certinia-2', name: 'Globex'},
+            ];
+            const buildCertiniaPolicy = (
+                vendorList: FinancialForceSyncedEntity[] | undefined,
+                config: {isConfigured?: boolean; hasPSA?: boolean} = {isConfigured: true, hasPSA: false},
+            ): Policy =>
+                createMock<Policy>({
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                            config,
+                            data: {vendors: vendorList},
+                        },
+                    },
+                });
+
+            it('requires a configured FFA connection and the matching beta', () => {
+                // Given a workspace configured with Certinia FFA
+                const policy = buildCertiniaPolicy(vendors);
+
+                // When checking vendor matching availability
+
+                // Then matching is active, but the feature requires the vendor matching beta
+                expect(isCertiniaVendorMatchingActive(policy)).toBe(true);
+                expect(hasVendorFeature(policy, true)).toBe(true);
+                expect(hasVendorFeature(policy, false)).toBe(false);
+                expect(isCertiniaVendorMatchingActive(undefined)).toBe(false);
+            });
+
+            it('excludes PSA and unconfigured connections, treats missing hasPSA as FFA', () => {
+                // Given Certinia connections that are PSA, unconfigured, or omitting hasPSA
+                const psaPolicy = buildCertiniaPolicy(vendors, {isConfigured: true, hasPSA: true});
+                const unconfiguredPolicy = buildCertiniaPolicy(vendors, {isConfigured: false, hasPSA: false});
+                const defaultFfaPolicy = buildCertiniaPolicy(vendors, {isConfigured: true});
+
+                // When checking vendor matching availability
+
+                // Then PSA and unconfigured connections are inactive, while missing hasPSA defaults to FFA
+                expect(isCertiniaVendorMatchingActive(psaPolicy)).toBe(false);
+                expect(isCertiniaVendorMatchingActive(unconfiguredPolicy)).toBe(false);
+                expect(hasVendorFeature(psaPolicy, true)).toBe(false);
+
+                // The OAuth callback persists null when Salesforce omits hasPSA, and the rest of the product reads that as FFA
+                expect(isCertiniaVendorMatchingActive(defaultFfaPolicy)).toBe(true);
+            });
+
+            it('normalizes synced vendors and resolves them by ID', () => {
+                // Given a workspace with synced Certinia FFA vendors
+                const policy = buildCertiniaPolicy(vendors);
+                const expected = [
+                    {id: 'certinia-1', name: 'Acme Supplies', currency: '', email: ''},
+                    {id: 'certinia-2', name: 'Globex', currency: '', email: ''},
+                ];
+
+                // When reading matching vendors and querying them by ID
+
+                // Then vendors are normalized to standard vendor shapes and resolvable by ID
+                expect(getMatchingVendors(policy)).toEqual(expected);
+                expect(getCertiniaVendors(policy)).toEqual(expected);
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.CERTINIA);
+                expect(getMatchingVendorByID(policy, 'certinia-2')?.name).toBe('Globex');
+                expect(findVendorByID(policy, 'certinia-1')?.name).toBe('Acme Supplies');
+            });
+
+            it('distinguishes an unloaded list from a loaded-empty list', () => {
+                // Given an unloaded vendor list and a loaded empty vendor list
+                const unloadedPolicy = buildCertiniaPolicy(undefined);
+                const emptyPolicy = buildCertiniaPolicy([]);
+
+                // When checking list load status and reading matching vendors
+
+                // Then the unloaded list returns empty without being marked loaded, while an empty array is marked loaded
+                expect(isMatchingVendorListLoaded(unloadedPolicy)).toBe(false);
+                expect(isMatchingVendorListLoaded(emptyPolicy)).toBe(true);
+                expect(getMatchingVendors(unloadedPolicy)).toEqual([]);
+            });
+
+            it('stays last in precedence behind DualEntry', () => {
+                // Given a workspace configured with both Certinia FFA and DualEntry connections
+                const policy = buildCertiniaPolicy(vendors);
+                policy.connections = {
+                    ...policy.connections,
+                    dualEntry: {config: {isConfigured: true, subsidiaryID: '10', enableNewCategories: false}, data: {vendors: [{id: '1', name: 'DualEntry vendor', isActive: true}]}},
+                };
+
+                // When resolving the active vendor matching integration and vendor lists
+
+                // Then DualEntry takes precedence for matching while Certinia vendors remain accessible directly
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.DUALENTRY);
+                expect(getMatchingVendors(policy).map((vendor) => vendor.id)).toEqual(['1']);
+                expect(getCertiniaVendors(policy).map((vendor) => vendor.id)).toEqual(['certinia-1', 'certinia-2']);
+            });
+
+            it('uses the existing Certinia empty state', () => {
+                // Given a Certinia workspace with an empty vendor list and the localizer
+                const policy = buildCertiniaPolicy([]);
+                const translate = TestHelper.translateLocal;
+
+                // When retrieving the vendor empty state
+
+                // Then localized messages specific to Certinia are returned
+                expect(getVendorEmptyState(policy, translate)).toEqual({
+                    title: translate('workspace.certinia.noVendorsFound'),
+                    subtitle: translate('workspace.certinia.noVendorsFoundDescription'),
+                });
+            });
+        });
+
         describe('hasVendorFeature', () => {
             it('returns true when beta is enabled and QBO non-reimbursable export is Credit Card', () => {
                 expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), true)).toBe(true);
@@ -5667,6 +5807,28 @@ describe('PolicyUtils', () => {
         it('returns only Expensify emails when the employee list is undefined', () => {
             const result = getExcludedUsers(undefined);
             expect(Object.keys(result)).toEqual([...CONST.EXPENSIFY_EMAILS]);
+        });
+    });
+
+    describe('isQBORefreshTokenExpiringSoonSelector', () => {
+        const buildQBOPolicy = (role: string, refreshTokenExpiresAt: number): Policy =>
+            Object.assign(createRandomPolicy(1), {
+                role,
+                connections: {quickbooksOnline: {config: {credentials: {companyID: '12345', refreshTokenExpiresAt}}, lastSync: {isAuthenticationError: false}}},
+            });
+        const expiringSoon = Math.floor(Date.now() / 1000) + 3 * 86400;
+
+        it('returns true for an admin whose QBO refresh token expires within the warning window', () => {
+            expect(isQBORefreshTokenExpiringSoonSelector(buildQBOPolicy(CONST.POLICY.ROLE.ADMIN, expiringSoon))).toBe(true);
+        });
+
+        it('returns false for a member, since only admins can reconnect', () => {
+            expect(isQBORefreshTokenExpiringSoonSelector(buildQBOPolicy(CONST.POLICY.ROLE.USER, expiringSoon))).toBe(false);
+        });
+
+        it('returns false when the token is still far from expiring or the policy is undefined', () => {
+            expect(isQBORefreshTokenExpiringSoonSelector(buildQBOPolicy(CONST.POLICY.ROLE.ADMIN, Math.floor(Date.now() / 1000) + 60 * 86400))).toBe(false);
+            expect(isQBORefreshTokenExpiringSoonSelector(undefined)).toBe(false);
         });
     });
 

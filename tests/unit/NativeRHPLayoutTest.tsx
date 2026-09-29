@@ -72,6 +72,10 @@ describe('Native RHP layout', () => {
     });
 
     it('keeps the transaction narrower than its underlying expense report', () => {
+        // Given a tablet wide enough for the report to exceed the receipt and transaction pane width
+        jest.mocked(useWindowDimensions).mockReturnValue({windowWidth: 1440, windowHeight: 820});
+
+        // When the report, transaction and detail cards calculate their native layout widths
         const {result} = renderHook(() => useModalStackScreenOptions());
         const expense = result.current({route: {key: 'expense', name: 'expense'}});
         const transaction = result.current({route: {key: 'transaction', name: 'transaction'}});
@@ -79,12 +83,13 @@ describe('Native RHP layout', () => {
         const interpolationProps = createMock<StackCardInterpolationProps>({
             current: {progress: new Animated.Value(1)},
             inverted: new Animated.Value(1),
-            layouts: {screen: {width: 1180, height: 820}},
+            layouts: {screen: {width: 1440, height: 820}},
         });
 
-        expect(expense.web?.cardStyleInterpolator?.(interpolationProps).cardStyle).toMatchObject({width: 1033, right: 0});
-        expect(transaction.web?.cardStyleInterpolator?.(interpolationProps).cardStyle).toMatchObject({width: 840, right: 0});
-        expect(detail.web?.cardStyleInterpolator?.(interpolationProps).cardStyle).toMatchObject({width: 375, right: 0});
+        // Then widths stay numeric and each card stays full-height without the web floating-card inset
+        expect(expense.web?.cardStyleInterpolator?.(interpolationProps).cardStyle).toMatchObject({width: 1080, right: 0, top: 0, bottom: 0, height: '100%'});
+        expect(transaction.web?.cardStyleInterpolator?.(interpolationProps).cardStyle).toMatchObject({width: 925, right: 0, top: 0, bottom: 0, height: '100%'});
+        expect(detail.web?.cardStyleInterpolator?.(interpolationProps).cardStyle).toMatchObject({width: 440, right: 0});
     });
 
     it('retains the base scene and uses JS-stack horizontal transitions on native', () => {

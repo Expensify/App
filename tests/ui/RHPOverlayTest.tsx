@@ -1,6 +1,7 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
+import RHPOverlay from '@libs/Navigation/AppNavigator/Navigators/Overlay/RHPOverlay';
 
 import variables from '@styles/variables';
 
@@ -105,5 +106,46 @@ describe.each(['ios', 'android', 'web'] as const)('RHP scrims on %s', (platform)
         render(<Overlay onPress={onPress} />);
         expect(screen.queryByTestId('rhp-overlay-dismiss', {includeHiddenElements: true})).toBeNull();
         expect(onPress).not.toHaveBeenCalled();
+    });
+
+    it('uses the floating RHP opacity without changing dismissal accessibility', () => {
+        // Given the dedicated RHP overlay introduced by the floating-card layout
+        const onPress = jest.fn();
+
+        // When the overlay is fully visible
+        render(
+            <RHPOverlay
+                progress={new Animated.Value(1)}
+                onPress={onPress}
+            />,
+        );
+
+        // Then it uses the RHP opacity while keeping the dismissal target hidden from screen readers
+        expect(screen.getByTestId('rhp-overlay', {includeHiddenElements: true})).toHaveStyle({opacity: variables.rhpOverlayOpacity});
+        expect(screen.getByTestId('rhp-overlay-dismiss', {includeHiddenElements: true})).toHaveProp('accessible', false);
+    });
+
+    it('keeps the transparent floating-card gap pressable within its vertical bounds', () => {
+        // Given a gap above the floating card that must dismiss without adding another layer of dimming
+        const onPress = jest.fn();
+
+        // When the gap overlay is rendered with explicit horizontal and vertical bounds
+        render(
+            <RHPOverlay
+                transparent
+                positionLeftValue={800}
+                positionRightValue={12}
+                positionTopValue={0}
+                positionBottomValue={808}
+                onPress={onPress}
+            />,
+        );
+
+        // Then the visual overlay has no background and the dismissal target covers only the gap
+        expect(screen.getByTestId('rhp-overlay', {includeHiddenElements: true})).not.toHaveStyle({backgroundColor: expect.any(String)});
+        const dismiss = screen.getByTestId('rhp-overlay-dismiss', {includeHiddenElements: true});
+        expect(dismiss).toHaveStyle({left: 800, right: 12, top: 0, bottom: 808});
+        fireEvent.press(dismiss);
+        expect(onPress).toHaveBeenCalledTimes(1);
     });
 });
