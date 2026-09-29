@@ -1,3 +1,5 @@
+import CONST from '@src/CONST';
+
 import type React from 'react';
 import type {ValueOf} from 'type-fest';
 
@@ -7,19 +9,7 @@ const TABLE_HEADER_KEY = '__table_header__';
 
 type SyntheticRowKind = 'tableHeader' | 'data';
 
-/** Where the column header is rendered. The placements are exclusive, so the table is always in exactly one of them. */
-const COLUMN_HEADER_PLACEMENT = {
-    /** The table has no column header anywhere. */
-    NONE: 'none',
-    /** A direct child of the table container, outside the list. Where every table without a page header keeps it. */
-    OUTSIDE_LIST: 'outsideList',
-    /** A synthetic list row, which FlashList paints as a sticky overlay outside the scroller. */
-    STICKY_ROW: 'stickyRow',
-    /** In flow inside the list header, so the scroller carries it sideways with the columns it labels. */
-    LIST_HEADER: 'listHeader',
-} as const;
-
-type ColumnHeaderPlacement = ValueOf<typeof COLUMN_HEADER_PLACEMENT>;
+type ColumnHeaderPlacement = ValueOf<typeof CONST.TABLES.COLUMN_HEADER_PLACEMENT>;
 
 type TableListMetadata = {
     hasPageHeader: boolean;
@@ -60,39 +50,39 @@ function getColumnHeaderPlacement({
     areColumnsScrollable,
 }: ColumnHeaderPlacementParams): ColumnHeaderPlacement {
     if (!hasColumnHeaderElement) {
-        return COLUMN_HEADER_PLACEMENT.NONE;
+        return CONST.TABLES.COLUMN_HEADER_PLACEMENT.NONE;
     }
 
     if (!hasRows || isColumnHeaderHiddenInNarrowLayout) {
-        return COLUMN_HEADER_PLACEMENT.NONE;
+        return CONST.TABLES.COLUMN_HEADER_PLACEMENT.NONE;
     }
 
     // A table without a page header keeps the column header as a plain child of the table container, so the list is
     // never the one placing it and the rest of the rules below don't apply.
     if (!hasPageHeader) {
-        return COLUMN_HEADER_PLACEMENT.OUTSIDE_LIST;
+        return CONST.TABLES.COLUMN_HEADER_PLACEMENT.OUTSIDE_LIST;
     }
 
-    return areColumnsScrollable ? COLUMN_HEADER_PLACEMENT.LIST_HEADER : COLUMN_HEADER_PLACEMENT.STICKY_ROW;
+    return areColumnsScrollable ? CONST.TABLES.COLUMN_HEADER_PLACEMENT.LIST_HEADER : CONST.TABLES.COLUMN_HEADER_PLACEMENT.STICKY_ROW;
 }
 
 /** Whether the table has a column header at all, wherever it ends up. Drives `aria-rowindex`/`aria-rowcount`. */
 function rendersColumnHeader(metadata: TableListMetadata): boolean {
-    return metadata.columnHeaderPlacement !== COLUMN_HEADER_PLACEMENT.NONE;
+    return metadata.columnHeaderPlacement !== CONST.TABLES.COLUMN_HEADER_PLACEMENT.NONE;
 }
 
 function rendersColumnHeaderAsStickyRow(metadata: TableListMetadata): boolean {
-    return metadata.columnHeaderPlacement === COLUMN_HEADER_PLACEMENT.STICKY_ROW;
+    return metadata.columnHeaderPlacement === CONST.TABLES.COLUMN_HEADER_PLACEMENT.STICKY_ROW;
 }
 
 function rendersColumnHeaderInListHeader(metadata: TableListMetadata): boolean {
-    return metadata.columnHeaderPlacement === COLUMN_HEADER_PLACEMENT.LIST_HEADER;
+    return metadata.columnHeaderPlacement === CONST.TABLES.COLUMN_HEADER_PLACEMENT.LIST_HEADER;
 }
 
 function getTableListMetadata<DataType extends TableData>({listHeaderElement, listHeaderComponent, ...placementParams}: TableListMetadataParams<DataType>): TableListMetadata {
     const hasPageHeader = !!listHeaderComponent || !!listHeaderElement;
     const columnHeaderPlacement = getColumnHeaderPlacement({...placementParams, hasPageHeader});
-    const syntheticRowsBeforeData = columnHeaderPlacement === COLUMN_HEADER_PLACEMENT.STICKY_ROW ? 1 : 0;
+    const syntheticRowsBeforeData = columnHeaderPlacement === CONST.TABLES.COLUMN_HEADER_PLACEMENT.STICKY_ROW ? 1 : 0;
 
     return {
         hasPageHeader,
@@ -150,7 +140,6 @@ function getAdjustedStickyHeaderIndices(metadata: TableListMetadata, stickyHeade
 
 export {
     buildTableListData,
-    COLUMN_HEADER_PLACEMENT,
     getAdjustedStickyHeaderIndices,
     getDataIndex,
     getDataVisibleIndices,
