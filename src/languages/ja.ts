@@ -4754,7 +4754,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             memberAlternateText: 'レポートを提出して承認します。',
             adminAlternateText: 'レポートとワークスペースの設定を管理します。',
             auditorAlternateText: 'レポートを表示してコメントします。',
-            guestAlternateText: 'レポートの提出と承認ができ、招待制チャットも利用できます。',
+            guestAlternateText: 'レポートを提出および承認し、招待されたチャットのみを使用します。',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
@@ -6965,7 +6965,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             }),
             makeGuest: () => ({
                 one: 'ゲストにする',
-                other: 'ゲストを作成',
+                other: 'ゲストにする',
             }),
             makePeopleAdmin: () => ({
                 one: 'People 管理者にする',

@@ -867,34 +867,6 @@ const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: strin
 const isPolicyGuest = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean => getPolicyRole(policy, currentUserLogin) === CONST.POLICY.ROLE.GUEST;
 
 /**
- * Workspace roles from highest to lowest privilege, matching the role hierarchy in Auth.
- */
-const POLICY_ROLE_RANKING = [
-    CONST.POLICY.ROLE.ADMIN,
-    CONST.POLICY.ROLE.PAYMENTS_ADMIN,
-    CONST.POLICY.ROLE.CARD_ADMIN,
-    CONST.POLICY.ROLE.PEOPLE_ADMIN,
-    CONST.POLICY.ROLE.AUDITOR,
-    CONST.POLICY.ROLE.EDITOR,
-    CONST.POLICY.ROLE.USER,
-    CONST.POLICY.ROLE.GUEST,
-] as const;
-
-/**
- * Returns the highest-privilege role held across the given policies.
- * Defaults to user when no ranked role is found, so a member on any workspace is not reported as a guest.
- */
-function getHighestPolicyRole(policyList: Array<OnyxInputOrEntry<Pick<Policy, 'role'>>>): (typeof POLICY_ROLE_RANKING)[number] {
-    const roles = policyList.map((policy) => policy?.role);
-    for (const rankedRole of POLICY_ROLE_RANKING) {
-        if (roles.includes(rankedRole)) {
-            return rankedRole;
-        }
-    }
-    return CONST.POLICY.ROLE.USER;
-}
-
-/**
  * Checks if the current user is an auditor of the policy
  */
 const isPolicyAuditor = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean =>
@@ -3984,7 +3956,6 @@ export {
     getCustomUnitsForDuplication,
     getCountOfRequiredTagLists,
     getActiveEmployeeWorkspaces,
-    getHighestPolicyRole,
     getPolicyRole,
     hasIndependentTags,
     hasPerTagListRequired,

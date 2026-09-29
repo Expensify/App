@@ -4784,13 +4784,13 @@ ${amount} para ${merchant} - ${date}`,
             memberAlternateText: 'Enviar e aprovar relatórios.',
             adminAlternateText: 'Gerencie relatórios e configurações do espaço de trabalho.',
             auditorAlternateText: 'Visualize e comente relatórios.',
-            guestAlternateText: 'Envie e aprove relatórios, com chats apenas por convite.',
+            guestAlternateText: 'Envie e aprove relatórios, com chats somente por convite.',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
                         return 'Proprietário';
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Admin do workspace';
+                        return 'Administrador da área de trabalho';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
                     case CONST.POLICY.ROLE.GUEST:
@@ -4798,7 +4798,7 @@ ${amount} para ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Administração de cartão';
+                        return 'Admin do cartão';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
                         return 'Administração de pessoas';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
@@ -7041,7 +7041,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             }),
             makeGuest: () => ({
                 one: 'Tornar convidado',
-                other: 'Transformar em convidados',
+                other: 'Tornar convidados',
             }),
             makePeopleAdmin: () => ({
                 one: 'Tornar administrador de pessoas',

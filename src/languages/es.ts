@@ -4748,7 +4748,7 @@ ${amount} para ${merchant} - ${date}`,
             memberAlternateText: 'Presentar y aprobar informes.',
             adminAlternateText: 'Gestionar informes y configuración del área de trabajo.',
             auditorAlternateText: 'Ver y comentar los informes.',
-            guestAlternateText: 'Envía y aprueba informes, con chats solo por invitación.',
+            guestAlternateText: 'Enviar y aprobar informes, con chats solo por invitación.',
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Directo',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'Ninguno',
@@ -4759,7 +4759,7 @@ ${amount} para ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.OWNER:
                         return 'Propietario';
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Administrador de espacio de trabajo';
+                        return 'Administrador del espacio de trabajo';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
                     case CONST.POLICY.ROLE.GUEST:
@@ -4769,7 +4769,7 @@ ${amount} para ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Administrador de tarjeta';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Administración de personas';
+                        return 'Administrador de personas';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Administrador de pagos';
                     case CONST.POLICY.ROLE.USER:
@@ -6962,7 +6962,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 other: 'Convertir en auditores',
             }),
             makeGuest: () => ({
-                one: 'Hacer invitado',
+                one: 'Convertir en invitado',
                 other: 'Convertir en invitados',
             }),
             makePeopleAdmin: () => ({

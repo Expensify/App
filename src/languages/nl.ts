@@ -4793,13 +4793,13 @@ ${amount} voor ${merchant} - ${date}`,
             memberAlternateText: 'Dien rapporten in en keur ze goed.',
             adminAlternateText: 'Beheer rapporten en werkruimte-instellingen.',
             auditorAlternateText: 'Rapporten bekijken en erop reageren.',
-            guestAlternateText: 'Dien rapporten in en keur ze goed, met chats op uitnodiging.',
+            guestAlternateText: 'Rapporten indienen en goedkeuren, met chats alleen op uitnodiging.',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
                         return 'Eigenaar';
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Werkruimtebeheerder';
+                        return 'Beheerder van werkruimte';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
                     case CONST.POLICY.ROLE.GUEST:
@@ -4809,7 +4809,7 @@ ${amount} voor ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Kaartbeheer';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Personenbeheer';
+                        return 'Beheer personen';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Beheerder betalingen';
                     case CONST.POLICY.ROLE.USER:

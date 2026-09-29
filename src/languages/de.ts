@@ -4826,9 +4826,9 @@ ${amount} für ${merchant} – ${date}`,
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
-                        return 'Inhaber';
+                        return 'Eigentümer';
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Workspace-Admin';
+                        return 'Workspace-Administrator';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Prüfer';
                     case CONST.POLICY.ROLE.GUEST:
@@ -4838,7 +4838,7 @@ ${amount} für ${merchant} – ${date}`,
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Kartenverwaltung';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Personenverwaltung';
+                        return 'Personalverwaltung';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Zahlungsadministrator';
                     case CONST.POLICY.ROLE.USER:
@@ -7095,8 +7095,8 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 other: 'Prüfende hinzufügen',
             }),
             makeGuest: () => ({
-                one: 'Als Gast hinzufügen',
-                other: 'Gäste erstellen',
+                one: 'Zum Gast machen',
+                other: 'Zu Gästen machen',
             }),
             makePeopleAdmin: () => ({
                 one: 'Zum Personaladministrator machen',
