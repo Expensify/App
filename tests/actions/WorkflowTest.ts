@@ -10,6 +10,7 @@ import {
     createApprovalWorkflowRules,
     removeApprovalWorkflow,
     removeApprovalWorkflowRules,
+    saveFastEditApprovalWorkflow,
     setApprovalWorkflowApprover,
     updateApprovalWorkflow,
     updateApprovalWorkflowRules,
@@ -1817,6 +1818,116 @@ describe('actions/Workflow', () => {
                 expect(extractSubmitterEmails(rule)).toEqual([employee2Email]);
                 expect(rule.isDefaultApprovalWorkflow).toBe(true);
             }
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+    });
+
+    describe('saveFastEditApprovalWorkflow', () => {
+        const policyID = '123456789';
+
+        // [employee1, employee2] -> employee3, alongside the owner's default workflow
+        const policy = createMock<Policy>({
+            id: policyID,
+            name: 'Test Workspace',
+            role: 'admin',
+            type: 'corporate',
+            owner: ownerEmail,
+            approver: ownerEmail,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            employeeList: {
+                [ownerEmail]: {email: ownerEmail, role: 'admin', submitsTo: ownerEmail, forwardsTo: ''},
+                [employee1Email]: {email: employee1Email, role: 'user', submitsTo: employee3Email, forwardsTo: ''},
+                [employee2Email]: {email: employee2Email, role: 'user', submitsTo: employee3Email, forwardsTo: ''},
+                [employee3Email]: {email: employee3Email, role: 'user', submitsTo: ownerEmail, forwardsTo: ''},
+            },
+        });
+
+        const employee1Member = {email: employee1Email, displayName: employee1Email};
+        const employee2Member = {email: employee2Email, displayName: employee2Email};
+        const employee3Approver = {email: employee3Email, displayName: employee3Email, isCircularReference: false};
+
+        function buildFastEditDraft(members: ApprovalWorkflowOnyx['members']): ApprovalWorkflowOnyx {
+            return {
+                members,
+                originalMembers: [employee1Member, employee2Member],
+                approvers: [employee3Approver],
+                originalApprovers: [employee3Approver],
+                availableMembers: [],
+                usedApproverEmails: [],
+                isDefault: false,
+                action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
+                isFastEdit: true,
+            };
+        }
+
+        async function seed(approvalWorkflow: ApprovalWorkflowOnyx) {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+        }
+
+        it('moves a deselected member back to the default approver and clears the draft', async () => {
+            mockFetch.pause();
+
+            // Given a "+N more" edit where employee2 was deselected
+            const approvalWorkflow = buildFastEditDraft([employee1Member]);
+            await seed(approvalWorkflow);
+
+            // When the fast edit is saved
+            saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules: {}, isMultipleApproversBetaEnabled: false});
+            await waitForBatchedUpdates();
+
+            // Then employee2 submits to the default approver again, employee1 stays put, and the draft is gone
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.employeeList?.[employee2Email]?.submitsTo).toBe(ownerEmail);
+            expect(updatedPolicy?.employeeList?.[employee1Email]?.submitsTo).toBe(employee3Email);
+            await expect(getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW)).resolves.toBeUndefined();
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('clears the draft even when nothing changed', async () => {
+            mockFetch.pause();
+
+            // Given a "+N more" edit saved with the original members, so updateApprovalWorkflow exits before its optimistic data
+            const approvalWorkflow = buildFastEditDraft([employee1Member, employee2Member]);
+            await seed(approvalWorkflow);
+
+            // When the fast edit is saved
+            saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules: {}, isMultipleApproversBetaEnabled: false});
+            await waitForBatchedUpdates();
+
+            // Then the draft is still cleared, so the next "+N more" starts clean
+            await expect(getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW)).resolves.toBeUndefined();
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('drops a deselected member from the workflow rules when the rules beta is on', async () => {
+            mockFetch.pause();
+
+            // Given the [employee1, employee2] -> employee3 workflow stored as rules, and a "+N more" edit where employee2 was deselected
+            await createForwardApproveRules(policyID, [employee1Email, employee2Email], employee3Email);
+            const approvalWorkflow = buildFastEditDraft([employee1Member]);
+            await seed(approvalWorkflow);
+
+            // When the fast edit is saved with the rules beta on
+            saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules: await getRulesCollection(), isMultipleApproversBetaEnabled: true});
+            await waitForBatchedUpdates();
+
+            // Then the rules that route to employee3 only list employee1 as a submitter, and the draft is gone
+            const rules = await getActivePolicyRules(policyID);
+            const workflowRules = rules.filter((rule) => Object.values(rule.actions).some((action) => action.approver === employee3Email));
+            expect(workflowRules.length).toBeGreaterThan(0);
+            for (const rule of workflowRules) {
+                expect(extractSubmitterEmails(rule)).toEqual([employee1Email]);
+            }
+            await expect(getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW)).resolves.toBeUndefined();
 
             await mockFetch.resume();
             await waitForBatchedUpdates();

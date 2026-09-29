@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearInviteDraft, setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
 import {searchInServer} from '@libs/actions/Report';
-import {clearApprovalWorkflow, setApprovalWorkflowMembers} from '@libs/actions/Workflow';
+import {clearApprovalWorkflow, saveFastEditApprovalWorkflow, setApprovalWorkflowMembers} from '@libs/actions/Workflow';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -90,6 +90,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     const isHandingOffToInviteRef = useRef(false);
     // Tracks whether we're still on the very first step of the create flow
     const isInitialCreationFlowRef = useRef(false);
+    const isFastEditRef = useRef(false);
 
     const excludedUsers = useMemo(() => {
         return getExcludedUsers(policy?.employeeList);
@@ -445,13 +446,19 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
 
         if (isInitialCreationFlow) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0));
+        } else if (approvalWorkflow?.isFastEdit) {
+            const updatedApprovalWorkflow = {...approvalWorkflow, members: allMembers};
+            Navigation.goBack(backPath, {
+                compareParams: false,
+                afterTransition: () => saveFastEditApprovalWorkflow({approvalWorkflow: updatedApprovalWorkflow, policy, rules: rulesCollection, isMultipleApproversBetaEnabled}),
+            });
         } else {
             // Use goBack so we return to the existing parent (e.g. the workflow edit page) in the stack
             // instead of pushing a new instance. A fresh mount of the edit page would re-derive members
             // from policy.employeeList via its useEffect and overwrite the selection we just saved.
             Navigation.goBack(backPath, {compareParams: false});
         }
-    }, [route.params.policyID, selectedMembers, isInitialCreationFlow, backPath, policy?.employeeList]);
+    }, [route.params.policyID, selectedMembers, isInitialCreationFlow, backPath, policy, approvalWorkflow, rulesCollection, isMultipleApproversBetaEnabled]);
 
     const button = useMemo(() => {
         let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');
@@ -470,10 +477,14 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         );
     }, [isInitialCreationFlow, translate, shouldShowListEmptyContent, selectedMembers.length, nextStep, styles]);
 
-    // Keep the ref in sync so the unmount cleanup below reads the latest value.
+    // Keep the refs in sync so the unmount cleanup below reads the latest values.
     useEffect(() => {
         isInitialCreationFlowRef.current = !!isInitialCreationFlow;
     }, [isInitialCreationFlow]);
+
+    useEffect(() => {
+        isFastEditRef.current = !!approvalWorkflow?.isFastEdit;
+    }, [approvalWorkflow?.isFastEdit]);
 
     // Clean up invite draft when leaving the expenses-from page to prevent
     // stale non-member data from persisting in the approval workflow. Skip
@@ -484,9 +495,9 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                 return;
             }
             clearInviteDraft(route.params.policyID);
-            // Abandoning the initial create step must discard the eagerly-seeded approvalWorkflow
-            // draft, otherwise a stale draft stays in Onyx and pollutes the next session.
-            if (isInitialCreationFlowRef.current) {
+            // Abandoning the initial create step or a "+N more" edit must discard the eagerly-seeded
+            // approvalWorkflow draft, otherwise a stale draft stays in Onyx and pollutes the next session.
+            if (isInitialCreationFlowRef.current || isFastEditRef.current) {
                 clearApprovalWorkflow();
             }
         };
