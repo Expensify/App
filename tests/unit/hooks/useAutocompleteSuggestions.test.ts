@@ -127,6 +127,7 @@ const defaultParams: Params = {
     allCards: {},
     allFeeds: {},
     options: {reports: [], personalDetails: []},
+    getReportByID: () => undefined,
     draftComments: {},
     isDefaultRoomsBetaEnabled: false,
     countryCode: 1,

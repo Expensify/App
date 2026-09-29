@@ -136,14 +136,6 @@ import {doesPersonalDetailMatchSearchTerm, getCurrentUserSearchTerms, getPersona
  * methods should be named for the views they build options for and then exported for use in a component.
  */
 
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (value) => {
-        allReports = value;
-    },
-});
-
 let activePolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
@@ -2187,6 +2179,7 @@ function prepareReportOptionsForDisplay(
         shouldUnreadBeBold = false,
         personalDetails,
         translate,
+        getReportByID,
         convertToDisplayString,
         convertToDisplayStringWithoutCurrency,
         currentUserAccountID,
@@ -2278,12 +2271,12 @@ function prepareReportOptionsForDisplay(
 
         let isOptionUnread = option.isUnread;
         if (shouldUnreadBeBold) {
-            const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
+            const chatReport = getReportByID(report.chatReportID);
             const oneTransactionThreadReportID =
                 report.type === CONST.REPORT.TYPE.IOU || report.type === CONST.REPORT.TYPE.EXPENSE || report.type === CONST.REPORT.TYPE.INVOICE
                     ? getOneTransactionThreadReportID(report, chatReport, sortedActions?.[report.reportID], isOffline)
                     : undefined;
-            const oneTransactionThreadReport = oneTransactionThreadReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`] : undefined;
+            const oneTransactionThreadReport = oneTransactionThreadReportID ? getReportByID(oneTransactionThreadReportID) : undefined;
 
             isOptionUnread = isUnread(report, oneTransactionThreadReport, option.private_isArchived, reportAttributesDerived?.[report.reportID]?.isEmpty) && !!report.lastActorAccountID;
         }
@@ -2486,8 +2479,7 @@ function getValidOptions(
             }
 
             const draftComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`];
-            // TODO: This allReports usage is temporary and will be removed once the full Onyx.connect() refactor is complete (https://github.com/Expensify/App/issues/66378)
-            const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.item.chatReportID}`];
+            const chatReport = getValidReportsConfig.getReportByID(report.item.chatReportID);
 
             return isValidReport(
                 report,
@@ -2782,6 +2774,8 @@ type SearchOptionsConfig = {
     excludeFromSuggestionsOnly?: Record<string, boolean>;
     isTrackIntentUser?: boolean;
     translate: LocalizedTranslate;
+    /** @see GetValidReportsConfig['getReportByID'] */
+    getReportByID: GetOptionsConfig['getReportByID'];
     rules: OnyxCollection<Rule>;
 };
 
@@ -2821,6 +2815,7 @@ function getSearchOptions({
     excludeFromSuggestionsOnly = {},
     isTrackIntentUser,
     translate,
+    getReportByID,
     convertToDisplayString,
     convertToDisplayStringWithoutCurrency,
     rules,
@@ -2869,6 +2864,7 @@ function getSearchOptions({
             formatPhoneNumber,
             excludeFromSuggestionsOnly,
             isTrackIntentUser,
+            getReportByID,
         },
         translate,
         rules,
@@ -3006,14 +3002,13 @@ function formatSectionsFromSearchTerm(
     translate: LocalizedTranslate,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     dateFnsLocale: DateFnsLocale | undefined,
+    // Resolves a single report by ID instead of receiving the whole reports collection, so callers only subscribe to the reports they actually need.
+    getReportByID: (reportID: string | undefined) => OnyxEntry<Report>,
     rules: OnyxCollection<Rule>,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: SearchOptionData[] = [],
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    // Resolves a single report by ID instead of receiving the whole reports collection, so callers only subscribe to the reports they actually need.
-    // The default falls back to the module-level Onyx.connect() cache until every caller passes a resolver (tracked in https://github.com/Expensify/App/issues/66378).
-    getReportByID: (reportID: string | undefined) => OnyxEntry<Report> = (reportID) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`],
 ): SectionForSearchTerm {
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results

@@ -231,6 +231,7 @@ function SearchAutocompleteList({
         isLoading: isLoadingOptions,
         loadAll: loadAllRecentReports,
         hasMore: hasMoreRecentReports,
+        getReportByID,
     } = useFilteredOptions({
         ...SEARCH_ROUTER_OPTIONS_CONFIG,
         isSearching: !!autocompleteQueryValue.trim(),
@@ -293,6 +294,7 @@ function SearchAutocompleteList({
             conciergeReportID,
             isTrackIntentUser,
             translate,
+            getReportByID,
             rules,
         }).options;
     }, [
@@ -316,6 +318,7 @@ function SearchAutocompleteList({
         conciergeReportID,
         isTrackIntentUser,
         translate,
+        getReportByID,
         dateFnsLocale,
         convertToDisplayString,
         convertToDisplayStringWithoutCurrency,
@@ -367,6 +370,7 @@ function SearchAutocompleteList({
         allCards,
         allFeeds,
         options: listOptions ?? emptyOptionList,
+        getReportByID,
         draftComments,
         isDefaultRoomsBetaEnabled,
         countryCode,
