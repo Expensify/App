@@ -169,7 +169,8 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
             return;
         }
 
-        setWorkspaceDistanceAutoUpdate(policyID, customUnit, isOn, governmentMileageRates ?? [], policy?.outputCurrency);
+        // The stored country tells the optimistic copy which rates to use, since the mileage rate key is shared by every policy
+        setWorkspaceDistanceAutoUpdate(policyID, customUnit, isOn, governmentMileageRates ?? [], policy?.outputCurrency, isSharedCurrency ? autoUpdateCountry : undefined);
     };
 
     // Commuter exclusions are computed from the mapped route, so they enforce the requirement on their own. The

@@ -6,6 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {isSharedGovernmentRateCurrency} from '@libs/PolicyDistanceRatesUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -36,7 +37,6 @@ function WorkspaceOverviewCurrencyGovernmentRateCountryPage({route}: WorkspaceOv
             return;
         }
 
-        // The currency write and the auto-update re-enable both go out from here, then the flow lands back on the overview
         applyWorkspaceCurrencyChange(currencyCode, {
             isForcedToChangeCurrency,
             governmentRateCountry: selectedCountry,
@@ -44,19 +44,24 @@ function WorkspaceOverviewCurrencyGovernmentRateCountryPage({route}: WorkspaceOv
         });
     };
 
+    // The page only makes sense when switching to a currency that shares its government rates, so a crafted deep link lands on nothing
+    const isSharedCurrency = isSharedGovernmentRateCurrency(currencyCode);
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
         >
-            <GovernmentRateCountrySelector
-                headerTitle={translate('workspace.distanceRates.governmentRateSourceCountry')}
-                introText={translate('workspace.distanceRates.governmentRateCountrySelectionPrompt')}
-                isBlocked={!policy}
-                onBackButtonPress={goBackToCurrencyPage}
-                onSave={saveCountry}
-                testID="WorkspaceOverviewCurrencyGovernmentRateCountryPage"
-            />
+            {isSharedCurrency && (
+                <GovernmentRateCountrySelector
+                    headerTitle={translate('workspace.distanceRates.governmentRateSourceCountry')}
+                    introText={translate('workspace.distanceRates.governmentRateCountrySelectionPrompt')}
+                    isBlocked={!policy}
+                    onBackButtonPress={goBackToCurrencyPage}
+                    onSave={saveCountry}
+                    testID="WorkspaceOverviewCurrencyGovernmentRateCountryPage"
+                />
+            )}
         </AccessOrNotFoundWrapper>
     );
 }

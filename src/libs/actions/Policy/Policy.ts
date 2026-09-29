@@ -94,6 +94,7 @@ import * as NumberUtils from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
+import {buildOnyxDataForGovernmentRateAutoUpdate} from '@libs/PolicyDistanceRatesUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {
     getCustomUnitsForDuplication,
@@ -124,6 +125,7 @@ import type {
     BankAccountList,
     CardFeeds,
     DuplicateWorkspace,
+    GovernmentMileageRate,
     IntroSelected,
     InvitedEmailsToAccountIDs,
     LastPaymentMethod,
@@ -164,7 +166,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
 import {formatInTimeZone} from 'date-fns-tz';
@@ -357,8 +359,8 @@ function isCurrencySupportedForDirectReimbursement(currency: string) {
 /**
  * Checks if the currency is supported for global reimbursement
  */
-function isCurrencySupportedForGlobalReimbursement(currency: TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>) {
-    return CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency);
+function isCurrencySupportedForGlobalReimbursement(currency: string) {
+    return (CONST.DIRECT_REIMBURSEMENT_CURRENCIES as readonly string[]).includes(currency);
 }
 
 /** Check if the policy has invoicing company details */
@@ -2119,7 +2121,20 @@ function clearAvatarErrors(policyID: string) {
  * Optimistically update the general settings. Set the general settings as pending until the response succeeds.
  * If the response fails set a general error message. Clear the error message when updating.
  */
-function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currencyValue?: string, reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {}) {
+type UpdateGeneralSettingsGovernmentRateOptions = {
+    /** Country whose government mileage rates to enable for a shared (EUR) currency, set in the same request */
+    governmentRateCountry?: string;
+    /** Reference rates used to copy the country's rates optimistically while the request is in flight */
+    governmentMileageRates?: GovernmentMileageRate[];
+};
+
+function updateGeneralSettings(
+    policy: OnyxEntry<Policy>,
+    name: string,
+    currencyValue?: string,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+    {governmentRateCountry, governmentMileageRates = []}: UpdateGeneralSettingsGovernmentRateOptions = {},
+) {
     if (!policy?.id) {
         return;
     }
@@ -2153,6 +2168,12 @@ function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currency
         }
     }
 
+    // Enabling government rate auto-update and copying the chosen country's reference rates rides on this request, so the
+    // whole currency change stays a single API call. The server applies the same copy when it saves the currency.
+    const governmentRateAutoUpdateData = governmentRateCountry
+        ? buildOnyxDataForGovernmentRateAutoUpdate(policy.id, distanceUnit, true, governmentMileageRates, currency, governmentRateCountry)
+        : undefined;
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             // We use SET because it's faster than merge and avoids a race condition when setting the currency and navigating the user to the Bank account page in confirmCurrencyChangeAndHideModal
@@ -2175,7 +2196,8 @@ function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currency
                 name,
                 outputCurrency: currency,
                 // The server clears the stored government rate country whenever the currency changes, so mirror that here
-                ...(currencyPendingAction !== undefined && {autoUpdateGovernmentRateCountry: null}),
+                ...(currencyPendingAction !== undefined && {autoUpdateGovernmentRateCountry: governmentRateCountry ?? null}),
+                ...(governmentRateCountry && {shouldAutoUpdateGovernmentDistanceRates: true}),
                 ...(customUnitID && {
                     customUnits: {
                         ...policy.customUnits,
@@ -2187,6 +2209,7 @@ function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currency
                 }),
             },
         },
+        ...(governmentRateAutoUpdateData?.onyxData.optimisticData ?? []),
     ];
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -2207,6 +2230,7 @@ function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currency
                 }),
             },
         },
+        ...(governmentRateAutoUpdateData?.onyxData.successData ?? []),
     ];
 
     const errorFields: Policy['errorFields'] = {
@@ -2237,6 +2261,7 @@ function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currency
                 }),
             },
         },
+        ...(governmentRateAutoUpdateData?.onyxData.failureData ?? []),
     ];
 
     const params: UpdateWorkspaceGeneralSettingsParams = {
@@ -2244,6 +2269,14 @@ function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currency
         workspaceName: name,
         currency,
         completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
+        // The server mirrors this copy through its own SetWorkspaceDistanceAutoUpdate call, so send the client-side
+        // optimistic rate IDs to keep the persisted rates consistent with the optimistic Onyx state.
+        ...(governmentRateCountry && {
+            governmentRateCountry,
+            ...(Object.keys(governmentRateAutoUpdateData?.optimisticRateIDs ?? {}).length > 0 && {
+                optimisticRateIDs: JSON.stringify(governmentRateAutoUpdateData?.optimisticRateIDs),
+            }),
+        }),
     };
 
     const persistedRequests = PersistedRequests.getAll();

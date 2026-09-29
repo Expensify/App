@@ -8,13 +8,11 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 
-import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getGovernmentRateCountryOptions} from '@libs/PolicyDistanceRatesUtils';
 import type {Option} from '@libs/searchOptions';
-import searchOptions from '@libs/searchOptions';
 
 import CONST from '@src/CONST';
 
@@ -45,7 +43,6 @@ type GovernmentRateCountrySelectorProps = {
 function GovernmentRateCountrySelector({headerTitle, initialSelectedCountry, isBlocked, onBackButtonPress, onSave, introText, testID}: GovernmentRateCountrySelectorProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
-    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
     // The stored country can load after first render, so only an explicit pick overrides it
     const [pickedCountry, setPickedCountry] = useState<string>();
@@ -53,24 +50,12 @@ function GovernmentRateCountrySelector({headerTitle, initialSelectedCountry, isB
 
     const countries = getGovernmentRateCountryOptions(translate, localeCompare, selectedCountry);
 
-    const searchResults = searchOptions(debouncedSearchValue, countries);
-
     const saveCountry = () => {
         if (!selectedCountry) {
             return;
         }
         onSave(selectedCountry);
     };
-
-    const textInputOptions =
-        countries.length >= CONST.STANDARD_LIST_ITEM_LIMIT
-            ? {
-                  headerMessage: debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
-                  label: translate('common.country'),
-                  value: searchValue,
-                  onChangeText: setSearchValue,
-              }
-            : undefined;
 
     const FullPageBlockingView = isBlocked ? FullPageOfflineBlockingView : View;
 
@@ -89,11 +74,9 @@ function GovernmentRateCountrySelector({headerTitle, initialSelectedCountry, isB
                     <>
                         {!!introText && <Text style={[styles.textNormal, styles.mh5, styles.mb3]}>{introText}</Text>}
                         <SelectionList
-                            data={searchResults}
+                            data={countries}
                             ListItem={SingleSelectListItem}
                             onSelectRow={(option: Option) => setPickedCountry(option.value)}
-                            textInputOptions={textInputOptions}
-                            searchValueForFocusSync={debouncedSearchValue}
                             shouldSingleExecuteRowSelect
                             addBottomSafeAreaPadding
                             footerContent={

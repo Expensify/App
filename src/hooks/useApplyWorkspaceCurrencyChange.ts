@@ -1,17 +1,14 @@
 import Navigation from '@libs/Navigation/Navigation';
-import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 
 import {clearCorpayBankAccountFields} from '@userActions/BankAccounts';
 import {clearDraftValues} from '@userActions/FormActions';
-import {setWorkspaceDistanceAutoUpdate} from '@userActions/Policy/DistanceRate';
-import {updateGeneralSettings} from '@userActions/Policy/Policy';
+import {isCurrencySupportedForGlobalReimbursement, updateGeneralSettings} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -42,16 +39,13 @@ function useApplyWorkspaceCurrencyChange(policy: OnyxEntry<Policy>) {
             return;
         }
         clearDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
-        updateGeneralSettings(policy, policy.name ?? '', currencyCode, getReviewWorkspaceSettingsTaskCompletion());
+        updateGeneralSettings(policy, policy.name ?? '', currencyCode, getReviewWorkspaceSettingsTaskCompletion(), {
+            governmentRateCountry,
+            governmentMileageRates: governmentMileageRates ?? [],
+        });
         clearCorpayBankAccountFields();
 
-        // The server turns auto-update off when the currency becomes EUR, so re-enable it with the chosen country right after
-        if (governmentRateCountry) {
-            setWorkspaceDistanceAutoUpdate(policy.id, getDistanceRateCustomUnit(policy), true, governmentMileageRates ?? [], currencyCode, governmentRateCountry);
-        }
-
-        // The currency list is a plain string, so widen the supported tuple before the membership check
-        const isSupportedForGlobalReimbursement = (CONST.DIRECT_REIMBURSEMENT_CURRENCIES as readonly string[]).includes(currencyCode);
+        const isSupportedForGlobalReimbursement = isCurrencySupportedForGlobalReimbursement(currencyCode);
         if (isForcedToChangeCurrency && isSupportedForGlobalReimbursement) {
             const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, currencyCode, true).length > 0;
             if (hasValidExistingAccounts) {
