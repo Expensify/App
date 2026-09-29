@@ -212,20 +212,18 @@ function SearchChangeApproverPage() {
                 continue;
             }
 
-            if (report.managerID !== currentUserDetails.accountID) {
-                const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
-                assignReportToMe(
-                    report,
-                    currentUserDetails.accountID,
-                    currentUserDetails.email ?? '',
-                    policy,
-                    hasViolations,
-                    isASAPSubmitBetaEnabled,
-                    isTrackIntentUser,
-                    formatPhoneNumber,
-                    rules,
-                );
-            }
+            const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
+            assignReportToMe(
+                report,
+                currentUserDetails.accountID,
+                currentUserDetails.email ?? '',
+                policy,
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                isTrackIntentUser,
+                formatPhoneNumber,
+                rules,
+            );
         }
 
         // Note: This clears both reports and transactions
@@ -257,19 +255,7 @@ function SearchChangeApproverPage() {
                 return !!policy && !!report && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy);
             });
 
-        const shouldShowBypassApproversOption =
-            isAllowedToBypassApprovers &&
-            selectedReports.some((selectedReport) => {
-                const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
-
-                if (!report) {
-                    return false;
-                }
-
-                return report.managerID !== currentUserDetails.accountID;
-            });
-
-        if (shouldShowBypassApproversOption) {
+        if (isAllowedToBypassApprovers) {
             data.push({
                 text: translate('iou.changeApprover.actions.bypassApprovers'),
                 keyForList: APPROVER_TYPE.BYPASS_APPROVER,
