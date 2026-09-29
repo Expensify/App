@@ -1597,6 +1597,9 @@ type WorkflowGroup = {
     chain: Approver[];
     members: Member[];
     isDefault: boolean;
+
+    /** Whether rules route these members, rather than `employeeList`. */
+    hasRuleBasedChain: boolean;
     pendingAction: ApprovalWorkflow['pendingAction'];
 };
 
@@ -1716,8 +1719,31 @@ function convertApprovalWorkflowRulesToWorkflows({
             chain,
             members: pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? [member] : [],
             isDefault: isDefaultWorkflowChain,
+            hasRuleBasedChain,
             pendingAction: workflowPendingAction,
         });
+    }
+
+    // Once rules declare the default workflow, it is the only default one. A member no rule covers is routed by
+    // `employeeList` instead, so starting at the default approver only puts them in it when `employeeList` sends them
+    // down its exact chain. Rules that declare two different default chains keep a single default too, preferring the
+    // one that starts at the default approver.
+    const ruleBasedDefaultGroups = Array.from(groupedByWorkflowKey.values()).filter((group) => group.isDefault && group.hasRuleBasedChain);
+    const ruleBasedDefaultGroup = ruleBasedDefaultGroups.find((group) => group.chain.at(0)?.email === defaultApprover) ?? ruleBasedDefaultGroups.at(0);
+    if (ruleBasedDefaultGroup) {
+        const defaultChainKey = getApproverChainKey(ruleBasedDefaultGroup.chain);
+        for (const [workflowKey, group] of groupedByWorkflowKey) {
+            if (group === ruleBasedDefaultGroup || !group.isDefault) {
+                continue;
+            }
+            if (!group.hasRuleBasedChain && getApproverChainKey(group.chain) === defaultChainKey) {
+                ruleBasedDefaultGroup.members.push(...group.members);
+                ruleBasedDefaultGroup.pendingAction = group.pendingAction ?? ruleBasedDefaultGroup.pendingAction;
+                groupedByWorkflowKey.delete(workflowKey);
+                continue;
+            }
+            group.isDefault = false;
+        }
     }
 
     const workflowGroups = Array.from(groupedByWorkflowKey.values());
@@ -1761,6 +1787,7 @@ function convertApprovalWorkflowRulesToWorkflows({
 }
 
 export {
+    addMembersToRule,
     applyApprovalWorkflowRulesDiff,
     getApproverChainKey,
     buildApprovalWorkflowRules,
