@@ -5,15 +5,16 @@ import AvatarSkeleton from '@components/AvatarSkeleton';
 import Button from '@components/Button';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import Header from '@components/Header';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import Section from '@components/Section';
-import SidePanelButton from '@components/SidePanel/SidePanelButton';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -50,6 +51,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -69,7 +71,7 @@ function ProfilePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const scrollEnabled = useScrollEnabled();
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
@@ -210,27 +212,20 @@ function ProfilePage() {
             shouldShowOfflineIndicatorInWideScreen
         >
             <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
-                <Header>
-                    {shouldUseNarrowLayout && (
-                        <Header.BackButton
-                            onPress={() => {
-                                if (route.params?.backTo) {
-                                    Navigation.goBack(route.params?.backTo);
-                                    return;
-                                }
-                                Navigation.goBack();
-                            }}
-                        />
-                    )}
-                    <Header.Title
-                        title={translate('common.profile')}
-                        shouldUseHeadlineHeader
-                    />
-                    <Header.Right>
-                        <SearchButton />
-                        <SidePanelButton />
-                    </Header.Right>
-                </Header>
+                <HeaderWithBackButton
+                    title={translate('common.profile')}
+                    onBackButtonPress={() => {
+                        if (route.params?.backTo) {
+                            Navigation.goBack(route.params?.backTo);
+                            return;
+                        }
+                        Navigation.goBack();
+                    }}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldDisplaySearchRouter
+                    shouldDisplayHelpButton
+                    shouldUseHeadlineHeader
+                />
             </CollapsibleHeaderOnKeyboard>
             <ScrollView
                 ref={scrollViewRef}
@@ -282,18 +277,24 @@ function ProfilePage() {
                             {publicOptions.map((detail) => {
                                 const {pageRoute} = detail;
                                 return (
-                                    <MenuItemWithTopDescription
+                                    <MenuItemSectionRoot
                                         key={detail.testID}
-                                        interactive={!!pageRoute}
-                                        shouldShowRightIcon={!!pageRoute}
-                                        title={detail.title}
-                                        description={detail.description}
-                                        wrapperStyle={styles.sectionMenuItemTopDescription}
                                         onPress={pageRoute ? () => Navigation.navigate(pageRoute) : undefined}
-                                        brickRoadIndicator={detail.brickRoadIndicator}
-                                        pressableTestID={detail?.testID}
+                                        testID={detail?.testID}
                                         sentryLabel={detail.sentryLabel}
-                                    />
+                                    >
+                                        <MenuItemField.Row
+                                            name={detail.description}
+                                            value={detail.title}
+                                        >
+                                            {(!!detail.brickRoadIndicator || !!pageRoute) && (
+                                                <>
+                                                    {!!detail.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={detail.brickRoadIndicator} />}
+                                                    {!!pageRoute && <MenuItem.Chevron />}
+                                                </>
+                                            )}
+                                        </MenuItemField.Row>
+                                    </MenuItemSectionRoot>
                                 );
                             })}
                             <Button
