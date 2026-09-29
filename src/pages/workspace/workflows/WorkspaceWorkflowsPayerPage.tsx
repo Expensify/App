@@ -17,7 +17,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
+import usePersonalDetailByLogin, {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -96,7 +96,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const {showConfirmModal, closeModal} = useConfirmModal();
     const {isLoading, startWithLoading} = usePressLoading({isLoading: sharedBankAccountData?.isLoading ?? false});
     const [isAlertVisible, setIsAlertVisible] = useState<boolean>(false);
-    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
+    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails);
     const selectedPayerDisplayName = usePersonalDetailByLogin(selectedPayer, displayNameSelector);
     const ownerDisplayName = usePersonalDetailByLogin(policy?.owner, displayNameSelector);
     const accountID = selectedPayer ? policyMemberEmailsToAccountIDs?.[selectedPayer] : '';

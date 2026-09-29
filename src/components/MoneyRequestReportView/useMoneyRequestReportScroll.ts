@@ -153,6 +153,7 @@ function useMoneyRequestReportScroll({
 
     const stickToBottomRef = useRef(false);
     const stickToBottomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
     // Set when the user taps "Latest messages", cleared once the scroll reaches the bottom or the user scrolls away
     const pendingMarkAsReadRef = useRef(false);
 

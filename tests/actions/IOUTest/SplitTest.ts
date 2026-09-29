@@ -130,15 +130,6 @@ jest.mock('@src/libs/actions/Report/reportActionSubscribers', () => ({
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 jest.mock('@libs/API/writeWhenReady');
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    registerDeferredWrite: (_key: string, callback: () => void) => callback(),
-    flushDeferredWrite: jest.fn(),
-    cancelDeferredWrite: jest.fn(),
-    hasDeferredWrite: () => false,
-    getOptimisticWatchKey: () => undefined,
-    deferOrExecuteWrite: (apiWrite: () => void) => apiWrite(),
-    reserveDeferredWriteChannel: jest.fn(),
-}));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const unapprovedCashHash = 71801560;
@@ -9988,6 +9979,8 @@ describe('createDistanceRequest', () => {
             participants: [],
             delegateAccountID: undefined,
         });
+        // The notification is deferred until the write starts, so let the barrier settle first
+        await waitForBatchedUpdates();
 
         expect(notifyNewAction).toHaveBeenCalledTimes(1);
     });

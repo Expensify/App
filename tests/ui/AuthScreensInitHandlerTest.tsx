@@ -71,6 +71,7 @@ jest.mock('@libs/Navigation/currentUrl', () => ({
 
 jest.mock('@libs/SessionUtils', () => ({
     isLoggingInAsNewUser: jest.fn(() => false),
+    isLoggingInAsDelegate: jest.fn(() => false),
     didUserLogInDuringSession: jest.fn(() => false),
 }));
 
@@ -101,6 +102,7 @@ jest.mock('@userActions/Report', () => ({
 jest.mock('@userActions/Session', () => ({
     signOutAndRedirectToSignIn: jest.fn(),
     cleanupSession: jest.fn(),
+    isDelegateSession: jest.fn(() => false),
 }));
 
 jest.mock('@userActions/User', () => ({

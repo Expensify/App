@@ -1,4 +1,6 @@
 import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
@@ -255,22 +257,32 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     );
                 })}
 
-                <MenuItemWithTopDescription
-                    description={approverCount > 0 ? translate('workflowsCreateApprovalsPage.additionalApprover') : translate('workflowsPage.approver')}
-                    onPress={addAdditionalApprover}
-                    shouldShowRightIcon
-                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                    errorText={approvalWorkflow?.errors?.additionalApprover ? translate(approvalWorkflow.errors.additionalApprover) : undefined}
-                    brickRoadIndicator={approvalWorkflow?.errors?.additionalApprover ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                <MenuItemSectionRoot onPress={addAdditionalApprover}>
+                    <MenuItemField.Row name={approverCount > 0 ? translate('workflowsCreateApprovalsPage.additionalApprover') : translate('workflowsPage.approver')}>
+                        {!!approvalWorkflow?.errors?.additionalApprover && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                        <MenuItem.Chevron />
+                    </MenuItemField.Row>
+                    {!!approvalWorkflow?.errors?.additionalApprover && (
+                        <MenuItem.HelpText
+                            isError
+                            message={translate(approvalWorkflow.errors.additionalApprover)}
+                        />
+                    )}
+                </MenuItemSectionRoot>
 
                 {!!removeApprovalWorkflow && !approvalWorkflow.isDefault && (
-                    <MenuItem
-                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
-                        icon={icons.Trashcan}
-                        title={translate('common.delete')}
-                        onPress={removeApprovalWorkflow}
-                    />
+                    <View style={styles.mt6}>
+                        <MenuItemSectionRoot onPress={removeApprovalWorkflow}>
+                            <MenuItem.Row>
+                                <MenuItem.Leading>
+                                    <MenuItem.Icon src={icons.Trashcan} />
+                                </MenuItem.Leading>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>{translate('common.delete')}</MenuItem.Title>
+                                </MenuItem.Content>
+                            </MenuItem.Row>
+                        </MenuItemSectionRoot>
+                    </View>
                 )}
             </View>
         </ScrollView>
