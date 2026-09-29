@@ -676,7 +676,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 useExpenseSubmission(
                     buildParams({
                         iouType: CONST.IOU.TYPE.SUBMIT,
-                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                         isPerDiemRequest: true,
                         transaction: perDiemTransaction,
                         transactions: [perDiemTransaction],
