@@ -17,6 +17,9 @@ const screens: ScreenChange[] = [];
 const interactions: Interaction[] = [];
 const operations: Operation[] = [];
 let activeScroll: Interaction | undefined;
+// Kept while not recording too (e.g. the app became inactive for a permission prompt during navigation), so the
+// screen is known again as soon as recording resumes.
+let currentScreen: string | undefined;
 
 function truncate(label: string): string {
     return label.length > CONST.TELEMETRY.FRAME_DROPS.MAX_LABEL_LENGTH ? label.slice(0, CONST.TELEMETRY.FRAME_DROPS.MAX_LABEL_LENGTH) : label;
@@ -26,15 +29,29 @@ function hasRoom(): boolean {
     return screens.length + interactions.length + operations.length < CONST.TELEMETRY.FRAME_DROPS.MAX_EVENTS;
 }
 
+function pushScreen(screen: string) {
+    if (screens.at(-1)?.screen === screen || !hasRoom()) {
+        return;
+    }
+    screens.push({time: performance.now(), screen});
+}
+
 function setRecording(enabled: boolean) {
     isRecording = enabled;
+    if (enabled && currentScreen) {
+        pushScreen(currentScreen);
+    }
 }
 
 function recordScreen(screen: string | undefined) {
-    if (!isRecording || !screen || screens.at(-1)?.screen === screen || !hasRoom()) {
+    if (!screen) {
         return;
     }
-    screens.push({time: performance.now(), screen: truncate(screen)});
+    currentScreen = truncate(screen);
+    if (!isRecording) {
+        return;
+    }
+    pushScreen(currentScreen);
 }
 
 /** Only static labels (sentryLabel) may be passed here: they become metric attributes, so they must not carry user data. */
@@ -122,6 +139,7 @@ function clear() {
     interactions.length = 0;
     operations.length = 0;
     activeScroll = undefined;
+    currentScreen = undefined;
 }
 
 function getTimeline() {

@@ -55,7 +55,7 @@ function getAggregate(context: FrameDropContext): Aggregate {
     const key = `${context.screen}|${context.interaction}|${context.operation}`;
     let aggregate = aggregates.get(key);
     if (!aggregate) {
-        aggregate = {...context, activeTimeMs: 0, frameDelayMs: 0, longTaskTimeMs: 0, longTaskCount: 0};
+        aggregate = {screen: context.screen, interaction: context.interaction, operation: context.operation, activeTimeMs: 0, frameDelayMs: 0, longTaskTimeMs: 0, longTaskCount: 0};
         aggregates.set(key, aggregate);
     }
     return aggregate;

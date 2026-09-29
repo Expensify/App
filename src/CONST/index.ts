@@ -2397,7 +2397,7 @@ const CONST = {
             // How long after a press its frames are attributed to it (the same idle window Sentry uses for ui.action spans).
             PRESS_WINDOW_MS: 1_000,
             // Upper bound of native queries per flush, so a very busy window can't turn into a long burst of bridge calls.
-            MAX_QUERIES_PER_FLUSH: 40,
+            MAX_QUERIES_PER_FLUSH: 20,
             // Upper bound of timeline events kept between flushes, so a runaway caller can't grow memory.
             MAX_EVENTS: 500,
             // An interval that was never closed (a lost scroll end, a request that never settled) stops owning frames after this long.
