@@ -93,6 +93,7 @@ jobs:
   updateProduction:
     needs: validate
     if: ${{ fromJSON(needs.validate.outputs.isValid) }}
+    cache-mode: read
     uses: ./.github/workflows/updateProtectedBranch.yml
     secrets: inherit
     with:
@@ -118,6 +119,7 @@ jobs:
   createNewPatchVersion:
     needs: validate
     if: ${{ fromJSON(needs.validate.outputs.isValid) }}
+    cache-mode: read
     uses: ./.github/workflows/createNewVersion.yml
     secrets: inherit
     with:
@@ -126,6 +128,7 @@ jobs:
   # Update the staging branch to trigger a staging deploy
   updateStaging:
     needs: [cleanupDeployBlockers, createNewPatchVersion]
+    cache-mode: read
     uses: ./.github/workflows/updateProtectedBranch.yml
     secrets: inherit
     with:

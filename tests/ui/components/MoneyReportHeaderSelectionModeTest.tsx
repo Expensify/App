@@ -34,6 +34,9 @@ jest.mock('@react-navigation/native', () => {
     return {
         ...actualNavigation,
         __esModule: true,
+        // The header only turns the shared selection mode off while it is the focused screen, and these tests render
+        // it on its own rather than inside a navigator.
+        useIsFocused: () => true,
         useRoute: () => {
             const SCREENS_MOCK = jest.requireActual<{default: typeof SCREENS}>('@src/SCREENS').default;
             return {key: 'rhp-route-key', name: SCREENS_MOCK.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, params: {reportID: REPORT_ID}};

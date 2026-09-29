@@ -27,6 +27,8 @@ import {notifyNewAction} from './Report/reportActionSubscribers';
 type DeleteTaskOptions = {
     ancestors?: Ancestor[];
     shouldNavigateBack?: boolean;
+    /** Fallback report ID when the deleted task has no parent report. */
+    lastAccessedReportID?: string;
 };
 
 /**
@@ -34,7 +36,12 @@ type DeleteTaskOptions = {
  * @param report - The task report being deleted
  * @returns The URL to navigate to
  */
-function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID: string | undefined, reportActions: OnyxEntry<OnyxTypes.ReportActions>): string | undefined {
+function getNavigationUrlOnTaskDelete(
+    report: OnyxEntry<OnyxTypes.Report>,
+    conciergeReportID: string | undefined,
+    reportActions: OnyxEntry<OnyxTypes.ReportActions>,
+    lastAccessedReportID?: string,
+): string | undefined {
     if (!report) {
         return undefined;
     }
@@ -49,7 +56,7 @@ function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, conci
     }
 
     // If no parent report, try to navigate to most recent report
-    const mostRecentReportID = getMostRecentReportID(report, conciergeReportID);
+    const mostRecentReportID = getMostRecentReportID(conciergeReportID, lastAccessedReportID);
     if (mostRecentReportID) {
         return ROUTES.REPORT_WITH_ID.getRoute(mostRecentReportID);
     }
@@ -70,7 +77,7 @@ function deleteTask(
     conciergeReportID: string | undefined,
     delegateEmail: string | undefined,
     reportActions: OnyxEntry<OnyxTypes.ReportActions>,
-    {ancestors = [], shouldNavigateBack = true}: DeleteTaskOptions = {},
+    {ancestors = [], shouldNavigateBack = true, lastAccessedReportID}: DeleteTaskOptions = {},
 ) {
     if (!report) {
         return;
@@ -195,7 +202,7 @@ function deleteTask(
     write(WRITE_COMMANDS.CANCEL_TASK, parameters, {optimisticData, successData, failureData});
     notifyNewAction(report.reportID, undefined, true);
 
-    const urlToNavigateBack = shouldNavigateBack ? getNavigationUrlOnTaskDelete(report, conciergeReportID, reportActions) : undefined;
+    const urlToNavigateBack = shouldNavigateBack ? getNavigationUrlOnTaskDelete(report, conciergeReportID, reportActions, lastAccessedReportID) : undefined;
     if (urlToNavigateBack) {
         Navigation.goBack();
         return urlToNavigateBack;
@@ -207,7 +214,6 @@ function clearTaskErrors(
     conciergeReportID: string | undefined,
     currentUserAccountID: number,
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
     isSelfTourViewed: boolean | undefined,
     reportOwnerPersonalDetail: OnyxEntry<PersonalDetails>,
     currentUserPersonalDetail: OnyxEntry<PersonalDetails>,
@@ -228,7 +234,6 @@ function clearTaskErrors(
             currentUserAccountID,
             introSelected,
             isSelfTourViewed,
-            betas,
             reportOwnerPersonalDetail,
             currentUserPersonalDetail,
             conciergePersonalDetail,
