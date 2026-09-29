@@ -18,11 +18,12 @@ import variables from '@styles/variables';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {ComponentRef} from 'react';
+
 import {PortalHost} from '@gorhom/portal';
 import {useRef, useState} from 'react';
 import {View} from 'react-native';
 
-import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
 import FreeTrialSection from './FreeTrialSection';
 import GettingStartedSection from './GettingStartedSection';
@@ -46,7 +47,7 @@ function HomePage() {
     // Offline the underlying commands never send, so the loading flags can stay true forever. Match useLoadingBarVisibility and hide the bar when offline.
     const isForYouLoading = !isOffline && !!(isLoadingApp || isLoadingReportData);
     const shouldShowHomeSkeleton = useAppLoadSkeletonVisibility();
-    const receiptDropTargetRef = useRef<View>(null);
+    const receiptDropTargetRef = useRef<ComponentRef<typeof View>>(null);
 
     // Owned here (above the narrow/wide layout branch) so the Concierge "+" menu survives the ForYouSection remount that
     // happens on breakpoint change, converting between anchored popover and bottom-docked modal instead of vanishing.
@@ -82,7 +83,6 @@ function HomePage() {
                     <YourSpendSection />
                     <RecentlyAddedSection />
                     <InsightsSection />
-                    <DiscoverSection />
                 </>
             )}
         </>
@@ -114,7 +114,6 @@ function HomePage() {
                         <YourSpendSection />
                         <RecentlyAddedSection />
                         <UpcomingTravelSection />
-                        <DiscoverSection />
                     </>
                 )}
             </View>
