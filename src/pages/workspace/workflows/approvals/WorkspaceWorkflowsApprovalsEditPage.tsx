@@ -23,6 +23,8 @@ import {
     convertPolicyEmployeesToApprovalWorkflows,
     filterRulesForPolicy,
     getApprovalWorkflowRulesForPolicy,
+    getWorkflowMemberEmails,
+    includesEveryWorkspaceMember,
     isApprovalWorkflowLockedByIntegration,
 } from '@libs/WorkflowUtils';
 
@@ -119,11 +121,15 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return;
         }
 
+        // A workflow with everyone in it leaves every other workflow empty, so it becomes the default one
+        const isDefault = approvalWorkflow.isDefault || includesEveryWorkspaceMember(getWorkflowMemberEmails(approvalWorkflow.members), policy?.employeeList);
+        const workflowToSave = {...approvalWorkflow, isDefault};
+
         startWithLoading(() => {
             if (isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)) {
                 Navigation.dismissModal({
                     afterTransition: () => {
-                        updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy, rules: rulesCollection, defaultApprovalWorkflow});
+                        updateApprovalWorkflowRules({approvalWorkflow: workflowToSave, initialApprovalWorkflow, policy, rules: rulesCollection, defaultApprovalWorkflow});
                     },
                 });
                 return;
@@ -134,7 +140,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             const approversToRemove = initialApprovalWorkflow.approvers.filter((initialApprover) => !approvalWorkflow.approvers.some((approver) => approver.email === initialApprover.email));
             Navigation.dismissModal({
                 afterTransition: () => {
-                    updateApprovalWorkflow(approvalWorkflow, membersToRemove, approversToRemove, policy);
+                    updateApprovalWorkflow(workflowToSave, membersToRemove, approversToRemove, policy);
                 },
             });
         });

@@ -93,6 +93,7 @@ const SCREENS = {
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
         REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE: 'Settings_ReportCardLostOrDamaged_ConfirmValidateCode',
         TROUBLESHOOT: 'Settings_Troubleshoot',
+        TROUBLESHOOT_SERVER: 'Settings_Troubleshoot_Server',
         HELP: 'Settings_Help',
         DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Verify_Account',
         DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: 'Dynamic_Add_Bank_Account_Verify_Account',
@@ -572,6 +573,7 @@ const SCREENS = {
             DYNAMIC_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT: 'Dynamic_Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense',
             QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Non_Reimbursable_Default_Vendor_Select',
             DYNAMIC_QUICKBOOKS_DESKTOP_ADVANCED: 'Dynamic_Policy_Accounting_Quickbooks_Desktop_Advanced',
+            DYNAMIC_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT_SELECT: 'Dynamic_Workspace_Accounting_Quickbooks_Desktop_Fx_Expense_Account_Select',
             QUICKBOOKS_DESKTOP_AUTO_SYNC: 'Policy_Accounting_Quickbooks_Desktop_Auto_Sync',
             QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD: 'Policy_Accounting_Quickbooks_Desktop_Accounting_Method',
             DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT: 'Dynamic_Workspace_Accounting_Quickbooks_Desktop_Export_Date_Select',
@@ -1166,6 +1168,7 @@ const SCREENS = {
     },
     TEST_TOOLS_MODAL: {
         ROOT: 'TestToolsModal_Root',
+        SERVER: 'TestToolsModal_Server',
     },
     WORKSPACES_VERIFY_DOMAIN: 'Workspaces_Verify_Domain',
     WORKSPACES_DOMAIN_VERIFIED: 'Workspaces_Domain_Verified',
