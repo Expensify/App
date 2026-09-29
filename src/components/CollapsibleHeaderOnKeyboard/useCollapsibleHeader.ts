@@ -1,16 +1,13 @@
 import usePrevious from '@hooks/usePrevious';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-
-import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 
 import type {LayoutChangeEvent, ViewStyle} from 'react-native';
 import type {AnimatedStyle, SharedValue} from 'react-native-reanimated';
 
-import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 import {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 import {COLLAPSE_DURATION, RESTORE_DURATION} from './constants';
+import useCollapsibleScreenState from './useCollapsibleScreenState';
 
 type CollapsibleHeader = {
     /** Measured height of the wrapped content. -1 signals "not yet measured". */
@@ -50,7 +47,7 @@ function restoreHeaderTo(animatedHeight: SharedValue<number>, naturalHeight: num
  * It does not decide when to collapse — that is what the two differ in — it only exposes the values they write to.
  */
 function useCollapsibleHeader(onNaturalHeightChange?: (height: number) => void): CollapsibleHeader {
-    const isFocused = useIsFocused();
+    const {isFocused, isInLandscapeMode, isFocusedSV, isInLandscapeModeSV} = useCollapsibleScreenState();
     const prevIsFocused = usePrevious(isFocused);
     // JS ref guards against re-measurement when the Reanimated.View fires onLayout with height=0
     const naturalHeightRef = useRef(-1);
@@ -58,18 +55,6 @@ function useCollapsibleHeader(onNaturalHeightChange?: (height: number) => void):
     const naturalHeight = useSharedValue(-1);
     // Drives the animated style
     const animatedHeight = useSharedValue(0);
-
-    const {windowWidth, windowHeight} = useWindowDimensions();
-    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
-    // Keep the screen state accessible on the UI thread. Stable refs, excluded from deps.
-    const isFocusedSV = useSharedValue(isFocused);
-    const isInLandscapeModeSV = useSharedValue(isInLandscapeMode);
-    useEffect(() => {
-        isFocusedSV.set(isFocused);
-    }, [isFocused, isFocusedSV]);
-    useEffect(() => {
-        isInLandscapeModeSV.set(isInLandscapeMode);
-    }, [isInLandscapeMode, isInLandscapeModeSV]);
 
     const onLayout = (e: LayoutChangeEvent) => {
         const height = e.nativeEvent.layout.height;

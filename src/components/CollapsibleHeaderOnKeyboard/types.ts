@@ -2,7 +2,7 @@ type CollapsibleHeaderOnKeyboardProps = {
     children: React.ReactNode;
     /**
      * Additional vertical space (in px) occupied on screen by elements other than the wrapped
-     * component, keyboard, and focused input
+     * component, keyboard, and focused input.
      */
     collapsibleHeaderOffset?: number;
 

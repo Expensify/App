@@ -4,7 +4,7 @@ import {MIN_HEADER_HEIGHT_ON_COLLAPSE} from '@components/CollapsibleHeaderOnKeyb
 import type {CollapsibleHeaderOnKeyboardGroupMemberProps} from '@components/CollapsibleHeaderOnKeyboard/types';
 import useCollapsibleHeader, {collapseHeaderTo, restoreHeaderTo} from '@components/CollapsibleHeaderOnKeyboard/useCollapsibleHeader';
 
-import React, {useEffect, useId} from 'react';
+import React, {useEffect, useId, useRef} from 'react';
 import {useAnimatedReaction, useSharedValue} from 'react-native-reanimated';
 
 /**
@@ -17,15 +17,25 @@ import {useAnimatedReaction, useSharedValue} from 'react-native-reanimated';
 function CollapsibleHeaderOnKeyboardGroupMember({children}: CollapsibleHeaderOnKeyboardGroupMemberProps) {
     const group = useCollapsibleHeaderOnKeyboardGroup();
     const memberID = useId();
-    const collapsibleHeader = useCollapsibleHeader((height) => group?.setMemberNaturalHeight(memberID, height));
+    // `onLayout` only reports a height when it changes, so the last reported one is kept here to re-register with.
+    const reportedNaturalHeightRef = useRef(-1);
+    const collapsibleHeader = useCollapsibleHeader((height) => {
+        reportedNaturalHeightRef.current = height;
+        group?.setMemberNaturalHeight(memberID, height);
+    });
     const {naturalHeight, animatedHeight, isFocusedSV, isInLandscapeModeSV} = collapsibleHeader;
 
     const ungroupedShouldCollapse = useSharedValue(false);
     const shouldCollapseSV = group?.shouldCollapse ?? ungroupedShouldCollapse;
 
+    // The cleanup drops this member's contribution to the group total. It runs on unmount, but also whenever the
+    // context value gets a new identity, so the height has to be put back on every run.
     useEffect(() => {
         if (!group) {
             return;
+        }
+        if (reportedNaturalHeightRef.current !== -1) {
+            group.setMemberNaturalHeight(memberID, reportedNaturalHeightRef.current);
         }
         return () => group.unregisterMember(memberID);
     }, [group, memberID]);

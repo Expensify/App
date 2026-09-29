@@ -1,15 +1,10 @@
 import CollapsibleHeaderOnKeyboardGroupContext from '@components/CollapsibleHeaderOnKeyboard/CollapsibleHeaderOnKeyboardGroupContext';
-import {isKeyboardOpeningAtGivenProgress, KEYBOARD_OPENING_PROGRESS_THRESHOLDS, VERTICAL_SPACE_FOR_FOCUSED_INPUT} from '@components/CollapsibleHeaderOnKeyboard/constants';
+import {getAvailableHeightForCollapsibleContent, getKeyboardCollapseState} from '@components/CollapsibleHeaderOnKeyboard/constants';
 import type {CollapsibleHeaderOnKeyboardGroupProps} from '@components/CollapsibleHeaderOnKeyboard/types';
+import useCollapsibleScreenState from '@components/CollapsibleHeaderOnKeyboard/useCollapsibleScreenState';
+import useKeyboardCollapseMetrics from '@components/CollapsibleHeaderOnKeyboard/useKeyboardCollapseMetrics';
 
-import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-
-import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
-
-import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useRef} from 'react';
-import {useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller';
 import {useAnimatedReaction, useSharedValue} from 'react-native-reanimated';
 
 /**
@@ -17,33 +12,12 @@ import {useAnimatedReaction, useSharedValue} from 'react-native-reanimated';
  * that cannot share one wrapper because their JSX lives in different subtrees
  */
 function CollapsibleHeaderOnKeyboardGroup({children, collapsibleHeaderOffset = 0}: CollapsibleHeaderOnKeyboardGroupProps) {
-    const isFocused = useIsFocused();
     const shouldCollapse = useSharedValue(false);
     const memberNaturalHeightsRef = useRef<Record<string, number>>({});
     const totalNaturalHeight = useSharedValue(0);
 
-    const {height: keyboardHeightSV, progress: keyboardProgressSV} = useReanimatedKeyboardAnimation();
-
-    const {windowWidth, windowHeight} = useWindowDimensions();
-    const {top: topSafeAreaInset} = useSafeAreaInsets();
-    const availableWindowHeight = windowHeight - topSafeAreaInset;
-    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
-    const availableWindowHeightSV = useSharedValue(availableWindowHeight);
-    const collapsibleHeaderOffsetSV = useSharedValue(collapsibleHeaderOffset);
-    const isFocusedSV = useSharedValue(isFocused);
-    const isInLandscapeModeSV = useSharedValue(isInLandscapeMode);
-    useEffect(() => {
-        availableWindowHeightSV.set(availableWindowHeight);
-    }, [availableWindowHeight, availableWindowHeightSV]);
-    useEffect(() => {
-        collapsibleHeaderOffsetSV.set(collapsibleHeaderOffset);
-    }, [collapsibleHeaderOffset, collapsibleHeaderOffsetSV]);
-    useEffect(() => {
-        isFocusedSV.set(isFocused);
-    }, [isFocused, isFocusedSV]);
-    useEffect(() => {
-        isInLandscapeModeSV.set(isInLandscapeMode);
-    }, [isInLandscapeMode, isInLandscapeModeSV]);
+    const {isFocused, isInLandscapeMode, isFocusedSV, isInLandscapeModeSV} = useCollapsibleScreenState();
+    const {keyboardHeightSV, keyboardProgressSV, availableWindowHeightSV, collapsibleHeaderOffsetSV} = useKeyboardCollapseMetrics(collapsibleHeaderOffset);
 
     // Collapsing only applies to a focused screen in landscape. Clear the flag on the way out so the members restore
     // and a later reaction never acts on a decision that was made for a layout that no longer exists.
@@ -89,25 +63,15 @@ function CollapsibleHeaderOnKeyboardGroup({children, collapsibleHeaderOffset = 0
                 return;
             }
 
+            const {isKeyboardClosed, shouldReact} = getKeyboardCollapseState(keyboardProgress, previous?.keyboardProgress ?? 0, keyboardHeight);
+
             // If the keyboard is closed, restore the members
-            const isKeyboardClosed = keyboardProgress === 0 && keyboardHeight === 0;
             if (isKeyboardClosed) {
                 shouldCollapse.set(false);
                 return;
             }
 
-            // If the keyboard is closing, bail out
-            const prevKeyboardProgress = previous?.keyboardProgress ?? 0;
-            if (prevKeyboardProgress > keyboardProgress) {
-                return;
-            }
-
-            // Only act when the keyboard is starting to open, reaching a threshold or fully open, not on every intermediate frame.
-            const isKeyboardStartingOpening = prevKeyboardProgress === 0 && keyboardProgress > 0;
-            const isKeyboardOpeningAndReachingThreshold = isKeyboardOpeningAtGivenProgress(keyboardProgress, prevKeyboardProgress, KEYBOARD_OPENING_PROGRESS_THRESHOLDS);
-            const isKeyboardFullyOpen = keyboardProgress === 1;
-
-            if (!isKeyboardStartingOpening && !isKeyboardOpeningAndReachingThreshold && !isKeyboardFullyOpen) {
+            if (!shouldReact) {
                 return;
             }
 
@@ -116,10 +80,8 @@ function CollapsibleHeaderOnKeyboardGroup({children, collapsibleHeaderOffset = 0
                 return;
             }
 
-            // keyboardHeight is negative when open (e.g. -291), so keyboardTop = availableWindowHeightValue + keyboardHeight.
             // The members share what is left once the focused input and everything outside the group have their space.
-            const keyboardTop = availableWindowHeightValue + keyboardHeight;
-            const availableHeightForMembers = keyboardTop - VERTICAL_SPACE_FOR_FOCUSED_INPUT - collapsibleHeaderOffsetSV.get();
+            const availableHeightForMembers = getAvailableHeightForCollapsibleContent(availableWindowHeightValue, keyboardHeight, collapsibleHeaderOffsetSV.get());
 
             shouldCollapse.set(availableHeightForMembers < totalNaturalHeightValue);
         },
