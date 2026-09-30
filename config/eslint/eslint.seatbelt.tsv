@@ -1076,6 +1076,7 @@
 "../../src/pages/workspace/accounting/AccountingContext/default.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/certinia/import/CertiniaDimensionMappingPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/ClaimOfferPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/workspace/accounting/campfire/export/CampfireExportPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/dualentry/export/DualEntryExportPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/intacct/advanced/DynamicSageIntacctAccountingMethodPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/intacct/export/DynamicSageIntacctNonReimbursableExpensesDestinationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
