@@ -1066,13 +1066,9 @@ function MoneyRequestView({
                         value={distanceToDisplay}
                         numberOfLinesValue={2}
                     >
-                        {(!!getErrorForField('waypoints') || canEditDistance || !!distanceCopyValue) && (
-                            <>
-                                {!!getErrorForField('waypoints') && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                                {canEditDistance && <MenuItem.Chevron />}
-                                {!!distanceCopyValue && <MenuItem.Copy value={distanceCopyValue} />}
-                            </>
-                        )}
+                        {!!getErrorForField('waypoints') && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                        {canEditDistance && <MenuItem.Chevron />}
+                        {!!distanceCopyValue && <MenuItem.Copy value={distanceCopyValue} />}
                     </MenuItemField.Row>
                     {!!getErrorForField('waypoints') && (
                         <MenuItem.HelpText
@@ -1143,13 +1139,9 @@ function MoneyRequestView({
                         value={rateToDisplay}
                         numberOfLinesValue={2}
                     >
-                        {(!!getErrorForField('customUnitRateID') || canEditDistanceRate || !!distanceRateCopyValue) && (
-                            <>
-                                {!!getErrorForField('customUnitRateID') && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                                {canEditDistanceRate && <MenuItem.Chevron />}
-                                {!!distanceRateCopyValue && <MenuItem.Copy value={distanceRateCopyValue} />}
-                            </>
-                        )}
+                        {!!getErrorForField('customUnitRateID') && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                        {canEditDistanceRate && <MenuItem.Chevron />}
+                        {!!distanceRateCopyValue && <MenuItem.Copy value={distanceRateCopyValue} />}
                     </MenuItemField.Row>
                     {!!getErrorForField('customUnitRateID') && (
                         <MenuItem.HelpText
@@ -1405,13 +1397,9 @@ function MoneyRequestView({
                             value={actualTransactionDate}
                             numberOfLinesValue={2}
                         >
-                            {(!!getErrorForField('date') || canEditDate || !!dateCopyValue) && (
-                                <>
-                                    {!!getErrorForField('date') && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                                    {canEditDate && <MenuItem.Chevron />}
-                                    {!!dateCopyValue && <MenuItem.Copy value={dateCopyValue} />}
-                                </>
-                            )}
+                            {!!getErrorForField('date') && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                            {canEditDate && <MenuItem.Chevron />}
+                            {!!dateCopyValue && <MenuItem.Copy value={dateCopyValue} />}
                         </MenuItemField.Row>
                         {!!getErrorForField('date') && (
                             <MenuItem.HelpText
@@ -1486,13 +1474,9 @@ function MoneyRequestView({
                                 value={shouldShowCategoryAnalyzing ? translate('common.analyzing') : decodedCategoryName}
                                 numberOfLinesValue={2}
                             >
-                                {(!!getErrorForField('category') || canEdit || !!categoryCopyValue) && (
-                                    <>
-                                        {!!getErrorForField('category') && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                                        {canEdit && <MenuItem.Chevron />}
-                                        {!!categoryCopyValue && <MenuItem.Copy value={categoryCopyValue} />}
-                                    </>
-                                )}
+                                {!!getErrorForField('category') && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                {canEdit && <MenuItem.Chevron />}
+                                {!!categoryCopyValue && <MenuItem.Copy value={categoryCopyValue} />}
                             </MenuItemField.Row>
                             {!!getErrorForField('category') && (
                                 <MenuItem.HelpText
@@ -1530,12 +1514,8 @@ function MoneyRequestView({
                                 value={transactionVendorName}
                                 numberOfLinesValue={2}
                             >
-                                {(!!getErrorForField('vendor') || canEdit) && (
-                                    <>
-                                        {!!getErrorForField('vendor') && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                                        {canEdit && <MenuItem.Chevron />}
-                                    </>
-                                )}
+                                {!!getErrorForField('vendor') && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                {canEdit && <MenuItem.Chevron />}
                             </MenuItemField.Row>
                             {!!getErrorForField('vendor') && (
                                 <MenuItem.HelpText
@@ -1590,13 +1570,9 @@ function MoneyRequestView({
                                 value={taxRateValue}
                                 numberOfLinesValue={2}
                             >
-                                {(!!getErrorForField('tax') || canEditTaxFields || !!taxRateCopyValue) && (
-                                    <>
-                                        {!!getErrorForField('tax') && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                                        {canEditTaxFields && <MenuItem.Chevron />}
-                                        {!!taxRateCopyValue && <MenuItem.Copy value={taxRateCopyValue} />}
-                                    </>
-                                )}
+                                {!!getErrorForField('tax') && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                {canEditTaxFields && <MenuItem.Chevron />}
+                                {!!taxRateCopyValue && <MenuItem.Copy value={taxRateCopyValue} />}
                             </MenuItemField.Row>
                             {!!getErrorForField('tax') && (
                                 <MenuItem.HelpText
@@ -1637,12 +1613,8 @@ function MoneyRequestView({
                                 value={taxAmountTitle}
                                 numberOfLinesValue={2}
                             >
-                                {(canEditTaxFields || !!taxAmountCopyValue) && (
-                                    <>
-                                        {canEditTaxFields && <MenuItem.Chevron />}
-                                        {!!taxAmountCopyValue && <MenuItem.Copy value={taxAmountCopyValue} />}
-                                    </>
-                                )}
+                                {canEditTaxFields && <MenuItem.Chevron />}
+                                {!!taxAmountCopyValue && <MenuItem.Copy value={taxAmountCopyValue} />}
                             </MenuItemField.Row>
                         </MenuItem.Root>
                     </OfflineWithFeedback>

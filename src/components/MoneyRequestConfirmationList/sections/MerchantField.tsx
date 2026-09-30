@@ -158,12 +158,8 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
                 value={displayMerchantValue}
                 numberOfLinesValue={2}
             >
-                {(shouldDisplayMerchantError || shouldShowRequiredLabel) && (
-                    <>
-                        {shouldDisplayMerchantError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                        {shouldShowRequiredLabel && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
-                    </>
-                )}
+                {shouldDisplayMerchantError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                {shouldShowRequiredLabel && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
             </MenuItemField.Row>
             {shouldDisplayMerchantError && (
                 <MenuItem.HelpText

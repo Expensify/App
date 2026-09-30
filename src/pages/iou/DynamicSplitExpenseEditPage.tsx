@@ -393,12 +393,8 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                     name={translate('common.rate')}
                     value={rateToDisplay}
                 >
-                    {(!!rateErrorText || isRateInteractive) && (
-                        <>
-                            {!!rateErrorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                            {isRateInteractive && <MenuItem.Chevron />}
-                        </>
-                    )}
+                    {!!rateErrorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    {isRateInteractive && <MenuItem.Chevron />}
                 </MenuItemField.Row>
                 {!!rateErrorText && (
                     <MenuItem.HelpText

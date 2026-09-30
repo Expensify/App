@@ -203,12 +203,8 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                         name={taxRates?.name ?? ''}
                         value={taxRateTitle}
                     >
-                        {(shouldDisplayTaxRateError || canModifyTaxFields) && (
-                            <>
-                                {shouldDisplayTaxRateError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                                {canModifyTaxFields && <MenuItem.Chevron />}
-                            </>
-                        )}
+                        {shouldDisplayTaxRateError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                        {canModifyTaxFields && <MenuItem.Chevron />}
                     </MenuItemField.Row>
                     {shouldDisplayTaxRateError && (
                         <MenuItem.HelpText

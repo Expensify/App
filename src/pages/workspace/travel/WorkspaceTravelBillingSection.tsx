@@ -475,12 +475,8 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                         name={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementFrequencyLabel')}
                         value={localizedFrequency}
                     >
-                        {(hasSettlementFrequencyError || canWriteMoreFeatures) && (
-                            <>
-                                {hasSettlementFrequencyError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                                {canWriteMoreFeatures && <MenuItem.Chevron />}
-                            </>
-                        )}
+                        {hasSettlementFrequencyError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                        {canWriteMoreFeatures && <MenuItem.Chevron />}
                     </MenuItemField.Row>
                 </MenuItemSectionRoot>
             </OfflineWithFeedback>
@@ -498,12 +494,8 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                         name={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.monthlySpendLimitLabel')}
                         value={formattedMonthlyLimit}
                     >
-                        {(hasMonthlyLimitError || canWriteMoreFeatures) && (
-                            <>
-                                {hasMonthlyLimitError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                                {canWriteMoreFeatures && <MenuItem.Chevron />}
-                            </>
-                        )}
+                        {hasMonthlyLimitError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                        {canWriteMoreFeatures && <MenuItem.Chevron />}
                     </MenuItemField.Row>
                 </MenuItemSectionRoot>
             </OfflineWithFeedback>
