@@ -4,7 +4,7 @@ import WorkspaceMemberRolePickerModal, {useWorkspaceMemberRolePickerPopover} fro
 
 import useLocalize from '@hooks/useLocalize';
 
-import {getAllowedRolesForMember} from '@libs/PolicyUtils';
+import {getAllowedRolesForMember} from '@libs/PolicyMemberRoleUtils';
 
 import type CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';

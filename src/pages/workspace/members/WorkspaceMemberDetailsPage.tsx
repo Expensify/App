@@ -38,16 +38,8 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {
-    canMemberAssignRole,
-    canMemberManageMemberWithRole,
-    canMemberWrite,
-    isControlPolicy,
-    isPolicyApprover,
-    isPolicyReimburser,
-    PAYER_ROLES,
-    tryNavigateToSubmitWorkspaceUpgrade,
-} from '@libs/PolicyUtils';
+import {isPolicyReimburser} from '@libs/PolicyMemberRoleUtils';
+import {canMemberAssignRole, canMemberManageMemberWithRole, canMemberWrite, isControlPolicy, isPolicyApprover, PAYER_ROLES, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
 import {isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
