@@ -64,6 +64,8 @@ const interactionCounts = new Map<string, InteractionCount>();
 let longTasks: LongTask[] = [];
 
 let isStarted = false;
+// Set when NewDot hands over to OldDot, so AppState events during the dismissal can't resume measuring (see suspendFrameDropMonitor).
+let isSuspended = false;
 let windowStart: number | undefined;
 let lastReportTime = 0;
 let unmeasuredFlushCount = 0;
@@ -415,7 +417,7 @@ function scheduleFlush() {
 }
 
 function resume() {
-    if (windowStart !== undefined) {
+    if (isSuspended || windowStart !== undefined) {
         return;
     }
     windowStart = performance.now();
@@ -484,6 +486,26 @@ function startFrameDropMonitor() {
     }
 }
 
+/**
+ * Stops measuring for good because NewDot is handing over to OldDot (HybridApp). OldDot is drawn by the same app, so
+ * its frames would be attributed to the last NewDot screen, and NewDot's JS runtime is torn down right after, so what
+ * was collected so far is sent now instead of being lost.
+ */
+function suspendFrameDropMonitor() {
+    // Only a sampled session that is still measuring has anything to stop and send.
+    if (!appStateSubscription || isSuspended) {
+        return;
+    }
+    isSuspended = true;
+    pause(true);
+    flushQueue = flushQueue
+        .then(() => Sentry.flush())
+        .then(
+            () => {},
+            () => {},
+        );
+}
+
 /** Waits for the queued flushes to finish. Only used by tests. */
 function flush(windowEnd: number): Promise<void> {
     return enqueueFlush(windowEnd, false);
@@ -500,6 +522,7 @@ function stopFrameDropMonitor() {
     unmeasuredFlushCount = 0;
     flushQueue = Promise.resolve();
     isStarted = false;
+    isSuspended = false;
 }
 
-export {flush, report, scheduleFlush, startFrameDropMonitor, stopFrameDropMonitor};
+export {flush, report, scheduleFlush, startFrameDropMonitor, stopFrameDropMonitor, suspendFrameDropMonitor};

@@ -1,5 +1,5 @@
 import fetchFramesDelay from '@libs/telemetry/frameDrops/fetchFramesDelay';
-import {flush, report, startFrameDropMonitor, stopFrameDropMonitor} from '@libs/telemetry/frameDrops/frameDropMonitor';
+import {flush, report, startFrameDropMonitor, stopFrameDropMonitor, suspendFrameDropMonitor} from '@libs/telemetry/frameDrops/frameDropMonitor';
 import {clear, recordPress, recordScreen, startFlow, startOperation} from '@libs/telemetry/frameDrops/frameDropTimeline';
 
 import CONST from '@src/CONST';
@@ -16,6 +16,7 @@ jest.mock('@libs/telemetry/frameDrops/fetchFramesDelay', () => ({
 }));
 jest.mock('@sentry/react-native', () => ({
     metrics: {count: jest.fn(), distribution: jest.fn()},
+    flush: jest.fn(() => Promise.resolve(true)),
 }));
 
 const FRAME_DROPS = CONST.TELEMETRY.FRAME_DROPS;
@@ -338,6 +339,27 @@ describe('frameDropMonitor', () => {
         expect(mockFetchFramesDelay).not.toHaveBeenCalled();
         expect(mockCount).not.toHaveBeenCalled();
         expect(mockDistribution).not.toHaveBeenCalled();
+    });
+
+    it('sends what it has and stops for good when NewDot hands over to OldDot', async () => {
+        // Given a measured window on a NewDot screen
+        mockDelays([], 0);
+        recordScreen('Home');
+        now = 5_000;
+
+        // When NewDot closes in favor of OldDot, and AppState still reports active during the dismissal
+        suspendFrameDropMonitor();
+        appStateListener?.('active');
+        await flush(5_000);
+
+        // Then the window is reported and flushed to Sentry before the runtime goes away, and nothing is measured after
+        expect(sumCounts(FRAME_DROPS.METRIC_ACTIVE_TIME)).toBe(5_000);
+        expect(Sentry.flush).toHaveBeenCalled();
+        mockFetchFramesDelay.mockClear();
+        now = 40_000;
+        recordPress(PRESS_LABEL);
+        await flush(40_000);
+        expect(mockFetchFramesDelay).not.toHaveBeenCalled();
     });
 
     it('turns itself off when native frame tracking never answers', async () => {
