@@ -114,7 +114,7 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
             text: getWorkArrangementLabel(translate, false),
             alternateText: translate('workspace.people.workArrangementPage.optionNoRegularWorkspaceHelp'),
             isSelected: !currentIsOffice,
-            keyForList: 'no-regular-workplace',
+            keyForList: 'no-regular-workspace',
         },
     ];
 
