@@ -2,6 +2,7 @@ import {isGroupEntry, isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import type {InsightsDashboard} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -28,7 +29,7 @@ function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: b
     // Only a GetInsights response sets `inputQuery`.
     const hasDashboardResponse = !!dashboard?.inputQuery;
     const chartStates = charts.map(({snapshot, queryJSON}) => {
-        const isLoaded = isSearchDataLoaded(snapshot, queryJSON);
+        const isLoaded = isSearchDataLoaded(snapshot, queryJSON) && isEmptyObject(snapshot?.errors);
         return {isLoaded, hasRows: isLoaded && Object.keys(snapshot?.data ?? {}).some(isGroupEntry)};
     });
     const isWaitingForData = !hasDashboardResponse && !chartStates.some(({isLoaded}) => isLoaded);

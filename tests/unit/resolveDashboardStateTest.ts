@@ -37,6 +37,7 @@ function makeSnapshot(data: SearchResults['data']): SearchResults {
 const GROUP_KEY = `${CONST.SEARCH.GROUP_PREFIX}1` as const;
 const SNAPSHOT_WITH_ROWS = makeSnapshot({[GROUP_KEY]: {count: 1, total: 1000, currency: 'USD', year: 2026, month: 1}});
 const SNAPSHOT_WITHOUT_ROWS = makeSnapshot({});
+const FAILED_SNAPSHOT: SearchResults = {...makeSnapshot({}), errors: ERRORS};
 
 function makeCharts(headline: SearchResults | undefined, supporting: SearchResults | undefined): InsightsDashboardChart[] {
     return [
@@ -70,6 +71,42 @@ describe('getDashboardState', () => {
         const state = getDashboardState(undefined, true, makeCharts(undefined, SNAPSHOT_WITH_ROWS));
 
         // Then the page shows the stored chart and leaves the rest to say they are offline, instead of hiding everything
+        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.READY);
+    });
+
+    it('says the user is offline when the only stored snapshot is a failed Search', () => {
+        // Given no stored response and no connection, and a headline snapshot whose Search request failed
+        // When the page's state is resolved
+        const state = getDashboardState(undefined, true, makeCharts(FAILED_SNAPSHOT, undefined));
+
+        // Then the whole page says it is offline, since a failed request left nothing to draw
+        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.OFFLINE);
+    });
+
+    it("says the user is offline instead of empty when every chart's Search failed", () => {
+        // Given no stored response and no connection, and Home having failed a Search for every chart on the page
+        // When the page's state is resolved
+        const state = getDashboardState(undefined, true, makeCharts(FAILED_SNAPSHOT, FAILED_SNAPSHOT));
+
+        // Then the whole page says it is offline, since failed requests don't mean the filters matched nothing
+        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.OFFLINE);
+    });
+
+    it('says the user is offline when the only stored rows belong to a failed Search', () => {
+        // Given no stored response and no connection, and a snapshot that kept its rows when a later Search failed
+        // When the page's state is resolved
+        const state = getDashboardState(undefined, true, makeCharts({...SNAPSHOT_WITH_ROWS, errors: ERRORS}, undefined));
+
+        // Then the whole page says it is offline, since the charts don't plot rows from a failed request either
+        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.OFFLINE);
+    });
+
+    it('does not read a failed snapshot as an empty one', () => {
+        // Given a loaded response, a headline chart whose Search request failed, and an empty supporting snapshot
+        // When the page's state is resolved
+        const state = getDashboardState(LOADED_DASHBOARD, false, makeCharts(FAILED_SNAPSHOT, SNAPSHOT_WITHOUT_ROWS));
+
+        // Then the charts render and the failed one shows its own error, instead of the page claiming nothing matched
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.READY);
     });
 
