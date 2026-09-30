@@ -11069,20 +11069,13 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             title: 'Afficher l’historique des paiements',
             subtitle: 'Votre historique complet des paiements mensuels facturés sur ce compte.',
             payments: 'Paiements',
-            inclTax: 'TTC',
-            empty: 'Aucun paiement pour le moment.',
+            inclTax: 'incl. taxes',
+            empty: 'Aucun paiement pour l’instant.',
             activeUsers: ({count}: {count: number}) => ({
                 one: '1 utilisateur actif',
                 other: `${count} utilisateurs actifs`,
             }),
-            state: {
-                paid: 'Payé',
-                cleared: 'Régularisé',
-                failed: 'Échoué',
-                refunded: 'Remboursé',
-                disputed: 'Contesté',
-                balanceTransfer: 'Transfert de solde',
-            },
+            state: {paid: 'Payé', cleared: 'Compensé', failed: 'Échec', refunded: 'Remboursé', disputed: 'Contesté', balanceTransfer: 'Virement de solde'},
         },
         subscriptionSettings: {
             title: 'Paramètres d’abonnement',

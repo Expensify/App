@@ -10,8 +10,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
-import type {PaymentHistoryRow, PaymentHistoryState} from '@libs/PaymentHistoryUtils';
-import {getPaymentHistoryRows} from '@libs/PaymentHistoryUtils';
+import type {PaymentHistoryRow} from '@libs/PaymentHistoryUtils';
+import {getBadgeAppearance, getPaymentHistoryRows, getStateTranslationKey} from '@libs/PaymentHistoryUtils';
 
 import {lineHeightScale} from '@styles/typography';
 
@@ -112,7 +112,7 @@ function PaymentHistoryTableRow({row, dateLabel, shouldShowDivider}: PaymentHist
                         {!!activeUserLabel && <Text style={[styles.textLabelSupporting, styles.userSelectText]}>{activeUserLabel}</Text>}
                     </View>
                 </MenuItem.Content>
-                <MenuItem.Trailing>
+                <View style={[styles.menuItemTrailing, styles.gap3]}>
                     <View style={styles.alignItemsEnd}>
                         <Text
                             variant="text"
@@ -123,7 +123,7 @@ function PaymentHistoryTableRow({row, dateLabel, shouldShowDivider}: PaymentHist
                         {!!taxLabel && <Text style={[styles.textLabelSupporting, styles.userSelectText]}>{taxLabel}</Text>}
                     </View>
                     <MenuItem.Chevron />
-                </MenuItem.Trailing>
+                </View>
             </MenuItem.Row>
         </MenuItem.Root>
     );
@@ -151,35 +151,6 @@ function PaymentHistorySkeleton() {
             ))}
         </View>
     );
-}
-
-function getStateTranslationKey(state: PaymentHistoryState) {
-    switch (state) {
-        case CONST.PAYMENT_HISTORY.STATE.CLEARED:
-            return 'subscription.paymentHistory.state.cleared';
-        case CONST.PAYMENT_HISTORY.STATE.FAILED:
-            return 'subscription.paymentHistory.state.failed';
-        case CONST.PAYMENT_HISTORY.STATE.REFUNDED:
-            return 'subscription.paymentHistory.state.refunded';
-        case CONST.PAYMENT_HISTORY.STATE.DISPUTED:
-            return 'subscription.paymentHistory.state.disputed';
-        case CONST.PAYMENT_HISTORY.STATE.BALANCE_TRANSFER:
-            return 'subscription.paymentHistory.state.balanceTransfer';
-        default:
-            return 'subscription.paymentHistory.state.paid';
-    }
-}
-
-function getBadgeAppearance(state: PaymentHistoryState): {success: boolean; error: boolean} {
-    switch (state) {
-        case CONST.PAYMENT_HISTORY.STATE.PAID:
-            return {success: true, error: false};
-        case CONST.PAYMENT_HISTORY.STATE.FAILED:
-        case CONST.PAYMENT_HISTORY.STATE.DISPUTED:
-            return {success: false, error: true};
-        default:
-            return {success: false, error: false};
-    }
 }
 
 export default PaymentHistoryTable;
