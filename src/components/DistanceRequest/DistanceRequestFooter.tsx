@@ -2,6 +2,7 @@ import DistanceMapView from '@components/DistanceMapView';
 import Icon from '@components/Icon';
 import type {WayPoint} from '@components/MapView/MapViewTypes';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -115,7 +116,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                     {numberOfFilledWaypoints >= 2 && (
                         <PressableWithFeedback
                             onPress={() => navigateToWaypointEditPage(Object.keys(transaction?.comment?.waypoints ?? {}).length)}
-                            isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
+                            disabled={numberOfWaypoints === MAX_WAYPOINTS}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('distance.addStop')}
                             sentryLabel="DistanceRequestFooter-AddStop"
@@ -123,7 +124,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                         >
                             <Icon
                                 src={expensifyIcons.Plus}
-                                small
+                                size={CONST.ICON_SIZE.SMALL}
                                 fill={theme.icon}
                             />
                             <Text style={styles.textStrong}>{translate('distance.addStop')}</Text>
@@ -139,7 +140,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                         >
                             <Icon
                                 src={expensifyIcons.History}
-                                small
+                                size={CONST.ICON_SIZE.SMALL}
                                 fill={theme.icon}
                             />
                             <Text style={styles.textStrong}>{translate('distance.reuseRoute')}</Text>
