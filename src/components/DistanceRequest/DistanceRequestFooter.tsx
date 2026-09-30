@@ -1,12 +1,14 @@
-import Button from '@components/Button';
 import DistanceMapView from '@components/DistanceMapView';
+import Icon from '@components/Icon';
 import type {WayPoint} from '@components/MapView/MapViewTypes';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import type {MapMarkerType} from '@hooks/useMapMarkers/types';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setSelectedRoute} from '@libs/actions/Transaction';
@@ -50,6 +52,7 @@ type DistanceRequestFooterProps = {
 
 function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPage, policy, mapContainerStyle, transactionState, navigateToReuseRoutePage}: DistanceRequestFooterProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'History']);
     const [reusableDistanceRoutes] = useOnyx(ONYXKEYS.REUSABLE_DISTANCE_ROUTES);
@@ -110,25 +113,37 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
             {(numberOfFilledWaypoints >= 2 || shouldShowReuseRoute) && (
                 <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1, styles.gap2]}>
                     {numberOfFilledWaypoints >= 2 && (
-                        <Button
-                            size={CONST.BUTTON_SIZE.SMALL}
+                        <PressableWithFeedback
                             onPress={() => navigateToWaypointEditPage(Object.keys(transaction?.comment?.waypoints ?? {}).length)}
                             isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
-                            innerStyles={[styles.pl10, styles.pr10]}
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('distance.addStop')}
+                            sentryLabel="DistanceRequestFooter-AddStop"
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.p2]}
                         >
-                            <Button.Icon src={expensifyIcons.Plus} />
-                            <Button.Text>{translate('distance.addStop')}</Button.Text>
-                        </Button>
+                            <Icon
+                                src={expensifyIcons.Plus}
+                                small
+                                fill={theme.icon}
+                            />
+                            <Text style={styles.textStrong}>{translate('distance.addStop')}</Text>
+                        </PressableWithFeedback>
                     )}
                     {shouldShowReuseRoute && (
-                        <Button
-                            size={CONST.BUTTON_SIZE.SMALL}
+                        <PressableWithFeedback
                             onPress={navigateToReuseRoutePage}
-                            innerStyles={[styles.pl10, styles.pr10]}
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('distance.reuseRoute')}
+                            sentryLabel="DistanceRequestFooter-ReuseRoute"
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.p2]}
                         >
-                            <Button.Icon src={expensifyIcons.History} />
-                            <Button.Text>{translate('distance.reuseRoute')}</Button.Text>
-                        </Button>
+                            <Icon
+                                src={expensifyIcons.History}
+                                small
+                                fill={theme.icon}
+                            />
+                            <Text style={styles.textStrong}>{translate('distance.reuseRoute')}</Text>
+                        </PressableWithFeedback>
                     )}
                 </View>
             )}

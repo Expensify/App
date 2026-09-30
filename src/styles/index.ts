@@ -4157,8 +4157,6 @@ const staticStyles = (theme: ThemeColors) =>
         reuseRouteCard: {
             ...spacing.mh5,
             ...spacing.mb3,
-            borderWidth: 1,
-            borderColor: theme.border,
             borderRadius: variables.componentBorderRadiusLarge,
             backgroundColor: theme.cardBG,
         },
