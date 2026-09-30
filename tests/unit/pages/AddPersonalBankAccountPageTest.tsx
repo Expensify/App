@@ -3,6 +3,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 
 import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -11,6 +12,7 @@ import type {AddPersonalBankAccountNavigatorParamList, RightModalNavigatorParamL
 
 import AddPersonalBankAccountPage from '@pages/AddPersonalBankAccountPage';
 
+import {addPersonalBankAccount} from '@userActions/BankAccounts';
 import {openReport} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -18,6 +20,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {PrivatePersonalDetails} from '@src/types/onyx';
 
 import type {NavigatorScreenParams} from '@react-navigation/native';
 
@@ -49,6 +52,23 @@ jest.mock('@userActions/PaymentMethods', () => ({
 jest.mock('@userActions/Report', () => ({
     openReport: jest.fn(),
 }));
+
+jest.mock('@components/ValidateCodeActionModal/ValidateCodeActionContent', () => jest.fn(() => null));
+
+const SUB_PAGE_NAMES = CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES;
+
+const SAVED_PRIVATE_PERSONAL_DETAILS: PrivatePersonalDetails = {
+    legalFirstName: 'Jane',
+    legalLastName: 'Doe',
+    phoneNumber: '+14155550123',
+    addresses: [{street: '123 Main St', city: 'San Francisco', state: 'CA', zip: '94103', country: CONST.COUNTRY.US, current: true}],
+};
+
+const MANUAL_BANK_ACCOUNT_DRAFT = {
+    setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
+    routingNumber: '011000015',
+    accountNumber: '1234567890',
+};
 
 const closeRHPFlowSpy = jest.spyOn(Navigation, 'closeRHPFlow').mockImplementation(() => {});
 const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
@@ -88,14 +108,14 @@ function TestTabNavigator() {
     );
 }
 
-/** Renders the real page on its success substep, so pressing the primary button runs the flow's exit logic. */
-function TestRightModalNavigator() {
+/** Renders the real page on the given substep (the success substep by default, so pressing the primary button runs the flow's exit logic). */
+function TestRightModalNavigator({subPage}: {subPage: string}) {
     return (
         <AddPersonalBankAccountStack.Navigator>
             <AddPersonalBankAccountStack.Screen
                 name={SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT}
                 component={AddPersonalBankAccountPage}
-                initialParams={{subPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.SUCCESS}}
+                initialParams={{subPage}}
             />
         </AddPersonalBankAccountStack.Navigator>
     );
@@ -105,7 +125,7 @@ function TestRightModalNavigator() {
  * Mounts the page inside the RHP with the given tab focused underneath, so it resolves the active tab from
  * an attached navigationRef, as it does in the app.
  */
-async function renderPageOverTab(focusedTabIndex: number) {
+async function renderPageOverTab(focusedTabIndex: number, subPage: string = SUB_PAGE_NAMES.SUCCESS) {
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <PortalProvider>
@@ -121,10 +141,7 @@ async function renderPageOverTab(focusedTabIndex: number) {
                             name={NAVIGATORS.TAB_NAVIGATOR}
                             component={TestTabNavigator}
                         />
-                        <RootStack.Screen
-                            name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
-                            component={TestRightModalNavigator}
-                        />
+                        <RootStack.Screen name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}>{() => <TestRightModalNavigator subPage={subPage} />}</RootStack.Screen>
                     </RootStack.Navigator>
                 </NavigationContainer>
             </PortalProvider>
@@ -216,5 +233,88 @@ describe('AddPersonalBankAccountPage', () => {
 
         expect(openReport).not.toHaveBeenCalled();
         expect(closeRHPFlowSpy).toHaveBeenCalledTimes(1);
+    });
+
+    describe('magic code for personal details changes', () => {
+        const settingsTabIndex = TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+
+        it('adds the bank account without a magic code when the saved personal details are unchanged', async () => {
+            // Given a user whose saved name, address, and phone number are all used as-is by the bank account flow
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, MANUAL_BANK_ACCOUNT_DRAFT);
+            });
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.CONFIRMATION);
+
+            // When they confirm the bank account
+            fireEvent.press(screen.getByText('Confirm'));
+
+            // Then it is added straight away, because nothing in their private personal details changes
+            expect(addPersonalBankAccount).toHaveBeenCalledTimes(1);
+            expect(jest.mocked(addPersonalBankAccount).mock.lastCall?.[5]).toBeUndefined();
+            expect(navigateSpy).not.toHaveBeenCalled();
+        });
+
+        it('asks for a magic code before adding the bank account when the phone number changes', async () => {
+            // Given a user who entered a phone number different from the one saved in their private personal details
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, phoneNumber: '+14155550199'});
+            });
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.CONFIRMATION);
+
+            // When they confirm the bank account
+            fireEvent.press(screen.getByText('Confirm'));
+
+            // Then they are sent to the magic code step first, as in Profile > Private, and nothing is submitted yet
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(SUB_PAGE_NAMES.VALIDATE_CODE, undefined));
+            expect(addPersonalBankAccount).not.toHaveBeenCalled();
+        });
+
+        it('asks for a magic code when a new user enters personal details for the first time', async () => {
+            // Given a new user with no saved private personal details who entered a name, address, and phone number
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {
+                    ...MANUAL_BANK_ACCOUNT_DRAFT,
+                    legalFirstName: 'Jane',
+                    legalLastName: 'Doe',
+                    addressStreet: '123 Main St',
+                    addressCity: 'San Francisco',
+                    addressState: 'CA',
+                    addressZipCode: '94103',
+                    country: 'US',
+                    phoneNumber: '+14155550123',
+                });
+            });
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.CONFIRMATION);
+
+            // When they confirm the bank account
+            fireEvent.press(screen.getByText('Confirm'));
+
+            // Then they must enter a magic code, since the flow would write those details to their profile
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(SUB_PAGE_NAMES.VALIDATE_CODE, undefined));
+            expect(addPersonalBankAccount).not.toHaveBeenCalled();
+        });
+
+        it('adds the bank account with the entered magic code', async () => {
+            // Given a user on the magic code step after changing their phone number
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, phoneNumber: '+14155550199'});
+            });
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.VALIDATE_CODE);
+
+            // When they submit the magic code
+            const validateCodeContentProps = jest.mocked(ValidateCodeActionContent).mock.lastCall?.[0];
+            act(() => {
+                validateCodeContentProps?.handleSubmitForm('123456');
+            });
+
+            // Then the bank account is added with the new phone number and the magic code, so the backend can verify it
+            expect(addPersonalBankAccount).toHaveBeenCalledTimes(1);
+            const [accountData, , , , , validateCode] = jest.mocked(addPersonalBankAccount).mock.lastCall ?? [];
+            expect(accountData).toEqual(expect.objectContaining({phoneNumber: '+14155550199'}));
+            expect(validateCode).toBe('123456');
+        });
     });
 });
