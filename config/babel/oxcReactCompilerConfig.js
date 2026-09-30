@@ -4,11 +4,9 @@
  * without two of them, so components carrying `react-hooks` suppressions shipped with no memoization
  * while the web build and the checker memoized the same files.
  */
-const BaseReactCompilerConfig = require('./reactCompilerConfig');
-
 /**
- * `eslintSuppressionRules: []` matches the Babel/Metro lane. Without it OXC treats a `react-hooks`
- * suppression as an opt-out of compilation. `isDev` is absent because OXC has no such option, so
+ * `eslintSuppressionRules: []` keeps a `react-hooks` suppression from opting the file out of
+ * compilation, which OXC otherwise does. `isDev` is absent because OXC has no such option, so
  * passing it changes nothing.
  *
  * Overrides are limited to `sources` (web compiles node_modules too) and `panicThreshold` (the checker
@@ -19,7 +17,10 @@ const BaseReactCompilerConfig = require('./reactCompilerConfig');
  */
 function oxcReactCompilerConfig(overrides = {}) {
     return {
-        ...BaseReactCompilerConfig,
+        target: '19',
+        environment: {
+            enableTreatRefLikeIdentifiersAsRefs: true,
+        },
         eslintSuppressionRules: [],
         panicThreshold: 'none',
         ...overrides,

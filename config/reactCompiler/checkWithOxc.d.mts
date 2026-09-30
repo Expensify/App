@@ -17,5 +17,5 @@ type CompilationResult = {
 
 declare function checkReactCompilerWithOxc(source: string, filename: string): CompilationResult;
 
-export type {CompilationResult};
+export type {CompilationResult, CompilerError};
 export default checkReactCompilerWithOxc;

@@ -74,7 +74,6 @@
     "gh-actions-unused-styles": "bun scripts/findUnusedStyles.ts",
     "setup-https": "mkcert -install && mkcert -cert-file config/rsbuild/certificate.pem -key-file config/rsbuild/key.pem dev.new.expensify.com localhost 127.0.0.1",
     "react-compiler-compliance-check": "bun scripts/react-compiler-compliance-check.ts",
-    "react-compiler-divergence-audit": "bun scripts/react-compiler-divergence-audit.ts",
     "generate-search-parser": "peggy --format es -o src/libs/SearchParser/searchParser.js src/libs/SearchParser/searchParser.peggy src/libs/SearchParser/baseRules.peggy",
     "generate-autocomplete-parser": "peggy --format es -o src/libs/SearchParser/autocompleteParser.js src/libs/SearchParser/autocompleteParser.peggy src/libs/SearchParser/baseRules.peggy && ./scripts/parser-workletization.sh src/libs/SearchParser/autocompleteParser.js",
     "web:dist": "concurrently \"npm:web-proxy\" \"http-server ./dist --cors --port 8080 -P http://localhost:9000\"",
@@ -311,7 +310,6 @@
     "@welldone-software/why-did-you-render": "7.0.1",
     "babel-jest": "29.7.0",
     "babel-plugin-module-resolver": "^5.0.0",
-    "babel-plugin-react-compiler": "0.0.0-experimental-a1856f3-20260507",
     "babel-plugin-transform-remove-console": "^6.9.4",
     "babel-preset-expo": "^57.0.3",
     "bun": "^1.3.14",
@@ -401,7 +399,6 @@
     "path-to-regexp": "0.1.10",
     "send": "0.19.0",
     "regexpu-core": "6.4.0",
-    "babel-plugin-react-compiler": "0.0.0-experimental-a1856f3-20260507",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "eslint-config-expensify": {

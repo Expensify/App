@@ -53,7 +53,6 @@ export default Repack.defineRspackConfig((env) => {
             // Without this the cache reuses stale transform output after a babel, loader or .env change.
             buildDependencies: [
                 path.resolve(projectRoot, 'babel.config.js'),
-                path.resolve(projectRoot, 'config/babel/reactCompilerConfig.js'),
                 path.resolve(projectRoot, 'config/babel/oxcReactCompilerConfig.js'),
                 path.resolve(projectRoot, 'config/repack/rspack.config.mjs'),
                 path.resolve(projectRoot, 'config/repack/cjs-inline-requires-loader.mjs'),

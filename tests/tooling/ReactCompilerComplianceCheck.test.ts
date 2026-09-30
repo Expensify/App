@@ -102,7 +102,8 @@ function BadComponent({condition}) {
         expect(result.memoized).toBe(false);
     });
 
-    it('includes function location in error details', () => {
+    it('points the error at the line that breaks the rule', () => {
+        // Given a component that calls a hook inside a condition on line 4
         const source = `
 import {useState} from 'react';
 function BadComponent({condition}) {
@@ -112,11 +113,12 @@ function BadComponent({condition}) {
     return <div>Bad</div>;
 }
         `.trim();
+
+        // When the compliance check runs on it
         const result = checkReactCompilerCompliance(source, 'BadComponent.tsx');
-        expect(result.errors.length).toBeGreaterThan(0);
+
+        // Then the error names that line, so CI output leads straight to the offending hook call
         const error = result.errors.at(0);
-        expect(error).toBeDefined();
-        expect(error?.fnLoc).toBeDefined();
-        expect(error?.fnLoc?.start.line).toBe(2);
+        expect(error?.loc?.start.line).toBe(4);
     });
 });
