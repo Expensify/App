@@ -247,7 +247,9 @@ const createHasTravelEnabledPolicySelector =
     (policies: OnyxCollection<Policy>): boolean =>
         Object.values(policies ?? {}).some(
             (policy) =>
-                policy?.isTravelEnabled && (policy.isTravelProvisioned || isWorkspaceProvisionedForTravel(policy.travelSettings)) && isPolicyAccessible(policy, currentUserLogin ?? ''),
+                policy?.isTravelEnabled &&
+                (policy.isTravelProvisioned === true || isWorkspaceProvisionedForTravel(policy.travelSettings)) &&
+                isPolicyAccessible(policy, currentUserLogin ?? ''),
         );
 
 /**
