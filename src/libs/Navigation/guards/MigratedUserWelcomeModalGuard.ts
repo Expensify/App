@@ -1,6 +1,7 @@
+import AccountUtils from '@libs/AccountUtils';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 
 import CONST from '@src/CONST';
@@ -9,13 +10,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {DismissedProductTraining, Session} from '@src/types/onyx';
+import type {Account, DismissedProductTraining, Onboarding, Session} from '@src/types/onyx';
 
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {findFocusedRoute} from '@react-navigation/native';
-import {tryNewDotOnyxSelector} from '@selectors/Onboarding';
+import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import {isDelegateSessionSelector, isSupportalSessionSelector} from '@selectors/Session';
 import Onyx from 'react-native-onyx';
 
@@ -26,6 +27,8 @@ let dismissedProductTraining: OnyxEntry<DismissedProductTraining>;
 let isDismissedProductTrainingLoaded = false;
 let session: OnyxEntry<Session>;
 let isLoadingApp = true;
+let account: OnyxEntry<Account>;
+let onboarding: OnyxEntry<Onboarding>;
 
 let hasRedirectedToMigratedUserModal = false;
 
@@ -93,18 +96,59 @@ Onyx.connectWithoutView({
     },
 });
 
+Onyx.connectWithoutView({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (value) => {
+        account = value;
+    },
+});
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_ONBOARDING,
+    callback: (value) => {
+        onboarding = value;
+    },
+});
+
+function isRequiredTwoFactorSetupExceptionActive(): boolean {
+    const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboarding) ?? false;
+    // Allow 2FA setup while the blocking overlay is up, and also through the post-verify
+    // handoff window when the overlay is intentionally hidden but setup is still in progress.
+    return AccountUtils.shouldShowRequire2FAPage(account, hasCompletedGuidedSetupFlow) || AccountUtils.isForced2FAOnboardingSetup(account, hasCompletedGuidedSetupFlow);
+}
+
+type DeepestFocusedScreenInput = NonNullable<Parameters<typeof getDeepestFocusedScreen>[0]>;
+
+function isObjectPayload(value: unknown): value is DeepestFocusedScreenInput {
+    return typeof value === 'object' && value !== null;
+}
+
+function getActionPayloadScreenName(action: NavigationAction): string | undefined {
+    // NAVIGATE/PUSH payloads aren't full NavigationStates; getDeepestFocusedScreen accepts that shape.
+    // Use a type guard (not `as`) so we stay within this file's no-unsafe-type-assertion seatbelt.
+    if (!isObjectPayload(action.payload)) {
+        return undefined;
+    }
+
+    return getDeepestFocusedScreen(action.payload)?.name;
+}
+
 /**
  * Block navigation while the migrated user modal is active (on top of the stack).
  * Prevents tab switches from pushing screens before the modal overlay becomes visible,
  * which would cause DISMISS_MODAL to fail.
+ * Required 2FA setup is allowed through, matching OnboardingGuard, so Enable can open
+ * the setup flow while this modal is still underneath.
  */
 function shouldBlockWhileModalActive(state: NavigationState, action: NavigationAction): boolean {
     const isAllowedAction = action.type === CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL || action.type === CONST.NAVIGATION.ACTION_TYPE.GO_BACK;
+    const isRequiredTwoFactorSetupNavigation = isRequiredTwoFactorSetupExceptionActive() && isTwoFactorSetupScreen(getActionPayloadScreenName(action));
     return (
         hasRedirectedToMigratedUserModal &&
         !isProductTrainingElementDismissed('migratedUserWelcomeModal', dismissedProductTraining) &&
         state.routes.at(-1)?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR &&
-        !isAllowedAction
+        !isAllowedAction &&
+        !isRequiredTwoFactorSetupNavigation
     );
 }
 

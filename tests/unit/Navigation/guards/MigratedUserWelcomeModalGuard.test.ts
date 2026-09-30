@@ -17,12 +17,43 @@ import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 const migratedUserWelcomeRoute = createDynamicRoute(DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path, ROUTES.HOME);
 
 const mockNavigate = jest.fn();
-jest.mock('@libs/Navigation/Navigation', () => ({
-    navigate: (...args: unknown[]) => {
-        mockNavigate(...args);
-    },
-    getActiveRoute: () => 'home',
-}));
+jest.mock('@libs/Navigation/Navigation', () => {
+    const screens = jest.requireActual<typeof import('@src/SCREENS')>('@src/SCREENS').default;
+    const setupScreens = new Set<string>([
+        screens.TWO_FACTOR_AUTH.DYNAMIC_ROOT,
+        screens.TWO_FACTOR_AUTH.DYNAMIC_VERIFY,
+        screens.TWO_FACTOR_AUTH.DYNAMIC_VERIFY_ACCOUNT,
+        screens.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS,
+        screens.TWO_FACTOR_AUTH.SUCCESS,
+        screens.TWO_FACTOR_AUTH.DISABLED,
+        screens.TWO_FACTOR_AUTH.DISABLE,
+        screens.TWO_FACTOR_AUTH.REPLACE_VERIFY_OLD,
+        screens.TWO_FACTOR_AUTH.REPLACE_VERIFY_NEW,
+        screens.RIGHT_MODAL.TWO_FACTOR_AUTH,
+    ]);
+
+    function getDeepestFocusedScreen(route: {name?: string; params?: {screen?: string; params?: {screen?: string}}} | undefined): {name: string} | undefined {
+        if (!route) {
+            return undefined;
+        }
+        if (route.params?.screen) {
+            return getDeepestFocusedScreen({name: route.params.screen, params: route.params.params});
+        }
+        if (route.name) {
+            return {name: route.name};
+        }
+        return undefined;
+    }
+
+    return {
+        navigate: (...args: unknown[]) => {
+            mockNavigate(...args);
+        },
+        getActiveRoute: () => 'home',
+        getDeepestFocusedScreen,
+        isTwoFactorSetupScreen: (screen: string | undefined) => (screen ? setupScreens.has(screen) : false),
+    };
+});
 
 describe('MigratedUserWelcomeModalGuard', () => {
     const mockState: NavigationState = {
@@ -403,6 +434,58 @@ describe('MigratedUserWelcomeModalGuard', () => {
 
             const result = MigratedUserWelcomeModalGuard.evaluate(stateWithModalBelowHome, tabSwitchAction, defaultContext);
             expect(result.type).not.toBe('BLOCK');
+        });
+
+        const twoFactorSetupAction: NavigationAction = {
+            type: CONST.NAVIGATION.ACTION_TYPE.NAVIGATE,
+            payload: {
+                name: SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH,
+                params: {
+                    screen: SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT,
+                },
+            },
+        };
+
+        const required2FAAccount = {
+            needsTwoFactorAuthSetup: true,
+            requiresTwoFactorAuth: false,
+            twoFactorAuthSetupInProgress: false,
+        };
+
+        async function redirectToWelcomeModal() {
+            await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
+                nudgeMigration: {
+                    timestamp: new Date(),
+                    cohort: 'test',
+                },
+            });
+            await waitForBatchedUpdates();
+            MigratedUserWelcomeModalGuard.evaluate(mockState, mockAction, defaultContext);
+        }
+
+        it('should allow required 2FA setup navigation when the migrated user modal is on top', async () => {
+            await redirectToWelcomeModal();
+            await Onyx.merge(ONYXKEYS.ACCOUNT, required2FAAccount);
+            await waitForBatchedUpdates();
+
+            const result = MigratedUserWelcomeModalGuard.evaluate(stateWithModalOnTop, twoFactorSetupAction, defaultContext);
+            expect(result.type).not.toBe('BLOCK');
+        });
+
+        it('should still block 2FA setup navigation when required 2FA is not active', async () => {
+            await redirectToWelcomeModal();
+
+            const result = MigratedUserWelcomeModalGuard.evaluate(stateWithModalOnTop, twoFactorSetupAction, defaultContext);
+            expect(result.type).toBe('BLOCK');
+        });
+
+        it('should still block tab switches when required 2FA is active', async () => {
+            await redirectToWelcomeModal();
+            await Onyx.merge(ONYXKEYS.ACCOUNT, required2FAAccount);
+            await waitForBatchedUpdates();
+
+            const result = MigratedUserWelcomeModalGuard.evaluate(stateWithModalOnTop, tabSwitchAction, defaultContext);
+            expect(result.type).toBe('BLOCK');
         });
     });
 
