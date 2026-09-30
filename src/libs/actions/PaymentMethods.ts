@@ -159,6 +159,22 @@ function makeDefaultPaymentMethod(bankAccountID: number, fundID: number, previou
     });
 }
 
+function buildAddPaymentCardFormLoadingOnyxData() {
+    const mergeForm = (isLoading: boolean): Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>> => [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
+            value: {isLoading},
+        },
+    ];
+
+    return {
+        optimisticData: mergeForm(true),
+        successData: mergeForm(false),
+        failureData: mergeForm(false),
+    };
+}
+
 /**
  * Calls the API to add a new card.
  *
@@ -178,35 +194,7 @@ function addPaymentCard(accountID: number, params: PaymentCardParams) {
         isP2PDebitCard: true,
     };
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
-            value: {isLoading: true},
-        },
-    ];
-
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
-            value: {isLoading: false},
-        },
-    ];
-
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
-            value: {isLoading: false},
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, buildAddPaymentCardFormLoadingOnyxData());
 
     GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION.NAME, accountID, getCurrentUserEmail() ?? '');
 }
@@ -243,38 +231,10 @@ function addSubscriptionPaymentCard(
         shouldClaimEarlyDiscountOffer: true,
     };
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
-            value: {isLoading: true},
-        },
-    ];
-
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
-            value: {isLoading: false},
-        },
-    ];
-
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
-            value: {isLoading: false},
-        },
-    ];
-
     if (CONST.SCA_CURRENCIES.has(currency)) {
         addPaymentCardSCA(parameters, source);
     } else {
-        API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
-            optimisticData,
-            successData,
-            failureData,
-        });
+        API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, buildAddPaymentCardFormLoadingOnyxData());
     }
     if (getCardForSubscriptionBilling(fundList)) {
         Log.info(`[GTM] Not logging ${CONST.ANALYTICS.EVENT.PAID_ADOPTION.NAME} because a card was already added`);
@@ -306,29 +266,11 @@ function getVerify3dsSubscriptionSourceData(source?: string): Array<OnyxUpdate<t
  */
 function addPaymentCardSCA(params: AddPaymentCardParams, source?: string) {
     prepareCardAuthentication(source);
+    const {optimisticData, successData, failureData} = buildAddPaymentCardFormLoadingOnyxData();
     API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD_SCA, params, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
-                value: {isLoading: true},
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
-                value: {isLoading: false},
-            },
-            ...getVerify3dsSubscriptionSourceData(source),
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
-                value: {isLoading: false},
-            },
-        ],
+        optimisticData,
+        successData: [...successData, ...getVerify3dsSubscriptionSourceData(source)],
+        failureData,
     });
 }
 
