@@ -50,15 +50,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
-    | 'transactions'
-    | 'allTransactionViolation'
-    | 'personalPolicyOutputCurrency'
-    | 'selfDMReportActions'
-    | 'delegateAccountID'
-    | 'getCurrencyDecimals'
-    | 'getCurrencySymbol'
-    | 'rules'
-    | 'cardList'
+    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol' | 'rules'
 > & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
@@ -97,7 +89,6 @@ function changeTransactionsReport({allTransactions, transactionIDs, transactionV
         getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
         getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
         rules: undefined,
-        cardList: undefined,
         ...rest,
     });
 }
@@ -124,6 +115,7 @@ function generateTransaction(values: Partial<Transaction> = {}): Transaction {
 }
 
 const CURRENT_USER_ID = 1;
+const CURRENT_USER_CASH_CARD_ID = 777;
 const FAKE_NEW_REPORT_ID = '2';
 const FAKE_OLD_REPORT_ID = '3';
 const FAKE_SELF_DM_REPORT_ID = '4';
@@ -253,6 +245,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -294,6 +287,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -345,6 +339,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -397,6 +392,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -462,6 +458,7 @@ describe('Transaction', () => {
                 },
                 reports: undefined,
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -542,6 +539,7 @@ describe('Transaction', () => {
                 },
                 reports: undefined,
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -587,6 +585,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -645,6 +644,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -700,6 +700,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -746,6 +747,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -787,6 +789,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 reports,
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -835,6 +838,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -887,6 +891,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -946,6 +951,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -1005,6 +1011,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -1059,6 +1066,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1115,6 +1123,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1184,6 +1193,7 @@ describe('Transaction', () => {
                 policyTagList: undefined,
                 reports,
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1282,6 +1292,7 @@ describe('Transaction', () => {
                     reports,
                     transactionViolations: {},
                     isTrackIntentUser: false,
+                    cardList: undefined,
                 });
 
                 await waitForBatchedUpdates();
@@ -1350,6 +1361,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1405,6 +1417,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1464,6 +1477,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1507,6 +1521,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1545,6 +1560,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1586,6 +1602,7 @@ describe('Transaction', () => {
                 transactionViolations: {},
                 isTrackIntentUser: false,
                 isVendorMatchingBetaEnabled: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1675,6 +1692,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1738,6 +1756,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1787,6 +1806,7 @@ describe('Transaction', () => {
                 transactionViolations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [receiptNoticeViolation]},
                 reports,
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1852,6 +1872,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1902,6 +1923,7 @@ describe('Transaction', () => {
                 policyTagList: {},
                 reports,
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1981,6 +2003,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2069,6 +2092,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2148,6 +2172,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2228,6 +2253,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2265,6 +2291,7 @@ describe('Transaction', () => {
                     isTrackIntentUser: false,
                     jsonQuery: FAKE_JSON_QUERY,
                     hash: FAKE_HASH,
+                    cardList: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -2313,6 +2340,7 @@ describe('Transaction', () => {
                     isTrackIntentUser: false,
                     jsonQuery: FAKE_JSON_QUERY,
                     hash: FAKE_HASH,
+                    cardList: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -2359,6 +2387,7 @@ describe('Transaction', () => {
                         isTrackIntentUser: false,
                         jsonQuery: FAKE_JSON_QUERY,
                         hash: FAKE_HASH,
+                        cardList: undefined,
                     });
                     await waitForBatchedUpdates();
 
@@ -2400,6 +2429,7 @@ describe('Transaction', () => {
                         isTrackIntentUser: false,
                         jsonQuery: FAKE_JSON_QUERY,
                         hash: FAKE_HASH,
+                        cardList: undefined,
                     });
                     await waitForBatchedUpdates();
 
@@ -2436,6 +2466,7 @@ describe('Transaction', () => {
                     isTrackIntentUser: false,
                     jsonQuery: undefined,
                     hash: FAKE_HASH,
+                    cardList: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -2491,6 +2522,7 @@ describe('Transaction', () => {
                 transactionViolations: {},
                 reports: {[`${ONYXKEYS.COLLECTION.REPORT}${submittedReport.reportID}`]: submittedReport},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2548,6 +2580,7 @@ describe('Transaction', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}${submittedDestinationReport.reportID}`]: submittedDestinationReport,
                 },
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
