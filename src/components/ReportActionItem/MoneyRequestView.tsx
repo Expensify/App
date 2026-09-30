@@ -880,6 +880,8 @@ function MoneyRequestView({
         return '';
     };
 
+    const dateError = getErrorForField('date');
+
     const showTaxDisabledAlert = () => {
         showConfirmModal({
             title: translate('iou.taxDisabledAlert.title'),
@@ -1397,14 +1399,14 @@ function MoneyRequestView({
                             value={actualTransactionDate}
                             numberOfLinesValue={2}
                         >
-                            {!!getErrorForField('date') && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                            {!!dateError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                             {canEditDate && <MenuItem.Chevron />}
                             {!!dateCopyValue && <MenuItem.Copy value={dateCopyValue} />}
                         </MenuItemField.Row>
-                        {!!getErrorForField('date') && (
+                        {!!dateError && (
                             <MenuItem.HelpText
                                 isError
-                                message={getErrorForField('date')}
+                                message={dateError}
                             />
                         )}
                     </MenuItem.Root>
