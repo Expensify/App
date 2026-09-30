@@ -98,8 +98,6 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                         return !validateAmount(normalizedValue, decimals);
                     });
                     errors = hasInvalidApprovalLimit ? {approvalLimit: translate('spreadsheet.invalidApprovalLimit')} : {};
-                } else {
-                    errors = {};
                 }
             }
         }
@@ -214,10 +212,10 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             }
             const customField1 = membersCustomField1Column !== -1 ? (membersCustomField1?.[containsHeader ? index + 1 : index] ?? '') : undefined;
             const customField2 = membersCustomField2Column !== -1 ? (membersCustomField2?.[containsHeader ? index + 1 : index] ?? '') : undefined;
-            const approvalLimitValue = membersApprovalLimit?.[containsHeader ? index + 1 : index] ?? '';
-            const normalizedApprovalLimit = normalizeImportedAmount(approvalLimitValue, currencySymbol, currency);
             let approvalLimit: string | undefined;
             if (membersApprovalLimitColumn !== -1) {
+                const approvalLimitValue = membersApprovalLimit?.[containsHeader ? index + 1 : index] ?? '';
+                const normalizedApprovalLimit = normalizeImportedAmount(approvalLimitValue, currencySymbol, currency);
                 approvalLimit = normalizedApprovalLimit;
                 if (normalizedApprovalLimit !== '') {
                     approvalLimit = String(convertToBackendAmount(Number.parseFloat(normalizedApprovalLimit)));
