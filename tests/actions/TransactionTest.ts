@@ -29,6 +29,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
+import {createCashCard} from 'tests/utils/collections/card';
 import createRandomReportAction from 'tests/utils/collections/reportActions';
 
 import {changeTransactionsReport as changeTransactionsReportAction, clearError} from '../../src/libs/actions/Transaction';
@@ -690,16 +691,7 @@ describe('actions/Transaction', () => {
                 } as Report;
 
                 const cardList: CardList = {
-                    [RORY_CASH_CARD_ID]: {
-                        cardID: RORY_CASH_CARD_ID,
-                        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-                        bank: CONST.EXPENSIFY_CARD.BANK,
-                        domainName: '',
-                        lastUpdated: '',
-                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
-                        accountID: RORY_ACCOUNT_ID,
-                        cardName: CONST.CASH_CARD_NAME,
-                    },
+                    [RORY_CASH_CARD_ID]: createCashCard(RORY_ACCOUNT_ID, RORY_CASH_CARD_ID),
                 };
 
                 const transaction: Transaction = {
