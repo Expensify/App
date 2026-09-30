@@ -8,17 +8,28 @@ import CONST from '@src/CONST';
 import type {PendingNewTransactions} from '@src/selectors/ReportMetaData';
 import type {Transaction} from '@src/types/onyx';
 
-function rail(activeIDs: string[], expiredFlagKeys: string[] = []): PendingNewTransactions {
+/** The hook claims a flag's sweep in module state that outlives a test, so each test's flags must be instances no other test has claimed. */
+let testRun = 0;
+
+beforeEach(() => {
+    testRun += 1;
+});
+
+function flagKey(transactionID: string, instance = 0): string {
+    return `${transactionID}:${testRun}.${instance}`;
+}
+
+function rail(activeIDs: string[], expiredIDs: string[] = []): PendingNewTransactions {
     return {
-        activeFlagKeys: Object.fromEntries(activeIDs.map((id) => [id, id])),
-        expiredFlagKeys,
+        activeFlagKeys: Object.fromEntries(activeIDs.map((id) => [id, flagKey(id)])),
+        expiredFlagKeys: expiredIDs.map((id) => flagKey(id)),
     };
 }
 
 /** A rail whose flags carry distinct instance keys, so the same transaction can be re-flagged as a new instance. */
 function stampedRail(activeStamps: Record<string, number>): PendingNewTransactions {
     return {
-        activeFlagKeys: Object.fromEntries(Object.entries(activeStamps).map(([id, stamp]) => [id, `${id}:${stamp}`])),
+        activeFlagKeys: Object.fromEntries(Object.entries(activeStamps).map(([id, stamp]) => [id, flagKey(id, stamp)])),
         expiredFlagKeys: [],
     };
 }
@@ -1076,7 +1087,7 @@ describe('useNewTransactions with a covered report', () => {
             });
 
             // Then the flag is swept, since the highlight has now been shown
-            expect(deletePendingNewTransactionIDs).toHaveBeenCalledWith('report1', ['D']);
+            expect(deletePendingNewTransactionIDs).toHaveBeenCalledWith('report1', [flagKey('D')]);
         } finally {
             jest.useRealTimers();
         }
@@ -1524,7 +1535,7 @@ describe('useNewTransactions rail cleanup lifecycle', () => {
             });
 
             // Then the flag is still deleted, since its highlight was shown and must not play again
-            expect(deletePendingNewTransactionIDs).toHaveBeenCalledWith('report1', ['railTx']);
+            expect(deletePendingNewTransactionIDs).toHaveBeenCalledWith('report1', [flagKey('railTx')]);
         } finally {
             jest.useRealTimers();
         }
@@ -1555,7 +1566,7 @@ describe('useNewTransactions rail cleanup lifecycle', () => {
             });
 
             // Then both go in one deletion, so expired flags do not pile up on the rail
-            expect(deletePendingNewTransactionIDs).toHaveBeenCalledWith('report1', ['railTx', 'staleTx']);
+            expect(deletePendingNewTransactionIDs).toHaveBeenCalledWith('report1', [flagKey('railTx'), flagKey('staleTx')]);
         } finally {
             jest.useRealTimers();
         }
@@ -1625,7 +1636,7 @@ describe('useNewTransactions rail cleanup lifecycle', () => {
 
             // Then that flag is swept
             expect(deletePendingNewTransactionIDs).toHaveBeenCalledTimes(1);
-            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report1', ['railTx:1000']);
+            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report1', [flagKey('railTx', 1000)]);
 
             // When the rail clears and the same expense is flagged again, and the delay passes
             rerender({pendingNewTransactions: undefined});
@@ -1637,7 +1648,7 @@ describe('useNewTransactions rail cleanup lifecycle', () => {
 
             // Then the new flag is swept too, rather than being mistaken for the one already swept
             expect(deletePendingNewTransactionIDs).toHaveBeenCalledTimes(2);
-            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report1', ['railTx:2000']);
+            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report1', [flagKey('railTx', 2000)]);
         } finally {
             jest.useRealTimers();
         }
@@ -1752,7 +1763,7 @@ describe('useNewTransactions rail cleanup lifecycle', () => {
             });
 
             // Then report1's rail is swept
-            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report1', ['railTx']);
+            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report1', [flagKey('railTx')]);
 
             // When the consumer switches to report2, whose rail flags the same transaction
             rerender({reportID: 'report2'});
@@ -1762,7 +1773,7 @@ describe('useNewTransactions rail cleanup lifecycle', () => {
             });
 
             // Then report2's rail is swept too, since a sweep on one rail says nothing about another
-            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report2', ['railTx']);
+            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report2', [flagKey('railTx')]);
         } finally {
             jest.useRealTimers();
         }
@@ -1801,7 +1812,7 @@ describe('useNewTransactions rail cleanup lifecycle', () => {
 
             // Then report1's flag is deleted once, because the sweep scheduled before leaving still holds it
             expect(deletePendingNewTransactionIDs).toHaveBeenCalledTimes(1);
-            expect(deletePendingNewTransactionIDs).toHaveBeenCalledWith('report1', ['railTx']);
+            expect(deletePendingNewTransactionIDs).toHaveBeenCalledWith('report1', [flagKey('railTx')]);
         } finally {
             jest.useRealTimers();
         }
@@ -1834,7 +1845,7 @@ describe('useNewTransactions rail cleanup lifecycle', () => {
             });
 
             // Then both flags go in one sweep
-            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report1', ['railTx:1000', 'otherTx:1000']);
+            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report1', [flagKey('railTx', 1000), flagKey('otherTx', 1000)]);
 
             // When one expense is flagged again while the other's flag is still on the rail, as if its deletion never landed
             rerender({pendingNewTransactions: stampedRail({railTx: 2000, otherTx: 1000})});
@@ -1844,7 +1855,7 @@ describe('useNewTransactions rail cleanup lifecycle', () => {
             });
 
             // Then the new flag is swept, and the old one is retried in the same deletion so a lost merge cannot strand it
-            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report1', ['railTx:2000', 'otherTx:1000']);
+            expect(deletePendingNewTransactionIDs).toHaveBeenLastCalledWith('report1', [flagKey('railTx', 2000), flagKey('otherTx', 1000)]);
         } finally {
             jest.useRealTimers();
         }

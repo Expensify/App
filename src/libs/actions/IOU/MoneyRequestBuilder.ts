@@ -471,7 +471,7 @@ function isReportShowingRowsBesidesThisAdd(report: OnyxInputValue<OnyxTypes.Repo
     const countedBesidesThisAdd = Math.max((report?.transactionCount ?? 0) - 1, 0);
     // Only a complete cache can subtract pending deletes; a partial one would count too few and drop the flag.
     if (existingReportTransactions.length < countedBesidesThisAdd) {
-        return countedBesidesThisAdd >= 1;
+        return true;
     }
     return existingReportTransactions.some((reportTransaction) => reportTransaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 }

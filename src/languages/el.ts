@@ -2381,7 +2381,13 @@ const translations: TranslationDeepObject<typeof en> = {
             results: 'Αποτελέσματα',
             releaseOptions: 'Επιλογές έκδοσης',
             testingPreferences: 'Προτιμήσεις δοκιμών',
-            useStagingServer: 'Χρήση διακομιστή staging',
+            server: 'Διακομιστής',
+            servers: {
+                production: {label: 'Παραγωγή', description: 'Το ζωντανό περιβάλλον που βλέπουν οι πραγματικοί χρήστες'},
+                staging: {label: 'Staging', description: 'Αντίγραφο της παραγωγής. Χρησιμοποιείται για τον τελικό έλεγχο'},
+                qa: {label: 'QA', description: 'Πειραματικό περιβάλλον που χρησιμοποιείται για δοκιμές'},
+            },
+            serverPinnedDescription: 'Αυτή η έκδοση επικοινωνεί πάντα με έναν διακομιστή, οπότε δεν μπορεί να αλλάξει εδώ.',
             forceOffline: 'Εξαναγκασμός εκτός σύνδεσης',
             simulatePoorConnection: 'Προσομοίωση κακής σύνδεσης στο διαδίκτυο',
             simulateFailingNetworkRequests: 'Προσομοίωση αποτυχημένων αιτημάτων δικτύου',
@@ -2611,7 +2617,7 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredForAdminsHeader: 'Απαιτείται έλεγχος ταυτότητας δύο παραγόντων',
         twoFactorAuthIsRequiredForAdminsTitle: 'Παρακαλούμε ενεργοποιήστε τον έλεγχο ταυτότητας δύο παραγόντων',
         twoFactorAuthIsRequiredXero: 'Η σύνδεσή σας με το λογιστικό σύστημα Xero απαιτεί έλεγχο ταυτότητας δύο παραγόντων.',
-        twoFactorAuthIsRequiredCompany: 'Η εταιρεία σας απαιτεί έλεγχο ταυτότητας δύο παραγόντων.',
+        twoFactorAuthIsRequiredCompany: 'Η εταιρεία σας απαιτεί έλεγχο ταυτότητας δύο παραγόντων (2FA).',
         twoFactorAuthCannotDisable: 'Δεν είναι δυνατή η απενεργοποίηση του 2FA',
         twoFactorAuthRequired: 'Η επαλήθευση δύο παραγόντων (2FA) είναι υποχρεωτική για τη σύνδεσή σας με το Xero και δεν μπορεί να απενεργοποιηθεί.',
         replaceDevice: 'Αντικατάσταση συσκευής',
@@ -2621,6 +2627,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescriptionWithRecovery: 'Εισαγάγετε έναν έγκυρο κωδικό ανάκτησης για να επιβεβαιώσετε ότι έχετε πρόσβαση στον λογαριασμό σας.',
         verifyNewDeviceTitle: 'Ρύθμιση νέας συσκευής',
         verifyNewDeviceDescription: 'Σαρώστε τον κωδικό QR με τη νέα σας συσκευή και κατόπιν εισαγάγετε τον κωδικό για να ολοκληρώσετε τη ρύθμιση.',
+        enable2FA: 'Ενεργοποίηση',
     },
     recoveryCodeForm: {
         error: {
@@ -3059,6 +3066,9 @@ ${amount} για ${merchant} - ${date}`,
         memberAlreadyInWorkflowTitle: 'Το μέλος συμμετέχει ήδη σε ροή εργασίας',
         memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
             `Ο/Η ${memberName} βρίσκεται ήδη σε ροή έγκρισης που υποβάλλεται σε ${approverName}. Η προσθήκη τους εδώ θα τους μετακινήσει σε αυτήν τη ροή.`,
+        moveEveryoneToThisWorkflowTitle: 'Μετακινήστε όλους σε αυτήν τη ροή εργασίας',
+        moveEveryoneToThisWorkflowPrompt:
+            'Πρόκειται να μετακινήσετε όλους/όλες σε αυτήν τη ροή έγκρισης. Αυτό θα διαγράψει όλες τις άλλες ροές έγκρισης και θα μετακινήσει όλους/όλες σε αυτήν. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Δεν ήταν δυνατή η αλλαγή του εγκρίνοντα. Δοκιμάστε ξανά ή επικοινωνήστε με την υποστήριξη.',
@@ -5584,11 +5594,6 @@ ${amount} για ${merchant} - ${date}`,
             journalEntriesProvTaxPostingAccount: 'Λογαριασμός καταχώρισης επαρχιακού φόρου για λογιστικές εγγραφές',
             foreignCurrencyAmount: 'Εξαγωγή ποσού σε ξένο νόμισμα',
             exportToNextOpenPeriod: 'Εξαγωγή στην επόμενη ανοικτή περίοδο',
-            exportToNextOpenPeriodLockedSubtitle:
-                'Για να απενεργοποιήσετε την εξαγωγή στην επόμενη ανοικτή περίοδο, απενεργοποιήστε πρώτα τη διαίρεση των μη αποζημιώσιμων εξαγωγών ανά περίοδο.',
-            splitExportsByPostingPeriod: 'Διαίρεση εξαγωγών ανά περίοδο καταχώρισης',
-            splitExportsByPostingPeriodSubtitle:
-                'Ενεργοποιήστε την εξαγωγή στην επόμενη ανοικτή περίοδο για να ενεργοποιήσετε τη διαίρεση των μη αποζημιώσιμων εξαγωγών ανά περίοδο στο NetSuite',
             nonReimbursableJournalPostingAccount: 'Λογαριασμός καταχώρισης μη αποζημιώσιμων εγγραφών',
             reimbursableJournalPostingAccount: 'Λογαριασμός καταχώρισης ημερολογίου επιστρέψιμων εξόδων',
             journalPostingPreference: {
@@ -6540,6 +6545,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             deleteFailureMessage: 'Παρουσιάστηκε σφάλμα κατά τη διαγραφή της κατηγορίας, δοκιμάστε ξανά',
             categoryName: 'Όνομα κατηγορίας',
             requiresCategory: 'Τα μέλη πρέπει να κατηγοριοποιούν όλες τις δαπάνες',
+            autoCategorizeNewExpenses: 'Αυτόματη κατηγοριοποίηση νέων δαπανών',
             showCategoryGLCodes: 'Εμφάνιση κωδικών GL κατά την κατηγοριοποίηση δαπανών',
             needCategoryForExportToIntegration: (connectionName: string) => `Όλες οι δαπάνες πρέπει να κατηγοριοποιηθούν για να γίνει η εξαγωγή στο ${connectionName}.`,
             subtitle: 'Αποκτήστε μια καλύτερη εικόνα για το πού ξοδεύονται τα χρήματα. Χρησιμοποιήστε τις προεπιλεγμένες κατηγορίες μας ή προσθέστε τις δικές σας.',
@@ -7654,6 +7660,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Για να το ξεκλειδώσετε, ενεργοποιήστε τον αυτόματο συγχρονισμό.',
             campfire: 'Campfire',
             businessCentral: 'Dynamics 365 Business Central',
+            qboConnectionExpiring: ({date}: {date: string}) => `Η σύνδεσή σας με το QuickBooks Online λήγει στις ${date}.`,
+            qboConnectionExpired: ({date}: {date: string}) => `Η σύνδεσή σας με το QuickBooks Online έληξε στις ${date}.`,
         },
         hr: {
             title: 'HR',
@@ -8557,6 +8565,8 @@ ${reportName}`,
                 autoPayApprovedReportsLimitError: (currency?: string) => `Παρακαλούμε εισαγάγετε ένα ποσό μικρότερο από ${currency ?? ''}20.000`,
                 autoPayApprovedReportsLockedSubtitle:
                     'Μεταβείτε στις πρόσθετες λειτουργίες και ενεργοποιήστε τις ροές εργασιών, έπειτα προσθέστε πληρωμές για να ξεκλειδώσετε αυτή τη λειτουργία.',
+                autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) =>
+                    `Η αυτόματη πληρωμή είναι διαθέσιμη μόνο στο πλάνο Control. [Κάντε αναβάθμιση](${upgradeLink}) για να ξεκλειδώσετε αυτή τη λειτουργία.`,
                 autoPayReportsUnderTitle: 'Αυτόματη πληρωμή αναφορών κάτω από',
                 autoPayReportsUnderDescription: 'Πλήρως συμβατικές αναφορές εξόδων κάτω από αυτό το ποσό θα εξοφλούνται αυτόματα.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Προσθέστε ${featureName} για να ξεκλειδώσετε αυτήν τη δυνατότητα.`,
@@ -9591,6 +9601,7 @@ ${reportName}`,
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `παρακολούθηση συμμετεχόντων ${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'}`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} η απαίτηση για αγορές με εταιρική κάρτα`,
+        updatedAutoCategorizeNewExpenses: ({enabled}: {enabled: boolean}) => `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} η αυτόματη κατηγοριοποίηση νέων δαπανών`,
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} η απαίτηση κατηγοριοποίησης δαπανών`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} στην απαίτηση κατηγοριοποίησης δαπανών`,
         updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `ενημέρωσε τη ρύθμιση προμήθειας μετατροπής νομίσματος σε «${preferenceLabel}»`,
@@ -11349,6 +11360,8 @@ ${reportName}`,
         notAllowedMessage: (accountOwnerEmail: string) =>
             `Ως <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">συνοδοιπόρος</a> για τον/την ${accountOwnerEmail}, δεν έχετε δικαίωμα να εκτελέσετε αυτήν την ενέργεια. Συγγνώμη!`,
         copilotAccess: 'Πρόσβαση στο Copilot',
+        leaveAccount: 'Αποχώρηση από τον λογαριασμό',
+        leaveAccountConfirmationText: 'Θα επιστρέψετε στον δικό σας λογαριασμό. Δεν θα αποσυνδεθείτε πλήρως.',
     },
     debug: {
         debug: 'Εντοπισμός σφαλμάτων',

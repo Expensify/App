@@ -23,6 +23,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
+import {rendersColumnHeader} from './buildTableListData';
 import getGridTemplateColumns from './getGridTemplateColumns';
 import {assignCellColumnIndexes, getCellAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext, useTableRowSemanticID} from './TableContext';
@@ -92,7 +93,7 @@ export default function TableRow({
         shouldFooterRenderAsLastRow,
     } = useTableContext();
     const semanticRowID = useTableRowSemanticID();
-    const semanticTableHasHeader = !tableListMetadata.hasPageHeader || tableListMetadata.shouldRenderStickyHeader;
+    const semanticTableHasHeader = rendersColumnHeader(tableListMetadata);
     const isAccessibilityHidden = semanticRowID === null || ariaHidden === true;
     const inertProps = isAccessibilityHidden ? {inert: true} : {};
 
