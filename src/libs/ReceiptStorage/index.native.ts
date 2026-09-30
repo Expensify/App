@@ -102,7 +102,7 @@ async function restoreInterruptedSwap(target: string, {shouldWaitForRunningSwap 
 
     const backupPath = `${target}${BACKUP_SUFFIX}`;
     if (!(await RNFS.exists(backupPath))) {
-        return false;
+        return RNFS.exists(target);
     }
 
     try {
@@ -210,6 +210,9 @@ async function sweepInterruptedSwaps(dir: string) {
             const isStagedGone = await discardLeftover(`${target}${STAGED_SUFFIX}`);
 
             if (!isRestored) {
+                if (isStagedGone && !(await RNFS.exists(`${target}${BACKUP_SUFFIX}`))) {
+                    await discardLeftover(`${pendingSwapsDir}/${name}`);
+                }
                 return;
             }
             const isBackupGone = await discardLeftover(`${target}${BACKUP_SUFFIX}`);

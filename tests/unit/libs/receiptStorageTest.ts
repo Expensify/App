@@ -471,6 +471,20 @@ describe('ReceiptStorage', () => {
             expect(existing.has(`${PENDING_SWAPS}/${RECEIPT}`)).toBe(true);
         });
 
+        it('drops the entry of a receipt that is gone along with its backup, so later launches stop checking it', async () => {
+            // Given an entry whose receipt and backup were both deleted outside the app
+            const storage = loadFreshStorage();
+            const existing = setUpFakeDisk([FOLDER, PENDING_SWAPS, `${PENDING_SWAPS}/${RECEIPT}`]);
+            mockReadDir.mockResolvedValue([{name: RECEIPT}]);
+
+            // When the startup sweep runs
+            await runStartupSweep(storage);
+
+            // Then there is nothing left to put back, so the entry is removed
+            expect(mockMv).not.toHaveBeenCalled();
+            expect(existing.has(`${PENDING_SWAPS}/${RECEIPT}`)).toBe(false);
+        });
+
         it('restores a stranded receipt during the deferred startup sweep, without needing an upload', async () => {
             // Given the app died between the two renames of a swap
             const storage = loadFreshStorage();
@@ -544,6 +558,25 @@ describe('ReceiptStorage', () => {
 
             await expect(ReceiptStorage.locate(RECEIPT_URI)).resolves.toBe(RECEIPT_URI);
             expect(mockMv).toHaveBeenCalledWith(`${RECEIPT_PATH}.receipt-swap-backup`, RECEIPT_PATH);
+        });
+
+        it('finds a receipt the startup sweep put back between its two checks, instead of sending the upload without it', async () => {
+            // Given a receipt missing under its own name, whose backup the sweep moves back while the read is checking
+            mockCheckFileExists.mockResolvedValue(false);
+            let targetChecks = 0;
+            mockExists.mockImplementation((path: string) => {
+                if (path === RECEIPT_PATH) {
+                    targetChecks += 1;
+                    return Promise.resolve(targetChecks > 1);
+                }
+                return Promise.resolve(false);
+            });
+
+            // When the upload locates the receipt
+            const located = await ReceiptStorage.locate(RECEIPT_URI);
+
+            // Then it sees the receipt the sweep restored rather than reporting it missing
+            expect(located).toBe(RECEIPT_URI);
         });
 
         it('reads straight through while a swap is still staging, since that half can be called off', async () => {
