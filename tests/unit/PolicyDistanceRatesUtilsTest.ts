@@ -141,6 +141,9 @@ describe('PolicyDistanceRatesUtils', () => {
             expect(getGovernmentRateCountryForCurrency('CAD')).toBe('CA');
             expect(getGovernmentRateCountryForCurrency('GBP')).toBe('GB');
             expect(getGovernmentRateCountryForCurrency('AUD')).toBe('AU');
+            expect(getGovernmentRateCountryForCurrency('NOK')).toBe('NO');
+            expect(getGovernmentRateCountryForCurrency('SEK')).toBe('SE');
+            expect(getGovernmentRateCountryForCurrency('ZAR')).toBe('ZA');
         });
 
         it('should return undefined for an unsupported or missing currency', () => {
@@ -156,6 +159,9 @@ describe('PolicyDistanceRatesUtils', () => {
             expect(isCurrencySupportedForAutoUpdate('CAD')).toBe(true);
             expect(isCurrencySupportedForAutoUpdate('GBP')).toBe(true);
             expect(isCurrencySupportedForAutoUpdate('AUD')).toBe(true);
+            expect(isCurrencySupportedForAutoUpdate('NOK')).toBe(true);
+            expect(isCurrencySupportedForAutoUpdate('SEK')).toBe(true);
+            expect(isCurrencySupportedForAutoUpdate('ZAR')).toBe(true);
             expect(isCurrencySupportedForAutoUpdate('NZD')).toBe(false);
             expect(isCurrencySupportedForAutoUpdate(undefined)).toBe(false);
         });
@@ -167,6 +173,9 @@ describe('PolicyDistanceRatesUtils', () => {
             expect(getExpectedUnitForCurrency('GBP')).toBe('mi');
             expect(getExpectedUnitForCurrency('CAD')).toBe('km');
             expect(getExpectedUnitForCurrency('AUD')).toBe('km');
+            expect(getExpectedUnitForCurrency('NOK')).toBe('km');
+            expect(getExpectedUnitForCurrency('SEK')).toBe('km');
+            expect(getExpectedUnitForCurrency('ZAR')).toBe('km');
         });
 
         it('should return undefined for an unsupported currency', () => {

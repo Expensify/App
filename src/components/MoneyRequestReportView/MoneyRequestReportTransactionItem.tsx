@@ -189,6 +189,10 @@ function MoneyRequestReportTransactionItemBody({
 
     const handleHoverIn = () => setShouldDisableHoverStyle(false);
 
+    // The last row keeps its bottom border but hides it, so the row height stays the same when a row is added below it.
+    // FlashList ignores size changes of 1px or less, so a border that appears later would be covered by the next row.
+    const lastRowBorderStyle = isLastItem && styles.borderTransparent;
+
     return (
         <OfflineWithFeedback
             pendingAction={pendingAction}
@@ -217,7 +221,12 @@ function MoneyRequestReportTransactionItemBody({
                 role={CONST.ROLE.BUTTON}
                 isNested
                 id={transaction.transactionID}
-                style={[styles.transactionListItemStyle, !shouldUseNarrowLayout ? StyleUtils.getSearchTableRowPressableStyle(isLastItem, isSelected) : styles.noBorderRadius]}
+                style={[
+                    styles.transactionListItemStyle,
+                    !shouldUseNarrowLayout
+                        ? [StyleUtils.getSearchTableRowPressableStyle(false, isSelected), isLastItem && styles.tableBottomRadius, lastRowBorderStyle]
+                        : styles.noBorderRadius,
+                ]}
                 hoverStyle={[!isPendingDelete && !hasRejectError && !shouldDisableHoverStyle && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={handleMouseDown}
@@ -233,7 +242,7 @@ function MoneyRequestReportTransactionItemBody({
                     handleLongPress(transaction.transactionID);
                 }}
                 disabled={isPendingDelete || hasRejectError}
-                wrapperStyle={[animatedHighlightStyle, styles.userSelectNone, shouldUseNarrowLayout && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected)]}
+                wrapperStyle={[animatedHighlightStyle, styles.userSelectNone, shouldUseNarrowLayout && [StyleUtils.getSelectedBorderBottomStyle(isSelected), lastRowBorderStyle]]}
             >
                 {({hovered}) => (
                     <>

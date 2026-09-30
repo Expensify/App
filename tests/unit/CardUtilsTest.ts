@@ -86,6 +86,7 @@ import {
     isCardPendingDigitalWalletApproval,
     isExpensifyCard,
     isExpensifyCardFullySetUp,
+    isExpensifyCardPending,
     isExpiredCard,
     isMatchingCard,
     isPersonalCard,
@@ -5132,6 +5133,7 @@ describe('getCardConnectionStatusDisplay', () => {
         isCardBroken: false,
         shouldShowRBR: false,
         isCardInactive: false,
+        isCardPending: false,
         isExpensifyCard: false,
         isPersonalCard: false,
         isAdminForCardPolicy: false,
@@ -5212,6 +5214,29 @@ describe('getCardConnectionStatusDisplay', () => {
     // otherwise read as Inactive with a connection to fix.
     it('keeps an active Expensify Card active when its feed reports an error', () => {
         expect(getCardConnectionStatusDisplay({...defaultParams, isExpensifyCard: true, shouldShowRBR: true, isAdminForCardPolicy: true, policyID: 'ABC123'})).toEqual({
+            statusKey: 'walletPage.cardStatus.active',
+            statusTone: 'success',
+        });
+    });
+
+    // A card waiting to be issued or activated is not spendable yet, so it reads neither Active nor Inactive.
+    it('reports a pending status for an Expensify Card waiting to be issued or activated', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isExpensifyCard: true, isCardPending: true})).toEqual({
+            statusKey: 'walletPage.cardStatus.pending',
+            statusTone: 'danger',
+        });
+    });
+
+    // Suspended outranks pending, so a card the back end turned off never reads as merely waiting.
+    it('keeps an inactive Expensify Card inactive even while it is pending', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isExpensifyCard: true, isCardPending: true, isCardInactive: true})).toEqual({
+            statusKey: 'walletPage.cardStatus.inactive',
+            statusTone: 'default',
+        });
+    });
+
+    it('leaves a non-pending Expensify Card active', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isExpensifyCard: true})).toEqual({
             statusKey: 'walletPage.cardStatus.active',
             statusTone: 'success',
         });
@@ -5367,6 +5392,41 @@ describe('isCardPendingDigitalWalletApproval', () => {
 
     it('is false when the card has no wallet addition awaiting approval', () => {
         expect(isCardPendingDigitalWalletApproval(createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN}))).toBe(false);
+    });
+});
+
+describe('isExpensifyCardPending', () => {
+    it('is true for a card waiting to be issued', () => {
+        expect(isExpensifyCardPending(createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED}))).toBe(true);
+    });
+
+    it('is true for a card waiting to be activated', () => {
+        expect(isExpensifyCardPending(createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED}))).toBe(true);
+    });
+
+    // Those two states describe a physical card on its way to the cardholder. A virtual card is spendable as soon as
+    // it is assigned, so reading it as pending would tell the cardholder to wait for something that never arrives.
+    it('is false for a virtual card in either of those states', () => {
+        const card: Card = {
+            ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED}),
+            nameValuePairs: createMock<Card['nameValuePairs']>({isVirtual: true}),
+        };
+        expect(isExpensifyCardPending(card)).toBe(false);
+    });
+
+    // A company card's states mean something else entirely, so the Expensify Card states must not be read off one.
+    it('is false for a company card in one of those states', () => {
+        const companyCard: Card = {...createRandomCompanyCard(1), state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED};
+
+        expect(isExpensifyCardPending(companyCard)).toBe(false);
+    });
+
+    it('is false for a card that has been issued and activated', () => {
+        expect(isExpensifyCardPending(createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN}))).toBe(false);
+    });
+
+    it('is false when there is no card', () => {
+        expect(isExpensifyCardPending(undefined)).toBe(false);
     });
 });
 
