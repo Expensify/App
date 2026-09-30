@@ -14,10 +14,7 @@ import Text from './Text';
 import TextLink from './TextLink';
 
 type FormAlertWrapperProps = {
-    /** Wrapped child components */
     children: (isOffline?: boolean) => ReactNode;
-
-    /** Styles for container element */
     containerStyles?: StyleProp<ViewStyle>;
 
     /** Style for the error message for submit button */
@@ -32,7 +29,6 @@ type FormAlertWrapperProps = {
     /** Error message to display above button */
     message?: string;
 
-    /** Callback fired when the "fix the errors" link is pressed */
     onFixTheErrorsLinkPressed?: () => void;
 };
 

@@ -7,6 +7,7 @@ import YourSpendSection from '@pages/home/YourSpendSection';
 import type * as UseYourSpendDataModule from '@pages/home/YourSpendSection/useYourSpendData';
 import {useYourSpendData, YOUR_SPEND_ROW_STATE} from '@pages/home/YourSpendSection/useYourSpendData';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
@@ -42,18 +43,6 @@ jest.mock('@hooks/useTheme', () =>
         border: '#DDDDDD',
         icon: '#888888',
     })),
-);
-
-jest.mock('@hooks/useThemeStyles', () =>
-    jest.fn(
-        () =>
-            new Proxy(
-                {},
-                {
-                    get: () => jest.fn(() => ({})),
-                },
-            ),
-    ),
 );
 
 jest.mock('@hooks/useResponsiveLayout', () => ({
@@ -149,6 +138,8 @@ jest.mock('@pages/home/YourSpendSection/useYourSpendData', () => {
             cardRows: [],
             awaitingApprovalQuery: '',
             repaidLast30DaysQuery: '',
+            isApprovalStale: false,
+            isPaymentStale: false,
         })),
     };
 });
@@ -165,6 +156,8 @@ function mockHook(data: Partial<MockHookData>) {
         cardRows: [],
         awaitingApprovalQuery: 'type:expense status:outstanding',
         repaidLast30DaysQuery: 'type:expense status:paid',
+        isApprovalStale: false,
+        isPaymentStale: false,
         ...data,
     });
 }
@@ -216,7 +209,7 @@ describe('YourSpendSection', () => {
         // useLocalize is mocked to (key) => key).
         const description = screen.getByText('homePage.yourSpend.awaitingApproval');
         fireEvent.press(description);
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: approvalQuery}));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: approvalQuery, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     });
 
     it('renders a card row for each entry in cardRows', () => {
@@ -305,10 +298,10 @@ describe('YourSpendSection — third-party rows', () => {
         render(<YourSpendSection />);
         const row = screen.getByTestId(`your-spend-card-row-${THIRD_PARTY_CARD_ID}`);
         // The mock MenuItem renders as a Pressable wrapping a description Text. fireEvent.press
-        // requires a Pressable target, so we press the description text inside the row.
-        const description = within(row).getByText('homePage.yourSpend.recentTransactions');
+        // requires a Pressable target, so we press the description text (the card's last four) inside the row.
+        const description = within(row).getByText('9876');
         fireEvent.press(description);
-        expect(Navigation.navigate).toHaveBeenLastCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: THIRD_PARTY_QUERY}));
+        expect(Navigation.navigate).toHaveBeenLastCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: THIRD_PARTY_QUERY, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     });
 
     it('renders no skeleton inside the third-party card row (R-6)', () => {

@@ -3,6 +3,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -12,13 +13,13 @@ import {shouldExcludeAncestorReportAction} from '@libs/ReportUtils';
 
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {conciergePersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -27,32 +28,17 @@ import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
 
 type ReportActionItemParentActionProps = {
-    /** All the data of the action item */
     action: ReportAction;
-
-    /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine?: boolean;
 
     /** The id of the report */
 
     reportID: string;
-
-    /** The current report is displayed */
     report: OnyxEntry<Report>;
-
-    /** The transaction thread report associated with the current report, if any */
     transactionThreadReport: OnyxEntry<Report>;
-
-    /** Report actions belonging to the report's parent */
     parentReportAction: OnyxEntry<ReportAction>;
-
-    /** Whether we should display "Replies" divider */
     shouldDisplayReplyDivider: boolean;
-
-    /** If this is the first visible report action */
     isFirstVisibleReportAction: boolean;
-
-    /** If the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
 };
 
@@ -69,13 +55,12 @@ function ReportActionItemParentAction({
     const styles = useThemeStyles();
     const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const isReportArchived = useReportIsArchived(report?.reportID);
 
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID} = currentUserPersonalDetail;
-    const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
-    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
+    const [conciergePersonalDetail] = usePersonalDetail(CONST.ACCOUNT_ID.CONCIERGE);
+    const [reportOwnerPersonalDetail] = usePersonalDetail(report?.ownerAccountID);
 
     const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         selector: (transaction: OnyxEntry<Transaction>) => {
@@ -108,7 +93,6 @@ function ReportActionItemParentAction({
             currentUserAccountID,
             introSelected,
             isSelfTourViewed,
-            allBetas,
             reportOwnerPersonalDetail,
             currentUserPersonalDetail,
             conciergePersonalDetail,
@@ -135,7 +119,6 @@ function ReportActionItemParentAction({
                         reportAction={ancestorReportAction}
                         shouldDisplayNewMarker={shouldDisplayNewMarker}
                         reportNameValuePairs={ancestorsReportNameValuePairs}
-                        allBetas={allBetas}
                         conciergePersonalDetail={conciergePersonalDetail}
                         conciergeReportID={conciergeReportID}
                         currentUserAccountID={currentUserAccountID}

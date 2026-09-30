@@ -160,7 +160,7 @@ function useSplitParticipants({
                         // Dismiss the keyboard so that MoneyRequestAmountInput's useEffect syncs the new amount.
                         // Without this, the effect skips the update while the input is focused (see formatAmountOnBlur guard).
                         Keyboard.dismiss();
-                        resetSplitShares(transaction, undefined, undefined, currentUserAccountID);
+                        resetSplitShares(transaction, undefined, undefined, currentUserAccountID, getCurrencyDecimals);
                     }}
                     accessibilityLabel={CONST.ROLE.BUTTON}
                     role={CONST.ROLE.BUTTON}

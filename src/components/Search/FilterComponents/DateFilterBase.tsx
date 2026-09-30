@@ -62,7 +62,6 @@ type DateFilterBaseProps = {
     shouldShowButtonsOnlyWithDateModifier?: boolean;
     /** Whether to render the built-in HeaderWithBackButton. Defaults to true. */
     shouldShowHeader?: boolean;
-    /** The ref handle */
     ref?: React.Ref<DateFilterBaseHandle>;
     style?: StyleProp<ViewStyle>;
 };
@@ -268,11 +267,12 @@ function DateFilterBase({
                 <>
                     {!selectedDateModifier && (
                         <Button
-                            text={translate('common.reset')}
                             onPress={reset}
                             style={[styles.mh4, styles.mt4]}
-                            large
-                        />
+                            size={CONST.BUTTON_SIZE.LARGE}
+                        >
+                            <Button.Text>{translate('common.reset')}</Button.Text>
+                        </Button>
                     )}
                     <FormAlertWithSubmitButton
                         buttonText={translate('common.save')}

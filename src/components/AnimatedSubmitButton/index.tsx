@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -14,6 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportMetadata} from '@src/types/onyx';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -31,13 +32,8 @@ type AnimatedSubmitButtonProps = WithSentryLabel & {
     /** Function to call when the button is pressed */
     onPress: () => void;
 
-    /** Whether the animation is running */
     isSubmittingAnimationRunning: boolean;
-
-    /** Function to call when the animation finishes */
     onAnimationFinish: () => void;
-
-    /** Whether the button should be disabled */
     isDisabled?: boolean;
 
     /** Whether this is a DEW submission that needs backend validation before showing "Submitted" */
@@ -47,7 +43,7 @@ type AnimatedSubmitButtonProps = WithSentryLabel & {
     reportID?: string;
 
     /** Whether to show "Mark as done" copy instead of "Submit" copy for track-intent users */
-    isMarkAsDone?: boolean;
+    shouldShowMarkAsDoneCopy?: boolean;
 };
 
 const pendingExpenseActionSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.pendingExpenseAction;
@@ -60,7 +56,7 @@ function AnimatedSubmitButton({
     onAnimationFinish,
     isDisabled,
     sentryLabel,
-    isMarkAsDone,
+    shouldShowMarkAsDoneCopy,
     isDEWSubmission,
     reportID,
 }: AnimatedSubmitButtonProps) {
@@ -164,7 +160,7 @@ function AnimatedSubmitButton({
         <Animated.View style={[containerStyles, {minWidth}]}>
             {isAnimationRunning && canShow && (
                 <Animated.View
-                    ref={(el: View | null) => {
+                    ref={(el: ComponentRef<typeof View> | null) => {
                         viewRef.current = el as HTMLElement | null;
                     }}
                     exiting={buttonAnimation}
@@ -176,7 +172,7 @@ function AnimatedSubmitButton({
                         stayNormalOnDisable
                     >
                         {shouldShowIcon && <Button.Icon src={icons.Send} />}
-                        <Button.Text>{shouldShowIcon ? translate(isMarkAsDone ? 'common.markedAsDoneStatus' : 'common.submitted') : text}</Button.Text>
+                        <Button.Text>{shouldShowIcon ? translate(shouldShowMarkAsDoneCopy ? 'common.markedAsDoneStatus' : 'common.submitted') : text}</Button.Text>
                     </Button>
                 </Animated.View>
             )}

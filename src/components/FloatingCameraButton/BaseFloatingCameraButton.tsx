@@ -13,6 +13,7 @@ import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
+import {isGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID, getWorkspaceChats} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -58,7 +59,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
     const [reportID] = useState(() => generateReportID());
 
     const policyChatForActivePolicySelector = (reports: OnyxCollection<OnyxTypes.Report>) => {
-        if (isEmptyObject(activePolicy) || !activePolicy?.isPolicyExpenseChatEnabled) {
+        if (isEmptyObject(activePolicy) || !isGroupPolicy(activePolicy)) {
             return undefined;
         }
         const policyChatsForActivePolicy = getWorkspaceChats(activePolicyID, [accountID], reports);

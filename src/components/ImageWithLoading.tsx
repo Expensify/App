@@ -14,16 +14,12 @@ import Image from './Image';
 import LoadingIndicator from './LoadingIndicator';
 
 type ImageWithSizeLoadingProps = {
-    /** Any additional styles to apply */
     containerStyles?: StyleProp<ViewStyle>;
 
     /** Whether the image requires an authToken */
     isAuthTokenRequired: boolean;
 
-    /** The object position of image */
     objectPosition?: ImageObjectPosition;
-
-    /** Whether to show offline indicator */
     shouldShowOfflineIndicator?: boolean;
 
     /** Invoked on mount and layout changes */
@@ -93,13 +89,13 @@ function ImageWithLoading({
         >
             {isLoading &&
                 !!previewUri && (
+                    // Preview is a placeholder; parent onLoad should fire only when the full image is ready.
                     // eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop.
                     <Image
                         {...rest}
                         source={{uri: previewUri}}
-                        style={[styles.w100, styles.h100, styles.opacitySemiTransparent, style]}
+                        style={[styles.pAbsolute, styles.w100, styles.h100, styles.opacitySemiTransparent, style]}
                         resizeMode={resizeMode}
-                        onLoad={onLoad}
                         loadingIconSize={loadingIconSize}
                         loadingIndicatorStyles={loadingIndicatorStyles}
                     />

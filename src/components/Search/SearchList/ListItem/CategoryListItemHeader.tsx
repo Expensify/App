@@ -12,7 +12,6 @@ import type {TransactionCategoryGroupListItemType} from './types';
 import BaseListItemHeader from './BaseListItemHeader';
 
 type CategoryListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {
-    /** The category currently being looked at */
     category: TransactionCategoryGroupListItemType;
 };
 

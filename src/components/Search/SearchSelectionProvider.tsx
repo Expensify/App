@@ -1,5 +1,5 @@
 import CONST from '@src/CONST';
-import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React, {useEffect, useRef, useState} from 'react';
 
@@ -7,7 +7,7 @@ import type {SearchData, SearchSelectionActionsValue, SearchSelectionContextValu
 
 import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {SearchSelectionActionsContext, SearchSelectionContext} from './SearchContextDefinitions';
-import {deriveSelectedReports} from './selectionBuilders';
+import {deriveSelectedReports, isRowChecked} from './selectionBuilders';
 
 type SearchSelectionProviderProps = {
     children: React.ReactNode;
@@ -36,7 +36,7 @@ const defaultSelectionState: SelectionState = {
 // Owns selection state + pure setters only; the write actions (toggle/toggleAll) live in SearchWriteActionsProvider.
 function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
     const {currentSearchHash, currentSearchQueryJSON} = useSearchQueryContext();
-    const isExpenseSearch = currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
+    const supportsAllMatchingExclusions = currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE || currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const areTransactionsEmpty = useRef(true);
     const [selectionState, setSelectionState] = useState<SelectionState>(defaultSelectionState);
@@ -82,8 +82,8 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
     // Read-modify-write the selection atomically. The updater receives the previous map so write actions never
     // need to close over (and re-render on) selection state. `totalSelectableItemsCount` unchecks select-all when
     // the new selection no longer covers every item; omitting it (e.g. during data reconcile) leaves select-all
-    // untouched, which is what the former `isRefreshingSelection` flag protected. Expense row toggles preserve
-    // an all-matching selection and record their removed entries as explicit exclusions.
+    // untouched, which is what the former `isRefreshingSelection` flag protected. Expense and report row toggles
+    // preserve an all-matching selection and record their removed entries as explicit exclusions.
     const applySelection: SearchSelectionActionsValue['applySelection'] = (updater, options) => {
         setSelectionState((prevState) => {
             const selectedTransactions = updater(prevState.selectedTransactions);
@@ -109,9 +109,12 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
                         excludedTransactions[key] = transaction;
                     }
                 }
-                for (const key of Object.keys(selectedTransactions)) {
+                for (const [key, transaction] of Object.entries(selectedTransactions)) {
                     if (!Object.hasOwn(prevState.selectedTransactions, key) && Object.hasOwn(excludedTransactions, key)) {
                         delete excludedTransactions[key];
+                    }
+                    if (!Object.hasOwn(prevState.selectedTransactions, key) && transaction.isSelectedViaGroup && transaction.groupKey) {
+                        delete excludedTransactions[transaction.groupKey];
                     }
                 }
             } else if (!areAllMatchingItemsSelected) {
@@ -235,7 +238,7 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
     };
 
     const hasSelectedTransactions =
-        (isExpenseSearch && selectionState.areAllMatchingItemsSelected) ||
+        (supportsAllMatchingExclusions && selectionState.areAllMatchingItemsSelected) ||
         selectionState.selectedTransactionIDs.length > 0 ||
         Object.values(selectionState.selectedTransactions).some((t) => t.isSelected);
 
@@ -288,12 +291,11 @@ function useSyncSelectedReports(data: SearchData) {
 
 /** Narrow per-row selection read: whether the row for `keyForList` is selected (or covered by select-all). */
 function useRowSelection(keyForList: string | undefined, parentGroupKey?: string): {isSelected: boolean} {
-    const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
     if (!keyForList) {
         return {isSelected: false};
     }
-    const isExcluded = Object.hasOwn(excludedTransactions, keyForList) || (!!parentGroupKey && Object.hasOwn(excludedTransactions, parentGroupKey));
-    return {isSelected: (areAllMatchingItemsSelected && !isExcluded) || !!selectedTransactions[keyForList]?.isSelected};
+    return {isSelected: isRowChecked({rowKey: keyForList, parentGroupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected})};
 }
 
 /** Aggregate count of currently-selected transactions, for the selection top bar. */

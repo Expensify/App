@@ -40,7 +40,7 @@ jest.mock('@hooks/useLocalize', () =>
         translate: (key: string) => {
             if (key.startsWith('allCountries.')) {
                 const countryISO = key.split('.').at(-1) ?? '';
-                return mockAllCountries[countryISO as keyof typeof mockAllCountries] ?? key;
+                return Object.entries(mockAllCountries).find(([iso]) => iso === countryISO)?.[1] ?? key;
             }
 
             return key;
@@ -102,12 +102,12 @@ describe('CountrySelectorModal', () => {
         const searchedProps = mockedSelectionList.mock.lastCall?.[0];
         const expectedSearchResults = searchOptions(
             'Uni',
-            Object.keys(CONST.ALL_COUNTRIES).map((countryISO) => ({
+            Object.entries(CONST.ALL_COUNTRIES).map(([countryISO, countryName]) => ({
                 value: countryISO,
                 keyForList: countryISO,
-                text: CONST.ALL_COUNTRIES[countryISO as keyof typeof CONST.ALL_COUNTRIES],
+                text: countryName,
                 isSelected: countryISO === 'US',
-                searchValue: StringUtils.sanitizeString(`${countryISO}${CONST.ALL_COUNTRIES[countryISO as keyof typeof CONST.ALL_COUNTRIES]}`),
+                searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
             })),
         );
 

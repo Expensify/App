@@ -51,6 +51,7 @@ const makeData = (count: number): GroupedItem[] =>
         total: 0,
         currency: CONST.CURRENCY.USD,
         formattedMonth: `Month ${i + 1}`,
+        shortFormattedMonth: `M${i + 1}`,
         sortKey: i,
     }));
 

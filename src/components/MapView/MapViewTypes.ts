@@ -42,20 +42,15 @@ type MapViewProps = {
         /** Whether the alternate direction is selected */
         isSelected: boolean;
 
-        /** Distance displayed on the map in meters. */
         distanceInMeters: number;
     };
 
-    /** Callback to call when the alternate direction is selected */
     setIsAlternateDirectionSelected?: (isAlternateDirectionSelected: boolean) => void;
 
     /** Callback to call when the map is idle / ready. */
     onMapReady?: () => void;
 
-    /** Whether the map is interactive or not */
     interactive?: boolean;
-
-    /** Distance displayed on the map in meters. */
     distanceInMeters?: number;
 
     /** Unit of measurement for distance */
@@ -64,7 +59,6 @@ type MapViewProps = {
     /** Reference to the outerElement */
     ref?: React.ForwardedRef<MapViewHandle>;
 
-    /** Whether it should display the current user's location on the map */
     shouldDisplayCurrentLocation?: boolean;
 
     /** Whether it should display the compass overlay on the map */
@@ -72,16 +66,9 @@ type MapViewProps = {
 };
 
 type CompassProps = {
-    /** Whether the map is interactive or not */
     interactive: boolean;
-
-    /** Whether the compass should be displayed or not */
     shouldDisplayCompass: boolean;
-
-    /** Shared value for the map heading */
     mapHeading: SharedValue<number>;
-
-    /** Reference to the camera */
     cameraRef: RefObject<Camera | null>;
 };
 
@@ -93,11 +80,15 @@ type GPSMapViewProps = Omit<MapViewProps, 'directionCoordinates' | 'initialState
     directionCoordinates: Coordinate[][];
 };
 
+type GPSMapViewContentProps = Omit<GPSMapViewProps, 'accessToken'> & {
+    /** Whether the foreground location permissions are granted */
+    foregroundLocationPermissionsGranted: boolean;
+};
+
 type GPSDirectionProps = {
     /** Whether the GPS trip is active */
     isTrackingGPS: boolean;
 
-    /** Last location of the user */
     lastLocation: {longitude: number; latitude: number} | undefined;
 
     /** List of coordinates which together forms a direction. */
@@ -108,7 +99,6 @@ type GPSDirectionProps = {
 };
 
 type DistanceSymbolProps = {
-    /** Distance displayed on the map in meters. */
     distanceInMeters?: number;
 
     /** Unit of measurement for distance. */
@@ -145,7 +135,6 @@ type AlternateDirection = {
     /** Whether the alternate direction is selected */
     isSelected: boolean;
 
-    /** Distance displayed on the map in meters. */
     distanceInMeters: number;
 };
 
@@ -156,16 +145,12 @@ type DirectionsProps = {
     /** List of coordinates which together forms an alternate direction. */
     alternateDirection?: AlternateDirection;
 
-    /** Callback to call when the alternate direction is selected */
     setIsAlternateDirectionSelected?: (isAlternateDirectionSelected: boolean) => void;
-
-    /** Distance displayed on the map in meters. */
     distanceInMeters?: number;
 
     /** Unit of measurement for distance */
     unit?: Unit;
 
-    /** List of waypoints on the map */
     waypoints?: WayPoint[];
 };
 
@@ -206,7 +191,6 @@ type WayPoint = {
 
 /** Represents a handle to interact with a map view. */
 type MapViewHandle = {
-    /** Fly to a location on the map */
     flyTo: (location: Coordinate, zoomLevel: number, animationDuration?: number) => void;
 
     /** Fit the map view to a bounding box */
@@ -221,6 +205,7 @@ export type {
     WayPoint,
     MapViewProps,
     GPSMapViewProps,
+    GPSMapViewContentProps,
     DirectionProps,
     PendingMapViewProps,
     Coordinate,

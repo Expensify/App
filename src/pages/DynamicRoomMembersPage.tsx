@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, RoomMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -19,7 +19,8 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -34,9 +35,9 @@ import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {isPolicyAdmin, isPolicyEmployee as isPolicyEmployeeUtils} from '@libs/PolicyUtils';
+import {isPolicyEmployee as isPolicyEmployeeUtils, isRoomMemberProtectedByPolicyRole} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     getReportForHeader,
     getReportPersonalDetailsParticipants,
@@ -54,7 +55,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {personalDetailsSelector} from '@src/selectors/PersonalDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -74,7 +74,6 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     const reportAction = useMemo(() => getReportAction(report?.parentReportID, report?.parentReportActionID), [report?.parentReportID, report?.parentReportActionID]);
     const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
     const styles = useThemeStyles();
-    const reportAttributes = useReportAttributes();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`);
     const {formatPhoneNumber, translate, localeCompare} = useLocalize();
@@ -88,7 +87,10 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         Navigation.goBack(backPath);
     }, [backPath]);
     const isReportArchived = useReportIsArchived(report.reportID);
-    const reportForSubtitle = useMemo(() => getReportForHeader(report), [report]);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const reportForSubtitle = useMemo(() => getReportForHeader(report, parentReport), [report, parentReport]);
+    const derivedSubtitleReportName = useDerivedReportNameByReportID(reportForSubtitle?.reportID);
+    const subtitleReportName = getReportName(reportForSubtitle, derivedSubtitleReportName);
 
     const {chatParticipants: participants, personalDetailsParticipants} = useMemo(
         () => getReportPersonalDetailsParticipants(report, personalDetails, reportMetadata, true),
@@ -112,8 +114,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
 
     const [selectedMembers, setSelectedMembers] = useFilteredSelection(personalDetailsParticipants, shouldIncludeMember);
     const firstSelectedMember = selectedMembers?.at(0);
-    const firstSelectedMemberSelector = useMemo(() => personalDetailsSelector(firstSelectedMember), [firstSelectedMember]);
-    const [firstSelectedMemberDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: firstSelectedMemberSelector});
+    const [firstSelectedMemberDetails] = usePersonalDetail(firstSelectedMember);
 
     const clearTableSelection = useCallback(() => {
         setSelectedMembers((prevSelectedMembers) => (prevSelectedMembers.length > 0 ? [] : prevSelectedMembers));
@@ -183,7 +184,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
             }),
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
         if (action !== ModalActions.CONFIRM) {
             return;
@@ -212,10 +213,12 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 continue;
             }
             const pendingChatMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
-            const isAdmin = isPolicyAdmin(policy, details.login);
+            // Check the listed member's own role on the policy, not the viewer's, and fail closed when their login is
+            // missing. Kept in sync with the member details page through the shared helper.
+            const isProtectedByPolicyRole = isRoomMemberProtectedByPolicyRole(policy, details.login, accountID);
             const isDisabled = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || details.isOptimisticPersonalDetail;
             const isSelectionDisabled =
-                (isPolicyExpenseChat && isAdmin) ||
+                (isPolicyExpenseChat && isProtectedByPolicyRole) ||
                 accountID === session?.accountID ||
                 pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
                 details.accountID === report.ownerAccountID;
@@ -283,7 +286,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
 
     const selectedKeys = selectedMembers.map(String);
 
-    const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtils(report.policyID, policy), [report?.policyID, policy]);
+    const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtils(report.policyID, policy), [report.policyID, policy]);
 
     const bulkActionsButtonOptions = useMemo(() => {
         const options: Array<DropdownOption<RoomMemberBulkActionType>> = [
@@ -293,6 +296,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 }),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
                 icon: icons.RemoveMembers,
+                shouldSkipFocusRestore: true,
                 onSelected: showRemoveMembersModal,
             },
         ];
@@ -331,6 +335,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers.length, styles, translate, canSelectMultiple, shouldUseNarrowLayout, icons.Plus]);
 
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
+    const tableHeaderComponent = <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>;
 
     let subtitleKey: '' | TranslationPaths | undefined;
     if (!isEmptyObject(report)) {
@@ -350,9 +355,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
             >
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
-                    subtitle={StringUtils.lineBreaksToSpaces(
-                        shouldParserToHTML ? Parser.htmlToText(deprecatedGetReportName(reportForSubtitle, reportAttributes)) : deprecatedGetReportName(reportForSubtitle, reportAttributes),
-                    )}
+                    subtitle={StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(subtitleReportName) : subtitleReportName)}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             clearTableSelection();
@@ -364,13 +367,16 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                         navigateBackToReportDetails();
                     }}
                 />
-                <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
                 {isLoading ? (
-                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                    <>
+                        {tableHeaderComponent}
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                    </>
                 ) : (
                     <View style={[styles.w100, styles.flex1]}>
                         <RoomMembersTable
                             ref={tableRef}
+                            headerComponent={tableHeaderComponent}
                             members={members}
                             selectionEnabled
                             selectedKeys={selectedKeys}

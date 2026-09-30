@@ -1,12 +1,12 @@
-import useRunAfterTransitions from '@hooks/useRunAfterTransitions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import React from 'react';
+import React, {useContext} from 'react';
 import {View} from 'react-native';
 
 import type {ImageWithSizeLoadingProps} from './ImageWithLoading';
 
 import ImageWithLoading from './ImageWithLoading';
+import ScreenWrapperStatusContext from './ScreenWrapper/ScreenWrapperStatusContext';
 
 /**
  * Wrapper around ImageWithLoading that keeps the image out of the render passes happening during a screen's entry
@@ -15,9 +15,10 @@ import ImageWithLoading from './ImageWithLoading';
  */
 function DeferredImageWithLoading({containerStyles, onLayout, ...rest}: ImageWithSizeLoadingProps) {
     const styles = useThemeStyles();
-    const shouldRenderImage = useRunAfterTransitions(true);
+    const screenStatus = useContext(ScreenWrapperStatusContext);
+    const didScreenTransitionEnd = screenStatus?.didScreenTransitionEnd ?? true;
 
-    if (!shouldRenderImage) {
+    if (!didScreenTransitionEnd) {
         return (
             <View
                 style={[styles.w100, styles.h100, containerStyles]}

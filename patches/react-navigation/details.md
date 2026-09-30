@@ -2,12 +2,12 @@
 
 ### @react-navigation+package-name+7+fix-failing-jest-by-disabling-esmodule.patch
 #### [@react-navigation+bottom-tabs+7.15.5+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+bottom-tabs+7.15.5+001+fix-failing-jest-by-disabling-esmodule.patch)
-#### [@react-navigation+core+7.16.1+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+core+7.16.1+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+core+7.21.12+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+core+7.21.12+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+elements+2.9.14+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+elements+2.9.14+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+material-top-tabs+7.4.19+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+material-top-tabs+7.4.19+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+native-stack+7.14.5+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native-stack+7.14.5+002+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+native+7.1.33+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native+7.1.33+002+fix-failing-jest-by-disabling-esmodule.patch)
-#### [@react-navigation+routers+7.5.3+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+routers+7.5.3+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+routers+7.6.4+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+routers+7.6.4+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+stack+7.8.5+004+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+stack+7.8.5+004+fix-failing-jest-by-disabling-esmodule.patch)
 
 - Reason: Necessary to run Jest with the obligatory `--experimental-vm-modules` flag. Currently we transpile all the code to `commonjs`, but Jest looks up to individual `package.jsons` to see whether the package is `commonjs` or `ESModule`. That causes a conflict, which can be solved by removing `{"type":"module"}` from `lib/module/package.json`. This might be an issue with Jest, but it would require much more investigation. More: https://github.com/react-navigation/react-navigation/issues/12637
@@ -16,30 +16,13 @@
 - PR Introducing Patch: [#64155](https://github.com/Expensify/App/pull/64155)
 - PR Updating Patch: N/A
 
-### [@react-navigation+core+7.16.1+001+platform-navigation-stack-types.patch](@react-navigation+core+7.16.1+001+platform-navigation-stack-types.patch)
+### [@react-navigation+core+7.21.12+002+platform-navigation-stack-types.patch](@react-navigation+core+7.21.12+002+platform-navigation-stack-types.patch)
 
 - Reason: Enables passing custom `ScreenOptions` and adjusts typing to have everything fully type-checked and make sure only the proper (common) platform-specific options are passed
 - Upstream PR/issue: N/A
 - E/App issue: [#29948](https://github.com/Expensify/App/issues/29948)
 - PR Introducing Patch: [#37891](https://github.com/Expensify/App/pull/37891)
-- PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155)
-
-### [@react-navigation+core+7.16.1+003+propagate-beforeremove-on-nested-reset.patch](@react-navigation+core+7.16.1+003+propagate-beforeremove-on-nested-reset.patch)
-
-- Reason: Browser back on web dispatches a root-targeted `RESET` that keeps route keys and only changes nested state, silently bypassing `usePreventRemove`/`beforeRemove` and losing unsaved data. The patch propagates the check into nested navigators.
-- Upstream PR: https://github.com/react-navigation/react-navigation/pull/13153
-- Upstream issue: https://github.com/react-navigation/react-navigation/issues/9031
-- E/App issue: [#84246](https://github.com/Expensify/App/issues/84246)
-- PR Introducing Patch: [#93268](https://github.com/Expensify/App/pull/93268)
-- PR Updating Patch: N/A
-
-### [@react-navigation+native-stack+7.14.5+001+added-interaction-manager-integration.patch](@react-navigation+native-stack+7.14.5+001+added-interaction-manager-integration.patch)
-
-- Reason: Adds `InteractionManager` implementation to `@react-navigation/native-stack`
-- Upstream PR/issue: https://github.com/react-navigation/react-navigation/pull/11887 (closed/declined upstream; we re-implement it). Still required on v7 — `runAfterInteractions` is used across the app and relies on this. Removing it is gated on migrating those consumers to `navigation.addListener('transitionEnd', ...)`, tracked in [#71913](https://github.com/Expensify/App/issues/71913). That migration works on v7 today and is not a v8-only task — v8 just forces it, since RN deprecated `InteractionManager` in 0.82+.
-- E/App issue: [#29948](https://github.com/Expensify/App/issues/29948)
-- PR Introducing Patch: [#37891](https://github.com/Expensify/App/pull/37891)
-- PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155) 
+- PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155), [#98097](https://github.com/Expensify/App/pull/98097)
 
 ### [@react-navigation+native+7.1.33+001+initial.patch](@react-navigation+native+7.1.33+001+initial.patch)
 
@@ -84,3 +67,14 @@
 - Upstream PR/issue: https://github.com/react-navigation/react-navigation/issues/11145
 - E/App issue: [#94571](https://github.com/Expensify/App/issues/94571)
 - PR Introducing Patch: [#95980](https://github.com/Expensify/App/pull/95980)
+
+### [@react-navigation+stack+7.8.5+005+clip-inactive-card-inside-card.patch](@react-navigation+stack+7.8.5+005+clip-inactive-card-inside-card.patch)
+
+- Reason: On the web floating RHP each stacked card draws its own drop shadow through the interpolator's `cardStyle` (`getRHPExtendedCardFrame`). `CardA11yWrapper` puts `overflow: hidden` on every card that is not on top, and the wrapper is sized to the navigator frame, so it clips the shadow of the card under the focused one. Opening an expense over an expense report cut the report card's left and bottom shadow. The patch moves that clip from `CardA11yWrapper` to the `Animated.View` in `Card` that receives `cardStyle`. That view paints the shadow, and `overflow: hidden` does not clip an element's own shadow, so the shadow stays and the content is still clipped. `CardContainer` passes `active` down to `Card`.
+- Upstream PR/issue: https://github.com/react-navigation/react-navigation/issues/13254, fix in https://github.com/react-navigation/react-navigation/pull/13255. Upstream declined an opt-out option and asked for this instead. The patch is that change applied to the compiled 7.8.5 output.
+- E/App issue: N/A, the patch came out of the internal web floating-RHP styling work. Removing it is tracked in [#101715](https://github.com/Expensify/App/issues/101715), the react-navigation upgrade.
+- PR Introducing Patch: [#101093](https://github.com/callstack-internal/Expensify-App/pull/101093)
+- PR Updating Patch: N/A
+- Note: Not gated to the RHP. Every stack now clips inactive cards one level lower, so the built-in `styles.shadow` edge view inside `Card` is clipped on inactive cards too. The active card covers that edge.
+- Note: Upstream shipped the fix in `@react-navigation/stack` 7.11.2, first release containing https://github.com/react-navigation/react-navigation/pull/13255. Their shape differs from ours: `CardA11yWrapper` drops `overflow` completely, and `CardContainer` passes `pageOverflowEnabled: active && headerMode !== 'float' && presentation !== 'modal'`, so the clip lands in `CardContent`, whose `styles.card` still carries `overflow: 'hidden'`. Inactive cards stay clipped and the stacked RHP shadow survives, but the clip sits one level below ours, which leaves the built-in `styles.shadow` edge view unclipped on inactive cards.
+- Note: Drop this patch by moving to `stack` 7.11.2 or newer, see #101715 above. It cannot be bumped on its own: `createStackNavigator` there reads `render` from `useNavigationBuilder`, which starts in `core` 7.22.1, and `elements` 2.9.43 plus every sibling declare `native ^7.4.1` as a peer, so npm rejects 7.11.2 next to our `native` 7.1.33. `stack+001+edge-drag-gesture` and `stack+002+dontDetachScreen` need hand-porting to 7.11.2 because it rewrote the gesture and animation lifecycle in `Card.js` and switched the gesture wrapper to `pointerEvents: "auto"`.

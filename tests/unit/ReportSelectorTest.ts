@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {createMoveExpenseReportNVPSelector, policyChatRoomsSelector} from '@src/selectors/Report';
+import {createMoveExpenseReportNVPSelector, getStableReportSelector, policyChatRoomsSelector} from '@src/selectors/Report';
 import type {Report} from '@src/types/onyx';
 
 describe('policyChatRoomsSelector', () => {
@@ -125,5 +125,35 @@ describe('createMoveExpenseReportNVPSelector', () => {
             [currentReportNVPKey]: {private_isArchived: archivedAt},
             [outstandingReportNVPKey]: {private_isArchived: archivedAt},
         });
+    });
+});
+
+describe('getStableReportSelector', () => {
+    const {READ, WRITE, SHARE} = CONST.REPORT.PERMISSIONS;
+
+    it('returns the same permissions reference for content-equal but referentially-new arrays', () => {
+        // Onyx merge replaces arrays wholesale even when content is identical, so consecutive
+        // report pushes deliver new `permissions` instances. The projection must intern them,
+        // otherwise its shallow equality breaks and subscribed subtrees re-render for no reason.
+        const first = getStableReportSelector({reportID: '1', permissions: [READ, WRITE]} as Report);
+        const second = getStableReportSelector({reportID: '1', permissions: [READ, WRITE]} as Report);
+        expect(second?.permissions).toBe(first?.permissions);
+    });
+
+    it('shares the interned permissions instance across different reports', () => {
+        const first = getStableReportSelector({reportID: '1', permissions: [READ, WRITE]} as Report);
+        const second = getStableReportSelector({reportID: '2', permissions: [READ, WRITE]} as Report);
+        expect(second?.permissions).toBe(first?.permissions);
+    });
+
+    it('returns a different permissions reference when content differs', () => {
+        const first = getStableReportSelector({reportID: '1', permissions: [READ, WRITE]} as Report);
+        const second = getStableReportSelector({reportID: '1', permissions: [READ, WRITE, SHARE]} as Report);
+        expect(second?.permissions).not.toBe(first?.permissions);
+        expect(second?.permissions).toEqual([READ, WRITE, SHARE]);
+    });
+
+    it('passes undefined permissions through', () => {
+        expect(getStableReportSelector({reportID: '1'} as Report)?.permissions).toBeUndefined();
     });
 });

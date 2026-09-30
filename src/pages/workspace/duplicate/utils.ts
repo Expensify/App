@@ -1,19 +1,21 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
-import {getCorrectedAutoReportingFrequency, getWorkflowApprovalsUnavailable} from '@libs/PolicyUtils';
+import {hasExplicitFlagAmount} from '@libs/FlagForReviewRulesUtils';
+import {getCorrectedAutoReportingFrequency, getReimbursementChoice, getWorkflowApprovalsUnavailable} from '@libs/PolicyUtils';
+import {categoryHasAnyRequireFieldsRule} from '@libs/RequireFieldsRulesUtils';
 
 import {getAutoReportingFrequencyDisplayNames} from '@pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage';
 
 import {isAuthenticationError, isConnectionUnverified} from '@userActions/connections';
 
 import CONST from '@src/CONST';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, PolicyCategories} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
-function getWorkspaceRules(policy: Policy | undefined, translate: LocaleContextProps['translate']) {
+function getWorkspaceRules(policy: Policy | undefined, translate: LocaleContextProps['translate'], policyCategories?: PolicyCategories) {
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const autoPayApprovedReportsUnavailable =
-        !policy?.areWorkflowsEnabled || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || !policy?.achAccount?.bankAccountID;
+        !policy?.areWorkflowsEnabled || getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || !policy?.achAccount?.bankAccountID;
     const total: string[] = [];
     if (policy?.maxExpenseAmountNoReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE) {
         total.push(translate('workspace.rules.individualExpenseRules.receiptRequiredAmount'));
@@ -61,6 +63,15 @@ function getWorkspaceRules(policy: Policy | undefined, translate: LocaleContextP
         total.push(translate('workspace.rules.individualExpenseRules.cashExpenseDefault'));
     }
 
+    // Field requirements and flag for review rules are stored on the categories rather than on the policy.
+    const enabledCategories = Object.values(policyCategories ?? {}).filter((category) => category.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    if (enabledCategories.some((category) => categoryHasAnyRequireFieldsRule(category))) {
+        total.push(translate('workspace.rules.tabs.requireFields'));
+    }
+    if (enabledCategories.some((category) => hasExplicitFlagAmount(category.maxExpenseAmount) && category.pendingFields?.maxExpenseAmount !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
+        total.push(translate('workspace.rules.tabs.flagForReview'));
+    }
+
     return total.length > 0 ? total : null;
 }
 
@@ -69,7 +80,7 @@ function getWorkflowRules(policy: Policy | undefined, translate: LocaleContextPr
     const {bankAccountID} = policy?.achAccount ?? {};
     const hasDelayedSubmissionError = !!(policy?.errorFields?.autoReporting ?? policy?.errorFields?.autoReportingFrequency);
     const hasApprovalError = !!policy?.errorFields?.approvalMode;
-    const shouldShowBankAccount = !!bankAccountID && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+    const shouldShowBankAccount = !!bankAccountID && getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
 
     if (policy?.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT && !hasDelayedSubmissionError) {
         const title = getAutoReportingFrequencyDisplayNames(translate)[getCorrectedAutoReportingFrequency(policy) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY];
@@ -78,7 +89,7 @@ function getWorkflowRules(policy: Policy | undefined, translate: LocaleContextPr
     if ([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) {
         total.push(translate('common.approvals'));
     }
-    if (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
+    if (getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
         if (shouldShowBankAccount) {
             total.push(`1 ${translate('workspace.duplicateWorkspace.reimbursementAccount')}`);
         } else {

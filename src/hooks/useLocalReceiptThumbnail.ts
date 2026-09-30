@@ -1,11 +1,6 @@
-import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
-
 import {generateThumbnail} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 
-import CONST from '@src/CONST';
-
 import {useEffect, useRef, useState, useTransition} from 'react';
-import {Image} from 'react-native';
 
 const thumbnailCache = new Map<string, string>();
 /** Track how many mounted hook instances reference each sourceUri */
@@ -29,33 +24,11 @@ function releaseUri(uri: string) {
  * Pre-populate the receipt-image cache so the confirm screen can use it
  * synchronously on first render, avoiding any source swap / flash.
  */
-function precacheReceiptImage(sourceUri: string): Promise<string | undefined> {
+function precacheReceiptImage(sourceUri: string) {
     if (thumbnailCache.has(sourceUri)) {
-        return Promise.resolve(thumbnailCache.get(sourceUri));
+        return;
     }
     thumbnailCache.set(sourceUri, sourceUri);
-
-    startSpan(CONST.TELEMETRY.SPAN_THUMBNAIL_GATE, {
-        name: CONST.TELEMETRY.SPAN_THUMBNAIL_GATE,
-        op: CONST.TELEMETRY.SPAN_THUMBNAIL_GATE,
-        parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
-    });
-
-    // Warm up the image decode so the confirmation screen doesn't have to do it on mount.
-    // We navigate as soon as this resolves, so don't let a slow decode hold the user on the camera:
-    // after THUMBNAIL_NAV_TIMEOUT_MS we move on and let the prefetch finish in the background.
-    // Either way the confirm screen shows `sourceUri`. Generating a thumbnail instead would just
-    // trade a fast decode for a slow encode, which is what we're trying to avoid here.
-    return Promise.race([
-        // The catch matters: callers gate navigation on this promise, so a prefetch failure must not reject the race.
-        Image.prefetch(sourceUri).catch(() => false),
-        new Promise((resolve) => {
-            setTimeout(resolve, CONST.RECEIPT_CAMERA.THUMBNAIL_NAV_TIMEOUT_MS);
-        }),
-    ]).then(() => {
-        endSpan(CONST.TELEMETRY.SPAN_THUMBNAIL_GATE);
-        return sourceUri;
-    });
 }
 
 /**

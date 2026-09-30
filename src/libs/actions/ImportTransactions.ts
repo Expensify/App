@@ -1,9 +1,10 @@
 import * as API from '@libs/API';
-import type {ImportCSVTransactionsParams} from '@libs/API/parameters';
+import type {ImportCSVTransactionsParams, UploadOFXParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {generateCardID} from '@libs/CardUtils';
 import parseCSVDate from '@libs/CSVDateUtils';
 import DateUtils from '@libs/DateUtils';
+import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
 
 import CONST from '@src/CONST';
@@ -13,6 +14,7 @@ import type ImportedSpreadsheet from '@src/types/onyx/ImportedSpreadsheet';
 import type {ImportFinalModal, ImportTransactionSettings} from '@src/types/onyx/ImportedSpreadsheet';
 import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayout';
 import type Transaction from '@src/types/onyx/Transaction';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 
@@ -26,6 +28,7 @@ type TransactionFromCSV = {
     merchant: string;
     amount: number;
     category?: string;
+    tag?: string;
 };
 
 type ColumnIndexes = {
@@ -33,9 +36,10 @@ type ColumnIndexes = {
     merchant: number;
     amount: number;
     category: number;
+    tag: number;
 };
 
-type TransactionField = 'date' | 'merchant' | 'amount' | 'category';
+type TransactionField = 'date' | 'merchant' | 'amount' | 'category' | 'tag';
 
 /**
  * Type guard to check if a string is a valid transaction field
@@ -53,6 +57,7 @@ function getColumnIndexes(columns: Record<number, string> | undefined): ColumnIn
         merchant: -1,
         amount: -1,
         category: -1,
+        tag: -1,
     };
 
     if (columns) {
@@ -78,6 +83,7 @@ function buildColumnLayout(spreadsheet: ImportedSpreadsheet, cardName: string, c
         amount: false,
         merchant: false,
         category: false,
+        tag: false,
         type: false,
     };
     const names: SavedCSVColumnLayoutData['columnMapping']['names'] = {
@@ -85,6 +91,7 @@ function buildColumnLayout(spreadsheet: ImportedSpreadsheet, cardName: string, c
         amount: false,
         merchant: false,
         category: false,
+        tag: false,
         type: false,
     };
 
@@ -131,7 +138,7 @@ function buildTransactionListFromSpreadsheet(spreadsheet: ImportedSpreadsheet, s
     const {flipAmountSign = false} = settings;
 
     // Find the column indexes for each field
-    const {date: dateColumnIndex, merchant: merchantColumnIndex, amount: amountColumnIndex, category: categoryColumnIndex} = getColumnIndexes(columns);
+    const {date: dateColumnIndex, merchant: merchantColumnIndex, amount: amountColumnIndex, category: categoryColumnIndex, tag: tagColumnIndex} = getColumnIndexes(columns);
 
     const transactions: TransactionFromCSV[] = [];
     const startIndex = containsHeader ? 1 : 0;
@@ -149,6 +156,7 @@ function buildTransactionListFromSpreadsheet(spreadsheet: ImportedSpreadsheet, s
         const merchantValue = merchantColumnIndex >= 0 ? data.at(merchantColumnIndex)?.at(rowIndex) : undefined;
         const amountValue = amountColumnIndex >= 0 ? data.at(amountColumnIndex)?.at(rowIndex) : undefined;
         const categoryValue = categoryColumnIndex >= 0 ? data.at(categoryColumnIndex)?.at(rowIndex) : undefined;
+        const tagValue = tagColumnIndex >= 0 ? data.at(tagColumnIndex)?.at(rowIndex) : undefined;
 
         // Skip rows with missing required fields
         if (!dateValue || !amountValue) {
@@ -182,10 +190,26 @@ function buildTransactionListFromSpreadsheet(spreadsheet: ImportedSpreadsheet, s
             transaction.category = categoryValue;
         }
 
+        if (tagValue) {
+            transaction.tag = tagValue;
+        }
+
         transactions.push(transaction);
     }
 
     return transactions;
+}
+
+/**
+ * Checks whether any row that will be imported has a tag longer than the API accepts, so it can be flagged before import instead of failing on the server.
+ * Rows that buildTransactionListFromSpreadsheet skips (for example a footer or a row with an invalid date) are never sent, so their tags are not checked.
+ */
+function hasTagExceedingMaxLength(spreadsheet: ImportedSpreadsheet | undefined): boolean {
+    if (!spreadsheet || getColumnIndexes(spreadsheet.columns).tag < 0) {
+        return false;
+    }
+
+    return buildTransactionListFromSpreadsheet(spreadsheet, {}).some((transaction) => [...(transaction.tag ?? '')].length > CONST.API_TRANSACTION_TAG_MAX_LENGTH);
 }
 
 /**
@@ -233,6 +257,7 @@ function buildOptimisticTransactions(transactionList: TransactionFromCSV[], card
                 amount: csvTransaction.amount,
                 currency,
                 category: csvTransaction.category ?? '',
+                tag: csvTransaction.tag ?? '',
                 reimbursable: isReimbursable,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 comment: {
@@ -293,7 +318,7 @@ async function importTransactionsFromCSV(
     existingCardSettings?: ImportTransactionSettings,
 ): Promise<ImportFinalModal> {
     const settings = {...spreadsheet.importTransactionSettings, ...existingCardSettings};
-    const {cardDisplayName = 'Imported Card', currency = CONST.CURRENCY.USD, isReimbursable = true, flipAmountSign = false} = settings;
+    const {cardDisplayName = CONST.DEFAULT_IMPORTED_CARD_NAME, currency = CONST.CURRENCY.USD, isReimbursable = true, flipAmountSign = false} = settings;
 
     // Build transaction list from spreadsheet
     const transactionList = buildTransactionListFromSpreadsheet(spreadsheet, settings);
@@ -336,7 +361,7 @@ async function importTransactionsFromCSV(
     const importFinalModal: ImportFinalModal = {
         titleKey: 'spreadsheet.importSuccessfulTitle',
         promptKey: 'spreadsheet.importTransactionsSuccessfulDescription',
-        promptKeyParams: {transactions: transactionList.length},
+        promptKeyParams: {count: transactionList.length},
     };
     const importFinalModalID = getImportFinalModalID();
     const importFinalModalResult = waitForImportFinalModal(importFinalModalID);
@@ -418,5 +443,61 @@ async function importTransactionsFromCSV(
     }
 }
 
-export {getColumnIndexes, buildColumnLayout, buildTransactionListFromSpreadsheet, getExistingCardImportSettings};
+/**
+ * Uploads an OFX/QFX statement for the backend to parse, optimistically creating the card it imports into.
+ */
+async function uploadOFXStatement(file: FileObject, settings: ImportTransactionSettings, accountID: number, existingCardID?: number): Promise<ImportFinalModal> {
+    const {cardDisplayName = CONST.DEFAULT_IMPORTED_CARD_NAME, isReimbursable = true} = settings;
+    const optimisticCardData = existingCardID ? undefined : buildOptimisticCard(cardDisplayName, accountID, isReimbursable);
+    const cardID = existingCardID ?? optimisticCardData?.cardID ?? CONST.DEFAULT_NUMBER_ID;
+
+    const params: UploadOFXParams = {
+        file,
+        cardID,
+        cardName: cardDisplayName,
+        reimbursable: isReimbursable,
+    };
+
+    const importFinalModal: ImportFinalModal = {
+        titleKey: 'spreadsheet.importSuccessfulTitle',
+        promptKey: 'spreadsheet.importStatementSuccessfulDescription',
+        // The statement is imported by a queued job, so the transactions land after this responds.
+        pendingMessageKey: 'spreadsheet.importCompanyCardTransactionsPendingMessage',
+    };
+    const importFinalModalID = getImportFinalModalID();
+    const importFinalModalResult = waitForImportFinalModal(importFinalModalID);
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IMPORTED_SPREADSHEET>> = [getImportFinalModalOnyxData(importFinalModalID, importFinalModal)];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.IMPORTED_SPREADSHEET>> = [getImportFinalModalOnyxData(importFinalModalID, getImportFailedFinalModal())];
+
+    if (optimisticCardData) {
+        const optimisticCardList: CardList = {[cardID]: optimisticCardData.card};
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: optimisticCardList,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {[cardID]: null},
+        });
+    }
+
+    try {
+        await API.write(WRITE_COMMANDS.UPLOAD_OFX, params, {
+            optimisticData,
+            successData,
+            failureData,
+        });
+        return await importFinalModalResult.promise;
+    } catch (error) {
+        Log.warn('[ImportTransactions] UploadOFX failed', {message: String(error)});
+        importFinalModalResult.cancel();
+        return getImportFailedFinalModal();
+    }
+}
+
+export {getColumnIndexes, hasTagExceedingMaxLength, buildColumnLayout, buildTransactionListFromSpreadsheet, getExistingCardImportSettings, uploadOFXStatement};
 export default importTransactionsFromCSV;

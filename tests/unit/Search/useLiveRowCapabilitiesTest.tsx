@@ -30,8 +30,8 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getViolationsFromSearchData: jest.fn(() => ({})),
 }));
 
-const mockedGetActions = getActions as jest.MockedFunction<typeof getActions>;
-const mockedGetPrimaryAction = getPrimaryAction as jest.MockedFunction<typeof getPrimaryAction>;
+const mockedGetActions = jest.mocked(getActions);
+const mockedGetPrimaryAction = jest.mocked(getPrimaryAction);
 
 const SNAPSHOT_DATA = {} as SearchResults['data'];
 const SNAPSHOT_ACTIONS: ReportAction[] = [];

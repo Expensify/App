@@ -30,10 +30,7 @@ type OnboardingHelpButtonProps = {
     /** Whether we should display the Onboarding help button as in narrow layout */
     shouldUseNarrowLayout: boolean;
 
-    /** Should show Register for webinar option */
     shouldShowRegisterForWebinar: boolean;
-
-    /** Should show Guide booking option */
     shouldShowGuideBooking: boolean;
 
     /** Has user active Schedule call with guide */

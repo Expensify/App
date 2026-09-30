@@ -11,17 +11,18 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearMoneyRequestAmount, getMoneyRequestParticipantsFromReport, setMoneyRequestAmount, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {calculateAmount, isMovingTransactionFromTrackExpense, isParticipantP2P} from '@libs/IOUUtils';
+import {isConfirmationAmountMissing} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldEnableNegative} from '@libs/ReportUtils';
-import {calculateTaxAmount, getTaxCode, getTaxValue} from '@libs/TransactionUtils';
+import {calculateTaxAmount, getTaxCode, getTaxValue, hasAnyManuallyEnteredScanField} from '@libs/TransactionUtils';
 
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 
 import {resetSplitShares, setDraftSplitTransaction, setSplitShares} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
-import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -32,60 +33,51 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import AutomaticFieldHint from './AutomaticFieldHint';
+import ExpenseFieldRow from './ExpenseFieldRow';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {amountSliceSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
 type AmountFieldProps = {
-    action: IOUAction;
     amount: number;
     formattedAmount: string;
-    distanceRateCurrency: string;
+    distanceRateCurrency?: string;
     iouCurrencyCode: string | undefined;
     isDistanceRequest: boolean;
-    isNewManualExpenseFlowEnabled: boolean;
-    didConfirm: boolean;
-    isReadOnly: boolean;
     shouldShowTimeRequestFields: boolean;
     shouldDisplayFieldError: boolean;
     formError: string;
-    transactionID: string | undefined;
-    iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-    reportID: string;
-    reportActionID: string | undefined;
     policy: OnyxEntry<OnyxTypes.Policy>;
     clearFormErrors: (errors: string[]) => void;
     setFormError: (error: TranslationPaths | '') => void;
-    autoFocus?: boolean;
     isParticipantPickerVisible?: boolean;
 };
 
 function AmountField({
-    action,
     amount,
     formattedAmount,
-    distanceRateCurrency,
+    distanceRateCurrency = CONST.CURRENCY.USD,
     iouCurrencyCode,
     isDistanceRequest,
-    isNewManualExpenseFlowEnabled,
-    didConfirm,
-    isReadOnly,
     shouldShowTimeRequestFields,
     shouldDisplayFieldError,
     formError,
-    transactionID,
-    iouType,
-    reportID,
-    reportActionID,
     policy,
     clearFormErrors,
     setFormError,
-    autoFocus = false,
     isParticipantPickerVisible = false,
 }: AmountFieldProps) {
-    const {isEditingSplitBill} = useConfirmationFields();
+    const {isEditingSplitBill, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
+    // Filled by the forms that offer a receipt from beside the amount field rather than from a full-width empty
+    // state, with their compact add-receipt button.
+    const {amountTrailingAction, shouldUseDropdownRows} = useExpenseFormLayout();
+    // The Scan confirmation keeps the amount unfocused: its fields sit behind "Show more", which the user also opens
+    // to reach the rest of the expense, so focusing the amount would push them towards entering it manually.
+    const shouldAutoFocusOnMount = !canUseTouchScreen() && !canEnterScanFieldsManually;
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -98,15 +90,19 @@ function AmountField({
     const amountIsMissing = transactionSlice?.isAmountMissing ?? false;
 
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
+    const [isAmountInputFocused, setIsAmountInputFocused] = useState(false);
 
     const isAmountFieldDisabled = didConfirm || isReadOnly || shouldShowTimeRequestFields || isDistanceRequest;
-    const firstParticipant = transactionSlice?.participants?.at(0);
-    const isP2P = isNewManualExpenseFlowEnabled
-        ? isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0))
-        : !!(firstParticipant?.accountID && !firstParticipant?.isPolicyExpenseChat);
+    // The read-only row only opens the amount page for a form whose amount the user could have typed in the first
+    // place. A distance or time amount is computed from the fields below it, so its row has nothing to open and is
+    // not offered as a control at all: no caret, no hover, no press.
+    const canOpenAmountPage = !isReadOnly && !isDistanceRequest && !shouldShowTimeRequestFields;
+    const isP2P = isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0));
     // `common.error.fieldRequired` is shared with the date field, so only surface it on the amount input when the
-    // amount itself is the missing value.
-    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && !transactionSlice?.isAmountSet;
+    // amount itself is the missing value. `isConfirmationAmountMissing` is the same predicate validation raises the
+    // error from, so a scan expense (where the amount is read off the receipt whenever the user leaves the field
+    // blank) can't show a phantom required error under a field that is deliberately empty.
+    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && isConfirmationAmountMissing(transactionSlice, canEnterScanFieldsManually);
     const shouldShowAmountInvalidError = formError === 'common.error.invalidAmount';
 
     let amountFieldErrorText = '';
@@ -118,21 +114,26 @@ function AmountField({
 
     const effectiveCurrency = isDistanceRequest ? distanceRateCurrency : (iouCurrencyCode ?? CONST.CURRENCY.USD);
     const decimals = getCurrencyDecimals(effectiveCurrency);
-    // In the new manual expense flow the amount field starts empty (transaction.amount defaults to 0 before the user
+    // In the manual expense flow the amount field starts empty (transaction.amount defaults to 0 before the user
     // touches it). Once the user explicitly sets an amount – including 0 – isAmountSet becomes true and we show the
-    // real value. This avoids showing "$0.00" as a pre-filled default. Scan and other non-manual flows populate
-    // amount programmatically and never set isAmountSet.
-    const shouldShowEmptyAmount = isNewManualExpenseFlowEnabled && !transactionSlice?.isAmountSet && transactionSlice?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
+    // real value. This avoids showing "$0.00" as a pre-filled default. The Scan flow behaves the same way: its amount
+    // belongs to the receipt, so the field is empty until the user chooses to enter one instead of waiting for
+    // SmartScan. Per diem, distance and time flows populate the amount programmatically and never set isAmountSet.
+    const shouldShowEmptyAmount = !transactionSlice?.isAmountSet && (transactionSlice?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || canEnterScanFieldsManually);
     const transactionAmount = shouldShowEmptyAmount ? '' : convertToFrontendAmountAsString(amount, decimals);
-    const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants, isNewManualExpenseFlowEnabled);
+    // The hint says SmartScan will fill this in. It goes once the user takes the field over, by focusing it or by
+    // entering any of the three fields.
+    const shouldShowAutomaticHint = canEnterScanFieldsManually && !isAmountInputFocused && !hasAnyManuallyEnteredScanField(transactionSlice);
+    // The hint and the buttons share the right-hand side, so the field shows one or the other.
+    const shouldShowAmountButtons = !shouldShowAutomaticHint;
+    const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants);
 
     // `autoFocus` on our TextInput only runs on mount. Closing and reopening the RHP often keeps the same mounted
     // instance, so autofocus does not run again. We re-focus when the parent-owned participant picker closes
-    // (visible → hidden) so the amount input gains focus once the user selects a participant in the new manual
-    // expense flow. The setTimeout defers focus past the RHP entry / picker close animation so the input reliably
-    // receives focus.
+    // (visible → hidden) so the amount input gains focus once the user selects a participant. The setTimeout defers
+    // focus past the RHP entry / picker close animation so the input reliably receives focus.
     useEffect(() => {
-        if (!autoFocus || isAmountFieldDisabled || !isNewManualExpenseFlowEnabled || isParticipantPickerVisible) {
+        if (!shouldAutoFocusOnMount || isAmountFieldDisabled || isParticipantPickerVisible) {
             return;
         }
 
@@ -144,7 +145,7 @@ function AmountField({
             }
             clearTimeout(focusTimeoutRef.current);
         };
-    }, [autoFocus, isAmountFieldDisabled, isNewManualExpenseFlowEnabled, isParticipantPickerVisible]);
+    }, [shouldAutoFocusOnMount, isAmountFieldDisabled, isParticipantPickerVisible]);
 
     const showCurrencyPicker = () => {
         setIsCurrencyPickerVisible(true);
@@ -204,11 +205,17 @@ function AmountField({
                 return acc;
             }, {});
 
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {
-                amount: updatedAmount,
-                currency: updatedCurrency,
-                ...(accountIDs.length > 0 ? {splitShares: updatedSplitShares} : {}),
-            });
+            setDraftSplitTransaction(
+                transactionID,
+                splitDraftTransaction,
+                {
+                    amount: updatedAmount,
+                    currency: updatedCurrency,
+                    ...(accountIDs.length > 0 ? {splitShares: updatedSplitShares} : {}),
+                },
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            );
             return;
         }
 
@@ -217,13 +224,13 @@ function AmountField({
             const participantAccountIDs =
                 shareAccountIDs.length > 0 ? shareAccountIDs : (transactionSlice.participants ?? []).map((p) => p.accountID).filter((id): id is number => id !== undefined);
             if (participantAccountIDs.length > 0) {
-                setSplitShares(transactionForHandlers, updatedAmount, updatedCurrency, participantAccountIDs, currentUserPersonalDetails.accountID);
+                setSplitShares(transactionForHandlers, updatedAmount, updatedCurrency, participantAccountIDs, currentUserPersonalDetails.accountID, getCurrencyDecimals);
             }
             return;
         }
 
         if (transactionSlice?.splitShares) {
-            resetSplitShares(transactionForHandlers, updatedAmount, updatedCurrency, currentUserPersonalDetails.accountID);
+            resetSplitShares(transactionForHandlers, updatedAmount, updatedCurrency, currentUserPersonalDetails.accountID, getCurrencyDecimals);
         }
     };
 
@@ -279,7 +286,7 @@ function AmountField({
         if (isInlineAmountInvalid && shouldDisplayFieldError) {
             setFormError('common.error.invalidAmount');
         } else if (!isInlineAmountInvalid) {
-            clearFormErrors(['common.error.invalidAmount', 'common.error.fieldRequired']);
+            clearFormErrors(['common.error.invalidAmount']);
         }
 
         buildAndSaveSplitShares(parsedAmount, effectiveCurrency);
@@ -298,6 +305,14 @@ function AmountField({
         }
     };
 
+    const openAmountPage = () => {
+        if (!canOpenAmountPage || !transactionID) {
+            return;
+        }
+
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(action, iouType, transactionID, reportID, reportActionID, CONST.IOU.PAGE_INDEX.CONFIRM, Navigation.getActiveRoute()));
+    };
+
     return (
         <>
             <IOURequestStepCurrencyModal
@@ -307,49 +322,79 @@ function AmountField({
                 value={effectiveCurrency}
                 onInputChange={updateCurrency}
             />
-            {isNewManualExpenseFlowEnabled && !isAmountFieldDisabled ? (
-                <View style={[styles.mh4, styles.mv2]}>
-                    <NumberWithSymbolForm
-                        ref={amountInputRef}
-                        displayAsTextInput
-                        autoFocus={false}
-                        value={transactionAmount}
-                        decimals={decimals}
-                        currency={effectiveCurrency}
-                        symbol={getLocalizedCurrencySymbol(preferredLocale, effectiveCurrency) ?? ''}
-                        label={translate('iou.amount')}
-                        errorText={amountFieldErrorText}
-                        onInputChange={handleAmountChange}
-                        allowNegativeInput={allowNegative}
-                        shouldShowFlipButton
-                        shouldShowCurrencyButton
-                        shouldShowBigNumberPad={false}
-                        onCurrencyButtonPress={showCurrencyPicker}
-                        disabled={isAmountFieldDisabled}
-                    />
+            {!isAmountFieldDisabled ? (
+                <View style={[styles.mh4, styles.mv2, styles.flexRow, styles.gap2]}>
+                    <View style={styles.flex1}>
+                        <NumberWithSymbolForm
+                            key={transactionID}
+                            ref={amountInputRef}
+                            displayAsTextInput
+                            autoFocus={false}
+                            value={transactionAmount}
+                            decimals={decimals}
+                            currency={effectiveCurrency}
+                            symbol={getLocalizedCurrencySymbol(preferredLocale, effectiveCurrency) ?? ''}
+                            label={translate('iou.amount')}
+                            errorText={amountFieldErrorText}
+                            onInputChange={handleAmountChange}
+                            allowNegativeInput={allowNegative}
+                            shouldShowFlipButton={shouldShowAmountButtons}
+                            shouldShowCurrencyButton={shouldShowAmountButtons}
+                            shouldShowBigNumberPad={false}
+                            onCurrencyButtonPress={showCurrencyPicker}
+                            onFocus={() => {
+                                setIsAmountInputFocused(true);
+                            }}
+                            onBlur={() => {
+                                setIsAmountInputFocused(false);
+                            }}
+                            leadingRightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
+                            shouldUseBorderlessButtons
+                            disabled={isAmountFieldDisabled}
+                        />
+                    </View>
+                    {amountTrailingAction}
                 </View>
             ) : (
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon={!isReadOnly && !isDistanceRequest && !shouldShowTimeRequestFields}
-                    title={formattedAmount}
-                    description={translate('iou.amount')}
-                    interactive={!isReadOnly && !shouldShowTimeRequestFields}
-                    onPress={() => {
-                        if (isDistanceRequest || shouldShowTimeRequestFields || !transactionID) {
-                            return;
-                        }
-
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(action, iouType, transactionID, reportID, reportActionID, CONST.IOU.PAGE_INDEX.CONFIRM, Navigation.getActiveRoute()),
-                        );
-                    }}
-                    style={[styles.moneyRequestMenuItem, styles.mt2]}
-                    titleStyle={styles.moneyRequestConfirmationAmount}
-                    disabled={didConfirm}
-                    brickRoadIndicator={shouldDisplayFieldError && amountIsMissing ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    errorText={shouldDisplayFieldError && amountIsMissing ? translate('common.error.enterAmount') : ''}
-                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.AMOUNT_FIELD}
-                />
+                // The distance and time forms compute their amount rather than take it, so the field is a read-only
+                // row on them. The trailing slot travels with it, or those forms would have nowhere to offer the
+                // compact add-receipt button from.
+                <View style={[styles.flexRow, styles.alignItemsCenter, shouldUseDropdownRows ? undefined : styles.mt2]}>
+                    <View style={styles.flex1}>
+                        {shouldUseDropdownRows ? (
+                            // On the bordered form the editable amount is a text input, so a locked one reads as a
+                            // disabled input too rather than as a push row, or a form whose amount is computed
+                            // answers "this field can't be changed" differently from the fields under it.
+                            <ExpenseFieldRow
+                                name={translate('iou.amount')}
+                                value={formattedAmount}
+                                onPress={openAmountPage}
+                                isDisabled={didConfirm}
+                                isInteractive={canOpenAmountPage}
+                                errorText={shouldDisplayFieldError && amountIsMissing ? translate('common.error.enterAmount') : ''}
+                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.AMOUNT_FIELD}
+                            />
+                        ) : (
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon={canOpenAmountPage}
+                                title={formattedAmount}
+                                description={translate('iou.amount')}
+                                interactive={canOpenAmountPage}
+                                onPress={openAmountPage}
+                                style={[styles.moneyRequestMenuItem]}
+                                titleStyle={styles.moneyRequestConfirmationAmount}
+                                disabled={didConfirm}
+                                brickRoadIndicator={shouldDisplayFieldError && amountIsMissing ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                errorText={shouldDisplayFieldError && amountIsMissing ? translate('common.error.enterAmount') : ''}
+                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.AMOUNT_FIELD}
+                            />
+                        )}
+                    </View>
+                    {/* The push row carries its own 20px of horizontal padding, so the button is inset to the 16px
+                        the bordered fields below it sit at. The bordered row is already at 16px and takes its own
+                        vertical margin with it, which is why only the push row needs the top margin above. */}
+                    {!!amountTrailingAction && <View style={styles.mr4}>{amountTrailingAction}</View>}
+                </View>
             )}
         </>
     );

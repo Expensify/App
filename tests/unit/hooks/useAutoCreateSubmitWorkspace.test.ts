@@ -153,6 +153,9 @@ describe('useAutoCreateSubmitWorkspace', () => {
                 lastName: 'Doe',
                 adminsChatReportID: MOCK_ADMINS_CHAT_REPORT_ID,
                 onboardingPolicyID: MOCK_POLICY_ID,
+                // The new Submit workspace gets a Concierge welcome with suggested responses in its #admins
+                // room, so the Concierge DM checklist is suppressed to avoid a duplicate onboarding experience.
+                shouldSkipConciergeOnboarding: true,
             }),
         );
     });
@@ -206,6 +209,9 @@ describe('useAutoCreateSubmitWorkspace', () => {
             expect.objectContaining({
                 adminsChatReportID: existingAdminsReportID,
                 onboardingPolicyID: existingPolicyID,
+                // No workspace was created, so no #admins welcome was posted and the Concierge DM
+                // checklist is the only onboarding experience this user gets.
+                shouldSkipConciergeOnboarding: false,
             }),
         );
     });

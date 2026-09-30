@@ -27,7 +27,16 @@ const OTHER_ACCOUNT_ID = 2;
 const SESSION_START_TIME = '2026-06-29 10:00:00.000';
 
 function buildAction(overrides: Partial<ReportAction>): ReportAction {
-    return {...createRandomReportAction(1), reportActionID: REPORT_ACTION_ID, actorAccountID: CURRENT_USER_ACCOUNT_ID, created: SESSION_START_TIME, pendingAction: undefined, ...overrides};
+    return {
+        ...createRandomReportAction(1),
+        // createRandomReportAction picks a random actionName; CREATED actions are excluded from session activity, so pin a regular comment.
+        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        reportActionID: REPORT_ACTION_ID,
+        actorAccountID: CURRENT_USER_ACCOUNT_ID,
+        created: SESSION_START_TIME,
+        pendingAction: undefined,
+        ...overrides,
+    };
 }
 
 describe('useShouldSuppressConciergeIndicators', () => {

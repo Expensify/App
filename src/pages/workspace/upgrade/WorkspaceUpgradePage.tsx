@@ -6,12 +6,15 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateQuickbooksOnlineSyncClasses, updateQuickbooksOnlineSyncCustomers, updateQuickbooksOnlineSyncLocations} from '@libs/actions/connections/QuickbooksOnline';
 import {updateXeroMappings} from '@libs/actions/connections/Xero';
 import {enablePolicyTravel} from '@libs/actions/Policy/Travel';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -19,8 +22,10 @@ import {
     canEditWorkspaceSettings,
     canModifyPlan,
     getDefaultApprover,
+    getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     getUserFriendlyWorkspaceType,
+    isAutoPayApprovedReportsAvailable,
     isControlPolicy,
     isPaidGroupPolicy,
     isSubmitPolicy,
@@ -28,6 +33,7 @@ import {
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
+import {setWorkspaceDistanceAutoUpdate} from '@userActions/Policy/DistanceRate';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
 
 import CONST from '@src/CONST';
@@ -38,7 +44,9 @@ import {
     enablePolicyAutoReimbursementLimit,
     enablePolicyConnections,
     enablePolicyHR,
+    enablePolicyInvoiceFields,
     enablePolicyInvoicing,
+    enablePolicyRecruiting,
     enablePolicyReportFields,
     enablePolicyRules,
     isCurrencySupportedForDirectReimbursement,
@@ -51,7 +59,7 @@ import {
     upgradeToCorporate,
 } from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
@@ -59,7 +67,7 @@ import type {Policy} from '@src/types/onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import UpgradeConfirmation from './UpgradeConfirmation';
 import UpgradeIntro from './UpgradeIntro';
@@ -85,9 +93,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const policyID = route.params?.policyID;
     const reportID = route.params?.reportID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
     // A submit2026 policy can only be upgraded via the UpgradeSubmit command (the server rejects
     // UpgradeToCorporate for it with a 402), and its owner holds the editor role, so the upgrade
-    // flow below must key off the policy type rather than the SUBMIT_2026 beta or admin checks.
+    // flow below must key off the policy type rather than admin checks.
     const isUpgradingFromSubmitPolicy = isSubmitPolicy(policy);
     const featureNameAlias = route.params?.featureName && getFeatureNameAlias(route.params.featureName);
     const upgradingFromSubmitLatchPolicyIDRef = useRef<string | undefined>(undefined);
@@ -110,19 +119,20 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         setUpgradingFromSubmit((previous) => (previous !== undefined ? previous : isUpgradingFromSubmitPolicy));
     }, [policyID, policy?.type, isUpgradingFromSubmitPolicy]);
 
-    const feature = featureNameAlias
-        ? Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
-              .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
-              .find((f) => f.alias === featureNameAlias)
-        : undefined;
+    const upgradeFeatureByAlias = featureNameAlias ? Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING).find((mappingEntry) => mappingEntry.alias === featureNameAlias) : undefined;
+
+    const feature = upgradeFeatureByAlias?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id ? undefined : upgradeFeatureByAlias;
 
     const isUpgraded = !!policy?.type && upgradingFromSubmit !== undefined && (isControlPolicy(policy) || !!(upgradingFromSubmit && isPaidGroupPolicy(policy)));
     const {translate} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {accountID, email = ''} = useCurrentUserPersonalDetails();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const [priorFirstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [priorLastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
 
-    const ownerPoliciesSelectorWithAccountID = useCallback((policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID), [accountID]);
+    const ownerPoliciesSelectorWithAccountID = (policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID);
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: ownerPoliciesSelectorWithAccountID});
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
@@ -130,20 +140,19 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const policyData = usePolicyData(policyID);
     const policyDataRef = useRef(policyData);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     useEffect(() => {
         policyDataRef.current = policyData;
     });
 
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
+    const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
     const categoryId = route.params?.categoryId;
 
     const defaultApprover = getDefaultApprover(policy);
 
-    // useCallback is needed here because goBack is passed as a prop to child components;
-    // the rule flags it because the deps could be inlined, but removing useCallback would cause unnecessary re-renders.
-    // eslint-disable-next-line react-hooks/preserve-manual-memoization
-    const goBack = useCallback(() => {
+    const goBack = () => {
         if ((!feature && featureNameAlias !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias) || !policyID) {
             Navigation.dismissModal();
             return;
@@ -168,6 +177,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         return;
                     }
                 }
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoiceFields.id:
+                return Navigation.goBack(ROUTES.WORKSPACE_INVOICES.getRoute(policyID));
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
                 return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
@@ -182,7 +193,17 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             default:
                 return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
         }
-    }, [feature, policyID, route.params?.backTo, route.params?.featureName, featureNameAlias]);
+    };
+
+    const afterUpgradeAcknowledged = () => {
+        if (feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id && policyID) {
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path, route.params.backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
+                forceReplace: true,
+            });
+            return;
+        }
+        goBack();
+    };
 
     const onUpgradeToCorporate = () => {
         if (!canPerformUpgrade || !policy) {
@@ -190,7 +211,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
 
         if (isUpgradingFromSubmitPolicy) {
-            const targetType = upgradePlanType ?? (feature && 'requiredPlan' in feature ? feature.requiredPlan : undefined) ?? CONST.POLICY.TYPE.TEAM;
+            const requiredPlan = upgradeFeatureByAlias && 'requiredPlan' in upgradeFeatureByAlias ? upgradeFeatureByAlias.requiredPlan : undefined;
+            const targetType = upgradePlanType ?? requiredPlan ?? CONST.POLICY.TYPE.TEAM;
             upgradeSubmit(policy, targetType, email, accountID, priorFirstDayFreeTrial, priorLastDayFreeTrial, reportID);
             return;
         }
@@ -198,16 +220,13 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         upgradeToCorporate(policy, feature?.name);
     };
 
-    // useCallback is needed here because confirmUpgrade is passed as a prop to child components;
-    // the rule flags it because the deps could be inlined, but removing useCallback would cause unnecessary re-renders.
-
-    const confirmUpgrade = useCallback(() => {
+    const confirmUpgrade = () => {
         if (!policyID) {
             return;
         }
         if (!feature) {
             if (featureNameAlias === CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias) {
-                setPolicyPreventMemberCreatedTitle(policyID, true, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]);
+                setPolicyPreventMemberCreatedTitle(policyID, true, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE], getReviewWorkspaceSettingsTaskCompletion());
             }
             return;
         }
@@ -219,6 +238,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 enableAutoApprovalOptions(policyID, true, policy?.shouldShowAutoApprovalOptions, policy?.autoApproval?.limit, policy?.autoApproval?.auditRate);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.id:
+                // The upgrade is reachable before payments are set up; turning auto-pay on then would silently activate it once a bank account is connected.
+                if (!isAutoPayApprovedReportsAvailable(policy)) {
+                    break;
+                }
                 enablePolicyAutoReimbursementLimit(policyID, true, policy?.shouldShowAutoReimbursementLimitOption, policy?.autoReimbursement?.limit);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
@@ -249,10 +272,18 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                     }
                 }
                 break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoiceFields.id:
+                enablePolicyInvoiceFields(policyID, true);
+                break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
                 // Re-enabling would re-run the sidebar's "just enabled" highlight on a row that already shows.
                 if (!policy?.areRulesEnabled) {
-                    enablePolicyRules(policy, true, false, policyDataRef.current);
+                    enablePolicyRules(policy, true, isVendorMatchingBetaEnabled, false, policyDataRef.current);
+                }
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id:
+                if (distanceRateCustomUnit) {
+                    setWorkspaceDistanceAutoUpdate(policyID, distanceRateCustomUnit, true, governmentMileageRates ?? [], policy?.outputCurrency);
                 }
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.publicReceiptVisibility.id:
@@ -268,9 +299,12 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id:
                 enablePolicyHR(policyID, true);
                 break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id:
+                enablePolicyRecruiting(policyID, true);
+                break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id:
-                setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email, isTrackIntentUser);
+                setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email, isTrackIntentUser, rules);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.id:
                 break;
@@ -315,22 +349,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             default:
                 break;
         }
-    }, [
-        policyID,
-        feature,
-        featureNameAlias,
-        policy,
-        route.params.featureName,
-        perDiemCustomUnit?.customUnitID,
-        defaultApprover,
-        accountID,
-        email,
-        qboConfig?.syncClasses,
-        qboConfig?.syncCustomers,
-        qboConfig?.syncLocations,
-        categoryId,
-        isTrackIntentUser,
-    ]);
+    };
 
     useWorkspaceUpgradeConfirmation({
         policyID,
@@ -368,7 +387,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {!!policy && isUpgraded && (
                     <UpgradeConfirmation
-                        afterUpgradeAcknowledged={goBack}
+                        afterUpgradeAcknowledged={afterUpgradeAcknowledged}
                         policyName={policy.name}
                         planName={getUserFriendlyWorkspaceType(policy.type, translate)}
                     />

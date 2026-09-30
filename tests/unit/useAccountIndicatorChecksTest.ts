@@ -245,6 +245,105 @@ describe('useAccountIndicatorChecks', () => {
 
             expect(result.current.accountStatus).toBe(CONST.INDICATOR_STATUS.HAS_EMPLOYEE_CARD_FEED_ERRORS);
         });
+
+        it('does not surface a personal card broken connection on the Account button once it is past the grace period', async () => {
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.USER_WALLET]: {},
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
+                        [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
+                        [ONYXKEYS.LOGINS]: {},
+                        [ONYXKEYS.WALLET_TERMS]: {},
+                        [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                        [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 0,
+                        [ONYXKEYS.CARD_LIST]: {
+                            card1: {
+                                cardID: 1,
+                                // No fundID => personal card. The broken connection is also stored as a card error, which is
+                                // what would normally light the Account button via hasPaymentMethodError.
+                                lastScrapeResult: 403,
+                                lastScrape: '2020-01-01 00:00:00', // Broken well beyond the grace period
+                                errors: {connectionError: 'Your card connection is broken.'},
+                            },
+                        },
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => useAccountIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.accountStatus).toBeUndefined();
+        });
+
+        it('still surfaces a personal card broken connection on the Account button within the grace period', async () => {
+            const recentScrape = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.USER_WALLET]: {},
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
+                        [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
+                        [ONYXKEYS.LOGINS]: {},
+                        [ONYXKEYS.WALLET_TERMS]: {},
+                        [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                        [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 0,
+                        [ONYXKEYS.CARD_LIST]: {
+                            card1: {
+                                cardID: 1,
+                                lastScrapeResult: 403,
+                                lastScrape: recentScrape, // Broken only recently, still inside the grace period
+                                errors: {connectionError: 'Your card connection is broken.'},
+                            },
+                        },
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => useAccountIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.accountStatus).toBe(CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR);
+        });
+
+        // The server also sets the connection error for scrape statuses in BROKEN_CONNECTION_IGNORED_STATUSES (e.g.
+        // 434), which isCardConnectionBroken treats as not broken. The dismissal is keyed on the last successful sync,
+        // so these cards must stop lighting the Account button too once the sync is past the grace period.
+        it('does not surface a personal card with an ignored scrape status (434) once its last sync is past the grace period', async () => {
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.USER_WALLET]: {},
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
+                        [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
+                        [ONYXKEYS.LOGINS]: {},
+                        [ONYXKEYS.WALLET_TERMS]: {},
+                        [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                        [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 0,
+                        [ONYXKEYS.CARD_LIST]: {
+                            card1: {
+                                cardID: 1,
+                                lastScrapeResult: 434, // Ignored status — not "broken", but still carries the server-set error
+                                lastScrape: '2024-08-26 18:58:19', // Last successful sync well beyond the grace period
+                                errors: {connectionError: 'Your card connection is broken.'},
+                            },
+                        },
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => useAccountIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.accountStatus).toBeUndefined();
+        });
     });
 
     describe('info statuses', () => {

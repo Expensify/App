@@ -9,6 +9,7 @@ import LockedAccountModalProvider from '@src/components/LockedAccountModalProvid
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type ReactNative from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
@@ -29,10 +30,8 @@ jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => ''));
 
 // Mock RenderHTML component
 jest.mock('@components/RenderHTML', () => {
-    const ReactMock = require('react') as typeof React;
-    const {Text} = require('react-native') as {
-        Text: React.ComponentType<{children?: React.ReactNode}>;
-    };
+    const ReactMock = jest.requireActual<typeof React>('react');
+    const {Text} = jest.requireActual<typeof ReactNative>('react-native');
 
     return ({html}: {html: string}) => {
         const plainText = html.replaceAll(/<[^>]*>/g, '');
@@ -42,10 +41,8 @@ jest.mock('@components/RenderHTML', () => {
 
 // Replace MenuItem with a simple test double that exposes props in the tree
 jest.mock('@components/MenuItem', () => {
-    const ReactMock = require('react') as typeof React;
-    const {Text} = require('react-native') as {
-        Text: React.ComponentType<{testID: string; children?: React.ReactNode}>;
-    };
+    const ReactMock = jest.requireActual<typeof React>('react');
+    const {Text} = jest.requireActual<typeof ReactNative>('react-native');
     return ({title, brickRoadIndicator}: {title: string; brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>}) =>
         ReactMock.createElement(Text, {testID: `menu-${String(title)}`}, `${brickRoadIndicator ?? 'none'}-brickRoadIndicator`);
 });

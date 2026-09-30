@@ -129,6 +129,40 @@ describe('APITests', () => {
             });
     });
 
+    test('API.write should default shouldRetry to true when the caller did not set it', () => {
+        jest.spyOn(HttpUtils, 'xhr').mockRejectedValue(new Error('Unexpected xhr call'));
+
+        return Promise.resolve(setHasRadio(false))
+            .then(() => {
+                API.write(MOCK_COMMAND_LOWERCASE, splitParams(1));
+                return waitForBatchedUpdates();
+            })
+            .then(() => {
+                const persisted = PersistedRequests.getAll();
+                expect(persisted).toEqual([expect.objectContaining({command: MOCK_COMMAND_LOWERCASE, data: expect.objectContaining({shouldRetry: true})})]);
+
+                PersistedRequests.clear();
+                return waitForBatchedUpdates();
+            });
+    });
+
+    test('API.write should preserve an explicit shouldRetry: false instead of forcing it to true', () => {
+        jest.spyOn(HttpUtils, 'xhr').mockRejectedValue(new Error('Unexpected xhr call'));
+
+        return Promise.resolve(setHasRadio(false))
+            .then(() => {
+                API.write(WRITE_COMMANDS.OPEN_REPORT, {reportID: 'test-report', shouldRetry: false});
+                return waitForBatchedUpdates();
+            })
+            .then(() => {
+                const persisted = PersistedRequests.getAll();
+                expect(persisted).toEqual([expect.objectContaining({command: WRITE_COMMANDS.OPEN_REPORT, data: expect.objectContaining({shouldRetry: false})})]);
+
+                PersistedRequests.clear();
+                return waitForBatchedUpdates();
+            });
+    });
+
     test('Write requests should resume when we are online', () => {
         // We're setting up a basic case where all requests succeed when we resume connectivity
         const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});

@@ -152,7 +152,7 @@ function FieldRequirementSettingRow({
     const isDisabled = !canWriteRules || isCouplingDisabled;
 
     const rowContent = (
-        <View style={[styles.ph5, styles.pv3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap3, styles.flexWrap]}>
+        <View style={[styles.ph5, styles.pv3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap3]}>
             <Text style={[styles.flexShrink1, styles.pr3, styles.alignSelfCenter]}>{label}</Text>
             {hasWaiveState ? (
                 <FieldRequirementsDirectionToggle
