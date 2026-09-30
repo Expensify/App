@@ -315,14 +315,16 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const isMoneyRequestReportArchived = useReportIsArchived(moneyRequestReport?.reportID);
     const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`);
 
+    // Setup tasks are completed automatically by later setup flows, which fails once the task is deleted
+    const isTaskOwnedByGuideOrConcierge = report.ownerAccountID === CONST.ACCOUNT_ID.CONCIERGE || (!!report.ownerAccountID && !!guideAccountIDs?.includes(report.ownerAccountID));
+    const canDeleteTaskAsPolicyAdmin = isPolicyAdmin && policy?.type !== CONST.POLICY.TYPE.PERSONAL && !isParentReportArchived && !isTaskOwnedByGuideOrConcierge;
     const shouldShowTaskDeleteButton =
         isTaskReport &&
         !isCanceledTaskReport &&
         canWriteInReport(report) &&
         report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED &&
         !isClosedReport(report) &&
-        isTaskModifiable &&
-        isTaskActionable;
+        ((isTaskModifiable && isTaskActionable) || canDeleteTaskAsPolicyAdmin);
     const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport, rules, isMoneyRequestReportArchived) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
