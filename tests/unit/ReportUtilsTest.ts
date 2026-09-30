@@ -141,6 +141,7 @@ import {
     getReportForHeader,
     getReportIDFromLink,
     getReportNotificationPreference,
+    getReportNotificationPreferenceForSettings,
     getReportOrDraftReport,
     getReportPreviewMessage,
     getReportPreviewMessageForCopy,
@@ -165,7 +166,7 @@ import {
     hasEmptyReportsForPolicy,
     hasExpensifyGuidesEmails,
     hasExportError,
-    hasNonReimbursableTransactions,
+    hasOutstandingChildRequest,
     hasReceiptError,
     hasReportBeenForwardedSinceLastSubmit,
     hasSmartscanError,
@@ -185,7 +186,6 @@ import {
     isEmptyReport,
     isGroupPolicyExpenseReport,
     isHarvestCreatedExpenseReport,
-    isInvoiceReport,
     isJoinRequestInAdminRoom,
     isMoneyRequestReportEligibleForMerge,
     isOneOnOneChat,
@@ -5743,6 +5743,63 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
             expect(isChatUsedForOnboarding(report, undefined, conciergeReportID)).toBeFalsy();
+        });
+    });
+
+    describe('canRejectReportAction', () => {
+        const submittedExpenseReport = (id: number, managerID: number) => ({
+            ...createExpenseReport(id),
+            policyID: `reject-policy-${id}`,
+            ownerAccountID: 99999,
+            managerID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        });
+
+        it('should return true for the current manager', () => {
+            const report = submittedExpenseReport(2001, currentUserAccountID);
+            const rejectPolicy = createMock<Policy>({id: report.policyID, role: CONST.POLICY.ROLE.USER});
+
+            expect(canRejectReportAction(report, currentUserAccountID, rejectPolicy)).toBe(true);
+        });
+
+        it('should return true for a policy admin who is not the manager', () => {
+            const report = submittedExpenseReport(2002, 99998);
+            const rejectPolicy = createMock<Policy>({id: report.policyID, role: CONST.POLICY.ROLE.ADMIN});
+
+            expect(canRejectReportAction(report, currentUserAccountID, rejectPolicy)).toBe(true);
+        });
+
+        it('should return false for an admin who is the submitter of the report', () => {
+            const report = {...submittedExpenseReport(2006, 99998), ownerAccountID: currentUserAccountID};
+            const rejectPolicy = createMock<Policy>({id: report.policyID, role: CONST.POLICY.ROLE.ADMIN});
+
+            expect(canRejectReportAction(report, currentUserAccountID, rejectPolicy)).toBe(false);
+        });
+
+        it('should return false for a non-manager, non-admin member', () => {
+            const report = submittedExpenseReport(2003, 99998);
+            const rejectPolicy = createMock<Policy>({id: report.policyID, role: CONST.POLICY.ROLE.USER});
+
+            expect(canRejectReportAction(report, currentUserAccountID, rejectPolicy)).toBe(false);
+        });
+
+        it('should return false for an admin on an archived or pending-delete policy', () => {
+            const report = submittedExpenseReport(2004, 99998);
+            const rejectPolicy = createMock<Policy>({id: report.policyID, role: CONST.POLICY.ROLE.ADMIN, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+
+            expect(canRejectReportAction(report, currentUserAccountID, rejectPolicy)).toBe(false);
+        });
+
+        it('should return false for an admin on a report that is not being processed', () => {
+            const report = {
+                ...submittedExpenseReport(2005, 99998),
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const rejectPolicy = createMock<Policy>({id: report.policyID, role: CONST.POLICY.ROLE.ADMIN});
+
+            expect(canRejectReportAction(report, currentUserAccountID, rejectPolicy)).toBe(false);
         });
     });
 
@@ -12071,13 +12128,15 @@ describe('ReportUtils', () => {
         });
 
         it('should use allReportActionsParam when provided instead of module-level Onyx data', async () => {
-            // Given a submitted expense report with a DEW_APPROVE_FAILED action stored ONLY in the passed param (not in Onyx)
+            // Given a submitted expense report with a DEW_APPROVE_FAILED action stored ONLY in the passed param (not in Onyx),
+            // with the current user as the manager so it passes the approver gate on the DEW branch
             const report: OptionData = {
                 ...createRandomReport(70000, undefined),
                 keyForList: 'SomeKey',
                 type: CONST.REPORT.TYPE.EXPENSE,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                managerID: currentUserAccountID,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
@@ -12103,6 +12162,166 @@ describe('ReportUtils', () => {
             // With the param, the function should find DEW_APPROVE_FAILED from the passed param
             const resultWith = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current, allReportActionsParam);
             expect(resultWith).toHaveProperty('reason', CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
+        });
+
+        describe('DEW approve failed audience', () => {
+            // A failed DEW approval is only actionable by the routed approver, so only they should get the green dot.
+            // Owner A, approver B (managerID) and bystander C are three distinct accounts, because the obvious repro
+            // (someone approving their own report) has ownerAccountID === managerID and cannot tell the two gates apart.
+            const ownerA = 71001;
+            const bystanderC = 71003;
+
+            /** Builds a SUBMITTED DEW expense report plus one active DEW_APPROVE_FAILED action, passed in via the param. */
+            const buildDEWReport = (reportID: number, managerID: number | undefined, automaticAction?: boolean) => {
+                const report: Report = {
+                    ...createExpenseReport(reportID),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    ownerAccountID: ownerA,
+                    managerID,
+                };
+                const dewApproveFailedAction: ReportAction = {
+                    ...createRandomReportAction(reportID),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                    created: '2024-08-08 18:00:00.000',
+                    originalMessage: {message: 'DEW blocked approval', automaticAction},
+                };
+                const allReportActionsParam: OnyxCollection<ReportActions> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {
+                        [dewApproveFailedAction.reportActionID]: dewApproveFailedAction,
+                    },
+                };
+                return {report, allReportActionsParam};
+            };
+
+            it('should return HAS_DEW_APPROVE_FAILED only for the approver, not the owner or a bystander', async () => {
+                // Given a submitted DEW report that failed a manual approval, where the current user is the approver
+                const {report, allReportActionsParam} = buildDEWReport(71010, currentUserAccountID);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+
+                // When the reason is retrieved for the approver
+                const approverResult = getReasonAndReportActionThatRequiresAttention(
+                    report,
+                    currentUserEmail,
+                    currentUserAccountID,
+                    undefined,
+                    isReportArchived.current,
+                    allReportActionsParam,
+                );
+
+                // Then the approver gets the DEW reason, carrying the failure action so the row deep-links to it
+                expect(approverResult?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
+                expect(approverResult?.reportAction?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED);
+
+                // When the same report is viewed by the owner and by an unrelated participant
+                const ownerResult = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, ownerA, undefined, isReportArchived.current, allReportActionsParam);
+                const bystanderResult = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, bystanderC, undefined, isReportArchived.current, allReportActionsParam);
+
+                // Then neither gets the DEW reason, so they get no green dot and no pinned LHN row
+                expect(ownerResult?.reason).not.toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
+                expect(bystanderResult?.reason).not.toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
+            });
+
+            it('should still return HAS_DEW_APPROVE_FAILED for the approver when the failure was an auto-approval block', async () => {
+                // Given an auto-approval block (automaticAction: true), which is still actionable because the Approve
+                // button stays enabled so the approver can approve manually. Only the next step differs, not the green dot.
+                const {report, allReportActionsParam} = buildDEWReport(71020, currentUserAccountID, true);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+
+                // When the reason is retrieved for the approver, the owner and a bystander
+                const approverResult = getReasonAndReportActionThatRequiresAttention(
+                    report,
+                    currentUserEmail,
+                    currentUserAccountID,
+                    undefined,
+                    isReportArchived.current,
+                    allReportActionsParam,
+                );
+                const ownerResult = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, ownerA, undefined, isReportArchived.current, allReportActionsParam);
+                const bystanderResult = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, bystanderC, undefined, isReportArchived.current, allReportActionsParam);
+
+                // Then the approver still gets the dot, and nobody else does
+                expect(approverResult?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
+                expect(ownerResult?.reason).not.toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
+                expect(bystanderResult?.reason).not.toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
+            });
+
+            it('should not return HAS_DEW_APPROVE_FAILED for anyone when managerID is unset', async () => {
+                // Given a DEW report whose managerID the backend has not written yet, so the App cannot identify the approver
+                const {report, allReportActionsParam} = buildDEWReport(71030, undefined);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+
+                // When the reason is retrieved for each account
+                const results = [currentUserAccountID, ownerA, bystanderC].map((accountID) =>
+                    getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, accountID, undefined, isReportArchived.current, allReportActionsParam),
+                );
+
+                // Then the gate fails closed, so nobody gets a dot rather than everybody getting one
+                for (const result of results) {
+                    expect(result?.reason).not.toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
+                }
+            });
+
+            it('should not return HAS_DEW_APPROVE_FAILED for the approver when the report is archived', async () => {
+                // Given an archived DEW report that failed approval, where there is nothing left to action on it
+                const {report, allReportActionsParam} = buildDEWReport(71040, currentUserAccountID);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+
+                // When the reason is retrieved for the approver
+                const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current, allReportActionsParam);
+
+                // Then no reason is returned
+                expect(result).toBe(null);
+            });
+
+            it('should keep DEW precedence over IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION for an approver without parent access', async () => {
+                // Given the hasParentAccess=false fixture that otherwise yields IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION with an
+                // APPROVE badge, plus a DEW approve failure. The bare DEW dot is intentional: it deep-links to the failure message,
+                // and useOptimisticNextStep keys the "fix the issues" next step off this reason.
+                const policyID = 'testPolicyDEW123';
+                const fakePolicy: Policy = {
+                    ...createRandomPolicy(1),
+                    id: policyID,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    type: CONST.POLICY.TYPE.TEAM,
+                };
+                const {report, allReportActionsParam} = buildDEWReport(71050, currentUserAccountID);
+                const expenseReport: Report = {...report, policyID, hasParentAccess: false};
+                const fakeTransaction: Transaction = {
+                    ...createRandomTransaction(0),
+                    reportID: expenseReport.reportID,
+                    amount: 100,
+                    status: CONST.TRANSACTION.STATUS.POSTED,
+                    bank: '',
+                };
+
+                await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved for the approver
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(expenseReport?.reportID));
+                const result = getReasonAndReportActionThatRequiresAttention(
+                    expenseReport,
+                    currentUserEmail,
+                    currentUserAccountID,
+                    undefined,
+                    isReportArchived.current,
+                    allReportActionsParam,
+                );
+
+                // Then the DEW reason still wins over the assignee badge
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
+                expect(result?.actionBadge).toBeUndefined();
+            });
         });
 
         it('should return null for an archived report when there is a policy pending join request', async () => {
@@ -12869,6 +13088,51 @@ describe('ReportUtils', () => {
                 },
             };
             expect(getReportNotificationPreference(report, 999)).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+        });
+    });
+
+    describe('getReportNotificationPreferenceForSettings', () => {
+        it.each([CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, CONST.REPORT.CHAT_TYPE.POLICY_ROOM, undefined])(
+            'should only use the report default for an empty preference in an admins room (chatType: %s)',
+            (chatType) => {
+                // Given a known participant whose legacy notification preference is empty
+                const participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
+                Object.defineProperty(participant, 'notificationPreference', {value: '', configurable: true});
+                const report: Report = {
+                    ...createRandomReport(0, chatType),
+                    participants: {321: participant},
+                };
+
+                // When resolving the preference displayed in settings
+                const preference = getReportNotificationPreferenceForSettings(report, 321);
+
+                // Then only admins rooms receive the default; other chats retain the hidden fallback
+                expect(preference).toBe(chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+            },
+        );
+
+        it.each(Object.values(CONST.REPORT.NOTIFICATION_PREFERENCE))('should preserve an explicit %s preference in an admins room', (notificationPreference) => {
+            // Given an admins room participant with an explicit preference
+            const report: Report = {
+                ...createRandomReport(0, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
+                participants: {321: {notificationPreference}},
+            };
+
+            // When resolving the preference displayed in settings
+            const preference = getReportNotificationPreferenceForSettings(report, 321);
+
+            // Then the saved preference, including hidden, is preserved
+            expect(preference).toBe(notificationPreference);
+        });
+
+        it('should default to hidden for a non-participant', () => {
+            const report: Report = {
+                ...createRandomReport(0, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
+                participants: {
+                    321: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            expect(getReportNotificationPreferenceForSettings(report, 999)).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
         });
     });
 
@@ -15497,7 +15761,9 @@ describe('ReportUtils', () => {
             2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
             3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY},
             4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            5: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
         });
+        Object.defineProperty(mockParticipants[5], 'notificationPreference', {value: '', configurable: true});
 
         const mockReportMetadata = createMock<OnyxEntry<ReportMetadata>>({
             pendingChatMembers: [
@@ -15534,6 +15800,13 @@ describe('ReportUtils', () => {
             });
             expect(result).toEqual([1, 3, 4]);
             expect(result).not.toContain(2); // participant 2 has 'hidden' notification preference
+        });
+
+        it('should include participants with no notification preference when shouldExcludeHidden is true', () => {
+            const filteredParticipantIDs = excludeParticipantsForDisplay([5], mockParticipants, mockReportMetadata, {
+                shouldExcludeHidden: true,
+            });
+            expect(filteredParticipantIDs).toEqual([5]);
         });
 
         it('should exclude deleted participants when shouldExcludeDeleted is true', () => {
@@ -16457,6 +16730,59 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined)).toBe(true);
+        });
+
+        it('should return true when preventSelfApproval is true, report is open, and the submitter is the first of several approvers', async () => {
+            // Given an advanced-workflow policy where the submitter submits to themselves and then forwards to a second approver,
+            // so the submitter is the first approver in the chain rather than the last one
+            const secondApproverEmail = 'owner@test.com';
+            const secondApproverAccountID = 43;
+            const policyWithPreventOn: Policy = {
+                ...createRandomPolicy(101),
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                preventSelfApproval: true,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: secondApproverEmail,
+                owner: secondApproverEmail,
+                employeeList: {
+                    [currentUserEmail]: {
+                        email: currentUserEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                        submitsTo: currentUserEmail,
+                        forwardsTo: secondApproverEmail,
+                    },
+                    [secondApproverEmail]: {
+                        email: secondApproverEmail,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        submitsTo: '',
+                    },
+                },
+            };
+            const report: Report = {
+                ...createExpenseReport(1),
+                reportID: 'prevent-self-report-open-first-approver',
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithPreventOn);
+            await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserEmail},
+                [secondApproverAccountID]: {accountID: secondApproverAccountID, login: secondApproverEmail},
+            });
+            await waitForBatchedUpdates();
+
+            // When the next approver is somebody else, because getNextApproverAccountID skips past the submitter's own hop
+            expect(getNextApproverAccountID(report, undefined)).toBe(secondApproverAccountID);
+
+            // Then submitting is still blocked, because the report is being submitted to the submitter themselves
             expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined)).toBe(true);
         });
 
@@ -19710,6 +20036,32 @@ describe('ReportUtils', () => {
                 // The hardcoded English string must match the en.ts translation produced by the localized function
                 expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}));
                 expect(result).toContain('owes');
+            });
+
+            it('returns the English "spent" message when the report contains a non-reimbursable transaction, and matches en.ts', async () => {
+                const report: Report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    reportID: 'preview-en-spent-report',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    currency: CONST.CURRENCY.USD,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+                const transaction: Transaction = {
+                    ...createRandomTransaction(90001),
+                    reportID: report.reportID,
+                    reimbursable: false,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await waitForBatchedUpdates();
+
+                const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
+                const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
+
+                // The hardcoded English string must match the en.ts translation produced by the localized function
+                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}));
+                expect(result).toContain('spent');
             });
         });
     });
@@ -25693,56 +26045,6 @@ describe('getAllPolicyExpenseChatReportActions', () => {
     });
 });
 
-describe('hasNonReimbursableTransactions', () => {
-    it('returns false when all transactions are reimbursable', () => {
-        const transactions: Transaction[] = [
-            {...createRandomTransaction(1), reimbursable: true},
-            {...createRandomTransaction(2), reimbursable: true},
-        ];
-        expect(hasNonReimbursableTransactions(undefined, transactions)).toBe(false);
-    });
-
-    it('returns true when at least one transaction is non-reimbursable', () => {
-        const transactions: Transaction[] = [
-            {...createRandomTransaction(1), reimbursable: true},
-            {...createRandomTransaction(2), reimbursable: false},
-        ];
-        expect(hasNonReimbursableTransactions(undefined, transactions)).toBe(true);
-    });
-
-    it('returns false for an empty transaction list', () => {
-        expect(hasNonReimbursableTransactions(undefined, [])).toBe(false);
-    });
-});
-
-describe('isInvoiceReport', () => {
-    it('returns true for invoice reports passed as object', () => {
-        const invoiceReport = {
-            ...LHNTestUtils.getFakeReport(),
-            type: CONST.REPORT.TYPE.INVOICE,
-        };
-        expect(isInvoiceReport(invoiceReport)).toBe(true);
-    });
-
-    it('returns false for non-invoice reports passed as object', () => {
-        const expenseReport = {
-            ...LHNTestUtils.getFakeReport(),
-            type: CONST.REPORT.TYPE.EXPENSE,
-        };
-        expect(isInvoiceReport(expenseReport)).toBe(false);
-    });
-
-    it('returns false for null/undefined', () => {
-        expect(isInvoiceReport(null)).toBe(false);
-        expect(isInvoiceReport(undefined)).toBe(false);
-    });
-
-    it('returns false for a report with no type', () => {
-        const report = LHNTestUtils.getFakeReport();
-        expect(isInvoiceReport(report)).toBe(false);
-    });
-});
-
 describe('getTransactionsWithReceipts', () => {
     it('returns only transactions that have a receipt (scan receipt or eReceipt)', () => {
         const withScanReceipt: Transaction = {...createRandomTransaction(1), hasEReceipt: false, receipt: {state: CONST.IOU.RECEIPT_STATE.OPEN}};
@@ -26010,5 +26312,63 @@ describe('getPendingChatMembers', () => {
         const result = getPendingChatMembers(accountIDs, previousPendingChatMembers, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
         expect(result).toEqual(previousPendingChatMembers);
+    });
+});
+
+describe('hasOutstandingChildRequest', () => {
+    const invoiceChatReportID = '9301';
+    const invoiceReportID = '9302';
+
+    // An invoice chat whose individual receiver is the current user, so the child invoice is payable by them
+    const invoiceChatReport: Report = {
+        ...createRandomReport(Number(invoiceChatReportID), CONST.REPORT.CHAT_TYPE.INVOICE),
+        reportID: invoiceChatReportID,
+        invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: currentUserAccountID},
+    };
+
+    const invoiceReport: Report = {
+        ...createRandomReport(Number(invoiceReportID), undefined),
+        reportID: invoiceReportID,
+        type: CONST.REPORT.TYPE.INVOICE,
+        chatReportID: invoiceChatReportID,
+        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+        statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+    };
+
+    const previewAction = {
+        ...createRandomReportAction(1),
+        actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+        originalMessage: {linkedReportID: invoiceReportID},
+        pendingAction: undefined,
+    };
+
+    beforeEach(async () => {
+        // Given the invoice chat holds a report preview action linking to the invoice report
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoiceChatReportID}`, {[previewAction.reportActionID]: previewAction});
+        await waitForBatchedUpdates();
+    });
+
+    afterEach(() => Onyx.clear());
+
+    it('should return true when the chat has an invoice preview the current user can pay', () => {
+        // When checking the chat for outstanding child requests
+        // Then the payable invoice counts as an outstanding child request
+        expect(hasOutstandingChildRequest(invoiceChatReport, invoiceReport, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(true);
+    });
+
+    it('should return false when the invoice chat report is archived', async () => {
+        // When the invoice chat is archived — the archived state is resolved from the chat report's RNVP inside the function
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${invoiceChatReportID}`, {private_isArchived: DateUtils.getDBTime()});
+        await waitForBatchedUpdates();
+
+        // Then the invoice is no longer payable, so there is no outstanding child request
+        expect(hasOutstandingChildRequest(invoiceChatReport, invoiceReport, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
+    });
+
+    it('should return false when the linked invoice report is excluded by ID', () => {
+        // When the invoice report is passed by ID, it is excluded from the check (callers use this to ask
+        // "does the chat have any OTHER outstanding children")
+        // Then no other child remains, so there is no outstanding child request
+        expect(hasOutstandingChildRequest(invoiceChatReport, invoiceReportID, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
     });
 });
