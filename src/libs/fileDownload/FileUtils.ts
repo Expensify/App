@@ -189,15 +189,23 @@ function getExtensionFromMimeType(mimeType: string | undefined): string | undefi
 }
 
 /**
+ * Whether a MIME type says nothing about the file's contents. Web reports `''` for a file it can't
+ * identify, and the Android document picker reports `application/octet-stream` for an extensionless file.
+ */
+function isUnknownMimeType(mimeType: string | undefined): boolean {
+    return !mimeType || mimeType === 'application/octet-stream';
+}
+
+/**
  * Adds an extension to a file name that has none, recovering it from the file's MIME type.
  * Some pickers hand us a name with no extension at all (an Android `content://` URI resolves to a bare
  * numeric segment, and the document picker can return `name: null`), and such a file downloads as a
  * bare blob the OS treats as a generic document even though the bytes are valid.
- * The name is returned unchanged when it already has an extension or the MIME type can't be resolved,
- * because a wrong extension is worse than no extension.
+ * The name is returned unchanged when it already has an extension or the MIME type is unknown or can't be
+ * resolved, because a wrong or meaningless extension (such as `.bin`) is worse than no extension.
  */
 function appendExtensionFromMimeType(fileName: string, mimeType: string | undefined): string {
-    if (!fileName || splitExtensionFromFileName(fileName).fileExtension) {
+    if (!fileName || isUnknownMimeType(mimeType) || splitExtensionFromFileName(fileName).fileExtension) {
         return fileName;
     }
 
@@ -992,6 +1000,7 @@ export {
     splitExtensionFromFileName,
     getMimeType,
     getExtensionFromMimeType,
+    isUnknownMimeType,
     appendExtensionFromMimeType,
     getFileName,
     getFileNameWithFallback,

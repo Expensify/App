@@ -621,6 +621,13 @@ describe('FileUtils', () => {
             expect(appendExtensionFromMimeType('1000000042', undefined)).toBe('1000000042');
         });
 
+        it('should leave the name alone for application/octet-stream instead of adding .bin', () => {
+            // Given a name with no extension whose MIME type is the generic one the Android document picker reports
+            // When the extension is recovered
+            // Then no meaningless .bin extension is added
+            expect(appendExtensionFromMimeType('1000000042', 'application/octet-stream')).toBe('1000000042');
+        });
+
         it('should return an empty name unchanged', () => {
             // Given no name at all
             // When an extension is requested
