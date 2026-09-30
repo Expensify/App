@@ -32,6 +32,17 @@ describe('insightsFilterParsing', () => {
             expect(parsed).toEqual(filters);
         });
 
+        it.each(Object.values(CONST.SEARCH.COMPARE))('reads back a dashboard compared against %s', (compare) => {
+            // Given a dashboard drawn against a comparison
+            const filters: InsightsFilters = {...FILTERS, compare};
+
+            // When its stored query is read back
+            const parsed = parseInsightsFilters(buildInsightsQueryString(filters));
+
+            // Then the comparison survives the round trip, so the page reopens with it still drawn
+            expect(parsed.compare).toBe(compare);
+        });
+
         it('tells a preset apart from a day that happens to be stored the same way', () => {
             // Given two dashboards, one on a preset and one on a literal day, which the query writes with the same `date:` operator
             const preset = parseInsightsFilters(buildInsightsQueryString({...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH}}));
