@@ -42,10 +42,13 @@ function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: b
     if (isWaitingForData) {
         return INSIGHTS_DASHBOARD_STATE.LOADING;
     }
+    if (chartStates.some(({hasRows}) => hasRows)) {
+        return INSIGHTS_DASHBOARD_STATE.READY;
+    }
     if (dashboard?.hasResults === false) {
         return INSIGHTS_DASHBOARD_STATE.NO_EXPENSES;
     }
-    if (chartStates.every(({isLoaded}) => isLoaded) && !chartStates.some(({hasRows}) => hasRows)) {
+    if (chartStates.every(({isLoaded}) => isLoaded)) {
         return INSIGHTS_DASHBOARD_STATE.EMPTY;
     }
     return INSIGHTS_DASHBOARD_STATE.READY;

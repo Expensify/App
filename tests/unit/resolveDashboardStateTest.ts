@@ -109,6 +109,15 @@ describe('getDashboardState', () => {
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.NO_EXPENSES);
     });
 
+    it('draws the charts when rows loaded after a response said the account had no expenses', () => {
+        // Given a stored response from before the account's first expense, and a chart snapshot Search has since filled with rows
+        // When the page's state is resolved
+        const state = getDashboardState({...LOADED_DASHBOARD, hasResults: false}, true, makeCharts(SNAPSHOT_WITH_ROWS, undefined));
+
+        // Then the rows win, since they prove the stored `hasResults` is stale
+        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.READY);
+    });
+
     it('says the filters matched nothing when every chart came back without rows', () => {
         // Given an account with expenses and no grouped rows in any chart's snapshot
         // When the page's state is resolved
