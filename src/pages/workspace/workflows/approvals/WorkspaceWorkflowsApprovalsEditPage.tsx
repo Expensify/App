@@ -129,7 +129,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             if (isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)) {
                 Navigation.dismissModal({
                     afterTransition: () => {
-                        updateApprovalWorkflowRules({approvalWorkflow: workflowToSave, initialApprovalWorkflow, policy, rules: rulesCollection});
+                        updateApprovalWorkflowRules({approvalWorkflow: workflowToSave, initialApprovalWorkflow, policy, rules: rulesCollection, defaultApprovalWorkflow});
                     },
                 });
                 return;

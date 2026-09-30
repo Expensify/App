@@ -436,6 +436,7 @@ type SearchParams = {
     prevReportsLength?: number;
     shouldCalculateTotals: boolean;
     isLoading: boolean;
+    shouldSaveRecentSearch?: boolean;
 };
 
 type BankAccountMenuItem = {
