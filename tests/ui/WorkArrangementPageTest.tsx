@@ -14,6 +14,7 @@ import WorkArrangementPage from '@pages/workspace/members/WorkArrangementPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList, Policy} from '@src/types/onyx';
 
 import type React from 'react';
@@ -22,6 +23,8 @@ import type {PropsWithChildren} from 'react';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import getOnyxValue from '../utils/getOnyxValue';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/HeaderWithBackButton', () => jest.fn(() => null));
 jest.mock('@components/ScreenWrapper', () => jest.fn(({children}: PropsWithChildren) => children));
@@ -61,7 +64,7 @@ describe('WorkArrangementPage', () => {
     const policyID = 'policy123';
     const accountID = 12345;
     const memberLogin = 'member@example.com';
-    const personalDetails = {[accountID]: {login: memberLogin}};
+    const personalDetails: PersonalDetailsList = {[accountID]: createMock<PersonalDetails>({accountID, login: memberLogin})};
     const mockedHeader = jest.mocked(HeaderWithBackButton);
     const policy = {
         id: policyID,
@@ -81,14 +84,18 @@ describe('WorkArrangementPage', () => {
         jest.mocked(canMemberWrite).mockReturnValue(true);
         await act(async () => {
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, {});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`, null);
         });
     });
 
-    const getPage = (routeAccountID = accountID, details: PersonalDetailsList = personalDetails, pagePolicy: Policy = createMock<Policy>(policy)) => {
+    const getPage = (routeAccountID = accountID, details: PersonalDetailsList = personalDetails, pagePolicy: Policy = createMock<Policy>(policy), isInviteFlow = false) => {
         const props = createMock<WorkArrangementPageTestProps>({
             policy: pagePolicy,
             personalDetails: details,
-            route: {params: {policyID, accountID: String(routeAccountID)}},
+            route: isInviteFlow
+                ? {name: SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT, params: {policyID}}
+                : {name: SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT, params: {policyID, accountID: String(routeAccountID)}},
         });
         // The HOC mock exposes the wrapped screen directly, which accepts the policy prop that the production HOC normally injects.
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the test HOC mock returns the unwrapped component with its injected policy props restored
@@ -143,6 +150,28 @@ describe('WorkArrangementPage', () => {
         // Then the update is requested and the member details page is shown
         expect(setEmployeeWorkArrangement).toHaveBeenCalledWith(policy, [accountID], true, personalDetails, expect.any(Function));
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+    });
+
+    it('updates the invite draft and returns to invite confirmation when a different option is selected', async () => {
+        // Given the work arrangement editor was opened from invite confirmation for an unsent invitee
+        const inviteAccountID = 23456;
+        const invitePolicy = createMock<Policy>({...policy, employeeList: {}});
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, {[memberLogin]: inviteAccountID});
+        });
+        render(getPage(inviteAccountID, {[inviteAccountID]: createMock<PersonalDetails>({accountID: inviteAccountID, login: memberLogin})}, invitePolicy, true));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin selects office-based
+        await act(async () => {
+            await getSelectionListProps()?.onSelectRow?.({value: true});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only the invite arrangement draft changes and the editor returns to confirmation
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`)).toBe(true);
+        expect(setEmployeeWorkArrangement).not.toHaveBeenCalled();
+        expect(Navigation.goBack).toHaveBeenCalledWith(`workspaces/${policyID}/invite-message`);
     });
 
     it('uses the resolved account ID for the first arrangement change after an offline invite syncs', async () => {

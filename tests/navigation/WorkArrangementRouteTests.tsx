@@ -41,6 +41,24 @@ describe('Work arrangement route', () => {
         }
     }
 
+    function findInviteScreenPath(screens: unknown): string | undefined {
+        if (!isRecord(screens)) {
+            return undefined;
+        }
+
+        for (const [screenName, configEntry] of Object.entries(screens)) {
+            if (screenName === SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT && isRecord(configEntry) && typeof configEntry.path === 'string') {
+                return configEntry.path;
+            }
+            if (isRecord(configEntry) && 'screens' in configEntry) {
+                const path = findInviteScreenPath(configEntry.screens);
+                if (path) {
+                    return path;
+                }
+            }
+        }
+    }
+
     it('builds the member selector path from the policy and account IDs', () => {
         // Given a workspace policy and a member account
         const policyID = 'policy123';
@@ -87,6 +105,28 @@ describe('Work arrangement route', () => {
             expect.objectContaining({
                 name: SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT,
                 params: {policyID: 'policy123', accountID: '12345'},
+            }),
+        );
+    });
+
+    it('registers the invite arrangement editor under the invite confirmation route', () => {
+        // Given the invite-specific work arrangement route
+        const policyID = 'policy123';
+        const path = ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.getRoute(policyID);
+
+        // When the invite route is parsed
+        const settingsState = getStateFromPath(path)
+            .routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)
+            ?.state?.routes.find((route) => route.name === SCREENS.RIGHT_MODAL.SETTINGS)?.state;
+
+        // Then it resolves to the invite editor and can return to the invite confirmation route
+        expect(ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.route).toBe('workspaces/:policyID/invite-message/work-arrangement');
+        expect(findInviteScreenPath(config?.screens)).toBe(ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.route);
+        expect(WORKSPACE_TO_RHP[SCREENS.WORKSPACE.MEMBERS]).toContain(SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT);
+        expect(settingsState?.routes.at(-1)).toEqual(
+            expect.objectContaining({
+                name: SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT,
+                params: {policyID},
             }),
         );
     });

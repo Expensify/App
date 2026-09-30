@@ -1291,6 +1291,14 @@ function clearWorkspaceInviteRoleDraft(policyID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`, null);
 }
 
+function setWorkspaceInviteWorkArrangementDraft(policyID: string, hasOfficeWorkArrangement: boolean) {
+    return Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`, hasOfficeWorkArrangement);
+}
+
+function clearWorkspaceInviteWorkArrangementDraft(policyID: string) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`, null);
+}
+
 function setWorkspaceInviteApproverDraft(policyID: string, approverEmail: string) {
     if (!approverEmail) {
         return;
@@ -1487,6 +1495,8 @@ export {
     openPolicyMemberProfilePage,
     setWorkspaceInviteRoleDraft,
     clearWorkspaceInviteRoleDraft,
+    setWorkspaceInviteWorkArrangementDraft,
+    clearWorkspaceInviteWorkArrangementDraft,
     setWorkspaceInviteApproverDraft,
     clearWorkspaceInviteApproverDraft,
     setImportedSpreadsheetMemberData,
