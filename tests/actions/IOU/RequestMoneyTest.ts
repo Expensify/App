@@ -43,6 +43,7 @@ import type {MockFetch} from '../../utils/TestHelper';
 
 import currencyList from '../../unit/currencyList.json';
 import createPersonalDetails from '../../utils/collections/personalDetails';
+import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
@@ -1661,7 +1662,7 @@ describe('actions/IOU', () => {
                     payeeAccountID: RORY_ACCOUNT_ID,
                     participant: {reportID: workspaceChat.reportID, isPolicyExpenseChat: true},
                 },
-                policyParams: {policy: {id: 'A', autoCategorizeNewExpenses: false} as Policy},
+                policyParams: {policy: {...createRandomPolicy(1), id: 'A', autoCategorizeNewExpenses: false}},
                 transactionParams: {
                     amount: 100,
                     attendees: [],
