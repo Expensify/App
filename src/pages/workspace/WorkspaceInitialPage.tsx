@@ -253,8 +253,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     )}
                     <Header.Title
                         title={policyName}
-                        isHeadline
-                        titleStyles={styles.noWrap}
+                        titleStyles={[styles.textHeadlineH2, styles.noWrap]}
                     />
                     <Header.Right>
                         {shouldUseNarrowLayout && <SidePanelButton />}
