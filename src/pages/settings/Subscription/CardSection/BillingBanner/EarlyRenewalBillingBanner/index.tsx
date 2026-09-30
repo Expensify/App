@@ -1,9 +1,8 @@
-/** Displays the billing owner's early renewal offer above their payment details. */
+/** The billing owner's early renewal offer, shown above their payment details when CardSection finds them eligible. */
 import Button from '@components/Button';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useEarlyRenewalConfirmation from '@hooks/useEarlyRenewalConfirmation';
-import useEarlyRenewalPeriod from '@hooks/useEarlyRenewalPeriod';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -19,24 +18,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 
-import type EarlyRenewalBillingBannerProps from './types';
-
-function EarlyRenewalBillingBanner({fallback}: EarlyRenewalBillingBannerProps) {
-    const [eligibility, eligibilityMetadata] = useOnyx(ONYXKEYS.EARLY_RENEWAL_OFFER_ELIGIBILITY);
-    const {isNonIncentivizedPeriod} = useEarlyRenewalPeriod();
+function EarlyRenewalBillingBanner() {
+    const [eligibility] = useOnyx(ONYXKEYS.EARLY_RENEWAL_OFFER_ELIGIBILITY);
     const showEarlyRenewalConfirmation = useEarlyRenewalConfirmation();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['MoneyBadge']);
 
-    if (eligibilityMetadata.status !== 'loaded' || !eligibility?.canClaim || !isNonIncentivizedPeriod) {
-        return fallback;
-    }
-
     return (
         <OfflineWithFeedback
-            errors={eligibility.errors}
+            errors={eligibility?.errors}
             onClose={clearEarlyRenewalOfferErrors}
             errorRowStyles={[styles.ph5, styles.pb4]}
         >
@@ -47,7 +39,7 @@ function EarlyRenewalBillingBanner({fallback}: EarlyRenewalBillingBannerProps) {
                 rightComponent={
                     <Button
                         isDisabled={isOffline}
-                        isLoading={!!eligibility.pendingAction}
+                        isLoading={!!eligibility?.pendingAction}
                         onPress={showEarlyRenewalConfirmation}
                         size={CONST.BUTTON_SIZE.SMALL}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}

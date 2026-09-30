@@ -6,6 +6,7 @@ import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useEarlyRenewalPeriod from '@hooks/useEarlyRenewalPeriod';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -63,6 +64,8 @@ function CardSection() {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'Bill', 'Close']);
     const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes']);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [earlyRenewalEligibility, earlyRenewalEligibilityMetadata] = useOnyx(ONYXKEYS.EARLY_RENEWAL_OFFER_ELIGIBILITY);
+    const {isNonIncentivizedPeriod} = useEarlyRenewalPeriod();
     const privateSubscription = usePrivateSubscription();
     const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
     const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION);
@@ -227,9 +230,12 @@ function CardSection() {
     };
 
     let BillingBanner: React.ReactNode | undefined;
-    // Checked before the trial banners because the pre-trial check also passes when the free trial NVPs are absent,
-    // which an annual subscriber can have
-    if (shouldShowSubscriptionExpiringSoonUI(privateSubscription)) {
+    // Renewing early also resolves an expiring subscription, so the offer wins over every other non-error banner
+    if (earlyRenewalEligibilityMetadata.status === 'loaded' && earlyRenewalEligibility?.canClaim && isNonIncentivizedPeriod) {
+        BillingBanner = <EarlyRenewalBillingBanner />;
+    } else if (shouldShowSubscriptionExpiringSoonUI(privateSubscription)) {
+        // Checked before the trial banners because the pre-trial check also passes when the free trial NVPs are absent,
+        // which an annual subscriber can have
         BillingBanner = <SubscriptionExpiringSoonBanner endDate={privateSubscription?.endDate} />;
     } else if (shouldShowDiscountBanner(session?.accountID, hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, allPolicies)) {
         BillingBanner = <EarlyDiscountBanner isSubscriptionPage />;
@@ -261,7 +267,7 @@ function CardSection() {
             isCentralPane
             titleStyles={styles.textStrong}
             subtitleMuted
-            banner={billingStatus ? BillingBanner : <EarlyRenewalBillingBanner fallback={BillingBanner} />}
+            banner={BillingBanner}
         >
             {!isEmptyObject(defaultCard?.accountData) && (
                 <View style={[styles.mt8, styles.mb3, styles.flexRow]}>
