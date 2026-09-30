@@ -89,10 +89,9 @@ function renderPicker() {
             <LocaleContextProvider>
                 <AttachmentPicker shouldSkipAttachmentTypeModal>
                     {({openPicker}) => (
-                        <Button
-                            text="Choose file"
-                            onPress={() => openPicker({onPicked, onCanceled, onClosed})}
-                        />
+                        <Button onPress={() => openPicker({onPicked, onCanceled, onClosed})}>
+                            <Button.Text>Choose file</Button.Text>
+                        </Button>
                     )}
                 </AttachmentPicker>
             </LocaleContextProvider>
