@@ -825,7 +825,9 @@ describe('actions/IOU', () => {
             const update = result?.optimisticData?.find((u) => u.key === snapshotKey);
             const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
             expect(update?.value).toHaveProperty(['data', transactionKey, 'modifiedCreated'], '2026-09-18');
-            const snapshotTransaction = (update?.value as SearchResultDataType | undefined)?.data?.[transactionKey as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`] as Transaction;
+            const snapshotTransaction = (update?.value as {data?: SearchResultDataType} | undefined)?.data?.[
+                transactionKey as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`
+            ] as Transaction;
             const monthGroup = createMock<TransactionMonthGroupListItemType>({groupedBy: CONST.SEARCH.GROUP_BY.MONTH, year: 2026, month: 9});
             expect(isTransactionMatchWithGroupItem(snapshotTransaction, monthGroup, CONST.SEARCH.GROUP_BY.MONTH)).toBe(true);
         });
