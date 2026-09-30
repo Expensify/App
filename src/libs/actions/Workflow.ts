@@ -5,6 +5,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getDefaultApprover} from '@libs/PolicyUtils';
 import type {ApprovalWorkflowRulesDiff} from '@libs/WorkflowUtils';
 import {
+    addMembersToRule,
     applyApprovalWorkflowRulesDiff,
     buildApprovalWorkflowRules,
     buildApprovalWorkflowRulesForSave,
@@ -424,10 +425,13 @@ type UpdateApprovalWorkflowRulesParams = {
     initialApprovalWorkflow: ApprovalWorkflow;
     policy: OnyxEntry<Policy>;
     rules: OnyxCollection<Rule>;
+
+    /** The policy's default workflow, which members taken out of this workflow go back to. */
+    defaultApprovalWorkflow?: ApprovalWorkflow;
 };
 
 /** Update an existing workflow using the rules-based backend structure. */
-function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy, rules}: UpdateApprovalWorkflowRulesParams) {
+function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy, rules, defaultApprovalWorkflow}: UpdateApprovalWorkflowRulesParams) {
     if (!policy) {
         return;
     }
@@ -454,20 +458,29 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
     });
     const chainDiff = reconcileApprovalWorkflowRulesForEdit(newRules, newMemberEmails, {existingRules: rulesAfterMembers});
 
-    const rulesDiff = {...removeFromOthersDiff, ...memberDiff, ...chainDiff};
+    // 4. Members taken out of this workflow go back to the default workflow.
+    const returnToDefaultDiff = buildReturnToDefaultWorkflowDiff({
+        approvalWorkflow: {...initialApprovalWorkflow, members: initialApprovalWorkflow.members.filter((member) => !newMemberEmails.includes(member.email))},
+        defaultApprovalWorkflow,
+        existingRules: applyApprovalWorkflowRulesDiff(rulesAfterMembers, chainDiff),
+        employees: policy.employeeList ?? {},
+        defaultApprover: getDefaultApprover(policy),
+    });
+
+    const rulesDiff = {...removeFromOthersDiff, ...memberDiff, ...chainDiff, ...returnToDefaultDiff};
 
     setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousRules: rules});
     updatePolicyDefaultApprover(approvalWorkflow, policy);
 }
 
 type BuildReturnToDefaultWorkflowDiffParams = {
-    /** The workflow being deleted, whose members are returning to the default workflow. */
+    /** The workflow these members are leaving, because it is deleted or they are taken out of it, listing only them. */
     approvalWorkflow: ApprovalWorkflow;
 
     /** The policy's default workflow, or undefined when the page couldn't resolve one. */
     defaultApprovalWorkflow: ApprovalWorkflow | undefined;
 
-    /** The policy's rules with the deleted workflow's rules already taken out. */
+    /** The policy's rules with these members already taken out of the workflow they are leaving. */
     existingRules: Record<string, ApprovalWorkflowRule>;
 
     /** The policy's employees, used to check where these members would fall back to without rules. */
@@ -478,7 +491,7 @@ type BuildReturnToDefaultWorkflowDiffParams = {
 };
 
 /**
- * List a deleted workflow's members in the default workflow's rules.
+ * List the members leaving a workflow in the default workflow's rules.
  */
 function buildReturnToDefaultWorkflowDiff({
     approvalWorkflow,
@@ -500,18 +513,28 @@ function buildReturnToDefaultWorkflowDiff({
         return foldDiff;
     }
 
+    // A policy has a single default workflow, so when its rules route differently from the chain we were handed, the
+    // members still join those rules. New rules declaring themselves default would stand up a second default workflow.
+    if (hasRuleBasedDefault) {
+        return Object.fromEntries(
+            Object.entries(existingRules)
+                .filter(([, rule]) => !!rule.isDefaultApprovalWorkflow)
+                .map(([ruleID, rule]) => [ruleID, addMembersToRule(rule, memberEmails)]),
+        );
+    }
+
     if (memberEmails.every((email) => employees[email]?.submitsTo === defaultApprover)) {
         return {};
     }
 
-    return hasRuleBasedDefault ? foldDiff : reconcileApprovalWorkflowRulesForCreate(buildDefaultRules(true), memberEmails, {existingRules});
+    return reconcileApprovalWorkflowRulesForCreate(buildDefaultRules(true), memberEmails, {existingRules});
 }
 
 /**
  * Delete an approval workflow using the rules-based backend structure.
  *
- * Returns false without calling the API when this policy has no rules covering the workflow's members, so the
- * caller can fall back to the `employeeList` path.
+ * Returns false without calling the API when neither the workflow's members nor the default workflow have rules, so
+ * the caller can fall back to the `employeeList` path.
  */
 function removeApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>, rules: OnyxCollection<Rule>, defaultApprovalWorkflow?: ApprovalWorkflow): boolean {
     if (!policy) {
@@ -522,7 +545,9 @@ function removeApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow, policy:
     const memberEmails = getWorkflowMemberEmails(approvalWorkflow.members);
     const removeDiff = reconcileApprovalWorkflowRulesForRemove(memberEmails, {existingRules});
 
-    if (isEmptyObject(removeDiff)) {
+    // Members no rule covers still join a rule-backed default workflow through its rules, since the backend rejects
+    // `employeeList` routing changes once a policy's approvals are rule-based.
+    if (isEmptyObject(removeDiff) && !hasRuleBasedDefaultWorkflow(existingRules)) {
         return false;
     }
 

@@ -5278,9 +5278,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             journalEntriesProvTaxPostingAccount: '日记账分录省税过账科目',
             foreignCurrencyAmount: '导出外币金额',
             exportToNextOpenPeriod: '导出到下一个未结会计期间',
-            exportToNextOpenPeriodLockedSubtitle: '要禁用导出到下一个未结会计期间，请先禁用按期间拆分不可报销导出。',
-            splitExportsByPostingPeriod: '按过账期间拆分导出',
-            splitExportsByPostingPeriodSubtitle: '启用导出到下一个未结会计期间，以在 NetSuite 中启用按期间拆分不可报销导出',
             nonReimbursableJournalPostingAccount: '不可报销日记账入账科目',
             reimbursableJournalPostingAccount: '可报销日记账过账科目',
             journalPostingPreference: {
@@ -7214,6 +7211,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: '若要解锁，请启用自动同步。',
             campfire: 'Campfire',
             businessCentral: 'Dynamics 365 Business Central',
+            qboConnectionExpiring: ({date}: {date: string}) => `您的 QuickBooks Online 连接将于 ${date} 过期。`,
+            qboConnectionExpired: ({date}: {date: string}) => `您与 QuickBooks Online 的连接已于 ${date} 过期。`,
         },
         export: {
             notReadyHeading: '尚未准备好导出',
