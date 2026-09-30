@@ -134,12 +134,12 @@ function TabNavigator() {
                 component={InsightsPageScreen}
             />
             <Tab.Screen
-                name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                component={SettingsSplitNavigatorScreen}
-            />
-            <Tab.Screen
                 name={NAVIGATORS.WORKSPACE_NAVIGATOR}
                 component={WorkspaceNavigatorScreen}
+            />
+            <Tab.Screen
+                name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
+                component={SettingsSplitNavigatorScreen}
             />
         </Tab.Navigator>
     );

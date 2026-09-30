@@ -10,7 +10,6 @@ import SCREENS from '@src/SCREENS';
 
 import type {NativeBottomTabIcon} from '@react-navigation/bottom-tabs/unstable';
 
-/** The glyph each native tab draws, keyed by the tab's route name. The bar tints them for both selection states. */
 const NATIVE_TAB_ICONS = {
     [SCREENS.HOME]: {type: 'image', source: homeIcon},
     [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: {type: 'image', source: inboxIcon},

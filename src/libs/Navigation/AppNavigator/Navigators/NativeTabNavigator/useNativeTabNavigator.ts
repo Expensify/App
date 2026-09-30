@@ -3,6 +3,7 @@ import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_
 import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROUTE_TO_NAVIGATION_TAB';
 
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
+import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
@@ -10,10 +11,11 @@ import useTheme from '@hooks/useTheme';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 
 import {getPreservedNavigatorState, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import {NAVIGATION_TAB_TO_SPANS} from '@libs/Navigation/AppNavigator/Navigators/TabNavigatorBar';
 import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
-import cancelTabNavigationSpans, {INBOX_TAB_SPAN_IDS, REPORTS_TAB_SPAN_IDS} from '@libs/telemetry/cancelTabNavigationSpans';
+import cancelTabNavigationSpans from '@libs/telemetry/cancelTabNavigationSpans';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -21,12 +23,9 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import type {NavigationAction, NavigationState, PartialState, Router, TabNavigationState} from '@react-navigation/native';
-import type {ValueOf} from 'type-fest';
 
 import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
 import {useEffect} from 'react';
-
-import tabScreenListeners from './tabScreenListeners';
 
 /**
  * Root-level tab screens where the swipe-back gesture should be disabled.
@@ -35,26 +34,16 @@ import tabScreenListeners from './tabScreenListeners';
  */
 const TAB_ROOT_SCREENS_WITHOUT_GESTURE = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.INSIGHTS, SCREENS.SETTINGS.ROOT]);
 
-const NAVIGATION_TAB_TO_SPANS: Partial<Record<ValueOf<typeof NAVIGATION_TABS>, readonly string[]>> = {
-    [NAVIGATION_TABS.INBOX]: INBOX_TAB_SPAN_IDS,
-    [NAVIGATION_TABS.SEARCH]: REPORTS_TAB_SPAN_IDS,
-};
-
 /** stale === false distinguishes a fully realized NavigationState from a PartialState. */
 function isRealizedNavigationState(state: NavigationState | PartialState<NavigationState> | undefined): state is NavigationState {
     return state?.stale === false;
 }
 
-/**
- * The state both native tab navigators share: whether the native bar shows, the status dot color of each tab that
- * has one, whether Insights or Account gets the last tab item, and a router override that restores the tab state after the navigator is remounted. It also keeps the
- * parent stack's swipe-back gesture, the preserved tab state and the tab-navigation spans in sync with the focused tab,
- * and returns the screen listeners that start those spans on a native bar tap.
- */
 function useNativeTabNavigator() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBlockingViewVisible} = useFullScreenBlockingViewState();
     const {isBetaEnabled} = usePermissions();
+    const {translate} = useLocalize();
     // With the Insights beta, Insights takes the Account tab's place in the bar and Account moves to the top bar.
     const isInsightsTabVisible = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
     const theme = useTheme();
@@ -79,8 +68,19 @@ function useNativeTabNavigator() {
     if (chatTabBrickRoad) {
         inboxDotColor = chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger;
     }
-    const workspacesDotColor = workspacesIndicatorStatus ? workspacesIndicatorColor : undefined;
-    const accountDotColor = accountIndicatorStatus ? accountIndicatorColor : undefined;
+    const dotColors: Record<string, string | undefined> = {
+        [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: inboxDotColor,
+        [NAVIGATORS.WORKSPACE_NAVIGATOR]: workspacesIndicatorStatus ? workspacesIndicatorColor : undefined,
+        [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: accountIndicatorStatus ? accountIndicatorColor : undefined,
+    };
+    const tabLabels: Record<string, string> = {
+        [SCREENS.HOME]: translate('common.home'),
+        [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: translate('common.inbox'),
+        [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: translate('common.spend'),
+        [SCREENS.INSIGHTS]: translate('common.insights'),
+        [NAVIGATORS.WORKSPACE_NAVIGATOR]: translate('common.workspacesTabTitle'),
+        [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: translate('initialSettingsPage.account'),
+    };
 
     useEffect(() => {
         if (!shouldUseNarrowLayout || !parentNavigation) {
@@ -126,7 +126,7 @@ function useNativeTabNavigator() {
         },
     });
 
-    return {shouldShowNativeTabBar, inboxDotColor, workspacesDotColor, accountDotColor, isInsightsTabVisible, tabRouterOverride, tabScreenListeners};
+    return {shouldShowNativeTabBar, dotColors, tabLabels, isInsightsTabVisible, tabRouterOverride};
 }
 
 export default useNativeTabNavigator;

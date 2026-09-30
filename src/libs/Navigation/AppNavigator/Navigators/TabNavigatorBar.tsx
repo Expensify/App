@@ -40,7 +40,7 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
     const isAtRoot = isTabRouteAtRoot(activeRoute);
     // --- Narrow-only animation logic (hooks must run unconditionally per Rules of Hooks) ---
-    // On native, screens also render the tab bar via bottomContent for swipe-back animations.
+    // Screens also render the tab bar via bottomContent for swipe-back animations.
     // Delay showing this navigator's tab bar only when navigating back from a deeper screen
     // (where the tab bar was hidden). Keep it visible during tab switches so it doesn't flash.
     // Guard with shouldUseNarrowLayout so prevShouldHide stays false in wide layout,
@@ -96,3 +96,4 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
 }
 
 export default TabNavigatorBar;
+export {NAVIGATION_TAB_TO_SPANS};

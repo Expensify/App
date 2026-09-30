@@ -21,9 +21,8 @@ const lastTintedIcons: LastDrawnTabIcons<Record<string, TabIconPair>> = {};
 const lastCircularAvatar: LastDrawnTabIcons<{uri: string; icon: NativeBottomTabIcon}> = {};
 
 /**
- * Material draws the icons without a tint (react-native-screens patch 003), so each glyph is recolored off-screen
- * in the theme color of its selection state. The canvas is the glyph's own size, so Android's fixed icon slot
- * draws it at full size.
+ * Material draws the icons without a tint (react-native-screens patch 003), so each glyph is recolored here. The
+ * canvas is the glyph's own size, so Android's fixed icon slot draws it at full size.
  */
 async function createTintedGlyph(source: ImageSourcePropType, color: string): Promise<NativeBottomTabIcon | undefined> {
     const glyph = await decodeGlyph(source);
@@ -47,11 +46,7 @@ async function createTintedGlyph(source: ImageSourcePropType, color: string): Pr
     return {type: 'image', source: {uri: encodeSurface(surface), width: canvasWidth / scale, height: canvasHeight / scale, scale}};
 }
 
-/**
- * The account tab shows the user's avatar, and a tab icon has to be a square image, so the avatar is cropped to a
- * circle off-screen and handed over as a data URI, at the size of the glyphs next to it. The selected tab is
- * marked by the active indicator pill, so one image serves both selection states.
- */
+/** The active indicator pill marks the selected tab, so one image serves both selection states. */
 async function createCircularAvatarIcon(uri: string): Promise<NativeBottomTabIcon | undefined> {
     const image = await decodeImage(uri);
     const scale = variables.nativeTabIconScale;
@@ -70,11 +65,7 @@ async function createCircularAvatarIcon(uri: string): Promise<NativeBottomTabIco
     return {type: 'image', source: {uri: encodeSurface(surface), width: variables.iconBottomBar, height: variables.iconBottomBar, scale}};
 }
 
-/**
- * The icons of the Android tab bar: each glyph recolored for both selection states, and the user's avatar on the
- * account tab. `areTabIconsReady` stays false until the first recolored set exists, because the plain black glyphs
- * would draw black.
- */
+/** `areTabIconsReady` stays false until the first recolored set exists, because the plain glyphs draw black. */
 function useAndroidTabIcons() {
     const theme = useTheme();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();

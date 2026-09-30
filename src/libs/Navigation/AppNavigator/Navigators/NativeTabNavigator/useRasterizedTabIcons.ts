@@ -1,15 +1,9 @@
 import {useEffect, useState} from 'react';
 
-/**
- * The last icons drawn, held by the caller outside any component so a remounted navigator starts from them instead
- * of waiting for Skia again. While a new set is being drawn, the bar keeps showing these.
- */
+/** Held outside any component, so a remounted navigator starts from the last icons instead of waiting for Skia. */
 type LastDrawnTabIcons<T> = {current?: T};
 
-/**
- * Draws tab icons off-screen again whenever the signature of everything baked into them changes, and never while
- * it is undefined. A failed draw keeps the previous icons, or resolves to `fallbackOnError` when there are none.
- */
+/** A failed draw keeps the previous icons, or resolves to `fallbackOnError` when there are none. */
 function useRasterizedTabIcons<T>(lastDrawn: LastDrawnTabIcons<T>, signature: string | undefined, draw: (signature: string) => Promise<T | undefined>, fallbackOnError?: T): T | undefined {
     const [icons, setIcons] = useState<T | undefined>(lastDrawn.current);
 

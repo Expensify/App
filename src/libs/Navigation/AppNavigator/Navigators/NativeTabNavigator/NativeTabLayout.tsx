@@ -1,7 +1,6 @@
 import FloatingCameraButton from '@components/FloatingCameraButton';
 import FloatingGPSButton from '@components/FloatingGPSButton';
 import DebugTabView from '@components/Navigation/DebugTabView';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROUTE_TO_NAVIGATION_TAB';
 
@@ -9,6 +8,8 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import TabNavigatorBar from '@libs/Navigation/AppNavigator/Navigators/TabNavigatorBar';
 
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
 
@@ -22,17 +23,11 @@ import React from 'react';
 import {View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
-type NativeTabLayoutProps = Parameters<NonNullable<NativeBottomTabNavigatorProps['layout']>>[0] & {
-    /** Distance from the bottom edge of the screen to the strip the floating buttons hang from, given the bottom safe area inset. */
-    getFloatingButtonsBottom: (bottomInset: number) => number;
-};
+import {getFloatingButtonsBottom} from './useNativeTabBarOptions';
 
-/**
- * Wraps the tab screens so the floating buttons, the debug view and the wide-layout side bar can be drawn over
- * them. The native bar is part of the navigator itself, so it is switched off through `tabBarStyle` in the
- * navigator's screen options instead of being unmounted.
- */
-function NativeTabLayout({children, state, descriptors, getFloatingButtonsBottom}: NativeTabLayoutProps) {
+type NativeTabLayoutProps = Parameters<NonNullable<NativeBottomTabNavigatorProps['layout']>>[0];
+
+function NativeTabLayout({children, state, descriptors}: NativeTabLayoutProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const styles = useThemeStyles();
@@ -45,12 +40,7 @@ function NativeTabLayout({children, state, descriptors, getFloatingButtonsBottom
     if (!shouldUseNarrowLayout) {
         return (
             <View style={[styles.flex1, styles.flexRow]}>
-                <View
-                    style={styles.tabNavigatorBarContainer}
-                    pointerEvents="box-none"
-                >
-                    <NavigationTabBar selectedTab={selectedTab} />
-                </View>
+                <TabNavigatorBar state={state} />
                 <View style={styles.flex1}>{children}</View>
             </View>
         );
