@@ -77,7 +77,10 @@ jest.mock('@libs/DeviceCapabilities', () => ({canUseTouchScreen: () => true}));
 jest.mock('@libs/IOUUtils', () => ({calculateAmount: jest.fn(), isMovingTransactionFromTrackExpense: () => false, isParticipantP2P: () => false}));
 jest.mock('@libs/MoneyRequestUtils', () => ({isConfirmationAmountMissing: () => false}));
 jest.mock('@libs/Navigation/Navigation', () => ({__esModule: true, default: {navigate: jest.fn()}}));
-jest.mock('@libs/ReportUtils', () => ({shouldEnableNegative: () => true}));
+jest.mock('@libs/ReportUtils', () => ({
+    ...jest.requireActual<typeof import('@libs/ReportUtils')>('@libs/ReportUtils'),
+    shouldEnableNegative: () => true,
+}));
 jest.mock('@libs/TransactionUtils', () => ({calculateTaxAmount: jest.fn(), getTaxCode: jest.fn(), getTaxValue: jest.fn(), hasAnyManuallyEnteredScanField: () => false}));
 jest.mock('@userActions/IOU/Split', () => ({resetSplitShares: jest.fn(), setDraftSplitTransaction: jest.fn(), setSplitShares: jest.fn()}));
 
