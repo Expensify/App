@@ -6,9 +6,11 @@ import {nativeBottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStack
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 
 import HomePage from '@pages/home/HomePage';
+import InsightsPage from '@pages/Insights/InsightsPage';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
@@ -19,8 +21,8 @@ import React from 'react';
 
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
-import NATIVE_TAB_ICONS from './NativeTabNavigator/NATIVE_TAB_ICONS';
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
+import useAndroidTabIcons from './NativeTabNavigator/useAndroidTabIcons';
 import useNativeTabNavigator from './NativeTabNavigator/useNativeTabNavigator';
 import ReportsSplitNavigator from './ReportsSplitNavigator';
 import SearchFullscreenNavigator from './SearchFullscreenNavigator';
@@ -59,7 +61,8 @@ function TabNavigator() {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {shouldShowNativeTabBar, inboxDotColor, workspacesDotColor, accountDotColor, tabRouterOverride, tabScreenListeners} = useNativeTabNavigator();
+    const {shouldShowNativeTabBar, inboxDotColor, workspacesDotColor, accountDotColor, isInsightsTabVisible, tabRouterOverride, tabScreenListeners} = useNativeTabNavigator();
+    const {getTabBarIcon, accountAvatarIcon, areTabIconsReady} = useAndroidTabIcons();
 
     // Colors and the label face come from the Expensify theme and match the side bar on wide layouts: the
     // selected tab has the menu icon color and a bold label in the regular text color, the others the plain icon
@@ -74,7 +77,7 @@ function TabNavigator() {
         tabBarActiveIndicatorColor: theme.androidTabBarActiveIndicatorBG,
         tabBarLabelVisibilityMode: 'labeled',
         // Every tab shares one style, so the bar reads the current visibility in the same render that changed it.
-        tabBarStyle: {display: shouldShowNativeTabBar ? 'flex' : 'none', backgroundColor: theme.highlightBG},
+        tabBarStyle: {display: shouldShowNativeTabBar && areTabIconsReady ? 'flex' : 'none', backgroundColor: theme.highlightBG},
     };
 
     return (
@@ -89,28 +92,35 @@ function TabNavigator() {
             <Tab.Screen
                 name={SCREENS.HOME}
                 component={HomePage}
-                options={{tabBarLabel: translate('common.home'), tabBarIcon: NATIVE_TAB_ICONS[SCREENS.HOME]}}
+                options={{tabBarLabel: translate('common.home'), tabBarIcon: getTabBarIcon(SCREENS.HOME)}}
             />
             <Tab.Screen
                 name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
                 component={ReportsSplitNavigator}
                 options={{
                     tabBarLabel: translate('common.inbox'),
-                    tabBarIcon: NATIVE_TAB_ICONS[NAVIGATORS.REPORTS_SPLIT_NAVIGATOR],
+                    tabBarIcon: getTabBarIcon(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR),
                     ...getStatusBadgeOptions(inboxDotColor),
                 }}
             />
             <Tab.Screen
                 name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
                 component={SearchFullscreenNavigator}
-                options={{tabBarLabel: translate('common.spend'), tabBarIcon: NATIVE_TAB_ICONS[NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]}}
+                options={{tabBarLabel: translate('common.spend'), tabBarIcon: getTabBarIcon(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR)}}
+            />
+            <Tab.Screen
+                name={SCREENS.INSIGHTS}
+                component={InsightsPage}
+                // The Insights tab button opens the Spend dashboard, so a tap on the native tab lands on it too.
+                initialParams={{dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND}}
+                options={{tabBarLabel: translate('common.insights'), tabBarIcon: getTabBarIcon(SCREENS.INSIGHTS), tabBarItemHidden: !isInsightsTabVisible}}
             />
             <Tab.Screen
                 name={NAVIGATORS.WORKSPACE_NAVIGATOR}
                 component={WorkspaceNavigator}
                 options={{
                     tabBarLabel: translate('common.workspacesTabTitle'),
-                    tabBarIcon: NATIVE_TAB_ICONS[NAVIGATORS.WORKSPACE_NAVIGATOR],
+                    tabBarIcon: getTabBarIcon(NAVIGATORS.WORKSPACE_NAVIGATOR),
                     ...getStatusBadgeOptions(workspacesDotColor),
                 }}
             />
@@ -119,7 +129,8 @@ function TabNavigator() {
                 component={SettingsSplitNavigator}
                 options={{
                     tabBarLabel: translate('initialSettingsPage.account'),
-                    tabBarIcon: NATIVE_TAB_ICONS[NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR],
+                    tabBarIcon: accountAvatarIcon ?? getTabBarIcon(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR),
+                    tabBarItemHidden: isInsightsTabVisible,
                     ...getStatusBadgeOptions(accountDotColor),
                 }}
             />

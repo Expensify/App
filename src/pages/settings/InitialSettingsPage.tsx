@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 
+import useIsSettingsDrawnOverTabs from '@hooks/useIsSettingsDrawnOverTabs';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -27,13 +28,14 @@ import {openInitialSettingsPage} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 
-import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
+import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
 import {canSwitchAccountsSelector} from '@selectors/Account';
 import React, {useContext, useEffect, useLayoutEffect, useRef} from 'react';
 import {View} from 'react-native';
@@ -53,6 +55,16 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const {isExecuting, singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
+    const navigation = useNavigation();
+    const isDrawnOverTabs = useIsSettingsDrawnOverTabs();
+    // The tab navigator keeps the full tab history, so going back returns to the tab the user opened Account from.
+    const goBackFromAccount = () => {
+        if (navigation.canGoBack()) {
+            navigation.goBack();
+            return;
+        }
+        Navigation.navigate(ROUTES.HOME);
+    };
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
     const {accountMenuItemsData, generalMenuItemsData} = useInitialSettingsPageMenuData(currentUserPersonalDetails);
@@ -161,6 +173,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 breadcrumbLabel={translate('initialSettingsPage.account')}
                 shouldDisplaySearch={shouldUseNarrowLayout}
                 shouldDisplayHelpButton={shouldUseNarrowLayout}
+                onBackButtonPress={isDrawnOverTabs ? goBackFromAccount : undefined}
             >
                 {!shouldUseNarrowLayout && !isPersonalDetailsEmpty && (
                     /* The top bar row ends 12px from the screen edge, so add 8px to sit the button 20px in. */

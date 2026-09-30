@@ -13,3 +13,10 @@
 - Upstream PR/issue: not reported yet.
 - E/App issue: [#101169](https://github.com/Expensify/App/issues/101169)
 - PR introducing patch: [#101339](https://github.com/Expensify/App/pull/101339)
+
+### [react-native-screens+4.28.0+003+no-android-tab-icon-tint.patch](react-native-screens+4.28.0+003+no-android-tab-icon-tint.patch)
+
+- Reason: The Android account tab shows the user's avatar. `TabsAppearanceApplicator` assigns `bottomNavigationView.itemIconTintList` unconditionally, and a `ColorStateList` tint is `SRC_IN`, so it flattens the avatar to a solid silhouette in the tint color. React Navigation's `tinted: false` only reaches iOS, since `getPlatformIcon` in `@react-navigation/bottom-tabs` always hands Android a plain `imageSource`. The patch drops the icon tint list so Android draws every icon bitmap as supplied. The App recolors the glyphs off-screen in Skia for both selection states, so they keep the design's colors. Label colors are untouched and keep coming from `tabBarItemTitleFontColor`.
+- Upstream PR/issue: not reported yet.
+- E/App issue: [#101169](https://github.com/Expensify/App/issues/101169)
+- PR introducing patch: [#101339](https://github.com/Expensify/App/pull/101339)

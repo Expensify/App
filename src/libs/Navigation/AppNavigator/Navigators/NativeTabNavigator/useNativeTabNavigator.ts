@@ -3,6 +3,7 @@ import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_
 import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROUTE_TO_NAVIGATION_TAB';
 
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useTheme from '@hooks/useTheme';
@@ -10,10 +11,13 @@ import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorSta
 
 import {getPreservedNavigatorState, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
+import Navigation from '@libs/Navigation/Navigation';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 import cancelTabNavigationSpans, {INBOX_TAB_SPAN_IDS, REPORTS_TAB_SPAN_IDS} from '@libs/telemetry/cancelTabNavigationSpans';
 
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import type {NavigationAction, NavigationState, PartialState, Router, TabNavigationState} from '@react-navigation/native';
@@ -29,7 +33,7 @@ import tabScreenListeners from './tabScreenListeners';
  * Swiping from these screens would pop the entire TAB_NAVIGATOR, which feels wrong.
  * WORKSPACE.INITIAL is intentionally excluded, since swiping back from it returns to the workspace list.
  */
-const TAB_ROOT_SCREENS_WITHOUT_GESTURE = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.SETTINGS.ROOT]);
+const TAB_ROOT_SCREENS_WITHOUT_GESTURE = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.INSIGHTS, SCREENS.SETTINGS.ROOT]);
 
 const NAVIGATION_TAB_TO_SPANS: Partial<Record<ValueOf<typeof NAVIGATION_TABS>, readonly string[]>> = {
     [NAVIGATION_TABS.INBOX]: INBOX_TAB_SPAN_IDS,
@@ -43,13 +47,16 @@ function isRealizedNavigationState(state: NavigationState | PartialState<Navigat
 
 /**
  * The state both native tab navigators share: whether the native bar shows, the status dot color of each tab that
- * has one, and a router override that restores the tab state after the navigator is remounted. It also keeps the
+ * has one, whether Insights or Account gets the last tab item, and a router override that restores the tab state after the navigator is remounted. It also keeps the
  * parent stack's swipe-back gesture, the preserved tab state and the tab-navigation spans in sync with the focused tab,
  * and returns the screen listeners that start those spans on a native bar tap.
  */
 function useNativeTabNavigator() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBlockingViewVisible} = useFullScreenBlockingViewState();
+    const {isBetaEnabled} = usePermissions();
+    // With the Insights beta, Insights takes the Account tab's place in the bar and Account moves to the top bar.
+    const isInsightsTabVisible = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
     const theme = useTheme();
     const {chatTabBrickRoad} = useSidebarOrderedReportsState();
     const {indicatorColor: workspacesIndicatorColor, status: workspacesIndicatorStatus} = useWorkspacesTabIndicatorStatus();
@@ -64,7 +71,9 @@ function useNativeTabNavigator() {
     const tabState = useNavigationState((parentState) => parentState.routes.find((parentRoute) => parentRoute.key === route.key)?.state);
     const activeTabRoute = isRealizedNavigationState(tabState) ? tabState.routes[tabState.index] : undefined;
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeTabRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
-    const shouldShowNativeTabBar = shouldUseNarrowLayout && isTabRouteAtRoot(activeTabRoute) && !isBlockingViewVisible;
+    // A tab with no item in the bar is drawn over the other tabs as a full screen, so the bar hides while it is focused.
+    const isActiveTabWithoutBarItem = isInsightsTabVisible ? activeTabRoute?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR : activeTabRoute?.name === SCREENS.INSIGHTS;
+    const shouldShowNativeTabBar = shouldUseNarrowLayout && isTabRouteAtRoot(activeTabRoute) && !isBlockingViewVisible && !isActiveTabWithoutBarItem;
 
     let inboxDotColor: string | undefined;
     if (chatTabBrickRoad) {
@@ -88,6 +97,16 @@ function useNativeTabNavigator() {
         setPreservedNavigatorState(route.key, tabState);
     }, [tabState, route.key]);
 
+    // Without the beta, Insights has no bar item and its page is not found, so a restored or deep-linked Insights tab
+    // would be a full screen with no way out. Home takes its place.
+    const isInsightsTabFocusedWithoutBeta = !isInsightsTabVisible && activeTabRoute?.name === SCREENS.INSIGHTS;
+    useEffect(() => {
+        if (!isInsightsTabFocusedWithoutBeta) {
+            return;
+        }
+        Navigation.navigate(ROUTES.HOME);
+    }, [isInsightsTabFocusedWithoutBeta]);
+
     // Cancel any in-flight tab-navigation span that doesn't match the new focused tab.
     // The span for the new tab is started by the tab button before navigation, so we keep it via `except`.
     useEffect(() => {
@@ -107,7 +126,7 @@ function useNativeTabNavigator() {
         },
     });
 
-    return {shouldShowNativeTabBar, inboxDotColor, workspacesDotColor, accountDotColor, tabRouterOverride, tabScreenListeners};
+    return {shouldShowNativeTabBar, inboxDotColor, workspacesDotColor, accountDotColor, isInsightsTabVisible, tabRouterOverride, tabScreenListeners};
 }
 
 export default useNativeTabNavigator;

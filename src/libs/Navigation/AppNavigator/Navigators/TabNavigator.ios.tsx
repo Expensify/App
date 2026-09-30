@@ -7,10 +7,12 @@ import type {TabNavigatorParamList} from '@libs/Navigation/types';
 import {getAvatarURL} from '@libs/UserAvatarUtils';
 
 import HomePage from '@pages/home/HomePage';
+import InsightsPage from '@pages/Insights/InsightsPage';
 
 import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
@@ -243,7 +245,7 @@ function TabNavigator() {
     const {translate} = useLocalize();
     const theme = useTheme();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {shouldShowNativeTabBar, inboxDotColor, workspacesDotColor, accountDotColor, tabRouterOverride, tabScreenListeners} = useNativeTabNavigator();
+    const {shouldShowNativeTabBar, inboxDotColor, workspacesDotColor, accountDotColor, isInsightsTabVisible, tabRouterOverride, tabScreenListeners} = useNativeTabNavigator();
     const dotColors: Record<string, string | undefined> = {
         [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: inboxDotColor,
         [NAVIGATORS.WORKSPACE_NAVIGATOR]: workspacesDotColor,
@@ -253,6 +255,7 @@ function TabNavigator() {
         [SCREENS.HOME]: translate('common.home'),
         [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: translate('common.inbox'),
         [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: translate('common.spend'),
+        [SCREENS.INSIGHTS]: translate('common.insights'),
         [NAVIGATORS.WORKSPACE_NAVIGATOR]: translate('common.workspacesTabTitle'),
         [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: translate('initialSettingsPage.account'),
     };
@@ -404,6 +407,13 @@ function TabNavigator() {
                 options={{tabBarLabel: '', tabBarIcon: getTabBarIcon(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR)}}
             />
             <Tab.Screen
+                name={SCREENS.INSIGHTS}
+                component={InsightsPage}
+                // The Insights tab button opens the Spend dashboard, so a tap on the native tab lands on it too.
+                initialParams={{dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND}}
+                options={{tabBarLabel: '', tabBarIcon: getTabBarIcon(SCREENS.INSIGHTS), tabBarItemHidden: !isInsightsTabVisible}}
+            />
+            <Tab.Screen
                 name={NAVIGATORS.WORKSPACE_NAVIGATOR}
                 component={WorkspaceNavigator}
                 options={{
@@ -416,6 +426,7 @@ function TabNavigator() {
                 component={SettingsSplitNavigator}
                 options={{
                     tabBarLabel: '',
+                    tabBarItemHidden: isInsightsTabVisible,
                     tabBarIcon: avatarPair
                         ? ({focused}: {focused: boolean}) => toAvatarIcon(focused ? avatarPair.active : avatarPair.inactive)
                         : getTabBarIcon(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR),

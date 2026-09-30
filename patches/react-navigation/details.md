@@ -78,6 +78,14 @@
 - PR Introducing Patch: [#101339](https://github.com/Expensify/App/pull/101339)
 - PR Updating Patch: N/A
 
+### [@react-navigation+bottom-tabs+7.16.2+003+hidden-tab-items.patch](@react-navigation+bottom-tabs+7.16.2+003+hidden-tab-items.patch)
+
+- Reason: Adds a `tabBarItemHidden` option to the native bottom tabs. The App registers six tabs but the native bar can show at most five (Material's `BottomNavigationView` throws past five, and `UITabBar` folds the rest into a "More" tab), and which five depends on the Insights beta: Insights with it, Account without it. A native tab bar cannot hide one of its items, so a route with `tabBarItemHidden` gets no `Tabs.Screen` at all. When such a route is focused, it is drawn in JS over the native host with the tab bar hidden, while the host keeps the last focused visible tab selected underneath. A hidden route stays mounted once visited and is frozen while another tab is focused. Nothing native changes.
+- Upstream PR/issue: not reported yet.
+- E/App issue: [#101169](https://github.com/Expensify/App/issues/101169)
+- PR Introducing Patch: [#101339](https://github.com/Expensify/App/pull/101339)
+- PR Updating Patch: N/A
+
 ### [@react-navigation+stack+7.8.5+005+clip-inactive-card-inside-card.patch](@react-navigation+stack+7.8.5+005+clip-inactive-card-inside-card.patch)
 
 - Reason: On the web floating RHP each stacked card draws its own drop shadow through the interpolator's `cardStyle` (`getRHPExtendedCardFrame`). `CardA11yWrapper` puts `overflow: hidden` on every card that is not on top, and the wrapper is sized to the navigator frame, so it clips the shadow of the card under the focused one. Opening an expense over an expense report cut the report card's left and bottom shadow. The patch moves that clip from `CardA11yWrapper` to the `Animated.View` in `Card` that receives `cardStyle`. That view paints the shadow, and `overflow: hidden` does not clip an element's own shadow, so the shadow stays and the content is still clipped. `CardContainer` passes `active` down to `Card`.
