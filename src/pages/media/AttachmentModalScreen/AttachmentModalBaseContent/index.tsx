@@ -339,7 +339,7 @@ function AttachmentModalBaseContent({
                 {shouldUseNarrowLayout && <Header.BackButton onPress={onClose} />}
                 <Header.Title
                     title={headerTitle ?? translate('common.attachment')}
-                    subTitleLink={currentAttachmentLink ?? ''}
+                    subtitleLink={currentAttachmentLink ?? ''}
                 />
                 <Header.Right>
                     {shouldShowDownloadButton && <Header.DownloadButton onPress={() => onDownloadAttachment?.({file: fileToDisplay, source})} />}
