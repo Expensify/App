@@ -1,4 +1,5 @@
-import {createTypeMenuSections, doesSearchItemMatchSort} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
+import {createTypeMenuSections, SPEND_INSIGHT_KEYS} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,6 +18,7 @@ import useHasReportAwaitingApproval from './useHasReportAwaitingApproval';
 import useMappedPolicies from './useMappedPolicies';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 
 const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
     policy && {
@@ -41,6 +43,7 @@ const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         achAccount: policy.achAccount,
         areCategoriesEnabled: policy.areCategoriesEnabled,
         areWorkflowsEnabled: policy.areWorkflowsEnabled,
+        areRulesEnabled: policy.areRulesEnabled,
     };
 
 const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
@@ -48,24 +51,14 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     accountID: session?.accountID,
 });
 
-type UseSearchTypeMenuSectionsParams = {
-    hash?: number;
-    similarSearchHash?: number;
-    sortBy?: string;
-    sortOrder?: string;
-    type?: string;
-};
-
 /**
- * Get a list of all search groupings, along with their search items. Also returns the
- * currently focused search, based on the hash.
+ * Get a list of all search groupings, along with their search items.
  *
  * `isScreenFocused` gates the reports-awaiting-approval watch so an off-screen consumer stops recomputing it. It
  * defaults to `true` (always watch) for consumers rendered outside a navigator or where focus can't be tracked
  * reliably, so this hook never depends on a navigation context itself.
  */
-const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams, isScreenFocused = true) => {
-    const {hash, similarSearchHash, sortBy, sortOrder, type} = queryParams ?? {};
+const useSearchTypeMenuSections = (isScreenFocused = true) => {
     const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: defaultExpensifyCardSelector});
 
     const {defaultCardFeed, cardFeedsByPolicy, activeExpensifyCardFeedID} = useCardFeedsForDisplay();
@@ -76,6 +69,10 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    // Migrated Control workspaces leave `areRulesEnabled` undefined; Violations by submitter then depends on
+    // Classic category rules stored on POLICY_CATEGORIES. No selector: mapping this collection would still be
+    // large, and shallowEqual on the raw references is cheaper than deepEqual of a transformed copy.
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
 
     // A report awaiting the current user's approval makes the "Needs approval" suggested search relevant even when they
     // are not part of the policy's approval workflow (e.g. an approver chosen manually on a single report).
@@ -125,6 +122,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
                 draftTransactionIDs,
                 isTrackIntentUser: isTrackIntentUser ?? false,
                 hasReportAwaitingApproval,
+                policyCategories: allPolicyCategories,
             }),
         [
             currentUserLoginAndAccountID?.email,
@@ -139,70 +137,31 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
             draftTransactionIDs,
             isTrackIntentUser,
             hasReportAwaitingApproval,
+            allPolicyCategories,
         ],
     );
 
-    // The saved search the current query maps to (keyed by `hash`), derived from the existing `savedSearches`
-    // subscription. Undefined when there is no match or when the match is pending deletion (unless offline).
-    const activeSavedSearch = (() => {
-        if (hash === undefined || !savedSearches) {
-            return undefined;
+    return typeMenuSections;
+};
+
+const spendInsightKeys = new Set<SearchKey>(SPEND_INSIGHT_KEYS);
+
+const useSearchTypeMenuSectionsForNavigation = (isScreenFocused = true) => {
+    const typeMenuSections = useSearchTypeMenuSections(isScreenFocused);
+    const {isBetaEnabled} = usePermissions();
+
+    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
+        return typeMenuSections;
+    }
+
+    return typeMenuSections.flatMap((section) => {
+        const menuItems = section.menuItems.filter((item) => !spendInsightKeys.has(item.key));
+        if (menuItems.length === section.menuItems.length) {
+            return section;
         }
-        const item = savedSearches[hash];
-        if (!item || (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isOffline)) {
-            return undefined;
-        }
-        return item;
-    })();
-
-    const activeItemIndex = (() => {
-        // A saved search is not part of `typeMenuSections`, so keep suggested-search focus off it.
-        if (activeSavedSearch) {
-            return -1;
-        }
-
-        let index = 0;
-        for (const section of typeMenuSections) {
-            const found = section.menuItems.findIndex((item) => {
-                if (item.similarSearchHash !== similarSearchHash) {
-                    return false;
-                }
-                return doesSearchItemMatchSort(item.key, item.searchQueryJSON?.sortBy, item.searchQueryJSON?.sortOrder, sortBy, sortOrder);
-            });
-            if (found !== -1) {
-                return index + found;
-            }
-            index += section.menuItems.length;
-        }
-
-        // Fallback: if no exact match found, select the generic search key matching the type
-        const typeToGenericKey: Record<string, string> = {
-            [CONST.SEARCH.DATA_TYPES.EXPENSE]: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-            [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: CONST.SEARCH.SEARCH_KEYS.REPORTS,
-        };
-        const fallbackKey = type ? typeToGenericKey[type] : undefined;
-        if (fallbackKey) {
-            let fallbackIndex = 0;
-            for (const section of typeMenuSections) {
-                const found = section.menuItems.findIndex((item) => item.key === fallbackKey);
-                if (found !== -1) {
-                    return fallbackIndex + found;
-                }
-                fallbackIndex += section.menuItems.length;
-            }
-        }
-
-        return -1;
-    })();
-
-    const activeKey = activeItemIndex < 0 ? undefined : typeMenuSections.flatMap((section) => section.menuItems).at(activeItemIndex)?.key;
-
-    return {
-        typeMenuSections,
-        activeItemIndex,
-        activeKey,
-        activeSavedSearch,
-    };
+        return menuItems.length > 0 ? {...section, menuItems} : [];
+    });
 };
 
 export default useSearchTypeMenuSections;
+export {useSearchTypeMenuSectionsForNavigation};

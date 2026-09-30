@@ -1,26 +1,34 @@
 import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import useActivePolicy from '@hooks/useActivePolicy';
 import useAIFeaturesPromoModal from '@hooks/useAIFeaturesPromoModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
+import useHasOwnedPaidPolicy from '@hooks/useHasOwnedPaidPolicy';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOneTransactionThreadReportID from '@hooks/useOneTransactionThreadReportID';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useReconcileHighContrastIntent from '@hooks/useReconcileHighContrastIntent';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
+import {isQAServerActive} from '@libs/ApiUtils';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
+import {getReportsTabPreloadTarget, getTabNavigatorStateKey} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import {getReportIDFromLink} from '@libs/ReportUtils';
 import {registerPusherReinitializeHandler} from '@libs/requestPusherReinitialize';
 import type {PusherReinitializeHandlerParams} from '@libs/requestPusherReinitialize';
+import {Scheduler} from '@libs/Scheduler';
 import * as SessionUtils from '@libs/SessionUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getSearchParamFromUrl} from '@libs/Url';
@@ -34,25 +42,39 @@ import * as User from '@userActions/User';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
+import {CommonActions} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {accountIDSelector, displayNameSelector} from '@selectors/PersonalDetails';
 import {useEffect, useRef} from 'react';
 
 function initializePusher(
     currentUserAccountID: number | undefined,
     currentUserEmail: string | undefined,
     getTopmostOneTransactionThreadReportID: () => string | undefined,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     getReportAttributes: () => ReportAttributesDerivedValue['reports'] | undefined,
 ) {
+    // No fallback: CONFIG.PUSHER.APP_KEY defaults to the production key, so falling back would open a QA socket
+    // against production Pusher and every channel auth, signed with QA's secret, would be rejected quietly.
+    const appKey = isQAServerActive() ? CONFIG.PUSHER.QA_APP_KEY : CONFIG.PUSHER.APP_KEY;
+
+    // pusher-js rejects only a null/undefined key, so an empty one builds a socket that never connects while Pusher.init
+    // resolves solely from its 'connected' handler, leaving every subscribe() and the PUSHER_INIT span pending forever.
+    if (!appKey) {
+        Log.alert('[Pusher] Skipping init: no Pusher app key is configured for the active server');
+        return Promise.resolve();
+    }
+
     return Pusher.init({
-        appKey: CONFIG.PUSHER.APP_KEY,
+        appKey,
         cluster: CONFIG.PUSHER.CLUSTER,
-        authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     }).then(() => {
-        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail ?? '', getTopmostOneTransactionThreadReportID, getReportAttributes);
+        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail ?? '', getTopmostOneTransactionThreadReportID, formatPhoneNumber, getReportAttributes);
     });
 }
 
@@ -69,21 +91,26 @@ function AuthScreensInitHandler() {
     const currentUrl = getCurrentUrl();
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
     const ownerEmail = getSearchParamFromUrl(currentUrl, 'ownerEmail');
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {initialURL, isAuthenticatedAtStartup} = useInitialURLState();
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const lastWorkspaceNumber = useLastWorkspaceNumber(ownerEmail ?? undefined);
+    const policyOwnerLogin = ownerEmail ?? session?.email;
+    const policyOwnerAccountID = usePersonalDetailByLogin(policyOwnerLogin, accountIDSelector);
+    const policyOwnerDisplayName = usePersonalDetailByLogin(policyOwnerLogin, displayNameSelector);
     const activePolicy = useActivePolicy();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
 
     const reportAttributes = useReportAttributes();
     // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
@@ -94,6 +121,8 @@ function AuthScreensInitHandler() {
     useAIFeaturesPromoModal(session);
 
     const topmostReportID = useRootNavigationState(Navigation.getFocusedReportId);
+    // Not `Navigation.isNavigationReady()`: that resolves on the container's first render, before this navigator exists.
+    const tabNavigatorStateKey = useRootNavigationState(getTabNavigatorStateKey);
     const topmostOneTransactionThreadReportID = useOneTransactionThreadReportID(topmostReportID);
     // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
     const topmostOneTransactionThreadReportIDRef = useRef(topmostOneTransactionThreadReportID);
@@ -115,6 +144,7 @@ function AuthScreensInitHandler() {
                 currentAccountID,
                 currentEmail,
                 () => topmostOneTransactionThreadReportIDRef.current,
+                formatPhoneNumber,
                 () => reportAttributesRef.current,
             );
         });
@@ -122,6 +152,7 @@ function AuthScreensInitHandler() {
         return () => {
             registerPusherReinitializeHandler(null);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- This handler should only be re-registered when the session changes.
     }, [session?.accountID, session?.email]);
 
     useEffect(() => {
@@ -129,7 +160,8 @@ function AuthScreensInitHandler() {
             return;
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current);
+        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, formatPhoneNumber, () => reportAttributesRef.current);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- This handler should only be re-registered when the session changes.
     }, [session?.accountID, session?.email]);
 
     useEffect(() => {
@@ -138,7 +170,12 @@ function AuthScreensInitHandler() {
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
         const isSupportalTransition = currentUrl.includes('authTokenType=support');
         if (isLoggingInAsNewUser && isTransitioning) {
-            Session.signOutAndRedirectToSignIn(false, isSupportalTransition);
+            Log.info('[AuthScreensInitHandler] Signing out for a transition to another user', false, {
+                isLinkNamingDelegator: SessionUtils.isLoggingInAsDelegate(currentUrl),
+                isDelegateSession: Session.isDelegateSession(session),
+                isSupportalTransition,
+            });
+            Session.signOutAndRedirectToSignIn(false, isSupportalTransition, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
             return () => {
                 Session.cleanupSession();
             };
@@ -152,7 +189,7 @@ function AuthScreensInitHandler() {
         });
         PusherConnectionManager.init();
 
-        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current).finally(() => {
+        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, formatPhoneNumber, () => reportAttributesRef.current).finally(() => {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
         });
 
@@ -173,7 +210,6 @@ function AuthScreensInitHandler() {
                 Report.openReport({
                     reportID,
                     introSelected,
-                    betas,
                     conciergeChat,
                     hasReportActions: false,
                     currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -189,18 +225,21 @@ function AuthScreensInitHandler() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate(
+        App.setUpPoliciesAndNavigate({
             session,
             introSelected,
-            currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+            currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             activePolicy,
-            guidedSetupAndTourStatus?.isSelfTourViewed,
-            betas,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
             hasActiveAdminPolicies,
+            hasOwnedPaidPolicy,
             lastWorkspaceNumber,
             translate,
             conciergeChat,
-        );
+            delegateAccountID,
+            policyOwnerAccountID,
+            policyOwnerDisplayName,
+        });
 
         Download.clearDownloads();
         clearStaleExportDownloads();
@@ -212,6 +251,28 @@ function AuthScreensInitHandler() {
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        // A reload runs ReconnectApp, which never raises the flag, so without the key gate this no-ops on every reload.
+        if (isLoadingApp !== false || !tabNavigatorStateKey) {
+            return;
+        }
+
+        // Mounting the whole Reports tab off-idle would compete with the flows that made the thread busy in the first place.
+        const task = Scheduler.scheduleWhenIdle(
+            () => {
+                const target = getReportsTabPreloadTarget(navigationRef.getRootState());
+                if (!target) {
+                    return;
+                }
+
+                navigationRef.dispatch({...CommonActions.preload(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR), target});
+            },
+            {shouldUseFallbackTimer: false},
+        );
+
+        return () => task.cancel();
+    }, [isLoadingApp, tabNavigatorStateKey]);
 
     return null;
 }

@@ -35,7 +35,6 @@ type PercentageFormProps = BaseTextInputProps & {
     /** Whether to allow negative percentages (e.g. for split expenses with negative amounts). */
     allowNegative?: boolean;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 };
 

@@ -1,7 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import LottieAnimations from '@components/LottieAnimations';
-import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -48,15 +48,20 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
     const [personalBankAccount, personalBankAccountResult] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const isLoadingPersonalBankAccount = isLoadingOnyxValue(personalBankAccountResult);
     const onSuccessFallbackRoute = personalBankAccount?.onSuccessFallbackRoute;
+    const exitReportID = personalBankAccount?.exitReportID;
 
     useEffect(() => {
         if (isLoadingPersonalBankAccount) {
             return;
         }
 
-        // Clear stale flow state on entry while preserving onSuccessFallbackRoute if it was set before entering this screen (e.g. from a pay/KYC flow or deep link).
+        // Clear stale flow state on entry but keep onSuccessFallbackRoute and exitReportID if they were set before.
         // openPersonalBankAccountSetupView also resets state, but this handles direct navigation to this screen.
-        clearPersonalBankAccount(onSuccessFallbackRoute ? {onSuccessFallbackRoute} : undefined);
+        const preservedData = {
+            ...(onSuccessFallbackRoute ? {onSuccessFallbackRoute} : {}),
+            ...(exitReportID ? {exitReportID} : {}),
+        };
+        clearPersonalBankAccount(Object.keys(preservedData).length > 0 ? preservedData : undefined);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingPersonalBankAccount]);
 
@@ -110,21 +115,17 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
                             {translate('workspace.bankAccount.connectBankAccountNote')}
                         </Text>
                     </View>
-                    <View style={styles.mt4}>
-                        <MenuItem
+                    <View style={[styles.mt4, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
+                        <MenuItemNavigation
                             title={translate('bankAccount.connectOnlineWithPlaid')}
                             icon={expensifyIcons.Bank}
-                            disabled={!!isPlaidDisabled}
+                            isDisabled={!!isPlaidDisabled}
                             onPress={handleConnectPlaid}
-                            shouldShowRightIcon
-                            outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
                         />
-                        <MenuItem
+                        <MenuItemNavigation
                             title={translate('bankAccount.connectManually')}
                             icon={expensifyIcons.Connect}
                             onPress={handleConnectManually}
-                            shouldShowRightIcon
-                            outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
                         />
                     </View>
                 </Section>

@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import RenderHTML from '@components/RenderHTML';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 
@@ -24,7 +24,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 
 type MentionWhisperContentProps = {
-    /** All the data of the action item */
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER>;
 
     /** ID of the original report from which the given reportAction is first created */
@@ -33,7 +32,6 @@ type MentionWhisperContentProps = {
     /** Report that owns this action for mutations (thread / merged-list cases use originalReport). This is a stable projection (heartbeat fields stripped). */
     actionOwnerReportStable: OnyxEntry<Report>;
 
-    /** Parent report from which the given reportAction is first created */
     parentReport?: OnyxEntry<Report>;
 
     /** Policy ID for the current report */

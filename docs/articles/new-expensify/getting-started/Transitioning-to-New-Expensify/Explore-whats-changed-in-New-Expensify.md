@@ -9,7 +9,11 @@ internalScope: Audience is Expensify members transitioning from Expensify Classi
 
 New Expensify introduces new capabilities and expands several workflows that were more limited in Expensify Classic. This article highlights some of the most notable changes and links to detailed help articles where you can learn more.
 
-If you're still getting familiar with navigation or looking for a side-by-side mapping of familiar Classic workflows, see [Coming from Expensify Classic for Submitters and Approvers](/articles/new-expensify/getting-started/Transitioning-to-New-Expensify/Coming-from-Expensify-Classic-for-Submitters-and-Approvers) or [Coming from Expensify Classic for Workspace Admins](/articles/new-expensify/getting-started/Transitioning-to-New-Expensify/Coming-from-Expensify-Classic-for-Workspace-Admins).
+If you're still getting familiar with navigation or looking for a side-by-side mapping of familiar Classic workflows, see:
+- [Coming from Expensify Classic for Submitters and Approvers](/articles/new-expensify/getting-started/Transitioning-to-New-Expensify/Coming-from-Expensify-Classic-for-Submitters-and-Approvers)
+- [Coming from Expensify Classic for Workspace Admins](/articles/new-expensify/getting-started/Transitioning-to-New-Expensify/Coming-from-Expensify-Classic-for-Workspace-Admins).
+
+You can also [register](/articles/new-expensify/getting-started/How-to-Access-Expensify-Training) to attend a live training webinar or watch a recording on demand.
 
 ---
 
@@ -105,7 +109,7 @@ This includes:
 
 Workspace Admins can view all unassigned cards on a card feed at a glance, making it easier to find and assign cards to the right Workspace members. 
 
-[Learn how to assign company cards](/articles/new-expensify/connect-credit-cards/Assign-Company-Cards).
+[Learn how to assign company cards](/articles/new-expensify/connect-credit-cards/configure-and-manage-company-cards/Assign-Company-Cards).
 
 ### Amend the transaction start date on an assigned card at any time
 

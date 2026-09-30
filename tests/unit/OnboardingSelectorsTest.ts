@@ -3,7 +3,7 @@ import type ONYXKEYS from '@src/ONYXKEYS';
 
 import type {OnyxValue} from 'react-native-onyx';
 
-import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector, hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 
 import createMock from '../utils/createMock';
 
@@ -91,6 +91,29 @@ describe('onboardingSelectors', () => {
         it('Should return false when choice is undefined', () => {
             const introSelected = createMock<NonNullable<OnyxValue<typeof ONYXKEYS.NVP_INTRO_SELECTED>>>({});
             expect(isTrackIntentUserSelector(introSelected)).toBe(false);
+        });
+    });
+
+    // The combined selector derives both onboarding flags from a single NVP_ONBOARDING read. Callers that need both
+    // (e.g. the openReport wiring) rely on each field mapping to its own source without being swapped.
+    describe('guidedSetupAndTourStatusSelector', () => {
+        it('Should map each flag from its own source without swapping them', () => {
+            const onboarding = createMock<NonNullable<OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>>>({selfTourViewed: true, hasCompletedGuidedSetupFlow: false});
+            expect(guidedSetupAndTourStatusSelector(onboarding)).toEqual({isSelfTourViewed: true, hasCompletedGuidedSetupFlow: false});
+        });
+
+        it('Should treat an empty onboarding NVP as tour-not-seen and guided-setup-completed', () => {
+            const onboarding = createMock<NonNullable<OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>>>({});
+            expect(guidedSetupAndTourStatusSelector(onboarding)).toEqual({isSelfTourViewed: false, hasCompletedGuidedSetupFlow: true});
+        });
+
+        it('Should treat an undefined onboarding NVP the same as an empty one', () => {
+            expect(guidedSetupAndTourStatusSelector(undefined)).toEqual({isSelfTourViewed: false, hasCompletedGuidedSetupFlow: true});
+        });
+
+        it('Should reflect a fully completed onboarding (tour seen and guided setup done)', () => {
+            const onboarding = createMock<NonNullable<OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>>>({selfTourViewed: true, hasCompletedGuidedSetupFlow: true});
+            expect(guidedSetupAndTourStatusSelector(onboarding)).toEqual({isSelfTourViewed: true, hasCompletedGuidedSetupFlow: true});
         });
     });
 });

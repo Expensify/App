@@ -1,6 +1,6 @@
 import getCollectionDelta from '@libs/getCollectionDelta';
 import Log from '@libs/Log';
-import {endSpan, getSpan, getSpanByPrefix, startSpan} from '@libs/telemetry/activeSpans';
+import {endSpan, getSpan, getSpanByPrefix, getUniqueSpanByPrefix, startSpan} from '@libs/telemetry/activeSpans';
 import detectOnyxDerivedLoop from '@libs/telemetry/detectOnyxDerivedLoop';
 
 import CONST from '@src/CONST';
@@ -9,7 +9,7 @@ import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxValue} from 'react-native-onyx';
 
 /**
  * This file contains logic for derived Onyx keys. The idea behind derived keys is that if there is a common computation
@@ -21,7 +21,6 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxCache, {TASK} from 'react-native-onyx/dist/OnyxCache';
 import OnyxKeys from 'react-native-onyx/dist/OnyxKeys';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import type {DerivedValueContext} from './types';
 
@@ -43,7 +42,19 @@ function init() {
         // We cast its type to match the tuple expected by config.compute.
         const dependencyValues = new Array(totalConnections) as Parameters<typeof compute>[0];
 
-        OnyxUtils.get(key).then((storedDerivedValue) => {
+        // Hydrate the last stored derived value from disk before wiring up the dependency subscriptions.
+        // We use a short-lived connectWithoutView (disconnected after the first callback) so this one-time
+        // read goes through the public Onyx API instead of reaching into Onyx internals. Because it is
+        // disconnected immediately, it won't re-fire when this same code later writes back to the derived key.
+        new Promise<OnyxValue<typeof key>>((resolve) => {
+            const connection = Onyx.connectWithoutView({
+                key,
+                callback: (storedDerivedValue) => {
+                    Onyx.disconnect(connection);
+                    resolve(storedDerivedValue);
+                },
+            });
+        }).then((storedDerivedValue) => {
             let derivedValue = storedDerivedValue;
             if (derivedValue) {
                 Log.info(`Derived value for ${key} restored from disk`);
@@ -105,13 +116,15 @@ function init() {
                 const spanId = `${CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE}_${key}`;
                 // No-splash flows end ManualAppStartup before the startup response lands, so without this fallback onlyIfParent drops every recompute it triggers.
                 const startupSpan = getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP) ?? getSpanByPrefix(CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY);
+                // A recompute can be triggered by several sends at once, so with more than one in flight there is no correct parent to pick.
+                const parentSpan = startupSpan ?? getUniqueSpanByPrefix(CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE);
                 startSpan(spanId, {
                     name: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
                     op: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
-                    parentSpan: startupSpan,
+                    parentSpan,
                     // A span with no parent is sent as its own transaction, one per recompute.
                     onlyIfParent: true,
-                    attributes: {derivedKey: key, [CONST.TELEMETRY.ATTRIBUTE_IS_STARTUP]: !!startupSpan},
+                    attributes: {derivedKey: key, triggeredKeys: [...triggeredKeys].join(','), [CONST.TELEMETRY.ATTRIBUTE_IS_STARTUP]: !!startupSpan},
                 });
 
                 try {

@@ -9,12 +9,12 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getCardProgramKey, getCardSettings, getConnectionBankAccountsForReconciliation} from '@libs/CardUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
 import {getTravelSettlementAccount} from '@libs/TravelBillingUtils';
@@ -23,7 +23,7 @@ import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import {setCardReconciliationAccount} from '@userActions/Card';
-import {setTravelBillingReconciliationBankAccount} from '@userActions/TravelBilling';
+import {setTravelBillingReconciliationBankAccount, toggleTravelBillingContinuousReconciliation} from '@userActions/TravelBilling';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -138,6 +138,7 @@ function ExpensifyCardDynamicReconciliation({policyID, workspaceAccountID, domai
     const settlementAccountEnding = getLastFourDigits(bankAccountNumber);
     const reconciliationDomainName = settings?.domainName ?? domainName;
     const {environmentURL} = useEnvironment();
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
 
     const selectBankAccount = (newBankAccountID?: string) => {
         if (!newBankAccountID) {
@@ -156,7 +157,7 @@ function ExpensifyCardDynamicReconciliation({policyID, workspaceAccountID, domai
             description={translate('workspace.accounting.chooseReconciliationAccount.chooseBankAccount')}
             html={translate(
                 'workspace.accounting.chooseReconciliationAccount.settlementAccountReconciliation',
-                `${environmentURL}${createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path)}`,
+                `${environmentURL}${buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path)}`,
                 settlementAccountEnding,
             )}
             selectedBankAccountID={reconciliationBankAccountID}
@@ -170,6 +171,8 @@ function TravelBillingDynamicReconciliation({policyID, workspaceAccountID, domai
 
     const [travelBillingCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
     const [travelBillingReconciliationBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`);
+    const [travelBillingContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`);
+    const [travelBillingContinuousReconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`);
     const travelBillingSettings = getCardSettings(travelBillingCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const travelBillingSettlementAccount = getTravelSettlementAccount(travelBillingSettings, bankAccountList);
     const settlementAccountEnding = travelBillingSettlementAccount?.last4 ?? '';
@@ -179,6 +182,9 @@ function TravelBillingDynamicReconciliation({policyID, workspaceAccountID, domai
             return;
         }
         setTravelBillingReconciliationBankAccount(workspaceAccountID, domainName, newBankAccountID, travelBillingReconciliationBankAccountID);
+        if (!travelBillingContinuousReconciliation) {
+            toggleTravelBillingContinuousReconciliation(workspaceAccountID, true, connectionName, travelBillingContinuousReconciliationConnection);
+        }
         goBack();
     };
 

@@ -25,7 +25,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React, {useState} from 'react';
 
 type TermsStepProps = {
-    /** The user's wallet */
     userWallet: OnyxEntry<UserWallet>;
 };
 

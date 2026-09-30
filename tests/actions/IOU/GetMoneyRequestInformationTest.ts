@@ -2,7 +2,7 @@ import {getMoneyRequestInformation} from '@libs/actions/IOU/MoneyRequestBuilder'
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
+import type {PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -12,6 +12,11 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
+    navigationRef: {
+        getRootState: jest.fn(),
+        getCurrentRoute: jest.fn(),
+        isReady: jest.fn(() => true),
+    },
 }));
 
 const POLICY_ID = 'policy-test-1';
@@ -45,6 +50,7 @@ const policyTagListA: PolicyTagLists = {
 };
 
 const baseParams = {
+    isVendorMatchingBetaEnabled: false,
     parentChatReport,
     participantParams: {
         payeeAccountID: PAYEE_ACCOUNT_ID,
@@ -62,7 +68,6 @@ const baseParams = {
         created: '2024-01-01',
         merchant: 'Test Merchant',
     },
-    betas: [] as Beta[],
     isASAPSubmitBetaEnabled: false,
     currentUserAccountIDParam: PAYEE_ACCOUNT_ID,
     currentUserEmailParam: 'payee@example.com',
@@ -73,6 +78,7 @@ const baseParams = {
     delegateAccountID: undefined,
     isTrackIntentUser: false,
     formatPhoneNumber,
+    rules: undefined,
 } as const;
 
 describe('getMoneyRequestInformation', () => {
@@ -234,6 +240,124 @@ describe('getMoneyRequestInformation', () => {
             expect(result.onyxData.optimisticData ?? []).not.toEqual(
                 expect.arrayContaining([expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[newTxID]: true})})})]),
             );
+        });
+    });
+
+    describe('destination report when the chat has no iouReportID', () => {
+        const OLDER_REPORT_ID = 'outstanding-expense-report-older';
+        const NEWER_REPORT_ID = 'outstanding-expense-report-newer';
+        const OTHER_OWNER_REPORT_ID = 'outstanding-expense-report-other-owner';
+        const PENDING_REPORT_ID = 'expense-report-not-in-onyx-yet';
+        const SUBMITTED_REPORT_ID = 'expense-report-awaiting-approval';
+        const APPROVER_ACCOUNT_ID = 300;
+        const APPROVER_EMAIL = 'approver@example.com';
+
+        function buildOutstandingExpenseReport(reportID: string, created: string, ownerAccountID = PAYEE_ACCOUNT_ID): Report {
+            return {
+                reportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: POLICY_ID,
+                chatReportID: CHAT_REPORT_ID,
+                ownerAccountID,
+                managerID: ownerAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                currency: 'USD',
+                total: 0,
+                created,
+            };
+        }
+
+        beforeEach(async () => {
+            // `canAddTransaction` requires the submitter to own the report and the policy to be a group policy.
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: PAYEE_ACCOUNT_ID, email: 'payee@example.com'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.USER});
+            // The chat deliberately has no `iouReportID`, which is the state left behind when the report it pointed at is deleted.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, parentChatReport);
+            await waitForBatchedUpdates();
+        });
+
+        it('adds the expense to the submitter outstanding report instead of creating a new one', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OLDER_REPORT_ID}`, buildOutstandingExpenseReport(OLDER_REPORT_ID, '2024-01-02'));
+            await waitForBatchedUpdates();
+
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal});
+
+            expect(result.iouReport.reportID).toBe(OLDER_REPORT_ID);
+        });
+
+        it('picks the newest outstanding report when the submitter has more than one', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OLDER_REPORT_ID}`, buildOutstandingExpenseReport(OLDER_REPORT_ID, '2024-01-02'));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${NEWER_REPORT_ID}`, buildOutstandingExpenseReport(NEWER_REPORT_ID, '2024-03-04'));
+            await waitForBatchedUpdates();
+
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal});
+
+            expect(result.iouReport.reportID).toBe(NEWER_REPORT_ID);
+        });
+
+        it('creates a new report when the only outstanding report belongs to someone else', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OTHER_OWNER_REPORT_ID}`, buildOutstandingExpenseReport(OTHER_OWNER_REPORT_ID, '2024-01-02', PAYER_ACCOUNT_ID));
+            await waitForBatchedUpdates();
+
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal});
+
+            expect(result.iouReport.reportID).not.toBe(OTHER_OWNER_REPORT_ID);
+        });
+
+        it('creates a new report when the submitter has no outstanding report', () => {
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal});
+
+            expect(result.iouReport.reportID).toBeTruthy();
+            expect(result.iouReport.reportID).not.toBe(OLDER_REPORT_ID);
+        });
+
+        it('still honours an explicitly chosen report over the outstanding fallback', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OLDER_REPORT_ID}`, buildOutstandingExpenseReport(OLDER_REPORT_ID, '2024-01-02'));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${NEWER_REPORT_ID}`, buildOutstandingExpenseReport(NEWER_REPORT_ID, '2024-03-04'));
+            await waitForBatchedUpdates();
+
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal, moneyRequestReportID: OLDER_REPORT_ID});
+
+            expect(result.iouReport.reportID).toBe(OLDER_REPORT_ID);
+        });
+
+        it('reuses an outstanding report when the chat points at a report that cannot be resolved', async () => {
+            // The chat still points at PENDING_REPORT_ID, but that key is missing from Onyx. That happens both when the
+            // report was deleted or moved away and when it simply has not hydrated yet, and the two are indistinguishable
+            // here. Reusing the submitter's own open report beats creating a duplicate, which is the bug being fixed.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OLDER_REPORT_ID}`, buildOutstandingExpenseReport(OLDER_REPORT_ID, '2024-01-02'));
+            await waitForBatchedUpdates();
+
+            const result = getMoneyRequestInformation({
+                ...baseParams,
+                parentChatReport: {...parentChatReport, iouReportID: PENDING_REPORT_ID},
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            expect(result.iouReport.reportID).toBe(OLDER_REPORT_ID);
+        });
+
+        it('creates a new report when the submitter only has a report that is awaiting approval', async () => {
+            // Submitting a report clears the chat's `iouReportID`, so this fallback runs right after a submit too.
+            // The submitted report must never be reused — the next expense belongs on a fresh report.
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [PAYEE_ACCOUNT_ID]: {accountID: PAYEE_ACCOUNT_ID, login: 'payee@example.com'},
+                [APPROVER_ACCOUNT_ID]: {accountID: APPROVER_ACCOUNT_ID, login: APPROVER_EMAIL},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {approver: APPROVER_EMAIL, owner: APPROVER_EMAIL, approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SUBMITTED_REPORT_ID}`, {
+                ...buildOutstandingExpenseReport(SUBMITTED_REPORT_ID, '2024-01-02'),
+                // Awaiting first-level approval, which is what makes `canAddTransaction` true for this report.
+                managerID: APPROVER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            });
+            await waitForBatchedUpdates();
+
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal});
+
+            expect(result.iouReport.reportID).not.toBe(SUBMITTED_REPORT_ID);
         });
     });
 

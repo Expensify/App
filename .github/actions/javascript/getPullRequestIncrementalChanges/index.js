@@ -26147,10 +26147,11 @@ var Git = class _Git {
    * @param fromRef - The starting reference (commit, branch, tag, etc.)
    * @param toRef - The ending reference (defaults to working directory if not provided)
    * @param filePaths - Optional specific file path(s) to diff (relative to git repo root)
+   * @param untrackedFileExtensions - Optional extensions (e.g. ['.ts', '.tsx']) to restrict which untracked files get read; avoids reading unrelated untracked files (media, snapshots, etc.) in full
    * @returns Structured diff result with line numbers and change information
    * @throws Error when git command fails (invalid refs, not a git repo, file not found, etc.)
    */
-  static diff(fromRef, toRef, filePaths, shouldIncludeUntrackedFiles = false) {
+  static diff(fromRef, toRef, filePaths, shouldIncludeUntrackedFiles = false, untrackedFileExtensions) {
     let command = `git diff -U0 -M ${fromRef}`;
     if (toRef) {
       command += ` ${toRef}`;
@@ -26163,7 +26164,10 @@ var Git = class _Git {
     const diffOutput = execSync(command);
     const diffResult = _Git.parseDiff(diffOutput);
     if (!toRef && shouldIncludeUntrackedFiles) {
-      const untrackedFiles = _Git.getUntrackedFiles(filePaths);
+      let untrackedFiles = _Git.getUntrackedFiles(filePaths);
+      if (untrackedFileExtensions) {
+        untrackedFiles = untrackedFiles.filter((file) => untrackedFileExtensions.some((ext) => file.endsWith(ext)));
+      }
       const untrackedFileDiffs = _Git.createFileDiffsForUntrackedFiles(untrackedFiles);
       if (untrackedFileDiffs.length > 0) {
         diffResult.files.push(...untrackedFileDiffs);
@@ -26451,7 +26455,7 @@ var Git = class _Git {
    * In CI, uses the GitHub API with pagination for accuracy.
    * Locally, uses git diff against the provided ref.
    */
-  static async getChangedFilesWithStatus(fromRef, toRef, shouldIncludeUntrackedFiles = false) {
+  static async getChangedFilesWithStatus(fromRef, toRef, shouldIncludeUntrackedFiles = false, untrackedFileExtensions) {
     if (IS_CI) {
       const files = await GithubUtils_default.paginate(GithubUtils_default.octokit.pulls.listFiles, {
         owner: CONST_default.GITHUB_OWNER,
@@ -26467,7 +26471,7 @@ var Git = class _Git {
         previousFilename: file.previous_filename
       }));
     }
-    const diffResult = this.diff(fromRef, toRef, void 0, shouldIncludeUntrackedFiles);
+    const diffResult = this.diff(fromRef, toRef, void 0, shouldIncludeUntrackedFiles, untrackedFileExtensions);
     return diffResult.files.map((file) => ({
       filename: file.filePath,
       status: file.diffType,
@@ -26486,13 +26490,13 @@ var Git = class _Git {
    */
   static getUntrackedFiles(filePaths) {
     try {
-      const untrackedOutput = execSync("git ls-files --others --exclude-standard", {
+      const untrackedOutput = execSync("git ls-files -z --others --exclude-standard", {
         stdio: "pipe"
       });
-      if (!untrackedOutput.trim()) {
+      if (!untrackedOutput) {
         return [];
       }
-      let untrackedFiles = untrackedOutput.trim().split("\n").filter((file) => file.length > 0);
+      let untrackedFiles = untrackedOutput.split("\0").filter((file) => file.length > 0);
       if (filePaths) {
         const pathsArray = Array.isArray(filePaths) ? filePaths : [filePaths];
         const normalizedPaths = pathsArray.map((p) => path.normalize(p));

@@ -8,6 +8,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -42,6 +43,8 @@ function DynamicEditTagPage({route}: DynamicEditTagPageProps) {
     const {tags: policyTags} = policyData;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {inputCallbackRef} = useAutoFocusInput();
     const currentTagName = getCleanedTagName(route.params.tagName);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_EDIT;
@@ -74,12 +77,12 @@ function DynamicEditTagPage({route}: DynamicEditTagPageProps) {
             const tagName = values.tagName.trim();
             // Do not call the API if the edited tag name is the same as the current tag name
             if (currentTagName !== tagName) {
-                renamePolicyTag(policyData, {oldName: route.params.tagName, newName: values.tagName.trim()}, orderWeight);
+                renamePolicyTag(policyData, {oldName: route.params.tagName, newName: values.tagName.trim()}, orderWeight, isVendorMatchingBetaEnabled);
             }
             Keyboard.dismiss();
             Navigation.goBack(backPath);
         },
-        [policyData, currentTagName, route.params.tagName, orderWeight, backPath],
+        [policyData, currentTagName, route.params.tagName, orderWeight, backPath, isVendorMatchingBetaEnabled],
     );
 
     return (

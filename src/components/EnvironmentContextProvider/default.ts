@@ -8,7 +8,9 @@ const defaultEnvironmentStateContextValue: EnvironmentStateContextType = {
 };
 
 const defaultEnvironmentActionsContextValue: EnvironmentActionsContextType = {
-    adjustExpensifyLinksForEnv: () => '',
+    // Outside of EnvironmentProvider we cannot know the current environment, so return the HTML unchanged rather
+    // than an empty string, which would blank out the message this is rendering.
+    adjustExpensifyLinksForEnv: (html: string) => html,
 };
 
 export {defaultEnvironmentStateContextValue, defaultEnvironmentActionsContextValue};

@@ -44,9 +44,6 @@ type PressableProps = RNPressableProps &
     RequiredAccessibilityLabel &
     ForwardedFSClassProps &
     WithSentryLabel & {
-        /**
-         * onPress callback
-         */
         onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
         /**
@@ -160,13 +157,10 @@ type PressableProps = RNPressableProps &
          */
         isNested?: boolean;
 
-        /**
-         * Reference to the outer element.
-         */
         ref?: PressableRef;
     };
 
-type PressableRef = ForwardedRef<HTMLDivElement | View | RNText | undefined>;
+type PressableRef = ForwardedRef<HTMLDivElement | ComponentRef<typeof View> | ComponentRef<typeof RNText> | undefined>;
 
 export default PressableProps;
 export type {PressableRef};

@@ -4,7 +4,7 @@
  */
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -12,6 +12,8 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -39,6 +41,10 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
+    const isInLandscapeMode = useIsInLandscapeMode();
+    const {isKeyboardActive} = useKeyboardState();
+    const shouldMoveFooterToScrollView = isInLandscapeMode && isKeyboardActive;
+
     const {data, isLoading} = useSuggestedAgentRules();
     const illustrations = useMemoizedLazyIllustrations(['Lightbulb']);
     const icons = useMemoizedLazyExpensifyIcons([...SUGGESTED_AGENT_RULE_ICON_NAMES]);
@@ -86,6 +92,17 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
 
     const hasNoFilteredSuggestions = filteredSuggestions.length === 0;
 
+    const button = (
+        <Button
+            variant="success"
+            size={CONST.BUTTON_SIZE.LARGE}
+            onPress={goToEditWithSelection}
+            isDisabled={!selectedSuggestion}
+        >
+            <Button.Text>{translate('common.next')}</Button.Text>
+        </Button>
+    );
+
     return (
         <View style={styles.flex1}>
             <View style={[styles.ph5, styles.pb3, styles.pt1]}>
@@ -94,6 +111,7 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
                     accessibilityLabel={translate('workspace.rules.agentRules.findSuggestion')}
                     value={searchValue}
                     onChangeText={setSearchValue}
+                    shouldHideClearButton={false}
                     autoGrowHeight={false}
                     role={CONST.ROLE.SEARCHBOX}
                 />
@@ -144,17 +162,11 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
                         );
                     })
                 )}
+
+                {shouldMoveFooterToScrollView && button}
             </ScrollView>
-            <FixedFooter style={styles.pt5}>
-                <Button
-                    variant="success"
-                    size={CONST.BUTTON_SIZE.LARGE}
-                    onPress={goToEditWithSelection}
-                    isDisabled={!selectedSuggestion}
-                >
-                    <Button.Text>{translate('common.next')}</Button.Text>
-                </Button>
-            </FixedFooter>
+
+            {!shouldMoveFooterToScrollView && <FixedFooter style={styles.pt5}>{button}</FixedFooter>}
         </View>
     );
 }

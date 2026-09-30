@@ -18,6 +18,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import Git from './utils/Git';
+import TSVUtils from './utils/TSVUtils';
 
 const SEATBELT_REL = 'config/eslint/eslint.seatbelt.tsv';
 
@@ -136,37 +137,26 @@ type HistorySnapshot = {
     aggregates: Aggregates;
 };
 
-const stripQuotes = (field: string): string => {
-    const t = field.trim();
-    if (t.length >= 2 && t.startsWith('"') && t.endsWith('"')) {
-        return t.slice(1, -1);
-    }
-    return t;
-};
-
 const parseSeatbeltTsv = (content: string): SeatbeltRow[] => {
-    const rows: SeatbeltRow[] = [];
-    for (const line of content.split(/\r?\n/)) {
-        const trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith('#')) {
+    const {rows} = TSVUtils.parse(content, {
+        onInvalidRow: (error, line) => {
+            console.warn(`eslint-report: skipping malformed line: ${error.message}: ${line.slice(0, 120)}`);
+        },
+    });
+    const parsed: SeatbeltRow[] = [];
+    for (const row of rows) {
+        if (row.cells.length !== 3) {
+            console.warn(`eslint-report: skipping malformed line (${row.cells.length} columns)`);
             continue;
         }
-        const parts = trimmed.split('\t');
-        if (parts.length !== 3) {
-            console.warn(`eslint-report: skipping malformed line (${parts.length} columns): ${trimmed.slice(0, 120)}`);
+        const [rawPath, rule, count] = row.cells;
+        if (typeof rawPath !== 'string' || typeof rule !== 'string' || typeof count !== 'number' || !Number.isFinite(count) || count < 0) {
+            console.warn(`eslint-report: skipping bad row for ${String(rawPath)}`);
             continue;
         }
-        const rawPath = stripQuotes(parts.at(0) ?? '');
-        const rule = stripQuotes(parts.at(1) ?? '');
-        const countStr = parts.at(2) ?? '';
-        const count = Number.parseInt(countStr.trim(), 10);
-        if (!Number.isFinite(count) || count < 0) {
-            console.warn(`eslint-report: skipping bad count for ${rawPath}: ${countStr}`);
-            continue;
-        }
-        rows.push({rawPath, rule, count});
+        parsed.push({rawPath, rule, count});
     }
-    return rows;
+    return parsed;
 };
 
 const normalizeFilePath = (projectRoot: string, seatbeltDir: string, rawPath: string): string => path.relative(projectRoot, path.resolve(seatbeltDir, rawPath)).split(path.sep).join('/');

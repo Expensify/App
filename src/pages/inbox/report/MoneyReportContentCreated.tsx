@@ -34,7 +34,6 @@ type MoneyReportContentCreatedProps = {
     /** The CREATED report action that this content belongs to */
     action: OnyxEntry<OnyxTypes.ReportAction>;
 
-    /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine: boolean;
 
     /** Pre-rendered thread divider node from the parent */

@@ -9,7 +9,7 @@ import {getCardConnectionBrokenMessage, getOriginalMessage} from '@libs/ReportAc
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
@@ -18,7 +18,7 @@ import {cardByIdSelector} from '@selectors/Card';
 import React from 'react';
 
 type CardBrokenConnectionContentProps = {
-    action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN>;
+    action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN | typeof CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS>;
 };
 
 function CardBrokenConnectionContent({action}: CardBrokenConnectionContentProps) {
@@ -33,9 +33,12 @@ function CardBrokenConnectionContent({action}: CardBrokenConnectionContentProps)
 
     const connectionLink = cardID && isPersonalCardBrokenConnection(card) ? `${environmentURL}/${ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(cardID))}` : undefined;
 
+    const is30DaysReminder = action.actionName === CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS;
+    const brokenConnectionMessage = getCardConnectionBrokenMessage(card, cardName, translate, is30DaysReminder, connectionLink);
+
     return (
         <ReportActionItemBasicMessage message="">
-            <RenderHTML html={`<comment>${getCardConnectionBrokenMessage(card, cardName, translate, connectionLink)}</comment>`} />
+            <RenderHTML html={`<comment>${brokenConnectionMessage}</comment>`} />
         </ReportActionItemBasicMessage>
     );
 }
