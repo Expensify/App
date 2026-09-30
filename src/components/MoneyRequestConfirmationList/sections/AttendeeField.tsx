@@ -99,38 +99,12 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
 
     return (
         <MenuItem.Root
-            onPress={
-                isReadOnly
-                    ? undefined
-                    : callFunctionIfActionIsAllowed(() => {
-                          if (!transactionID) {
-                              return;
-                          }
-
-                          Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(action, iouType, transactionID, reportID)));
-                      })
-            }
-            accessibilityLabel={`${translate('iou.attendees')}, ${Array.isArray(iouAttendees) ? getAttendeesListDisplayString(iouAttendees) : ''}`}
+            onPress={isReadOnly ? undefined : callFunctionIfActionIsAllowed(openAttendeePage)}
+            accessibilityLabel={attendeesAccessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ATTENDEES_FIELD}
         >
             <MenuItem.Row>
-                <MenuItemField.Content
-                    name={`${translate('iou.attendees')} ${
-                        iouAttendees?.length && iouAttendees.length > 1 && formattedAmountPerAttendee ? `· ${formattedAmountPerAttendee} ${translate('common.perPerson')}` : ''
-                    }`}
-                >
-                    {Array.isArray(iouAttendees) ? (
-                        <UserPills
-                            users={iouAttendees.map((a) => ({
-                                avatar: a?.avatarUrl,
-                                displayName: a?.displayName ?? a?.email ?? '',
-                                accountID: a?.accountID,
-                                email: a?.email,
-                            }))}
-                            maxVisible={isReadOnly ? iouAttendees.length : undefined}
-                        />
-                    ) : undefined}
-                </MenuItemField.Content>
+                <MenuItemField.Content name={attendeesDescription}>{attendeePills}</MenuItemField.Content>
                 {(shouldDisplayAttendeesError || !isReadOnly) && (
                     <MenuItem.Trailing>
                         {shouldDisplayAttendeesError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
