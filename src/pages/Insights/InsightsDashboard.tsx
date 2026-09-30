@@ -27,7 +27,8 @@ import type {InsightsFilters} from './insightsFilters';
 import type {InsightsDashboardState} from './resolveDashboardState';
 
 import InsightsChartWidget from './charts/InsightsChartWidget';
-import INSIGHTS_DASHBOARD_SPECS from './dashboardSpecs';
+import InsightsPageControls from './controls/InsightsPageControls';
+import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from './dashboardSpecs';
 import buildInsightsJsonQuery from './insightsQueries';
 import {getDashboardState, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
 import InsightsEmptyState from './states/InsightsEmptyState';
@@ -47,9 +48,12 @@ type InsightsDashboardContentProps = {
 
     /** Called by the retry button to request the dashboard again */
     onRetry: () => void;
+
+    /** Changes the time bucket the headline chart aggregates into */
+    onGroupByChange: (groupBy: InsightsFilters['groupBy']) => void;
 };
 
-function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry}: InsightsDashboardContentProps) {
+function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
     const floatingTabBarContentInsetStyle = useFloatingTabBarContentInsetStyle();
     const theme = useTheme();
@@ -84,17 +88,22 @@ function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry}: 
         );
     }
 
-    if (state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES) {
-        return <InsightsNoExpensesState />;
-    }
-
-    if (state === INSIGHTS_DASHBOARD_STATE.EMPTY) {
-        return <InsightsEmptyState />;
+    if (state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY) {
+        return (
+            <ScrollView
+                contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+                addBottomSafeAreaPadding
+            >
+                {state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES ? <InsightsNoExpensesState /> : <InsightsEmptyState />}
+            </ScrollView>
+        );
     }
 
     const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
-    const policiesInScope = Object.values(policies ?? {}).filter((policy) => !!policy && (filters.policyIDs.length === 0 || filters.policyIDs.includes(policy.id)));
-    const visibleCharts = supportingCharts.filter(({isPolicyEligible}) => !isPolicyEligible || policiesInScope.some((policy) => !!policy && isPolicyEligible(policy, login)));
+    const visibleCharts = getVisibleCharts(supportingCharts, policies, filters.policyIDs, login);
+
+    // Wide layout stacks the cards in two independent columns, so a short card doesn't leave a gap under it
+    const columns = shouldUseNarrowLayout ? [visibleCharts] : [visibleCharts.filter((chart, index) => index % 2 === 0), visibleCharts.filter((chart, index) => index % 2 === 1)];
 
     return (
         <ScrollView
@@ -108,21 +117,25 @@ function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry}: 
                     chart={headlineChart}
                     filters={filters}
                     onRetry={onRetry}
+                    onGroupByChange={onGroupByChange}
                 />
                 <View style={styles.insightsChartGrid}>
-                    {visibleCharts.map((chart) => (
+                    {columns.map((columnCharts, columnIndex) => (
                         <View
-                            key={chart.graphKey}
-                            style={styles.insightsChartGridCell(shouldUseNarrowLayout)}
+                            // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
+                            key={columnIndex}
+                            style={[styles.flex1, styles.insightsChartColumn]}
                         >
-                            <InsightsChartWidget
-                                dashboardID={dashboardID}
-                                hash={hash}
-                                chart={chart}
-                                filters={filters}
-                                onRetry={onRetry}
-                                containerStyles={styles.flex1}
-                            />
+                            {columnCharts.map((chart) => (
+                                <InsightsChartWidget
+                                    key={chart.graphKey}
+                                    dashboardID={dashboardID}
+                                    hash={hash}
+                                    chart={chart}
+                                    filters={filters}
+                                    onRetry={onRetry}
+                                />
+                            ))}
                         </View>
                     ))}
                 </View>
@@ -135,7 +148,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
-    const {filters, isResolved} = useInsightsFilters();
+    const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(dashboardID);
 
     const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters) : undefined;
     const jsonQuery = query?.jsonQuery;
@@ -161,6 +174,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
     const [headlineSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${dashboard?.graphs?.[INSIGHTS_DASHBOARD_SPECS[dashboardID].headlineChart.graphKey]?.snapshotHash}`);
+    const state = getDashboardState(dashboard, isOffline, headlineSnapshot);
 
     return (
         <ScreenWrapper
@@ -172,12 +186,20 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
                 breadcrumbLabel={translate('common.insights')}
                 shouldDisplayHelpButton
             />
+            {state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && (
+                <InsightsPageControls
+                    filters={filters}
+                    defaultFilters={defaultFilters}
+                    onChange={setFilters}
+                />
+            )}
             <InsightsDashboardContent
                 dashboardID={dashboardID}
                 hash={hash}
-                state={getDashboardState(dashboard, isOffline, headlineSnapshot)}
+                state={state}
                 filters={filters}
                 onRetry={requestDashboard}
+                onGroupByChange={(groupBy) => setFilters({groupBy})}
             />
         </ScreenWrapper>
     );
