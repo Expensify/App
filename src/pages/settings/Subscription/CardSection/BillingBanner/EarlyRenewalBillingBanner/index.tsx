@@ -30,6 +30,7 @@ function EarlyRenewalBillingBanner() {
         <OfflineWithFeedback
             errors={eligibility?.errors}
             onClose={clearEarlyRenewalOfferErrors}
+            style={styles.w100}
             errorRowStyles={[styles.ph5, styles.pb4]}
         >
             <BillingBanner
