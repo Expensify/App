@@ -40,7 +40,7 @@ function SubmitViolationsList({violations}: SubmitViolationsListProps) {
                             width={variables.iconSizeExtraSmall}
                         />
                     </View>
-                    <Text style={[styles.flex1, styles.ml2, styles.textLabel, styles.textDanger]}>{violation}</Text>
+                    <Text style={[styles.flex1, styles.ml2, styles.textLabel, {color: theme.textError}]}>{violation}</Text>
                 </View>
             ))}
         </View>
