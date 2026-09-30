@@ -1,3 +1,4 @@
+import {isLiveWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
 import type {NonTopScreenBehavior, PlatformSpecificNavigationOptions, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import type {ParamListBase} from '@react-navigation/native';
@@ -46,7 +47,8 @@ function wrapDescriptorsWithNonTopScreensBehavior<T extends Descriptor>(
         result ??= {...descriptors};
         const NonTopScreenWrapper = WRAPPER_FOR_BEHAVIOR[behavior];
         // The state always carries a top route, but a missing key must leave every screen visible instead of blurring the whole stack.
-        const isScreenBlurred = topRouteKey !== undefined && key !== topRouteKey;
+        // A wide submit pre-mount keeps its wrapper, so the reveal does not remount it, but must render while covered.
+        const isScreenBlurred = topRouteKey !== undefined && key !== topRouteKey && !isLiveWideTabPreMountRouteKey(key);
         result[key] = {
             ...descriptor,
             render: () => <NonTopScreenWrapper isScreenBlurred={isScreenBlurred}>{descriptor.render()}</NonTopScreenWrapper>,

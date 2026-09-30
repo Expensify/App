@@ -423,10 +423,10 @@ describe('SubmitDetailsPage', () => {
     // Error #5 — wide layout fallback: when destination is not topmost, reveal it via revealRouteBeforeDismissingModal
     // and defer navigation to cleanup (shouldNavigate: false) so we do not double-navigate after dismiss.
     it('wide layout: reveals destination via revealRouteBeforeDismissingModal when another report is topmost', async () => {
-        // Given a wide layout where another report is topmost, so the destination is pre-mounted under the current fullscreen
+        // Given a wide layout where another report is topmost, so the destination is pre-mounted inside the tab navigator
         jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
         jest.mocked(getIsNarrowLayout).mockReturnValue(false);
-        jest.mocked(Navigation.getPreMountedFullscreenRouteKey).mockReturnValue('TabNavigator-pre-mount-1');
+        jest.mocked(Navigation.getPreMountedFullscreenRouteKey).mockReturnValue('Report-wide-pre-mount-1');
 
         // When the share is confirmed
         await renderAndConfirm();

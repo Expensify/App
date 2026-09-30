@@ -1,5 +1,6 @@
 import Text from '@components/Text';
 
+import {setLiveWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
 import type NonTopScreenWrapperProps from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/nonTopScreenWrapperTypes';
 import ScreenActivityWrapper from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/ScreenActivityWrapper';
 import ScreenFreezeWrapper from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/ScreenFreezeWrapper';
@@ -81,6 +82,21 @@ describe('wrapDescriptorsWithNonTopScreensBehavior', () => {
         // Then it is left untouched, while the other one is still wrapped
         expect(result[COVERED_KEY]).toBe(descriptors[COVERED_KEY]);
         expect(renderWrapped(result[TOP_KEY]).type).toBe(ScreenActivityWrapper);
+    });
+
+    it('keeps a covered wide submit pre-mount wrapped but not blurred, so it renders before its reveal', () => {
+        // Given a covered screen that is the live wide pre-mount, and a top screen, both with the freeze behavior
+        setLiveWideTabPreMountRouteKey(COVERED_KEY);
+        const descriptors = {[COVERED_KEY]: buildDescriptor('Covered', 'freeze'), [TOP_KEY]: buildDescriptor('Top', 'freeze')};
+
+        // When they are wrapped
+        const result = wrapDescriptorsWithNonTopScreensBehavior(descriptors, buildState());
+        setLiveWideTabPreMountRouteKey(undefined);
+
+        // Then the pre-mount keeps its wrapper, so the reveal does not remount it, but it is not frozen while covered
+        const covered = renderWrapped(result[COVERED_KEY]);
+        expect(covered.type).toBe(ScreenFreezeWrapper);
+        expect(covered.props.isScreenBlurred).toBe(false);
     });
 
     it.each([

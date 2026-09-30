@@ -9,8 +9,8 @@ type UsePreMountDestinationOptions = {
     /**
      * Controls how the destination is prepared.
      *
-     * - CONST.DESTINATION_STRATEGY.PRE_INSERT: eagerly pre-mount the route (under the RHP on narrow, under the current
-     *   fullscreen on wide layout), then reveal over it.
+     * - CONST.DESTINATION_STRATEGY.PRE_INSERT: eagerly pre-mount the route (under the RHP on narrow, hidden inside the
+     *   current tab navigator on wide layout), then reveal over it.
      * - CONST.DESTINATION_STRATEGY.REVEAL: skip eager pre-mount and insert/reveal the route when reveal() is called.
      *
      * If the hook already pre-inserted the destination, reveal() still reveals that owned route even if this option later

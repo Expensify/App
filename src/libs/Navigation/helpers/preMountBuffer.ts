@@ -11,13 +11,13 @@ import {DeviceEventEmitter} from 'react-native';
 
 import hasNativeSwipeBackGesture from './hasNativeSwipeBackGesture';
 import {isPreMountBufferHostName} from './isNavigatorName';
-import {clearPreMountedUnderCurrentFullscreenRouteKey} from './preMountedUnderCurrentFullscreenRouteKey';
+import {cancelWideTabPreMount} from './wideTabPreMount';
 
 // Always set and cleared together - the route name is only meaningful while the flag is true.
 let isFullscreenPreInsertedUnderRHP = false;
 let preInsertedFullscreenRouteName: string | undefined;
-// Wide layout pre-mounts the destination as a TAB_NAVIGATOR under the current one instead of a route under the RHP. This
-// holds that route's key and the route it was built for, so REPLACE can reveal it and REMOVE can drop it. Cleared with the flag.
+// Wide layout pre-mounts the destination screen inside the current TAB_NAVIGATOR instead of a route under the RHP. This
+// holds that screen's key and the route it was built for, so REPLACE can reveal it or the cancel can drop it. Cleared with the flag.
 let preMountedFullscreen: {routeKey: string; route: Route} | undefined;
 // Set while the dismiss reveals a wide pre-mount, so its focus-time work stays out of the RHP slide (see useSearchOverlay).
 let isRevealingPreMountedFullscreen = false;
@@ -280,17 +280,9 @@ function removePreInsertedFullscreenIfNeeded() {
     preInsertedFullscreenRouteName = undefined;
     preMountedFullscreen = undefined;
 
-    // Wide layout: the destination sits under the current fullscreen, so dropping that route is the whole cleanup.
+    // Wide layout: the destination is a hidden screen inside the current tab navigator, so taking it out is the whole cleanup.
     if (preMountedRouteKey) {
-        // Browser back can already have reset to a state without it. The key must still stop counting as live.
-        if (!navigationRef.getRootState()?.routes.some((route) => route.key === preMountedRouteKey)) {
-            clearPreMountedUnderCurrentFullscreenRouteKey();
-            return;
-        }
-        navigationRef.current?.dispatch({
-            type: CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP,
-            payload: {expectedRouteName: routeNameToRemove ?? '', preMountedRouteKey},
-        });
+        cancelWideTabPreMount();
         return;
     }
 

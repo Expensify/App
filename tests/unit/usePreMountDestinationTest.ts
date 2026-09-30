@@ -144,7 +144,7 @@ describe('usePreMountDestination', () => {
         });
 
         it('schedules the pre-insert on wide layout as well, leaving how to pre-mount to Navigation', () => {
-            // Given a wide layout, where Navigation pre-mounts the destination under the current fullscreen
+            // Given a wide layout, where Navigation pre-mounts the destination inside the tab navigator
             mockGetIsNarrowLayout.mockReturnValue(false);
             const {finishOpenTransition} = mockOpenTransitionWait();
 
@@ -347,7 +347,7 @@ describe('usePreMountDestination', () => {
         });
 
         it('reveal reveals over an owned wide pre-mounted route instead of plain dismissing', () => {
-            // Given the hook pre-mounted this route under the current fullscreen on wide layout
+            // Given the hook pre-mounted this route inside the tab navigator on wide layout
             mockGetIsNarrowLayout.mockReturnValue(false);
             mockSuccessfulPreInsert();
             jest.mocked(Navigation.getPreMountedFullscreenRouteKey).mockImplementation((requestedRoute) => (requestedRoute === route ? 'TabNavigator-pre-mounted' : undefined));
