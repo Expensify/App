@@ -5,7 +5,7 @@ import type {Shortcut} from '@libs/KeyboardShortcut';
 import type CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, PressableStateCallbackType, PressableProps as RNPressableProps, Text as RNText, StyleProp, View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -167,7 +167,7 @@ type PressableProps = RNPressableProps &
         ref?: PressableRef;
     };
 
-type PressableRef = ForwardedRef<HTMLDivElement | View | RNText | undefined>;
+type PressableRef = ForwardedRef<HTMLDivElement | ComponentRef<typeof View> | ComponentRef<typeof RNText> | undefined>;
 
 export default PressableProps;
 export type {PressableRef};
