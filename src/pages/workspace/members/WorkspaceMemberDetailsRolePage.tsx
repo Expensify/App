@@ -28,7 +28,6 @@ import React from 'react';
 
 type WorkspaceMemberDetailsRolePageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE> & {
-        /** Personal details of all users */
         personalDetails: OnyxEntry<PersonalDetailsList>;
     };
 

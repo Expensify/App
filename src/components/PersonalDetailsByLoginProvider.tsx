@@ -1,6 +1,5 @@
-import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -22,7 +21,6 @@ type PersonalDetailsByLoginStore = {
     /** Registers a listener that is called whenever the map changes, and returns its unsubscribe function */
     subscribe: (listener: Listener) => () => void;
 
-    /** Returns the current map */
     getSnapshot: () => PersonalDetailsByLogin;
 };
 
@@ -57,7 +55,7 @@ function buildPersonalDetailsByLogin(personalDetailsList: OnyxEntry<PersonalDeta
  * subscribe to the entire personal details list to look somebody up by their login.
  */
 function PersonalDetailsByLoginProvider({children}: ChildrenProps) {
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetailsList] = useAllPersonalDetails();
     const personalDetailsByLogin = buildPersonalDetailsByLogin(personalDetailsList);
 
     const storeRef = useRef({snapshot: personalDetailsByLogin, listeners: new Set<Listener>()});

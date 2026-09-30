@@ -1,8 +1,9 @@
-import '@libs/Middleware/register';
 import EnvironmentProvider from '@components/EnvironmentContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
+
+import registerMiddlewares from '@libs/Middleware/register';
 
 import colors from '@styles/theme/colors';
 
@@ -22,6 +23,8 @@ import Onyx from 'react-native-onyx';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 import './fonts.css';
+
+registerMiddlewares();
 
 Onyx.init({
     keys: ONYXKEYS,

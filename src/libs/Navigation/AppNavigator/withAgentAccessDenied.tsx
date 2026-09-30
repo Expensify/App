@@ -36,7 +36,12 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
                         // forceReplace REPLACEs the stale guarded central-pane route instead of PUSHing Profile on
                         // top of it, so back from Profile pops to the unguarded Account sidebar rather than the
                         // guarded route that would re-fire this redirect.
-                        const redirectToProfile = () => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute(), {forceReplace: true});
+                        const redirectToProfile = () => {
+                            Navigation.popRootToTop();
+                            Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute(), {
+                                forceReplace: true,
+                            });
+                        };
 
                         // The guarded screen can be open inside a modal/RHP (e.g. the agent-edit page the owner was
                         // on when they tapped "Copilot into account"), or an unguarded RHP (e.g. the agent DM) can be

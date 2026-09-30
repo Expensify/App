@@ -24,15 +24,9 @@ type PushRowField<TFormID extends keyof OnyxFormValuesMapping> = {
 };
 
 type PushRowFieldsStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps & {
-    /** The ID of the form */
     formID: TFormID;
-
-    /** Title of the form */
     formTitle: string;
-
-    /** A function to call when the form is submitted */
     onSubmit: (values: FormOnyxValues<TFormID>) => void;
-
     pushRowFields: Array<PushRowField<TFormID>>;
 };
 

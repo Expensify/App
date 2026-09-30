@@ -14,9 +14,14 @@ import {fileURLToPath} from 'url';
 
 import type Environment from './types.ts';
 
-// Relative on purpose: module aliases are not resolved when this config is evaluated.
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import SENTRY_APPLICATION_KEY from '../../src/libs/telemetry/sentryApplicationKey.ts'; // eslint-disable-line @dword-design/import-alias/prefer-alias
+// Relative on purpose: module aliases are not resolved when this config is evaluated.
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+import getAppVersion from '../../src/libs/VersionUtils.ts'; // eslint-disable-line @dword-design/import-alias/prefer-alias
+import oxcReactCompilerConfig from '../babel/oxcReactCompilerConfig.js';
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+import BrotliCompressionPlugin from './BrotliCompressionPlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import CustomVersionFilePlugin from './CustomVersionFilePlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
@@ -49,20 +54,11 @@ function getOxcAndWorkletsLoaders(isDevServer: boolean) {
         {
             loader: path.resolve(dirname, './loaders/oxc-react-compiler-loader.mjs'),
             options: {
-                reactCompiler: {
-                    target: '19',
-                    panicThreshold: 'none',
-                    // `sources` is a filename allowlist: the compiler only runs on files whose path
-                    // contains one of these strings. Every path contains the empty string, so this
-                    // replaces the default filter (which skips `node_modules`) and keeps the compiler
-                    // running over INCLUDED_NODE_MODULES the same way it does over app source.
+                reactCompiler: oxcReactCompilerConfig({
+                    // The empty string matches every path, replacing the default filter that skips
+                    // node_modules. Web only: native must not compile dependencies.
                     sources: [''],
-                    // The compiler treats `react-hooks/exhaustive-deps` and `react-hooks/rules-of-hooks`
-                    // suppressions as an opt-out by default. babel-plugin-react-compiler disables that
-                    // default whenever exhaustive-memo and hooks-usage validation are both on, which is
-                    // its own default, so an empty list keeps web and Metro/Jest compiling the same files.
-                    eslintSuppressionRules: [],
-                },
+                }),
                 jsx: {runtime: 'automatic', development: isDevServer, refresh: isDevServer},
             },
         },
@@ -175,6 +171,9 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
                 // @sentry/react-native references the optional expo-updates module. We do not install it,
                 // so web/Storybook bundles should treat it as unavailable instead of failing resolution.
                 'expo-updates': false,
+                // @sentry/react-native references Expo Router internally. We do not install it, so web/Storybook
+                // bundles should treat it as unavailable instead of failing resolution.
+                'expo-router/build/global-state/router-store': false,
                 // Use legacy build of pdfjs-dist to support older browsers
                 'pdfjs-dist$': path.resolve(dirname, '../../node_modules/pdfjs-dist/legacy/build/pdf.mjs'),
                 '@assets': path.resolve(dirname, '../../assets'),
@@ -330,13 +329,16 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
  */
 const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevServer = false}: Environment): Promise<RsbuildConfig> => {
     const isDevelopment = file === '.env' || file === '.env.development';
+    const shouldCompressWithBrotli = !isDevelopment && file !== '.env.adhoc';
     const shared = getSharedConfiguration({file, platform, isDevServer});
     const sharedRspackTool = shared.tools?.rspack;
     const sentryWebpackPlugin = isDevelopment ? undefined : (await import('@sentry/webpack-plugin')).sentryWebpackPlugin;
+    const {semanticVersion, buildNumber} = getAppVersion(process.env.npm_package_version ?? '');
+    const releaseName = `${process.env.npm_package_name}@${semanticVersion}`;
 
     if (!isDevelopment) {
-        const releaseName = `${process.env.npm_package_name}@${process.env.npm_package_version}`;
         console.debug(`[SENTRY ${platform.toUpperCase()}] Release: ${releaseName}`);
+        console.debug(`[SENTRY ${platform.toUpperCase()}] Dist: ${buildNumber ?? 'none'}`);
         console.debug(`[SENTRY ${platform.toUpperCase()}] Assets Path: ${'./dist/**/*.{js,map}'}`);
     }
 
@@ -387,6 +389,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
             copy: [
                 {from: 'web/favicon.png'},
                 {from: 'web/favicon-unread.png'},
+                {from: 'web/favicon-concierge-unread.png'},
                 {from: 'web/og-preview-image.png'},
                 {from: 'web/apple-touch-icon.png'},
                 {from: 'web/robots.txt'},
@@ -419,6 +422,9 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
             },
         },
         performance: {
+            // Rsbuild's default exclusion, plus the `.br` twins BrotliCompressionPlugin emits below: listing them would
+            // double the report with a meaningless "gzipped size" of already-Brotli-compressed bytes.
+            printFileSize: {exclude: (asset) => /\.(?:map|LICENSE\.txt|d\.(?:ts|mts|cts)|br)$/.test(asset.name)},
             // We have to load the whole lottie player to get the player to work in offline mode
             // heic-to library is used sparsely so we load it as a separate chunk to reduce initial bundle size
             // ExpensifyIcons/illustrations chunks are loaded eagerly for offline support
@@ -502,6 +508,10 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                                   // all critical for offline boot, so we precache the lot. Everything in the
                                   // App build is content-hashed, so growth here only costs first-install bytes.
                                   maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
+                                  // Workbox's defaults, plus the `.br` twins BrotliCompressionPlugin emits: the service
+                                  // worker requests the original URLs and the CDN transparently serves the Brotli copy,
+                                  // so adding the twins to the precache as well would download every chunk twice.
+                                  exclude: [/\.map$/, /^manifest.*\.js$/, /\.br$/],
                                   // Single-page app: any unmatched navigation should serve the cached app shell.
                                   navigateFallback: '/index.html',
                                   // Don't fall back for asset-like or .well-known requests.
@@ -567,9 +577,15 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                                   org: 'expensify',
                                   project: 'app',
                                   release: {
-                                      name: `${process.env.npm_package_name}@${process.env.npm_package_version}`,
+                                      name: releaseName,
+                                      dist: buildNumber,
                                       create: true,
                                       setCommits: {auto: true},
+                                      // Don't inject SENTRY_RELEASE into every chunk: the SDK only reads it as a
+                                      // fallback, and setupSentry.ts passes `release` to Sentry.init explicitly.
+                                      // If set to true, the app version is embedded into every chunk, so each version
+                                      // bump changes the contenthash of every bundle and invalidates the entire cache.
+                                      inject: false,
                                   },
                                   sourcemaps: {
                                       assets: './dist/**/*.{js,map}',
@@ -585,6 +601,9 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                         : []),
                     // This allows us to interactively inspect JS bundle contents, loader/plugin timings, and duplicate packages
                     ...(process.env.ANALYZE_BUNDLE === 'true' ? [new RsdoctorRspackPlugin()] : []),
+                    // Writes a Brotli 11 twin (`foo.js` -> `foo.js.br`) beside every deployable text/bytecode asset, so the CDN
+                    // can serve it instead of compressing with gzip on the fly: 25-30% fewer bytes over the wire.
+                    ...(shouldCompressWithBrotli ? [new BrotliCompressionPlugin({test: /\.(?:js|css|html|svg|wasm|ttf)$/})] : []),
                 );
 
                 return afterShared;
