@@ -144,14 +144,17 @@ const DYNAMICALLY_SIZED_SEARCH_COLUMNS = new Set<SearchColumnType>([
 ]);
 
 /**
- * Columns sized to fit their content exactly rather than sharing the row's spare space. Their content is a fixed-size
- * element, not free text, so widening it past what it holds only pads the row out.
+ * Columns sized to fit their content exactly rather than sharing the row's spare space. What they hold is bounded, a
+ * badge or an amount rather than free text, so widening them past it only pads the row out and leaves the spare room
+ * where it is worth more.
  */
-const HUGGED_SEARCH_COLUMNS = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.STATUS]);
+const HUGGED_SEARCH_COLUMNS = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.STATUS, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
 
 /** Each dynamically sized column's header label, so a column can be kept wide enough to show its own heading. */
 const SEARCH_COLUMN_HEADER_TRANSLATION_KEYS: Partial<Record<SearchColumnType, TranslationPaths>> = {
     [CONST.SEARCH.TABLE_COLUMNS.STATUS]: 'common.status',
+    // The heading reads "Total" in a grouped search, which renders narrower, so the wider of the two is measured.
+    [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: 'iou.amount',
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 'common.merchant',
     [CONST.SEARCH.TABLE_COLUMNS.VENDOR]: 'common.vendor',
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'common.description',
