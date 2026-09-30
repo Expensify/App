@@ -36,17 +36,9 @@ export default {
     bottomTabHeight: 72,
     floatingTabBarHeight,
     floatingTabBarHorizontalInset: 16,
-    // How far the selected pill reaches past the icon and label. Measured off the iOS glass bubble, where the
-    // account tab's 121px label sits in a 222px bubble, so 17pt a side.
-    floatingTabBarSelectedOverhang: 17,
+    // How far the selected pill reaches past its tab on each side, whatever the label's length.
+    floatingTabBarSelectedOverhang: 4,
     floatingTabBarBottomInset,
-    // Blur the bar lays over what it covers. The web radius is a CSS blur; the Android one is expo-blur's own
-    // 0 to 100 intensity, which is not the same unit, so the two are tuned to match rather than shared.
-    floatingTabBarBlurRadius: 24,
-    floatingTabBarBlurIntensity: 60,
-    // expo-blur on Android derives its radius as intensity / factor, so this puts the radius at 5, soft enough that
-    // shapes and colors under the bar still show through, without changing the tint the intensity sets.
-    floatingTabBarBlurReductionFactor: 12,
     // Vertical space the floating bar takes over the content it hides, so scrollable content can end above it.
     floatingTabBarContentInset: floatingTabBarHeight + floatingTabBarBottomInset,
     // styles.p3 (12) on each side of the DebugTabView row plus the View button (componentSizeNormal).
@@ -119,12 +111,16 @@ export default {
     iconBottomBar: 24,
     /** Glyph size in the floating tab bar, smaller than the side bar's so each item keeps padding above and below it. */
     iconFloatingTabBar: 20,
+    /** Account avatar size in the floating tab bar. A circle reads smaller than a glyph of the same box, so it is larger. */
+    avatarFloatingTabBar: avatarSizes.avatarSizeXSmall,
     /** Radius of the status dot drawn into a native tab bar icon, and the room reserved for it around the glyph. */
     nativeTabIconDotRadius: 4,
     // Gap between the glyph and the label baked under it, matching the spacing the JS bar uses.
     nativeTabIconLabelGap: 6,
     /** Pixel density the native tab bar icons are rasterized at. */
     nativeTabIconScale: 3,
+    /** Height of Material's BottomNavigationView row on Android, without the gesture inset under it. */
+    androidNativeTabBarHeight: 80,
     iconHeader: 48,
     iconSection: 68,
     iouAmountTextSize: 40,

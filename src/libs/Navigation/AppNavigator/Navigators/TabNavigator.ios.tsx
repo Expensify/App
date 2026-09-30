@@ -88,6 +88,19 @@ const TAB_ROOT_SCREENS_WITHOUT_GESTURE = new Set<string>([SCREENS.HOME, SCREENS.
 
 type NativeTabLayoutProps = Parameters<NonNullable<NativeBottomTabNavigatorProps['layout']>>[0];
 
+/** The recolored tab icons, with the signature of everything baked into them. */
+type TintedTabIcons = {signature: string; icons: Record<string, TintedTabIconPair>};
+
+/** The account tab's avatar in both selection states, with the signature of everything baked into them. */
+type CircularAvatarIcons = {signature: string; uri: string; active: AvatarTabIcon; inactive: AvatarTabIcon};
+
+/**
+ * The last icons drawn, kept outside the component so a remounted navigator starts from them instead of waiting
+ * for Skia again. While a new theme or language is being drawn, the bar keeps showing these.
+ */
+let lastTintedIcons: TintedTabIcons | undefined;
+let lastCircularAvatar: CircularAvatarIcons | undefined;
+
 /** stale === false distinguishes a fully realized NavigationState from a PartialState. */
 function isRealizedNavigationState(state: NavigationState | PartialState<NavigationState> | undefined): state is NavigationState {
     return state?.stale === false;
@@ -100,14 +113,14 @@ type TintedTabIconPair = {active: NativeBottomTabIcon; inactive: NativeBottomTab
 type AvatarTabIcon = {uri: string; width: number; height: number};
 
 /** Paints the status dot in the glyph's top right corner, where a native badge would have sat. */
-function drawStatusDot(canvas: SkCanvas, glyphRight: number, scale: number, color: string) {
+function drawStatusDot(canvas: SkCanvas, glyphRight: number, glyphTop: number, scale: number, color: string) {
     const radius = variables.nativeTabIconDotRadius * scale;
     const paint = Skia.Paint();
     paint.setColor(Skia.Color(color));
-    canvas.drawCircle(glyphRight - radius, radius, radius, paint);
+    canvas.drawCircle(glyphRight - radius, glyphTop + radius, radius, paint);
 }
 
-/** The label's own face, matching what the bar drew before it became native: Expensify Neue, bold when selected. */
+/** The label's face: Expensify Neue, bold when selected. */
 function getLabelFont(isSelected: boolean, scale: number) {
     const typeface = Skia.FontMgr.System().matchFamilyStyle(FontUtils.fontFamily.single.EXP_NEUE.fontFamily, {
         weight: isSelected ? FontWeight.Bold : FontWeight.Normal,
@@ -168,12 +181,16 @@ async function createTabIcon(
         return undefined;
     }
 
-    const glyphWidth = image.width();
-    const glyphHeight = image.height();
+    // The glyph assets are 24 pt and are drawn at the floating bar's glyph size, the one the JS bar uses.
+    const glyphWidth = variables.iconFloatingTabBar * scale;
+    const glyphHeight = variables.iconFloatingTabBar * scale;
+    // The account avatar is taller than a glyph, so every glyph sits this far down to share its centre, and
+    // every label lands at the same height.
+    const glyphTop = ((variables.avatarFloatingTabBar - variables.iconFloatingTabBar) / 2) * scale;
     const gap = variables.nativeTabIconLabelGap * scale;
     const labelSize = measureLabel(label, isSelected, scale);
     const canvasWidth = Math.ceil(Math.max(glyphWidth, labelSize.width));
-    const canvasHeight = Math.ceil(glyphHeight + gap + labelSize.height);
+    const canvasHeight = Math.ceil(glyphTop + glyphHeight + gap + labelSize.height);
     const surface = Skia.Surface.MakeOffscreen(canvasWidth, canvasHeight);
 
     if (!surface) {
@@ -187,13 +204,13 @@ async function createTabIcon(
 
     const canvas = surface.getCanvas();
     const glyphLeft = (canvasWidth - glyphWidth) / 2;
-    canvas.drawImageRect(image, Skia.XYWHRect(0, 0, glyphWidth, glyphHeight), Skia.XYWHRect(glyphLeft, 0, glyphWidth, glyphHeight), paint);
+    canvas.drawImageRect(image, Skia.XYWHRect(0, 0, image.width(), image.height()), Skia.XYWHRect(glyphLeft, glyphTop, glyphWidth, glyphHeight), paint);
 
     if (dotColor) {
-        drawStatusDot(canvas, glyphLeft + glyphWidth, scale, dotColor);
+        drawStatusDot(canvas, glyphLeft + glyphWidth, glyphTop, scale, dotColor);
     }
 
-    drawLabel(canvas, label, labelColor, isSelected, scale, canvasWidth, glyphHeight + gap);
+    drawLabel(canvas, label, labelColor, isSelected, scale, canvasWidth, glyphTop + glyphHeight + gap);
 
     surface.flush();
 
@@ -209,16 +226,18 @@ async function createTabIcon(
 
 /**
  * The account tab shows the user's avatar, and a tab icon has to be a square image, so the avatar is cropped to a
- * circle off-screen and handed over as a data URI. It fills the same canvas as every other tab icon, so the avatar
- * is drawn at the size of the glyphs next to it.
+ * circle off-screen and handed over as a data URI. Its canvas is as tall as every other tab icon's, with the avatar
+ * a little larger than the glyphs next to it, since a circle reads smaller than a glyph of the same box.
  */
 async function createCircularAvatarIcon(uri: string, dotColor: string | undefined, label: string, labelColor: string, isSelected: boolean): Promise<AvatarTabIcon | undefined> {
     const response = await fetch(uri);
     const encodedImage = Skia.Data.fromBytes(new Uint8Array(await response.arrayBuffer()));
     const image = Skia.Image.MakeImageFromEncoded(encodedImage);
     const scale = variables.nativeTabIconScale;
-    const avatarSize = variables.iconBottomBar * scale;
-    const gap = variables.nativeTabIconLabelGap * scale;
+    const avatarSize = variables.avatarFloatingTabBar * scale;
+    // The avatar overhangs a glyph by the same amount above and below, so its gap to the label shrinks by
+    // that much and the label lands where every other tab's does.
+    const gap = (variables.nativeTabIconLabelGap - (variables.avatarFloatingTabBar - variables.iconFloatingTabBar) / 2) * scale;
     const labelSize = measureLabel(label, isSelected, scale);
     const canvasWidth = Math.ceil(Math.max(avatarSize, labelSize.width));
     const canvasHeight = Math.ceil(avatarSize + gap + labelSize.height);
@@ -244,7 +263,7 @@ async function createCircularAvatarIcon(uri: string, dotColor: string | undefine
     canvas.restore();
 
     if (dotColor) {
-        drawStatusDot(canvas, avatarLeft + avatarSize, scale, dotColor);
+        drawStatusDot(canvas, avatarLeft + avatarSize, 0, scale, dotColor);
     }
 
     drawLabel(canvas, label, labelColor, isSelected, scale, canvasWidth, avatarSize + gap);
@@ -267,14 +286,14 @@ async function createCircularAvatarIcon(uri: string, dotColor: string | undefine
  * them. The native bar is part of the navigator itself, so it is switched off through `tabBarStyle` in the
  * navigator's screen options instead of being unmounted.
  */
-function NativeTabLayout({children, state}: NativeTabLayoutProps) {
+function NativeTabLayout({children, state, descriptors}: NativeTabLayoutProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isBlockingViewVisible} = useFullScreenBlockingViewState();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const styles = useThemeStyles();
     const activeRoute = state.routes[state.index];
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
-    const shouldShowNativeTabBar = shouldUseNarrowLayout && isTabRouteAtRoot(activeRoute) && !isBlockingViewVisible;
+    // The buttons follow whatever the navigator decided for the bar itself.
+    const shouldShowNativeTabBar = shouldUseNarrowLayout && !!activeRoute && descriptors[activeRoute.key]?.options.tabBarStyle?.display !== 'none';
 
     if (!shouldUseNarrowLayout) {
         return (
@@ -361,15 +380,17 @@ function TabNavigator() {
     // language change redraws them.
     const iconsSignature = [theme.icon, theme.iconMenu, theme.text, theme.textSupporting, inboxDotColor, workspacesDotColor, accountDotColor, ...Object.values(tabLabels)].join('|');
 
-    const [tintedIcons, setTintedIcons] = useState<{signature: string; icons: Record<string, TintedTabIconPair>}>();
-    const tintedIconsForTheme = tintedIcons?.signature === iconsSignature ? tintedIcons.icons : undefined;
+    const [tintedIcons, setTintedIcons] = useState<TintedTabIcons | undefined>(lastTintedIcons);
+    // The template icons the bar would fall back to render black on iOS 26, which ignores the inactive tint, so
+    // the bar is held back until the first recolored set exists.
+    const areTabIconsReady = !!tintedIcons;
 
     useEffect(() => {
         let isActive = true;
         const inactiveColor = theme.icon;
         const activeColor = theme.iconMenu;
-        // The label colors the bar drew before it became native: the supporting tone when idle, the plain text
-        // tone when selected. Both come from the theme, so light and dark each get their own pair.
+        // The supporting tone when idle, the plain text tone when selected, taken from the theme so light and dark
+        // each get their own pair.
         const inactiveLabelColor = theme.textSupporting;
         const activeLabelColor = theme.text;
         const signature = iconsSignature;
@@ -396,9 +417,16 @@ function TabNavigator() {
                         icons[result.name] = {inactive: result.inactive, active: result.active};
                     }
                 }
-                setTintedIcons({signature, icons});
+                lastTintedIcons = {signature, icons};
+                setTintedIcons(lastTintedIcons);
             })
-            .catch(() => {});
+            .catch(() => {
+                // A failed draw still lets the bar show, on the template icons, rather than keeping it hidden.
+                if (!isActive) {
+                    return;
+                }
+                setTintedIcons((previous) => previous ?? {signature, icons: {}});
+            });
 
         return () => {
             isActive = false;
@@ -406,9 +434,9 @@ function TabNavigator() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [iconsSignature]);
 
-    /** Falls back to the template icon until both tinted copies are ready, so a tab is never left without one. */
+    /** Falls back to the template icon for a tab whose tinted copies could not be drawn, so it is never left without one. */
     const getTabBarIcon = (name: string, fallbackIcon: NativeBottomTabIcon) => {
-        const pair = tintedIconsForTheme?.[name];
+        const pair = tintedIcons?.icons[name];
         if (!pair) {
             return fallbackIcon;
         }
@@ -421,8 +449,9 @@ function TabNavigator() {
     });
     const avatarURI = typeof avatarSource === 'string' ? avatarSource : undefined;
     const avatarSignature = [avatarURI, accountDotColor, tabLabels[NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR], theme.textSupporting, theme.text].join('|');
-    const [circularAvatar, setCircularAvatar] = useState<{signature: string; active: AvatarTabIcon; inactive: AvatarTabIcon}>();
-    const avatarPair = circularAvatar?.signature === avatarSignature ? circularAvatar : undefined;
+    const [circularAvatar, setCircularAvatar] = useState<CircularAvatarIcons | undefined>(lastCircularAvatar);
+    // An avatar drawn for another user is never shown, while a stale dot or label is, until the redraw lands.
+    const avatarPair = circularAvatar?.uri === avatarURI ? circularAvatar : undefined;
     const toAvatarIcon = (icon: AvatarTabIcon): NativeBottomTabIcon => ({
         type: 'image',
         source: {uri: icon.uri, width: icon.width, height: icon.height, scale: variables.nativeTabIconScale},
@@ -444,7 +473,8 @@ function TabNavigator() {
                 if (!isActive || !inactive || !active) {
                     return;
                 }
-                setCircularAvatar({signature, active, inactive});
+                lastCircularAvatar = {signature, uri: avatarURI, active, inactive};
+                setCircularAvatar(lastCircularAvatar);
             })
             .catch(() => {});
 
@@ -499,10 +529,8 @@ function TabNavigator() {
         tabBarActiveTintColor: theme.iconMenu,
         tabBarInactiveTintColor: theme.icon,
         // Every tab shares one style, so the bar reads the current visibility in the same render that changed it.
-        // Pushed through setOptions instead, each tab kept the value it was left with, and the bar spent the first
-        // frame after a tab switch in the previous tab's state. The background only lands on iOS 18 and below;
-        // iOS 26 keeps its own glass material.
-        tabBarStyle: {display: shouldShowNativeTabBar ? ('flex' as const) : ('none' as const), backgroundColor: theme.appBG},
+        // The background only lands on iOS 18 and below; iOS 26 keeps its own glass material.
+        tabBarStyle: {display: shouldShowNativeTabBar && areTabIconsReady ? ('flex' as const) : ('none' as const), backgroundColor: theme.appBG},
         tabBarControllerMode: 'tabBar' as const,
         // The bar stays put while the content scrolls, instead of collapsing the way iOS 26 does by default.
         tabBarMinimizeBehavior: 'none' as const,
