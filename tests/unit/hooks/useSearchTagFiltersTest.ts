@@ -254,11 +254,18 @@ describe('useSearchTagFilters', () => {
 
     it('does not call the API when searching with a complete cached dataset', async () => {
         setCompleteTagFilterState('');
+        mockOpenSearchTagFiltersPage.mockResolvedValueOnce({
+            hasMore: false,
+            nextCursor: '',
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            tags: onyxData[getResultsKey()] as OnyxTypes.SearchTagFilterItem[],
+        });
 
         const {result} = renderHook(() => useSearchTagFilters(POLICY_ID));
 
         await waitFor(() => {
             expect(mockOpenSearchTagFiltersPage).toHaveBeenCalledWith(expect.objectContaining({searchQuery: '', policyIDs: POLICY_ID}), true);
+            expect(result.current.isSearching).toBe(false);
         });
         mockOpenSearchTagFiltersPage.mockClear();
 
@@ -272,11 +279,18 @@ describe('useSearchTagFilters', () => {
 
     it('does not call the API on consecutive keystrokes when searching with a complete cached dataset', async () => {
         setCompleteTagFilterState('');
+        mockOpenSearchTagFiltersPage.mockResolvedValueOnce({
+            hasMore: false,
+            nextCursor: '',
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            tags: onyxData[getResultsKey()] as OnyxTypes.SearchTagFilterItem[],
+        });
 
         const {result} = renderHook(() => useSearchTagFilters(POLICY_ID));
 
         await waitFor(() => {
             expect(mockOpenSearchTagFiltersPage).toHaveBeenCalledWith(expect.objectContaining({searchQuery: '', policyIDs: POLICY_ID}), true);
+            expect(result.current.isSearching).toBe(false);
         });
         mockOpenSearchTagFiltersPage.mockClear();
 
