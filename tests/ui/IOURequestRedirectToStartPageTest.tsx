@@ -72,7 +72,6 @@ describe('IOURequestRedirectToStartPage', () => {
             keys: ONYXKEYS,
         });
 
-        // polyfill, which throws "Request is not defined" under Jest
         global.fetch = getGlobalFetchMock();
     });
 
