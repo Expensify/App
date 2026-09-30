@@ -46,11 +46,7 @@ type UseSearchFiltersBarResult = {
     filters: Array<SearchFilter & FilterItem>;
     hasErrors: boolean;
     shouldShowFiltersBarLoading: boolean;
-
-    /** Whether the filter chips differ from the default search, which is when they can be reset. */
     hasFiltersChanged: boolean;
-
-    /** Whether the filters or the keyword differ from the default search, which is when the search can be saved. */
     hasFiltersOrKeywordChanged: boolean;
     resetFilters: () => void;
 };
