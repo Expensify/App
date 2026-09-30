@@ -49,17 +49,24 @@ function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters
 
 type InsightsGraphHashes = {
     snapshotHash: number;
-    previousPeriodSnapshotHash: number;
-    averageSnapshotHash: number;
+    previousPeriodSnapshotHash?: number;
+    averageSnapshotHash?: number;
 };
 type InsightsGraphHashEntry = [InsightsGraphKey, InsightsGraphHashes];
 
 /** Returns the chart's graph slot paired with the hashes its current period, previous period and average are stored under. */
-function buildSnapshotHashEntry(chart: InsightsChartSpec, filters: InsightsFilters): InsightsGraphHashEntry | undefined {
+function buildSnapshotHashEntry(chart: InsightsChartSpec, filters: InsightsFilters, shouldIncludeComparisons: boolean): InsightsGraphHashEntry | undefined {
     const snapshotHash = buildSearchQueryJSON(applyInsightsFilters(chart, filters))?.hash;
+    if (!snapshotHash) {
+        return undefined;
+    }
+    if (!shouldIncludeComparisons) {
+        return [chart.graphKey, {snapshotHash}];
+    }
+
     const previousPeriodSnapshotHash = buildSearchQueryJSON(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD))?.hash;
     const averageSnapshotHash = buildSearchQueryJSON(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE))?.hash;
-    if (!snapshotHash || !previousPeriodSnapshotHash || !averageSnapshotHash) {
+    if (!previousPeriodSnapshotHash || !averageSnapshotHash) {
         return undefined;
     }
 
@@ -78,7 +85,7 @@ type InsightsQuery = {
 };
 
 /** Builds one request for the whole dashboard: the shared filters query plus the snapshot hash each graph's data is stored under. */
-function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: InsightsFilters): InsightsQuery | undefined {
+function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: InsightsFilters, shouldIncludeComparisons: boolean): InsightsQuery | undefined {
     const inputQuery = buildInsightsQueryString({...filters, compare: undefined});
     const queryJSON = buildSearchQueryJSON(inputQuery);
     if (!queryJSON) {
@@ -86,7 +93,9 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
     }
 
     const {searchKey, headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[dashboard];
-    const graphEntries = [headlineChart, ...supportingCharts].map((chart) => buildSnapshotHashEntry(chart, filters)).filter((entry): entry is InsightsGraphHashEntry => !!entry);
+    const graphEntries = [headlineChart, ...supportingCharts]
+        .map((chart) => buildSnapshotHashEntry(chart, filters, shouldIncludeComparisons))
+        .filter((entry): entry is InsightsGraphHashEntry => !!entry);
     const insightsHashes: InsightsDashboard['graphs'] = Object.fromEntries(graphEntries);
 
     return {
@@ -97,10 +106,10 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
             inputQuery,
             searchKey,
             insightsHashes,
-            numberOfPeriods: COMPARE_TYPICAL_PERIOD_COUNT,
+            numberOfPeriods: shouldIncludeComparisons ? COMPARE_TYPICAL_PERIOD_COUNT : undefined,
         }),
         hash: queryJSON.hash,
-        snapshotHashes: graphEntries.flatMap(([, hashes]) => Object.values(hashes)),
+        snapshotHashes: graphEntries.flatMap(([, hashes]) => Object.values(hashes).filter((hash): hash is number => hash !== undefined)),
     };
 }
 
