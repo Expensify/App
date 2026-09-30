@@ -36,14 +36,4 @@ function wrapAttachmentAnchorsInBlocks(html: string): string {
     });
 }
 
-// The parser only turns an anchor into "[Attachment]" while it still carries `data-expensify-source`, which the server drops on edit.
-function replaceAttachmentAnchorsWithText(html: string): string {
-    if (!html.includes('<a ')) {
-        return html;
-    }
-    return html.replaceAll(ANCHOR_TAG_REGEX, (match: string, attributes: string, lineBreak?: string) =>
-        isAttachmentAnchorAttributes(attributes) ? `${CONST.ATTACHMENT_MESSAGE_TEXT}${lineBreak ?? ''}` : match,
-    );
-}
-
-export {getAnchorHref, isAttachmentAnchor, replaceAttachmentAnchorsWithText, wrapAttachmentAnchorsInBlocks};
+export {getAnchorHref, isAttachmentAnchor, wrapAttachmentAnchorsInBlocks};

@@ -8,7 +8,6 @@ import type ReportActionName from '@src/types/onyx/ReportActionName';
 
 import type {PartialReportAction} from './ReportUtils';
 
-import {replaceAttachmentAnchorsWithText} from './AttachmentAnchorUtils';
 import Parser from './Parser';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
 
@@ -44,7 +43,7 @@ function getReportActionText(reportAction: PartialReportAction): string {
 }
 
 function getTextFromHtml(html?: string): string {
-    return html ? Parser.htmlToText(replaceAttachmentAnchorsWithText(html)) : '';
+    return html ? Parser.htmlToText(html) : '';
 }
 
 export {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml};
