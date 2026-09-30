@@ -227,6 +227,7 @@ function IOURequestStartPage({
     const hasSubmittedRef = useRef(false);
     const lastFocusedInputRef = useRef<RestoreFocus | null>(null);
     const isDiscardModalOpenRef = useRef(false);
+    const isDiscardNavigationPendingRef = useRef(false);
     const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isPayFlow = iouType === CONST.IOU.TYPE.PAY;
@@ -252,7 +253,7 @@ function IOURequestStartPage({
     const isEmbeddedDirty = isEmbeddedConfirmationActive && !hasSubmitted && (isSignDirty || hasAmountChanged);
 
     const handleInputBlur = () => {
-        if (isDiscardModalOpenRef.current) {
+        if (isDiscardModalOpenRef.current || isDiscardNavigationPendingRef.current) {
             return;
         }
         if (blurTimeoutRef.current) {
@@ -276,6 +277,7 @@ function IOURequestStartPage({
     const restoreLastFocusedInput = () => {
         const restoreFocus = lastFocusedInputRef.current;
         if (!restoreFocus) {
+            isDiscardNavigationPendingRef.current = false;
             return;
         }
 
@@ -286,9 +288,11 @@ function IOURequestStartPage({
         focusTimeoutRef.current = setTimeout(() => {
             focusTimeoutRef.current = null;
             if (isDiscardModalOpenRef.current) {
+                isDiscardNavigationPendingRef.current = false;
                 return;
             }
             restoreFocus();
+            isDiscardNavigationPendingRef.current = false;
         }, CONST.ANIMATED_TRANSITION);
     };
 
@@ -333,6 +337,13 @@ function IOURequestStartPage({
 
     const navigateBack = () => {
         if (isEmbeddedDirty) {
+            // Pressing the header button blurs the active field before the discard modal has mounted.
+            // Preserve the field's restore callback through that transition so Cancel can reliably restore focus.
+            isDiscardNavigationPendingRef.current = true;
+            if (blurTimeoutRef.current) {
+                clearTimeout(blurTimeoutRef.current);
+                blurTimeoutRef.current = null;
+            }
             // Let the discard guard decide whether this navigation may proceed. Cleaning up the pre-insert now
             // would make cancelling the discard prompt destructive.
             Navigation.closeRHPFlow();
