@@ -3396,6 +3396,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         employeeList?: OnyxTypes.PolicyEmployeeList;
 
+        /** Office locations available in this workspace */
+        officeLocations?: Record<string, {name?: string; isDefault?: boolean}>;
+
         /** How the workspace pays reimbursable expenses. Can hold a deprecated value, so read it through `PolicyUtils.getReimbursementChoice`. */
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES> | ValueOf<typeof CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES>;
 

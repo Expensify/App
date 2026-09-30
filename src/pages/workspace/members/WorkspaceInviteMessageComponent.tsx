@@ -6,6 +6,7 @@ import type {FormInputErrors} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import RadioButtons from '@components/RadioButtons';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -97,6 +98,7 @@ function WorkspaceInviteMessageComponent({
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
+    const [hasOfficeWorkArrangement, setHasOfficeWorkArrangement] = useState<boolean>();
 
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
 
@@ -120,6 +122,10 @@ function WorkspaceInviteMessageComponent({
 
     const isControl = isControlPolicy(policy);
     const shouldShowApproverRow = isControl && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED && policy?.areWorkflowsEnabled;
+    const shouldShowWorkArrangement = policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
+    const selectedHasOfficeWorkArrangement = hasOfficeWorkArrangement ?? policy?.commuterExclusions?.isOfficeWorkArrangement ?? true;
+    const officeLocations = Object.values(policy?.officeLocations ?? {});
+    const defaultOfficeName = officeLocations.find((office) => office.isDefault)?.name;
 
     const isApproverValid = !!workspaceInviteApproverDraft && workspaceInviteApproverDraft in (policy?.employeeList ?? {});
     const validatedApprover = isApproverValid ? workspaceInviteApproverDraft : undefined;
@@ -203,6 +209,7 @@ function WorkspaceInviteMessageComponent({
             },
             filteredReportActions,
             shouldShowApproverRow ? validatedApprover : undefined,
+            shouldShowWorkArrangement ? selectedHasOfficeWorkArrangement : undefined,
         );
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
         clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
@@ -351,6 +358,31 @@ function WorkspaceInviteMessageComponent({
                                     onPress={navigateToApproverPage}
                                     value={approverName}
                                 />
+                            )}
+                            {shouldShowWorkArrangement && (
+                                <>
+                                    <MenuItemField
+                                        name={translate('workspace.common.workArrangement')}
+                                        value={translate(selectedHasOfficeWorkArrangement ? 'workspace.common.officeBased' : 'workspace.common.noRegularWorkspace')}
+                                    >
+                                        {officeLocations.length > 1 && !!defaultOfficeName && (
+                                            <Text
+                                                numberOfLines={1}
+                                                style={[styles.textLabelSupportingNormal, styles.ml2]}
+                                            >
+                                                {defaultOfficeName}
+                                            </Text>
+                                        )}
+                                    </MenuItemField>
+                                    <RadioButtons
+                                        items={[
+                                            {label: translate('workspace.common.officeBased'), value: 'officeBased'},
+                                            {label: translate('workspace.common.noRegularWorkspace'), value: 'noRegularWorkspace'},
+                                        ]}
+                                        value={selectedHasOfficeWorkArrangement ? 'officeBased' : 'noRegularWorkspace'}
+                                        onSelect={(value) => setHasOfficeWorkArrangement(value === 'officeBased')}
+                                    />
+                                </>
                             )}
                         </View>
                         <View style={[styles.mb3]}>
