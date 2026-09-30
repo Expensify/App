@@ -1,4 +1,3 @@
-// Mirrors popoverMenuItem's paddingHorizontal, which MenuItemSectionRoot subtracts from the card padding.
 const menuItemHorizontalPadding = 20;
 
 type LayoutSpacingToken = {
@@ -36,5 +35,5 @@ function resolveLayoutSpacing(shouldUseNarrowLayout: boolean) {
 type LayoutSpacing = ReturnType<typeof resolveLayoutSpacing>;
 
 export default layoutSpacing;
-export {resolveLayoutSpacing};
+export {menuItemHorizontalPadding, resolveLayoutSpacing};
 export type {LayoutSpacing};

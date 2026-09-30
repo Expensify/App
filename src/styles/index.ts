@@ -26,7 +26,7 @@ import {interpolate} from 'react-native-reanimated';
 
 import type {ThemeColors} from './theme/types';
 
-import layoutSpacing from './layoutSpacing';
+import layoutSpacing, {menuItemHorizontalPadding} from './layoutSpacing';
 import colors from './theme/colors';
 import {fontFamilyScale, fontScale, lineHeightScale, textVariants} from './typography';
 import addOutlineWidth from './utils/addOutlineWidth';
@@ -2060,7 +2060,7 @@ const staticStyles = (theme: ThemeColors) =>
         popoverMenuItem: {
             flexDirection: 'row',
             borderRadius: 0,
-            paddingHorizontal: 20,
+            paddingHorizontal: menuItemHorizontalPadding,
             paddingVertical: 12,
             justifyContent: 'space-between',
             width: '100%',
