@@ -9,6 +9,7 @@ import type {
     DeletePersonalCardParams,
     FreezeCardParams,
     OpenCardDetailsPageParams,
+    OpenIssueNewCardShippingAddressStepParams,
     ReportVirtualExpensifyCardFraudParams,
     RequestReplacementExpensifyCardParams,
     ResolveFraudAlertParams,
@@ -1359,6 +1360,28 @@ function startIssueNewCardFlow(policyID: string | undefined) {
     API.read(READ_COMMANDS.START_ISSUE_NEW_CARD_FLOW, parameters);
 }
 
+/** Finds out whether the cardholder has a phone number for the shipping label, so we know if the admin needs to enter one */
+function openIssueNewCardShippingAddressStep(policyID: string | undefined, assigneeEmail: string | undefined) {
+    if (!assigneeEmail) {
+        return;
+    }
+
+    const parameters: OpenIssueNewCardShippingAddressStepParams = {
+        policyID,
+        assigneeEmail: addSMSDomainIfPhoneNumber(assigneeEmail),
+    };
+
+    API.read(READ_COMMANDS.OPEN_ISSUE_NEW_CARD_SHIPPING_ADDRESS_STEP, parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
+                value: {hasAssigneePhoneNumber: null},
+            },
+        ],
+    });
+}
+
 function configureExpensifyCardsForPolicy(policyID: string, workspaceAccountID: number, bankAccountID?: number) {
     if (!bankAccountID) {
         return;
@@ -2033,6 +2056,7 @@ export {
     updateExpensifyCardTitle,
     updateSettlementAccount,
     startIssueNewCardFlow,
+    openIssueNewCardShippingAddressStep,
     configureExpensifyCardsForPolicy,
     issueExpensifyCard,
     openCardDetailsPage,
