@@ -72,7 +72,6 @@ describe('IOURequestRedirectToStartPage', () => {
             keys: ONYXKEYS,
         });
 
-        // Mock fetch so any request sent while the page renders (for example, a log flush) doesn't reach the real fetch
         // polyfill, which throws "Request is not defined" under Jest
         global.fetch = getGlobalFetchMock();
     });
