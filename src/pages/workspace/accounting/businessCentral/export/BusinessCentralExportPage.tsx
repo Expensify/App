@@ -26,6 +26,7 @@ type ExportRow = {
     label: string;
     value: string | undefined;
     route: Route;
+    shouldHide?: boolean;
 };
 
 function BusinessCentralExportPage({policy}: WithPolicyConnectionsProps) {
@@ -46,6 +47,8 @@ function BusinessCentralExportPage({policy}: WithPolicyConnectionsProps) {
     const nonReimbursableAccount = businessCentralData?.bankAccounts?.find((bankAccount) => bankAccount.id === exportConfig?.nonReimbursableAccount);
     const defaultVendor = businessCentralData?.vendors?.find((vendor) => vendor.id === exportConfig?.defaultVendorID);
     const paymentMethod = businessCentralData?.paymentMethods?.find((method) => method.code === exportConfig?.paymentMethodCode);
+    const isReimbursableJournalEntry = reimbursable === CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY;
+    const isNonReimbursableJournalEntry = nonReimbursable === CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY;
 
     if (!policyID) {
         return null;
@@ -78,6 +81,8 @@ function BusinessCentralExportPage({policy}: WithPolicyConnectionsProps) {
                 label: translate('workspace.businessCentral.reimbursableAccount.label'),
                 value: reimbursableAccount ? `${reimbursableAccount.number} ${reimbursableAccount.name}` : undefined,
                 route: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_REIMBURSABLE_ACCOUNT.getRoute(policyID),
+                // Only journal entries use this account, to settle the employee's balance from it
+                shouldHide: !isReimbursableJournalEntry,
             },
         ],
         [
@@ -98,12 +103,16 @@ function BusinessCentralExportPage({policy}: WithPolicyConnectionsProps) {
                 label: translate('workspace.businessCentral.companyCardAccount.label'),
                 value: nonReimbursableAccount ? `${nonReimbursableAccount.number} ${nonReimbursableAccount.name}` : undefined,
                 route: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_COMPANY_CARD_ACCOUNT.getRoute(policyID),
+                // Only journal entries use this account, to settle the vendor's balance from it
+                shouldHide: !isNonReimbursableJournalEntry,
             },
             {
                 settingName: CONST.BUSINESS_CENTRAL_CONFIG.PAYMENT_METHOD_CODE,
                 label: translate('workspace.businessCentral.paymentMethod.label'),
                 value: paymentMethod?.displayName,
                 route: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD.getRoute(policyID),
+                // The payment method is only set on purchase invoices
+                shouldHide: isReimbursableJournalEntry && isNonReimbursableJournalEntry,
             },
         ],
     ];
@@ -124,22 +133,24 @@ function BusinessCentralExportPage({policy}: WithPolicyConnectionsProps) {
             {sections.map((rows, sectionIndex) => (
                 <View key={rows.at(0)?.settingName}>
                     {sectionIndex > 0 && <View style={[styles.mv3, styles.mh5, styles.borderTop]} />}
-                    {rows.map((row) => (
-                        <OfflineWithFeedback
-                            key={row.settingName}
-                            pendingAction={settingsPendingAction([row.settingName], businessCentralConfig?.pendingFields)}
-                        >
-                            <MenuItemField
-                                name={row.label}
-                                value={row.value}
-                                onPress={() => Navigation.navigate(row.route)}
+                    {rows
+                        .filter((row) => !row.shouldHide)
+                        .map((row) => (
+                            <OfflineWithFeedback
+                                key={row.settingName}
+                                pendingAction={settingsPendingAction([row.settingName], businessCentralConfig?.pendingFields)}
                             >
-                                {areSettingsInErrorFields([row.settingName], businessCentralConfig?.errorFields) && (
-                                    <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
-                                )}
-                            </MenuItemField>
-                        </OfflineWithFeedback>
-                    ))}
+                                <MenuItemField
+                                    name={row.label}
+                                    value={row.value}
+                                    onPress={() => Navigation.navigate(row.route)}
+                                >
+                                    {areSettingsInErrorFields([row.settingName], businessCentralConfig?.errorFields) && (
+                                        <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                    )}
+                                </MenuItemField>
+                            </OfflineWithFeedback>
+                        ))}
                 </View>
             ))}
         </ConnectionLayout>
