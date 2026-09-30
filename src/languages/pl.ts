@@ -1022,6 +1022,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `Subskrypcja kończy się ${date}`,
                 cta: 'Zarządzaj',
             },
+            emailDeliveryFailure: {title: 'Nie możemy wysyłać ci powiadomień e-mail', subtitle: 'Konto'},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -11529,6 +11530,19 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             title: 'Zbuduj własne agentów',
             description: `<muted-text>Twórz niestandardowych agentów do przeglądania, zatwierdzania i kierowania wydatków na podstawie ustalonych przez siebie zasad. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Dowiedz się więcej</a>.</muted-text>`,
         },
+    },
+    emailIssuePage: {
+        title: 'Problem z e‑mailem',
+        intro: (login: string) => `Nasz dostawca poczty wstrzymał wysyłanie na adres <strong>${login}</strong> z powodu problemów z dostarczaniem. Aby rozwiązać ten problem:`,
+        confirmEmailTitle: 'Potwierdź swój adres e-mail',
+        confirmEmailDescription: (login: string) =>
+            `Upewnij się, że <strong>${login}</strong> jest wpisany poprawnie i że to prawdziwa skrzynka odbiorcza. Alias, taki jak „expenses@domain.com”, musi mieć własną działającą skrzynkę, żeby można było zalogować się do Expensify.`,
+        allowlistTitle: 'Dodaj expensify.com do listy dozwolonych',
+        allowlistDescription: `Dodaj <strong>expensify.com</strong> do listy dozwolonych w swoim kliencie e-mail. Możesz potrzebować pomocy działu IT, aby dostosować ustawienia serwera zgodnie z <a href="${CONST.SET_NOTIFICATION_LINK}">tymi wskazówkami</a>.`,
+        getHelpFromConcierge: 'Uzyskaj pomoc od Concierge',
+        completedSteps: 'Wykonałem/am powyższe kroki',
+        errorTitle: 'Coś poszło nie tak. Spróbuj ponownie.',
+        errorPrompt: 'Wygląda na to, że coś nie zadziałało. Spróbuj ponownie. Jeśli problem będzie się powtarzał, skontaktuj się z Concierge.',
     },
 };
 export default translations;

@@ -1003,6 +1003,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `サブスクリプションは${date}に終了`,
                 cta: '管理',
             },
+            emailDeliveryFailure: {title: 'メール通知をお送りできません', subtitle: 'アカウント'},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -11379,6 +11380,19 @@ ${reportName}`,
             title: '独自のエージェントを作成する',
             description: `<muted-text>設定したルールに基づいて経費を確認、承認、振り分けるカスタムエージェントを作成できます。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">さらに詳しく</a>。</muted-text>`,
         },
+    },
+    emailIssuePage: {
+        title: 'メールの問題',
+        intro: (login: string) => `配信エラーのため、メールプロバイダーが<strong>${login}</strong> 宛ての送信を一時停止しました。この問題を解決するには：`,
+        confirmEmailTitle: 'メールアドレスを確認してください',
+        confirmEmailDescription: (login: string) =>
+            `<strong>${login}</strong> の綴りが正しく、実在する受信トレイであることを確認してください。「expenses@domain.com」のようなエイリアスも、Expensify にログインするには、それ専用の有効な受信トレイが必要です。`,
+        allowlistTitle: 'expensify.com を許可リストに追加する',
+        allowlistDescription: `メールクライアントの許可リストに<strong>expensify.com</strong>を追加してください。サーバー設定の調整が必要な場合は、IT 担当者に依頼して<a href="${CONST.SET_NOTIFICATION_LINK}">こちらの手順</a>に従ってもらってください。`,
+        getHelpFromConcierge: 'Concierge に問い合わせる',
+        completedSteps: '上記の手順が完了しました',
+        errorTitle: '問題が発生しました。もう一度お試しください。',
+        errorPrompt: '問題が発生したようです。もう一度お試しください。問題が解決しない場合は、Concierge までお問い合わせください。',
     },
 };
 export default translations;

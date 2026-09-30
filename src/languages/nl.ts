@@ -1015,6 +1015,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `Abonnement eindigt op ${date}`,
                 cta: 'Beheren',
             },
+            emailDeliveryFailure: {title: 'We kunnen je geen e-mailmeldingen sturen', subtitle: 'Account'},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -11514,6 +11515,19 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             title: 'Bouw je eigen agents',
             description: `<muted-text>Maak aangepaste agents om uitgaven te beoordelen, goed te keuren en door te sturen op basis van regels die jij instelt. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Meer informatie</a>.</muted-text>`,
         },
+    },
+    emailIssuePage: {
+        title: 'E-mailprobleem',
+        intro: (login: string) => `Onze e-mailprovider is gestopt met verzenden naar <strong>${login}</strong> vanwege afleveringsproblemen. Om dit op te lossen:`,
+        confirmEmailTitle: 'Bevestig je e-mailadres',
+        confirmEmailDescription: (login: string) =>
+            `Zorg ervoor dat <strong>${login}</strong> correct is gespeld en een echte inbox is. Aliassen zoals "expenses@domain.com" hebben hun eigen werkende inbox nodig om in te loggen bij Expensify.`,
+        allowlistTitle: 'expensify.com op de allowlist zetten',
+        allowlistDescription: `Voeg <strong>expensify.com</strong> toe aan de allowlist van je e-mailclient. Mogelijk moet IT de serverinstellingen aanpassen via <a href="${CONST.SET_NOTIFICATION_LINK}">deze instructies</a>.`,
+        getHelpFromConcierge: 'Krijg hulp van Concierge',
+        completedSteps: 'Ik heb de bovenstaande stappen voltooid',
+        errorTitle: 'Er is iets misgegaan. Probeer het opnieuw.',
+        errorPrompt: 'Het lijkt erop dat er iets misging. Probeer het opnieuw. Als het probleem blijft bestaan, neem dan contact op met Concierge.',
     },
 };
 export default translations;
