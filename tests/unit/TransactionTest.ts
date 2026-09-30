@@ -22,7 +22,7 @@ import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {TransactionViolation} from '@src/types/onyx';
+import type {CardList, TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {ReportCollectionDataSet, ReportNextStep} from '@src/types/onyx/Report';
@@ -33,6 +33,7 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import {createCashCard} from 'tests/utils/collections/card';
 
 import type {UpdateMoneyRequestDataKeys} from '../../src/libs/actions/IOU/UpdateMoneyRequest';
 import type {PersonalDetails, Policy, PolicyTagLists, RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
@@ -359,8 +360,14 @@ describe('Transaction', () => {
         it('correctly handles reportNextStep parameter when moving transactions to unreported report', async () => {
             const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
+            // Given a cash transaction for the current user
+            const cardList: CardList = {
+                [CURRENT_USER_CASH_CARD_ID]: createCashCard(CURRENT_USER_ID, CURRENT_USER_CASH_CARD_ID),
+            };
+
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
+                cardID: CURRENT_USER_CASH_CARD_ID,
             });
             const oldIOUAction = createIOUAction(transaction);
 
@@ -392,7 +399,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
-                cardList: undefined,
+                cardList,
             });
             await waitForBatchedUpdates();
 
@@ -1580,8 +1587,14 @@ describe('Transaction', () => {
             });
             await Onyx.merge(ONYXKEYS.SELF_DM_REPORT_ID, FAKE_SELF_DM_REPORT_ID);
 
+            // Given a cash transaction for the current user
+            const cardList: CardList = {
+                [CURRENT_USER_CASH_CARD_ID]: createCashCard(CURRENT_USER_ID, CURRENT_USER_CASH_CARD_ID),
+            };
+
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
+                cardID: CURRENT_USER_CASH_CARD_ID,
             });
             const oldIOUAction = createIOUAction(transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
@@ -1602,7 +1615,7 @@ describe('Transaction', () => {
                 transactionViolations: {},
                 isTrackIntentUser: false,
                 isVendorMatchingBetaEnabled: false,
-                cardList: undefined,
+                cardList,
             });
             await waitForBatchedUpdates();
 
