@@ -337,6 +337,40 @@ describe('IOURequestStartPage manual tab content', () => {
         expect(mockGetHasUnsavedChanges?.()).toBe(false);
     });
 
+    it('keeps the pay discard guard clean when its empty draft initializes or an entered amount is cleared', async () => {
+        await renderStartPage({
+            iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+            iouType: CONST.IOU.TYPE.PAY,
+            shouldSeedTransaction: false,
+            shouldWaitForInitialOnyxUpdate: false,
+        });
+
+        // A fresh Pay draft is initialized asynchronously with the empty amount representation.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+                transactionID: TRANSACTION_ID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                reportID: REPORT_ID,
+                amount: 0,
+                isAmountSet: false,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(mockGetHasUnsavedChanges?.()).toBe(false);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {amount: 5000, isAmountSet: true});
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(mockGetHasUnsavedChanges?.()).toBe(true);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {amount: 0, isAmountSet: false});
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(mockGetHasUnsavedChanges?.()).toBe(false);
+    });
+
     it('lands the tab-less pay flow directly on the embedded confirmation instead of the amount page', async () => {
         // Given the new manual expense flow beta and a pay flow, which renders no tabs
         await renderStartPage({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL, iouType: CONST.IOU.TYPE.PAY});
