@@ -2453,6 +2453,8 @@ type CreateAndOpenSearchTransactionThreadParams = {
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
 
+    delegateAccountID: number | undefined;
+
     /** Existing transaction thread report ID (childReportID), if any */
     IOUTransactionID?: string;
 
@@ -2476,6 +2478,7 @@ function createAndOpenSearchTransactionThread({
     personalDetails,
     isSelfTourViewed,
     hasCompletedGuidedSetupFlow,
+    delegateAccountID,
     IOUTransactionID,
     transactionPreviewData,
     shouldNavigate = true,
@@ -2495,7 +2498,7 @@ function createAndOpenSearchTransactionThread({
     const previewData = transactionPreviewData
         ? {...transactionPreviewData, hasTransactionThreadReport: true}
         : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
-    setOptimisticDataForTransactionThreadPreview(item, previewData, getCurrencyDecimals, IOUTransactionID);
+    setOptimisticDataForTransactionThreadPreview(item, previewData, getCurrencyDecimals, delegateAccountID, IOUTransactionID);
 
     const hasActualTransactionThread = iouReportAction?.childReportID && iouReportAction?.childReportID !== CONST.FAKE_REPORT_ID;
     let transactionThreadReport;
