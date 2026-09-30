@@ -1,4 +1,4 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import FullScreenBlockingViewContextProvider from '@components/FullScreenBlockingViewContextProvider';
@@ -367,6 +367,23 @@ describe('SearchPageNarrow', () => {
         expect(screen.getByText('Oops... Something went wrong')).toBeTruthy();
         expect(screen.getByText('Try again')).toBeTruthy();
         expect(screen.queryByText('Refresh needed')).toBeNull();
+    });
+
+    it('sends the retry with the same recent search flag as the page-level request', async () => {
+        // Given a search that failed after the page requested it
+        renderPage();
+
+        await act(async () => {
+            jest.runAllTimers();
+        });
+        await setFailedSnapshot(CONST.JSON_CODE.EXP_ERROR);
+        mockSearch.mockClear();
+
+        // When the user presses Try again
+        fireEvent.press(screen.getByText('Try again'));
+
+        // Then the flag matches the page-level request, so search() dedupes it instead of re-sending the query
+        expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({shouldSaveRecentSearch: true}));
     });
 
     it('holds the loading frame instead of an error copy until the failure has a response code', async () => {

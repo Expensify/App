@@ -1132,6 +1132,8 @@ function Search({
                 shouldCalculateTotals: shouldCalculateTotalsOnRetry,
                 prevReportsLength: filteredDataLength,
                 isLoading: !!searchResults?.search?.isLoading,
+                // Must match the page-level request this retry triggers, or search() re-sends the query as an upgrade.
+                shouldSaveRecentSearch: true,
             });
         };
         // search() stores NO_RESPONSE when the request never got a server answer, so only the results' freshness is in
