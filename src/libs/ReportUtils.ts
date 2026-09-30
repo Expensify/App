@@ -3058,10 +3058,17 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, rules
 }
 
 /**
+ * Checks whether a policy is configured for instant submit and Submit & Close.
+ */
+function isInstantSubmitAndClose(policy: OnyxEntry<Policy>): boolean {
+    return isInstantSubmitEnabled(policy) && isSubmitAndClose(policy);
+}
+
+/**
  * Checks whether an instant-submit, Submit & Close policy rejects a report that only contains non-reimbursable transactions.
  */
 function isInstantSubmitAndCloseWithOnlyNonReimbursableTransactions(policy: OnyxEntry<Policy>, hasOnlyNonReimbursable: boolean): boolean {
-    return isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && hasOnlyNonReimbursable;
+    return isInstantSubmitAndClose(policy) && hasOnlyNonReimbursable;
 }
 
 /**
@@ -3106,11 +3113,13 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, rules: OnyxCol
         return false;
     }
 
-    const isInstantSubmitAndClose = isInstantSubmitEnabled(policy) && isSubmitAndClose(policy);
     const hasOnlyNonReimbursableTransactionsLocal = hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID);
     const isRejectedForOnlyNonReimbursableTransactions = isInstantSubmitAndCloseWithOnlyNonReimbursableTransactions(policy, hasOnlyNonReimbursableTransactionsLocal);
     const isRejectedForDisabledReimbursement =
-        isInstantSubmitAndClose && !isMovingTransaction && !isOpenExpenseReport(moneyRequestReport) && getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        isInstantSubmitAndClose(policy) &&
+        !isMovingTransaction &&
+        !isOpenExpenseReport(moneyRequestReport) &&
+        getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
     if (isRejectedForOnlyNonReimbursableTransactions || isRejectedForDisabledReimbursement) {
         return false;
