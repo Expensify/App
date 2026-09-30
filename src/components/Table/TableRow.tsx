@@ -331,27 +331,12 @@ export default function TableRow({
 
                     const target = e?.target;
 
-                    if (!(target instanceof HTMLElement)) {
-                        // Skip preventDefault while editing so the browser naturally blurs the active input (triggering save/cancel).
-                        if (!isEditingCell) {
-                            e.preventDefault();
-                        }
+                    // Inputs must receive the mousedown so they can take focus.
+                    if (target instanceof HTMLElement && target.tagName === CONST.ELEMENT_NAME.INPUT) {
                         return;
                     }
 
-                    if (target.tagName === CONST.ELEMENT_NAME.INPUT) {
-                        return;
-                    }
-
-                    if (target.closest('[role="switch"]') || target.closest('[role="checkbox"]')) {
-                        // Keep the filter bar focused. While an inline editor is open, let the
-                        // browser blur it so the value saves — same as spend transaction rows.
-                        if (!isEditingCell) {
-                            e.preventDefault();
-                        }
-                        return;
-                    }
-
+                    // Keep the filter bar focused. While an inline editor is open, let the browser blur it so the value saves.
                     if (!isEditingCell) {
                         e.preventDefault();
                     }
