@@ -1,20 +1,20 @@
 import * as API from '@libs/API';
 import type {DetachReceiptParams, ReplaceReceiptParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {rand64} from '@libs/NumberUtils';
 import {hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
 import ReceiptStorage from '@libs/ReceiptStorage';
-import {buildOptimisticDetachReceipt, buildOptimisticReceiptAddedAction, isInvoiceReport as isInvoiceReportReportUtils} from '@libs/ReportUtils';
+import {buildOptimisticReceiptAddedAction, buildOptimisticReceiptRemovedAction, isInvoiceReport as isInvoiceReportReportUtils} from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {logReceiptCaptured, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
 import {hasUploadedReceipt} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
-
-import {resolveDetachReceiptConflicts} from '@userActions/RequestConflictUtils';
 
 import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -32,6 +32,19 @@ import type {ValueOf} from 'type-fest';
 import Onyx from 'react-native-onyx';
 
 import {getReceiptError} from './MoneyRequestBuilder';
+
+type DetachReceipt = {
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    transactionPolicy: OnyxEntry<OnyxTypes.Policy>;
+    transactionPolicyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>;
+    transactionReport: OnyxEntry<OnyxTypes.Report>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    delegateAccountID: number | undefined;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
+    transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+};
 
 type ReplaceReceipt = {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -55,16 +68,18 @@ type ReplaceReceiptRetryParams = Omit<ReplaceReceipt, 'transaction' | 'transacti
     transactionID: string;
 };
 
-function detachReceipt(
-    transaction: OnyxEntry<OnyxTypes.Transaction>,
-    transactionPolicy: OnyxEntry<OnyxTypes.Policy>,
-    transactionPolicyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
-    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
-    transactionReport: OnyxEntry<OnyxTypes.Report>,
-    isVendorMatchingBetaEnabled: boolean | undefined,
-    transactionThreadReportID: string | undefined,
-    transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
-) {
+function detachReceipt({
+    transaction,
+    transactionPolicy,
+    transactionPolicyTagList,
+    transactionViolations,
+    transactionReport,
+    isVendorMatchingBetaEnabled,
+    transactionThreadReport,
+    delegateAccountID,
+    currentUserPersonalDetails,
+    transactionPolicyCategories,
+}: DetachReceipt) {
     const transactionID = transaction?.transactionID;
     if (!transactionID) {
         return;
@@ -84,9 +99,6 @@ function detachReceipt(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 receipt: null,
-                // Set here rather than waiting for the server so a receipt added while still offline is
-                // already known to be a replacement.
-                wasReceiptRemoved: true,
                 pendingFields: {
                     receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -113,9 +125,6 @@ function detachReceipt(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 ...(transaction ?? null),
-                // The receipt was never removed, so restore whatever the expense knew before rather than
-                // clearing outright, which would forget an earlier removal.
-                wasReceiptRemoved: transaction?.wasReceiptRemoved ?? null,
                 errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.receiptDeleteFailureError'),
                 pendingFields: {
                     receipt: null,
@@ -145,59 +154,75 @@ function detachReceipt(
         });
     }
 
-    const updatedReportAction = buildOptimisticDetachReceipt(transactionReport?.reportID, transactionID, transaction?.merchant);
+    const transactionThreadReportID = transactionThreadReport?.reportID;
+    const optimisticReceiptRemovedAction = transactionThreadReportID
+        ? buildOptimisticReceiptRemovedAction(
+              transactionThreadReportID,
+              transactionID,
+              currentUserPersonalDetails.accountID,
+              currentUserPersonalDetails.displayName,
+              currentUserPersonalDetails.avatar,
+              delegateAccountID,
+          )
+        : undefined;
 
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${updatedReportAction?.reportID}`,
-        value: {
-            [updatedReportAction.reportActionID]: updatedReportAction as OnyxTypes.ReportAction,
-        },
-    });
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${updatedReportAction?.reportID}`,
-        value: {
-            lastVisibleActionCreated: updatedReportAction.created,
-            lastReadTime: updatedReportAction.created,
-        },
-    });
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${updatedReportAction?.reportID}`,
-        value: {
-            lastVisibleActionCreated: transactionReport?.lastVisibleActionCreated,
-            lastReadTime: transactionReport?.lastReadTime,
-        },
-    });
-    successData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionReport?.reportID}`,
-        value: {
-            [updatedReportAction.reportActionID]: {pendingAction: null},
-        },
-    });
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionReport?.reportID}`,
-        value: {
-            [updatedReportAction.reportActionID]: {
-                ...(updatedReportAction as OnyxTypes.ReportAction),
-                errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage'),
+    if (optimisticReceiptRemovedAction && transactionThreadReportID) {
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {
+                    [optimisticReceiptRemovedAction.reportActionID]: optimisticReceiptRemovedAction,
+                },
             },
-        },
-    });
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+                value: {
+                    lastVisibleActionCreated: optimisticReceiptRemovedAction.created,
+                    lastReadTime: optimisticReceiptRemovedAction.created,
+                },
+            },
+        );
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+            value: {
+                [optimisticReceiptRemovedAction.reportActionID]: {pendingAction: null},
+            },
+        });
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {
+                    [optimisticReceiptRemovedAction.reportActionID]: {
+                        ...optimisticReceiptRemovedAction,
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage'),
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+                value: {
+                    lastVisibleActionCreated: transactionThreadReport?.lastVisibleActionCreated ?? null,
+                    lastReadTime: transactionThreadReport?.lastReadTime ?? null,
+                },
+            },
+        );
+    }
 
-    const parameters: DetachReceiptParams = {transactionID, reportActionID: updatedReportAction.reportActionID};
+    // The expense report's own MANAGERDETACHRECEIPT action is only written by the backend when someone other
+    // than the report owner detaches, or the report has been submitted, so it cannot be shown optimistically.
+    // We still name it, so the action the backend may create reconciles with this ID.
+    const parameters: DetachReceiptParams = {
+        transactionID,
+        reportActionID: rand64(),
+        receiptRemovedReportActionID: optimisticReceiptRemovedAction?.reportActionID,
+    };
 
-    API.write(
-        WRITE_COMMANDS.DETACH_RECEIPT,
-        parameters,
-        {optimisticData, successData, failureData},
-        {
-            checkAndFixConflictingRequest: (persistedRequests) => resolveDetachReceiptConflicts(persistedRequests, parameters, transactionThreadReportID),
-        },
-    );
+    API.write(WRITE_COMMANDS.DETACH_RECEIPT, parameters, {optimisticData, successData, failureData});
 }
 
 function replaceReceipt({
@@ -352,60 +377,73 @@ function replaceReceipt({
         });
     }
 
-    // Show "added a receipt" right away, but not for a crop or rotate (isSameReceipt) and only if the
-    // thread already exists. Otherwise the backend creates the thread and message and it syncs in.
+    // Show the audit messages right away, but not for a crop or rotate (isSameReceipt) and only if the
+    // thread already exists. Otherwise the backend creates the thread and messages and they sync in.
     // `transaction` is the expense as it was before this replacement, because the caller may merge the new
     // receipt into Onyx just before calling this, so an uploaded receipt on it is the one being replaced.
     const transactionThreadReportID = transactionThreadReport?.reportID;
-    const isReplacement = hasUploadedReceipt(transaction) || !!transaction?.wasReceiptRemoved;
-    const optimisticReceiptAddedAction =
-        !isSameReceipt && transactionThreadReportID
-            ? buildOptimisticReceiptAddedAction(
+    const shouldAuditReceiptChange = !isSameReceipt && !!transactionThreadReportID;
+    const optimisticReceiptAddedAction = shouldAuditReceiptChange
+        ? buildOptimisticReceiptAddedAction(
+              transactionThreadReportID,
+              transactionID,
+              currentUserPersonalDetails.accountID,
+              currentUserPersonalDetails.displayName,
+              currentUserPersonalDetails.avatar,
+              delegateAccountID,
+          )
+        : undefined;
+
+    const optimisticReceiptRemovedAction =
+        shouldAuditReceiptChange && hasUploadedReceipt(transaction)
+            ? buildOptimisticReceiptRemovedAction(
                   transactionThreadReportID,
                   transactionID,
                   currentUserPersonalDetails.accountID,
                   currentUserPersonalDetails.displayName,
                   currentUserPersonalDetails.avatar,
                   delegateAccountID,
-                  isReplacement,
+                  DateUtils.subtractMillisecondsFromDateTime(DateUtils.getDBTime(), 1),
               )
             : undefined;
 
-    if (optimisticReceiptAddedAction && transactionThreadReportID) {
+    const optimisticAuditActions = [optimisticReceiptRemovedAction, optimisticReceiptAddedAction].filter((action) => !!action);
+
+    if (optimisticAuditActions.length > 0 && transactionThreadReportID) {
+        const lastAuditAction = optimisticAuditActions.at(-1);
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-                value: {
-                    [optimisticReceiptAddedAction.reportActionID]: optimisticReceiptAddedAction as OnyxTypes.ReportAction,
-                },
+                value: Object.fromEntries(optimisticAuditActions.map((action) => [action.reportActionID, action])),
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
                 value: {
-                    lastVisibleActionCreated: optimisticReceiptAddedAction.created,
-                    lastReadTime: optimisticReceiptAddedAction.created,
+                    lastVisibleActionCreated: lastAuditAction?.created,
+                    lastReadTime: lastAuditAction?.created,
                 },
             },
         );
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-            value: {
-                [optimisticReceiptAddedAction.reportActionID]: {pendingAction: null},
-            },
+            value: Object.fromEntries(optimisticAuditActions.map((action) => [action.reportActionID, {pendingAction: null}])),
         });
         failureData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-                value: {
-                    [optimisticReceiptAddedAction.reportActionID]: {
-                        ...(optimisticReceiptAddedAction as OnyxTypes.ReportAction),
-                        errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage'),
-                    },
-                },
+                value: Object.fromEntries(
+                    optimisticAuditActions.map((action) => [
+                        action.reportActionID,
+                        {
+                            ...action,
+                            errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage'),
+                        },
+                    ]),
+                ),
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -424,6 +462,7 @@ function replaceReceipt({
         receiptState: state,
         isSameReceipt,
         reportActionID: optimisticReceiptAddedAction?.reportActionID,
+        receiptRemovedReportActionID: optimisticReceiptRemovedAction?.reportActionID,
     };
 
     API.write(WRITE_COMMANDS.REPLACE_RECEIPT, parameters, {optimisticData, successData, failureData});

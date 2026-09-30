@@ -1055,7 +1055,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'hasEReceipt':
         case 'shouldShowOriginalAmount':
         case 'managedCard':
-        case 'wasReceiptRemoved':
             return validateBoolean(value);
         case 'amount':
         case 'taxAmount':
@@ -1171,7 +1170,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     isMerchantSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     participants: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                    wasReceiptRemoved: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionThreadReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION,

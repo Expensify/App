@@ -320,13 +320,12 @@ function getForReportAction({
 
     const isReportActionOriginalMessageAnObject = reportActionOriginalMessage && typeof reportActionOriginalMessage === 'object';
 
-    // A replacement carries both flags, so it has to be checked first.
-    if (isReportActionOriginalMessageAnObject && reportActionOriginalMessage.receiptReplaced) {
-        return translate('iou.replacedReceipt');
-    }
-
     if (isReportActionOriginalMessageAnObject && reportActionOriginalMessage.receiptAdded) {
         return translate('iou.addedReceipt');
+    }
+
+    if (isReportActionOriginalMessageAnObject && reportActionOriginalMessage.receiptRemoved) {
+        return translate('iou.removedReceipt');
     }
 
     const hasModifiedAmount =

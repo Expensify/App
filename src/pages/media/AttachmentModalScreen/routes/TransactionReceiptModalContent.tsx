@@ -27,7 +27,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isTrackExpenseReport} from '@libs/ReportUtils';
 import {logReceiptAdoptFailed} from '@libs/telemetry/ReceiptObservability';
 import {
@@ -175,6 +175,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [sourceUri, setSourceUri] = useState<ReceiptSource>('');
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    // A self DM expense is unreported, so its thread cannot be found from transaction.reportID. The receipt
+    // screen was opened from that thread, and the parent action names this transaction.
+    const transactionThread = transactionThreadReport ?? (getLinkedTransactionID(parentReportAction) === transaction?.transactionID ? report : undefined);
     const canEditReceipt = canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction, rules});
     const canDeleteReceipt = canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, isDeleteAction: true, transaction, rules});
 
@@ -292,9 +295,32 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
      * Detach the receipt and close the modal.
      */
     const deleteReceiptAndClose = useCallback(() => {
-        detachReceipt(transaction, policy, policyTagList, transactionViolations, transactionReport, isVendorMatchingBetaEnabled, transactionThreadReportID, policyCategories);
+        detachReceipt({
+            transaction,
+            transactionPolicy: policy,
+            transactionPolicyTagList: policyTagList,
+            transactionViolations,
+            transactionReport,
+            isVendorMatchingBetaEnabled,
+            transactionThreadReport: transactionThread,
+            delegateAccountID,
+            currentUserPersonalDetails,
+            transactionPolicyCategories: policyCategories,
+        });
         navigation.goBack();
-    }, [transaction, policy, policyTagList, transactionViolations, transactionReport, isVendorMatchingBetaEnabled, transactionThreadReportID, policyCategories, navigation]);
+    }, [
+        transaction,
+        policy,
+        policyTagList,
+        transactionViolations,
+        transactionReport,
+        isVendorMatchingBetaEnabled,
+        transactionThread,
+        delegateAccountID,
+        currentUserPersonalDetails,
+        policyCategories,
+        navigation,
+    ]);
 
     /**
      * Remove odometer image and close the modal.
@@ -349,7 +375,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                             transactionReport,
                             delegateAccountID,
                             currentUserPersonalDetails,
-                            transactionThreadReport,
+                            transactionThreadReport: transactionThread,
                             ...(isSameReceipt ? {state: transaction?.receipt?.state, isSameReceipt: true} : {}),
                         });
                     }
@@ -370,7 +396,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             isVendorMatchingBetaEnabled,
             delegateAccountID,
             currentUserPersonalDetails,
-            transactionThreadReport,
+            transactionThread,
         ],
     );
 

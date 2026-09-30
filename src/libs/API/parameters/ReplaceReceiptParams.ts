@@ -8,6 +8,7 @@ type ReplaceReceiptParams = {
     receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     isSameReceipt?: boolean;
     reportActionID?: string;
+    receiptRemovedReportActionID?: string;
 };
 
 export default ReplaceReceiptParams;

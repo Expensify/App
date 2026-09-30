@@ -298,15 +298,13 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
-        describe('when a receipt is replaced', () => {
-            // A replacement carries both flags, so receiptReplaced has to win
+        describe('when a receipt is removed', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                 originalMessage: {
                     transactionID: '1234',
-                    receiptAdded: true,
-                    receiptReplaced: true,
+                    receiptRemoved: true,
                 },
             };
 
@@ -323,7 +321,7 @@ describe('ModifiedExpenseMessage', () => {
                     movedFromReportName: undefined,
                 });
 
-                expect(result).toEqual('replaced a receipt');
+                expect(result).toEqual('removed a receipt');
             });
 
             it('takes precedence over the field fragments when other fields are also present', () => {
@@ -342,7 +340,7 @@ describe('ModifiedExpenseMessage', () => {
                     movedFromReportName: undefined,
                 });
 
-                expect(result).toEqual('replaced a receipt');
+                expect(result).toEqual('removed a receipt');
             });
         });
 

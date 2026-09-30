@@ -975,11 +975,14 @@ type OriginalMessageModifiedExpense = {
     /** The Concierge reasoning for the action */
     reasoning?: string;
 
+    /** The expense the receipt audit action belongs to */
+    transactionID?: string;
+
     /** Whether a receipt was added to the expense */
     receiptAdded?: boolean;
 
-    /** Whether the added receipt took the place of one the expense already had or had removed earlier. Set alongside `receiptAdded`. */
-    receiptReplaced?: boolean;
+    /** Whether this action records a receipt being removed from the expense. A replacement writes one of these followed by a `receiptAdded` action. */
+    receiptRemoved?: boolean;
 };
 
 /** Model of `concierge auto match vendor` report action — emitted on the transaction thread when the PHP fuzzy matcher auto-matches a non-reimbursable expense to a QBO vendor. */
