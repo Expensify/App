@@ -23,7 +23,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>9.4.98</string>
+	<string>9.4.99</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -44,7 +44,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>9.4.98.0</string>
+	<string>9.4.99.0</string>
 	<key>FullStory</key>
 	<dict>
 		<key>OrgId</key>
@@ -95,6 +95,8 @@
 	</array>
 	<key>RCTNewArchEnabled</key>
 	<true/>
+	<key>RNNitroSQLite_DatabaseLocation</key>
+	<string>ApplicationSupport</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>ExpensifyNewKansas-Medium.otf</string>
