@@ -5509,11 +5509,6 @@ ${amount} für ${merchant} – ${date}`,
             journalEntriesProvTaxPostingAccount: 'Buchungszeilen-Konto für Provinzsteuerbuchungen',
             foreignCurrencyAmount: 'Betrag in Fremdwährung exportieren',
             exportToNextOpenPeriod: 'In die nächste offene Periode exportieren',
-            exportToNextOpenPeriodLockedSubtitle:
-                'Um den Export in die nächste offene Periode zu deaktivieren, deaktiviere zuerst die Aufteilung nicht erstattungsfähiger Exporte nach Periode.',
-            splitExportsByPostingPeriod: 'Exporte nach Buchungsperiode aufteilen',
-            splitExportsByPostingPeriodSubtitle:
-                'Aktiviere den Export in die nächste offene Periode, um die Aufteilung nicht erstattungsfähiger Exporte nach Periode in NetSuite zu aktivieren',
             nonReimbursableJournalPostingAccount: 'Nicht erstattungsfähiges Konto für Buchungssätze',
             reimbursableJournalPostingAccount: 'Konto für die Verbuchung erstattungsfähiger Posten',
             journalPostingPreference: {
@@ -7530,6 +7525,8 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Zum Entsperren automatische Synchronisierung aktivieren.',
             campfire: 'Campfire',
             businessCentral: 'Dynamics 365 Business Central',
+            qboConnectionExpiring: ({date}: {date: string}) => `Ihre QuickBooks Online-Verbindung läuft am ${date} ab.`,
+            qboConnectionExpired: ({date}: {date: string}) => `Ihre QuickBooks Online-Verbindung ist am ${date} abgelaufen.`,
         },
         export: {
             notReadyHeading: 'Nicht bereit zum Export',

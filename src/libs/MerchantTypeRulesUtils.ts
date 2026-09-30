@@ -10,7 +10,7 @@ import type {Policy, PolicyCategories, Rule} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {DEFAULT_MCC_GROUP, isDefaultMccGroupID} from './actions/Policy/Category';
+import {DEFAULT_MCC_GROUP, isDefaultMccGroupID} from './actions/Policy/OptimisticPolicyCategoriesAndMccGroups';
 import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
 import {clearMerchantRuleErrors} from './actions/Policy/Rules';
 import {getCategoryTaxRulesTableData, getTaxRateDisplayName} from './CategoryTaxRulesUtils';
