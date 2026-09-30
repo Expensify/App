@@ -300,6 +300,7 @@ export type {default as SetWorkspaceCategoriesEnabledParams} from './SetWorkspac
 export type {default as CreateWorkspaceCategoriesParams} from './CreateWorkspaceCategoriesParams';
 export type {default as RenameWorkspaceCategoriesParams} from './RenameWorkspaceCategoriesParams';
 export type {default as SetWorkspaceRequiresCategoryParams} from './SetWorkspaceRequiresCategoryParams';
+export type {default as SetPolicyAutoCategorizeNewExpensesParams} from './SetPolicyAutoCategorizeNewExpensesParams';
 export type {default as SetPolicyShowCategoryGLCodesParams} from './SetPolicyShowCategoryGLCodesParams';
 export type {default as DeleteWorkspaceCategoriesParams} from './DeleteWorkspaceCategoriesParams';
 export type {default as UpdatePolicyCategoryPayrollCodeParams} from './UpdatePolicyCategoryPayrollCodeParams';
@@ -581,6 +582,7 @@ export type {default as ChangeReportPolicyAndInviteSubmitterParams} from './Chan
 export type {ChangeTransactionsReportParams, TransactionThreadInfo} from './ChangeTransactionsReportParams';
 export type {default as SetPolicyProhibitedExpensesParams} from './SetPolicyProhibitedExpensesParams';
 export type {default as SetPolicyCommuterExclusionsParams} from './SetPolicyCommuterExclusionsParams';
+export type {default as SetEmployeeWorkArrangementParams} from './SetEmployeeWorkArrangementParams';
 export type {default as DisablePolicyCommuterExclusionsParams} from './DisablePolicyCommuterExclusionsParams';
 export type {default as SetPolicyRequireMapOrGPSParams} from './SetPolicyRequireMapOrGPSParams';
 export type {default as CreateDigitalWalletParams} from './CreateDigitalWalletParams';
