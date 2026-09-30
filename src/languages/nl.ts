@@ -8831,6 +8831,35 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             syncTravelInvoicingSettlements: 'Reisfacturering-afrekeningen synchroniseren',
             travelInvoicingSettlementAccount: {label: 'Reisfacturatie-vereffeningsrekening', description: 'Kies je afrekenrekening en we maken de betaling aan in Campfire.'},
             travelInvoicingPayableAccount: {label: 'Te betalen rekening voor reisinvoicing'},
+            exportToMultipleAccounts: 'Export naar meerdere rekeningen instellen',
+            cardProgramAccount: {
+                label: 'Kaartprogramma-account',
+                description: 'Overschrijf de werkruimteaccount voor deze kaartprogramma’s.',
+                descriptionLevel2: 'Overschrijf de workspace-account voor dit kaartprogramma.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle programma’s gebruiken de standaardrekening';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} programma met aangepaste rekening`;
+                    }
+                    return `${customAccountsCount} programma’s met aangepaste rekeningen`;
+                },
+            },
+            cardAccount: {
+                label: 'Account per kaart',
+                description: 'Overschrijf de programmarekening voor individuele kaarten.',
+                descriptionLevel2: 'Overschrijf de programmarekening voor deze kaarten.',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return 'Alle kaarten gebruiken programmarekeningen';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} kaart met aangepast account`;
+                    }
+                    return `${customAccountsCount} kaarten met aangepaste rekeningen`;
+                },
+            },
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-configuratie',

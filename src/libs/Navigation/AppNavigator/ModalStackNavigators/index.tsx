@@ -1003,6 +1003,13 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/export/CampfireDefaultCompanyCardVendorPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_COMPANY_CARD_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/export/CampfireCompanyCardAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_CARD_PROGRAM_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/export/CampfireCardProgramAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_CARD_PROGRAM_ACCOUNT_SELECTOR]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/export/CampfireCardProgramAccountSelectorPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_CARD_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/export/CampfireCardAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_CARD_ACCOUNT_CARD_LIST]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/export/CampfireCardAccountCardListPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_ADVANCED]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/advanced/CampfireAdvancedPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_EXPORT_METHOD]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/advanced/CampfireExportMethodPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_BILL_PAYMENT_ACCOUNT]: () =>

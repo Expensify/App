@@ -88,6 +88,8 @@ export type {default as UpdateCampfireExporterParams} from './UpdateCampfireExpo
 export type {default as UpdateCampfireExportDateParams} from './UpdateCampfireExportDateParams';
 export type {default as UpdateCampfireDefaultVendorParams} from './UpdateCampfireDefaultVendorParams';
 export type {default as UpdateCampfireCreditCardAccountParams} from './UpdateCampfireCreditCardAccountParams';
+export type {default as UpdateCampfireExportToMultipleAccountsParams} from './UpdateCampfireExportToMultipleAccountsParams';
+export type {default as UpdateCampfireCardProgramAccountParams} from './UpdateCampfireCardProgramAccountParams';
 export type {default as UpdateCampfireAutoSyncParams} from './UpdateCampfireAutoSyncParams';
 export type {default as UpdateCampfireAccountingMethodParams} from './UpdateCampfireAccountingMethodParams';
 export type {default as UpdateCampfireSyncReimbursedReportsParams} from './UpdateCampfireSyncReimbursedReportsParams';
