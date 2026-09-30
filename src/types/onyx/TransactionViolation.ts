@@ -22,6 +22,13 @@ type ViolationType = ValueOf<typeof CONST.VIOLATION_TYPES>;
  */
 type ViolationDataType = ValueOf<typeof CONST.MODIFIED_AMOUNT_VIOLATION_DATA>;
 
+/** A comparison or AND node from the rule that triggered a violation. */
+type RuleViolationFilter = {
+    left: string | RuleViolationFilter;
+    operator: string;
+    right: string | number | Array<string | number> | RuleViolationFilter;
+};
+
 /** Model of transaction violation data */
 type TransactionViolationData = {
     /** Who rejected the transaction */
@@ -126,6 +133,12 @@ type TransactionViolationData = {
 
     /** Number of nights the limit was averaged over, for overLimit/overCategoryLimit on a multi-day reservation */
     nights?: number;
+
+    /** ID of the rule that triggered this violation */
+    ruleID?: number;
+
+    /** Filters from the rule that triggered this violation */
+    filters?: RuleViolationFilter;
 };
 
 /** Model of a transaction violation */

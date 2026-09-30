@@ -7068,6 +7068,7 @@ const CONST = {
         RECEIPT_REQUIRED: 'receiptRequired',
         ITEMIZED_RECEIPT_REQUIRED: 'itemizedReceiptRequired',
         CUSTOM_RULES: 'customRules',
+        RULE_VIOLATION: 'ruleViolation',
         RTER: 'rter',
         SMARTSCAN_FAILED: 'smartscanFailed',
         SOME_TAG_LEVELS_REQUIRED: 'someTagLevelsRequired',

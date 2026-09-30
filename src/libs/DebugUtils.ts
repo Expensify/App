@@ -1452,6 +1452,8 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 startDate: 'string',
                 endDate: 'string',
                 nights: 'number',
+                ruleID: 'number',
+                filters: 'object',
             });
         case 'showInReview':
             return validateBoolean(value);

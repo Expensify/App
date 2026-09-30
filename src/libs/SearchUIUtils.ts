@@ -5096,9 +5096,9 @@ function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes, con
     }
 }
 
-type SubmittedTransactionViolationShortName = ValueOf<typeof CONST.VIOLATIONS>;
+type SubmittedTransactionViolationShortName = Exclude<ValueOf<typeof CONST.VIOLATIONS>, typeof CONST.VIOLATIONS.RULE_VIOLATION>;
 
-const SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAME_SET = new Set<string>(Object.values(CONST.VIOLATIONS));
+const SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAME_SET = new Set<string>(Object.values(CONST.VIOLATIONS).filter((name) => name !== CONST.VIOLATIONS.RULE_VIOLATION));
 
 function isSubmittedTransactionViolationShortName(name: string): name is SubmittedTransactionViolationShortName {
     return SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAME_SET.has(name);
@@ -5109,6 +5109,9 @@ function isSubmittedTransactionViolationShortName(name: string): name is Submitt
  * Falls back to the raw identifier when no short-name translation exists.
  */
 function getViolationDisplayName(violationName: string, translate: LocalizedTranslate): string {
+    if (violationName === CONST.VIOLATIONS.RULE_VIOLATION) {
+        return translate('violations.shortName.customRules');
+    }
     return isSubmittedTransactionViolationShortName(violationName) ? translate(`violations.shortName.${violationName}`) : violationName;
 }
 

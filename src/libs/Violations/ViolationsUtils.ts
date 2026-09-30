@@ -278,6 +278,165 @@ function formatViolationDate(date: string | undefined, dateFnsLocale: DateFnsLoc
     return DateUtils.formatWithUTCTimeZone(date, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale);
 }
 
+type RuleViolationFilter = NonNullable<NonNullable<TransactionViolation['data']>['filters']>;
+
+const RULE_VIOLATION_FALLBACK_MESSAGE = 'Violates expense policy';
+const RULE_VIOLATION_FILTER_ORDER = ['expenseType', 'billable', 'reimbursable', 'category', 'merchant', 'vendor', 'amount', 'tag', 'currency', 'purchaseCurrency', 'has', 'mcc'];
+
+function isRuleViolationFilter(value: RuleViolationFilter | string | number | Array<string | number>): value is RuleViolationFilter {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function flattenRuleViolationAndFilters(filters: RuleViolationFilter, filtersByName: Map<string, RuleViolationFilter>): boolean {
+    if (filters.operator === CONST.SEARCH.SYNTAX_OPERATORS.AND) {
+        if (!isRuleViolationFilter(filters.left) || !isRuleViolationFilter(filters.right)) {
+            return false;
+        }
+        return flattenRuleViolationAndFilters(filters.left, filtersByName) && flattenRuleViolationAndFilters(filters.right, filtersByName);
+    }
+
+    if (typeof filters.left !== 'string' || !filters.left) {
+        return false;
+    }
+
+    filtersByName.set(filters.left, filters);
+    return true;
+}
+
+function normalizeRuleViolationFilterValues(value: RuleViolationFilter['right']): string[] {
+    if (isRuleViolationFilter(value)) {
+        return [];
+    }
+    return (Array.isArray(value) ? value : [value]).map(String);
+}
+
+function buildRuleViolationMessage(filters: RuleViolationFilter | undefined, currency: string, convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString']): string {
+    if (!filters || !isRuleViolationFilter(filters)) {
+        return RULE_VIOLATION_FALLBACK_MESSAGE;
+    }
+
+    const filtersByName = new Map<string, RuleViolationFilter>();
+    if (!flattenRuleViolationAndFilters(filters, filtersByName)) {
+        return RULE_VIOLATION_FALLBACK_MESSAGE;
+    }
+
+    const adjectives: string[] = [];
+    const phrases: string[] = [];
+    let isAnyExpense = false;
+    let hasMerchant = false;
+
+    for (const filterName of RULE_VIOLATION_FILTER_ORDER) {
+        const filter = filtersByName.get(filterName);
+        if (!filter) {
+            continue;
+        }
+
+        const values = normalizeRuleViolationFilterValues(filter.right);
+        if (values.length === 0) {
+            continue;
+        }
+
+        const firstValue = values.at(0) ?? '';
+        const hasSingleValue = values.length === 1;
+        const filterValuesString = values.join(' or ');
+        const op = filter.operator;
+
+        if (filterName === 'expenseType') {
+            const expenseTypesString = values.map((value) => (value === 'perDiem' ? 'per diem' : value)).join(' or ');
+            const capitalizedExpenseTypesString = `${expenseTypesString.charAt(0).toUpperCase()}${expenseTypesString.slice(1)}`;
+            if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+                adjectives.push(capitalizedExpenseTypesString);
+            } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
+                phrases.push(`not a ${capitalizedExpenseTypesString}`);
+            }
+        } else if (filterName === 'billable' || filterName === 'reimbursable') {
+            if (op !== CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && op !== CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
+                continue;
+            }
+
+            const isTrue = (firstValue === 'yes') !== (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO);
+            const titleCaseLabel = `${filterName.charAt(0).toUpperCase()}${filterName.slice(1)}`;
+            adjectives.push(isTrue ? titleCaseLabel : `Non-${filterName}`);
+        } else if (filterName === 'category') {
+            if (op !== CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+                continue;
+            }
+
+            if (hasSingleValue && (firstValue === CONST.SEARCH.CATEGORY_EMPTY_VALUE || firstValue === CONST.SEARCH.CATEGORY_DEFAULT_VALUE)) {
+                phrases.push('without a category');
+            } else {
+                adjectives.push(filterValuesString);
+            }
+        } else if (filterName === 'merchant') {
+            if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && hasSingleValue && firstValue === '.') {
+                isAnyExpense = true;
+            } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+                phrases.push(`from ${filterValuesString}`);
+                hasMerchant = true;
+            } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
+                phrases.push(`not from ${filterValuesString}`);
+                hasMerchant = true;
+            } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS) {
+                phrases.push(`from merchants containing ${filterValuesString}`);
+                hasMerchant = true;
+            } else if (op === 'notContains') {
+                phrases.push(`not from merchants containing ${filterValuesString}`);
+                hasMerchant = true;
+            }
+        } else if (filterName === 'vendor') {
+            if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+                phrases.push(`${hasMerchant ? 'with vendor' : 'from'} ${filterValuesString}`);
+            } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
+                phrases.push(`${hasMerchant ? 'without vendor' : 'not from'} ${filterValuesString}`);
+            }
+        } else if (filterName === 'amount') {
+            const formattedAmountsString = values.map((value) => convertToDisplayString(Math.abs(Number(value)), currency)).join(' or ');
+            if (op === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN) {
+                phrases.push(`over ${formattedAmountsString}`);
+            } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO) {
+                phrases.push(`${formattedAmountsString} or more`);
+            } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN) {
+                phrases.push(`under ${formattedAmountsString}`);
+            } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO) {
+                phrases.push(`${formattedAmountsString} or less`);
+            }
+        } else if (filterName === 'tag') {
+            if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+                phrases.push(hasSingleValue && firstValue === CONST.SEARCH.TAG_EMPTY_VALUE ? 'without a tag' : `tagged ${filterValuesString}`);
+            }
+        } else if (filterName === 'currency') {
+            if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+                phrases.push(`in ${filterValuesString}`);
+            } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
+                phrases.push(`not in ${filterValuesString}`);
+            }
+        } else if (filterName === 'purchaseCurrency') {
+            if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+                phrases.push(`paid in ${filterValuesString}`);
+            } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
+                phrases.push(`not paid in ${filterValuesString}`);
+            }
+        } else if (filterName === 'has') {
+            const isNegated = op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO || op === 'notContains';
+            if (![CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, 'notContains'].includes(op)) {
+                continue;
+            }
+
+            const attributes = values.map((value) => (value === 'attachment' ? 'an attachment' : `a ${value}`));
+            phrases.push(`${isNegated ? 'without' : 'with'} ${attributes.join(' or ')}`);
+        } else if (filterName === 'mcc' && op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+            phrases.push(`at ${values.map((value) => `MCC ${value}`).join(' or ')}`);
+        }
+    }
+
+    if (adjectives.length === 0 && phrases.length === 0) {
+        return isAnyExpense ? 'Any expense' : RULE_VIOLATION_FALLBACK_MESSAGE;
+    }
+
+    const message = adjectives.length === 0 ? 'Expense' : `${adjectives.join(' ')} expense`;
+    return phrases.length === 0 ? message : `${message} ${phrases.join(' ')}`;
+}
+
 /**
  * Extracts unique error messages from errors and actions
  */
@@ -1075,6 +1234,8 @@ const ViolationsUtils = {
                 return translate('violations.itemizedReceiptRequired', !isEmptyObject(violation.data) ? convertToDisplayString(amount, currency) : undefined);
             case 'customRules':
                 return translate('violations.customRules', message);
+            case 'ruleViolation':
+                return buildRuleViolationMessage(violation.data?.filters, currency, convertToDisplayString);
             case 'rter': {
                 let isPersonalCardViolation = false;
                 if (cardID !== undefined && cardID !== null && card) {
