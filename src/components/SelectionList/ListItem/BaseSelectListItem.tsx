@@ -54,10 +54,7 @@ function BaseSelectListItem<TItem extends ListItem>({
         titleStyles,
         item.titleStyles,
     ];
-    const subtitleStyle = [
-        isAlternateTextMultilineSupported && styles.preWrap,
-        isMultilineSupported ? StyleUtils.getPaddingLeft(paddingLeft) : null,
-    ];
+    const subtitleStyle = [isAlternateTextMultilineSupported && styles.preWrap, isMultilineSupported ? StyleUtils.getPaddingLeft(paddingLeft) : null];
 
     return (
         <SelectableListItem
