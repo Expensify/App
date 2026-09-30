@@ -1,5 +1,7 @@
 import getDynamicFieldErrors from '@components/DynamicForm/getDynamicFieldErrors';
+import {getFieldOptions} from '@components/DynamicForm/getFieldOptions';
 import groupFieldsIntoPages from '@components/DynamicForm/groupFieldsIntoPages';
+import isFieldVisible from '@components/DynamicForm/isFieldVisible';
 
 import {getCountryZipRegexDetails} from '@libs/ValidationUtils';
 
@@ -231,5 +233,34 @@ describe('groupFieldsIntoPages', () => {
         expect(pages.map((page) => page.slug)).toEqual(['kyc-aml', 'kyc-aml-2', 'page-3']);
         expect(groupFieldsIntoPages([text('d', 'Confirm')]).at(0)?.slug).toBe('confirm-2');
         expect(groupFieldsIntoPages([{...text('e', 'Owners'), groupLabelKey: 'common.owner'}]).at(0)?.labelKey).toBe('common.owner');
+    });
+
+    it('keeps a dependent hidden while its controlling field is itself hidden', () => {
+        const fields: DynamicFormField[] = [
+            {key: 'legalType', label: 'Type', group: 'Business', type: 'radio', required: true, values: [{key: 'BUSINESS'}, {key: 'PRIVATE'}], refreshOnChange: false},
+            {key: 'hasDirectors', label: 'Has directors', group: 'Business', type: 'boolean', required: false, showWhen: {key: 'legalType', equals: ['BUSINESS']}, refreshOnChange: false},
+            {key: 'directorCount', label: 'Directors', group: 'Business', type: 'number', required: true, showWhen: {key: 'hasDirectors', equals: ['true']}, refreshOnChange: false},
+        ];
+        const answers = {legalType: 'PRIVATE', hasDirectors: true};
+
+        expect(isFieldVisible(fields[2], answers, fields)).toBe(false);
+        expect(getDynamicFieldErrors(fields, answers, translateLocal)).toEqual({});
+        expect(isFieldVisible(fields[2], {...answers, legalType: 'BUSINESS'}, fields)).toBe(true);
+    });
+
+    it('resolves dependent options from a boolean controller', () => {
+        const field: DynamicFormField = {
+            key: 'reason',
+            label: 'Reason',
+            group: 'Business',
+            type: 'select',
+            required: true,
+            dependsOn: {key: 'isRegulated', valuesBy: {true: [{key: 'LICENSED'}], false: [{key: 'EXEMPT'}]}},
+            refreshOnChange: false,
+        };
+
+        expect(getFieldOptions(field, {isRegulated: true}).map((option) => option.key)).toEqual(['LICENSED']);
+        expect(getFieldOptions(field, {isRegulated: false}).map((option) => option.key)).toEqual(['EXEMPT']);
+        expect(getFieldOptions(field, {})).toEqual([]);
     });
 });

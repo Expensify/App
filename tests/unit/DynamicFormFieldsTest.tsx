@@ -387,6 +387,25 @@ describe('DynamicFormFields', () => {
         expect(list?.itemFields?.map((field) => field.key)).toEqual(['name', 'country', 'ownershipPercentage']);
     });
 
+    it('shows the section title when the first and last fields share a section', () => {
+        const fields: DynamicFormField[] = [
+            {key: 'street', label: 'Street', group: 'Details', section: 'Address', type: 'text', required: true, refreshOnChange: false},
+            {key: 'nickname', label: 'Nickname', group: 'Details', type: 'text', required: false, refreshOnChange: false},
+            {key: 'city', label: 'City', group: 'Details', section: 'Address', type: 'text', required: true, refreshOnChange: false},
+        ];
+        renderFields(fields);
+
+        expect(screen.getAllByText('Address')).toHaveLength(2);
+    });
+
+    it('skips a field whose type the registry does not know instead of crashing', () => {
+        const unknown = {key: 'signature', label: 'Signature', group: 'Details', type: 'signature', required: true} as unknown as DynamicFormField;
+        const rendered = renderFields([unknown, {key: 'nickname', label: 'Nickname', group: 'Details', type: 'text', required: false, refreshOnChange: false}]);
+
+        expect(rendered.has('signature')).toBe(false);
+        expect(rendered.has('nickname')).toBe(true);
+    });
+
     it('renders one bold title before each run of fields that share a section, translated when the section has a key', () => {
         const fields: DynamicFormField[] = [
             {

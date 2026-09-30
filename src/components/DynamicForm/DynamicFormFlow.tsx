@@ -124,11 +124,14 @@ function DynamicFormFlow({
     const [carriedAnswers, setCarriedAnswers] = useState<DynamicFormValues>(() => (hasRoutedPage ? carriedAnswersByForm.get(formID) : undefined) ?? {});
     const groupPages = groupFieldsIntoPages(fields);
     const draftValues: DynamicFormValues = {...draft, ...carriedAnswers};
-    const hasVisibleField = (page: DynamicFormPageSchema) => page.fields.some((field) => isFieldVisible(field, draftValues));
+    const hasVisibleField = (page: DynamicFormPageSchema) => page.fields.some((field) => isFieldVisible(field, draftValues, fields));
     const visibleGroupPages = groupPages.filter(hasVisibleField);
-    const shouldConfirm = hasConfirmation ?? visibleGroupPages.length > CONFIRMATION_MIN_PAGES;
-    const pages = [...groupPages.map((page) => ({pageName: page.slug, component: EmptyPage})), ...(shouldConfirm ? [{pageName: CONFIRM_PAGE_SLUG, component: EmptyPage}] : [])];
-    const skipPages = groupPages.filter((page) => !hasVisibleField(page)).map((page) => page.slug);
+    const hasSchema = groupPages.length > 0;
+    const hasVisiblePage = visibleGroupPages.length > 0;
+    const shouldConfirm = hasConfirmation ?? groupPages.length > CONFIRMATION_MIN_PAGES;
+    const schemaPages = [...groupPages.map((page) => ({pageName: page.slug, component: EmptyPage})), ...(shouldConfirm ? [{pageName: CONFIRM_PAGE_SLUG, component: EmptyPage}] : [])];
+    const pages = hasSchema ? schemaPages : [{pageName: CONFIRM_PAGE_SLUG, component: EmptyPage}];
+    const skipPages = hasVisiblePage ? groupPages.filter((page) => !hasVisibleField(page)).map((page) => page.slug) : [];
 
     const isDraftLoading = isLoadingOnyxValue(draftMetadata);
     const hasProgress = fields.some((field) => {
@@ -151,7 +154,7 @@ function DynamicFormFlow({
             const latestCarried: DynamicFormValues = {...carriedAnswers, ...carriedAnswersByForm.get(formID)};
             const latestValues: DynamicFormValues = {...draft, ...latestCarried, ...(isAnswerRecord(lastPageValues) ? lastPageValues : {})};
             const incompleteIndex = groupPages.findIndex(
-                (page) => page.fields.some((field) => isFieldVisible(field, latestValues)) && Object.keys(getDynamicFieldErrors(page.fields, latestValues, translate)).length > 0,
+                (page) => page.fields.some((field) => isFieldVisible(field, latestValues, fields)) && Object.keys(getDynamicFieldErrors(page.fields, latestValues, translate)).length > 0,
             );
             const incompletePage = groupPages.at(incompleteIndex);
             if (incompleteIndex !== -1 && incompletePage) {
@@ -161,7 +164,7 @@ function DynamicFormFlow({
             if (isSubmitting === undefined) {
                 carriedAnswersByForm.delete(formID);
             }
-            const visibleFields = fields.filter((field) => isFieldVisible(field, latestValues));
+            const visibleFields = fields.filter((field) => isFieldVisible(field, latestValues, fields));
             const isSubmitted = (key: string) => visibleFields.some((field) => key === field.key || key === field.currencyKey || key.startsWith(`${field.key}.`));
             const submitted = Object.fromEntries(Object.entries(latestValues).filter(([key]) => isSubmitted(key)));
             for (const field of visibleFields) {
@@ -329,7 +332,7 @@ function DynamicFormFlow({
         .map((page, index) => ({
             name: getPageTitle(page, translate),
             rows: page.fields
-                .filter((field) => isFieldVisible(field, draftValues))
+                .filter((field) => isFieldVisible(field, draftValues, fields))
                 .flatMap((field): SummaryGroupRow[] => {
                     const stored = draftValues[field.key];
                     if (field.type === 'list' && isListItems(stored)) {
@@ -359,7 +362,7 @@ function DynamicFormFlow({
         }))
         .filter((group) => group.rows.length > 0);
 
-    const isLoading = isRedirecting || isCurrentPageSkipped || isDraftLoading || (!currentGroupPage && !isConfirmationPage && !editorField);
+    const isLoading = !hasSchema || !hasVisiblePage || isRedirecting || isCurrentPageSkipped || isDraftLoading || (!currentGroupPage && !isConfirmationPage && !editorField);
 
     let content = (
         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
@@ -374,7 +377,7 @@ function DynamicFormFlow({
                 formID={formID}
                 draft={draftValues}
                 currency={currency}
-                submitButtonText={translate(isEditing || pageIndex === pages.length - 1 ? 'common.confirm' : 'common.next')}
+                submitButtonText={translate(isEditing || nextShownIndex === -1 ? 'common.confirm' : 'common.next')}
                 onSubmit={submitPage}
                 onOpenListItemEditor={(fieldKey, itemID) => openListItemEditor(fieldKey, itemID, isEditing ? 'edit' : undefined)}
             />
@@ -398,6 +401,7 @@ function DynamicFormFlow({
             <ConfirmationStep
                 pageTitle={confirmationTitle}
                 groups={summaryGroups}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                 showOnfidoLinks={false}
                 isLoading={!!isSubmitting}
                 error={submitError}

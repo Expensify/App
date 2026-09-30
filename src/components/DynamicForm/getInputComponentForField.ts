@@ -12,6 +12,7 @@ import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
 
 import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
+import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
 import type {DynamicFormField, DynamicFormFieldType, DynamicFormKeyboard} from '@src/types/onyx';
@@ -227,7 +228,12 @@ const REGISTRY = {
     }),
 } satisfies Record<DynamicFormFieldType, DynamicFieldFactory>;
 
-function getInputComponentForField(field: DynamicFormField, context: DynamicFieldContext): DynamicFieldInput {
+/** Returns nothing for a type the registry does not know, so one unexpected server field drops out instead of taking the form down */
+function getInputComponentForField(field: DynamicFormField, context: DynamicFieldContext): DynamicFieldInput | undefined {
+    if (!Object.hasOwn(REGISTRY, field.type)) {
+        Log.warn('[DynamicForm] Unknown field type', {type: field.type, key: field.key});
+        return undefined;
+    }
     return REGISTRY[field.type](field, context);
 }
 

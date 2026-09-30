@@ -37,7 +37,7 @@ function DynamicFormFields({fields, values, currency, shouldSaveDraft = true, on
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const visibleFields = fields.filter((field) => isFieldVisible(field, values));
+    const visibleFields = fields.filter((field) => isFieldVisible(field, values, fields));
     const isAloneOnPage = visibleFields.length === 1;
     const renderFields = (itemFields: DynamicFormField[], itemValues: DynamicFormValues) => (
         <DynamicFormFields
@@ -52,7 +52,8 @@ function DynamicFormFields({fields, values, currency, shouldSaveDraft = true, on
         <>
             {visibleFields.map((field, index) => {
                 const label = getFieldLabel(field, translate);
-                const isSectionStart = !!field.section && visibleFields.at(index - 1)?.section !== field.section;
+                const previousField = index > 0 ? visibleFields.at(index - 1) : undefined;
+                const isSectionStart = !!field.section && previousField?.section !== field.section;
                 const sectionTitle = isSectionStart ? (
                     <Text style={[styles.textStrong, styles.mb2, index > 0 && styles.mt3]}>{field.sectionLabelKey ? translate(field.sectionLabelKey) : field.section}</Text>
                 ) : null;
@@ -70,7 +71,7 @@ function DynamicFormFields({fields, values, currency, shouldSaveDraft = true, on
                         </React.Fragment>
                     );
                 }
-                const {InputComponent, inputProps, isMenuRow, shouldRenderLabelAbove, isLabelAboveQuestion} = getInputComponentForField(field, {
+                const input = getInputComponentForField(field, {
                     values,
                     translate,
                     currency,
@@ -78,6 +79,10 @@ function DynamicFormFields({fields, values, currency, shouldSaveDraft = true, on
                     renderFields,
                     openListItemEditor: onOpenListItemEditor,
                 });
+                if (!input) {
+                    return null;
+                }
+                const {InputComponent, inputProps, isMenuRow, shouldRenderLabelAbove, isLabelAboveQuestion} = input;
                 const description = field.type === 'text' || field.type === 'number' ? undefined : getFieldDescription(field, translate);
                 return (
                     <React.Fragment key={field.key}>

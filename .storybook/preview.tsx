@@ -37,8 +37,6 @@ Onyx.init({
 
 IntlStore.load(CONST.LOCALES.EN);
 
-const STORY_FRAME_INSET = '2rem';
-
 const decorators = [
     (Story: React.ElementType) => (
         <ComposeProviders
@@ -57,10 +55,7 @@ const decorators = [
             ]}
         >
             <ScreenWrapperStatusContext.Provider value={{didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}}>
-                {/* Screens size to their window, so a story gets the viewport as its frame */}
-                <div style={{display: 'flex', flexDirection: 'column', height: `calc(100vh - ${STORY_FRAME_INSET})`}}>
-                    <Story />
-                </div>
+                <Story />
             </ScreenWrapperStatusContext.Provider>
         </ComposeProviders>
     ),
