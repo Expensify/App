@@ -19,11 +19,14 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report, ReportAction} from '@src/types/onyx';
 
+import type {ValueOf} from 'type-fest';
+
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import type * as MockUseConfirmModalUtil from '../../../utils/mockUseConfirmModal';
 
+import createRandomPolicy from '../../../utils/collections/policies';
 import createRandomReportAction from '../../../utils/collections/reportActions';
 import {createRandomReport} from '../../../utils/collections/reports';
 import createMock from '../../../utils/createMock';
@@ -202,5 +205,82 @@ describe('DynamicReportDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(goBackSpy).toHaveBeenCalledWith(searchBackTo);
+    });
+
+    describe('task Delete for workspace admins', () => {
+        const currentUserAccountID = 1;
+        const taskOwnerAccountID = 8;
+        const reportID = '12';
+
+        const taskReport: Report = {
+            ...createRandomReport(Number(reportID), undefined),
+            type: CONST.REPORT.TYPE.TASK,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            ownerAccountID: taskOwnerAccountID,
+            parentReportID: '23',
+            parentReportActionID: '102',
+        };
+
+        const renderTaskDetailsAs = async (role: ValueOf<typeof CONST.POLICY.ROLE>) => {
+            const policy = {...createRandomPolicy(Number(taskReport.policyID), CONST.POLICY.TYPE.TEAM), role};
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, taskReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            });
+
+            render(
+                <OnyxListItemProvider>
+                    <CurrentUserPersonalDetailsContext.Provider value={{accountID: currentUserAccountID}}>
+                        <LocaleContextProvider>
+                            <DynamicReportDetailsPage
+                                isLoadingReportData={false}
+                                navigation={navigationMock}
+                                policy={policy}
+                                report={taskReport}
+                                reportMetadata={undefined}
+                                reportLoadingState={undefined}
+                                route={getRouteMock(reportID)}
+                            />
+                        </LocaleContextProvider>
+                    </CurrentUserPersonalDetailsContext.Provider>
+                </OnyxListItemProvider>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        it('should show Delete to a workspace admin who is not the task owner', async () => {
+            // Given an open task in a workspace, owned by another account
+
+            // When an admin of that workspace opens the task details
+            await renderTaskDetailsAs(CONST.POLICY.ROLE.ADMIN);
+
+            // Then Delete is shown, because admins can remove tasks created by others in their workspace
+            expect(screen.getByLabelText('Delete')).toBeOnTheScreen();
+        });
+
+        it('should not show Delete to a workspace member who is not the task owner', async () => {
+            // Given an open task in a workspace, owned by another account
+
+            // When a non-admin member of that workspace opens the task details
+            await renderTaskDetailsAs(CONST.POLICY.ROLE.USER);
+
+            // Then Delete is not shown, because only the task owner and workspace admins can delete a task
+            expect(screen.queryByLabelText('Delete')).not.toBeOnTheScreen();
+        });
+
+        it('should not show Delete to a workspace admin on a task owned by a guide', async () => {
+            // Given an open task in a workspace whose owner is a guide
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS, [taskOwnerAccountID]);
+            });
+
+            // When an admin of that workspace opens the task details
+            await renderTaskDetailsAs(CONST.POLICY.ROLE.ADMIN);
+
+            // Then Delete is not shown, because setup flows later complete the guide's tasks and that fails on a deleted task
+            expect(screen.queryByLabelText('Delete')).not.toBeOnTheScreen();
+        });
     });
 });
