@@ -315,9 +315,19 @@ function presetFlowStory(preset: PresetName): StoryFn<FlowStoryProps> {
     return flowStory;
 }
 
+const STORY_FRAME_INSET = '2rem';
+
 const story: Meta<FlowStoryProps> = {
     title: 'Components/DynamicForm',
     component: FlowFromPreset,
+    decorators: [
+        (Story) => (
+            // Screens size to their window, so these stories get the viewport as their frame
+            <div style={{display: 'flex', flexDirection: 'column', height: `calc(100vh - ${STORY_FRAME_INSET})`}}>
+                <Story />
+            </div>
+        ),
+    ],
 };
 
 type PlaygroundProps = Preset & {
@@ -346,12 +356,10 @@ function Playground({preset, fields, draftValues, layout}: PlaygroundProps) {
         if (!field.key || !field.group) {
             return [`${name}: every field needs a key and a group`];
         }
-        try {
-            getInputComponentForField(field, {values: {}, translate, renderFields: () => null, isAloneOnPage: false});
-            return [];
-        } catch {
+        if (!getInputComponentForField(field, {values: {}, translate, renderFields: () => null, isAloneOnPage: false})) {
             return [`${name}: unknown type '${String(field.type)}'`];
         }
+        return [];
     });
 
     if (problems.length > 0) {

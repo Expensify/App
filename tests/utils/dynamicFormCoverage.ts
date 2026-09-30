@@ -15,8 +15,9 @@ const context: DynamicFieldContext = {values: {}, translate: translateLocal, ren
 /** Asserts every field in a schema, nested ones included, maps to a registered input. A new server shape fails here first. */
 function expectSchemaRenders(fields: DynamicFormField[]) {
     for (const field of flattenFields(fields)) {
-        const {InputComponent} = getInputComponentForField(field, context);
-        expect(typeof InputComponent === 'function' || typeof InputComponent === 'object').toBe(true);
+        const input = getInputComponentForField(field, context);
+        expect(input).toBeDefined();
+        expect(typeof input?.InputComponent === 'function' || typeof input?.InputComponent === 'object').toBe(true);
     }
 }
 

@@ -20,7 +20,10 @@ function getFieldOptions(field: DynamicFormField, values: DynamicFormValues): Dy
         return field.values ?? [];
     }
     const controllingValue = values[field.dependsOn.key];
-    return typeof controllingValue === 'string' ? (field.dependsOn.valuesBy[controllingValue] ?? []) : [];
+    if (typeof controllingValue !== 'string' && typeof controllingValue !== 'boolean' && typeof controllingValue !== 'number') {
+        return [];
+    }
+    return field.dependsOn.valuesBy[String(controllingValue)] ?? [];
 }
 
 function getOptionLabel(option: DynamicFormFieldOption, translate: LocalizedTranslate): string {
