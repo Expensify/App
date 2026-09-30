@@ -11,6 +11,7 @@ import HeaderTitle from '@components/Header/primitives/HeaderTitle';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -24,13 +25,14 @@ type HeaderCentralPaneProps = Partial<ChildrenProps> & {
 
 function HeaderCentralPane({title, onBackButtonPress, isHeadline = true, children}: HeaderCentralPaneProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const styles = useThemeStyles();
 
     return (
         <Header>
             {shouldUseNarrowLayout && <HeaderBackButton onPress={onBackButtonPress} />}
             <HeaderTitle
                 title={title}
-                isHeadline={isHeadline}
+                titleStyles={isHeadline && styles.textHeadlineH2}
             />
             <HeaderRight>
                 {children}

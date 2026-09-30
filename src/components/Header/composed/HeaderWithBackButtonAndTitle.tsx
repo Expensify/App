@@ -13,22 +13,20 @@ import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 type HeaderWithBackButtonAndTitleProps = Partial<ChildrenProps> & {
     title?: string;
+    subtitle?: string;
     style?: StyleProp<ViewStyle>;
     titleStyles?: StyleProp<TextStyle>;
     onBackButtonPress?: () => void;
-
-    /** Whether to use the taller headline style bar with the larger title font. */
-    isHeadline?: boolean;
 };
 
-function HeaderWithBackButtonAndTitle({children, onBackButtonPress, isHeadline = false, title = '', titleStyles, style}: HeaderWithBackButtonAndTitleProps) {
+function HeaderWithBackButtonAndTitle({children, onBackButtonPress, title = '', subtitle = '', titleStyles, style}: HeaderWithBackButtonAndTitleProps) {
     return (
         <Header style={style}>
             <HeaderBackButton onPress={onBackButtonPress} />
             <HeaderTitle
                 title={title}
                 titleStyles={titleStyles}
-                isHeadline={isHeadline}
+                subtitle={subtitle}
             />
             <HeaderRight>{children}</HeaderRight>
         </Header>
