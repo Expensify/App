@@ -2543,9 +2543,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         return;
                     }
 
-                    const serializedQuery = queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON);
+                    const allMatchingQuery = isExpenseReportType && queryJSON ? getAllMatchingReportQuery(queryJSON, excludedTransactions) : queryJSON;
+                    if (isExpenseReportType && !allMatchingQuery) {
+                        Log.info('[BulkSubmit] Dropping bulk submit: report exclusion has no reportID');
+                        return;
+                    }
+                    const serializedQuery = allMatchingQuery ? serializeQueryJSONForBackend(allMatchingQuery) : JSON.stringify(allMatchingQuery);
                     queueBulkSubmitReports(serializedQuery);
-                    playSound(SOUNDS.SUCCESS);
                     clearSelectedTransactions();
                 },
             };

@@ -2167,7 +2167,8 @@ function queueBulkApproveReports(jsonQuery: string) {
  * so this covers reports beyond the currently loaded page(s) when "Select all" is checked in Search.
  */
 function queueBulkSubmitReports(jsonQuery: string) {
-    write(WRITE_COMMANDS.QUEUE_BULK_SUBMIT_REPORTS, {jsonQuery});
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT);
+    write(WRITE_COMMANDS.QUEUE_BULK_SUBMIT_REPORTS, {jsonQuery, bulkActionID}, onyxData);
 }
 
 /** Export templates pre-grouped for the Export menus: each group is sorted alphabetically and rendered with a divider between groups */
