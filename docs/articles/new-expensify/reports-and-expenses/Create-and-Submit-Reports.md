@@ -42,7 +42,7 @@ You can select several reports on the **Reports** tab and submit them in one act
 1. In the navigation tabs on the left, select **Spend**.
 2. Under **Expense reports**, select **Reports**.
 3. Select the checkbox on two or more reports you want to submit.
-4. Select the **X selected** button (for example, **2 selected**), then select **Submit**.
+4. In the bar that appears at the bottom of the list, select **Submit**. If you don't see it, select **More** first.
 
 **Mobile:**
 
