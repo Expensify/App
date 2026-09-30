@@ -1,3 +1,4 @@
+// cspell:ignore Enviar
 import {act, render, screen} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
