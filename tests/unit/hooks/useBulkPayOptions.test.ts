@@ -84,10 +84,13 @@ describe('useBulkPayOptions invoice payment methods', () => {
         expect(addBankOption.onSelected).toEqual(expect.any(Function));
     });
 
-    it('excludes bank payment and add-bank-account for unsupported JPY while retaining pay-elsewhere', () => {
-        const {result} = renderHook(() => useBulkPayOptions({...INVOICE_PAYMENT_PROPS, currency: 'JPY'}));
+    it.each(['JPY', undefined, ''])('excludes bank payment and add-bank-account for currency %s while retaining pay-elsewhere', (currency) => {
+        // Given an invoice without a supported reimbursement currency, bank payment must be unavailable.
+        // When payment options are built, the real shared currency helper determines eligibility.
+        const {result} = renderHook(() => useBulkPayOptions({...INVOICE_PAYMENT_PROPS, currency}));
         const options = result.current.bulkPayButtonOptions;
 
+        // Then only pay-elsewhere remains available for the invoice.
         if (!options) {
             throw new Error('Expected unsupported-currency invoice payment options');
         }
