@@ -3633,8 +3633,8 @@ const ROUTES = {
         getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/work-arrangement` as const,
     },
     WORKSPACE_INVITE_WORK_ARRANGEMENT: {
-        route: 'workspaces/:policyID/invite-message/work-arrangement',
-        getRoute: (policyID: string) => `workspaces/${policyID}/invite-message/work-arrangement` as const,
+        route: 'workspaces/:policyID/members/invite/invite-message/work-arrangement',
+        getRoute: (policyID: string) => `workspaces/${policyID}/members/invite/invite-message/work-arrangement` as const,
     },
     WORKSPACE_CUSTOM_FIELDS: {
         route: 'workspaces/:policyID/members/:accountID/:customFieldType',

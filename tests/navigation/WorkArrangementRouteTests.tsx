@@ -118,14 +118,23 @@ describe('Work arrangement route', () => {
         const settingsState = getStateFromPath(path)
             .routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)
             ?.state?.routes.find((route) => route.name === SCREENS.RIGHT_MODAL.SETTINGS)?.state;
+        const confirmationState = getStateFromPath(`workspaces/${policyID}/members/invite/invite-message`).routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.state;
+        const confirmationSettingsState = confirmationState?.routes.find((route) => route.name === SCREENS.RIGHT_MODAL.SETTINGS)?.state;
 
         // Then it resolves to the invite editor and can return to the invite confirmation route
-        expect(ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.route).toBe('workspaces/:policyID/invite-message/work-arrangement');
+        expect(path).toBe(`workspaces/${policyID}/members/invite/invite-message/work-arrangement`);
+        expect(ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.route).toBe('workspaces/:policyID/members/invite/invite-message/work-arrangement');
         expect(findInviteScreenPath(config?.screens)).toBe(ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.route);
         expect(WORKSPACE_TO_RHP[SCREENS.WORKSPACE.MEMBERS]).toContain(SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT);
         expect(settingsState?.routes.at(-1)).toEqual(
             expect.objectContaining({
                 name: SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT,
+                params: {policyID},
+            }),
+        );
+        expect(confirmationSettingsState?.routes.at(-1)).toEqual(
+            expect.objectContaining({
+                name: SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE,
                 params: {policyID},
             }),
         );
