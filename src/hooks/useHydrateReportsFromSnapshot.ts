@@ -1,5 +1,3 @@
-import type {SelectedReports} from '@components/Search/types';
-
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, SearchResults, Transaction} from '@src/types/onyx';
 
@@ -54,7 +52,7 @@ function useHydrateReportsFromSnapshot(
             }
 
             const value = snapshotData[key];
-            if (value && (!selectedReportIDs || selectedReportIDSet.has(value.reportID))) {
+            if (value && (!selectedReportIDs || (value.reportID && selectedReportIDSet.has(value.reportID)))) {
                 onyxUpdates.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key,
