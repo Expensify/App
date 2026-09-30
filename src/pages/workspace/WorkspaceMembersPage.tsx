@@ -55,6 +55,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady} from '@libs/OptionsListUtils';
 import {getPersonalDetailsByID, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
+    arePaymentsEnabled,
     canEditWorkspaceSettings as canEditWorkspaceSettingsUtil,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
@@ -62,7 +63,6 @@ import {
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
     getReimburserEmail,
-    getReimbursementChoice,
     isControlPolicy,
     isDeletedPolicyEmployee,
     isExpensifyTeam,
@@ -377,7 +377,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const hasAnyCustomField2 = useMemo(() => filteredMembers.some(({policyEmployee}) => !!policyEmployee.employeePayrollID), [filteredMembers]);
     const shouldShowCustomField1Column = isControlPolicyWithWideLayout && hasAnyCustomField1;
     const shouldShowCustomField2Column = isControlPolicyWithWideLayout && hasAnyCustomField2;
-    const shouldShowBankAccountColumn = !shouldUseNarrowLayout && isPolicyAdmin(policy) && getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+    const shouldShowBankAccountColumn = !shouldUseNarrowLayout && isPolicyAdmin(policy) && (arePaymentsEnabled(policy) || !!policy?.isCollectDepositAccountsEnabled);
 
     // Submit workspaces have a flat role model where every member, including the owner, is an Editor.
     const isSubmitWorkspace = isSubmitPolicy(policy);

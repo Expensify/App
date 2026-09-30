@@ -40,11 +40,11 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
+    arePaymentsEnabled,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
     canMemberWrite,
     getReimburserEmail,
-    getReimbursementChoice,
     isControlPolicy,
     isPolicyAdmin,
     isPolicyApprover,
@@ -183,7 +183,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         ? Object.values(workspaceCards).filter((card) => card.accountID === accountID && card.nameValuePairs?.feedCountry !== CONST.TRAVEL.PROGRAM_TRAVEL_US)
         : [];
 
-    const memberBankAccount = isPolicyAdmin(policy) && getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? member?.bankAccount : undefined;
+    const memberBankAccount = isPolicyAdmin(policy) && (arePaymentsEnabled(policy) || !!policy?.isCollectDepositAccountsEnabled) ? member?.bankAccount : undefined;
     const memberBankIcon = getBankIcon({bankName: memberBankAccount?.bankName, styles});
 
     const isApprover = isPolicyApprover(policy, memberLogin) || isApproverOfOutstandingPolicyReports(accountID, outstandingReportsForPolicy, privateIsArchivedMap);
