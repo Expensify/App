@@ -169,11 +169,9 @@ describe('ExpenseFieldDropdown', () => {
     });
 
     it('never asks for more height than the row leaves it', () => {
-        // Given a viewport short enough that the row has little room either side of it, as a row low down in an
-        // RHP does
-        mockWindowHeight = 300;
-        const rowTop = 120;
-        mockRowAt(rowTop);
+        // Given a viewport short enough that the row has a usable but limited gap under it
+        mockWindowHeight = 500;
+        mockRowAt(120);
         renderField();
 
         // When the row is pressed
@@ -184,6 +182,22 @@ describe('ExpenseFieldDropdown', () => {
         const openedBelow = renderedProps?.shouldMeasureAnchorPositionFromTop ?? true;
         const spaceUsed = openedBelow ? mockWindowHeight - (renderedProps?.anchorPosition.vertical ?? 0) : (renderedProps?.anchorPosition.vertical ?? 0);
         expect(renderedProps?.popoverHeight).toBeLessThanOrEqual(spaceUsed);
+    });
+
+    it('falls back to the full page when neither side has room for a list', () => {
+        // Given a viewport too short for a usable list on either side of the row
+        const onPress = jest.fn();
+        mockWindowHeight = 300;
+        mockRowAt(120);
+        renderField(true, onPress);
+
+        // When the row is pressed
+        act(() => pressRow());
+
+        // Then it opens the page rather than a container too short to hold anything. A container with no height
+        // to hold it to sizes itself to its content, and is then dragged back over the row to fit the window.
+        expect(onPress).toHaveBeenCalledTimes(1);
+        expect(renderCount).toBe(0);
     });
 
     it('closes the list when the row is pressed again', () => {

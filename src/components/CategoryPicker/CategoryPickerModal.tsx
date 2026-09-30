@@ -60,6 +60,13 @@ type CategoryPickerModalProps = {
      * short list floating in an empty box that runs past the panel the row was opened from.
      */
     shouldFitContentHeight?: boolean;
+
+    /**
+     * Whether the pop-over may move itself to the other side of the anchor when it overflows. It shifts by a whole
+     * pop-over height when it does, so a caller that has already picked the side off its own measurements turns
+     * this off rather than have both decisions fight and land the list on top of its anchor.
+     */
+    shouldSwitchPositionIfOverflow?: boolean;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
 
 function CategoryPickerModal({
@@ -74,6 +81,7 @@ function CategoryPickerModal({
     popoverWidth = CONST.POPOVER_DROPDOWN_WIDTH,
     popoverHeight = CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
     shouldFitContentHeight = false,
+    shouldSwitchPositionIfOverflow = true,
 }: CategoryPickerModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -116,7 +124,7 @@ function CategoryPickerModal({
             // A bottom sheet spans the screen, so only the pop-over is held to the width it was given.
             innerContainerStyle={isSmallScreenWidth ? undefined : StyleUtils.getWidthStyle(popoverDimensions.width)}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
-            shouldSwitchPositionIfOverflow
+            shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
             shouldEnableNewFocusManagement
             shouldMeasureAnchorPositionFromTop={shouldMeasureAnchorPositionFromTop}
             shouldSkipRemeasurement

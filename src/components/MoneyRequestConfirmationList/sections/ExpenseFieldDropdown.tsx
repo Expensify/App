@@ -36,6 +36,17 @@ const CONTENT_VERTICAL_PADDING = 32;
  */
 const MAX_CONTAINER_HEIGHT = MAX_VISIBLE_OPTIONS * variables.optionRowHeight + SEARCH_INPUT_HEIGHT + CONTENT_VERTICAL_PADDING;
 
+/** The container's own border, which sits outside the height it is given */
+const CONTAINER_BORDER = 2;
+
+/**
+ * Least room a side needs before the container will open into it: one option, plus the search input and padding
+ * around it. With less than this the row falls back to its full-page selector, rather than opening a container
+ * too short to hold anything — which, having no height to hold it to, would size itself to its content and be
+ * dragged back over the row to fit the window.
+ */
+const MIN_USABLE_HEIGHT = variables.optionRowHeight + SEARCH_INPUT_HEIGHT + CONTENT_VERTICAL_PADDING;
+
 const ANCHOR_ALIGNMENT_BELOW: AnchorAlignment = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -70,6 +81,13 @@ type ExpenseFieldDropdownRenderProps = {
 
     /** False once the container opens above the row, where it is positioned from its bottom edge instead */
     shouldMeasureAnchorPositionFromTop: boolean;
+
+    /**
+     * Always false: the side is already chosen here, off the row's own measurements. Left to its own devices the
+     * pop-over shifts itself by a whole pop-over height when it thinks it overflows, which lands the list on top
+     * of the row it belongs to.
+     */
+    shouldSwitchPositionIfOverflow: false;
 
     /** Width of the row, which the container matches on a wide layout */
     popoverWidth: number;
@@ -140,7 +158,14 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, ..
             // once it can't does the side with more room win, so a row low down in a panel opens upwards into
             // the space it has rather than downwards into a sliver.
             const shouldOpenAbove = spaceBelow < MAX_CONTAINER_HEIGHT && spaceAbove > spaceBelow;
-            const availableHeight = shouldOpenAbove ? spaceAbove : spaceBelow;
+            const availableHeight = (shouldOpenAbove ? spaceAbove : spaceBelow) - CONTAINER_BORDER;
+
+            // Neither side can hold a list worth opening, so the field answers on its own page instead.
+            if (availableHeight < MIN_USABLE_HEIGHT) {
+                onPress();
+                return;
+            }
+
             setLayout({
                 horizontal: x,
                 vertical: shouldOpenAbove ? y - CONTAINER_GAP : y + height + CONTAINER_GAP,
@@ -185,6 +210,7 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, ..
                     anchorPosition: {horizontal: layout.horizontal, vertical: layout.vertical},
                     anchorAlignment: layout.shouldOpenAbove ? ANCHOR_ALIGNMENT_ABOVE : ANCHOR_ALIGNMENT_BELOW,
                     shouldMeasureAnchorPositionFromTop: !layout.shouldOpenAbove,
+                    shouldSwitchPositionIfOverflow: false,
                     popoverWidth: isSmallScreenWidth ? CONST.POPOVER_DROPDOWN_WIDTH : layout.width,
                     popoverHeight: isSmallScreenWidth ? CONST.POPOVER_DROPDOWN_MAX_HEIGHT : layout.height,
                 })}
