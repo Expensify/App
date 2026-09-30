@@ -16,11 +16,6 @@ import {View} from 'react-native';
 
 import CategoryPicker from '.';
 
-const popoverDimensions = {
-    width: CONST.POPOVER_DROPDOWN_WIDTH,
-    height: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
-};
-
 const DEFAULT_ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -36,6 +31,12 @@ type CategoryPickerModalProps = {
 
     /** Called when the user confirms a category selection */
     onSelected?: (item: ListItem) => void;
+
+    /** Width of the pop-over. Defaults to the standard dropdown width; a field row passes its own width instead */
+    popoverWidth?: number;
+
+    /** Height of the pop-over. Defaults to the standard dropdown height; a caller short on room passes a smaller one */
+    popoverHeight?: number;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
 
 function CategoryPickerModal({
@@ -47,7 +48,10 @@ function CategoryPickerModal({
     onSelected,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     shouldMeasureAnchorPositionFromTop = false,
+    popoverWidth = CONST.POPOVER_DROPDOWN_WIDTH,
+    popoverHeight = CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
 }: CategoryPickerModalProps) {
+    const popoverDimensions = {width: popoverWidth, height: popoverHeight};
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
@@ -73,7 +77,8 @@ function CategoryPickerModal({
             anchorPosition={anchorPosition}
             popoverDimensions={popoverDimensions}
             anchorAlignment={anchorAlignment}
-            innerContainerStyle={StyleUtils.getWidthStyle(popoverDimensions.width)}
+            // A bottom sheet spans the screen, so only the pop-over is held to the width it was given.
+            innerContainerStyle={isSmallScreenWidth ? undefined : StyleUtils.getWidthStyle(popoverDimensions.width)}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             shouldSwitchPositionIfOverflow
             shouldEnableNewFocusManagement
