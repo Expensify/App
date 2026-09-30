@@ -11,6 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 
+import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -179,21 +180,23 @@ describe('IOURequestStartPage manual tab content', () => {
         render(
             <OnyxListItemProvider>
                 <LocaleContextProvider>
-                    <NavigationContainer>
-                        <IOURequestStartPage
-                            route={{
-                                key: 'Money_Request_Create-1',
-                                name: SCREENS.MONEY_REQUEST.CREATE,
-                                // @ts-expect-error the create route types `backTo` and `action` as never, so its params can't be built here.
-                                params: {iouType, reportID: REPORT_ID, transactionID: TRANSACTION_ID},
-                            }}
-                            report={undefined}
-                            reportDraft={undefined}
-                            // @ts-expect-error the page under test doesn't call into navigation.
-                            navigation={undefined}
-                            defaultSelectedTab={CONST.TAB_REQUEST.MANUAL}
-                        />
-                    </NavigationContainer>
+                    <PortalProvider>
+                        <NavigationContainer>
+                            <IOURequestStartPage
+                                route={{
+                                    key: 'Money_Request_Create-1',
+                                    name: SCREENS.MONEY_REQUEST.CREATE,
+                                    // @ts-expect-error the create route types `backTo` and `action` as never, so its params can't be built here.
+                                    params: {iouType, reportID: REPORT_ID, transactionID: TRANSACTION_ID},
+                                }}
+                                report={undefined}
+                                reportDraft={undefined}
+                                // @ts-expect-error the page under test doesn't call into navigation.
+                                navigation={undefined}
+                                defaultSelectedTab={CONST.TAB_REQUEST.MANUAL}
+                            />
+                        </NavigationContainer>
+                    </PortalProvider>
                 </LocaleContextProvider>
             </OnyxListItemProvider>,
         );
