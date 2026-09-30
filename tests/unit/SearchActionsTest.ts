@@ -27,7 +27,6 @@ import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxKey} from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ExportTemplate, Policy, Report, SearchTagFilterItem} from '@src/types/onyx';
 import type {ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx/DerivedValues';
@@ -785,7 +784,7 @@ describe('getPayOption', () => {
             const policyIDs = 'policy-1';
             const tags: SearchTagFilterItem[] = [{tagName: 'Marketing', tagListName: 'Department'}];
             mockMakeRequestWithSideEffects.mockResolvedValueOnce(
-                createMock<Response<OnyxKey> & OpenSearchTagFiltersPageResponse>({
+                createMock<Response<never> & OpenSearchTagFiltersPageResponse>({
                     hasMore: false,
                     nextCursor: '',
                     tags,
@@ -823,7 +822,7 @@ describe('getPayOption', () => {
             const existingTags: SearchTagFilterItem[] = [{tagName: 'Tag1', tagListName: 'Department'}];
             const nextTags: SearchTagFilterItem[] = [{tagName: 'Tag2', tagListName: 'Department'}];
             mockMakeRequestWithSideEffects.mockResolvedValueOnce(
-                createMock<Response<OnyxKey> & OpenSearchTagFiltersPageResponse>({
+                createMock<Response<never> & OpenSearchTagFiltersPageResponse>({
                     hasMore: false,
                     nextCursor: '',
                     tags: nextTags,
