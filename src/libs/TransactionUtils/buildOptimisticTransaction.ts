@@ -244,6 +244,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         cardName: existingTransaction?.cardName,
         cardNumber: existingTransaction?.cardNumber,
         ...(existingTransaction?.iouRequestType ? {iouRequestType: existingTransaction.iouRequestType} : {}),
+        wasAutoCategorizeEnabledOnCreation: policy?.autoCategorizeNewExpenses !== false,
         routes,
     };
 }
