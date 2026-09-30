@@ -139,10 +139,10 @@ function DateSegmentsInput({
                                         onFocus?.(event);
                                     }}
                                     onBlur={handleSegmentBlur}
-                                    onPressOut={(event) => {
-                                        segmentProps.onPressOut();
-                                        onPressOut?.(event);
-                                    }}
+                                    onPressOut={onPressOut}
+                                    // react-native-web gives a text input no press events, so the press that collapses
+                                    // a whole field selection has to be caught as a pointer one
+                                    onPointerDown={segmentProps.onPointerDown}
                                     accessibilityLabel={translate(`common.dateSegments.${part.name}`)}
                                     // The next digit replaces the whole selected date, so a caret would mislead
                                     caretHidden={isAllSelected}

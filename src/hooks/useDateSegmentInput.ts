@@ -4,6 +4,7 @@
  */
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 
+import Clipboard from '@libs/Clipboard';
 import {
     clearSegmentsUpTo,
     DATE_SEGMENT_NAMES,
@@ -33,6 +34,7 @@ const LAST_SEGMENT_NAME = DATE_SEGMENT_NAMES[DATE_SEGMENT_NAMES.length - 1];
 
 const DELETE_KEY = 'Delete';
 const SELECT_ALL_KEY = 'a';
+const COPY_KEY = 'c';
 const MOVE_KEYS = {
     [CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey]: -1,
     [CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey]: 1,
@@ -66,7 +68,7 @@ type DateSegmentProps = {
     onFocus: () => void;
 
     /** Puts the caret back where the user pressed, which is what collapses a whole field selection */
-    onPressOut: () => void;
+    onPointerDown: () => void;
 };
 
 type UseDateSegmentInputResult = {
@@ -197,6 +199,17 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
                 setIsAllSelected(false);
                 applySegments(isAllSelected ? EMPTY_SEGMENTS : clearSegmentsUpTo(segments, name));
                 enterSegment(FIRST_SEGMENT_NAME);
+                return;
+            }
+
+            // Selecting the whole date selects nothing in the document, so the browser has nothing of its own to copy
+            if (key.toLowerCase() === COPY_KEY && isAllSelected) {
+                const isoDate = getISODateFromSegments(segments);
+
+                if (isoDate) {
+                    event.preventDefault();
+                    Clipboard.setString(isoDate);
+                }
                 return;
             }
 
@@ -344,7 +357,7 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
             isAllSelected: false,
             isEditing: false,
             hasInvalidEntry: false,
-            getSegmentProps: () => ({value: '', onKeyPress: () => {}, onChangeText: () => {}, onFocus: () => {}, onPressOut: () => {}}),
+            getSegmentProps: () => ({value: '', onKeyPress: () => {}, onChangeText: () => {}, onFocus: () => {}, onPointerDown: () => {}}),
             onFieldBlur: () => {},
             onClear: () => {},
         };
@@ -355,6 +368,7 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
     const displayedSegments = shouldShowSegments ? segments : getSegmentsFromISODate(value);
 
     const focusFirstUnfilledSegment = () => {
+        setIsAllSelected(false);
         focusSegment(getFirstUnfilledSegmentName(displayedSegments) ?? LAST_SEGMENT_NAME);
     };
 
@@ -373,7 +387,7 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
             onKeyPress: (event: TextInputKeyPressEvent) => handleKeyPress(name, event),
             onChangeText: (text: string) => handleChangeText(name, text),
             onFocus: handleSegmentFocus,
-            onPressOut: () => setIsAllSelected(false),
+            onPointerDown: () => setIsAllSelected(false),
         }),
         onFieldBlur: handleFieldBlur,
         onClear: handleClear,
