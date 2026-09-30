@@ -18,6 +18,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 jest.mock('@sentry/react-native', () => ({
     setTag: jest.fn(),
     setContext: jest.fn(),
+    setUser: jest.fn(),
 }));
 
 jest.mock('@libs/PolicyUtils', () => ({
