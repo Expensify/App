@@ -2266,6 +2266,11 @@ function setSearchContext(shouldShowSearchQuery: boolean) {
     Onyx.set(ONYXKEYS.SEARCH_CONTEXT, {shouldShowSearchQuery});
 }
 
+/** Stores the reports selected for the Search Merge Reports flow so the selection survives app refreshes. */
+function setSearchMergeReportIDs(reportIDs: string[] | null) {
+    return Onyx.set(ONYXKEYS.SEARCH_MERGE_REPORT_IDS, reportIDs);
+}
+
 /**
  * For Expense reports, user can choose both expense and transaction, in this case we need to check for both selected reports and transactions
  * This function checks if all remaining selected transactions (not included in selectedReports) are eligible for bulk pay
@@ -2588,6 +2593,7 @@ export {
     queueBulkPayReports,
     updateAdvancedFilters,
     setSearchContext,
+    setSearchMergeReportIDs,
     deleteSavedSearch,
     getSearchPayOnyxData,
     getChatReportWithFallback,

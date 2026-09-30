@@ -20,6 +20,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {mergeReports} from '@libs/actions/Report';
+import {setSearchMergeReportIDs} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {canMergeReports, getMoneyRequestSpendBreakdown, getPersonalDetailsForAccountID} from '@libs/ReportUtils';
@@ -36,13 +37,13 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import React, {useMemo, useState} from 'react';
 
 function SearchMergeReports() {
-    const {selectedReports} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
-    const {currentSearchHash, currentSearchQueryJSON} = useSearchQueryContext();
+    const {currentSearchHash} = useSearchQueryContext();
 
+    const [selectedReportIDs, selectedReportIDsMeta] = useOnyx(ONYXKEYS.SEARCH_MERGE_REPORT_IDS);
     const [allReports, allReportsMeta] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const isLoadingAllReports = isLoadingOnyxValue(allReportsMeta);
+    const isLoadingOnyxData = isLoadingOnyxValue(allReportsMeta, selectedReportIDsMeta);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
@@ -71,10 +72,10 @@ function SearchMergeReports() {
 
     const [destinationReportID, setDestinationReportID] = useState<string | undefined>();
 
-    useHydrateReportsFromSnapshot(currentSearchResults, allReports, allTransactions, selectedReports);
+    useHydrateReportsFromSnapshot(currentSearchResults, allReports, allTransactions, selectedReportIDs ?? []);
 
     const allReportsTransactions: Record<string, Transaction[]> = useMemo(() => {
-        const selectedReportIDSet = new Set(selectedReports.map((report) => report.reportID));
+        const selectedReportIDSet = new Set(selectedReportIDs);
         const addedTransactionIDSet = new Set<string>();
 
         const isTransaction = (key: string, value: unknown): value is Transaction =>
@@ -110,19 +111,24 @@ function SearchMergeReports() {
             result[transaction.reportID].push(transaction);
         }
         return result;
-    }, [currentSearchResults?.data, selectedReports, allTransactions]);
+    }, [currentSearchResults?.data, selectedReportIDs, allTransactions]);
 
     const reportItems = useMemo(() => {
-        if (!selectedReports || currentSearchQueryJSON?.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        if (!selectedReportIDs) {
             return [];
         }
-        return selectedReports
-            .map(({reportID}) => {
-                const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        return selectedReportIDs
+            .map((reportID) => {
+                const key = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+                const report = allReports?.[key];
                 if (!reportID || !report?.reportID || report?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                     return undefined;
                 }
-                const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+
+                // Since the Merge Reports flow is always opened from the Search screen,
+                // we prioritize the totals from snapshot data for display.
+                const snapshotReport = currentSearchResults?.data[key];
+                const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(snapshotReport ?? report);
                 return {
                     ...report,
                     groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
@@ -140,7 +146,7 @@ function SearchMergeReports() {
                 };
             })
             .filter((item) => !!item);
-    }, [selectedReports, allReports, destinationReportID, personalDetails, currentSearchQueryJSON?.type]);
+    }, [selectedReportIDs, allReports, destinationReportID, personalDetails, currentSearchResults?.data]);
 
     const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
     const sourceReportIDs = destinationReport
@@ -194,6 +200,7 @@ function SearchMergeReports() {
             getCurrencySymbol,
         });
 
+        setSearchMergeReportIDs([]);
         Navigation.dismissModal({
             afterTransition: () => {
                 clearSelectedTransactions(undefined, true);
@@ -211,12 +218,12 @@ function SearchMergeReports() {
         setDestinationReportID(item.reportID);
     };
 
-    // Loading while `allReports` is being hydrated.
+    // Loading while `selectedReportIDs` and `allReports` are being hydrated.
     // Or while reports are being hydrated from snapshot data.
     const isLoading =
-        isLoadingAllReports ||
+        isLoadingOnyxData ||
         (reportItems.length === 0 &&
-            selectedReports.some(({reportID}) => {
+            selectedReportIDs?.some((reportID) => {
                 const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
                 return !allReports?.[reportKey] && !!currentSearchResults?.data[reportKey];
             }));

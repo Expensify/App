@@ -14,16 +14,16 @@ function useHydrateReportsFromSnapshot(
     allReports: OnyxCollection<Report> | undefined,
     /** When this parameter is provided, transactions will be hydrated as well. */
     allTransactions?: OnyxCollection<Transaction>,
-    /** Only merge reports or transactions included in `selectedReports` when this parameter is provided. */
-    selectedReports?: SelectedReports[],
+    /** Only merge reports or transactions included in `selectedReportIDs` when this parameter is provided. */
+    selectedReportIDs?: string[],
 ) {
     const hasHydratedFromAllReports = useRef(false);
     const hasHydratedFromAllTransactions = useRef(false);
 
     useEffect(() => {
         const snapshotData = currentSearchResults?.data;
-        // Guard with `hasHydratedFromAllTransactions` to prevent hydration from re-running when `allTransactions` changes
-        if (!snapshotData || hasHydratedFromAllTransactions.current) {
+        // When selection IDs are provided, wait until they are available before hydrating so we don't hydrate the entire snapshot.
+        if ((selectedReportIDs && selectedReportIDs.length === 0) || !snapshotData || hasHydratedFromAllTransactions.current) {
             return;
         }
 
@@ -40,7 +40,7 @@ function useHydrateReportsFromSnapshot(
               }
         > = [];
 
-        const selectedReportIDSet = new Set(selectedReports?.map(({reportID}) => reportID).filter((id) => id) ?? []);
+        const selectedReportIDSet = new Set(selectedReportIDs);
         const isReportKey = (key: string): key is `${typeof ONYXKEYS.COLLECTION.REPORT}${string}` =>
             key.startsWith(ONYXKEYS.COLLECTION.REPORT) && !key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS) && !key.startsWith(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
         const isTransactionKey = (key: string): key is `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}` => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -54,7 +54,7 @@ function useHydrateReportsFromSnapshot(
             }
 
             const value = snapshotData[key];
-            if (value && (!selectedReports || selectedReportIDSet.has(value.reportID))) {
+            if (value && (!selectedReportIDs || selectedReportIDSet.has(value.reportID))) {
                 onyxUpdates.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key,
@@ -72,10 +72,10 @@ function useHydrateReportsFromSnapshot(
             hasHydratedFromAllTransactions.current = true;
         }
         // Hydration should only run once on mount using the initial snapshot data
-        // Include `allTransactions` as a dependency so hydration can occur once it has a value.
+        // Include `allTransactions` and `selectedReportIDs` as dependencies so hydration can occur once their values are available.
         // `hasHydratedFromAllTransactions` acts as a guard to ensure hydration only happens once.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [allTransactions]);
+    }, [allTransactions, selectedReportIDs]);
 }
 
 export default useHydrateReportsFromSnapshot;
