@@ -196,11 +196,15 @@ function BaseTextInput({
         }
     };
 
-    const onContentSizeChange = (event: TextInputContentSizeChangeEvent) => {
-        inputProps.onContentSizeChange?.(event);
+    const onContentSizeChangeProp = inputProps.onContentSizeChange;
+    const onContentSizeChange = useCallback(
+        (event: TextInputContentSizeChangeEvent) => {
+            onContentSizeChangeProp?.(event);
 
-        setInputContentHeight(event.nativeEvent.contentSize.height);
-    };
+            setInputContentHeight(event.nativeEvent.contentSize.height);
+        },
+        [onContentSizeChangeProp],
+    );
 
     const onLayout = useCallback(
         (event: LayoutChangeEvent) => {
@@ -281,10 +285,9 @@ function BaseTextInput({
 
     const shouldUseAutoGrowHeight = autoGrowHeight && !isAutoGrowHeightMarkdown;
 
-    // The hidden element in TextInputMeasurement and the real input are laid out by two different native text engines,
-    // so they don't always agree on where the value wraps, which leaves the container a line short of the visible input.
-    // The input's own content size is the height it actually needs, so prefer it once it has reported one.
-    const autoGrowContentHeight = shouldUseAutoGrowHeight && inputContentHeight > 0 ? inputContentHeight + variables.inputPaddingTop + variables.inputPaddingBottom : textInputHeight;
+    // Prefer the input's own content height, because the hidden measurement can wrap text differently.
+    // The multiline input has no vertical padding, so add back the padding the measurement includes.
+    const autoGrowContentHeight = shouldUseAutoGrowHeight && inputContentHeight > 0 ? inputContentHeight + StyleUtils.getVerticalPaddingFromStyle(inputStyle) : textInputHeight;
 
     const shouldAddPaddingBottom = isMultiline || (shouldUseAutoGrowHeight && autoGrowContentHeight > variables.componentSizeLarge);
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;

@@ -869,6 +869,18 @@ function getVerticalPaddingDiffFromStyle(textInputContainerStyles: ViewStyle): n
 }
 
 /**
+ * Get the sum of the top and bottom padding from provided styles
+ */
+function getVerticalPaddingFromStyle(style: StyleProp<TextStyle>): number {
+    const flatStyle = StyleSheet.flatten(style);
+    const getNumericPadding = (paddingValue: string | number | Animated.AnimatedNode | null | undefined): number => (typeof paddingValue === 'number' ? paddingValue : 0);
+
+    const paddingTop = getNumericPadding(flatStyle?.paddingTop ?? flatStyle?.paddingVertical ?? flatStyle?.padding);
+    const paddingBottom = getNumericPadding(flatStyle?.paddingBottom ?? flatStyle?.paddingVertical ?? flatStyle?.padding);
+    return paddingTop + paddingBottom;
+}
+
+/**
  * Get the vertical space the auto grow height input's ancestors take up inside the input container (borders, padding and the multiline label padding)
  */
 function getAutoGrowHeightInputVerticalInset(textInputContainerStyles: StyleProp<ViewStyle>, hasMultilineLabelPadding: boolean): number {
@@ -1480,6 +1492,7 @@ const staticStyleUtils = {
     getPaddingRight,
     getPaddingBottom,
     getVerticalPaddingDiffFromStyle,
+    getVerticalPaddingFromStyle,
     getAutoGrowHeightInputVerticalInset,
     hasSafeAreas,
     getHeight,
@@ -1602,8 +1615,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             };
         }
 
-        // On native the input has to stay free to size itself to its content, because Android only reports
-        // `onContentSizeChange` when the underlying EditText is laid out again, which never happens while its height is pinned.
+        // On native, cap the input instead of pinning it so it sizes to its content.
         if (shouldSizeToContent) {
             return {
                 ...styles.pr0,
