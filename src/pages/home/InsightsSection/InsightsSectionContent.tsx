@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setNameValuePair} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
+import {INSIGHTS_CHART_STATE} from '@libs/resolveInsightsChartData';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 
 import CONST from '@src/CONST';
@@ -25,7 +26,7 @@ import {View} from 'react-native';
 
 import InsightTitleDropdown from './InsightTitleDropdown';
 import useHomeInsightConfigs from './useHomeInsightConfigs';
-import useInsightData, {INSIGHT_STATE} from './useInsightData';
+import useInsightData from './useInsightData';
 
 function InsightsSectionContent() {
     const styles = useThemeStyles();
@@ -40,7 +41,7 @@ function InsightsSectionContent() {
 
     // The persisted key can name an insight the user is no longer eligible for, so fall back to the first option.
     const config = insightConfigs.find((insightConfig) => insightConfig.key === selectedKey) ?? insightConfigs.at(0);
-    const {queryJSON, groupBy, view, sortedData, state, retry} = useInsightData(config, isConfigResolved && selectedKeyMetadata.status === 'loaded');
+    const {queryJSON, groupBy, view, data, state, retry} = useInsightData(config, isConfigResolved && selectedKeyMetadata.status === 'loaded');
 
     const onSelectInsight = (key: SearchKey) => {
         if (key === config?.key) {
@@ -63,7 +64,7 @@ function InsightsSectionContent() {
                 />
             }
             titleRightContent={
-                state === INSIGHT_STATE.READY || state === INSIGHT_STATE.EMPTY || state === INSIGHT_STATE.ERROR ? (
+                state === INSIGHTS_CHART_STATE.READY || state === INSIGHTS_CHART_STATE.EMPTY || state === INSIGHTS_CHART_STATE.ERROR ? (
                     <WidgetHeaderMenu
                         testID="insightsOverflowMenu"
                         sentryLabel="InsightsOverflowMenu"
@@ -84,17 +85,17 @@ function InsightsSectionContent() {
                 ) : null
             }
         >
-            {state === INSIGHT_STATE.OFFLINE && <ChartOfflineState />}
-            {state === INSIGHT_STATE.EMPTY && <ChartEmptyState testID="insightsSectionEmptyState" />}
-            {state === INSIGHT_STATE.ERROR && <ChartErrorState onRetry={retry} />}
-            {(state === INSIGHT_STATE.LOADING || state === INSIGHT_STATE.READY) && (
+            {state === INSIGHTS_CHART_STATE.OFFLINE && <ChartOfflineState />}
+            {state === INSIGHTS_CHART_STATE.EMPTY && <ChartEmptyState testID="insightsSectionEmptyState" />}
+            {state === INSIGHTS_CHART_STATE.ERROR && <ChartErrorState onRetry={retry} />}
+            {(state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) && (
                 <View style={[shouldUseNarrowLayout ? styles.ph5 : [styles.ph8, styles.pt3], view === CONST.SEARCH.VIEW.PIE && styles.pb6]}>
                     <SearchChartView
                         queryJSON={queryJSON}
                         view={view}
                         groupBy={groupBy}
-                        data={sortedData ?? []}
-                        isLoading={state === INSIGHT_STATE.LOADING}
+                        data={data}
+                        isLoading={state === INSIGHTS_CHART_STATE.LOADING}
                         color={config.color}
                     />
                 </View>

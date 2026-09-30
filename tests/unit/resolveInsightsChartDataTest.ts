@@ -1,9 +1,8 @@
 import type {GroupedItem} from '@components/Search/types';
 
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {INSIGHTS_CHART_STATE, resolveInsightsChartData} from '@libs/resolveInsightsChartData';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-
-import {INSIGHTS_CHART_STATE, resolveInsightsChartData} from '@pages/Insights/resolveChartData';
 
 import CONST from '@src/CONST';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -109,6 +108,17 @@ describe('resolveInsightsChartData', () => {
 
         // Then the chart shows the failure
         expect(state).toBe(INSIGHTS_CHART_STATE.ERROR);
+    });
+
+    it('says it is offline instead of offering a retry that cannot be sent', () => {
+        // Given a snapshot still carrying errors from an earlier failure, while the device is offline
+        const snapshot = makeSnapshot({errors: ERRORS});
+
+        // When the chart is resolved
+        const {state} = resolveInsightsChartData({snapshot, queryJSON: QUERY_JSON, sortedData: undefined, isOffline: true});
+
+        // Then the chart waits for the connection, rather than calling itself empty or showing a retry that does nothing offline
+        expect(state).toBe(INSIGHTS_CHART_STATE.OFFLINE);
     });
 
     it('says it is offline when nothing is stored for it and no data can arrive', () => {

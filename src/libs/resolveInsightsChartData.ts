@@ -1,11 +1,11 @@
 import type {GroupedItem, SearchQueryJSON} from '@components/Search/types';
 
-import {isSearchDataLoaded} from '@libs/SearchUIUtils';
-
 import type SearchResults from '@src/types/onyx/SearchResults';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+
+import {isSearchDataLoaded} from './SearchUIUtils';
 
 const INSIGHTS_CHART_STATE = {
     LOADING: 'loading',
@@ -40,14 +40,15 @@ type InsightsChartData = {
 
 /** Resolves one chart's rows and state from its snapshot, whether GetInsights or Search loaded it. */
 function resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline = false}: ResolveInsightsChartDataParams): InsightsChartData {
-    if (Object.keys(snapshot?.errors ?? {}).length > 0) {
-        return {data: [], state: INSIGHTS_CHART_STATE.ERROR};
+    const isLoaded = isSearchDataLoaded(snapshot, queryJSON);
+    const hasErrors = Object.keys(snapshot?.errors ?? {}).length > 0;
+
+    if (isOffline && (!isLoaded || hasErrors)) {
+        return {data: [], state: INSIGHTS_CHART_STATE.OFFLINE};
     }
 
-    const isLoaded = isSearchDataLoaded(snapshot, queryJSON);
-
-    if (!isLoaded && isOffline) {
-        return {data: [], state: INSIGHTS_CHART_STATE.OFFLINE};
+    if (hasErrors) {
+        return {data: [], state: INSIGHTS_CHART_STATE.ERROR};
     }
 
     if (!isLoaded) {
