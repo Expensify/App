@@ -34,7 +34,7 @@ function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: b
     });
     const hasLoadedChart = chartStates.some(({isLoaded}) => isLoaded);
 
-    if (isOffline && !hasLoadedChart) {
+    if (isOffline && !hasLoadedChart && dashboard?.hasResults !== false) {
         return INSIGHTS_DASHBOARD_STATE.OFFLINE;
     }
     if (!isOffline && Object.keys(dashboard?.errors ?? {}).length > 0) {

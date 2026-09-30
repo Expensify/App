@@ -146,6 +146,15 @@ describe('getDashboardState', () => {
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.NO_EXPENSES);
     });
 
+    it('says the account has no expenses offline after its snapshots were evicted', () => {
+        // Given a stored response saying the account has no expenses, snapshots Onyx has since evicted, and no connection
+        // When the page's state is resolved
+        const state = getDashboardState({inputQuery: QUERY, hasResults: false}, true, makeCharts(undefined, undefined));
+
+        // Then the page keeps the stored answer instead of saying it is offline, since no refresh is needed to know it
+        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.NO_EXPENSES);
+    });
+
     it('prefers the no-expenses state over the empty one', () => {
         // Given an account with no expenses whose chart snapshots also came back with no rows
         // When the page's state is resolved
