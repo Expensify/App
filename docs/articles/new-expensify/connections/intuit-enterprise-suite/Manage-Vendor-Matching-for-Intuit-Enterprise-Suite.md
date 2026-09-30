@@ -14,7 +14,7 @@ Intuit Enterprise Suite vendor matching lets workspace admins review and update 
 This feature is available to workspace admins whose workspace:
 
  - Is connected to Intuit Enterprise Suite.
- - Has **Export company card expenses as** set **Credit card** in the Intuit Enterprise Suite configuration in Expensify.
+ - Has **Export company card expenses as** set **Credit card** or **Debit card** in the Intuit Enterprise Suite configuration in Expensify.
 
 If your workspace isn't connected to Intuit Enterprise Suite yet, learn how to [connect to Intuit Enterprise Suite](/articles/new-expensify/connections/intuit-enterprise-suite/Connect-to-Intuit-Enterprise-Suite).
 
@@ -52,8 +52,9 @@ Vendors are managed in Intuit Enterprise Suite, so the list is read-only in Expe
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [workspace name]**.
 2. Select **Accounting**.
 3. On the Intuit Enterprise Suite connection, select **Export**.
-4. Select **Default company card vendor**.
-5. Select a vendor from your imported Intuit Enterprise Suite vendor list.
+4. Select **Export company card expenses as**.
+5. Select **Default company card vendor**.
+6. Select a vendor from your imported Intuit Enterprise Suite vendor list.
 
 The default company card vendor is used only when an expense doesn't already have a vendor assigned.
 
