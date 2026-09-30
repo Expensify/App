@@ -19,6 +19,13 @@ const CONTAINER_GAP = 4;
 /** Below this the container is too short to be worth opening downwards, and it opens above the row instead */
 const MIN_CONTAINER_HEIGHT = 180;
 
+/**
+ * Tallest the container may be as a share of the window, matching what every other popover in the app is held
+ * to. The form the row belongs to can sit inside an RHP, and a container measured only against the window would
+ * run past the panel it was opened from.
+ */
+const MAX_CONTAINER_HEIGHT = CONST.POPOVER_DROPDOWN_MAX_HEIGHT;
+
 const ANCHOR_ALIGNMENT_BELOW: AnchorAlignment = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -124,7 +131,10 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, ..
                 horizontal: x,
                 vertical: shouldOpenAbove ? y - CONTAINER_GAP : y + height + CONTAINER_GAP,
                 width,
-                height: Math.min(CONST.POPOVER_DROPDOWN_MAX_HEIGHT, Math.max(availableHeight, MIN_CONTAINER_HEIGHT)),
+                // The space the row leaves is a hard ceiling, never a target: flooring it at a minimum was what
+                // let the container run past the panel it opened from when the row sat close to the edge. It is
+                // the most the container may take, and the list inside it takes only what its content needs.
+                height: Math.min(MAX_CONTAINER_HEIGHT, availableHeight),
                 shouldOpenAbove,
             });
             setHasEverOpened(true);

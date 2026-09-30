@@ -61,6 +61,7 @@ function CategoryFieldDropdown({transactionID, policy, selectedCategory, onClose
         <CategoryPickerModal
             {...popoverProps}
             onClose={onClose}
+            shouldFitContentHeight
             policyID={policy?.id}
             selectedCategory={selectedCategory}
             onSelected={handleSelected}

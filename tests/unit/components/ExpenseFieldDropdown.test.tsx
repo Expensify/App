@@ -17,7 +17,10 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 // The container is a bottom sheet below this width, where none of the row's geometry applies. These tests are
 // about the pop-over, so they pin the layout wide and the viewport to a known height.
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({isSmallScreenWidth: false, shouldUseNarrowLayout: false})));
-jest.mock('@hooks/useWindowDimensions', () => jest.fn(() => ({windowWidth: 1280, windowHeight: 800})));
+// Read lazily so a test can shrink the viewport, which is the only way to leave the row short of room on both
+// sides at once — the case where the container used to ask for more height than it had.
+let mockWindowHeight = 800;
+jest.mock('@hooks/useWindowDimensions', () => jest.fn(() => ({windowWidth: 1280, windowHeight: mockWindowHeight})));
 
 const WINDOW_HEIGHT = 800;
 
@@ -60,6 +63,7 @@ describe('ExpenseFieldDropdown', () => {
     beforeEach(async () => {
         renderedProps = undefined;
         renderCount = 0;
+        mockWindowHeight = WINDOW_HEIGHT;
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -130,6 +134,24 @@ describe('ExpenseFieldDropdown', () => {
         // Then the container is positioned from its bottom edge, just above the row, so it is never clipped
         expect(renderedProps?.shouldMeasureAnchorPositionFromTop).toBe(false);
         expect(renderedProps?.anchorPosition.vertical).toBeLessThan(rowTop);
+    });
+
+    it('never asks for more height than the row leaves it', () => {
+        // Given a viewport short enough that the row has little room either side of it, as a row low down in an
+        // RHP does
+        mockWindowHeight = 300;
+        const rowTop = 120;
+        mockRowAt(rowTop);
+        renderField();
+
+        // When the row is pressed
+        act(() => pressRow());
+
+        // Then the container asks for at most the space that is actually there. Flooring this at a minimum was
+        // what let it run past the panel it was opened from.
+        const openedBelow = renderedProps?.shouldMeasureAnchorPositionFromTop ?? true;
+        const spaceUsed = openedBelow ? mockWindowHeight - (renderedProps?.anchorPosition.vertical ?? 0) : (renderedProps?.anchorPosition.vertical ?? 0);
+        expect(renderedProps?.popoverHeight).toBeLessThanOrEqual(spaceUsed);
     });
 
     it('closes the list when the row is pressed again', () => {
