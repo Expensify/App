@@ -68,6 +68,7 @@ function ReuseRouteListItem<TItem extends ListItem>({item, isFocused, isFocusVis
                             fallbackIcon={icons.Receipt}
                             fallbackIconSize={variables.iconSizeExtraLarge}
                             fallbackIconColor={theme.icon}
+                            resizeMode="contain"
                         />
                     )}
                 </View>

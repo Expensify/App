@@ -113,23 +113,21 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
         <>
             {(numberOfFilledWaypoints >= 2 || shouldShowReuseRoute) && (
                 <View style={[styles.flexRow, styles.justifyContentCenter, styles.pv2, styles.gap2]}>
-                    {numberOfFilledWaypoints >= 2 && (
-                        <PressableWithFeedback
-                            onPress={() => navigateToWaypointEditPage(Object.keys(transaction?.comment?.waypoints ?? {}).length)}
-                            disabled={numberOfWaypoints === MAX_WAYPOINTS}
-                            accessibilityRole={CONST.ROLE.BUTTON}
-                            accessibilityLabel={translate('distance.addStop')}
-                            sentryLabel="DistanceRequestFooter-AddStop"
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ph4, styles.pv2]}
-                        >
-                            <Icon
-                                src={expensifyIcons.Plus}
-                                size={CONST.ICON_SIZE.SMALL}
-                                fill={theme.icon}
-                            />
-                            <Text style={[styles.textLabelSupporting, styles.labelStrong]}>{translate('distance.addStop')}</Text>
-                        </PressableWithFeedback>
-                    )}
+                    <PressableWithFeedback
+                        onPress={() => navigateToWaypointEditPage(Object.keys(transaction?.comment?.waypoints ?? {}).length)}
+                        disabled={numberOfWaypoints === MAX_WAYPOINTS}
+                        accessibilityRole={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('distance.addStop')}
+                        sentryLabel="DistanceRequestFooter-AddStop"
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ph4, styles.pv2]}
+                    >
+                        <Icon
+                            src={expensifyIcons.Plus}
+                            size={CONST.ICON_SIZE.SMALL}
+                            fill={theme.icon}
+                        />
+                        <Text style={[styles.textLabelSupporting, styles.labelStrong]}>{translate('distance.addStop')}</Text>
+                    </PressableWithFeedback>
                     {shouldShowReuseRoute && (
                         <PressableWithFeedback
                             onPress={navigateToReuseRoutePage}
