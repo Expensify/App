@@ -1,3 +1,5 @@
+import ChartWidthBox from '@components/Charts/ChartWidthBox';
+
 import useBarChartOrientation from '@hooks/useBarChartOrientation';
 
 import React from 'react';
@@ -11,10 +13,15 @@ function BarChart(props: BarChartProps) {
     const {isHorizontal} = useBarChartOrientation();
 
     return (
-        <BarChartContent
-            {...props}
-            isHorizontal={isHorizontal}
-        />
+        <ChartWidthBox>
+            {(chartWidth) => (
+                <BarChartContent
+                    {...props}
+                    chartWidth={chartWidth}
+                    isHorizontal={isHorizontal}
+                />
+            )}
+        </ChartWidthBox>
     );
 }
 

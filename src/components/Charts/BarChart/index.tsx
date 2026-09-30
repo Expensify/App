@@ -1,6 +1,10 @@
+import ChartSkeleton from '@components/Charts/ChartSkeleton';
+import ChartWidthBox from '@components/Charts/ChartWidthBox';
 import SkiaWebChart from '@components/Charts/SkiaWebChart';
 
 import useBarChartOrientation from '@hooks/useBarChartOrientation';
+
+import CONST from '@src/CONST';
 
 import React from 'react';
 
@@ -12,10 +16,15 @@ function BarChart(props: BarChartProps) {
     const {isHorizontal} = useBarChartOrientation();
 
     return (
-        <SkiaWebChart
-            getComponent={getBarChartContent}
-            componentProps={{...props, isHorizontal}}
-        />
+        <ChartWidthBox>
+            {(chartWidth) => (
+                <SkiaWebChart
+                    getComponent={getBarChartContent}
+                    componentProps={{...props, chartWidth, isHorizontal}}
+                    loadingFallback={<ChartSkeleton view={CONST.SEARCH.VIEW.BAR} />}
+                />
+            )}
+        </ChartWidthBox>
     );
 }
 

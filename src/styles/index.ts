@@ -6832,11 +6832,6 @@ const staticStyles = (theme: ThemeColors) =>
         chartContent: {
             height: CHART_CONTENT_MIN_HEIGHT,
         },
-        chartActivityIndicator: {
-            height: CHART_CONTENT_MIN_HEIGHT,
-            justifyContent: 'center',
-            alignItems: 'center',
-        },
         pieChartLegendContainer: {
             display: 'flex',
             justifyContent: 'center',

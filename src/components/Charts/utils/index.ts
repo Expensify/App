@@ -440,6 +440,20 @@ function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: nu
 }
 
 /**
+ * Predicts the horizontal plot bounds victory-native will report for a cartesian chart of this width.
+ *
+ * The library sets the x output range to [padding.left + measured y-label width + y labelOffset, width - padding.right]
+ * and takes the plot bounds from the ends of that range. Our y axis carries no font, so the width it measures for its
+ * own labels is zero and only labelOffset applies.
+ */
+function getCartesianPlotBounds(chartWidth: number, chartPaddingLeft: number): {left: number; right: number} {
+    if (chartWidth <= 0) {
+        return {left: 0, right: 0};
+    }
+    return {left: chartPaddingLeft + VictoryTheme.axis.labelGap, right: chartWidth - VictoryTheme.axis.padding.right};
+}
+
+/**
  * Nice-rounded value domain for the horizontal bar chart's x-axis. victory-native only applies .nice() to the
  * y-axis, so we pre-round here (anchored at zero unless negatives) to keep the last tick past the longest bar. Returns undefined
  * for a degenerate domain, letting victory-native pick its own bounds.
@@ -509,6 +523,7 @@ export {
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
     getNiceYAxisTicks,
+    getCartesianPlotBounds,
     getNiceValueDomain,
     getNiceValueTicks,
     getYAxisLabelWidth,

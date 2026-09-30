@@ -1,4 +1,8 @@
+import ChartSkeleton from '@components/Charts/ChartSkeleton';
+import ChartWidthBox from '@components/Charts/ChartWidthBox';
 import SkiaWebChart from '@components/Charts/SkiaWebChart';
+
+import CONST from '@src/CONST';
 
 import React from 'react';
 
@@ -8,10 +12,20 @@ const getPieChartContent = () => import('./PieChartContent');
 
 function PieChart(props: PieChartProps) {
     return (
-        <SkiaWebChart
-            getComponent={getPieChartContent}
-            componentProps={props}
-        />
+        <ChartWidthBox>
+            {(chartWidth) => (
+                <SkiaWebChart
+                    getComponent={getPieChartContent}
+                    componentProps={{...props, chartWidth}}
+                    loadingFallback={
+                        <ChartSkeleton
+                            view={CONST.SEARCH.VIEW.PIE}
+                            shouldShowLegend={props.shouldShowLegend}
+                        />
+                    }
+                />
+            )}
+        </ChartWidthBox>
     );
 }
 

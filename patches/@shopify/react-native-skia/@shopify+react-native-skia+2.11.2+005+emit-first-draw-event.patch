@@ -1,0 +1,72 @@
+diff --git a/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js b/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
+index d5d5806..efa6d1e 100644
+--- a/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
++++ b/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
+@@ -23,6 +23,15 @@ const dp2Pixel = (pd, rect) => {
+     height: rect.height * pd
+   };
+ };
++const notifyFirstDraw = renderer => {
++  if (renderer.hasDrawn) {
++    return;
++  }
++  renderer.hasDrawn = true;
++  renderer.canvas.dispatchEvent(new CustomEvent("skia-first-draw", {
++    bubbles: true
++  }));
++};
+ class WebGLRenderer {
+   constructor(canvas) {
+     this.canvas = canvas;
+@@ -136,6 +145,7 @@ class WebGLRenderer {
+       canvas.drawPicture(picture);
+       canvas.restore();
+       this.surface.ref.flush();
++      notifyFirstDraw(this);
+     }
+   }
+   dispose() {
+@@ -269,6 +279,7 @@ class StaticWebGLRenderer {
+     // Draw the tempCanvas scaled down to the display size
+     ctx2d.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, 0, 0, this.canvas.clientWidth * this.pd, this.canvas.clientHeight * this.pd);
+     this.cleanupRenderResult(renderResult);
++    notifyFirstDraw(this);
+   }
+   makeImageSnapshot(picture, rect) {
+     if (!this.cachedImage) {
+diff --git a/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js b/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
+index f6e4d6d..4ac9acf 100644
+--- a/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
++++ b/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
+@@ -17,6 +17,15 @@ const dp2Pixel = (pd, rect) => {
+     height: rect.height * pd
+   };
+ };
++const notifyFirstDraw = renderer => {
++  if (renderer.hasDrawn) {
++    return;
++  }
++  renderer.hasDrawn = true;
++  renderer.canvas.dispatchEvent(new CustomEvent("skia-first-draw", {
++    bubbles: true
++  }));
++};
+ class WebGLRenderer {
+   constructor(canvas) {
+     this.canvas = canvas;
+@@ -130,6 +139,7 @@ class WebGLRenderer {
+       canvas.drawPicture(picture);
+       canvas.restore();
+       this.surface.ref.flush();
++      notifyFirstDraw(this);
+     }
+   }
+   dispose() {
+@@ -263,6 +273,7 @@ class StaticWebGLRenderer {
+     // Draw the tempCanvas scaled down to the display size
+     ctx2d.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, 0, 0, this.canvas.clientWidth * this.pd, this.canvas.clientHeight * this.pd);
+     this.cleanupRenderResult(renderResult);
++    notifyFirstDraw(this);
+   }
+   makeImageSnapshot(picture, rect) {
+     if (!this.cachedImage) {

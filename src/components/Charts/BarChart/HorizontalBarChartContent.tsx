@@ -1,4 +1,4 @@
-import ActivityIndicator from '@components/ActivityIndicator';
+import ChartSkeleton from '@components/Charts/ChartSkeleton';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import type {HitTestArgs, ResolveTargetIndexArgs} from '@components/Charts/hooks';
@@ -12,6 +12,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 
 import type {NonUniformRRect, SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import type {LayoutChangeEvent} from 'react-native';
@@ -391,8 +393,8 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
 
     if (isLoading || !fontManager) {
         return (
-            <View style={styles.chartActivityIndicator}>
-                <ActivityIndicator size="large" />
+            <View style={[styles.chartContent, dynamicChartStyle]}>
+                <ChartSkeleton view={CONST.SEARCH.VIEW.BAR} />
             </View>
         );
     }

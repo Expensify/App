@@ -7,10 +7,15 @@ type BarChartProps = CartesianChartProps & {
     color?: string;
 };
 
-/** Adds the wrapper-resolved orientation. Only the dispatcher receives `isHorizontal`. Callers and bodies use `BarChartProps`. */
-type BarChartContentProps = BarChartProps & {
+/** Adds the width the wrapper measured. Bodies receive it. Callers use `BarChartProps`. */
+type BarChartBodyProps = BarChartProps & {
+    chartWidth: number;
+};
+
+/** Adds the wrapper-resolved orientation. Only the dispatcher receives `isHorizontal`. */
+type BarChartContentProps = BarChartBodyProps & {
     /** When true, renders horizontal bars (value on the x-axis) instead of the default vertical bars. */
     isHorizontal?: boolean;
 };
 
-export type {BarChartProps, BarChartContentProps};
+export type {BarChartProps, BarChartBodyProps, BarChartContentProps};

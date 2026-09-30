@@ -1,14 +1,28 @@
-import type {LayoutChangeEvent} from 'react-native';
+import isHTMLElement from '@libs/isHTMLElement';
 
-import {useCallback, useState} from 'react';
+import type {RefObject} from 'react';
+import type {LayoutChangeEvent, View} from 'react-native';
+
+import {useCallback, useLayoutEffect, useRef, useState} from 'react';
 
 /**
- * Returns an onLayout handler and the measured container width (minus an optional offset).
- * Used by skeleton components that need the container width for SVG layout calculations.
+ * Returns a ref, an onLayout handler and the measured container width (minus an optional offset).
  * The width updates automatically when the container resizes.
+ *
+ * Attach the returned ref to the container as well when its first frame draws from the width: on web, onLayout
+ * reports only after the browser has painted once, so without the ref that first frame is drawn at width 0.
  */
-function useContainerWidth(offset = 0): {onLayout: (event: LayoutChangeEvent) => void; containerWidth: number} {
+function useContainerWidth(offset = 0): {ref: RefObject<View | null>; onLayout: (event: LayoutChangeEvent) => void; containerWidth: number} {
+    const ref = useRef<View>(null);
     const [containerWidth, setContainerWidth] = useState(0);
+
+    useLayoutEffect(() => {
+        const node: unknown = ref.current;
+        if (!isHTMLElement(node)) {
+            return;
+        }
+        setContainerWidth(node.getBoundingClientRect().width - offset);
+    }, [offset]);
 
     const onLayout = useCallback(
         (event: LayoutChangeEvent) => {
@@ -17,7 +31,7 @@ function useContainerWidth(offset = 0): {onLayout: (event: LayoutChangeEvent) =>
         [offset],
     );
 
-    return {onLayout, containerWidth};
+    return {ref, onLayout, containerWidth};
 }
 
 export default useContainerWidth;

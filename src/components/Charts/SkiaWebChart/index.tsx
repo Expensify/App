@@ -10,13 +10,14 @@ import variables from '@styles/variables';
 
 import viewRef from '@src/types/utils/viewRef';
 
-import type {ComponentType} from 'react';
+import type {ComponentType, ReactNode} from 'react';
 
 import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
 import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 import isSkiaWebSupported from './isSkiaWebSupported';
+import useHasSkiaDrawn from './useHasSkiaDrawn';
 import useIsSkiaSurfaceUnavailable from './useIsSkiaSurfaceUnavailable';
 
 type SkiaWebChartProps<TProps> = {
@@ -26,7 +27,8 @@ type SkiaWebChartProps<TProps> = {
     /** Props forwarded to the lazily-loaded chart component. */
     componentProps: TProps;
 
-    /** Identifies the loading skeleton span for telemetry. */
+    /** Shown while the chart engine downloads and until the chart first draws. */
+    loadingFallback?: ReactNode;
 };
 
 function ChartUnavailable() {
@@ -55,7 +57,7 @@ function ChartUnavailable() {
 // `object` mirrors WithSkiaWeb's own constraint; `Record<string, unknown>` would reject the
 // interface-based render-html renderer props (VictoryChartRendererProps) that lack an index signature.
 // eslint-disable-next-line @typescript-eslint/no-restricted-types
-function SkiaWebChart<TProps extends object>({getComponent, componentProps}: SkiaWebChartProps<TProps>) {
+function SkiaWebChart<TProps extends object>({getComponent, componentProps, loadingFallback}: SkiaWebChartProps<TProps>) {
     const styles = useThemeStyles();
     const containerRef = useRef<HTMLElement | null>(null);
 
@@ -66,13 +68,15 @@ function SkiaWebChart<TProps extends object>({getComponent, componentProps}: Ski
     // The probe can pass while the renderer still ends up without a drawing surface, so also listen for the
     // renderer reporting that and degrade to the empty state.
     const isSurfaceUnavailable = useIsSkiaSurfaceUnavailable(containerRef);
+    const hasDrawn = useHasSkiaDrawn(containerRef);
+    const isAwaitingFirstDraw = !!loadingFallback && !hasDrawn;
 
     // If unsupported, the device can't give CanvasKit a usable WebGL surface.
     if (!isSupported || isSurfaceUnavailable) {
         return <ChartUnavailable />;
     }
 
-    const fallback = (
+    const fallback = loadingFallback ?? (
         <View style={styles.chartWebFallback}>
             <ActivityIndicator size="large" />
         </View>
@@ -83,12 +87,16 @@ function SkiaWebChart<TProps extends object>({getComponent, componentProps}: Ski
             ref={viewRef(containerRef)}
             style={styles.mw100}
         >
-            <WithSkiaWeb
-                opts={{locateFile: (file: string) => `/${file}`}}
-                getComponent={getComponent}
-                componentProps={componentProps}
-                fallback={fallback}
-            />
+            {/* The canvas stays blank until Skia draws into it, while the parts of a chart drawn as views show at once. */}
+            <View style={isAwaitingFirstDraw && styles.opacity0}>
+                <WithSkiaWeb
+                    opts={{locateFile: (file: string) => `/${file}`}}
+                    getComponent={getComponent}
+                    componentProps={componentProps}
+                    fallback={fallback}
+                />
+            </View>
+            {isAwaitingFirstDraw && <View style={[StyleSheet.absoluteFill, styles.pointerEventsNone]}>{loadingFallback}</View>}
         </View>
     );
 }
