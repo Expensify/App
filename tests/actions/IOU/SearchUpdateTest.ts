@@ -783,7 +783,7 @@ describe('actions/IOU', () => {
 
             // Then the snapshot entry carries the scanned values and no longer reports missing SmartScan fields
             const snapshot = await getOnyxValue(snapshotKey);
-            const snapshotTransaction = snapshot?.data?.[transactionKey] as Transaction | undefined;
+            const snapshotTransaction = snapshot?.data?.[transactionKey];
             expect(snapshotTransaction?.modifiedMerchant).toBe('Blue Bottle Coffee');
             expect(snapshotTransaction?.modifiedAmount).toBe(-3114);
             expect(snapshotTransaction?.modifiedCurrency).toBe('USD');
@@ -792,7 +792,7 @@ describe('actions/IOU', () => {
             expect(hasMissingSmartscanFields(snapshotTransaction, iouReport)).toBe(false);
         });
 
-        it('seeds modifiedCreated with created so the snapshot row stays in its group-by date bucket before the scan lands', () => {
+        it('seeds modifiedCreated with created so the snapshot row stays in its group-by date bucket before the scan lands', async () => {
             // Given a scanned expense that has no modifiedCreated yet. The group-by date buckets read
             // `modifiedCreated ?? created`, so an empty-string seed would win over `created` and drop the row out of its bucket.
             const iouReport: Report = {
@@ -821,13 +821,18 @@ describe('actions/IOU', () => {
             });
 
             // Then the snapshot row carries the creation date as modifiedCreated and still matches its month bucket
-            const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`;
+            const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}` as const;
             const update = result?.optimisticData?.find((u) => u.key === snapshotKey);
-            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}` as const;
             expect(update?.value).toHaveProperty(['data', transactionKey, 'modifiedCreated'], '2026-09-18');
-            const snapshotTransaction = (update?.value as {data?: SearchResultDataType} | undefined)?.data?.[
-                transactionKey as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`
-            ] as Transaction;
+            await Onyx.update(result?.optimisticData ?? []);
+            await waitForBatchedUpdates();
+            const snapshot = await getOnyxValue(snapshotKey);
+            const snapshotTransaction = snapshot?.data?.[transactionKey];
+            expect(snapshotTransaction).toBeDefined();
+            if (!snapshotTransaction) {
+                return;
+            }
             const monthGroup = createMock<TransactionMonthGroupListItemType>({groupedBy: CONST.SEARCH.GROUP_BY.MONTH, year: 2026, month: 9});
             expect(isTransactionMatchWithGroupItem(snapshotTransaction, monthGroup, CONST.SEARCH.GROUP_BY.MONTH)).toBe(true);
         });
