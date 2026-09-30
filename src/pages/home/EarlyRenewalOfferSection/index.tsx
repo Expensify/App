@@ -1,5 +1,6 @@
 import Button from '@components/Button';
 import Icon from '@components/Icon';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import WidgetContainer from '@components/WidgetContainer';
 
@@ -11,6 +12,8 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {clearEarlyRenewalOfferErrors} from '@libs/actions/EarlyRenewalOffer';
 
 import variables from '@styles/variables';
 
@@ -41,25 +44,32 @@ function EarlyRenewalOfferSection() {
             title={translate('earlyRenewal.title')}
             containerStyles={styles.trialBannerBackgroundColor}
         >
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3, styles.pb8, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
-                <Icon
-                    src={illustrations.SubscriptionAnnual}
-                    width={ICON_SIZE}
-                    height={ICON_SIZE}
-                />
-                <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter]}>
-                    <Text style={styles.widgetItemTitle}>{translate('earlyRenewal.subtitle')}</Text>
+            <OfflineWithFeedback
+                errors={eligibility.errors}
+                onClose={clearEarlyRenewalOfferErrors}
+                errorRowStyles={[styles.pb4, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+            >
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3, styles.pb8, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
+                    <Icon
+                        src={illustrations.SubscriptionAnnual}
+                        width={ICON_SIZE}
+                        height={ICON_SIZE}
+                    />
+                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter]}>
+                        <Text style={styles.widgetItemTitle}>{translate('earlyRenewal.subtitle')}</Text>
+                    </View>
+                    <Button
+                        isDisabled={isOffline}
+                        isLoading={!!eligibility.pendingAction}
+                        onPress={showEarlyRenewalConfirmation}
+                        size={CONST.BUTTON_SIZE.SMALL}
+                        style={styles.widgetItemButton}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    >
+                        <Button.Text>{translate('earlyRenewal.renew')}</Button.Text>
+                    </Button>
                 </View>
-                <Button
-                    isDisabled={isOffline}
-                    onPress={showEarlyRenewalConfirmation}
-                    size={CONST.BUTTON_SIZE.SMALL}
-                    style={styles.widgetItemButton}
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                >
-                    <Button.Text>{translate('earlyRenewal.renew')}</Button.Text>
-                </Button>
-            </View>
+            </OfflineWithFeedback>
         </WidgetContainer>
     );
 }

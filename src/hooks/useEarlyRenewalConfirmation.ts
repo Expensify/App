@@ -1,6 +1,6 @@
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 
-import acceptEarlyRenewalOffer from '@libs/actions/EarlyRenewalOffer';
+import {acceptEarlyRenewalOffer} from '@libs/actions/EarlyRenewalOffer';
 import DateUtils from '@libs/DateUtils';
 import {getNonIncentivizedEarlyRenewalDates} from '@libs/EarlyRenewalOfferUtils';
 
@@ -32,28 +32,7 @@ function useEarlyRenewalConfirmation() {
             return;
         }
 
-        try {
-            const response = await acceptEarlyRenewalOffer(CONST.SUBSCRIPTION.EARLY_RENEWAL.OFFER_ID.NON_INCENTIVIZED_ONE_YEAR);
-            if (response?.jsonCode === CONST.JSON_CODE.SUCCESS) {
-                return;
-            }
-
-            await showConfirmModal({
-                title: translate('earlyRenewal.confirmTitle'),
-                prompt: response?.message ?? translate('common.genericErrorMessage'),
-                confirmText: translate('common.buttonConfirm'),
-                shouldShowCancelButton: false,
-                shouldEnableNewFocusManagement: true,
-            });
-        } catch {
-            await showConfirmModal({
-                title: translate('earlyRenewal.confirmTitle'),
-                prompt: translate('common.genericErrorMessage'),
-                confirmText: translate('common.buttonConfirm'),
-                shouldShowCancelButton: false,
-                shouldEnableNewFocusManagement: true,
-            });
-        }
+        acceptEarlyRenewalOffer(CONST.SUBSCRIPTION.EARLY_RENEWAL.OFFER_ID.NON_INCENTIVIZED_ONE_YEAR);
     };
 
     return showEarlyRenewalConfirmation;
