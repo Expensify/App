@@ -3,8 +3,6 @@ import type {EditableProps} from '@components/EditableCell';
 
 import useLocalize from '@hooks/useLocalize';
 
-import {parseFloatAnyLocale} from '@libs/NumberUtils';
-
 import CONST from '@src/CONST';
 import type {Rate} from '@src/types/onyx/Policy';
 
@@ -14,8 +12,6 @@ type WorkspaceDistanceRateValueCellProps = {
     rate: Rate;
     displayText: string;
 } & EditableProps<string>;
-
-const areLocaleNumericValuesEqual = (newValue: string, originalValue: string) => parseFloatAnyLocale(newValue) === parseFloatAnyLocale(originalValue);
 
 function WorkspaceDistanceRateValueCell({rate, displayText, canEdit, onSave}: WorkspaceDistanceRateValueCellProps) {
     const {translate} = useLocalize();
@@ -29,7 +25,6 @@ function WorkspaceDistanceRateValueCell({rate, displayText, canEdit, onSave}: Wo
             displayText={displayText}
             decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
             textAlign="left"
-            isEqual={areLocaleNumericValuesEqual}
             accessibilityLabel={translate('workspace.distanceRates.rate')}
             canEdit={canEdit}
             onSave={onSave}
