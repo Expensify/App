@@ -716,10 +716,6 @@ const staticStyles = (theme: ThemeColors) =>
             opacity: 1,
         },
 
-        textDanger: {
-            color: theme.danger,
-        },
-
         borderRadiusNormal: {
             borderRadius: variables.buttonBorderRadius,
         },
@@ -4654,7 +4650,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textSuccess: {
-            color: theme.success,
+            color: theme.textSuccess,
         },
 
         footerRow: {
@@ -5807,13 +5803,14 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         // Three 32% tiles plus gaps overflow the 576px row, so wrap at 30% and cap the width instead.
+        // Uses width, not flexBasis, since native Yoga caches a flexBasis percentage across rotations.
         onboardingAccountingItemWide: {
-            flexBasis: '30%',
+            width: '30%',
             maxWidth: '32%',
         },
 
         onboardingAccountingItemNarrow: {
-            flexBasis: '45%',
+            width: '45%',
             maxWidth: '48.5%',
         },
 
@@ -7272,6 +7269,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             return {
                 width: shouldUseNarrowLayout ? '100%' : '91%',
                 height,
+                maxHeight: '100%',
                 borderRadius: variables.componentBorderRadiusLarge,
                 borderBottomRightRadius: borderBottomRadius,
                 borderBottomLeftRadius: borderBottomRadius,
