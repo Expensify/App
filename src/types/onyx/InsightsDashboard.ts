@@ -37,6 +37,9 @@ type InsightsDashboard = {
     inputQuery?: string;
 
     errors?: Errors;
+
+    /** JSON code of the failed GetInsights request stored with errors */
+    responseJsonCode?: number;
 };
 
 export type {InsightsDashboardID, InsightsGraphKey, InsightsSearchKey};

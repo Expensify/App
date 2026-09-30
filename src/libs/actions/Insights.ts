@@ -1,6 +1,7 @@
-import {read} from '@libs/API';
+import {makeRequestWithSideEffects, waitForWrites} from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,6 +20,7 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
             key,
             value: {
                 errors: null,
+                responseJsonCode: null,
             },
         },
         ...snapshotHashes.map<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>>((snapshotHash) => ({
@@ -35,6 +37,8 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
             onyxMethod: Onyx.METHOD.MERGE,
             key,
             value: {
+                // NO_RESPONSE stands for no server answer, a real error code from the response overwrites it
+                responseJsonCode: CONST.JSON_CODE.NO_RESPONSE,
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
@@ -48,7 +52,23 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
         },
     }));
 
-    read(READ_COMMANDS.GET_INSIGHTS, {jsonQuery}, {optimisticData, successData, failureData});
+    waitForWrites(READ_COMMANDS.GET_INSIGHTS).then(() =>
+        // API.read() hides the response code and network rejections, which are needed to tell backend errors from failed requests, same as Search
+        makeRequestWithSideEffects(READ_COMMANDS.GET_INSIGHTS, {jsonQuery}, {optimisticData, successData, failureData})
+            .then((result) => {
+                if (typeof result?.jsonCode !== 'number' || result.jsonCode === CONST.JSON_CODE.SUCCESS) {
+                    return;
+                }
+                Onyx.merge(key, {responseJsonCode: result.jsonCode}).catch((error: unknown) => Log.hmmm('[Insights] failed to store the GetInsights response code', {error: String(error)}));
+            })
+            .catch((error: unknown) => {
+                // A network-level rejection never reaches SaveResponseInOnyx, so failureData has to be applied here
+                Log.hmmm('[Insights] GetInsights request failed', {
+                    error: String(error),
+                });
+                return Onyx.update(failureData);
+            }),
+    );
 }
 
 function setInsightsFilters(searchKey: InsightsSearchKey, query: string) {

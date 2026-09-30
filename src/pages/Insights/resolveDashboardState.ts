@@ -1,5 +1,6 @@
 import {isGroupEntry, isSearchDataLoaded} from '@libs/SearchUIUtils';
 
+import CONST from '@src/CONST';
 import type {InsightsDashboard} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -13,6 +14,7 @@ const INSIGHTS_DASHBOARD_STATE = {
     READY: 'ready',
     LOADING: 'loading',
     ERROR: 'error',
+    STALE: 'stale',
     OFFLINE: 'offline',
     EMPTY: 'empty',
     NO_EXPENSES: 'noExpenses',
@@ -38,7 +40,7 @@ function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: b
         return INSIGHTS_DASHBOARD_STATE.OFFLINE;
     }
     if (!isOffline && Object.keys(dashboard?.errors ?? {}).length > 0) {
-        return INSIGHTS_DASHBOARD_STATE.ERROR;
+        return dashboard?.responseJsonCode === CONST.JSON_CODE.NO_RESPONSE ? INSIGHTS_DASHBOARD_STATE.STALE : INSIGHTS_DASHBOARD_STATE.ERROR;
     }
     if (!hasDashboardResponse && !hasLoadedChart) {
         return INSIGHTS_DASHBOARD_STATE.LOADING;
