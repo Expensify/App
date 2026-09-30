@@ -48,7 +48,8 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['CardReaderAlt', 'Flag', 'CheckboxText', 'ReportReceipt', 'AiBot']);
-    const isCategoryScopedCreate = route.name === SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW || !!categoryName;
+    const isCategorySettingsFlow = route.name === SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW;
+    const isCategoryScopedCreate = isCategorySettingsFlow || !!categoryName;
     const policy = usePolicy(policyID);
     const {showConfirmModal} = useConfirmModal();
 
@@ -110,8 +111,10 @@ function RulesNewPage({route}: RulesNewPageProps) {
             icon: illustrations.ReportReceipt,
             title: translate('workspace.rules.newRule.applyExpenseDefaults'),
             description: translate('workspace.rules.newRule.applyExpenseDefaultsDescription'),
-            onPress: () => (route.name === SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW ? openCategoryTaxRule() : Navigation.navigate(ROUTES.RULES_EXPENSE_DEFAULT_TYPE.getRoute(policyID))),
+            onPress: () => (isCategorySettingsFlow ? openCategoryTaxRule() : Navigation.navigate(ROUTES.RULES_EXPENSE_DEFAULT_TYPE.getRoute(policyID))),
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_APPLY_EXPENSE_DEFAULTS,
+            // Only category settings can scope the editor to its category, so a category passed any other way drops it.
+            isWorkspaceOnly: !isCategorySettingsFlow,
         },
         {
             key: 'createAgentRule',
