@@ -25,7 +25,7 @@ import OnboardingWorkEmail from '@pages/OnboardingWorkEmail';
 import OnboardingWorkEmailValidation from '@pages/OnboardingWorkEmailValidation';
 
 import * as PolicyActions from '@userActions/Policy/Policy';
-import {completeOnboarding} from '@userActions/Report';
+import {completeOnboarding, updateDescription} from '@userActions/Report';
 import * as WelcomeActions from '@userActions/Welcome';
 
 import CONST from '@src/CONST';
@@ -60,6 +60,7 @@ jest.mock('@userActions/Report', () => {
     return {
         ...actual,
         completeOnboarding: jest.fn().mockResolvedValue(undefined),
+        updateDescription: jest.fn(),
     };
 });
 
@@ -145,6 +146,7 @@ const renderOnboardingPrivateDomainPage = (
 
 const navigate = jest.spyOn(Navigation, 'navigate');
 const mockCompleteOnboarding = jest.mocked(completeOnboarding);
+const mockUpdateDescription = jest.mocked(updateDescription);
 
 function MergeIntoAccountAndLoginBlockMerge() {
     const originalXhr = HttpUtils.xhr;
@@ -1001,6 +1003,44 @@ describe('OnboardingWorkEmailValidation Page', () => {
 
         expect(createJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('validateEmail', 'privateemail.com', workEmail, undefined, undefined, true);
 
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should update the existing validation task when the work email changes', async () => {
+        const validateTaskReportID = 'validate-task-report';
+        const validateTaskReport = createMock<Report>({
+            reportID: validateTaskReportID,
+            parentReportID: 'concierge-report',
+            type: CONST.REPORT.TYPE.TASK,
+            description: 'Enter the code we sent to employee@acme.com',
+        });
+        const createJoinWorkspaceOnboardingContent = jest.spyOn(WelcomeActions, 'createJoinWorkspaceOnboardingContent');
+        await TestHelper.signInWithTestUser(1, 'test@gmail.com');
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+                shouldValidate: true,
+            });
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {
+                choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                validateEmail: validateTaskReportID,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false});
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {onboardingWorkEmail: 'someone@acme.com'});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${validateTaskReportID}`, validateTaskReport);
+        });
+
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {isJoinWorkspaceTask: 'true'});
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.skip')));
+
+        expect(mockUpdateDescription).toHaveBeenCalledWith(validateTaskReport, expect.stringContaining('someone@acme.com'), 1);
+        expect(createJoinWorkspaceOnboardingContent).not.toHaveBeenCalled();
+
+        createJoinWorkspaceOnboardingContent.mockRestore();
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
