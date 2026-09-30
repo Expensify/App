@@ -172,7 +172,7 @@ import Onyx from 'react-native-onyx';
 
 import type {PolicyOwner} from './PolicyDraft';
 
-import {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories} from './Category';
+import {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories} from './OptimisticPolicyCategoriesAndMccGroups';
 import {
     buildOptimisticDistanceRateCustomUnits,
     createDraftInitialWorkspace,
