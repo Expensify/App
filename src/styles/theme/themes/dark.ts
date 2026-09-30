@@ -59,7 +59,7 @@ const darkTheme = {
     sidebar: colors.productDark100,
     sidebarHover: colors.productDark300,
     floatingTabBarSelectedBG: 'rgba(26,61,50,0.50)',
-    // green700 at 50%
+    // selectedOptionBG (green700) at 50%
     androidTabBarActiveIndicatorBG: 'rgba(8,82,57,0.50)',
     heading: colors.productDark900,
     textLight: colors.productDark900,

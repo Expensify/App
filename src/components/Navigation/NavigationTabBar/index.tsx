@@ -48,8 +48,8 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
     const {translate} = useLocalize();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const {isBetaEnabled} = usePermissions();
-    // iOS drives its bar from the native tab navigator, which registers five items and leaves Insights out, so the
-    // wide layout's own bar must not offer a tab the navigator cannot route to.
+    // The native tab navigators register five items and leave Insights out, so the wide layout's own bar must not
+    // offer a tab the navigator cannot route to.
     const isInsightsTabVisible = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) && (TAB_SCREENS as readonly string[]).includes(SCREENS.INSIGHTS);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home']);
 
@@ -73,8 +73,8 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
         });
     };
 
-    // The navigator drops shouldShowFloatingButtons while it hides the bar, and the debug view rides along
-    // so it cannot linger over a screen the bar has already left.
+    // shouldShowFloatingButtons is false for the swipe-back duplicate tab bar rendered via
+    // bottomContent — gating the debug view on it prevents it from appearing in that copy too.
     const shouldShowDebugTabView = !!isDebugModeEnabled && shouldShowFloatingButtons;
 
     if (!shouldUseNarrowLayout) {

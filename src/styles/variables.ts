@@ -39,8 +39,6 @@ export default {
     // How far the selected pill reaches past its tab on each side, whatever the label's length.
     floatingTabBarSelectedOverhang: 4,
     floatingTabBarBottomInset,
-    // Vertical space the floating bar takes over the content it hides, so scrollable content can end above it.
-    floatingTabBarContentInset: floatingTabBarHeight + floatingTabBarBottomInset,
     // styles.p3 (12) on each side of the DebugTabView row plus the View button (componentSizeNormal).
     debugTabViewHeight: 64,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
@@ -119,8 +117,10 @@ export default {
     nativeTabIconLabelGap: 6,
     /** Pixel density the native tab bar icons are rasterized at. */
     nativeTabIconScale: 3,
-    /** Height of Material's BottomNavigationView row on Android, without the gesture inset under it. */
-    androidNativeTabBarHeight: 80,
+    /** Material's 80 dp BottomNavigationView row plus the 16 dp Material keeps between a FAB and the bar, without the gesture inset under it. */
+    androidNativeTabBarFloatingButtonsBottom: 96,
+    /** UITabBar with the home indicator inset under it, plus a 12 pt gap to the floating buttons. */
+    iosNativeTabBarFloatingButtonsBottom: 84,
     iconHeader: 48,
     iconSection: 68,
     iouAmountTextSize: 40,

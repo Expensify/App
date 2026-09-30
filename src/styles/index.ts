@@ -768,10 +768,9 @@ const staticStyles = (theme: ThemeColors) =>
             marginHorizontal: -variables.floatingTabBarSelectedOverhang,
         },
 
-        // Ends a tab root screen's scrollable content above the floating bar, so its last row stays reachable
-        // while everything scrolled past it still passes under the bar.
-        floatingTabBarContentInset: {
-            paddingBottom: variables.floatingTabBarContentInset,
+        // The gap between the floating bar and the bottom edge of the screen.
+        floatingTabBarBottomInset: {
+            paddingBottom: variables.floatingTabBarBottomInset,
         },
 
         // Used both for a tab's pressable and for the wrapper around its icon and label.
@@ -786,17 +785,6 @@ const staticStyles = (theme: ThemeColors) =>
         // with the labels of the icons next to it and its centre with theirs.
         navigationTabBarAvatar: {
             marginVertical: (variables.iconFloatingTabBar - variables.avatarFloatingTabBar) / 2,
-        },
-
-        // Zero-height strip anchored above the native tab bar, so the floating buttons can be positioned
-        // against it without taking part in the tab screen's layout.
-        nativeTabBarFloatingButtons: {
-            position: 'absolute',
-            right: 0,
-            bottom: variables.bottomTabHeight + spacing.gap3.gap,
-            left: 0,
-            height: 0,
-            zIndex: 10,
         },
 
         navigationTabBarFABItem: {
@@ -6916,13 +6904,13 @@ const staticStyles = (theme: ThemeColors) =>
 
 const dynamicStyles = (theme: ThemeColors) =>
     ({
-        // Android's native bar is Material's 80 dp row plus the system gesture inset, so the strip the floating
-        // buttons hang from sits above both, with Material's 16 dp gap between the FAB and the bar.
-        nativeAndroidTabBarFloatingButtons: (bottomInset: number) =>
+        // Zero-height strip anchored above the native tab bar, so the floating buttons can be positioned
+        // against it without taking part in the tab screen's layout.
+        nativeTabBarFloatingButtons: (bottom: number) =>
             ({
                 position: 'absolute',
                 right: 0,
-                bottom: variables.androidNativeTabBarHeight + bottomInset + spacing.gap4.gap,
+                bottom,
                 left: 0,
                 height: 0,
                 zIndex: 10,
