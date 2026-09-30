@@ -23,6 +23,7 @@ import {
     getRulesSubmitterToFirstApprover,
     hasMultiLevelApprovalWorkflow,
     getRulesSubmitterToWorkflowKey,
+    includesEveryWorkspaceMember,
     isApprovalWorkflowLockedByIntegration,
     mergeWorkflowMembersWithAvailableMembers,
     reconcileApprovalWorkflowRulesForCreate,
@@ -891,6 +892,35 @@ describe('WorkflowUtils', () => {
 
             expect(result).toHaveLength(2);
             expect(result.map((m) => m.email)).toEqual(['1@example.com', '2@example.com']);
+        });
+    });
+
+    describe('includesEveryWorkspaceMember', () => {
+        const employeeList: PolicyEmployeeList = {
+            '1@example.com': buildPolicyEmployee(1),
+            '2@example.com': buildPolicyEmployee(2),
+            '3@example.com': buildPolicyEmployee(3, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+        };
+
+        it('is true when every member is included, leaving out members being removed from the workspace', () => {
+            // Given a workspace where member 3 is being removed
+            // When checking a workflow with every other member
+            // Then it has everyone, because member 3 won't be in any workflow once removed
+            expect(includesEveryWorkspaceMember(['1@example.com', '2@example.com'], employeeList)).toBe(true);
+        });
+
+        it('is false while a workspace member is missing', () => {
+            // Given a workspace with members 1 and 2
+            // When checking a workflow with only member 1
+            // Then it doesn't have everyone, because member 2 stays in their current workflow
+            expect(includesEveryWorkspaceMember(['1@example.com'], employeeList)).toBe(false);
+        });
+
+        it('is false when the workspace has no members', () => {
+            // Given a workspace whose member list hasn't loaded
+            // When checking any workflow
+            // Then it doesn't have everyone, so no workflow is made the default by mistake
+            expect(includesEveryWorkspaceMember(['1@example.com'], {})).toBe(false);
         });
     });
 
@@ -2145,6 +2175,76 @@ describe('WorkflowUtils', () => {
                         ?.members.map((member) => member.email)
                         .sort(),
                 ).toEqual(['2@example.com', '3@example.com', '4@example.com']);
+            });
+
+            it('Should keep members that employeeList routes down another chain out of the rule-based default workflow', () => {
+                // Given a default workflow whose rules route 5 to approver 1, while employeeList still names approver 2, who
+                // forwards to 3, as the default approver. No rule covers 2 or 6, so employeeList routes them to 2, then 3.
+                const rules = keyRules(buildApprovalWorkflowRules(buildWorkflow([5], [1], {isDefault: true})));
+                const employees: PolicyEmployeeList = {
+                    '5@example.com': {email: '5@example.com', submitsTo: '2@example.com'},
+                    '2@example.com': {email: '2@example.com', submitsTo: '2@example.com', forwardsTo: '3@example.com'},
+                    '6@example.com': {email: '6@example.com', submitsTo: '2@example.com'},
+                };
+                const policy = createPolicy(employees, '2@example.com');
+
+                // When the rules are turned into the workflows the Workflows page shows
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules});
+
+                // Then only the rule-based chain is the default workflow. Deleting a workflow writes its members into the
+                // default workflow's chain, so a second default would let that write the employeeList chain as another default.
+                const defaultWorkflows = approvalWorkflows.filter((workflow) => workflow.isDefault);
+                expect(defaultWorkflows).toHaveLength(1);
+                expect(defaultWorkflows.at(0)?.approvers.map((approver) => approver.email)).toEqual(['1@example.com']);
+                expect(defaultWorkflows.at(0)?.members.map((member) => member.email)).toEqual(['5@example.com']);
+
+                const employeeListWorkflow = approvalWorkflows.find((workflow) => !workflow.isDefault);
+                expect(employeeListWorkflow?.approvers.map((approver) => approver.email)).toEqual(['2@example.com', '3@example.com']);
+                expect(employeeListWorkflow?.members.map((member) => member.email)).toEqual(['2@example.com', '6@example.com']);
+            });
+
+            it('Should show members that employeeList routes down the default chain in the rule-based default workflow', () => {
+                // Given a default workflow whose rules route 5 to approver 1, and 1 and 6, whom no rule covers, submitting to
+                // that same approver through employeeList. Their reports take the same route.
+                const rules = keyRules(buildApprovalWorkflowRules(buildWorkflow([5], [1], {isDefault: true})));
+                const employees: PolicyEmployeeList = {
+                    '5@example.com': {email: '5@example.com', submitsTo: '1@example.com'},
+                    '6@example.com': {email: '6@example.com', submitsTo: '1@example.com'},
+                    '1@example.com': {email: '1@example.com', submitsTo: '1@example.com'},
+                };
+                const policy = createPolicy(employees, '1@example.com');
+
+                // When the rules are turned into the workflows the Workflows page shows
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules});
+
+                // Then 1 and 6 are listed in the default workflow rather than in a second default workflow with the same approver
+                expect(approvalWorkflows).toHaveLength(1);
+                expect(approvalWorkflows.at(0)?.isDefault).toBe(true);
+                expect(approvalWorkflows.at(0)?.members.map((member) => member.email)).toEqual(['5@example.com', '6@example.com', '1@example.com']);
+            });
+
+            it('Should keep a single default workflow when the rules declare two', () => {
+                // Given rules that declare two different default chains, the way a policy looks once a second set of default
+                // rules was written next to the first. The policy's default approver is 2.
+                const rules = keyRules([
+                    ...buildApprovalWorkflowRules(buildWorkflow([5], [1], {isDefault: true})),
+                    ...buildApprovalWorkflowRules(buildWorkflow([6], [2, 3], {isDefault: true})),
+                ]);
+                const employees: PolicyEmployeeList = {
+                    '5@example.com': {email: '5@example.com', submitsTo: '2@example.com'},
+                    '6@example.com': {email: '6@example.com', submitsTo: '2@example.com'},
+                };
+                const policy = createPolicy(employees, '2@example.com');
+
+                // When the rules are turned into the workflows the Workflows page shows
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules});
+
+                // Then the chain starting at the default approver stays the default, and the other one is shown as a workflow
+                // of its own, so deleting it sends its members to the default workflow
+                const defaultWorkflows = approvalWorkflows.filter((workflow) => workflow.isDefault);
+                expect(defaultWorkflows).toHaveLength(1);
+                expect(defaultWorkflows.at(0)?.approvers.map((approver) => approver.email)).toEqual(['2@example.com', '3@example.com']);
+                expect(approvalWorkflows.find((workflow) => !workflow.isDefault)?.members.map((member) => member.email)).toEqual(['5@example.com']);
             });
         });
     });

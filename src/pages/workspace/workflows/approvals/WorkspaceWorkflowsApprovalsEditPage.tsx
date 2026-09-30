@@ -23,6 +23,8 @@ import {
     convertPolicyEmployeesToApprovalWorkflows,
     filterRulesForPolicy,
     getApprovalWorkflowRulesForPolicy,
+    getWorkflowMemberEmails,
+    includesEveryWorkspaceMember,
     isApprovalWorkflowLockedByIntegration,
 } from '@libs/WorkflowUtils';
 
@@ -119,19 +121,31 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return;
         }
 
+        // A workflow with everyone in it leaves every other workflow empty, so it becomes the default one
+        const isDefault = approvalWorkflow.isDefault || includesEveryWorkspaceMember(getWorkflowMemberEmails(approvalWorkflow.members), policy?.employeeList);
+        const workflowToSave = {...approvalWorkflow, isDefault};
+
         startWithLoading(() => {
             // Pop just this screen rather than the whole RHP stack, so entry points that pushed the editor on top of
             // another screen (e.g. a member's profile) return there instead of being torn down with it.
             // The write is deferred until the close animation ends to avoid re-rendering the animating-out panel.
             if (isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)) {
-                Navigation.goBack(undefined, {afterTransition: () => updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy, rules: rulesCollection})});
+                Navigation.goBack(undefined, {
+                    afterTransition: () => {
+                        updateApprovalWorkflowRules({approvalWorkflow: workflowToSave, initialApprovalWorkflow, policy, rules: rulesCollection, defaultApprovalWorkflow});
+                    },
+                });
                 return;
             }
 
             // We need to remove members and approvers that are no longer in the updated workflow
             const membersToRemove = initialApprovalWorkflow.members.filter((initialMember) => !approvalWorkflow.members.some((member) => member.email === initialMember.email));
             const approversToRemove = initialApprovalWorkflow.approvers.filter((initialApprover) => !approvalWorkflow.approvers.some((approver) => approver.email === initialApprover.email));
-            Navigation.goBack(undefined, {afterTransition: () => updateApprovalWorkflow(approvalWorkflow, membersToRemove, approversToRemove, policy)});
+            Navigation.goBack(undefined, {
+                afterTransition: () => {
+                    updateApprovalWorkflow(workflowToSave, membersToRemove, approversToRemove, policy);
+                },
+            });
         });
     };
 
