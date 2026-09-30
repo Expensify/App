@@ -33,10 +33,6 @@ function showCommentNotification(report: Report, reportAction: ReportAction, onC
     BrowserNotifications.pushReportCommentNotification(report, reportAction, onClick, derivedReportName, true);
 }
 
-function showUpdateAvailableNotification() {
-    BrowserNotifications.pushUpdateAvailableNotification();
-}
-
 function showModifiedExpenseNotification({
     report,
     reportAction,
@@ -46,6 +42,7 @@ function showModifiedExpenseNotification({
     currentUserAccountID,
     currentUserLogin,
     derivedMovedFromReportName,
+    formatPhoneNumber,
 }: LocalNotificationModifiedExpenseParams) {
     const policyID = report.policyID;
     const policyTags = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : undefined;
@@ -62,6 +59,7 @@ function showModifiedExpenseNotification({
         currentUserAccountID,
         currentUserLogin,
         derivedMovedFromReportName,
+        formatPhoneNumber,
     });
 }
 
@@ -74,7 +72,6 @@ function clearReportNotifications(reportID: string | undefined) {
 
 const LocalNotification: LocalNotificationModule = {
     showCommentNotification,
-    showUpdateAvailableNotification,
     showModifiedExpenseNotification,
     clearReportNotifications,
 };
