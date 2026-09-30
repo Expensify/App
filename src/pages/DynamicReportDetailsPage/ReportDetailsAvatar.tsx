@@ -31,6 +31,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
+import type {Report} from '@src/types/onyx';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -39,22 +40,22 @@ type ReportDetailsAvatarProps = {
     reportID: string;
 };
 
-function ReportDetailsAvatar({reportID}: ReportDetailsAvatarProps) {
+type ReportDetailsAvatarContentProps = {
+    report: Report;
+};
+
+function ReportDetailsAvatarContent({report}: ReportDetailsAvatarContentProps) {
+    const reportID = report.reportID;
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera']);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {selector: pendingDeleteMemberAccountIDsSelector});
     const [personalDetails] = useAllPersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails?.accountID;
     const isReportArchived = useReportIsArchived(reportID);
-
-    if (!report?.reportID) {
-        return null;
-    }
 
     const isPolicyAdmin = isPolicyAdminUtil(policy);
     const isPolicyExpenseChat = isPolicyExpenseChatUtil(report);
@@ -120,6 +121,16 @@ function ReportDetailsAvatar({reportID}: ReportDetailsAvatarProps) {
             style={[styles.w100, styles.mb3]}
         />
     );
+}
+
+function ReportDetailsAvatar({reportID}: ReportDetailsAvatarProps) {
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+
+    if (!report?.reportID) {
+        return null;
+    }
+
+    return <ReportDetailsAvatarContent report={report} />;
 }
 
 export default ReportDetailsAvatar;
