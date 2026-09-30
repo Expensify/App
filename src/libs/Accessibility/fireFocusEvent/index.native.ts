@@ -1,5 +1,6 @@
 import Log from '@libs/Log';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports -- type-only; mirrors PressableRef's cross-platform host-instance union.
 import type {Text as RNText, View} from 'react-native';
 
@@ -9,7 +10,7 @@ import {AccessibilityInfo} from 'react-native';
  * Returns `false` on Android when `sendAccessibilityEvent` throws on a stale native handle so the caller can fall
  * through to the retry budget. iOS silently no-ops on a stale handle and returns `true` (no way to distinguish).
  */
-function fireFocusEvent(view: View | RNText): boolean {
+function fireFocusEvent(view: ComponentRef<typeof View> | ComponentRef<typeof RNText>): boolean {
     try {
         AccessibilityInfo.sendAccessibilityEvent(view, 'focus');
         return true;

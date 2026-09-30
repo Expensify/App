@@ -74,12 +74,14 @@ function MergeProviderCard({card, policy, handleConnect, canWriteMoreFeatures, s
         lastSyncErrorMessage = (
             <>
                 {`${translate('workspace.merge.authenticationError', card.displayName)} `}
-                <TextLink
-                    style={[styles.link, styles.fontSizeLabel]}
-                    onPress={handleConnect}
-                >
-                    {translate('workspace.merge.reconnectLink')}
-                </TextLink>
+                {!isOffline && (
+                    <TextLink
+                        style={[styles.link, styles.fontSizeLabel]}
+                        onPress={handleConnect}
+                    >
+                        {translate('workspace.merge.reconnectLink')}
+                    </TextLink>
+                )}
             </>
         );
     } else if (card.hasError) {
@@ -219,6 +221,7 @@ function MergeProviderCard({card, policy, handleConnect, canWriteMoreFeatures, s
                                     description={row.description}
                                     title={row.title}
                                     icon={row.icon}
+                                    numberOfLinesTitle={row.numberOfLinesTitle}
                                     style={styles.sectionMenuItemTopDescription}
                                     shouldShowRightIcon={canWriteMoreFeatures}
                                     brickRoadIndicator={row.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}

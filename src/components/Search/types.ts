@@ -1,4 +1,4 @@
-import type {UnitPosition, UnitWithFallback} from '@components/Charts';
+import type {ChartDataPoint} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SelectionListStyle} from '@components/SelectionList/types';
 
@@ -20,6 +20,7 @@ import type {
     TaskListItemType,
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
+    TransactionDayGroupListItemType,
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionMemberGroupListItemType,
@@ -168,6 +169,7 @@ type TaskSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TASK>;
 type SingularSearchStatus = ExpenseSearchStatus | ExpenseReportSearchStatus | InvoiceSearchStatus | TripSearchStatus | TaskSearchStatus;
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type SearchView = ValueOf<typeof CONST.SEARCH.VIEW>;
+type SearchCompareMode = ValueOf<typeof CONST.SEARCH.COMPARE>;
 // PieChart is not implemented so we exclude it here to prevent TypeScript errors in `SearchChartView.tsx`.
 type ChartView = Exclude<SearchView, 'table'>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
@@ -186,6 +188,7 @@ type SearchCustomColumnIds =
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CATEGORY>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MERCHANT>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.TAG>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.DAY>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR>
@@ -371,7 +374,8 @@ type SearchFilterKey =
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT;
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COMPARE;
 
 type RawFilterKey = SyntaxFilterKey | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
 
@@ -393,7 +397,9 @@ type SearchQueryAST = {
     filters: ASTNode;
     rawFilterList?: RawQueryFilter[];
     columns?: SearchCustomColumnIds | SearchCustomColumnIds[];
+    groupColumns?: SearchColumnType[];
     limit?: number;
+    compare?: SearchCompareMode;
 };
 
 type SearchQueryJSON = {
@@ -428,6 +434,7 @@ type SearchParams = {
     prevReportsLength?: number;
     shouldCalculateTotals: boolean;
     isLoading: boolean;
+    shouldSaveRecentSearch?: boolean;
 };
 
 type BankAccountMenuItem = {
@@ -446,34 +453,21 @@ type GroupedItem =
     | TransactionCategoryGroupListItemType
     | TransactionMerchantGroupListItemType
     | TransactionTagGroupListItemType
+    | TransactionDayGroupListItemType
     | TransactionMonthGroupListItemType
     | TransactionWeekGroupListItemType
     | TransactionYearGroupListItemType
     | TransactionQuarterGroupListItemType;
 
-type SearchChartProps = {
-    /** Grouped transaction data from search results */
-    data: GroupedItem[];
+type SearchChartDataRow = {
+    /** The point plotted on the chart */
+    point: ChartDataPoint;
 
-    /** Function to extract label from grouped item */
-    getLabel: (item: GroupedItem) => string;
+    /** The grouped search result the point was built from */
+    item: GroupedItem;
 
-    /** Function to extract the compact axis label from grouped item. When it returns undefined, `getLabel` is used. */
-    getShortLabel?: (item: GroupedItem) => string | undefined;
-
-    /** Function to build filter query from grouped item */
-    getFilterQuery: (item: GroupedItem) => string;
-
-    /** Callback when a chart item is pressed - receives the filter query to apply */
-    onItemPress?: (filterQuery: string) => void;
-
-    isLoading?: boolean;
-
-    /** Currency unit with font fallback support */
-    unit?: UnitWithFallback;
-
-    /** Position of currency symbol relative to value */
-    unitPosition?: UnitPosition;
+    /** Palette color the chart assigns this group */
+    color?: string;
 };
 
 type SearchFilterCommonProps<T> = {
@@ -530,6 +524,7 @@ export type {
     TableColumnSize,
     SearchGroupBy,
     SearchView,
+    SearchCompareMode,
     ChartView,
     SingularSearchStatus,
     SearchDatePreset,
@@ -542,6 +537,6 @@ export type {
     BankAccountMenuItem,
     SearchCustomColumnIds,
     GroupedItem,
-    SearchChartProps,
+    SearchChartDataRow,
     SearchFilterCommonProps,
 };

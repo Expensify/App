@@ -11,6 +11,7 @@ import variables from '@styles/variables';
 
 import type {Dimensions} from '@src/types/utils/Layout';
 
+import type {ComponentRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
 
@@ -607,7 +608,7 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
             <Animated.View
                 style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.w100]}
                 onLayout={onContainerLayout}
-                ref={(el: View | null) => ControlSelection.blockElement(el as HTMLElement | null)}
+                ref={(el: ComponentRef<typeof View> | null) => ControlSelection.blockElement(el as HTMLElement | null)}
             >
                 <View style={[styles.flex1, styles.w100]}>
                     {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}

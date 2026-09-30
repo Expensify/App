@@ -7,7 +7,7 @@ import {getBankAccountSearchLabel, isFilterableBankAccount} from '@libs/BankAcco
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import type {OptionList} from '@libs/OptionsListUtils';
+import type {GetOptionsConfig, OptionList} from '@libs/OptionsListUtils';
 import {getSearchOptions} from '@libs/OptionsListUtils';
 import {getAllTaxRates, getCleanedTagName, getExpensifyTeamExclusions, shouldShowPolicy} from '@libs/PolicyUtils';
 import {
@@ -57,6 +57,8 @@ type UseAutocompleteSuggestionsParams = {
     allCards: CardList | undefined;
     allFeeds: Record<string, CardFeeds | undefined> | undefined;
     options: OptionList;
+    /** Resolves a report from the same snapshot `options` was built from @see useFilteredOptions */
+    getReportByID: GetOptionsConfig['getReportByID'];
     draftComments: OnyxCollection<string>;
     isDefaultRoomsBetaEnabled: boolean;
     countryCode: OnyxEntry<number>;
@@ -78,6 +80,7 @@ const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY).map((value
 const VIEW_FRIENDLY_VALUES = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const EXPENSE_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
 const RECEIPT_TYPE_FRIENDLY_VALUES = CONST.SEARCH.SELECTABLE_RECEIPT_TYPES.map((value) => getUserFriendlyValue(value));
+const TRANSACTION_STATUS_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_STATUS).map((value) => getUserFriendlyValue(value));
 const WITHDRAWAL_TYPE_VALUES = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
 const WITHDRAWAL_STATUS_VALUES = Object.values(CONST.SEARCH.SETTLEMENT_STATUS);
 const PAID_STATUS_VALUES = Object.values(CONST.SEARCH.PAID_STATUS);
@@ -107,6 +110,7 @@ function useAutocompleteSuggestions({
     allCards = CONST.EMPTY_OBJECT,
     allFeeds,
     options,
+    getReportByID,
     draftComments,
     isDefaultRoomsBetaEnabled,
     countryCode,
@@ -275,6 +279,7 @@ function useAutocompleteSuggestions({
                 excludeFromSuggestionsOnly: memberExclusions,
                 isTrackIntentUser,
                 translate,
+                getReportByID,
                 rules,
             }).options.personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
@@ -317,6 +322,7 @@ function useAutocompleteSuggestions({
                 conciergeReportID,
                 isTrackIntentUser,
                 translate,
+                getReportByID,
                 rules,
             }).options.recentReports.filter((chat) => {
                 if (!chat.text) {
@@ -415,6 +421,16 @@ function useAutocompleteSuggestions({
             return filteredReceiptTypes.map((receiptType) => ({
                 filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.RECEIPT_TYPE,
                 text: receiptType,
+            }));
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS: {
+            const filteredTransactionStatuses = TRANSACTION_STATUS_FRIENDLY_VALUES.filter(
+                (transactionStatus) => transactionStatus.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(transactionStatus),
+            ).sort();
+
+            return filteredTransactionStatuses.map((transactionStatus) => ({
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TRANSACTION_STATUS,
+                text: transactionStatus,
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE: {

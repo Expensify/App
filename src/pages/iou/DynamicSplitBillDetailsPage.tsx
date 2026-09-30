@@ -13,6 +13,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactions from '@hooks/useReportTransactions';
@@ -66,7 +67,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(IOUTransactionID)}`);
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -181,14 +182,16 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
                             <MoneyRequestConfirmationList
                                 payeePersonalDetails={payeePersonalDetails}
                                 selectedParticipants={participantsExcludingPayee}
-                                shouldDisplayReceipt
                                 // Split bill details never render an editable participant row (the transaction is not from global create), so there is nothing to open.
                                 onOpenParticipantPicker={() => {}}
                                 iouType={CONST.IOU.TYPE.SPLIT}
                                 isReadOnly={!isEditingSplitBill}
                                 shouldShowSmartScanFields
-                                receiptPath={transaction?.receipt?.source}
-                                receiptFilename={transaction?.receipt?.filename}
+                                receiptOptions={{
+                                    shouldDisplayReceipt: true,
+                                    receiptPath: transaction?.receipt?.source,
+                                    receiptFilename: transaction?.receipt?.filename,
+                                }}
                                 isEditingSplitBill={isEditingSplitBill}
                                 hasSmartScanFailed={hasSmartScanFailed}
                                 reportID={reportID}

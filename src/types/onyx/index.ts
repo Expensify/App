@@ -98,7 +98,7 @@ import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData';
 import type InitiatingBankAccountUnlock from './InitiatingBankAccountUnlock';
 import type InsightsDashboard from './InsightsDashboard';
-import type {InsightsDashboardID, InsightsGraphKey} from './InsightsDashboard';
+import type {InsightsDashboardID, InsightsGraphKey, InsightsSearchKey} from './InsightsDashboard';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -142,7 +142,8 @@ import type {PolicyEmployeeList} from './PolicyEmployee';
 import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
-import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags} from './PolicyTag';
+import type PolicyRoomsMetadata from './PolicyRoomsMetadata';
+import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags, SearchTagFilterItem} from './PolicyTag';
 import type PolicyVendors from './PolicyVendor';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type PrivatePromoDiscount from './PrivatePromoDiscount';
@@ -184,6 +185,7 @@ import type SearchFilters from './SearchFilters';
 import type SearchFooterConversion from './SearchFooterConversion';
 import type SearchResults from './SearchResults';
 import type SearchSidebar from './SearchSidebar';
+import type SearchTagFiltersPaginationState from './SearchTagFiltersPaginationState';
 import type SecurityGroup from './SecurityGroup';
 import type {DomainSecurityGroupMembership} from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
@@ -275,6 +277,7 @@ export type {
     InsightsDashboard,
     InsightsDashboardID,
     InsightsGraphKey,
+    InsightsSearchKey,
     IntroSelected,
     IssueNewCard,
     AssignCardData,
@@ -327,6 +330,7 @@ export type {
     PolicyTags,
     PolicyTagLists,
     ParticipantsPolicyTags,
+    SearchTagFilterItem,
     PrivatePersonalDetails,
     QuickAction,
     ShareBankAccount,
@@ -397,7 +401,9 @@ export type {
     NewAgentTemplate,
     NewGroupChatDraft,
     PolicyJoinMember,
+    PolicyRoomsMetadata,
     SearchResults,
+    SearchTagFiltersPaginationState,
     ReviewDuplicates,
     PrivateSubscription,
     PrivatePromoDiscount,

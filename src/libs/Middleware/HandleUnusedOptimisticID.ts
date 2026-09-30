@@ -2,6 +2,7 @@ import {prepareOnyxDataForCleanUpOptimisticParticipants} from '@libs/actions/Rep
 import {WRITE_COMMANDS} from '@libs/API/types';
 import deepReplaceKeysAndValues from '@libs/deepReplaceKeysAndValues';
 import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
+import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 import type {Middleware} from '@libs/Request';
 
 import * as PersistedRequests from '@userActions/PersistedRequests';
@@ -156,11 +157,7 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
                             participants: redundantParticipants,
                         },
                     },
-                    {
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                        value: redundantParticipants,
-                    },
+                    buildPersonalDetailsUpdate(redundantParticipants),
                 );
             }
 
@@ -173,11 +170,7 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
                 invitedEmails ?? [],
             );
             if (!isEmptyObject(restoredPersonalDetails)) {
-                (response.onyxData as AnyOnyxUpdate[]).push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: restoredPersonalDetails,
-                });
+                (response.onyxData as AnyOnyxUpdate[]).push(buildPersonalDetailsUpdate(restoredPersonalDetails));
             }
         }
         return response;
