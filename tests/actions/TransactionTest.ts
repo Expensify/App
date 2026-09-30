@@ -20,7 +20,7 @@ import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
+import type {CardList, PersonalDetailsList, Policy, Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -42,15 +42,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
-    | 'transactions'
-    | 'allTransactionViolation'
-    | 'personalPolicyOutputCurrency'
-    | 'selfDMReportActions'
-    | 'delegateAccountID'
-    | 'getCurrencyDecimals'
-    | 'getCurrencySymbol'
-    | 'rules'
-    | 'cardList'
+    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol' | 'rules'
 > & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
@@ -71,7 +63,6 @@ function changeTransactionsReport({allTransactions, transactionIDs, transactionV
         getCurrencyDecimals: getCurrencyDecimalsLocal,
         getCurrencySymbol: getCurrencySymbolLocal,
         rules: undefined,
-        cardList: undefined,
         ...rest,
     });
 }
@@ -142,6 +133,7 @@ const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
+const RORY_CASH_CARD_ID = 777;
 
 const getTransactionAndExpenseReports = (reportID: string) => {
     const transactionReport = getReportOrDraftReport(reportID);
@@ -350,6 +342,7 @@ describe('actions/Transaction', () => {
                 transactionViolations: {},
                 selfDMReportActions,
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
 
             let updatedTransaction: OnyxEntry<Transaction>;
@@ -459,6 +452,7 @@ describe('actions/Transaction', () => {
                 reports: allReports,
                 selfDMReportActions: {[trackedExpenseAction.reportActionID]: trackedExpenseAction},
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -560,6 +554,7 @@ describe('actions/Transaction', () => {
                 reports: reportsSubset.current,
                 selfDMReportActions,
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -658,6 +653,7 @@ describe('actions/Transaction', () => {
                 personalPolicyOutputCurrency: 'EUR',
                 reports: undefined,
                 isTrackIntentUser: false,
+                cardList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -693,6 +689,19 @@ describe('actions/Transaction', () => {
                     ...sourceReportStatus,
                 } as Report;
 
+                const cardList: CardList = {
+                    [RORY_CASH_CARD_ID]: {
+                        cardID: RORY_CASH_CARD_ID,
+                        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                        bank: CONST.EXPENSIFY_CARD.BANK,
+                        domainName: '',
+                        lastUpdated: '',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        accountID: RORY_ACCOUNT_ID,
+                        cardName: CONST.CASH_CARD_NAME,
+                    },
+                };
+
                 const transaction: Transaction = {
                     transactionID: TRANSACTION_ID,
                     reportID: SOURCE_REPORT_ID,
@@ -700,6 +709,7 @@ describe('actions/Transaction', () => {
                     currency: CONST.CURRENCY.USD,
                     merchant: 'Test Merchant',
                     created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    cardID: RORY_CASH_CARD_ID,
                 };
 
                 // The IOU action links the expense to its transaction thread, which is where moved messages land.
@@ -753,6 +763,7 @@ describe('actions/Transaction', () => {
                     transactionViolations: {},
                     reports,
                     isTrackIntentUser: false,
+                    cardList,
                 });
                 await waitForBatchedUpdates();
 

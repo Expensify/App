@@ -5156,7 +5156,7 @@ const CONST = {
         // Corner radius scaled to the avatar size, used for workspace avatars
         ROUNDED_SQUARE: 'rounded-square',
     },
-
+    CASH_CARD_NAME: '__CASH__',
     COMPANY_CARD: {
         // Mostly used for feed details
         FEED_BANK_NAME: {
