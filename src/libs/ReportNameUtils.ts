@@ -221,7 +221,12 @@ type ComputeReportName = {
     rules: OnyxCollection<Rule>;
 };
 
-function getLocalizedSupportTicketReportName(report: Report, personalDetailsList: PersonalDetailsList | undefined, dateFnsLocale: DateFnsLocale | undefined, translate: LocalizedTranslate): string {
+function getLocalizedSupportTicketReportName(
+    report: Report,
+    personalDetailsList: PersonalDetailsList | undefined,
+    dateFnsLocale: DateFnsLocale | undefined,
+    translate: LocalizedTranslate,
+): string {
     const customer = temporaryGetDisplayNameOrDefault({
         passedPersonalDetails: report.ownerAccountID ? personalDetailsList?.[report.ownerAccountID] : undefined,
         defaultValue: '',
@@ -1262,7 +1267,7 @@ function computeReportName({
     }
 
     if (isSupportTicket(report)) {
-        return getSupportTicketReportName(report, personalDetailsList, dateFnsLocale, translate);
+        return getLocalizedSupportTicketReportName(report, personalDetailsList, dateFnsLocale, translate);
     }
 
     const privateIsArchivedValue = !!allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;
