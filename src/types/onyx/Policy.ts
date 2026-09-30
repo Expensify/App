@@ -2150,6 +2150,9 @@ type DualEntrySync = {
     /** Account code used for bill payment transactions. */
     billPaymentAccountID: string;
 
+    /** Expense account the company-paid currency conversion cost is booked to. Unset means the cost is not exported. */
+    fxExpenseAccountID?: string;
+
     /** Whether Expensify Card settlement transactions should be synchronized. */
     syncExpensifyCardSettlements: boolean;
 
