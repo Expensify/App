@@ -111,6 +111,10 @@ export default {
     iconFloatingTabBar: 20,
     /** Account avatar size in the floating tab bar. A circle reads smaller than a glyph of the same box, so it is larger. */
     avatarFloatingTabBar: avatarSizes.avatarSizeXSmall,
+    /** Glyph size in the iOS native tab bar. UITabBar gives each item more room than the JS bar, so its glyphs are larger. */
+    iconNativeTabBarIOS: 22,
+    /** Account avatar size in the iOS native tab bar, larger than its glyphs by the same amount as on the JS bar. */
+    avatarNativeTabBarIOS: 26,
     /** Radius of the status dot drawn into a native tab bar icon, and the room reserved for it around the glyph. */
     nativeTabIconDotRadius: 4,
     // Gap between the glyph and the label baked under it, matching the spacing the JS bar uses.

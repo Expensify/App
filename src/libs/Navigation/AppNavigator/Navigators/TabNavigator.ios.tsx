@@ -127,12 +127,12 @@ async function createTabIcon(
         return undefined;
     }
 
-    // The glyph assets are 24 pt and are drawn at the floating bar's glyph size, the one the JS bar uses.
-    const glyphWidth = variables.iconFloatingTabBar * scale;
-    const glyphHeight = variables.iconFloatingTabBar * scale;
+    // The glyph assets are 24 pt and are drawn at the native bar's glyph size.
+    const glyphWidth = variables.iconNativeTabBarIOS * scale;
+    const glyphHeight = variables.iconNativeTabBarIOS * scale;
     // The account avatar is taller than a glyph, so every glyph sits this far down to share its centre, and
     // every label lands at the same height.
-    const glyphTop = ((variables.avatarFloatingTabBar - variables.iconFloatingTabBar) / 2) * scale;
+    const glyphTop = ((variables.avatarNativeTabBarIOS - variables.iconNativeTabBarIOS) / 2) * scale;
     const gap = variables.nativeTabIconLabelGap * scale;
     const labelSize = measureLabel(label, isSelected, scale);
     const canvasWidth = Math.ceil(Math.max(glyphWidth, labelSize.width));
@@ -180,10 +180,10 @@ async function createCircularAvatarIcon(uri: string, dotColor: string | undefine
     const encodedImage = Skia.Data.fromBytes(new Uint8Array(await response.arrayBuffer()));
     const image = Skia.Image.MakeImageFromEncoded(encodedImage);
     const scale = variables.nativeTabIconScale;
-    const avatarSize = variables.avatarFloatingTabBar * scale;
+    const avatarSize = variables.avatarNativeTabBarIOS * scale;
     // The avatar overhangs a glyph by the same amount above and below, so its gap to the label shrinks by
     // that much and the label lands where every other tab's does.
-    const gap = (variables.nativeTabIconLabelGap - (variables.avatarFloatingTabBar - variables.iconFloatingTabBar) / 2) * scale;
+    const gap = (variables.nativeTabIconLabelGap - (variables.avatarNativeTabBarIOS - variables.iconNativeTabBarIOS) / 2) * scale;
     const labelSize = measureLabel(label, isSelected, scale);
     const canvasWidth = Math.ceil(Math.max(avatarSize, labelSize.width));
     const canvasHeight = Math.ceil(avatarSize + gap + labelSize.height);
