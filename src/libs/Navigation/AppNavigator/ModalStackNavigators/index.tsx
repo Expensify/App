@@ -1096,6 +1096,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_PAYMENT_CARD_CURRENCY_SELECTOR]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentCard/DynamicPaymentCardCurrencySelectorPage').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentCard').default,
+    [SCREENS.SETTINGS.EMAIL_ISSUE]: () => require<ReactComponentModule>('../../../../pages/settings/EmailIssue').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/CreateReportFieldsPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_REPORT_FIELDS_INITIAL_LIST_VALUE]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/reports/InitialListValueSelector/DynamicReportFieldsInitialListValuePage').default,

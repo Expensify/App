@@ -564,6 +564,7 @@ export type {default as GetValidateCodeForAccountMergeParams} from './GetValidat
 export type {default as MergeWithValidateCodeParams} from './MergeWithValidateCode';
 export type {default as OpenWorkspacePlanPageParams} from './OpenWorkspacePlanPage';
 export type {default as ResetSMSDeliveryFailureStatusParams} from './ResetSMSDeliveryFailureStatusParams';
+export type {default as UserUnblockEmailParams} from './UserUnblockEmailParams';
 export type {default as CreatePerDiemRequestParams} from './CreatePerDiemRequestParams';
 export type {default as QueueExpensifyCardForBillingParams} from './QueueExpensifyCardForBillingParams';
 export type {default as GetCorpayOnboardingFieldsParams} from './GetCorpayOnboardingFieldsParams';
