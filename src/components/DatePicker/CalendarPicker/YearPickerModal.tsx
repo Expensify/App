@@ -39,8 +39,12 @@ function YearPickerModal({isVisible, years, currentYear, onYearChange, onClose, 
     const initialYear = useInitialSelection(resolvedCurrentYear, {isVisible});
     // Pin the frozen initial year to the top of the full sorted list before search filtering, so it stays pinned while searching.
     // Copy before sorting so we don't mutate the caller's `years` prop during render.
-    const sortedYears = [...years].sort((a, b) => b.value - a.value);
-    const orderedYears = moveInitialSelectionToTop(sortedYears, [String(initialYear)]);
+    // Fix: sort correctly - selected year first, future years ascending, past years descending
+    const futureYears = years.filter(y => y.value > initialYear).sort((a, b) => a.value - b.value);
+    const pastYears = years.filter(y => y.value < initialYear).sort((a, b) => b.value - a.value);
+    const currentYear = years.find(y => y.value === initialYear);
+    const sortedYears = currentYear ? [currentYear, ...futureYears, ...pastYears] : [...futureYears, ...pastYears];
+    const orderedYears = sortedYears;
     const data = searchText === '' ? orderedYears : orderedYears.filter((year) => year.text?.includes(searchText));
     const headerMessage = !data.length ? translate('common.noResultsFound') : '';
 

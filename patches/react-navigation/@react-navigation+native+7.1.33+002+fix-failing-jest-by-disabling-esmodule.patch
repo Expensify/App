@@ -1,7 +1,0 @@
-diff --git a/node_modules/@react-navigation/native/lib/module/package.json b/node_modules/@react-navigation/native/lib/module/package.json
-index 089153b..0967ef4 100644
---- a/node_modules/@react-navigation/native/lib/module/package.json
-+++ b/node_modules/@react-navigation/native/lib/module/package.json
-@@ -1 +1 @@
--{"type":"module"}
-+{}
