@@ -5,7 +5,6 @@ import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {PolicyType} from '@src/types/form/WorkspaceConfirmationForm';
 import type {
     OnyxInputOrEntry,
@@ -29,10 +28,7 @@ import type {
     ConnectionName,
     Connections,
     CustomUnit,
-    NetSuiteAccount,
     NetSuiteConnection,
-    NetSuiteCustomList,
-    NetSuiteCustomSegment,
     PolicyConnectionSyncProgress,
     PolicyFeatureName,
     Rate,
@@ -51,7 +47,7 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
 
-import {getQuickbooksOnlineIntegrationName} from './AccountingUtils';
+import {getQuickbooksOnlineIntegrationName, isQBORefreshTokenExpiringSoon} from './AccountingUtils';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
@@ -179,9 +175,48 @@ function getActivePoliciesWithExpenseChatAndTimeEnabled(policies: OnyxCollection
 
 /**
  * Checks if the current user is an admin of the policy.
+ *
+ * By default this answers "is the *viewing* user an admin?", because `getPolicyRole` short-circuits on the global
+ * `policy.role`. When `login` belongs to somebody other than the current user you must pass
+ * `shouldCheckGlobalPolicyRole = false`, otherwise the `login` argument is silently ignored.
  */
 const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, login?: string, shouldCheckGlobalPolicyRole = true): boolean =>
     getPolicyRole(policy, login, shouldCheckGlobalPolicyRole) === CONST.POLICY.ROLE.ADMIN;
+
+/**
+ * Checks if the given account is the owner (creator) of the policy.
+ *
+ * The account is whoever you pass in, not necessarily the current user — callers resolving another member's role rely
+ * on that.
+ */
+const isPolicyOwner = (policy: OnyxInputOrEntry<Pick<Policy, 'ownerAccountID'>>, accountID: number | undefined): boolean => !!accountID && policy?.ownerAccountID === accountID;
+
+/**
+ * Whether a room member's own policy role protects them from being removed from a policy expense chat.
+ *
+ * Only a member who was invited to the chat can be removed from it. Everybody else is there by virtue of the
+ * workspace configuration, so their membership is governed by that configuration and not by this screen — see the
+ * expense chat rules in `contributingGuides/philosophies/SECURITY.md`. That covers admins, the policy owner and
+ * approvers, who are auto-added to the chats of everybody who submits to them.
+ *
+ * Fails closed on a missing `login`: without one we cannot resolve the member's role, and offering removal for a
+ * member whose role is unknown could remove a workspace admin. Both the member list and the member details page must
+ * agree on this, so it lives here rather than being spelled out at each call site.
+ *
+ * The policy owner is checked by `accountID` rather than by role. `ownerAccountID` is a required top-level field, so
+ * unlike `employeeList` it resolves even when the employee roster has not loaded, and the owner is only protected
+ * incidentally by `role: admin` otherwise. Note the callers' `report.ownerAccountID` is the *report* owner — the
+ * employee whose expense chat it is — which is a different person from the policy owner.
+ *
+ * The approver check is policy-wide rather than walking this submitter's own approval chain, so an approver for a
+ * different submitter who was invited into this chat is protected too. That errs toward un-removable, which is the
+ * safe direction here.
+ *
+ * `accountID` is deliberately a required position rather than optional: omitting it silently drops the owner
+ * protection, so every caller must state it even when it is `undefined`.
+ */
+const isRoomMemberProtectedByPolicyRole = (policy: OnyxInputOrEntry<Policy>, login: string | undefined, accountID: number | undefined): boolean =>
+    isPolicyOwner(policy, accountID) || !login || isPolicyAdmin(policy, login, false) || isPolicyApprover(policy, login);
 
 const WRITE_ALL_POLICY_FEATURES = Object.fromEntries(Object.values(CONST.POLICY.POLICY_FEATURE).map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE])) as Record<
     PolicyFeature,
@@ -642,6 +677,11 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
  */
 const isMergeHRCompleteSetupNeededSelector = (policy: OnyxEntry<Policy>) => isMergeHRCompleteSetupNeeded(policy);
 
+/**
+ * Returns whether an admin should be warned that the workspace's QuickBooks Online connection is about to expire.
+ */
+const isQBORefreshTokenExpiringSoonSelector = (policy: OnyxEntry<Policy>) => isPolicyAdmin(policy) && isQBORefreshTokenExpiringSoon(policy);
+
 function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string, shouldCheckGlobalPolicyRole = true): string | undefined {
     if (shouldCheckGlobalPolicyRole && policy?.role) {
         return policy.role;
@@ -651,7 +691,13 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: stri
         return;
     }
 
-    return policy?.employeeList?.[currentUserLogin]?.role;
+    // `employeeList` is keyed by the canonical lowercase login, but a login read off personal details is not
+    // guaranteed to be lowercase, so fall back to a normalized lookup when the exact key misses. Both lookups are
+    // O(1), unlike a case-insensitive scan of every employee, which would run per participant on member lists.
+    // Pick the employee entry first and read `role` off whichever matched: `role` is optional, so falling back on the
+    // role itself would resolve one account's role from a different account's entry when the exact entry has no role.
+    const employeeList = policy?.employeeList;
+    return (employeeList?.[currentUserLogin] ?? employeeList?.[currentUserLogin.toLowerCase()])?.role;
 }
 
 /**
@@ -772,7 +818,7 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
 }
 
 /** Check if the passed employee is an approver in the policy's employeeList */
-function isPolicyApprover(policy: OnyxEntry<Policy>, employeeLogin: string) {
+function isPolicyApprover(policy: OnyxInputOrEntry<Policy>, employeeLogin: string) {
     if (policy?.approver === employeeLogin) {
         return true;
     }
@@ -877,12 +923,6 @@ const isAdminOfCardEnabledPolicy = (policy: OnyxInputOrEntry<Policy>, login?: st
 const isPolicyEmployee = (policyID: string | undefined, policy: OnyxEntry<Policy>): boolean => {
     return !!policyID && policyID === policy?.id;
 };
-
-/**
- * Checks if the current user is an owner (creator) of the policy.
- */
-const isPolicyOwner = (policy: OnyxInputOrEntry<Pick<Policy, 'ownerAccountID'>>, currentUserAccountID: number | undefined): boolean =>
-    !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID;
 
 /**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors if includeMemberWithErrors is false, and get the login email from the personalDetail object using the accountID.
@@ -1739,6 +1779,11 @@ function arePaymentsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
     return getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 }
 
+/** Whether the workspace has everything auto-pay approved reports needs: workflows, direct reimbursements, and a business bank account. */
+function isAutoPayApprovedReportsAvailable(policy: OnyxInputOrEntry<Policy>): boolean {
+    return !!policy?.areWorkflowsEnabled && getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && !!policy?.achAccount?.bankAccountID;
+}
+
 /**
  * Returns true when the user is both a submitter and an approver, mirroring the Submit/Approve suggested-search eligibility in
  * `getSuggestedSearchesVisibility` (SearchUIUtils): a submitter is a member of any group workspace, and an approver is a member of a
@@ -2445,196 +2490,6 @@ function settingsPendingAction(settings?: string[], pendingFields?: PendingField
         return;
     }
     return pendingFields[key];
-}
-
-function getNetSuiteVendorOptions(policy: Policy | undefined, selectedVendorId: string | undefined): SelectorType[] {
-    const vendors = policy?.connections?.netsuite?.options.data.vendors;
-
-    return (vendors ?? []).map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: id === selectedVendorId,
-    }));
-}
-
-function getNetSuitePayableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
-
-    return (payableAccounts ?? []).map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: id === selectedBankAccountId,
-    }));
-}
-
-function getNetSuiteReceivableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const receivableAccounts = policy?.connections?.netsuite?.options.data.receivableList;
-
-    return (receivableAccounts ?? []).map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: id === selectedBankAccountId,
-    }));
-}
-
-function getNetSuiteExpenseAccountOptions(policy: Policy | undefined, selectedExpenseAccountId: string | undefined): SelectorType[] {
-    const expenseAccounts = policy?.connections?.netsuite?.options.data.expenseAccounts;
-
-    return (expenseAccounts ?? []).map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: id === selectedExpenseAccountId,
-    }));
-}
-
-function getNetSuiteInvoiceItemOptions(policy: Policy | undefined, selectedItemId: string | undefined): SelectorType[] {
-    const invoiceItems = policy?.connections?.netsuite?.options.data.items;
-
-    return (invoiceItems ?? []).map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: id === selectedItemId,
-    }));
-}
-
-function getNetSuiteTaxAccountOptions(policy: Policy | undefined, subsidiaryCountry?: string, selectedAccountId?: string): SelectorType[] {
-    const taxAccounts = policy?.connections?.netsuite?.options.data.taxAccountsList;
-    const accountOptions = (taxAccounts ?? []).filter(({country}) => country === subsidiaryCountry);
-
-    return accountOptions.map(({externalID, name}) => ({
-        value: externalID,
-        text: name,
-        keyForList: externalID,
-        isSelected: externalID === selectedAccountId,
-    }));
-}
-
-function canUseTaxNetSuite(canUseNetSuiteUSATax?: boolean, subsidiaryCountry?: string) {
-    return !!canUseNetSuiteUSATax || CONST.NETSUITE_TAX_COUNTRIES.includes(subsidiaryCountry ?? '');
-}
-
-function canUseProvincialTaxNetSuite(subsidiaryCountry?: string) {
-    return subsidiaryCountry === '_canada';
-}
-
-function getFilteredReimbursableAccountOptions(payableAccounts: NetSuiteAccount[] | undefined) {
-    return (payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.BANK || type === CONST.NETSUITE_ACCOUNT_TYPE.CREDIT_CARD);
-}
-
-function getNetSuiteReimbursableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
-    const accountOptions = getFilteredReimbursableAccountOptions(payableAccounts);
-
-    return accountOptions.map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: id === selectedBankAccountId,
-    }));
-}
-
-function getFilteredCollectionAccountOptions(payableAccounts: NetSuiteAccount[] | undefined) {
-    return (payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.BANK);
-}
-
-function getNetSuiteCollectionAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
-    const accountOptions = getFilteredCollectionAccountOptions(payableAccounts);
-
-    return accountOptions.map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: id === selectedBankAccountId,
-    }));
-}
-
-function getFilteredApprovalAccountOptions(payableAccounts: NetSuiteAccount[] | undefined) {
-    return (payableAccounts ?? []).filter(({type}) => type === CONST.NETSUITE_ACCOUNT_TYPE.ACCOUNTS_PAYABLE);
-}
-
-function getNetSuiteApprovalAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined, translate: LocalizedTranslate): SelectorType[] {
-    const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
-    const defaultApprovalAccount: NetSuiteAccount = {
-        id: CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT,
-        name: translate('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
-        type: CONST.NETSUITE_ACCOUNT_TYPE.ACCOUNTS_PAYABLE,
-    };
-    const accountOptions = getFilteredApprovalAccountOptions([defaultApprovalAccount].concat(payableAccounts ?? []));
-
-    // When nothing is explicitly set, the synthesized default approval account is the effective selection in NetSuite.
-    const effectiveSelectionId = selectedBankAccountId ?? CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT;
-
-    return accountOptions.map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: id === effectiveSelectionId,
-    }));
-}
-
-function getCustomersOrJobsLabelNetSuite(policy: Policy | undefined, translate: LocaleContextProps['translate']): string | undefined {
-    const importMapping = policy?.connections?.netsuite?.options?.config?.syncOptions?.mapping;
-    if (!importMapping?.customers && !importMapping?.jobs) {
-        return undefined;
-    }
-    const importFields: string[] = [];
-    const importCustomer = importMapping?.customers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
-    const importJobs = importMapping?.jobs ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
-
-    if (importCustomer === CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT && importJobs === CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
-        return undefined;
-    }
-
-    const importedValue = importMapping?.customers !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT ? importCustomer : importJobs;
-
-    if (importCustomer !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
-        importFields.push(translate('workspace.netsuite.import.customersOrJobs.customers'));
-    }
-
-    if (importJobs !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
-        importFields.push(translate('workspace.netsuite.import.customersOrJobs.jobs'));
-    }
-
-    const importedValueLabel = translate(`workspace.netsuite.import.customersOrJobs.label`, importFields, translate(`workspace.accounting.importTypes.${importedValue}`).toLowerCase());
-    return importedValueLabel.charAt(0).toUpperCase() + importedValueLabel.slice(1);
-}
-
-function getNetSuiteImportCustomFieldLabel(
-    policy: Policy | undefined,
-    importField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>,
-    translate: LocaleContextProps['translate'],
-    localeCompare: LocaleContextProps['localeCompare'],
-): string | undefined {
-    const fieldData = policy?.connections?.netsuite?.options?.config.syncOptions?.[importField] ?? [];
-    if (fieldData.length === 0) {
-        return undefined;
-    }
-
-    const mappingSet = new Set(fieldData.map((item) => item.mapping));
-    const importedTypes = Array.from(mappingSet)
-        .sort((a, b) => localeCompare(b, a))
-        .map((mapping) => translate(`workspace.netsuite.import.importTypes.${mapping !== '' ? mapping : 'TAG'}.label`).toLowerCase());
-    return translate(`workspace.netsuite.import.importCustomFields.label`, importedTypes);
-}
-
-function isNetSuiteCustomSegmentRecord(customField: NetSuiteCustomList | NetSuiteCustomSegment): boolean {
-    return 'segmentName' in customField;
-}
-
-function getNameFromNetSuiteCustomField(customField: NetSuiteCustomList | NetSuiteCustomSegment): string {
-    return 'segmentName' in customField ? customField.segmentName : customField.listName;
-}
-
-function isNetSuiteCustomFieldPropertyEditable(customField: NetSuiteCustomList | NetSuiteCustomSegment, fieldName: string) {
-    const fieldsAllowedToEdit = isNetSuiteCustomSegmentRecord(customField) ? [INPUT_IDS.SEGMENT_NAME, INPUT_IDS.INTERNAL_ID, INPUT_IDS.SCRIPT_ID, INPUT_IDS.MAPPING] : [INPUT_IDS.MAPPING];
-    const fieldKey = fieldName as keyof typeof customField;
-    return fieldsAllowedToEdit.includes(fieldKey);
 }
 
 function getIntegrationLastSuccessfulDate(
@@ -3830,6 +3685,7 @@ export {
     isGroupPolicyByType,
     isPendingDeletePolicy,
     isPolicyAdmin,
+    isRoomMemberProtectedByPolicyRole,
     isPolicyUser,
     isPolicyAuditor,
     isAdminOfCardEnabledPolicy,
@@ -3850,6 +3706,7 @@ export {
     PAYER_ROLES,
     canRolePay,
     arePaymentsEnabled,
+    isAutoPayApprovedReportsAvailable,
     getReimbursementChoice,
     isSubmitterAndApprover,
     isSubmitAndClose,
@@ -3868,21 +3725,7 @@ export {
     getXeroBankAccounts,
     getXeroExpenseAccounts,
     hasPolicyWithXeroConnection,
-    getNetSuiteVendorOptions,
-    canUseTaxNetSuite,
-    canUseProvincialTaxNetSuite,
     getEligibleBankAccountShareRecipientEmails,
-    getFilteredReimbursableAccountOptions,
-    getNetSuiteReimbursableAccountOptions,
-    getFilteredCollectionAccountOptions,
-    getNetSuiteCollectionAccountOptions,
-    getFilteredApprovalAccountOptions,
-    getNetSuiteApprovalAccountOptions,
-    getNetSuitePayableAccountOptions,
-    getNetSuiteReceivableAccountOptions,
-    getNetSuiteExpenseAccountOptions,
-    getNetSuiteInvoiceItemOptions,
-    getNetSuiteTaxAccountOptions,
     getSageIntacctVendors,
     getSageIntacctNonReimbursableActiveDefaultVendor,
     getSageIntacctCreditCards,
@@ -3901,7 +3744,6 @@ export {
     navigateToExpensifyCardPage,
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
-    getCustomersOrJobsLabelNetSuite,
     getDefaultApprover,
     hasCustomApprovalWorkflow,
     getApprovalWorkflow,
@@ -3909,9 +3751,6 @@ export {
     isControlPolicy,
     isAttendeeTrackingEnabled,
     isCollectPolicy,
-    isNetSuiteCustomSegmentRecord,
-    getNameFromNetSuiteCustomField,
-    isNetSuiteCustomFieldPropertyEditable,
     getCurrentSageIntacctEntityName,
     hasOnlyPersonalPolicies,
     getCurrentTaxID,
@@ -3933,7 +3772,6 @@ export {
     getDomainNameForPolicy,
     hasSupportedOnlyOnOldDotIntegration,
     getWorkflowApprovalsUnavailable,
-    getNetSuiteImportCustomFieldLabel,
     getUserFriendlyWorkspaceType,
     getDefaultWorkspacePlanType,
     isPolicyAccessible,
@@ -3987,6 +3825,7 @@ export {
     hasAnyPaidPolicy,
     isTaxCodeCustomized,
     isMergeHRCompleteSetupNeededSelector,
+    isQBORefreshTokenExpiringSoonSelector,
 };
 
 export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess};
