@@ -306,6 +306,7 @@ const config = defineConfig([
             'rulesdir/no-raw-typography': 'error',
             'rulesdir/no-direct-personal-details-list': 'error',
             'rulesdir/require-locale-for-localized-date-format': 'error',
+            'rulesdir/no-unsafe-onyx-read': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
                 {
