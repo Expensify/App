@@ -1,10 +1,11 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -16,10 +17,9 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {
     canEditRoomVisibility,
     canEditWriteCapability,
-    getReportNotificationPreference,
+    getReportNotificationPreferenceForSettings,
     isAdminRoom,
     isArchivedNonExpenseReport as isArchivedNonExpenseReportUtils,
-    isHiddenForCurrentUser,
     isMoneyRequestReport as isMoneyRequestReportUtils,
     isSelfDM,
 } from '@libs/ReportUtils';
@@ -45,22 +45,21 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
     const {translate} = useLocalize();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_SETTINGS.path);
     const isReportArchived = useReportIsArchived(reportID);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const currentUserParticipant = currentUserAccountID ? report?.participants?.[currentUserAccountID] : undefined;
     const isArchivedNonExpenseReport = isArchivedNonExpenseReportUtils(report, isReportArchived);
     // The workspace the report is on, null if the user isn't a member of the workspace
     const linkedWorkspace = useMemo(() => (report?.policyID && policy?.id === report?.policyID ? policy : undefined), [policy, report?.policyID]);
     const isMoneyRequestReport = isMoneyRequestReportUtils(report);
     const shouldDisableSettings = isArchivedNonExpenseReport || isEmptyObject(report) || isSelfDM(report);
-    const notificationPreferenceValue = getReportNotificationPreference(report);
-    const notificationPreference =
-        notificationPreferenceValue && !isHiddenForCurrentUser(notificationPreferenceValue)
-            ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}`)
-            : '';
+    const notificationPreferenceValue = getReportNotificationPreferenceForSettings(report, currentUserAccountID);
+    const notificationPreference = notificationPreferenceValue ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}`) : '';
     const writeCapability = isAdminRoom(report) ? CONST.REPORT.WRITE_CAPABILITIES.ADMINS : (report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL);
     const writeCapabilityText = translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
     const shouldAllowWriteCapabilityEditing = useMemo(() => canEditWriteCapability(report, linkedWorkspace, isReportArchived), [report, linkedWorkspace, isReportArchived]);
     const shouldAllowChangeVisibility = useMemo(() => canEditRoomVisibility(linkedWorkspace, isArchivedNonExpenseReport), [linkedWorkspace, isArchivedNonExpenseReport]);
 
-    const shouldShowNotificationPref = !isMoneyRequestReport && !isHiddenForCurrentUser(notificationPreferenceValue);
+    const shouldShowNotificationPref = !isMoneyRequestReport && !!currentUserParticipant;
 
     const shouldShowWriteCapability = !isMoneyRequestReport;
 
@@ -73,52 +72,49 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
                 />
                 <ScrollView style={[styles.flex1]}>
                     {shouldShowNotificationPref && (
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
-                            title={notificationPreference}
-                            description={translate('notificationPreferencesPage.label')}
+                        <MenuItemField
+                            name={translate('notificationPreferencesPage.label')}
                             onPress={() => {
                                 if (!reportID) {
                                     return;
                                 }
                                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(reportID)));
                             }}
+                            value={notificationPreference}
                         />
                     )}
-                    {shouldShowWriteCapability &&
-                        (shouldAllowWriteCapabilityEditing ? (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={writeCapabilityText}
-                                description={translate('writeCapabilityPage.label')}
-                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.path))}
-                            />
-                        ) : (
-                            <View style={[styles.ph5, styles.pv3]}>
-                                <Text
-                                    style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
-                                    numberOfLines={1}
-                                >
-                                    {translate('writeCapabilityPage.label')}
-                                </Text>
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.optionAlternateText, styles.pre]}
-                                >
-                                    {writeCapabilityText}
-                                </Text>
-                            </View>
-                        ))}
+                    {shouldShowWriteCapability && shouldAllowWriteCapabilityEditing && (
+                        <MenuItemField
+                            name={translate('writeCapabilityPage.label')}
+                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.path))}
+                            value={writeCapabilityText}
+                        />
+                    )}
+                    {shouldShowWriteCapability && !shouldAllowWriteCapabilityEditing && (
+                        <View style={[styles.ph5, styles.pv3]}>
+                            <Text
+                                style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
+                                numberOfLines={1}
+                            >
+                                {translate('writeCapabilityPage.label')}
+                            </Text>
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.optionAlternateText, styles.pre]}
+                            >
+                                {writeCapabilityText}
+                            </Text>
+                        </View>
+                    )}
                     {!!report?.visibility &&
                         report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE &&
                         (shouldAllowChangeVisibility ? (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={translate(`newRoomPage.visibilityOptions.${report.visibility}`)}
-                                description={translate('newRoomPage.visibility')}
+                            <MenuItemField
+                                name={translate('newRoomPage.visibility')}
                                 onPress={() => {
                                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_VISIBILITY.path));
                                 }}
+                                value={translate(`newRoomPage.visibilityOptions.${report.visibility}`)}
                             />
                         ) : (
                             <View style={[styles.pv3, styles.ph5]}>

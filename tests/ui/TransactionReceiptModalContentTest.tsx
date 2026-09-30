@@ -1,7 +1,7 @@
 /** Exercises receipt editing through the modal and the web and native image producers. */
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
-import type {ButtonProps} from '@components/ButtonComposed';
+import type {ButtonProps} from '@components/Button';
 import type ReceiptCropView from '@components/ReceiptCropView';
 
 import useAllTransactions from '@hooks/useAllTransactions';
@@ -15,6 +15,7 @@ import fetchImage from '@libs/fetchImage';
 import * as ReceiptPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import ReceiptStorage from '@libs/ReceiptStorage';
+import type * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {logReceiptAdoptFailed} from '@libs/telemetry/ReceiptObservability';
 
 import type AttachmentModalContainerProps from '@pages/media/AttachmentModalScreen/AttachmentModalContainer/types';
@@ -68,7 +69,11 @@ jest.mock('@libs/telemetry/ReceiptObservability', () => ({logReceiptAdoptFailed:
 jest.mock('@libs/ReceiptStorage', () => ({__esModule: true, default: {adopt: jest.fn(), toLocalUri: jest.fn(), resolve: jest.fn()}}));
 jest.mock('@libs/fetchImage', () => ({__esModule: true, default: jest.fn()}));
 jest.mock('@libs/Navigation/Navigation', () => ({__esModule: true, default: {goBack: jest.fn(), navigate: jest.fn(), dismissModal: jest.fn()}}));
-jest.mock('@libs/ReportActionsUtils', () => ({getReportAction: jest.fn(), isTrackExpenseAction: () => false}));
+jest.mock('@libs/ReportActionsUtils', () => ({
+    getIOUActionForTransactionID: jest.requireActual<typeof ReportActionsUtils>('@libs/ReportActionsUtils').getIOUActionForTransactionID,
+    getReportAction: jest.fn(),
+    isTrackExpenseAction: () => false,
+}));
 // Permissions are fixed here so each case reaches the modal's editing handlers.
 jest.mock('@libs/ReportUtils', () => ({canEditFieldOfMoneyRequest: () => true, isMoneyRequestReport: () => true, isTrackExpenseReport: () => false}));
 jest.mock('@hooks/useAllTransactions', () => ({__esModule: true, default: jest.fn()}));
@@ -82,7 +87,7 @@ jest.mock('@hooks/useLazyAsset', () => ({useMemoizedLazyExpensifyIcons: () => ({
 jest.mock('@hooks/useThemeStyles', () => ({__esModule: true, default: () => ({})}));
 jest.mock('@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment', () => ({__esModule: true, default: () => jest.fn()}));
 
-jest.mock('@components/ButtonComposed', () => {
+jest.mock('@components/Button', () => {
     const {Pressable, Text} = jest.requireActual<typeof ReactNative>('react-native');
     function ReceiptButton({onPress, children, isDisabled, isLoading}: ButtonProps) {
         return (
@@ -207,10 +212,13 @@ afterEach(() => jest.restoreAllMocks());
 
 describe('TransactionReceiptModalContent image editing', () => {
     it.each(['web', 'android', 'ios'] as const)('rotates a %s receipt and uploads the durable producer representation', async (platform) => {
+        // Given each platform produces a different upload shape for the same receipt.
         mockNativeProducer = platform !== 'web';
         jest.replaceProperty(Platform, 'OS', platform);
         await renderReceipt();
+        // When the user rotates that receipt through the modal control.
         fireEvent.press(screen.getByText('common.rotate'));
+        // Then the durable receipt reaches replacement with its platform-specific file and scan state.
         await waitFor(() => expect(replaceReceipt).toHaveBeenCalledTimes(1));
         const replacement = jest.mocked(replaceReceipt).mock.calls.at(0)?.[0];
         expect(replacement).toBeDefined();
@@ -239,6 +247,7 @@ describe('TransactionReceiptModalContent image editing', () => {
     });
 
     it.each([true, false])('retains the iOS fallback when dimension lookup succeeds: %s', async (hasDimensions) => {
+        // Given iOS cannot render the edit and dimensions may also be unavailable.
         mockNativeProducer = true;
         jest.replaceProperty(Platform, 'OS', 'ios');
         jest.spyOn(imageContext, 'renderAsync').mockRejectedValueOnce(new Error('image allocation failed'));
@@ -246,7 +255,9 @@ describe('TransactionReceiptModalContent image editing', () => {
             jest.spyOn(ImageSize, 'getSize').mockRejectedValueOnce(new Error('dimensions unavailable'));
         }
         await renderReceipt();
+        // When the user rotates the receipt despite that producer failure.
         fireEvent.press(screen.getByText('common.rotate'));
+        // Then the original image is adopted with measured or safe fallback dimensions.
         await waitFor(() => expect(replaceReceipt).toHaveBeenCalledTimes(1));
         const replacement = jest.mocked(replaceReceipt).mock.calls.at(0)?.[0];
         expect(replacement).toBeDefined();
@@ -258,12 +269,15 @@ describe('TransactionReceiptModalContent image editing', () => {
     });
 
     it.each(['web', 'android'] as const)('logs adoption failure and keeps the original %s manipulation URI', async (platform) => {
+        // Given durable storage rejects a manipulated receipt on either producer path.
         mockNativeProducer = platform === 'android';
         jest.replaceProperty(Platform, 'OS', platform);
         const adoptionError = new Error('receipt folder unavailable');
         jest.mocked(ReceiptStorage.adopt).mockRejectedValueOnce(adoptionError);
         await renderReceipt();
+        // When the user rotates the receipt and storage adoption fails.
         fireEvent.press(screen.getByText('common.rotate'));
+        // Then replacement uses the produced URI and records the failed adoption.
         await waitFor(() => expect(replaceReceipt).toHaveBeenCalledTimes(1));
         const replacement = jest.mocked(replaceReceipt).mock.calls.at(0)?.[0];
         expect(replacement).toBeDefined();
@@ -275,29 +289,35 @@ describe('TransactionReceiptModalContent image editing', () => {
     });
 
     it.each(['web', 'android'] as const)('floors and clamps crop geometry for %s without the rotation-only flags', async (platform) => {
+        // Given the crop selector supplies fractional and out-of-bounds geometry for a receipt.
         mockNativeProducer = platform === 'android';
         jest.replaceProperty(Platform, 'OS', platform);
         await renderReceipt();
+        // When the user crops and saves through the modal's real controls.
         fireEvent.press(screen.getByText('receipt.crop'));
         expect(screen.getByTestId('crop-uri')).toHaveTextContent(originalUri);
         fireEvent.press(screen.getByRole('button', {name: 'Select crop'}));
         fireEvent.press(screen.getByText('common.save'));
+        // Then the crop is bounded while the durable source retains same-receipt state and rotation stays unused.
         await waitFor(() => expect(replaceReceipt).toHaveBeenCalledTimes(1));
         const replacement = jest.mocked(replaceReceipt).mock.calls.at(0)?.[0];
         expect(replacement).toBeDefined();
         expect(replacement?.file).toMatchObject({uri: durableUri, source: durableUri});
-        expect(replacement).not.toHaveProperty('isSameReceipt');
-        expect(replacement).not.toHaveProperty('state');
+        expect(replacement?.isSameReceipt).toBe(true);
+        expect(replacement?.state).toBe(receiptTransaction.receipt?.state);
         expect(jest.spyOn(imageContext, 'crop')).toHaveBeenCalledWith({originX: 0, originY: 8, width: 15, height: 1});
         expect(jest.spyOn(imageContext, 'rotate')).not.toHaveBeenCalled();
         expect(screen.queryByRole('button', {name: 'Select crop'})).toBeNull();
     });
 
     it('writes the draft receipt using its transaction key', async () => {
+        // Given a draft expense receipt has no existing replacement action.
         mockNativeProducer = true;
         jest.replaceProperty(Platform, 'OS', 'android');
         await renderReceipt(receiptTransaction, {action: CONST.IOU.ACTION.CREATE});
+        // When its image is rotated from the draft modal.
         fireEvent.press(screen.getByText('common.rotate'));
+        // Then the draft update uses the transaction key instead of the existing-receipt route.
         await waitFor(() => expect(setMoneyRequestReceipt).toHaveBeenCalledTimes(1));
         expect(setMoneyRequestReceipt).toHaveBeenCalledWith(transactionID, durableUri, receiptName, true, CONST.IMAGE_FILE_FORMAT.JPEG);
         expect(replaceReceipt).not.toHaveBeenCalled();
@@ -310,6 +330,7 @@ describe('TransactionReceiptModalContent image editing', () => {
         {imageType: CONST.IOU.ODOMETER_IMAGE_TYPE.START, isDraft: false, isEditingConfirmation: false},
         {imageType: CONST.IOU.ODOMETER_IMAGE_TYPE.END, isDraft: false, isEditingConfirmation: true},
     ])('routes $imageType odometer edits with draft=$isDraft and confirmation=$isEditingConfirmation', async ({imageType, isDraft, isEditingConfirmation}) => {
+        // Given either odometer image can be edited in draft or existing confirmation flows.
         mockNativeProducer = true;
         jest.replaceProperty(Platform, 'OS', 'android');
         const odometerTransaction = createMock<Transaction>({
@@ -321,7 +342,9 @@ describe('TransactionReceiptModalContent image editing', () => {
             },
         });
         await renderReceipt(odometerTransaction, {imageType, isEditingConfirmation, ...(isDraft ? {action: CONST.IOU.ACTION.CREATE} : {})});
+        // When the selected image is rotated from the modal.
         fireEvent.press(screen.getByText('common.rotate'));
+        // Then odometer routing retains image identity and the draft and confirmation flags.
         await waitFor(() => expect(setMoneyRequestOdometerImage).toHaveBeenCalledTimes(1));
         const odometerUpdate = jest.mocked(setMoneyRequestOdometerImage).mock.calls.at(0);
         expect(odometerUpdate).toBeDefined();
@@ -336,6 +359,7 @@ describe('TransactionReceiptModalContent image editing', () => {
     });
 
     it.each(['rotate', 'crop'] as const)('clears busy state after a rejected %s and permits retry', async (operation) => {
+        // Given the first edit fails for either modal operation.
         mockNativeProducer = true;
         jest.replaceProperty(Platform, 'OS', 'android');
         jest.spyOn(imageContext, 'renderAsync').mockRejectedValueOnce(new Error('manipulation failed'));
@@ -344,9 +368,11 @@ describe('TransactionReceiptModalContent image editing', () => {
             fireEvent.press(screen.getByText('receipt.crop'));
             fireEvent.press(screen.getByRole('button', {name: 'Select crop'}));
         }
+        // When the first edit fails and settles, the user retries to confirm the modal remains usable.
         const buttonText = operation === 'crop' ? 'common.save' : 'common.rotate';
         fireEvent.press(screen.getByText(buttonText));
         await waitForBatchedUpdatesWithAct();
+        // Then no failed upload is sent, and a second press can complete replacement.
         expect(replaceReceipt).not.toHaveBeenCalled();
         expect(ReceiptStorage.adopt).not.toHaveBeenCalled();
         fireEvent.press(screen.getByText(buttonText));
@@ -355,14 +381,17 @@ describe('TransactionReceiptModalContent image editing', () => {
     });
 
     it('ignores rotation and exits cropping when authentication supplies no image URI', async () => {
+        // Given authentication cannot provide bytes for a remote receipt image.
         jest.mocked(fetchImage).mockResolvedValue('');
         const remoteReceipt = createMock<Transaction>({...receiptTransaction, receipt: {...receiptTransaction.receipt, source: 'https://example.com/receipt.jpeg'}});
         await renderReceipt(remoteReceipt);
+        // When the user attempts rotation and then a crop save.
         fireEvent.press(screen.getByText('common.rotate'));
         fireEvent.press(screen.getByText('receipt.crop'));
         fireEvent.press(screen.getByRole('button', {name: 'Select crop'}));
         fireEvent.press(screen.getByText('common.save'));
         await waitForBatchedUpdatesWithAct();
+        // Then no image edit or upload runs and cropping closes safely.
         expect(jest.spyOn(ImageManipulator, 'manipulate')).not.toHaveBeenCalled();
         expect(ReceiptStorage.adopt).not.toHaveBeenCalled();
         expect(replaceReceipt).not.toHaveBeenCalled();
@@ -370,10 +399,13 @@ describe('TransactionReceiptModalContent image editing', () => {
     });
 
     it('cycles PDF rotation through the four quarter turns', async () => {
+        // Given a PDF receipt uses display rotation rather than image manipulation.
         // Jest resolves getPlatform to its native module independently of Platform.OS.
         jest.spyOn(ReceiptPlatform, 'default').mockReturnValue(CONST.PLATFORM.WEB);
         const pdfTransaction = createMock<Transaction>({...receiptTransaction, receipt: {source: 'file:///receipts/original.pdf', filename: 'receipt.pdf', type: 'application/pdf'}});
+        // When the PDF modal renders and the user requests successive rotations.
         await renderReceipt(pdfTransaction);
+        // Then the displayed angle cycles and the image manipulator remains unused.
         expect(screen.getByTestId('pdf-rotation')).toHaveTextContent('0');
         for (const rotation of [270, 180, 90, 0]) {
             fireEvent.press(screen.getByText('common.rotate'));

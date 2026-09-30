@@ -1,10 +1,12 @@
 import useDragAndDrop from '@hooks/useDragAndDrop';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {shouldAcceptDrop} from '@libs/DragAndDropUtils';
+
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
 import viewRef from '@src/types/utils/viewRef';
 
-import type {ReactNode} from 'react';
+import type {ComponentRef, ReactNode} from 'react';
 
 import React, {useRef} from 'react';
 import {View} from 'react-native';
@@ -18,10 +20,10 @@ type DropZoneWrapperProps = {
 
 function DropZoneWrapper({onDrop, children}: DropZoneWrapperProps) {
     const styles = useThemeStyles();
-    const dropZone = useRef<HTMLDivElement | View>(null);
+    const dropZone = useRef<HTMLDivElement | ComponentRef<typeof View>>(null);
 
     const {isDraggingOver} = useDragAndDrop({
-        shouldAcceptDrop: (event) => !!event.dataTransfer?.types.some((type) => type === 'Files'),
+        shouldAcceptDrop,
         onDrop,
         shouldStopPropagation: false,
         shouldHandleDragEvent: false,

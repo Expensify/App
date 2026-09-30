@@ -20,6 +20,7 @@ import CONST from '@src/CONST';
 
 import type {} from '@fullstory/react-native';
 import type {MutedChangeEventPayload, PlayingChangeEventPayload, StatusChangeEventPayload, VideoPlayer} from 'expo-video';
+import type {ComponentRef} from 'react';
 
 import {useEvent, useEventListener} from 'expo';
 import {useVideoPlayer, VideoView} from 'expo-video';
@@ -144,9 +145,9 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     }, [isLoading, isVideoOffline, isOffline]);
 
     const videoViewRef = useRef<VideoView | null>(null);
-    const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
-    const videoPlayerElementRef = useRef<View | HTMLVideoElement | null>(null);
-    const sharedVideoPlayerParentRef = useRef<View | HTMLDivElement | null>(null);
+    const videoPlayerElementParentRef = useRef<ComponentRef<typeof View> | HTMLDivElement | null>(null);
+    const videoPlayerElementRef = useRef<ComponentRef<typeof View> | HTMLVideoElement | null>(null);
+    const sharedVideoPlayerParentRef = useRef<ComponentRef<typeof View> | HTMLDivElement | null>(null);
     const isReadyForDisplayRef = useRef(false);
     const savedCurrentTimeRef = useRef(0);
     const shouldUseSharedVideoElementRef = useRef(shouldUseSharedVideoElement);
@@ -504,7 +505,13 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
             videoPlayerRef.current = currentVideoPlayerRef.current;
             videoViewRef.current = currentVideoViewRef.current;
         }
-        if (currentlyPlayingURL === url && newParentRef && 'appendChild' in newParentRef && typeof HTMLVideoElement !== 'undefined' && sharedElement instanceof HTMLVideoElement) {
+        if (
+            currentlyPlayingURL === url &&
+            typeof HTMLDivElement !== 'undefined' &&
+            newParentRef instanceof HTMLDivElement &&
+            typeof HTMLVideoElement !== 'undefined' &&
+            sharedElement instanceof HTMLVideoElement
+        ) {
             if (newParentRef.hasChildNodes()) {
                 newParentRef.firstElementChild?.replaceWith(sharedElement);
             } else {
@@ -517,7 +524,12 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
             videoPlayerRef.current.currentTime = savedCurrentTimeRef.current;
         }
         return () => {
-            if (!originalParent || !('appendChild' in originalParent) || typeof HTMLVideoElement === 'undefined' || !(sharedElement instanceof HTMLVideoElement)) {
+            if (
+                typeof HTMLDivElement === 'undefined' ||
+                !(originalParent instanceof HTMLDivElement) ||
+                typeof HTMLVideoElement === 'undefined' ||
+                !(sharedElement instanceof HTMLVideoElement)
+            ) {
                 return;
             }
             originalParent.appendChild(sharedElement);

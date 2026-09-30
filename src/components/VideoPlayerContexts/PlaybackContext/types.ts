@@ -1,7 +1,7 @@
 import type {Report} from '@src/types/onyx';
 
 import type {VideoPlayer, VideoPlayerStatus, VideoView} from 'expo-video';
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -20,7 +20,7 @@ type StopVideo = () => void;
  * Represents the original parent container of the video element.
  * Can be a React Native View, an HTML div, or null if not set.
  */
-type OriginalParent = View | HTMLDivElement | null;
+type OriginalParent = ComponentRef<typeof View> | HTMLDivElement | null;
 
 /**
  * Metadata describing a video element instance.
@@ -53,12 +53,12 @@ type PlaybackStateContextValues = {
     /**
      * The original parent container of the shared video element.
      */
-    originalParent: View | HTMLDivElement | null;
+    originalParent: ComponentRef<typeof View> | HTMLDivElement | null;
 
     /**
      * Expo renders the web video directly, so this is the element moved between parent containers.
      */
-    sharedElement: View | HTMLVideoElement | null;
+    sharedElement: ComponentRef<typeof View> | HTMLVideoElement | null;
 
     /**
      * Array of currently mounted Video Player instances
@@ -101,7 +101,7 @@ type PlaybackActionsContextValues = {
     shareVideoPlayerElements: (
         playerRef: VideoPlayer | null,
         viewRef: VideoView | null,
-        parent: View | HTMLDivElement | null,
+        parent: ComponentRef<typeof View> | HTMLDivElement | null,
         child: PlaybackStateContextValues['sharedElement'],
         isUploading: boolean,
         videoElementData: VideoElementData,

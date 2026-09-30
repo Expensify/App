@@ -9,6 +9,7 @@ type ReplaceReceiptParams = {
     receipt: File | CustomRNImageManipulatorResult;
     receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     isSameReceipt?: boolean;
+    reportActionID?: string;
 };
 
 export default ReplaceReceiptParams;
