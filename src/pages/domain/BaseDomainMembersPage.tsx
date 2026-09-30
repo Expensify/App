@@ -79,7 +79,7 @@ function BaseDomainMembersPage({
                     {shouldUseNarrowLayout && <Header.BackButton onPress={onBackButtonPress} />}
                     <Header.Title
                         title={useSelectionModeHeader ? translate('common.selectMultiple') : headerTitle}
-                        isHeadline={!useSelectionModeHeader}
+                        titleStyles={!useSelectionModeHeader && styles.textHeadlineH2}
                     />
                     <Header.Right>
                         {!shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
