@@ -69,6 +69,7 @@ import {
     getUpdateACHAccountMessage,
     getUpdatedAutoHarvestingMessage,
     getUpdatedCommuterExclusionsMessage,
+    getUpdatedMemberWorkArrangementMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
     hasNextActionMadeBySameActor,
@@ -2256,6 +2257,72 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.getRenamedAction(translateLocal, reportAction, isExpenseReport(report), 'John')).toBe('John renamed to "New name" (previously "Old name")');
         });
     });
+    describe('getChangedApproverActionMessage', () => {
+        const buildReassignApproverAction = (originalMessage: Record<string, unknown>) =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER,
+                reportActionID: 'reassign-approver-1',
+                actorAccountID: 1,
+                created: '2024-01-01 00:00:00.000',
+                originalMessage,
+            }) as ReportAction;
+
+        it('names the workflow update for a reassignment a workflow change made', () => {
+            const reportAction = buildReassignApproverAction({newApproverID: 2, previousApproverID: 3, actorAccountID: 1, reasoning: 'admin@test.com changed the approval workflow'});
+            expect(ReportActionsUtils.getChangedApproverActionMessage(translateLocal, reportAction)).toBe('reassigned the approver to <mention-user accountID="2"/> via a workflow update');
+        });
+
+        it('returns an empty message when the new approver is missing', () => {
+            const reportAction = buildReassignApproverAction({previousApproverID: 3});
+            expect(ReportActionsUtils.getChangedApproverActionMessage(translateLocal, reportAction)).toBe('');
+        });
+
+        it('names the mentioned approver for a reroute an admin asked for', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REROUTE,
+                reportActionID: 'reroute-1',
+                actorAccountID: 1,
+                created: '2024-01-01 00:00:00.000',
+                originalMessage: {mentionedAccountIDs: [2], newApproverID: 2, previousApproverID: 3},
+            } as ReportAction;
+            expect(ReportActionsUtils.getChangedApproverActionMessage(translateLocal, reportAction)).toBe('changed the approver to <mention-user accountID="2"/>');
+        });
+
+        it('names the skipped approver for a reroute that reassigned approval', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REROUTE,
+                reportActionID: 'reroute-2',
+                actorAccountID: 1,
+                created: '2024-01-01 00:00:00.000',
+                originalMessage: {mentionedAccountIDs: [2], newApproverID: 2, previousApproverID: 3, isReassignment: true},
+            } as ReportAction;
+            expect(ReportActionsUtils.getChangedApproverActionMessage(translateLocal, reportAction)).toBe(
+                'changed the approver to <mention-user accountID="2"/>, skipped <mention-user accountID="3"/>',
+            );
+        });
+
+        it('omits the skipped approver for a reassignment on a report that had no approver', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REROUTE,
+                reportActionID: 'reroute-3',
+                actorAccountID: 1,
+                created: '2024-01-01 00:00:00.000',
+                originalMessage: {mentionedAccountIDs: [2], newApproverID: 2, previousApproverID: 0, isReassignment: true},
+            } as ReportAction;
+            expect(ReportActionsUtils.getChangedApproverActionMessage(translateLocal, reportAction)).toBe('changed the approver to <mention-user accountID="2"/>');
+        });
+
+        it('falls back to the actor for a take control action with no mentioned accounts', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                reportActionID: 'take-control-1',
+                actorAccountID: 4,
+                created: '2024-01-01 00:00:00.000',
+                originalMessage: {},
+            } as ReportAction;
+            expect(ReportActionsUtils.getChangedApproverActionMessage(translateLocal, reportAction)).toBe('changed the approver to <mention-user accountID="4"/>');
+        });
+    });
 
     describe('getJoinRequestMessage', () => {
         const joinRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST> = {
@@ -2661,6 +2728,56 @@ describe('ReportActionsUtils', () => {
             // Then the action should NOT be visible (IOU PAY action is shown instead)
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(false);
+        });
+
+        it('should return false for MARKED_REIMBURSED with stale flags when the report has a sibling IOU PAY action', async () => {
+            // Given a MARKED_REIMBURSED action with stale write-time flags (no isNewDot, shouldShow not false)
+            const reportID = 'reportWithPaySibling';
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
+                originalMessage: {},
+            };
+            // And the report also contains a sibling IOU PAY action
+            const payAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: '2',
+                reportID,
+                created: '2025-01-01 00:00:01',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: reportID, amount: 100, currency: CONST.CURRENCY.USD},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+                [payAction.reportActionID]: payAction,
+            });
+
+            // Then the MARKED_REIMBURSED action should NOT be visible (the IOU PAY action represents the same event)
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(markedReimbursedAction, markedReimbursedAction.reportActionID, true);
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for MARKED_REIMBURSED when the report has no sibling IOU PAY action', async () => {
+            // Given a MARKED_REIMBURSED action (e.g. created by an ABA/paycheck/non-instant-submit path) with no IOU PAY twin
+            const reportID = 'reportWithoutPaySibling';
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
+                originalMessage: {},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+            });
+
+            // Then the MARKED_REIMBURSED action should remain visible (there is no IOU PAY action to fall back on)
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(markedReimbursedAction, markedReimbursedAction.reportActionID, true);
+            expect(actual).toBe(true);
         });
 
         it('should return true for TAKE_CONTROL when automaticAction is false', () => {
@@ -4379,6 +4496,65 @@ describe('ReportActionsUtils', () => {
             [CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE, undefined, 'changed exclude commutes to a fixed distance per claim (previously do not exclude commutes)'],
         ])('names both the new and the previous method for %s from %s', (newValue, oldValue, expected) => {
             expect(getUpdatedCommuterExclusionsMessage(translateLocal, buildMethodChangeAction(newValue, oldValue))).toBe(expected);
+        });
+    });
+
+    describe('getUpdatedMemberWorkArrangementMessage', () => {
+        const buildAction = (originalMessage: Record<string, unknown>, actionName: ReportAction['actionName'] = CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT) =>
+            ({
+                actionName,
+                reportActionID: '1',
+                created: '',
+                originalMessage,
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, text: 'fallback message', html: 'fallback message'}],
+            }) as ReportAction;
+
+        it('falls back to the report action text for another action type', () => {
+            const action = buildAction({newValue: true, oldValue: false}, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING);
+
+            expect(getUpdatedMemberWorkArrangementMessage(translateLocal, action)).toBe(ReportActionsUtils.getReportActionText(action));
+        });
+
+        it('falls back to the report action text when arrangement values are not booleans', () => {
+            const action = buildAction({newValue: 'office', oldValue: false});
+
+            expect(getUpdatedMemberWorkArrangementMessage(translateLocal, action)).toBe(ReportActionsUtils.getReportActionText(action));
+        });
+
+        it('uses the member name when available', () => {
+            const action = buildAction({name: 'Member One', newValue: true, oldValue: false});
+
+            expect(getUpdatedMemberWorkArrangementMessage(translateLocal, action)).toBe(
+                translateLocal('workspaceActions.updatedMemberWorkArrangement', {
+                    displayName: 'Member One',
+                    newArrangement: translateLocal('workspace.people.officeBased'),
+                    oldArrangement: translateLocal('workspace.people.noRegularWorkspace'),
+                }),
+            );
+        });
+
+        it('formats the email when a member name is missing', () => {
+            const email = '+919383833920@expensify.sms';
+            const action = buildAction({email, newValue: true, oldValue: false});
+
+            expect(getUpdatedMemberWorkArrangementMessage(translateLocal, action)).toBe(
+                translateLocal('workspaceActions.updatedMemberWorkArrangement', {
+                    displayName: formatPhoneNumber(email),
+                    newArrangement: translateLocal('workspace.people.officeBased'),
+                    oldArrangement: translateLocal('workspace.people.noRegularWorkspace'),
+                }),
+            );
+        });
+
+        it('uses the default arrangement message when no member name or email is present', () => {
+            const action = buildAction({name: '', newValue: true, oldValue: false});
+
+            expect(getUpdatedMemberWorkArrangementMessage(translateLocal, action)).toBe(
+                translateLocal('workspaceActions.updatedDefaultWorkArrangement', {
+                    newArrangement: translateLocal('workspace.people.officeBased'),
+                    oldArrangement: translateLocal('workspace.people.noRegularWorkspace'),
+                }),
+            );
         });
     });
 
