@@ -603,11 +603,17 @@ function applyShiftRangeBatchToSelection(
         updated = spellOutGroupSelection(updated, transaction.keyForList, areAllMatchingItemsSelected, lookups);
         const [key, info] = lookups.buildSelectedEntry(transaction);
         const parentGroupKey = blockGroupKey ?? lookups.groupKeyByChildKey.get(transaction.keyForList);
+        // A row the range only re-covers keeps its group claim. Only a row the range gives back makes the group partial.
+        const isAlreadySelectedViaGroup = !!parentGroupKey && updated[key]?.groupKey === parentGroupKey && !!updated[key]?.isSelectedViaGroup;
         if (parentGroupKey) {
-            (blockGroupKey ? wholeGroupKeys : partialGroupKeys).add(parentGroupKey);
+            if (blockGroupKey) {
+                wholeGroupKeys.add(parentGroupKey);
+            } else if (!isAlreadySelectedViaGroup) {
+                partialGroupKeys.add(parentGroupKey);
+            }
             touchGroup(parentGroupKey, lookups.childrenByGroupKey.get(parentGroupKey) ?? []);
         }
-        const entry = parentGroupKey ? {...info, groupKey: parentGroupKey, isSelectedViaGroup: !!blockGroupKey} : info;
+        const entry = parentGroupKey ? {...info, groupKey: parentGroupKey, isSelectedViaGroup: !!blockGroupKey || isAlreadySelectedViaGroup} : info;
         // Re-covering a row is not a write, and coverage is recounted after the batch, so it is left out of the comparison.
         if (deepEqual({...updated[key], isEntireGroupSelected: undefined}, {...entry, isEntireGroupSelected: undefined})) {
             return;

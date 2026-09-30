@@ -746,7 +746,7 @@ describe('Lazily loaded group selection', () => {
         expect(Object.keys(result.current.selectedTransactions)).toEqual(['1', '2']);
     });
 
-    it('stops marking a group as covering the rows a range left on the far side of the anchor', async () => {
+    it('keeps a group marked as covering its rows when a range reaches past it without giving any of them back', async () => {
         const {result} = renderSelection(TwoGroupWrapper);
         const [earlierFirstChild] = earlierChildren;
         const [, secondChild] = loadedChildren;
@@ -763,15 +763,17 @@ describe('Lazily loaded group selection', () => {
         });
         expect(result.current.selectedTransactions[secondChild.keyForList]?.isSelectedViaGroup).toBe(true);
 
-        // When a shift+click reaches up into the group above, so the block's second row is left on the far side of the anchor
+        // When a shift+click reaches up into the group above, re-covering the block's first row and leaving its second on the far side of the anchor
         await act(async () => {
             result.current.toggle(earlierFirstChild, undefined, true);
             await waitForBatchedUpdatesWithAct();
         });
         expect(result.current.selectedTransactions[secondChild.keyForList]?.isSelected).toBe(true);
 
-        // Then that row stops claiming its group covers it, or an export would send a whole-group filter and reach every row in it
-        expect(result.current.selectedTransactions[secondChild.keyForList]?.isSelectedViaGroup).toBeFalsy();
+        // Then both rows still claim the group, since the range took none of them back and the group is as selected as the header left it
+        for (const child of loadedChildren) {
+            expect(result.current.selectedTransactions[child.keyForList]?.isSelectedViaGroup).toBe(true);
+        }
     });
 
     it('marks a group wholly selected when a range covers every row it holds, as picking them one by one does', async () => {
@@ -927,6 +929,35 @@ describe('Lazily loaded group selection', () => {
         // Then the range gives back the row it no longer covers, the same as it would in a group with nothing left to page in
         expect(result.current.selectedTransactions[firstChild.keyForList]?.isSelected).toBe(true);
         expect(result.current.selectedTransactions[secondChild.keyForList]).toBeUndefined();
+    });
+
+    it('keeps a header selection whole when a range only covers rows it already holds, so an export still reaches the rows not loaded yet', async () => {
+        const {result, rerender} = renderSelection(PagingWrapper);
+        const [, secondChild] = loadedChildren;
+
+        // Given a group of five selected from its header once its first page of two had loaded
+        pagingGroup = cachedPartialGroup;
+        rerender({});
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(cachedPartialGroup, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[secondChild.keyForList]?.isSelectedViaGroup).toBe(true);
+
+        // When a shift+click lands on the last loaded row, which covers the block without giving any row back
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then both rows still claim the group, which is what makes an export send a group filter rather than two IDs
+        for (const child of loadedChildren) {
+            expect(result.current.selectedTransactions[child.keyForList]?.isSelectedViaGroup).toBe(true);
+        }
     });
 
     it('anchors in the group just selected, not at a row selected earlier in another group', async () => {

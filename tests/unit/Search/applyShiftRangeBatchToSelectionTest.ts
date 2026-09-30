@@ -172,6 +172,58 @@ describe('applyShiftRangeBatchToSelection', () => {
         expect(updated.c1?.groupKey).toBe('groupA');
     });
 
+    it('keeps the claim on rows a range only re-covers, since it took none of them back', () => {
+        // Given two rows selected through their group's header
+        const first = makeChild(1, 'c1');
+        const second = makeChild(2, 'c2');
+        const selection: SelectedTransactions = {...selectionOf(first, second)};
+        selection.c1 = {...selection.c1, groupKey: 'groupA', isSelectedViaGroup: true};
+        selection.c2 = {...selection.c2, groupKey: 'groupA', isSelectedViaGroup: true};
+
+        // When a range covers both of them again and gives nothing back
+        const updated = applyShiftRangeBatchToSelection(
+            batchOf([first, second]),
+            selection,
+            false,
+            lookupsFor(
+                new Map([
+                    ['c1', 'groupA'],
+                    ['c2', 'groupA'],
+                ]),
+            ),
+        );
+
+        // Then both still claim the group, so an export keeps sending the group filter that reaches its unloaded rows
+        expect(updated.c1?.isSelectedViaGroup).toBe(true);
+        expect(updated.c2?.isSelectedViaGroup).toBe(true);
+    });
+
+    it('drops the claim when the same batch re-covers one row of a group and gives another back', () => {
+        // Given two rows selected through their group's header
+        const kept = makeChild(1, 'c1');
+        const dropped = makeChild(2, 'c2');
+        const selection: SelectedTransactions = {...selectionOf(kept, dropped)};
+        selection.c1 = {...selection.c1, groupKey: 'groupA', isSelectedViaGroup: true};
+        selection.c2 = {...selection.c2, groupKey: 'groupA', isSelectedViaGroup: true};
+
+        // When a range narrows onto the first, re-covering it and giving the second back
+        const updated = applyShiftRangeBatchToSelection(
+            batchOf([kept], [dropped]),
+            selection,
+            false,
+            lookupsFor(
+                new Map([
+                    ['c1', 'groupA'],
+                    ['c2', 'groupA'],
+                ]),
+            ),
+        );
+
+        // Then the re-covered row stops claiming the group, because the group is no longer whole
+        expect(updated.c2).toBeUndefined();
+        expect(updated.c1?.isSelectedViaGroup).toBe(false);
+    });
+
     it('keeps the claim when the range takes the whole group, since nothing was left behind', () => {
         // Given a group whose every row the range covers
         const child = makeChild(1, 'c1');
