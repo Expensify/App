@@ -1091,14 +1091,12 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     {shouldShowReportDescription && (
                         <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
                             <MentionReportContext.Provider value={mentionReportContextValue}>
-                                <MenuItem.Root onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path))}>
+                                <MenuItem.Root onPress={canEditReportDescription ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path)) : undefined}>
                                     <MenuItem.Row>
                                         <MenuItemField.Content name={translate('reportDescriptionPage.roomDescription')}>
                                             {!!getReportDescription(report) && <MenuItem.FieldValueHTML characterLimit={100}>{getReportDescription(report)}</MenuItem.FieldValueHTML>}
                                         </MenuItemField.Content>
-                                        <MenuItem.Trailing>
-                                            <MenuItem.Chevron />
-                                        </MenuItem.Trailing>
+                                        <MenuItem.Trailing>{canEditReportDescription && <MenuItem.Chevron />}</MenuItem.Trailing>
                                     </MenuItem.Row>
                                 </MenuItem.Root>
                             </MentionReportContext.Provider>
