@@ -109,6 +109,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const createdJoinWorkspaceTaskReportID = useRef<string | undefined>(undefined);
     const hasRequestedAccessiblePolicies = useRef(false);
     const accessiblePoliciesRequestID = useRef<string | undefined>(undefined);
+    const isFinishingOnboarding = useRef(false);
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
 
     const returnToOriginReport = useReturnToOriginReport();
@@ -138,6 +139,11 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     };
 
     const finishOnboarding = (policy: JoinablePolicy) => {
+        if (isFinishingOnboarding.current) {
+            return;
+        }
+        isFinishingOnboarding.current = true;
+
         const isJoiningSubmitPolicy = policy.policyType === CONST.POLICY.TYPE.SUBMIT;
         const shouldUseSubmitFlow = policy.automaticJoiningEnabled && isJoiningSubmitPolicy;
 
