@@ -13,8 +13,8 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
-import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings';
