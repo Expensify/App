@@ -2117,7 +2117,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: '个人头像',
         customInstructions: '自定义指令',
         copilotIntoAccount: 'Copilot 到账户',
-        viewMemberHistory: '查看成员历史记录',
+        seeChatHistory: '查看聊天记录',
         viewAgentHistory: '查看代理历史记录',
         publicSection: {
             title: '公开',

@@ -2193,7 +2193,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Profielavatar',
         customInstructions: 'Aangepaste instructies',
         copilotIntoAccount: 'Copilot naar account',
-        viewMemberHistory: 'Ledengeschiedenis bekijken',
+        seeChatHistory: 'Chatgeschiedenis bekijken',
         viewAgentHistory: 'Agentgeschiedenis bekijken',
         publicSection: {
             title: 'Openbaar',
