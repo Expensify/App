@@ -342,6 +342,36 @@ describe('useSearchTagFilters', () => {
         });
     });
 
+    it('returns server search results for a non-empty query online', async () => {
+        setPartialTagFilterState('');
+        const matchingTags = [{tagName: 'marketing', tagListName: 'TagList'}];
+        mockOpenSearchTagFiltersPage.mockResolvedValueOnce({hasMore: false, nextCursor: '', tags: []});
+
+        const {result, rerender} = renderHook(() => useSearchTagFilters(POLICY_ID));
+
+        await waitFor(() => {
+            expect(result.current.isSearching).toBe(false);
+        });
+
+        mockOpenSearchTagFiltersPage.mockClear();
+        mockOpenSearchTagFiltersPage.mockImplementationOnce((params) => {
+            onyxData[getResultsKey(params.policyIDs)] = matchingTags;
+            return Promise.resolve({hasMore: false, nextCursor: '', tags: matchingTags});
+        });
+
+        act(() => {
+            result.current.searchTags('market');
+        });
+
+        await waitFor(() => {
+            expect(mockOpenSearchTagFiltersPage).toHaveBeenCalledWith(expect.objectContaining({searchQuery: 'market', policyIDs: POLICY_ID}), true);
+        });
+
+        rerender({});
+
+        expect(result.current.searchResults).toEqual(matchingTags);
+    });
+
     it('re-fetches from server on mount even when the full empty-query dataset is already cached', async () => {
         setCompleteTagFilterState('');
 

@@ -9,6 +9,7 @@ import {
     getFooterConvertedAmounts,
     getPayOption,
     openSearch,
+    openSearchTagFiltersPage,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     rejectMoneyRequestsOnSearch,
@@ -26,7 +27,7 @@ import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ExportTemplate, Policy, Report} from '@src/types/onyx';
+import type {ExportTemplate, Policy, Report, SearchTagFilterItem} from '@src/types/onyx';
 import type {ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
@@ -42,6 +43,12 @@ const translateForTest: LocalizedTranslate = (path, ...parameters) => translate(
 
 jest.mock('@libs/API');
 jest.mock('@libs/fileDownload');
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    __esModule: true,
+    default: {
+        isHybridApp: jest.fn(() => false),
+    },
+}));
 jest.mock('@libs/Network/enhanceParameters', () => ({
     __esModule: true,
     default: (_: string, params: Record<string, unknown>) => params,
@@ -762,5 +769,84 @@ describe('getPayOption', () => {
 
         // Then bulk pay stays disabled — scoping the type lookup to the snapshot must not drop the check itself
         expect(getShouldEnableBulkPayOption(selectedReports)).toBe(false);
+    });
+
+    describe('openSearchTagFiltersPage', () => {
+        beforeEach(async () => {
+            Onyx.init({keys: ONYXKEYS});
+            await Onyx.clear();
+        });
+
+        it('writes first-page tag results to scoped resultsKey for a non-empty search query', async () => {
+            const policyIDs = 'policy-1';
+            const tags: SearchTagFilterItem[] = [{tagName: 'Marketing', tagListName: 'Department'}];
+            mockMakeRequestWithSideEffects.mockResolvedValueOnce({
+                hasMore: false,
+                nextCursor: '',
+                tags,
+            });
+
+            await openSearchTagFiltersPage(
+                {
+                    searchQuery: 'Market',
+                    limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE,
+                    cursor: '',
+                    policyIDs,
+                },
+                true,
+            );
+
+            await waitForBatchedUpdates();
+
+            const resultsKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${policyIDs}`;
+            let storedResults: SearchTagFilterItem[] | null = null;
+            const connection = Onyx.connect({
+                key: resultsKey,
+                callback: (val) => {
+                    storedResults = val;
+                },
+            });
+            await waitForBatchedUpdates();
+            Onyx.disconnect(connection);
+
+            expect(storedResults).toEqual(tags);
+        });
+
+        it('appends next-page tag results to existing results when cursor is provided', async () => {
+            const policyIDs = 'policy-1';
+            const existingTags: SearchTagFilterItem[] = [{tagName: 'Tag1', tagListName: 'Department'}];
+            const nextTags: SearchTagFilterItem[] = [{tagName: 'Tag2', tagListName: 'Department'}];
+            mockMakeRequestWithSideEffects.mockResolvedValueOnce({
+                hasMore: false,
+                nextCursor: '',
+                tags: nextTags,
+            });
+
+            await openSearchTagFiltersPage(
+                {
+                    searchQuery: 'Tag',
+                    limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE,
+                    cursor: 'cursor-1',
+                    policyIDs,
+                },
+                false,
+                existingTags,
+            );
+
+            await waitForBatchedUpdates();
+
+            const resultsKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${policyIDs}`;
+            let storedResults: SearchTagFilterItem[] | null = null;
+            const connection = Onyx.connect({
+                key: resultsKey,
+                callback: (val) => {
+                    storedResults = val;
+                },
+            });
+            await waitForBatchedUpdates();
+            Onyx.disconnect(connection);
+
+            expect(storedResults).toEqual([...existingTags, ...nextTags]);
+        });
     });
 });

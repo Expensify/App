@@ -1113,9 +1113,7 @@ function openSearchTagFiltersPage(
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- OpenSearchTagFiltersPage response fields are command-specific and not declared on the shared Response type
         const tagFiltersResponse = response as OpenSearchTagFiltersPageResponse | undefined;
         const newTags = tagFiltersResponse?.tags ?? [];
-        if (params.cursor && newTags.length > 0) {
-            Onyx.set(resultsKey, [...currentResults, ...newTags]);
-        }
+        Onyx.set(resultsKey, params.cursor ? [...currentResults, ...newTags] : newTags);
         return {
             hasMore: !!tagFiltersResponse?.hasMore,
             nextCursor: tagFiltersResponse?.nextCursor ?? '',
