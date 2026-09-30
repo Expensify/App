@@ -51,17 +51,16 @@ function WorkspaceOverviewCurrencyGovernmentRateCountryPage({route}: WorkspaceOv
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
+            shouldBeBlocked={!isSharedCurrency}
         >
-            {isSharedCurrency && (
-                <GovernmentRateCountrySelector
-                    headerTitle={translate('workspace.distanceRates.governmentRateSourceCountry')}
-                    introText={translate('workspace.distanceRates.governmentRateCountrySelectionPrompt')}
-                    isBlocked={!policy}
-                    onBackButtonPress={goBackToCurrencyPage}
-                    onSave={saveCountry}
-                    testID="WorkspaceOverviewCurrencyGovernmentRateCountryPage"
-                />
-            )}
+            <GovernmentRateCountrySelector
+                headerTitle={translate('workspace.distanceRates.governmentRateSourceCountry')}
+                introText={translate('workspace.distanceRates.governmentRateCountrySelectionPrompt')}
+                isBlocked={!policy}
+                onBackButtonPress={goBackToCurrencyPage}
+                onSave={saveCountry}
+                testID="WorkspaceOverviewCurrencyGovernmentRateCountryPage"
+            />
         </AccessOrNotFoundWrapper>
     );
 }

@@ -5,6 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {isSharedGovernmentRateCurrency} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -40,15 +41,26 @@ function PolicyDistanceRateGovernmentRateCountryPage({route}: PolicyDistanceRate
         }
 
         // Saving a country turns the auto-update on with that country, or moves an enabled workspace to the new country
-        setWorkspaceDistanceAutoUpdate(policyID, customUnit, true, governmentMileageRates ?? [], policy?.outputCurrency, selectedCountry, currentCountry);
+        setWorkspaceDistanceAutoUpdate(
+            policyID,
+            customUnit,
+            true,
+            governmentMileageRates ?? [],
+            policy?.outputCurrency,
+            selectedCountry,
+            !!policy?.shouldAutoUpdateGovernmentDistanceRates,
+            currentCountry,
+        );
         goBackToSettings();
     };
 
+    // A deep link on a workspace whose currency maps to a single country would optimistically store a country the server ignores
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
+            shouldBeBlocked={!isSharedGovernmentRateCurrency(policy?.outputCurrency)}
         >
             <GovernmentRateCountrySelector
                 headerTitle={translate('common.country')}

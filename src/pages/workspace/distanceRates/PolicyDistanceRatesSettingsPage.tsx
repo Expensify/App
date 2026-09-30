@@ -169,8 +169,18 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
             return;
         }
 
-        // The stored country tells the optimistic copy which rates to use, since the mileage rate key is shared by every policy
-        setWorkspaceDistanceAutoUpdate(policyID, customUnit, isOn, governmentMileageRates ?? [], policy?.outputCurrency, isSharedCurrency ? autoUpdateCountry : undefined);
+        // The stored country tells the optimistic copy which rates to use, since the mileage rate key is shared by every policy.
+        // The server ignores the country on disable, so it is only sent when turning on.
+        setWorkspaceDistanceAutoUpdate(
+            policyID,
+            customUnit,
+            isOn,
+            governmentMileageRates ?? [],
+            policy?.outputCurrency,
+            isOn && isSharedCurrency ? autoUpdateCountry : undefined,
+            !!policy?.shouldAutoUpdateGovernmentDistanceRates,
+            isSharedCurrency ? autoUpdateCountry : undefined,
+        );
     };
 
     // Commuter exclusions are computed from the mapped route, so they enforce the requirement on their own. The
@@ -281,9 +291,8 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                     )}
                     {shouldShowCountryRow && (
                         <OfflineWithFeedback
-                            errors={getLatestErrorField(policy ?? {}, 'autoUpdateGovernmentRateCountry')}
-                            errorRowStyles={styles.mh5}
                             pendingAction={policy?.pendingFields?.autoUpdateGovernmentRateCountry}
+                            errorRowStyles={styles.mh5}
                             onClose={() => clearWorkspaceDistanceAutoUpdateErrors(policyID)}
                         >
                             <MenuItemWithTopDescription

@@ -14,8 +14,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getGovernmentRateCountryOptions} from '@libs/PolicyDistanceRatesUtils';
 import type {Option} from '@libs/searchOptions';
 
-import CONST from '@src/CONST';
-
 import React, {useState} from 'react';
 import {View} from 'react-native';
 

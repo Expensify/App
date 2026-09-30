@@ -31,8 +31,6 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
-import {generateCustomUnitID} from './Policy';
-
 /**
  * Takes array of customUnitRates and removes pendingFields and errorFields from each rate - we don't want to send those via API
  */
@@ -698,6 +696,7 @@ function setWorkspaceDistanceAutoUpdate(
     governmentMileageRates: GovernmentMileageRate[],
     outputCurrency: string | undefined,
     countryCode?: string,
+    previousAutoUpdateEnabled?: boolean,
     previousCountryCode?: string,
 ) {
     const {optimisticRateIDs, onyxData} = buildOnyxDataForGovernmentRateAutoUpdate(
@@ -707,6 +706,7 @@ function setWorkspaceDistanceAutoUpdate(
         governmentMileageRates,
         outputCurrency,
         countryCode,
+        previousAutoUpdateEnabled,
         previousCountryCode,
     );
 

@@ -20,7 +20,6 @@ import getPermittedDecimalSeparator from './getPermittedDecimalSeparator';
 import Log from './Log';
 import {replaceAllDigits} from './MoneyRequestUtils';
 import {generateHexadecimalValue, parseFloatAnyLocale} from './NumberUtils';
-import StringUtils from './StringUtils';
 import {isRequiredFulfilled} from './ValidationUtils';
 
 type RateValueForm = typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM | typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM;
@@ -292,7 +291,7 @@ function getGovernmentRateCountryPhraseTranslationKey(country?: GovernmentRateCo
     return `workspace.distanceRates.governmentRateCountries.${country}`;
 }
 
-/** Sorted, searchable options for the countries that share the EUR government mileage rates. */
+/** Sorted options for the countries that share the EUR government mileage rates. */
 function getGovernmentRateCountryOptions(translate: LocalizedTranslate, localeCompare: (a: string, b: string) => number, selectedCountry?: string): Option[] {
     return CONST.CUSTOM_UNITS.GOVERNMENT_RATE_SUPPORTED_EUR_COUNTRIES.map((countryCode) => {
         const countryName = translate(`allCountries.${countryCode}` as TranslationPaths);
@@ -301,7 +300,6 @@ function getGovernmentRateCountryOptions(translate: LocalizedTranslate, localeCo
             keyForList: countryCode as string,
             text: countryName,
             isSelected: selectedCountry === countryCode,
-            searchValue: StringUtils.sanitizeString(`${countryCode}${countryName}`),
         };
     }).sort((a, b) => localeCompare(a.text, b.text));
 }
@@ -313,6 +311,9 @@ function getGovernmentRateCountryOptions(translate: LocalizedTranslate, localeCo
  *
  * `customUnit` can be missing when the server-created custom unit isn't in Onyx yet. The rate copying and unit correction
  * are skipped then, and the server response fills them in.
+ *
+ * The previous enabled state and country describe the policy before the change, so a failed request restores exactly
+ * what the server still has.
  */
 function buildOnyxDataForGovernmentRateAutoUpdate(
     policyID: string,
@@ -321,6 +322,7 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
     governmentMileageRates: GovernmentMileageRate[],
     outputCurrency: string | undefined,
     countryCode?: string,
+    previousAutoUpdateEnabled?: boolean,
     previousCountryCode?: string,
 ): {optimisticRateIDs: Record<string, string>; onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY>} {
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
@@ -385,8 +387,8 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
     const expectedUnit = countryCode ? getExpectedUnitForCountry(countryCode) : getExpectedUnitForCurrency(outputCurrency);
     const shouldCorrectUnit = shouldAutoUpdateGovernmentDistanceRates && !!expectedUnit && !!currentUnit && currentUnit !== expectedUnit;
 
-    // A country change starts from an enabled policy, so its failure restores the flag to on as well
-    const failureAutoUpdateValue = shouldAutoUpdateGovernmentDistanceRates && !previousCountryCode ? null : true;
+    // The failure data restores the state the server still has, so the previous values decide what to write back
+    const failureAutoUpdateValue = previousAutoUpdateEnabled ? true : null;
 
     const optimisticCustomUnit: NullishDeep<CustomUnit> = {
         ...(Object.keys(optimisticRates).length > 0 ? {rates: optimisticRates} : {}),

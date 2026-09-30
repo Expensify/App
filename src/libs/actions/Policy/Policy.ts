@@ -2171,7 +2171,16 @@ function updateGeneralSettings(
     // Enabling government rate auto-update and copying the chosen country's reference rates rides on this request, so the
     // whole currency change stays a single API call. The server applies the same copy when it saves the currency.
     const governmentRateAutoUpdateData = governmentRateCountry
-        ? buildOnyxDataForGovernmentRateAutoUpdate(policy.id, distanceUnit, true, governmentMileageRates, currency, governmentRateCountry)
+        ? buildOnyxDataForGovernmentRateAutoUpdate(
+              policy.id,
+              distanceUnit,
+              true,
+              governmentMileageRates,
+              currency,
+              governmentRateCountry,
+              !!policy.shouldAutoUpdateGovernmentDistanceRates,
+              policy.autoUpdateGovernmentRateCountry,
+          )
         : undefined;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
@@ -2197,7 +2206,6 @@ function updateGeneralSettings(
                 outputCurrency: currency,
                 // The server clears the stored government rate country whenever the currency changes, so mirror that here
                 ...(currencyPendingAction !== undefined && {autoUpdateGovernmentRateCountry: governmentRateCountry ?? null}),
-                ...(governmentRateCountry && {shouldAutoUpdateGovernmentDistanceRates: true}),
                 ...(customUnitID && {
                     customUnits: {
                         ...policy.customUnits,
@@ -2230,8 +2238,10 @@ function updateGeneralSettings(
                 }),
             },
         },
-        ...(governmentRateAutoUpdateData?.onyxData.successData ?? []),
     ];
+    // The builder's successData only applies to a successful response. finallyData also runs after a failure, so putting
+    // it there would merge pendingAction clears back under the rate IDs the failure data just deleted.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [...(governmentRateAutoUpdateData?.onyxData.successData ?? [])];
 
     const errorFields: Policy['errorFields'] = {
         name: namePendingAction && ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
@@ -2301,7 +2311,11 @@ function updateGeneralSettings(
         return;
     }
 
-    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS, params, withReviewWorkspaceSettingsTaskData({optimisticData, finallyData, failureData}, reviewWorkspaceSettingsTaskData));
+    API.write(
+        WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS,
+        params,
+        withReviewWorkspaceSettingsTaskData({optimisticData, successData, finallyData, failureData}, reviewWorkspaceSettingsTaskData),
+    );
 }
 
 /**
