@@ -61,6 +61,17 @@ describe('insightsFilterParsing', () => {
             expect(parsed.date).toBeUndefined();
         });
 
+        it('reads back a dashboard grouped by day', () => {
+            // Given a dashboard grouped by day, the finest time bucket the headline chart offers
+            const filters: InsightsFilters = {...FILTERS, groupBy: CONST.SEARCH.GROUP_BY.DAY};
+
+            // When its stored query is read back
+            const parsed = parseInsightsFilters(buildInsightsQueryString(filters));
+
+            // Then the daily grouping survives the round trip instead of falling back to the default
+            expect(parsed.groupBy).toBe(CONST.SEARCH.GROUP_BY.DAY);
+        });
+
         it('ignores a group-by no Insights chart offers', () => {
             // Given a query grouped by a dimension rather than a time bucket
             const parsed = parseInsightsFilters('groupBy:category groupCurrency:USD date:year-to-date');

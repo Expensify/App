@@ -179,5 +179,18 @@ describe('insightsQueries', () => {
             // Then the chart is grouped by quarter
             expect(buildSearchQueryJSON(chartQuery)?.groupBy).toBe(CONST.SEARCH.GROUP_BY.QUARTER);
         });
+
+        it('groups the headline chart by day while supporting charts keep their own group-by', () => {
+            // Given the page filters grouped by day
+            const filters: InsightsFilters = {...FILTERS, groupBy: CONST.SEARCH.GROUP_BY.DAY};
+
+            // When the filters are applied to the headline chart and to every supporting chart
+            const headlineQuery = applyInsightsFilters(SPEND_SPEC.headlineChart, filters);
+            const supportingGroupBys = SPEND_SPEC.supportingCharts.map((chart) => buildSearchQueryJSON(applyInsightsFilters(chart, filters))?.groupBy);
+
+            // Then only the headline chart, which declares no group-by, is grouped by day
+            expect(buildSearchQueryJSON(headlineQuery)?.groupBy).toBe(CONST.SEARCH.GROUP_BY.DAY);
+            expect(supportingGroupBys).toEqual(SPEND_SPEC.supportingCharts.map((chart) => chart.groupBy));
+        });
     });
 });
