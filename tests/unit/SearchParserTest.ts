@@ -1709,7 +1709,7 @@ const compareTests = [
             groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
             compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
             filters: {
-                operator: 'eq',
+                operator: 'contains',
                 left: 'merchant',
                 right: 'Amazon',
             },
