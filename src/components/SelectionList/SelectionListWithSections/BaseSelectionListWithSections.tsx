@@ -60,6 +60,7 @@ function BaseSelectionListWithSectionsImpl({
     onDismissError,
     onScroll,
     onScrollBeginDrag,
+    keyboardShouldPersistTaps = 'always',
     onEndReached,
     onEndReachedThreshold,
     customListHeaderContent,
@@ -381,7 +382,7 @@ function BaseSelectionListWithSectionsImpl({
                     }}
                     indicatorStyle="white"
                     showsVerticalScrollIndicator
-                    keyboardShouldPersistTaps="always"
+                    keyboardShouldPersistTaps={keyboardShouldPersistTaps}
                     ListHeaderComponent={customListHeaderContent}
                     ListFooterComponent={
                         isFooterInsideList ? (
