@@ -33,7 +33,7 @@ The selected attendees are added to the expense.
 
 1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Spend > Expenses**.
 2. Select 2 or more expenses.
-3. In the selection bar, choose **Edit multiple**
+3. In the selection bar, choose **Edit multiple**.
 4. Select **Attendees**, choose the attendees, and select **Save**.
 5. Select **Save** again to apply your changes to every selected expense.
 
