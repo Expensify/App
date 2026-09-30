@@ -43,8 +43,8 @@ You can select multiple reports and duplicate them all in one action from the Re
 
 1. In the navigation tabs on the left, click **Spend** > **Reports**.
 2. Select two or more expense reports that you submitted.
-4. On the selection bar, choose **More**
-5. Choose **Duplicate reports**.
+3. On the selection bar, choose **More**.
+4. Choose **Duplicate reports**.
 
 **On mobile:**
 
@@ -59,7 +59,7 @@ Each selected report is duplicated individually. The same rules apply as for sin
 Reports are duplicated one at a time, so the new reports appear in the list gradually rather than all at once. You can keep scrolling and using the page while they are created.
 
 <!-- SCREENSHOT:
-Suggestion: Show the bulk actions dropdown with the "Duplicate reports" option visible after selecting multiple reports on the Reports search page.
+Suggestion: Show the selection bar's More menu with the "Duplicate reports" option visible after selecting multiple reports on the Reports search page.
 Location: After step 3 (web).
 Purpose: Helps the user identify the bulk duplicate option in the dropdown.
 -->

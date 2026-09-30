@@ -51,7 +51,8 @@ Use **Export current view** to download a CSV that matches the columns currently
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend** > **Expenses**.
 2. Select **Display**, then select **Edit columns** to choose which columns appear on the page.
 3. Select the checkbox next to each expense you want to export, or use the top checkbox to select all.
-4. On the selection bar, choose **Download receipts**.
+4. On the selection bar, choose **Export**.
+5. Select **Current view**.
 
 The CSV includes one row per expense using the same columns displayed on the page. When a **Group by** filter is applied, the CSV keeps each group as its own section and uses the columns currently shown on the page.
 
