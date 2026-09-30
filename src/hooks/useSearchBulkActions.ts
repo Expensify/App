@@ -1243,9 +1243,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         // "Select all" can cover more reports than are loaded, so hand the search query to the backend to approve every match.
         if (areAllMatchingItemsSelected) {
-            const serializedQuery = queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON);
+            const allMatchingQuery = isExpenseReportType && queryJSON ? getAllMatchingReportQuery(queryJSON, excludedTransactions) : queryJSON;
+            if (isExpenseReportType && !allMatchingQuery) {
+                Log.info('[BulkApprove] Dropping bulk approve: report exclusion has no reportID');
+                return;
+            }
+            const serializedQuery = allMatchingQuery ? serializeQueryJSONForBackend(allMatchingQuery) : JSON.stringify(allMatchingQuery);
             queueBulkApproveReports(serializedQuery);
-            playSound(SOUNDS.SUCCESS);
             clearSelectedTransactions();
             return;
         }
@@ -1315,6 +1319,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         hash,
         areAllMatchingItemsSelected,
         queryJSON,
+        isExpenseReportType,
+        excludedTransactions,
         clearSelectedTransactions,
         userBillingGracePeriodEnds,
         ownerBillingGracePeriodEnd,
