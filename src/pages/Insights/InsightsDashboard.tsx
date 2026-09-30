@@ -18,6 +18,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getInsights} from '@libs/actions/Insights';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InsightsDashboardID} from '@src/types/onyx';
@@ -65,14 +67,29 @@ function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry, o
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
-    if (state === INSIGHTS_DASHBOARD_STATE.ERROR) {
+    const didRequestFail = state === INSIGHTS_DASHBOARD_STATE.ERROR || state === INSIGHTS_DASHBOARD_STATE.STALE;
+
+    if (didRequestFail) {
+        const failureViewByState = {
+            [INSIGHTS_DASHBOARD_STATE.STALE]: {
+                title: translate('search.searchResults.staleResults.title'),
+                subtitle: translate('search.searchResults.staleResults.subtitle'),
+                illustration: 'ChartSync',
+                illustrationWidth: variables.iconSizeUltraLarge,
+                illustrationHeight: variables.iconSizeUltraLarge,
+                buttonTranslationKey: 'search.searchResults.staleResults.buttonText',
+            },
+            [INSIGHTS_DASHBOARD_STATE.ERROR]: {
+                title: translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout}),
+                subtitle: translate('errorPage.subtitle'),
+                buttonTranslationKey: 'common.tryAgain',
+            },
+        } as const;
         return (
             <FullPageErrorView
                 shouldShow
-                title={translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout})}
-                subtitle={translate('errorPage.subtitle')}
-                buttonTranslationKey="common.tryAgain"
                 onButtonPress={onRetry}
+                {...failureViewByState[state]}
             />
         );
     }
