@@ -1,6 +1,10 @@
-import {render, screen, waitFor} from '@testing-library/react-native';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+
+import Navigation from '@libs/Navigation/Navigation';
 
 import DynamicContactMethodsPage from '@pages/settings/Profile/Contacts/DynamicContactMethodsPage';
 
@@ -8,6 +12,7 @@ import DelegateNoAccessModalProvider from '@src/components/DelegateNoAccessModal
 import LockedAccountModalProvider from '@src/components/LockedAccountModalProvider';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 import type ReactNative from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -27,6 +32,12 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => ''));
+
+jest.mock('@components/HeaderWithBackButton', () => {
+    const ReactMock = jest.requireActual<typeof React>('react');
+    const {Pressable} = jest.requireActual<typeof ReactNative>('react-native');
+    return ({onBackButtonPress}: {onBackButtonPress: () => void}) => ReactMock.createElement(Pressable, {testID: 'backButton', onPress: onBackButtonPress});
+});
 
 // Mock RenderHTML component
 jest.mock('@components/RenderHTML', () => {
@@ -168,5 +179,15 @@ describe('DynamicContactMethodsPage', () => {
 
             expect(node).toHaveTextContent('none-brickRoadIndicator');
         });
+    });
+
+    it('returns to the feed selector instead of intermediate contact-method screens', () => {
+        const feedSelectorPath = ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute('1');
+        jest.mocked(useDynamicBackPath).mockReturnValue(`${feedSelectorPath}/contact-methods`);
+
+        renderPage();
+        fireEvent.press(screen.getByTestId('backButton'));
+
+        expect(Navigation.goBack).toHaveBeenCalledWith(feedSelectorPath);
     });
 });
