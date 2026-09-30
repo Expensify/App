@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isResolvedSupportTicket} from '@libs/ReportUtils';
 
-import {dismissFailedSupportTicket} from '@userActions/SupportTicket';
+import {dismissFailedSupportTicket} from '@userActions/Report';
 
 import type {Report, ReportAction} from '@src/types/onyx';
 

@@ -17,7 +17,7 @@ import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportR
 import Navigation from '@libs/Navigation/Navigation';
 import {isResolvedSupportTicket} from '@libs/ReportUtils';
 
-import {dismissFailedSupportTicket} from '@userActions/SupportTicket';
+import {dismissFailedSupportTicket} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

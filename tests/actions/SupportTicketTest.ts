@@ -3,7 +3,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 
-import {openSupportTicket} from '@userActions/SupportTicket';
+import {openSupportTicket} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -11,13 +11,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import Onyx from 'react-native-onyx';
 
 jest.mock('@libs/API');
+jest.mock('@libs/Navigation/helpers/getReportRouteForCurrentContext', () => ({
+    __esModule: true,
+    default: jest.fn(() => 'r/optimisticSupportTicketReportID'),
+}));
 jest.mock('@libs/Navigation/Navigation');
 
 const mockWrite = jest.mocked(API.write);
 const mockNavigate = jest.mocked(Navigation.navigate);
 const reportID = 'optimisticSupportTicketReportID';
 
-describe('actions/SupportTicket', () => {
+describe('actions/Report', () => {
     beforeEach(() => {
         jest.spyOn(ReportUtils, 'generateReportID').mockReturnValue(reportID);
         mockWrite.mockClear();
