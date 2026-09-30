@@ -36,14 +36,20 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const hasRefetchedPublicRoom = useRef(false);
 
     const [allReports, allReportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reportNameValuePairs, reportNameValuePairsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const reportNameValuePairsRef = useRef(reportNameValuePairs);
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID, conciergeReportIDMetadata] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [introSelected, introSelectedMetadata] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [guidedSetupAndTourStatus, guidedSetupAndTourStatusMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
-    const [betas, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
+    const [, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
     const isAuthenticated = useIsAuthenticated();
+
+    useEffect(() => {
+        reportNameValuePairsRef.current = reportNameValuePairs;
+    }, [reportNameValuePairs]);
 
     // An anonymous deep link into a public room needs to be re-fetched after OpenApp settles (see the effect
     // below). Track the pending reportID so both the initial-URL and the url-change paths stay in sync.
@@ -57,7 +63,17 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     }, []);
 
     useEffect(() => {
-        if (isLoadingOnyxValue(allReportsMetadata, sessionMetadata, conciergeReportIDMetadata, introSelectedMetadata, guidedSetupAndTourStatusMetadata, betasMetadata)) {
+        if (
+            isLoadingOnyxValue(
+                allReportsMetadata,
+                reportNameValuePairsMetadata,
+                sessionMetadata,
+                conciergeReportIDMetadata,
+                introSelectedMetadata,
+                guidedSetupAndTourStatusMetadata,
+                betasMetadata,
+            )
+        ) {
             return;
         }
 
@@ -112,8 +128,8 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                         conciergeReportID,
                         introSelected,
                         guidedSetupAndTourStatus?.isSelfTourViewed,
-                        betas,
                         session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        reportNameValuePairsRef.current,
                     );
                     trackPendingPublicRoomFromDeepLink(url, isCurrentlyAuthenticated);
                 } else {
@@ -155,8 +171,8 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 conciergeReportID,
                 introSelected,
                 guidedSetupAndTourStatus?.isSelfTourViewed,
-                betas,
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                reportNameValuePairsRef.current,
             );
             trackPendingPublicRoomFromDeepLink(state.url, isCurrentlyAuthenticated);
         });
@@ -170,8 +186,8 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     }, [
         conciergeReportID,
         introSelected,
-        betas,
         allReportsMetadata.status,
+        reportNameValuePairsMetadata.status,
         sessionMetadata.status,
         conciergeReportIDMetadata.status,
         introSelectedMetadata.status,
@@ -213,23 +229,15 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
         Report.openReport({
             reportID,
             introSelected,
-            betas,
             conciergeChat,
+            // The public room already exists on the server, so no optimistic report is created and the personal details are never read.
+            personalDetails: undefined,
             hasReportActions: false,
             currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
         });
-    }, [
-        isLoadingApp,
-        allReports,
-        introSelected,
-        betas,
-        conciergeChat,
-        session?.accountID,
-        guidedSetupAndTourStatus?.isSelfTourViewed,
-        guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-    ]);
+    }, [isLoadingApp, allReports, introSelected, conciergeChat, session?.accountID, guidedSetupAndTourStatus?.isSelfTourViewed, guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow]);
 
     return null;
 }

@@ -14,7 +14,7 @@ import {StyleSheet, View} from 'react-native';
 
 import type DotLottieAnimation from './LottieAnimations/types';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import FixedFooter from './FixedFooter';
 import ImageSVG from './ImageSVG';
 import Lottie from './Lottie';
@@ -54,6 +54,12 @@ type ConfirmationPageProps = {
 
     onSecondaryButtonPress?: () => void;
     shouldShowSecondaryButton?: boolean;
+
+    /** Whether the secondary confirmation button should be disabled */
+    isSecondaryButtonDisabled?: boolean;
+
+    /** Whether the secondary confirmation button should show a loading spinner */
+    isSecondaryButtonLoading?: boolean;
     headingStyle?: TextStyle;
 
     /** Additional style for the animation */
@@ -85,6 +91,8 @@ function ConfirmationPage({
     secondaryButtonText = '',
     onSecondaryButtonPress = () => {},
     shouldShowSecondaryButton = false,
+    isSecondaryButtonDisabled = false,
+    isSecondaryButtonLoading = false,
     headingStyle,
     illustrationStyle,
     descriptionStyle,
@@ -155,6 +163,8 @@ function ConfirmationPage({
                             size={CONST.BUTTON_SIZE.LARGE}
                             testID="confirmation-secondary-button"
                             style={styles.mt3}
+                            isDisabled={isSecondaryButtonDisabled}
+                            isLoading={isSecondaryButtonLoading}
                             onPress={onSecondaryButtonPress}
                         >
                             <Button.Text>{secondaryButtonText}</Button.Text>

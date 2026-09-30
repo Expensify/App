@@ -51,14 +51,13 @@ const buildTag = (name: string, enabled: boolean): WorkspaceTagTableRowData => (
     enabled,
     isLocked: false,
     showEnabledSwitch: true,
-    showRequiredSwitch: false,
     action: jest.fn(),
     onClose: jest.fn(),
 });
 
 // WorkspaceViewTagsTable is normally hosted inside a ScreenWrapper; its rows read the screen transition status,
 // so provide a stubbed context indicating the transition has already finished.
-const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: false, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
+const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
 
 function TestWrapper({tags, hasDependentTags}: {tags: WorkspaceTagTableRowData[]; hasDependentTags: boolean}) {
     return (

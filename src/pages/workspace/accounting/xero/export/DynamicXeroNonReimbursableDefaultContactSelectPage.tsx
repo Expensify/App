@@ -13,7 +13,7 @@ import {clearXeroErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getXeroSuppliers, isXeroVendorMatchingActive, settingsPendingAction} from '@libs/PolicyUtils';
+import {getXeroSuppliers, isXeroVendorMatchingActive, settingsPendingAction, sortVendors} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -34,7 +34,7 @@ const CLEAR_DEFAULT_VENDOR_VALUE = '';
 
 function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
@@ -51,6 +51,7 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
     const isFeatureAvailable = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING) && isXeroVendorMatchingActive(policy);
 
     const suppliers = useMemo(() => getXeroSuppliers(policy), [policy]);
+    const sortedSuppliers = sortVendors(suppliers, localeCompare);
     const [searchText, setSearchText] = useState('');
 
     // Prepend a "None" row so an admin can persist an empty default — without it the picker has
@@ -67,13 +68,13 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
 
     const supplierOptions: SelectorType[] = useMemo(
         () =>
-            suppliers.map((supplier) => ({
+            sortedSuppliers.map((supplier) => ({
                 value: supplier.id,
                 text: supplier.name,
                 keyForList: supplier.id,
                 isSelected: supplier.id === currentContactID,
             })),
-        [suppliers, currentContactID],
+        [sortedSuppliers, currentContactID],
     );
 
     // Match the threshold the Company Cards export picker uses for its search input — Xero
@@ -113,7 +114,10 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
             // Treat the clear row and an already-empty default as the same state so picking
             // "None" on a workspace that never had a default doesn't fire a no-op write.
             const isAlreadySelected = value === currentContactID || (!value && !currentContactID);
-            if (!isAlreadySelected && policyID) {
+            if (isAlreadySelected) {
+                return;
+            }
+            if (policyID) {
                 updateManyPolicyConnectionConfigs(
                     policyID,
                     CONST.POLICY.CONNECTIONS.NAME.XERO,

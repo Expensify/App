@@ -68,7 +68,7 @@ function WorkspaceTravelBillingSettlementFrequencyPage({route}: WorkspaceTravelB
     const monthlySettlementDate = travelSettings?.monthlySettlementDate;
     const saveAndGoBack = () => {
         if (selectedFrequency && (selectedFrequency !== currentFrequency || hasFrequencyError)) {
-            updateTravelBillingSettlementFrequency(defaultFundID, selectedFrequency, monthlySettlementDate ? new Date(monthlySettlementDate) : undefined);
+            updateTravelBillingSettlementFrequency(defaultFundID, selectedFrequency, monthlySettlementDate);
         }
         Navigation.goBack();
     };

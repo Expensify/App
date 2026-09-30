@@ -1,7 +1,7 @@
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 
-import {isConfirmationAmountMissing, isConfirmationDateMissing} from '@libs/MoneyRequestUtils';
+import {isConfirmationAmountMissing, isConfirmationDateMissing, isConfirmationMerchantMissing} from '@libs/MoneyRequestUtils';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {areRequiredFieldsEmpty, getTag, hasMissingSmartscanFields, isMerchantMissing} from '@libs/TransactionUtils';
 import {isInvalidMerchantValue, isUntypedPlaceholderMerchant, isValidInputLength} from '@libs/ValidationUtils';
@@ -54,6 +54,12 @@ type UseFormErrorManagementParams = {
     /** Whether the IOU was started from a SmartScan flow */
     isScanRequest: boolean;
 
+    /** Whether this surface offers manual entry of the amount / merchant / date. False for splits, test receipts and moved tracked expenses. */
+    canEnterScanFieldsManually: boolean;
+
+    /** ID of a partially filled Scan among the transactions being confirmed. Can name a receipt other than this one. */
+    partiallyManuallyFilledScanID?: string;
+
     /** Whether the merchant field should be visible in the UI */
     shouldShowMerchant: boolean;
 
@@ -71,9 +77,6 @@ type UseFormErrorManagementParams = {
 
     /** Whether splits are rendered read-only (suppresses some field errors) */
     shouldShowReadOnlySplits: boolean;
-
-    /** Whether the new manual expense flow is enabled (amount/date errors surface inline) */
-    isNewManualExpenseFlowEnabled: boolean;
 
     /** Whether the transaction is a distance request (its amount is read-only, so amount errors are not shown inline) */
     isDistanceRequest: boolean;
@@ -141,13 +144,14 @@ function useFormErrorManagement({
     isEditingSplitBill,
     isPolicyExpenseChat,
     isScanRequest,
+    canEnterScanFieldsManually,
+    partiallyManuallyFilledScanID,
     shouldShowMerchant,
     hasSmartScanFailed,
     didConfirmSplit,
     routeError,
     isTypeSplit,
     shouldShowReadOnlySplits,
-    isNewManualExpenseFlowEnabled,
     isDistanceRequest,
     shouldShowDate,
     isReadOnly,
@@ -219,14 +223,17 @@ function useFormErrorManagement({
 
     // These reuse the very predicates `useConfirmationValidation` raises `common.error.fieldRequired` from, so the
     // clear side can never drift from the validation side and strand a required error that can no longer be cleared (#96568).
-    const isAmountRequiredMissing = isConfirmationAmountMissing(transaction);
-    const isDateRequiredMissing = isConfirmationDateMissing(transaction, shouldShowDate, isReadOnly);
+    const isAmountRequiredMissing = isConfirmationAmountMissing(transaction, canEnterScanFieldsManually);
+    const isDateRequiredMissing = isConfirmationDateMissing(transaction, shouldShowDate, isReadOnly, canEnterScanFieldsManually);
+    const isMerchantRequiredMissing = isConfirmationMerchantMissing(transaction, canEnterScanFieldsManually);
     useEffect(() => {
-        if (!isNewManualExpenseFlowEnabled || formErrorRef.current !== 'common.error.fieldRequired' || isAmountRequiredMissing || isDateRequiredMissing) {
+        // The predicates above only see the transaction on screen, so the ID keeps the error alive while another
+        // receipt of a multi-scan is still partially filled.
+        if (formErrorRef.current !== 'common.error.fieldRequired' || isAmountRequiredMissing || isDateRequiredMissing || isMerchantRequiredMissing || !!partiallyManuallyFilledScanID) {
             return;
         }
         setFormError('');
-    }, [isNewManualExpenseFlowEnabled, isAmountRequiredMissing, isDateRequiredMissing, setFormError]);
+    }, [isAmountRequiredMissing, isDateRequiredMissing, isMerchantRequiredMissing, partiallyManuallyFilledScanID, setFormError]);
 
     useEffect(() => {
         const currentFormError = formErrorRef.current;
@@ -253,27 +260,27 @@ function useFormErrorManagement({
         }
     }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, isViolationFixed, setFormError]);
 
-    // In the new manual expense flow the amount/date/merchant fields surface these required/invalid errors inline, so
-    // repeating them at the bottom of the form would show "This field is required" twice.
+    // The amount/date/merchant fields surface these required/invalid errors inline, so repeating them at the bottom of
+    // the form would show "This field is required" twice.
     // `common.error.invalidAmount` is the one exception: it is only surfaced inline while the editable amount input is
     // rendered. Distance requests disable that input, and the read-only menu row it falls back to doesn't show the error,
     // so the distance-amount error stays in the footer. Otherwise an invalid distance expense would fail silently.
-    const isSuppressedInNewFlow = (error: TranslationPaths | ''): boolean =>
-        isNewManualExpenseFlowEnabled && (error === 'common.error.fieldRequired' || error === 'iou.error.invalidMerchant' || (!isDistanceRequest && error === 'common.error.invalidAmount'));
+    const isSuppressedInline = (error: TranslationPaths | ''): boolean =>
+        error === 'common.error.fieldRequired' || error === 'iou.error.invalidMerchant' || (!isDistanceRequest && error === 'common.error.invalidAmount');
 
     const computeErrorMessage = (): string | undefined => {
         if (routeError) {
             return routeError;
         }
         // This runs ahead of the split branch below because splits render those same inline fields, so they duplicate the same way.
-        if (isSuppressedInNewFlow(formError)) {
+        if (isSuppressedInline(formError)) {
             return undefined;
         }
         if (isTypeSplit && !shouldShowReadOnlySplits) {
             // Splits render the debounced value, so the suppression has to be re-checked against it. `formError` clears
             // the instant the user fixes the field while `debouncedFormError` lags by USE_DEBOUNCED_STATE_DELAY, and
             // without this the suppressed error would pop into the footer for that window (#96565).
-            return debouncedFormError && !isSuppressedInNewFlow(debouncedFormError) ? translate(debouncedFormError) : undefined;
+            return debouncedFormError && !isSuppressedInline(debouncedFormError) ? translate(debouncedFormError) : undefined;
         }
         // Don't show error at the bottom of the form for missing attendees — the field surfaces it inline.
         if (formError === 'violations.missingAttendees') {

@@ -10,7 +10,7 @@ import type {ComponentProps} from 'react';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 
