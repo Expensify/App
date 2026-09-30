@@ -4,13 +4,13 @@ import HeaderTitleComponent from '@components/HeaderTitle';
 import type {StyleProp, TextStyle} from 'react-native';
 
 type HeaderTitleProps = {
-    title: string;
+    title?: string;
     subtitle?: string;
-    subTitleLink?: string;
+    subtitleLink?: string;
     titleStyles?: StyleProp<TextStyle>;
 };
 
-function HeaderTitle({title, subtitle = '', titleStyles, subTitleLink = ''}: HeaderTitleProps) {
+function HeaderTitle({title, subtitle, titleStyles, subtitleLink}: HeaderTitleProps) {
     const {shouldSkipFocusAfterTransition} = useHeaderContext();
 
     return (
@@ -27,7 +27,7 @@ function HeaderTitle({title, subtitle = '', titleStyles, subTitleLink = ''}: Hea
                 </HeaderTitleComponent.Text>
             )}
             {!!subtitle && <HeaderTitleComponent.Subtitle>{subtitle}</HeaderTitleComponent.Subtitle>}
-            {!!subTitleLink && <HeaderTitleComponent.SubtitleLink>{subTitleLink}</HeaderTitleComponent.SubtitleLink>}
+            {!!subtitleLink && <HeaderTitleComponent.SubtitleLink>{subtitleLink}</HeaderTitleComponent.SubtitleLink>}
         </HeaderTitleComponent>
     );
 }
