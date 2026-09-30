@@ -1094,11 +1094,14 @@ function openSearchTagFiltersPage(
         HttpUtils.cancelPendingRequests(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE);
     }
 
+    const policyIDsKey = params.policyIDs || 'all';
+    const resultsKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${policyIDsKey}`;
+
     const optimisticData: AnyOnyxUpdate[] = shouldCancelPendingRequests
         ? [
               {
                   onyxMethod: Onyx.METHOD.SET,
-                  key: ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS,
+                  key: resultsKey,
                   value: [],
               },
           ]
@@ -1110,7 +1113,7 @@ function openSearchTagFiltersPage(
         const tagFiltersResponse = response as OpenSearchTagFiltersPageResponse | undefined;
         const newTags = tagFiltersResponse?.tags ?? [];
         if (params.cursor && newTags.length > 0) {
-            Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS, [...currentResults, ...newTags]);
+            Onyx.set(resultsKey, [...currentResults, ...newTags]);
         }
         return {
             hasMore: !!tagFiltersResponse?.hasMore,
@@ -1133,7 +1136,8 @@ function setSearchTagFiltersPagination(
     baseHasMore?: boolean,
     baseCursor?: string,
 ) {
-    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION, {
+    const policyIDsKey = policyIDs || 'all';
+    Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION}${policyIDsKey}`, {
         hasMore,
         nextCursor,
         searchQuery,

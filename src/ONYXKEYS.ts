@@ -49,12 +49,6 @@ const ONYXKEYS = {
     /** Boolean flag set whenever we are searching for reports in the server */
     RAM_ONLY_IS_SEARCHING_FOR_REPORTS: 'isSearchingForReports',
 
-    /** Pagination state for tag filter search (hasMore, nextCursor). RAM-only so it resets on app restart. */
-    RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION: 'searchTagFiltersPagination',
-
-    /** Paginated tag search results. RAM-only so it resets on app restart. */
-    RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS: 'searchTagFiltersResults',
-
     /** Boolean flag set whenever we are searching for users in the server */
     RAM_ONLY_IS_SEARCHING_FOR_USERS: 'isSearchingForUsers',
 
@@ -946,6 +940,12 @@ const ONYXKEYS = {
         /** Session-scoped loading flags for the Expensify Card page, keyed by policyID.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE: 'expensifyCardLoadingState_',
+        /** Pagination state for tag filter search, keyed by policyIDs.
+         *  Registered as RAM-only in `setup/index.ts`. */
+        RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION: 'searchTagFiltersPagination_',
+        /** Paginated tag search results, keyed by policyIDs.
+         *  Registered as RAM-only in `setup/index.ts`. */
+        RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS: 'searchTagFiltersResults_',
         /** Pagination cursors for a report's action list. */
         REPORT_PAGINATION_STATE: 'reportPaginationState_',
         REPORT_ACTIONS: 'reportActions_',
@@ -1543,6 +1543,8 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE]: OnyxTypes.ReportLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE]: OnyxTypes.CompanyCardsLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE]: OnyxTypes.ExpensifyCardLoadingState;
+    [ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION]: OnyxTypes.SearchTagFiltersPaginationState;
+    [ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS]: OnyxTypes.SearchTagFilterItem[];
     [ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE]: OnyxTypes.ReportPaginationState;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportActions;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: OnyxTypes.ReportActionsDrafts;
@@ -1788,8 +1790,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: string;
     [ONYXKEYS.ONBOARDING_LAST_VISITED_PATH]: string;
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: boolean;
-    [ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION]: OnyxTypes.SearchTagFiltersPaginationState;
-    [ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS]: OnyxTypes.SearchTagFilterItem[];
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN]: boolean;
     [ONYXKEYS.LAST_VISITED_PATH]: string | undefined;
