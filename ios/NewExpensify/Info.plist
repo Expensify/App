@@ -95,6 +95,10 @@
 	</array>
 	<key>RCTNewArchEnabled</key>
 	<true/>
+	<!-- Keep RNNitroSQLite_AppGroup unset: NitroSQLite handles it before RNNitroSQLite_DatabaseLocation and would ignore this setting. -->
+	<!-- Application Support keeps OnyxDB and its journal files out of the user-visible Documents directory. -->
+	<key>RNNitroSQLite_DatabaseLocation</key>
+	<string>ApplicationSupport</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>ExpensifyNewKansas-Medium.otf</string>
