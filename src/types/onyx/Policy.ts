@@ -1448,8 +1448,8 @@ type FinancialForceSyncedEntity = {
 
 /** Data synced from Certinia (parent sync service); arrays may be empty until sync completes */
 type FinancialForceConnectionData = {
-    /** Salesforce Accounts used as Default Vendor options (FFA) */
-    vendors: FinancialForceSyncedEntity[];
+    /** Salesforce Accounts used as Default Vendor options (FFA); undefined means the sync has not written the list yet */
+    vendors?: FinancialForceSyncedEntity[];
 
     /** Certinia companies (c2g__codaCompany__c); FFA validates presence when applicable */
     companies: FinancialForceSyncedEntity[];
@@ -2201,7 +2201,7 @@ type DualEntryConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
  * A subsidiary (entity) configured in Campfire.
  */
 type CampfireSubsidiary = {
-    /** Unique identifier of the account. */
+    /** Unique identifier of the subsidiary. */
     id: string;
 
     /** Name of the account. */
@@ -2251,7 +2251,7 @@ type CampfireAccount = {
  * Field retrieved from Campfire.
  */
 type CampfireField = {
-    /** Unique identifier of the account. */
+    /** Unique identifier of the field. */
     id: string;
 
     /** Name of the field. */
@@ -2864,6 +2864,9 @@ type QBDConnectionData = {
     payableAccounts: Account[];
     bankAccounts: Account[];
     vendors: Vendor[];
+
+    /** Expense accounts, the only ones a currency conversion cost can be charged to */
+    expenseAccounts?: Account[];
 };
 
 /**
@@ -2916,6 +2919,9 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         shouldAutoCreateVendor: boolean;
         importItems: boolean;
         export: QBDExportConfig;
+
+        /** ID of the account cross-border currency conversion costs are charged to. Unset means the cost is not exported. */
+        fxExpenseAccount?: string;
 
         /** Configuration of import settings from QuickBooks Desktop to the app */
         mappings: {
@@ -3050,6 +3056,9 @@ type CommuterExclusions = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Distance unit stored alongside fixedDistance ('mi' or 'km'). Mirrors the policy distance custom unit at the time it was set. */
     fixedDistanceUnit?: string;
+
+    /** Default work arrangement for members without a per-member hasOfficeWorkArrangement. */
+    isOfficeWorkArrangement?: boolean;
 }>;
 
 /** Prohibited expense types */
@@ -3469,6 +3478,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether new transactions need to be categorized */
         requiresCategory?: boolean;
 
+        /** Whether new uncategorized expenses get a category picked for them automatically. Defaults to true when unset. */
+        autoCategorizeNewExpenses?: boolean;
+
         showCategoryGLCodes?: boolean;
 
         /**
@@ -3792,6 +3804,7 @@ export type {
     MergeHRConnectionConfig,
     MergeConnectionLastSync,
     MergeATSConnectionConfig,
+    MergeATSConnectionData,
     MergeATSFilters,
     MergeATSApproverField,
     GustoConnectionConfig,
@@ -3817,6 +3830,7 @@ export type {
     DualEntryExport,
     DualEntryAutoSync,
     DualEntrySync,
+    FinancialForceSyncedEntity,
     CampfireConnectionsConfig,
     CampfireSubsidiary,
     CampfireCoding,
@@ -3824,6 +3838,8 @@ export type {
     CampfireVendor,
     CampfireAccount,
     CampfireExport,
+    CampfireAutoSync,
+    CampfireSync,
     BusinessCentralCompany,
     BusinessCentralCoding,
     BusinessCentralCodingOfflineFeedbackKeys,

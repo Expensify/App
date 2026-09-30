@@ -103,7 +103,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
     const isSupportalSession = useIsSupportalSession();
@@ -493,7 +492,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         introSelected,
                         isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
                         hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                        betas,
                         conciergeChat,
                         isSupportalSession,
                         shouldDismissModal: false,
@@ -513,7 +511,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             introSelected,
             guidedSetupAndTourStatus?.isSelfTourViewed,
             guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-            betas,
             conciergeChat,
             isSupportalSession,
             contextualPoliciesMap,

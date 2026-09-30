@@ -223,6 +223,7 @@ function useSearchSelectorBase({
         isLoading: isLoadingOptions,
         loadMore: loadMoreReports,
         hasMore: hasMoreReports,
+        getReportByID,
     } = useFilteredOptions({
         enabled: shouldInitialize,
         isSearching: isSearchingOptions,
@@ -306,6 +307,7 @@ function useSearchSelectorBase({
                     conciergeReportID,
                     isTrackIntentUser,
                     translate,
+                    getReportByID,
                     rules,
                     formatPhoneNumber,
                 });
@@ -341,6 +343,7 @@ function useSearchSelectorBase({
                         allPolicyTags,
                         sortedActions,
                         isTrackIntentUser,
+                        getReportByID,
                         ...appliedGetValidOptionsConfig,
                     },
                     {translate, formatPhoneNumber},
@@ -380,6 +383,7 @@ function useSearchSelectorBase({
                         allPolicyTags,
                         sortedActions,
                         isTrackIntentUser,
+                        getReportByID,
                         ...appliedGetValidOptionsConfig,
                     },
                     {translate, formatPhoneNumber},
@@ -417,6 +421,7 @@ function useSearchSelectorBase({
                         allPolicyTags,
                         sortedActions,
                         isTrackIntentUser,
+                        getReportByID,
                         ...appliedGetValidOptionsConfig,
                     },
                     {translate, formatPhoneNumber},
@@ -526,7 +531,7 @@ function useSearchSelectorBase({
     };
 
     const selectedOptionsForDisplay = selectedOptions.filter((option) => {
-        const personalDetailSearchTerms = getPersonalDetailSearchTerms(option, currentUserAccountID);
+        const personalDetailSearchTerms = getPersonalDetailSearchTerms(option, currentUserAccountID, translate);
         return (
             !!option.text?.toLowerCase().includes(computedSearchTerm) ||
             !!option.login?.toLowerCase().includes(computedSearchTerm) ||

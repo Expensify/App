@@ -88,7 +88,6 @@ import {createFile, splitExtensionFromFileName} from '@libs/fileDownload/FileUti
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getWorkspaceCreatedAnalyticsEvent from '@libs/getWorkspaceCreatedAnalyticsEvent';
 import GoogleTagManager from '@libs/GoogleTagManager';
-import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -123,7 +122,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicySelector} from '@src/selectors/Policy';
 import type {
     BankAccountList,
-    Beta,
     CardFeeds,
     DuplicateWorkspace,
     IntroSelected,
@@ -175,7 +173,7 @@ import {subMinutes} from 'date-fns/subMinutes';
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
-import {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories} from './Category';
+import {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories} from './OptimisticPolicyCategoriesAndMccGroups';
 
 type ReportCreationData = Record<
     string,
@@ -240,6 +238,7 @@ type CreateWorkspaceFromIOUPaymentOptions = {
     reportActionsList: OnyxCollection<ReportActions>;
     doesEmployeePersonalDetailExist: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    reportTransactions: Transaction[];
     /** Whether the current user already owns a paid workspace. CreatePolicy leaves the #admins room unpinned when they do. */
     hasOwnedPaidPolicy: boolean;
 };
@@ -296,7 +295,6 @@ type BuildPolicyDataOptions = {
     delegateAccountID: number | undefined;
     /** Whether the current user already owns a paid workspace. CreatePolicy leaves the #admins room unpinned when they do. */
     hasOwnedPaidPolicy: boolean | undefined;
-    betas?: OnyxEntry<Beta[]>;
     personalTrackGoal?: string;
 };
 
@@ -2484,12 +2482,12 @@ function clearDuplicateWorkspace() {
     Onyx.set(ONYXKEYS.DUPLICATE_WORKSPACE, {});
 }
 
-function getDisplayNameForWorkspace(email: string, userDisplayName: string | undefined) {
+function getDisplayNameForWorkspace(email: string, userDisplayName: string | undefined, localeTranslate: LocalizedTranslate) {
     const emailParts = email.split('@');
     const domain = emailParts.at(1) ?? '';
     const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
     if (isSMSDomain) {
-        return translateLocal('workspace.new.myGroupWorkspace', {});
+        return localeTranslate('workspace.new.myGroupWorkspace', {});
     }
 
     if (!PUBLIC_DOMAINS_SET.has(domain.toLowerCase())) {
@@ -2520,7 +2518,7 @@ function generateDefaultWorkspaceName(email: string, displayName: string | undef
         return localeTranslate('workspace.new.myGroupWorkspace', {workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
     }
 
-    const displayNameForWorkspace = getDisplayNameForWorkspace(email, displayName);
+    const displayNameForWorkspace = getDisplayNameForWorkspace(email, displayName, localeTranslate);
 
     return localeTranslate('workspace.new.workspaceName', displayNameForWorkspace, lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined);
 }
@@ -4434,6 +4432,7 @@ function createWorkspaceFromIOUPayment({
     reportActionsList,
     doesEmployeePersonalDetailExist,
     getCurrencyDecimals,
+    reportTransactions,
     hasOwnedPaidPolicy,
 }: CreateWorkspaceFromIOUPaymentOptions): WorkspaceFromIOUCreationData | undefined {
     // This flow only works for IOU reports
@@ -4747,7 +4746,6 @@ function createWorkspaceFromIOUPayment({
         fieldList: newWorkspace.fieldList,
     };
 
-    const reportTransactions = ReportUtils.getReportTransactions(iouReportID);
     const transactionsRecord: Record<string, Transaction> = {};
     for (const transaction of reportTransactions) {
         if (transaction?.transactionID) {
