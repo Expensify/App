@@ -145,6 +145,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_THEME,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.TROUBLESHOOT_SERVER]: {
+                            path: ROUTES.SETTINGS_TROUBLESHOOT_SERVER,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.PREFERENCES.PAYMENT_CURRENCY]: {
                             path: ROUTES.SETTINGS_PAYMENT_CURRENCY,
                             exact: true,
@@ -532,6 +536,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.SUBSCRIPTION.EXPENSIFY_CODE]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_EXPENSIFY_CODE,
                         },
+                        [SCREENS.SETTINGS.SUBSCRIPTION.PAYMENT_HISTORY]: {
+                            path: ROUTES.SETTINGS_SUBSCRIPTION_PAYMENT_HISTORY,
+                        },
                         [SCREENS.SETTINGS.SUBSCRIPTION.DISABLE_AUTO_RENEW_SURVEY]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY,
                         },
@@ -634,6 +641,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT]:
                             DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT.path,
                         [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_ADVANCED]: DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.path,
+                        [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT_SELECT]:
+                            DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT_SELECT.path,
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_AUTO_SYNC]: {
                             path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_AUTO_SYNC.route,
                         },
@@ -2288,9 +2297,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             },
         },
         [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: {
+            initialRouteName: SCREENS.TEST_TOOLS_MODAL.ROOT,
             screens: {
                 [SCREENS.TEST_TOOLS_MODAL.ROOT]: {
                     path: ROUTES.TEST_TOOLS_MODAL.route,
+                    exact: true,
+                },
+                [SCREENS.TEST_TOOLS_MODAL.SERVER]: {
+                    path: ROUTES.TEST_TOOLS_SERVER.route,
                     exact: true,
                 },
             },
