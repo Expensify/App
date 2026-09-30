@@ -742,6 +742,9 @@ const ONYXKEYS = {
     /** Caches converted footer-total amounts (by transaction and by whole-search query, nested by currency) for the Search footer currency picker */
     SEARCH_FOOTER_CONVERSION: 'searchFooterConversion',
 
+    /** @deprecated Use `search.inputQuery` on the snapshot. Only read by the MoveSearchQueryByHashToSnapshots migration. */
+    SEARCH_QUERY_BY_HASH: 'searchQueryByHash',
+
     /** Stores recently used currencies */
     RECENTLY_USED_CURRENCIES: 'nvp_recentlyUsedCurrencies',
 
@@ -1619,6 +1622,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH]: boolean;
     [ONYXKEYS.SEARCH_CONTEXT]: OnyxTypes.SearchContext;
     [ONYXKEYS.SEARCH_FOOTER_CONVERSION]: OnyxTypes.SearchFooterConversion;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- the key stays typed while the migration still reads it
+    [ONYXKEYS.SEARCH_QUERY_BY_HASH]: Record<string, string>;
     [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;

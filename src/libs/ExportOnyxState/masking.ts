@@ -511,6 +511,8 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.SCREEN_SHARE_REQUEST,
     ONYXKEYS.SEARCH_FILTERS,
     ONYXKEYS.SEARCH_FOOTER_CONVERSION,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- the key is still on device until the migration drains it
+    ONYXKEYS.SEARCH_QUERY_BY_HASH,
     ONYXKEYS.SHARE_BANK_ACCOUNT,
     ONYXKEYS.SHARE_TEMP_FILE,
     ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS,
