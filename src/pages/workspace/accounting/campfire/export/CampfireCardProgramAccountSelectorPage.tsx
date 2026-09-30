@@ -54,17 +54,17 @@ function CampfireCardProgramAccountSelectorPage({
     const cardFeed = cardFeeds?.[feedWithDomainID];
     const [cardLists] = useCardsLists();
     const feedKey = cardFeed?.feed;
-    const dualentryConfig = policy?.connections?.campfire?.config;
-    const dualentryData = policy?.connections?.campfire?.data;
-    const creditCardAccountID = dualentryConfig?.export?.creditCardAccountID;
-    const cardProgramsUsingCustomAccounts = dualentryConfig?.export?.cardProgramAccounts;
+    const campfireConfig = policy?.connections?.campfire?.config;
+    const campfireData = policy?.connections?.campfire?.data;
+    const creditCardAccountID = campfireConfig?.export?.creditCardAccountID;
+    const cardProgramsUsingCustomAccounts = campfireConfig?.export?.cardProgramAccounts;
     const cardProgramAccountID = (feedKey ? cardProgramsUsingCustomAccounts?.[feedKey] : undefined) ?? creditCardAccountID;
     const hasActiveCards = feedKey && findMatchingCards(cardFeeds ?? {}, cardLists, feedKey).length > 0;
     const title = getCustomOrFormattedFeedName(translate, feedKey, cardFeed?.customFeedName, false);
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_CAMPFIRE_CARD_PROGRAM_ACCOUNT.getRoute(policyID) : undefined;
 
     const data: AccountListItem[] =
-        dualentryData?.accounts
+        campfireData?.accounts
             ?.filter(
                 (accountItem) =>
                     accountItem.isActive && (accountItem.accountSubtype === CONST.CAMPFIRE_ACCOUNT_SUBTYPE.CREDIT_CARD || accountItem.accountSubtype === CONST.CAMPFIRE_ACCOUNT_SUBTYPE.BANK),
@@ -122,8 +122,8 @@ function CampfireCardProgramAccountSelectorPage({
             initiallyFocusedOptionKey={cardProgramAccountID}
             onBackButtonPress={() => Navigation.goBack(backPath)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE}
-            pendingAction={settingsPendingAction([`${CONST.CAMPFIRE_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`], dualentryConfig?.pendingFields)}
-            errors={getLatestErrorField(dualentryConfig, `${CONST.CAMPFIRE_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`)}
+            pendingAction={settingsPendingAction([`${CONST.CAMPFIRE_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`], campfireConfig?.pendingFields)}
+            errors={getLatestErrorField(campfireConfig, `${CONST.CAMPFIRE_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => policyID && clearCampfireErrorField(policyID, `${CONST.CAMPFIRE_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`)}
         />
