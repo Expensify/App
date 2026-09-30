@@ -1023,9 +1023,7 @@
 "../../src/pages/DynamicReportChangeWorkspacePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/DynamicReportChangeWorkspacePage.tsx"	"rulesdir/no-direct-personal-details-list"	3
 "../../src/pages/DynamicReportDetailsPage/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/pages/DynamicReportDetailsPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/DynamicReportDetailsPage.tsx"	"react-hooks/preserve-manual-memoization"	4
-"../../src/pages/DynamicReportDetailsPage/index.tsx"	"rulesdir/no-direct-personal-details-list"	1
+"../../src/pages/DynamicReportDetailsPage/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
@@ -1375,6 +1373,7 @@
 "../../src/pages/settings/Subscription/SubscriptionSettingsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Subscription/SubscriptionSize/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Troubleshoot/DynamicBetaOverridesPage.tsx"	"no-restricted-imports"	1
+"../../src/pages/settings/Troubleshoot/ServerSelector.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Troubleshoot/TroubleshootPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/VerifyAccountPageBase.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/AddCardToDigitalWalletPage.tsx"	"no-restricted-imports"	1
@@ -1987,9 +1986,11 @@
 "../../tests/actions/TaskTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/TransactionTest.ts"	"no-restricted-imports"	1
 "../../tests/ui/components/IOURequestStepConfirmationPageTest.tsx"	"@typescript-eslint/no-restricted-imports"	1
+"../../tests/ui/components/MoneyReportHeaderFocusSelectionModeTest.tsx"	"no-restricted-imports"	1
 "../../tests/ui/components/MoneyReportHeaderSelectionModeTest.tsx"	"no-restricted-imports"	1
 "../../tests/ui/ComposerTest.tsx"	"rulesdir/no-raw-typography"	1
 "../../tests/ui/MoneyRequestReportPreview.test.tsx"	"no-restricted-imports"	1
+"../../tests/ui/ServerSelectionTest.tsx"	"no-restricted-imports"	1
 "../../tests/ui/UnreadIndicatorsTest.tsx"	"@typescript-eslint/no-restricted-imports"	1
 "../../tests/ui/WorkspaceMoreFeaturesPageTest.tsx"	"no-restricted-imports"	1
 "../../tests/unit/canEditFieldOfMoneyRequestTest.ts"	"@typescript-eslint/no-deprecated/randomReportAction.originalMessage"	3
