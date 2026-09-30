@@ -90,7 +90,11 @@ type PnrData = {
             loyaltyInfos: unknown[];
         };
 
-        user: {
+        /** The traveler user in Spotnana. A guest traveler doesn't necessarily have a user object. */
+        user?: {
+            /** Email address of the traveler. */
+            email?: string;
+
             addresses: unknown[];
 
             /** Identity documents of the user. */
@@ -1877,13 +1881,13 @@ type RailPnr = {
         passengerType: string;
 
         /** Organization and user ID associated with the passenger. */
-        userOrgId: {
+        userOrgId?: {
             organizationId: {
                 /** ID of the organization. */
                 id: string;
             };
 
-            userId: {
+            userId?: {
                 id: string;
             };
         };

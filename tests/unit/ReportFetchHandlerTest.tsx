@@ -1,11 +1,14 @@
-import {render} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import {IsInPreloadedTabContext} from '@hooks/useIsInPreloadedTab';
 
 import ReportFetchHandler from '@pages/inbox/ReportFetchHandler';
 
 import type * as UserActionsReport from '@userActions/Report';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
@@ -16,18 +19,31 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORT_ID = '1';
+const PUBLIC_ROOM_ID = '2';
 
-let mockRouteParams: Record<string, unknown> = {reportID: REPORT_ID};
+// The real useRoute returns a stable object until the route actually changes, and the fetch effect keys off that
+// identity. Mirror it here, or every re-render would look like a navigation and fire its own openReport.
+let mockRoute: {key: string; name: string; params: Record<string, unknown>} = {key: 'report', name: 'Report', params: {reportID: REPORT_ID}};
 const mockSetParams = jest.fn();
+
+function setRouteParams(params: Record<string, unknown>) {
+    mockRoute = {key: 'report', name: 'Report', params};
+}
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),
-    useRoute: () => ({key: 'report', name: 'Report', params: mockRouteParams}),
+    useRoute: () => mockRoute,
     useNavigation: () => ({setParams: mockSetParams, addListener: jest.fn(() => jest.fn())}),
     useIsFocused: () => true,
 }));
 
-const mockOpenReport = jest.fn();
+let mockIsOffline = false;
+jest.mock('@hooks/useNetwork', () => ({
+    __esModule: true,
+    default: () => ({isOffline: mockIsOffline}),
+}));
+
+const mockOpenReport = jest.fn<void, Parameters<typeof UserActionsReport.openReport>>();
 jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof UserActionsReport>('@userActions/Report'),
     openReport: (...args: Parameters<typeof UserActionsReport.openReport>) => {
@@ -35,12 +51,18 @@ jest.mock('@userActions/Report', () => ({
     },
 }));
 
-function renderHandler() {
-    return render(
-        <OnyxListItemProvider>
-            <ReportFetchHandler />
-        </OnyxListItemProvider>,
+function HandlerTree({isInPreloadedTab}: {isInPreloadedTab: boolean}) {
+    return (
+        <IsInPreloadedTabContext.Provider value={isInPreloadedTab}>
+            <OnyxListItemProvider>
+                <ReportFetchHandler />
+            </OnyxListItemProvider>
+        </IsInPreloadedTabContext.Provider>
     );
+}
+
+function renderHandler(isInPreloadedTab = false) {
+    return render(<HandlerTree isInPreloadedTab={isInPreloadedTab} />);
 }
 
 /** Regression tests for the guards that suppress openReport for a client-generated report ID that doesn't exist on the server yet. */
@@ -48,7 +70,8 @@ describe('ReportFetchHandler', () => {
     beforeEach(async () => {
         mockOpenReport.mockClear();
         mockSetParams.mockClear();
-        mockRouteParams = {reportID: REPORT_ID};
+        mockIsOffline = false;
+        setRouteParams({reportID: REPORT_ID});
         await Onyx.clear();
         await Onyx.multiSet({
             [ONYXKEYS.IS_LOADING_APP]: false,
@@ -59,7 +82,7 @@ describe('ReportFetchHandler', () => {
 
     it('does NOT call openReport when isPendingCreation is set and the report does not exist locally yet', async () => {
         // Given an optimistic destination that has not been created locally yet
-        mockRouteParams = {reportID: REPORT_ID, isPendingCreation: 'true'};
+        setRouteParams({reportID: REPORT_ID, isPendingCreation: 'true'});
 
         // When the pre-mounted destination starts handling report fetches
         renderHandler();
@@ -69,9 +92,29 @@ describe('ReportFetchHandler', () => {
         expect(mockOpenReport).not.toHaveBeenCalled();
     });
 
+    it('expires a stale isPendingCreation flag when the focused screen never receives a report row', async () => {
+        // Given a restored route that still carries isPendingCreation but has no submit writing the report
+        setRouteParams({reportID: REPORT_ID, isPendingCreation: 'true'});
+        jest.useFakeTimers();
+
+        // When the focused screen waits without a report row
+        renderHandler();
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.STALE_PENDING_CREATION_ROUTE_TIMEOUT - 1);
+        });
+        expect(mockSetParams).not.toHaveBeenCalled();
+
+        // Then the flag is cleared once the grace period elapses, so fetching and the not-found guard can resolve the screen
+        act(() => {
+            jest.advanceTimersByTime(1);
+        });
+        expect(mockSetParams).toHaveBeenCalledWith({isPendingCreation: undefined});
+        jest.useRealTimers();
+    });
+
     it('calls openReport again once the pre-mounted report exists locally and isPendingCreation clears', async () => {
         // Given a pre-mounted report that has become locally available
-        mockRouteParams = {reportID: REPORT_ID};
+        setRouteParams({reportID: REPORT_ID});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
         await waitForBatchedUpdates();
 
@@ -85,7 +128,7 @@ describe('ReportFetchHandler', () => {
 
     it('clears isPendingCreation once the report exists locally', async () => {
         // Given an optimistic route whose report has just become locally available
-        mockRouteParams = {reportID: REPORT_ID, isPendingCreation: 'true'};
+        setRouteParams({reportID: REPORT_ID, isPendingCreation: 'true'});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
         await waitForBatchedUpdates();
 
@@ -123,5 +166,150 @@ describe('ReportFetchHandler', () => {
 
         // Then normal fetching resumes because the report is now safe to request
         expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID}));
+    });
+
+    it('calls openReport again when the memory-only loaded stamp is wiped underneath a mounted screen', async () => {
+        // Given a mounted report whose actions have already loaded once
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {hasOnceLoadedReportActions: true, isLoadingInitialReportActions: false});
+        await waitForBatchedUpdates();
+        renderHandler();
+        await waitForBatchedUpdates();
+        mockOpenReport.mockClear();
+
+        // When "Clear cache and restart" drops the memory-only loading state without remounting the screen
+        await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, null);
+        await waitForBatchedUpdates();
+
+        // Then the report is fetched again so the loading state can settle instead of staying armed forever
+        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID}));
+    });
+
+    it('does NOT re-fetch when the loaded stamp is wiped while offline', async () => {
+        // Given a mounted report whose actions have already loaded once, on a device that has since gone offline
+        mockIsOffline = true;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {hasOnceLoadedReportActions: true, isLoadingInitialReportActions: false});
+        await waitForBatchedUpdates();
+        renderHandler();
+        await waitForBatchedUpdates();
+        mockOpenReport.mockClear();
+
+        // When the memory-only loading state is dropped
+        await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, null);
+        await waitForBatchedUpdates();
+
+        // Then nothing is requested, because the fetch would only sit in the queue until connectivity returns
+        expect(mockOpenReport).not.toHaveBeenCalled();
+    });
+
+    it('does NOT re-fetch for a report whose actions simply never loaded', async () => {
+        // Given a report that has been opened but has never recorded a loaded stamp
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await waitForBatchedUpdates();
+        renderHandler();
+        await waitForBatchedUpdates();
+        mockOpenReport.mockClear();
+
+        // When its initial load resolves without ever succeeding, the way a failed fetch leaves it
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: false});
+        await waitForBatchedUpdates();
+
+        // Then nothing re-fetches, because a stamp that was never there is not a stamp that was wiped
+        expect(mockOpenReport).not.toHaveBeenCalled();
+    });
+
+    it('does NOT treat switching from a loaded report to an unloaded one as a wiped stamp', async () => {
+        // Given a mounted report whose actions have already loaded once, and another report that has never loaded
+        const OTHER_REPORT_ID = '3';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OTHER_REPORT_ID}`, {reportID: OTHER_REPORT_ID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {hasOnceLoadedReportActions: true, isLoadingInitialReportActions: false});
+        await waitForBatchedUpdates();
+        const {rerender} = renderHandler();
+        await waitForBatchedUpdates();
+        mockOpenReport.mockClear();
+
+        // When the same screen is re-parameterized to the other report without unmounting
+        setRouteParams({reportID: OTHER_REPORT_ID});
+        rerender(<HandlerTree isInPreloadedTab={false} />);
+        await waitForBatchedUpdates();
+
+        // Then the other report is fetched exactly once, by the normal fetch effect, not again by the cache-clear re-fetch
+        expect(mockOpenReport.mock.calls.filter(([params]) => params.reportID === OTHER_REPORT_ID)).toHaveLength(1);
+    });
+
+    it('holds the re-fetch of a wiped loaded stamp while the Inbox tab is preloaded and resumes it once it opens', async () => {
+        // Given a report mounted inside a warmed tab the user has not opened yet
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {hasOnceLoadedReportActions: true, isLoadingInitialReportActions: false});
+        await waitForBatchedUpdates();
+        const {rerender} = renderHandler(true);
+        await waitForBatchedUpdates();
+        mockOpenReport.mockClear();
+
+        // When the memory-only loading state is dropped underneath the preloaded tab
+        await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, null);
+        await waitForBatchedUpdates();
+
+        // Then nothing is fetched, because OpenReport would mark a report the user never opened as read
+        expect(mockOpenReport).not.toHaveBeenCalled();
+
+        // When the user opens the tab, which drops the preloaded flag
+        rerender(<HandlerTree isInPreloadedTab={false} />);
+        await waitForBatchedUpdates();
+
+        // Then the held re-fetch runs, so the loading state still settles instead of staying armed forever
+        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID}));
+    });
+
+    it('holds every openReport while the Inbox tab is preloaded and resumes them once it opens', async () => {
+        // Given a report that is normally fetched on mount
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await waitForBatchedUpdates();
+
+        // When the handler mounts inside a warmed tab the user has not opened yet
+        const {rerender} = renderHandler(true);
+        await waitForBatchedUpdates();
+
+        // Then nothing is fetched, because OpenReport marks a report the user never saw as read
+        expect(mockOpenReport).not.toHaveBeenCalled();
+
+        // When the user opens the tab, which drops the preloaded flag
+        rerender(<HandlerTree isInPreloadedTab={false} />);
+        await waitForBatchedUpdates();
+
+        // Then the held fetch runs, so opening the tab still loads the report
+        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID}));
+    });
+
+    // Unlike the fetch of this report, joining the public room has no other effect that re-runs on open, and the
+    // sign-in transition that triggers it is true for a single render.
+    it('joins the public room once the Inbox tab opens when the sign-in happened while it was preloaded', async () => {
+        // Given an anonymous user viewing a different public room, with report data still loading
+        await Onyx.multiSet({
+            [ONYXKEYS.SESSION]: {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS},
+            [ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID]: PUBLIC_ROOM_ID,
+            [ONYXKEYS.IS_LOADING_REPORT_DATA]: true,
+        });
+        await waitForBatchedUpdates();
+
+        const {rerender} = renderHandler(true);
+        await waitForBatchedUpdates();
+
+        // When the user signs in and report data finishes loading while the tab is still unopened
+        await Onyx.multiSet({
+            // A normal sign-in leaves no anonymous auth token type behind.
+            [ONYXKEYS.SESSION]: {},
+            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+        });
+        await waitForBatchedUpdates();
+        expect(mockOpenReport).not.toHaveBeenCalledWith(expect.objectContaining({reportID: PUBLIC_ROOM_ID}));
+
+        // Then opening the tab still joins the public room
+        rerender(<HandlerTree isInPreloadedTab={false} />);
+        await waitForBatchedUpdates();
+
+        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: PUBLIC_ROOM_ID}));
     });
 });

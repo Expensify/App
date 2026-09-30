@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -7,7 +7,6 @@ import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -40,8 +39,6 @@ function ExpenseDefaultTypePage({route}: ExpenseDefaultTypePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const illustrations = useMemoizedLazyIllustrations(['FoodTruck', 'FolderOpen']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
 
@@ -98,13 +95,12 @@ function ExpenseDefaultTypePage({route}: ExpenseDefaultTypePageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!isRulesRevampEnabled}
         >
             <ScreenWrapper
                 testID="ExpenseDefaultTypePage"
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <HeaderWithBackButton title={translate('workspace.rules.expenseDefaultType.title')} />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.expenseDefaultType.title')} />
                 <ScrollView
                     style={[styles.flexGrow1]}
                     addBottomSafeAreaPadding

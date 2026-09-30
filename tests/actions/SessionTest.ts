@@ -3,19 +3,21 @@
 import {beforeEach, jest, test} from '@jest/globals';
 
 import {openApp, reconnectApp} from '@libs/actions/App';
-import {buildOldDotURL, openExternalLink} from '@libs/actions/Link';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {getAll as getAllPersistedRequests} from '@libs/actions/PersistedRequests';
 import {initReconnect} from '@libs/actions/Reconnect';
 import * as SignInRedirect from '@libs/actions/SignInRedirect';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
+import buildOldDotURL from '@libs/buildOldDotURL';
 import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {setHasRadio} from '@libs/NetworkState';
 import PushNotification from '@libs/Notification/PushNotification';
 import {isRecord} from '@libs/ObjectUtils';
+import openExternalLink from '@libs/openExternalLink';
 import reauthenticate from '@libs/Reauthentication';
 
 import CONFIG from '@src/CONFIG';
@@ -54,12 +56,15 @@ jest.mock('expo-web-browser', () => ({
     openAuthSessionAsync: jest.fn(() => Promise.resolve({type: 'success'})),
 }));
 
-jest.mock('@libs/actions/Link', () => {
-    return {
-        buildOldDotURL: jest.fn(() => Promise.resolve('mockOldDotURL')),
-        openExternalLink: jest.fn(),
-    };
-});
+jest.mock('@libs/buildOldDotURL', () => ({
+    __esModule: true,
+    default: jest.fn(() => Promise.resolve('mockOldDotURL')),
+}));
+
+jest.mock('@libs/openExternalLink', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
 
 jest.mock('@libs/getPlatform', () => jest.fn());
 
@@ -133,7 +138,7 @@ describe('Session', () => {
 
         // Then it should redirect to sign in instead of attempting to call Authenticate with undefined credentials
         expect(result).toEqual({wasSuccessful: false});
-        expect(redirectToSignInSpy).toHaveBeenCalledWith('No credentials available');
+        expect(redirectToSignInSpy).toHaveBeenCalledWith(CONST.SIGN_OUT_REASON.NO_CREDENTIALS, 'No credentials available');
 
         redirectToSignInSpy.mockRestore();
     });
@@ -201,7 +206,7 @@ describe('Session', () => {
 
         // Then the legacy persisted flag does NOT block reauth. Reauth proceeds, finds no credentials, and redirects to sign in.
         expect(result).toEqual({wasSuccessful: false});
-        expect(redirectToSignInSpy).toHaveBeenCalledWith('No credentials available');
+        expect(redirectToSignInSpy).toHaveBeenCalledWith(CONST.SIGN_OUT_REASON.NO_CREDENTIALS, 'No credentials available');
 
         redirectToSignInSpy.mockRestore();
     });
@@ -230,7 +235,7 @@ describe('Session', () => {
             // is not torn down and re-mounted (and SAML re-initiated) once per concurrent 407
             expect(results).toEqual([{wasSuccessful: false}, {wasSuccessful: false}, {wasSuccessful: false}]);
             expect(redirectToSignInSpy).toHaveBeenCalledTimes(1);
-            expect(redirectToSignInSpy).toHaveBeenCalledWith(undefined, true);
+            expect(redirectToSignInSpy).toHaveBeenCalledWith(CONST.SIGN_OUT_REASON.SAML_REQUIRED, undefined, true);
 
             redirectToSignInSpy.mockRestore();
         });
@@ -900,6 +905,50 @@ describe('Session', () => {
 
             expect(session?.signedInWithSAML).toBe(false);
         });
+
+        test('signInWithShortLivedAuthToken rebuilds navigation from exitTo once the same login is signed in', async () => {
+            await Onyx.merge(ONYXKEYS.CREDENTIALS, {login: 'user@saml.example.com'});
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'testAuthToken', email: 'User@saml.example.com'});
+            await waitForBatchedUpdates();
+            jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
+            const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
+
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding');
+            await waitForBatchedUpdates();
+
+            expect(resetRootSpy).toHaveBeenCalledTimes(1);
+            const [state] = resetRootSpy.mock.calls.at(0) ?? [];
+            expect(state?.stale).toBe(true);
+            expect(state?.routes.length).toBeGreaterThan(0);
+            jest.restoreAllMocks();
+        });
+
+        test('signInWithShortLivedAuthToken does not navigate to exitTo without a login to compare', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'testAuthToken', email: 'user@saml.example.com'});
+            await waitForBatchedUpdates();
+            jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
+            const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
+
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding');
+            await waitForBatchedUpdates();
+
+            expect(resetRootSpy).not.toHaveBeenCalled();
+            jest.restoreAllMocks();
+        });
+
+        test('signInWithShortLivedAuthToken does not navigate to exitTo when another login signs in', async () => {
+            await Onyx.merge(ONYXKEYS.CREDENTIALS, {login: 'user@saml.example.com'});
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'testAuthToken', email: 'other@example.com'});
+            await waitForBatchedUpdates();
+            jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
+            const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
+
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding');
+            await waitForBatchedUpdates();
+
+            expect(resetRootSpy).not.toHaveBeenCalled();
+            jest.restoreAllMocks();
+        });
     });
 
     describe('resendValidateCode', () => {
@@ -1198,7 +1247,7 @@ describe('Session', () => {
             await Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {...gpsTrip, accountID});
             await waitForBatchedUpdates();
 
-            await SignInRedirect.default(undefined, true);
+            await SignInRedirect.default(CONST.SIGN_OUT_REASON.SAML_REQUIRED, undefined, true);
             await waitForBatchedUpdates();
 
             const draft = await getOnyxValue(ONYXKEYS.GPS_DRAFT_DETAILS);
@@ -1211,10 +1260,38 @@ describe('Session', () => {
             await Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, gpsTrip);
             await waitForBatchedUpdates();
 
-            await SignInRedirect.default();
+            await SignInRedirect.default(CONST.SIGN_OUT_REASON.USER_SIGN_OUT);
             await waitForBatchedUpdates();
 
             expect(await getOnyxValue(ONYXKEYS.GPS_DRAFT_DETAILS)).toBeUndefined();
+        });
+    });
+
+    describe('last visited path on the sign in redirect', () => {
+        beforeEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        test('keeps the last visited path when a SAML re-auth forces the redirect', async () => {
+            await TestHelper.signInWithTestUser();
+            await Onyx.merge(ONYXKEYS.LAST_VISITED_PATH, '/search?q=status:outstanding');
+            await waitForBatchedUpdates();
+
+            await SignInRedirect.default(CONST.SIGN_OUT_REASON.SAML_REQUIRED, undefined, true);
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.LAST_VISITED_PATH)).toBe('/search?q=status:outstanding');
+        });
+
+        test('discards the last visited path on a sign out redirect', async () => {
+            await TestHelper.signInWithTestUser();
+            await Onyx.merge(ONYXKEYS.LAST_VISITED_PATH, '/search?q=status:outstanding');
+            await waitForBatchedUpdates();
+
+            await SignInRedirect.default(CONST.SIGN_OUT_REASON.USER_SIGN_OUT);
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.LAST_VISITED_PATH)).toBeUndefined();
         });
     });
 

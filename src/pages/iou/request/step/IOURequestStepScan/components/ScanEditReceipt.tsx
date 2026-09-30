@@ -1,8 +1,11 @@
 import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -25,6 +28,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {transactionThreadReportIDSelector} from '@selectors/ReportAction';
 import React from 'react';
 
 import Camera from './Camera';
@@ -42,12 +46,20 @@ type ScanEditReceiptProps = {
  */
 function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditReceiptProps) {
     const {translate} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const policy = usePolicy(report?.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+    const [transactionThreadReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {
+        selector: transactionThreadReportIDSelector(transaction?.transactionID),
+    });
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
+    const delegateAccountID = useDelegateAccountID();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
 
@@ -70,6 +82,7 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
         if (isEditing) {
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', false, file.type);
             replaceReceipt({
+                isVendorMatchingBetaEnabled,
                 transaction,
                 file: file as File,
                 source,
@@ -78,6 +91,9 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
                 transactionPolicyTagList: policyTagList,
                 transactionViolations,
                 transactionReport,
+                delegateAccountID,
+                currentUserPersonalDetails,
+                transactionThreadReport,
             });
         } else {
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
