@@ -1,5 +1,5 @@
 import {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
-import {resetOnboardingStackToRoot} from '@libs/Navigation/helpers/OnboardingNavigationUtils';
+import dismissOnboardingModalBeforeExit from '@libs/Navigation/helpers/OnboardingNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type * as ReportUtils from '@libs/ReportUtils';
 
@@ -73,8 +73,8 @@ jest.mock('@libs/Navigation/helpers/shouldOpenOnAdminRoom', () => ({
 }));
 
 jest.mock('@libs/Navigation/helpers/OnboardingNavigationUtils', () => ({
-    dismissOnboardingModalBeforeExit: jest.fn(),
-    resetOnboardingStackToRoot: jest.fn(),
+    __esModule: true,
+    default: jest.fn(),
 }));
 
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => ({
@@ -112,15 +112,22 @@ describe('navigateAfterOnboarding', () => {
         expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
     });
 
-    it('should clear onboarding history after navigating away from the final screen', () => {
+    it('should dismiss onboarding before navigating away from the final screen', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((navigationAction) => navigationAction());
+        let finishDismissal: (() => void) | undefined;
+        jest.mocked(dismissOnboardingModalBeforeExit).mockImplementation((afterTransition) => {
+            finishDismissal = afterTransition;
+        });
 
         navigateAfterOnboardingWithMicrotaskQueue(false, true, '', {});
 
+        expect(dismissOnboardingModalBeforeExit).toHaveBeenCalledTimes(1);
+        expect(navigate).not.toHaveBeenCalled();
+
+        finishDismissal?.();
+
         expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
-        expect(resetOnboardingStackToRoot).toHaveBeenCalledTimes(1);
-        expect(navigate.mock.invocationCallOrder.at(0) ?? 0).toBeLessThan(jest.mocked(resetOnboardingStackToRoot).mock.invocationCallOrder.at(0) ?? 0);
     });
 
     it('should preserve the topmost report if onboardingAdminsChatReportID is not provided on larger screens', () => {
