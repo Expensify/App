@@ -20,8 +20,8 @@ function useHydrateReportsFromSnapshot(
 
     useEffect(() => {
         const snapshotData = currentSearchResults?.data;
-        // When selection IDs are provided, wait until they are available before hydrating so we don't hydrate the entire snapshot.
-        if ((selectedReportIDs && selectedReportIDs.length === 0) || !snapshotData || hasHydratedFromAllTransactions.current) {
+        // Guard with `hasHydratedFromAllTransactions` to prevent hydration from re-running when `allTransactions` changes
+        if (!snapshotData || hasHydratedFromAllTransactions.current) {
             return;
         }
 
@@ -70,10 +70,10 @@ function useHydrateReportsFromSnapshot(
             hasHydratedFromAllTransactions.current = true;
         }
         // Hydration should only run once on mount using the initial snapshot data
-        // Include `allTransactions` and `selectedReportIDs` as dependencies so hydration can occur once their values are available.
+        // Include `allTransactions` as a dependency so hydration can occur once it has a value.
         // `hasHydratedFromAllTransactions` acts as a guard to ensure hydration only happens once.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [allTransactions, selectedReportIDs]);
+    }, [allTransactions]);
 }
 
 export default useHydrateReportsFromSnapshot;

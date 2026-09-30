@@ -72,7 +72,7 @@ function SearchMergeReports() {
 
     const [destinationReportID, setDestinationReportID] = useState<string | undefined>();
 
-    useHydrateReportsFromSnapshot(currentSearchResults, allReports, allTransactions, selectedReportIDs ?? []);
+    useHydrateReportsFromSnapshot(currentSearchResults, allReports, allTransactions, selectedReportIDs);
 
     const allReportsTransactions: Record<string, Transaction[]> = useMemo(() => {
         const selectedReportIDSet = new Set(selectedReportIDs);
@@ -200,9 +200,9 @@ function SearchMergeReports() {
             getCurrencySymbol,
         });
 
-        setSearchMergeReportIDs([]);
         Navigation.dismissModal({
             afterTransition: () => {
+                setSearchMergeReportIDs(null);
                 clearSelectedTransactions(undefined, true);
                 // Wrap navigation in a microtask to avoid a visual glitch on Android.
                 // If we navigate before selection mode has fully exited and the UI has finished rendering,
