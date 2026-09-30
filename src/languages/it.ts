@@ -1163,6 +1163,7 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: 'Visualizza in Spese',
         emptyState: {title: 'Niente da mostrare', subtitle: 'Prova a modificare i criteri qui sopra'},
         noExpensesState: {title: 'Scopri dove va il tuo denaro', subtitle: 'Una volta che avrai delle spese, troverai tendenze di spesa, principali esercenti e altro ancora.'},
+        compare: {label: 'Confronta', previousPeriod: 'Periodo precedente', average: 'Media'},
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
@@ -2194,7 +2195,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Avatar profilo',
         customInstructions: 'Istruzioni personalizzate',
         copilotIntoAccount: "Copilot nell'account",
-        viewMemberHistory: 'Visualizza cronologia membro',
+        seeChatHistory: 'Vedi cronologia chat',
         viewAgentHistory: 'Visualizza cronologia agente',
         publicSection: {
             title: 'Pubblico',
@@ -3323,6 +3324,7 @@ ${amount} per ${merchant} - ${date}`,
         timeExpiredAnnouncement: 'Il tempo è scaduto',
         error: {
             pleaseFillSecurityCode: 'Inserisci il tuo codice di sicurezza',
+            tooManyAttempts: 'Troppi tentativi. Riprova più tardi.',
             incorrectSecurityCode: 'Codice di sicurezza errato o non valido. Riprova oppure richiedi un nuovo codice.',
             pleaseFillTwoFactorAuth: 'Inserisci il tuo codice di autenticazione a due fattori',
         },
@@ -7100,6 +7102,16 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             peopleAdmins: 'Amministratori persone',
             paymentsAdmins: 'Amministratori pagamenti',
             members: 'Membri',
+            workArrangement: 'Modalità di lavoro',
+            officeBased: 'In ufficio',
+            noRegularWorkspace: 'Remoto o mobile',
+            workArrangementPage: {
+                title: 'Modalità di lavoro',
+                optionOfficeBasedHelp: 'Il membro si reca in ufficio per il tragitto casa-lavoro. I tragitti ordinari casa-lavoro sono esclusi dal rimborso.',
+                optionNoRegularWorkspaceHelp:
+                    'Il membro lavora da casa o si sposta tra diverse sedi senza un ufficio fisso, quindi le regole relative al tragitto casa-lavoro non si applicano.',
+                futureOnlyNote: 'Le modifiche si applicano solo ai calcoli chilometrici futuri. Le spese chilometriche esistenti non vengono ricalcolate.',
+            },
         },
         card: {
             getStartedIssuing: 'Inizia emettendo la tua prima carta virtuale o fisica.',
@@ -8860,6 +8872,51 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             importDescription: 'Scegli quali configurazioni di codifica importare da Dynamics 365 Business Central.',
             items: 'Articoli',
             enableNewCategories: 'Abilita le categorie appena importate',
+            exportDescription: 'Configura come i dati di Expensify vengono esportati in Dynamics 365 Business Central.',
+            exportDate: {
+                label: 'Data della transazione',
+                description: 'Usa questa data quando esporti i report su Dynamics 365 Business Central.',
+                values: {
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: "Data dell'ultima spesa",
+                        description: 'Data della spesa più recente riportata nel report.',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Data di esportazione',
+                        description: 'Data di esportazione del report a Dynamics 365 Business Central.',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Data di invio',
+                        description: "Data di invio del report per l'approvazione.",
+                    },
+                },
+            },
+            exportReimbursable: 'Esporta le spese rimborsabili come',
+            exportNonReimbursable: 'Esporta le spese della carta aziendale come',
+            exportDestination: {
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY]: 'Giornale generale',
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE]: 'Fatture di acquisto',
+            },
+            reimbursableAccount: {
+                label: 'Conto spese rimborsabili',
+                description: 'Scegli dove esportare le spese rimborsabili.',
+            },
+            defaultCompanyCardVendor: {
+                label: 'Fornitore predefinito della carta aziendale',
+                description: 'Scegli un fornitore Dynamics 365 Business Central predefinito per le spese che non vengono abbinate automaticamente.',
+            },
+            companyCardAccount: {
+                label: 'Conto carta aziendale',
+                description: 'Scegli dove esportare le transazioni della carta aziendale.',
+            },
+            paymentMethod: {
+                label: 'Metodo di pagamento',
+                description: 'Scegli un metodo di pagamento per le fatture di acquisto, così Dynamics 365 Business Central può riconciliarle con la tua banca.',
+            },
+            noBankAccountsFound: 'Nessun conto bancario trovato',
+            noBankAccountsFoundDescription: 'Aggiungi conti bancari in Dynamics 365 Business Central e sincronizza di nuovo la connessione',
+            noPaymentMethodsFound: 'Nessun metodo di pagamento trovato',
+            noPaymentMethodsFoundDescription: 'Aggiungi metodi di pagamento in Dynamics 365 Business Central e sincronizza di nuovo la connessione',
         },
     },
     getAssistancePage: {
@@ -9559,6 +9616,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 : `ha modificato il workflow di approvazione per ${member} per smettere di inoltrare i report oltre ${previousLimit}`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `ha modificato il flusso di approvazione per ${member} per inoltrare i report superiori a ${limit} (in precedenza ${previousLimit})`,
+        updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
+            `ha modificato l'accordo di lavoro di ${displayName} in ${newArrangement} (in precedenza ${oldArrangement})`,
+        updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
+            `ha modificato la modalità di lavoro predefinita in ${newArrangement} (precedentemente ${oldArrangement})`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',
