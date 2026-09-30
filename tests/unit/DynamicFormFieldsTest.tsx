@@ -399,6 +399,7 @@ describe('DynamicFormFields', () => {
     });
 
     it('skips a field whose type the registry does not know instead of crashing', () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- stands in for a server type the registry does not know
         const unknown = {key: 'signature', label: 'Signature', group: 'Details', type: 'signature', required: true} as unknown as DynamicFormField;
         const rendered = renderFields([unknown, {key: 'nickname', label: 'Nickname', group: 'Details', type: 'text', required: false, refreshOnChange: false}]);
 

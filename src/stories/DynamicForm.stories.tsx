@@ -4,6 +4,7 @@ import getDynamicFieldErrors from '@components/DynamicForm/getDynamicFieldErrors
 import getInputComponentForField from '@components/DynamicForm/getInputComponentForField';
 import groupFieldsIntoPages from '@components/DynamicForm/groupFieldsIntoPages';
 import FormProvider from '@components/Form/FormProvider';
+import FormHelpMessage from '@components/FormHelpMessage';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -367,12 +368,10 @@ function Playground({preset, fields, draftValues, layout}: PlaygroundProps) {
             <View style={defaultStyles.p5}>
                 <Text style={defaultStyles.textHeadlineLineHeightXXL}>Schema problems</Text>
                 {problems.map((problem) => (
-                    <Text
+                    <FormHelpMessage
                         key={problem}
-                        style={[defaultStyles.textDanger, defaultStyles.mt2]}
-                    >
-                        {problem}
-                    </Text>
+                        message={problem}
+                    />
                 ))}
             </View>
         );
