@@ -4,6 +4,7 @@ import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBa
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {canJoinChat} from '@libs/ReportUtils';
@@ -21,8 +22,8 @@ function ReportDetailsPromotedActions({reportID}: ReportDetailsPromotedActionsPr
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
     const parentReportAction = useParentReportAction(report);
+    const isReportArchived = useReportIsArchived(reportID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails?.accountID;
 
@@ -30,21 +31,9 @@ function ReportDetailsPromotedActions({reportID}: ReportDetailsPromotedActionsPr
         return null;
     }
 
-    const canJoin = canJoinChat(report, parentReportAction, policy, parentReport, !!reportNameValuePairs?.private_isArchived);
+    const canJoin = canJoinChat(report, parentReportAction, policy, parentReport, isReportArchived);
 
-    const promotedActions = (() => {
-        const result: PromotedAction[] = [];
-
-        if (canJoin) {
-            result.push(PromotedActions.join(report, currentUserAccountID));
-        }
-
-        result.push(PromotedActions.pin(report));
-
-        result.push(PromotedActions.share());
-
-        return result;
-    })();
+    const promotedActions: PromotedAction[] = [...(canJoin ? [PromotedActions.join(report, currentUserAccountID)] : []), PromotedActions.pin(report), PromotedActions.share()];
 
     return (
         <PromotedActionsBar
