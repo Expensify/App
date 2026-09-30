@@ -33,7 +33,7 @@ import {
     evenlyDistributeSplitExpenseAmounts,
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
-    removeSplitExpenseAndRedistributeAmounts,
+    removeSplitExpenseField,
     resetSplitExpensesByDateRange,
     updateSplitExpenseAmountField,
     updateSplitExpenseField,
@@ -7199,6 +7199,57 @@ describe('initSplitExpense', () => {
         expect(freshDraft).toBeFalsy();
     });
 
+    it('opens the split edit page only after the overview transition when navigating straight to editing a split', async () => {
+        const {navigate} = jest.requireMock<{navigate: jest.Mock<void, [string, {afterTransition?: () => void}?]>}>('@src/libs/Navigation/Navigation');
+        const originalTransactionID = 'edit-nav-original';
+        const firstChildTransactionID = 'edit-nav-child-1';
+        const secondChildTransactionID = 'edit-nav-child-2';
+
+        // Given an existing split with two children, like a per diem split whose Delete opens the split edit page
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {
+            transactionID: originalTransactionID,
+            amount: -100,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            created: DateUtils.getDBTime(),
+            reportID: CONST.REPORT.SPLIT_REPORT_ID,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${firstChildTransactionID}`, {
+            transactionID: firstChildTransactionID,
+            amount: -50,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT},
+            created: DateUtils.getDBTime(),
+            reportID: 'edit-nav-report',
+        });
+        const secondChildTransaction: Transaction = {
+            transactionID: secondChildTransactionID,
+            amount: -50,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT},
+            created: DateUtils.getDBTime(),
+            reportID: 'edit-nav-report',
+        };
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondChildTransactionID}`, secondChildTransaction);
+        await waitForBatchedUpdates();
+        navigate.mockClear();
+
+        // When the split flow opens straight to editing one of the splits
+        initSplitExpense(secondChildTransaction, undefined, undefined, undefined, undefined, undefined, getCurrencyDecimalsLocal, getCurrencySymbolLocal, {navigateToEditSplitExpense: true});
+        await waitForBatchedUpdates();
+
+        // Then only the overview is opened at first, so the edit page can't replace the overview's RHP in the same tick
+        expect(navigate).toHaveBeenCalledTimes(1);
+        const afterTransition = navigate.mock.calls.at(0)?.[1]?.afterTransition;
+        expect(afterTransition).toEqual(expect.any(Function));
+
+        // And the edit page is opened on top of the overview once the overview transition ends, so going back returns to the overview
+        afterTransition?.();
+        expect(navigate).toHaveBeenCalledTimes(2);
+    });
+
     it('redirects to the restricted action page and does not create a split draft when the workspace is billing-restricted', async () => {
         const Navigation = jest.requireMock('@src/libs/Navigation/Navigation');
         const transaction: Transaction = {
@@ -9319,7 +9370,7 @@ describe('resetSplitExpensesByDateRange', () => {
     });
 });
 
-describe('removeSplitExpenseAndRedistributeAmounts', () => {
+describe('removeSplitExpenseField', () => {
     it('should remove split expense field from draft transaction', async () => {
         const originalTransactionID = 'orig-remove';
         const splitExpenseTransactionID = 'split-to-remove';
@@ -9362,7 +9413,7 @@ describe('removeSplitExpenseAndRedistributeAmounts', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, draftTransaction);
         await waitForBatchedUpdates();
 
-        removeSplitExpenseAndRedistributeAmounts(draftTransaction, splitExpenseTransactionID, getCurrencyDecimalsLocal);
+        removeSplitExpenseField(draftTransaction, splitExpenseTransactionID, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -9378,35 +9429,8 @@ describe('removeSplitExpenseAndRedistributeAmounts', () => {
     });
 
     it('should not remove if draftTransaction or splitExpenseTransactionID is missing', async () => {
-        removeSplitExpenseAndRedistributeAmounts(undefined, 'split-123', getCurrencyDecimalsLocal);
+        removeSplitExpenseField(undefined, 'split-123', getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
-    });
-
-    it('should return the remaining split with the full amount when removing one of two splits', () => {
-        // Given a draft with two splits, where the edit page commits the result right away when only one split is left
-        const draftTransaction: Transaction = {
-            transactionID: 'draft-remove-return',
-            amount: 10000,
-            currency: 'USD',
-            merchant: 'Test Merchant',
-            comment: {
-                originalTransactionID: 'orig-remove-return',
-                splitExpenses: [
-                    {transactionID: 'split-keep', amount: 5000, created: DateUtils.getDBTime()},
-                    {transactionID: 'split-remove', amount: 5000, created: DateUtils.getDBTime()},
-                ],
-            },
-            created: DateUtils.getDBTime(),
-            reportID: 'rep-remove-return',
-        };
-
-        // When one of the splits is removed
-        const remainingSplitExpenses = removeSplitExpenseAndRedistributeAmounts(draftTransaction, 'split-remove', getCurrencyDecimalsLocal);
-
-        // Then the caller gets the single remaining split holding the whole amount, so it can revert the split without reading Onyx back
-        expect(remainingSplitExpenses).toHaveLength(1);
-        expect(remainingSplitExpenses?.at(0)?.transactionID).toBe('split-keep');
-        expect(remainingSplitExpenses?.at(0)?.amount).toBe(10000);
     });
 });
 

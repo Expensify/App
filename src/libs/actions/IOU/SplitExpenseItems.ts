@@ -740,17 +740,11 @@ function resetSplitExpensesByDateRange({
     });
 }
 
-/**
- * Remove a split expense entry from the draft transaction's splitExpenses array, auto-redistribute
- * amounts among the remaining splits (except for distance requests), and save them to the draft.
- *
- * @returns The remaining split expenses that were saved to the draft
- */
-function removeSplitExpenseAndRedistributeAmounts(
+function removeSplitExpenseField(
     draftTransaction: OnyxEntry<OnyxTypes.Transaction>,
     splitExpenseTransactionID: string,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-): SplitExpense[] | undefined {
+) {
     if (!draftTransaction || !splitExpenseTransactionID) {
         return;
     }
@@ -781,8 +775,6 @@ function removeSplitExpenseAndRedistributeAmounts(
             splitsEndDate: null,
         },
     });
-
-    return redistributedSplitExpenses;
 }
 
 function updateSplitExpenseField(
@@ -980,7 +972,7 @@ export {
     addSplitExpenseField,
     evenlyDistributeSplitExpenseAmounts,
     resetSplitExpensesByDateRange,
-    removeSplitExpenseAndRedistributeAmounts,
+    removeSplitExpenseField,
     updateSplitExpenseField,
     updateSplitExpenseAmountField,
     clearSplitTransactionDraftErrors,

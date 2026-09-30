@@ -1,4 +1,4 @@
-import {addSplitExpenseField, evenlyDistributeSplitExpenseAmounts, removeSplitExpenseAndRedistributeAmounts, updateSplitExpenseAmountField} from '@libs/actions/IOU/SplitExpenseItems';
+import {addSplitExpenseField, evenlyDistributeSplitExpenseAmounts, removeSplitExpenseField, updateSplitExpenseAmountField} from '@libs/actions/IOU/SplitExpenseItems';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -317,7 +317,7 @@ describe('Split Expense Auto-Adjustment', () => {
         });
     });
 
-    describe('removeSplitExpenseAndRedistributeAmounts', () => {
+    describe('removeSplitExpenseField', () => {
         it('should redistribute evenly when removing a split from 3 unedited splits', async () => {
             // Setup: 3 splits at ~$3.33/$3.33/$3.34
             const initialSplits = [createSplitExpense('split1', 333, false), createSplitExpense('split2', 333, false), createSplitExpense('split3', 334, false)];
@@ -328,7 +328,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Remove split 3
-            removeSplitExpenseAndRedistributeAmounts(mockTransaction, 'split3', getCurrencyDecimalsLocal);
+            removeSplitExpenseField(mockTransaction, 'split3', getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             // Verify: Should be 2 splits at $5/$5 (50/50)
@@ -368,7 +368,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Remove split 3
-            removeSplitExpenseAndRedistributeAmounts(mockTransaction, 'split3', getCurrencyDecimalsLocal);
+            removeSplitExpenseField(mockTransaction, 'split3', getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             // Verify: 2 splits
@@ -413,7 +413,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Remove split 1 (the edited one)
-            removeSplitExpenseAndRedistributeAmounts(mockTransaction, 'split1', getCurrencyDecimalsLocal);
+            removeSplitExpenseField(mockTransaction, 'split1', getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             // Verify: 2 unedited splits remain

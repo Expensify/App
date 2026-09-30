@@ -31,7 +31,7 @@ import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ViolationField} from '@hooks/useViolations';
 
-import {initDraftSplitExpenseDataForEdit, removeSplitExpenseAndRedistributeAmounts, updateSplitExpenseDraftField, updateSplitExpenseField} from '@libs/actions/IOU/SplitExpenseItems';
+import {initDraftSplitExpenseDataForEdit, removeSplitExpenseField, updateSplitExpenseDraftField, updateSplitExpenseField} from '@libs/actions/IOU/SplitExpenseItems';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import {getDecodedLeafCategoryName, isCategoryDescriptionRequired, isCategoryMissing} from '@libs/CategoryUtils';
@@ -51,7 +51,6 @@ import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
-    getChildTransactions,
     getDistanceInMeters,
     getRateID,
     getTag,
@@ -70,14 +69,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
-import type {SplitExpense} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {policyTypeSelector} from '@selectors/Policy';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-
-import RevertSplitExpenseFlow from './RevertSplitExpenseFlow';
 
 type DynamicSplitExpenseEditPageProps = PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT>;
 
@@ -219,13 +215,6 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
 
     const isSplitPerDiemRequest = isPerDiemRequest(transaction);
-
-    // Skip the per diem revert when the overview's Save would reject it for a rate that is out of policy.
-    const [originalTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
-    const hasCustomUnitOutOfPolicyViolation = !!originalTransactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
-    const shouldRevertSplitOnRemove = isSplitPerDiemRequest && getChildTransactions(allTransactions, transactionID).length > 0 && !hasCustomUnitOutOfPolicyViolation;
-    const [remainingSplitExpensesToRevert, setRemainingSplitExpensesToRevert] = useState<SplitExpense[]>();
-
     const isSplitTimeRequest = isTimeRequest(transaction);
     const isTaxEnabled =
         (isPolicyExpenseChat || isExpenseUnreported) &&
@@ -570,18 +559,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                 size={CONST.BUTTON_SIZE.LARGE}
                                 style={[styles.w100, styles.mb4]}
                                 onPress={() => {
-                                    const remainingSplitExpenses = removeSplitExpenseAndRedistributeAmounts(
-                                        draftTransactionWithSplitExpenses,
-                                        splitExpenseTransactionID,
-                                        getCurrencyDecimals,
-                                    );
-
-                                    // Deleting a per diem split opens this page instead of deleting it, so a removal that leaves one
-                                    // split must revert the split right away rather than leave it as an unsaved draft change.
-                                    if (shouldRevertSplitOnRemove && remainingSplitExpenses?.length === 1) {
-                                        setRemainingSplitExpensesToRevert(remainingSplitExpenses);
-                                        return;
-                                    }
+                                    removeSplitExpenseField(draftTransactionWithSplitExpenses, splitExpenseTransactionID, getCurrencyDecimals);
                                     Navigation.goBack(backTo);
                                 }}
                                 sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.REMOVE_SPLIT_BUTTON}
@@ -614,14 +592,6 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                             <Button.Text>{translate('common.save')}</Button.Text>
                         </Button>
                     </FixedFooter>
-                    {!!remainingSplitExpensesToRevert && (
-                        <RevertSplitExpenseFlow
-                            originalTransactionID={transactionID}
-                            reportID={reportID}
-                            remainingSplitExpenses={remainingSplitExpensesToRevert}
-                            isSearchBackPath={backTo.replace(/^\//, '').startsWith(ROUTES.SEARCH_ROOT.route)}
-                        />
-                    )}
                 </View>
             </FullPageNotFoundView>
         </ScreenWrapper>
