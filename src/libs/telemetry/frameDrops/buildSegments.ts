@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 
-import type {Interaction, Operation, ScreenChange, Segment} from './types';
+import type {Segment, Timeline} from './types';
 
 type Interval = {start: number; end?: number};
 
@@ -32,7 +32,7 @@ function createActiveIntervalTracker<T extends Interval>(intervals: T[]) {
  * Adjacent segments with the same context are merged, so a window without context changes is a single segment.
  * `screens` must be sorted by time.
  */
-function buildSegments(windowStart: number, windowEnd: number, screens: ScreenChange[], interactions: Interaction[], operations: Operation[]): Segment[] {
+function buildSegments(windowStart: number, windowEnd: number, {screens, interactions, operations, flows}: Timeline): Segment[] {
     if (windowEnd <= windowStart) {
         return [];
     }
@@ -47,7 +47,7 @@ function buildSegments(windowStart: number, windowEnd: number, screens: ScreenCh
     for (const change of screens) {
         addBoundary(change.time);
     }
-    for (const interval of [...interactions, ...operations]) {
+    for (const interval of [...interactions, ...operations, ...flows]) {
         addBoundary(interval.start);
         addBoundary(interval.end);
     }
@@ -55,6 +55,7 @@ function buildSegments(windowStart: number, windowEnd: number, screens: ScreenCh
     const sortedBoundaries = [...boundaries].sort((a, b) => a - b);
     const findInteraction = createActiveIntervalTracker(interactions);
     const findOperation = createActiveIntervalTracker(operations);
+    const findFlow = createActiveIntervalTracker(flows);
     let screenIndex = -1;
     const segments: Segment[] = [];
     for (let i = 0; i < sortedBoundaries.length - 1; i++) {
@@ -70,13 +71,21 @@ function buildSegments(windowStart: number, windowEnd: number, screens: ScreenCh
         const interaction = activeInteraction?.label ?? CONST.TELEMETRY.FRAME_DROPS.NONE;
         const interactionID = activeInteraction?.id;
         const operation = findOperation(start)?.name ?? CONST.TELEMETRY.FRAME_DROPS.NONE;
+        const flow = findFlow(start)?.name ?? CONST.TELEMETRY.FRAME_DROPS.NONE;
 
         const previous = segments.at(-1);
-        if (previous && previous.screen === screen && previous.interaction === interaction && previous.operation === operation && previous.interactionID === interactionID) {
+        if (
+            previous &&
+            previous.screen === screen &&
+            previous.interaction === interaction &&
+            previous.operation === operation &&
+            previous.flow === flow &&
+            previous.interactionID === interactionID
+        ) {
             previous.end = end;
             continue;
         }
-        segments.push({start, end, screen, interaction, operation, interactionID});
+        segments.push({start, end, screen, interaction, operation, flow, interactionID});
     }
     return segments;
 }

@@ -25,6 +25,15 @@ type FrameDropContext = {
     screen: string;
     interaction: string;
     operation: string;
+    /** The user flow (a root telemetry span such as ManualOpenReport) that was running. */
+    flow: string;
+};
+
+type Timeline = {
+    screens: ScreenChange[];
+    interactions: Interaction[];
+    operations: Operation[];
+    flows: Operation[];
 };
 
 /** A stretch of time during which the context didn't change. `interactionID` tells two presses with the same label apart. */
@@ -39,4 +48,4 @@ type LongTask = {
     duration: number;
 };
 
-export type {FrameDropContext, Interaction, LongTask, Operation, ScreenChange, Segment};
+export type {FrameDropContext, Interaction, LongTask, Operation, ScreenChange, Segment, Timeline};

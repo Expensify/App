@@ -48,12 +48,14 @@ const UNATTRIBUTED_CONTEXT: FrameDropContext = {
     screen: CONST.TELEMETRY.FRAME_DROPS.UNATTRIBUTED,
     interaction: CONST.TELEMETRY.FRAME_DROPS.UNATTRIBUTED,
     operation: CONST.TELEMETRY.FRAME_DROPS.UNATTRIBUTED,
+    flow: CONST.TELEMETRY.FRAME_DROPS.UNATTRIBUTED,
 };
 
 const OVERFLOW_CONTEXT: FrameDropContext = {
     screen: CONST.TELEMETRY.FRAME_DROPS.OVERFLOW,
     interaction: CONST.TELEMETRY.FRAME_DROPS.OVERFLOW,
     operation: CONST.TELEMETRY.FRAME_DROPS.OVERFLOW,
+    flow: CONST.TELEMETRY.FRAME_DROPS.OVERFLOW,
 };
 
 const aggregates = new Map<string, Aggregate>();
@@ -73,7 +75,7 @@ let scrollSubscription: {remove: () => void} | undefined;
 let longTaskObserver: PerformanceObserver | undefined;
 
 function getContextKey(context: FrameDropContext): string {
-    return `${context.screen}|${context.interaction}|${context.operation}`;
+    return `${context.screen}|${context.interaction}|${context.operation}|${context.flow}`;
 }
 
 /** Aggregates are capped per report period, so a busy period can't turn into a burst of metric calls. */
@@ -90,6 +92,7 @@ function getAggregate(context: FrameDropContext): Aggregate {
         screen: target.screen,
         interaction: target.interaction,
         operation: target.operation,
+        flow: target.flow,
         activeTimeMs: 0,
         frameDelayMs: 0,
         longTaskTimeMs: 0,
@@ -259,8 +262,9 @@ function stopMonitoring() {
 
 /** Matches the timeline of [start, end) against the native frame delay store. */
 async function flushWindow(start: number, end: number) {
-    const {screens, interactions, operations} = getTimeline();
-    const segments = buildSegments(start, end, screens, interactions, operations);
+    const timeline = getTimeline();
+    const {interactions} = timeline;
+    const segments = buildSegments(start, end, timeline);
     const endedInteractionIDs = new Set(interactions.filter((interaction) => interaction.end !== undefined && interaction.end <= end).map((interaction) => interaction.id));
     const windowLongTasks = takeLongTasks(start, end);
     pruneBefore(end);
@@ -353,6 +357,7 @@ function report() {
             [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_SCREEN]: aggregate.screen,
             [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_INTERACTION]: aggregate.interaction,
             [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_OPERATION]: aggregate.operation,
+            [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_FLOW]: aggregate.flow,
         };
         if (aggregate.activeTimeMs > 0) {
             Sentry.metrics.count(CONST.TELEMETRY.FRAME_DROPS.METRIC_ACTIVE_TIME, Math.round(aggregate.activeTimeMs), {unit: 'millisecond', attributes});

@@ -1,8 +1,8 @@
 import CONST from '@src/CONST';
 
-import type {Interaction, Operation, ScreenChange} from './types';
+import type {Interaction, Operation, ScreenChange, Timeline} from './types';
 
-import sanitizePressLabel from './sanitizePressLabel';
+import {isStaticFlowName, sanitizePressLabel} from './staticLabels';
 
 /**
  * Records what the app is doing, so frame drops measured natively can later be attributed to it.
@@ -18,6 +18,7 @@ let nextID = 0;
 const screens: ScreenChange[] = [];
 const interactions: Interaction[] = [];
 const operations: Operation[] = [];
+const flows: Operation[] = [];
 let activeScroll: Interaction | undefined;
 // Several lists can report scrolling at once, so the scroll interaction lasts until the last of them stops.
 let scrollingListCount = 0;
@@ -30,7 +31,7 @@ function truncate(label: string): string {
 }
 
 function hasRoom(): boolean {
-    return interactions.length + operations.length < CONST.TELEMETRY.FRAME_DROPS.MAX_EVENTS;
+    return interactions.length + operations.length + flows.length < CONST.TELEMETRY.FRAME_DROPS.MAX_EVENTS;
 }
 
 /** Screens have their own cap: a burst of operations must not make a navigation get lost. */
@@ -117,6 +118,26 @@ function endOperation(id: number | undefined) {
     }
 }
 
+/** Starts a user flow, e.g. a root telemetry span. Returns an id to pass to endFlow, or undefined when not recording or the name isn't static. */
+function startFlow(name: string): number | undefined {
+    if (!isRecording || !hasRoom() || !isStaticFlowName(name)) {
+        return undefined;
+    }
+    const id = nextID++;
+    flows.push({id, name: truncate(name), start: performance.now()});
+    return id;
+}
+
+function endFlow(id: number | undefined) {
+    if (id === undefined) {
+        return;
+    }
+    const flow = flows.find((entry) => entry.id === id);
+    if (flow && flow.end === undefined) {
+        flow.end = performance.now();
+    }
+}
+
 function keepWhere<T>(list: T[], predicate: (item: T) => boolean) {
     list.splice(0, list.length, ...list.filter(predicate));
 }
@@ -134,6 +155,7 @@ function pruneBefore(time: number) {
     const isKept = (interval: Interaction | Operation) => (interval.end === undefined ? interval.start >= staleStart : interval.end > time);
     keepWhere(interactions, isKept);
     keepWhere(operations, isKept);
+    keepWhere(flows, isKept);
     if (activeScroll && !interactions.includes(activeScroll)) {
         activeScroll = undefined;
         scrollingListCount = 0;
@@ -150,13 +172,14 @@ function clear() {
     screens.length = 0;
     interactions.length = 0;
     operations.length = 0;
+    flows.length = 0;
     activeScroll = undefined;
     scrollingListCount = 0;
     currentScreen = undefined;
 }
 
-function getTimeline() {
-    return {screens, interactions, operations};
+function getTimeline(): Timeline {
+    return {screens, interactions, operations, flows};
 }
 
-export {clear, endOperation, getTimeline, isInteractionActive, pauseRecording, pruneBefore, recordPress, recordScreen, recordScroll, setRecording, startOperation};
+export {clear, endFlow, endOperation, getTimeline, isInteractionActive, pauseRecording, pruneBefore, recordPress, recordScreen, recordScroll, setRecording, startFlow, startOperation};

@@ -1,6 +1,6 @@
 import fetchFramesDelay from '@libs/telemetry/frameDrops/fetchFramesDelay';
 import {flush, report, startFrameDropMonitor, stopFrameDropMonitor} from '@libs/telemetry/frameDrops/frameDropMonitor';
-import {clear, recordPress, recordScreen, startOperation} from '@libs/telemetry/frameDrops/frameDropTimeline';
+import {clear, recordPress, recordScreen, startFlow, startOperation} from '@libs/telemetry/frameDrops/frameDropTimeline';
 
 import CONST from '@src/CONST';
 
@@ -108,8 +108,8 @@ describe('frameDropMonitor', () => {
         // Then the native store is asked only once, for the whole window, and the press is counted without a delay sample
         expect(mockFetchFramesDelay).toHaveBeenCalledTimes(1);
         expect(getCountCalls(FRAME_DROPS.METRIC_ACTIVE_TIME)).toEqual([
-            {value: 4_000, attributes: {screen: 'Home', interaction: FRAME_DROPS.NONE, operation: FRAME_DROPS.NONE}},
-            {value: 1_000, attributes: {screen: 'Home', interaction: PRESS_LABEL, operation: FRAME_DROPS.NONE}},
+            {value: 4_000, attributes: {screen: 'Home', interaction: FRAME_DROPS.NONE, operation: FRAME_DROPS.NONE, flow: FRAME_DROPS.NONE}},
+            {value: 1_000, attributes: {screen: 'Home', interaction: PRESS_LABEL, operation: FRAME_DROPS.NONE, flow: FRAME_DROPS.NONE}},
         ]);
         expect(getCountCalls(FRAME_DROPS.METRIC_FRAME_DELAY)).toEqual([]);
         expect(mockDistribution).not.toHaveBeenCalled();
@@ -133,8 +133,8 @@ describe('frameDropMonitor', () => {
 
         // Then each part of the delay goes to the context that was active when the frames dropped
         expect(getCountCalls(FRAME_DROPS.METRIC_FRAME_DELAY)).toEqual([
-            {value: 50, attributes: {screen: 'Search_Root', interaction: FRAME_DROPS.NONE, operation: FRAME_DROPS.NONE}},
-            {value: 250, attributes: {screen: 'Search_Root', interaction: FRAME_DROPS.NONE, operation: 'api.Search'}},
+            {value: 50, attributes: {screen: 'Search_Root', interaction: FRAME_DROPS.NONE, operation: FRAME_DROPS.NONE, flow: FRAME_DROPS.NONE}},
+            {value: 250, attributes: {screen: 'Search_Root', interaction: FRAME_DROPS.NONE, operation: 'api.Search', flow: FRAME_DROPS.NONE}},
         ]);
     });
 
@@ -160,7 +160,9 @@ describe('frameDropMonitor', () => {
 
         // Then the whole window, the empty left half and one quarter are queried, and the rest is derived by subtraction
         expect(mockFetchFramesDelay).toHaveBeenCalledTimes(3);
-        expect(getCountCalls(FRAME_DROPS.METRIC_FRAME_DELAY)).toEqual([{value: 200, attributes: {screen: 'D', interaction: FRAME_DROPS.NONE, operation: FRAME_DROPS.NONE}}]);
+        expect(getCountCalls(FRAME_DROPS.METRIC_FRAME_DELAY)).toEqual([
+            {value: 200, attributes: {screen: 'D', interaction: FRAME_DROPS.NONE, operation: FRAME_DROPS.NONE, flow: FRAME_DROPS.NONE}},
+        ]);
     });
 
     it('gives segments it could not resolve within the query budget to "unattributed", time and delay alike', async () => {
@@ -180,7 +182,7 @@ describe('frameDropMonitor', () => {
         expect(mockFetchFramesDelay.mock.calls.length).toBeLessThanOrEqual(1 + FRAME_DROPS.MAX_QUERIES_PER_FLUSH);
         expect(sumCounts(FRAME_DROPS.METRIC_FRAME_DELAY)).toBe(200);
         expect(sumCounts(FRAME_DROPS.METRIC_ACTIVE_TIME)).toBe(2_000);
-        const unattributed = {screen: FRAME_DROPS.UNATTRIBUTED, interaction: FRAME_DROPS.UNATTRIBUTED, operation: FRAME_DROPS.UNATTRIBUTED};
+        const unattributed = {screen: FRAME_DROPS.UNATTRIBUTED, interaction: FRAME_DROPS.UNATTRIBUTED, operation: FRAME_DROPS.UNATTRIBUTED, flow: FRAME_DROPS.UNATTRIBUTED};
         const unattributedTime = getCountCalls(FRAME_DROPS.METRIC_ACTIVE_TIME).find(({attributes}) => attributes?.screen === FRAME_DROPS.UNATTRIBUTED);
         expect(unattributedTime?.attributes).toEqual(unattributed);
         expect(unattributedTime?.value).toBeGreaterThan(0);
@@ -234,6 +236,25 @@ describe('frameDropMonitor', () => {
         });
     });
 
+    it('attributes frames to the user flow that was running, but only for static span names', async () => {
+        // Given a report being opened (a root telemetry span), and a span whose name was built at runtime
+        mockDelays([], 0.2);
+        recordScreen('Report');
+        startFlow(CONST.TELEMETRY.SPAN_OPEN_REPORT);
+        startFlow('Report Lincoln Foster');
+
+        // When the window is flushed and reported
+        now = 5_000;
+        await flush(5_000);
+        report();
+
+        // Then the delay is grouped under the known flow, and the runtime name never leaves the device
+        expect(getCountCalls(FRAME_DROPS.METRIC_FRAME_DELAY)).toEqual([
+            {value: 200, attributes: {screen: 'Report', interaction: FRAME_DROPS.NONE, operation: FRAME_DROPS.NONE, flow: CONST.TELEMETRY.SPAN_OPEN_REPORT}},
+        ]);
+        expect(JSON.stringify(mockCount.mock.calls)).not.toContain('Lincoln');
+    });
+
     it('never reports a press label that is not a static Sentry label', async () => {
         // Given a press whose label was built at runtime from user data, like Switch does with its accessibility label
         mockDelays([], 0);
@@ -264,7 +285,9 @@ describe('frameDropMonitor', () => {
         report();
 
         // Then it lands on the press rather than on the idle time before it
-        expect(getCountCalls(FRAME_DROPS.METRIC_LONG_TASK_COUNT)).toEqual([{value: 1, attributes: {screen: 'Home', interaction: PRESS_LABEL, operation: FRAME_DROPS.NONE}}]);
+        expect(getCountCalls(FRAME_DROPS.METRIC_LONG_TASK_COUNT)).toEqual([
+            {value: 1, attributes: {screen: 'Home', interaction: PRESS_LABEL, operation: FRAME_DROPS.NONE, flow: FRAME_DROPS.NONE}},
+        ]);
     });
 
     it('still measures the last window when the app goes to the background during a flush', async () => {

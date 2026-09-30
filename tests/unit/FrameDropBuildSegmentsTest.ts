@@ -10,10 +10,10 @@ describe('buildSegments', () => {
         const screens = [{time: 0, screen: 'Home'}];
 
         // When the window is split into segments
-        const segments = buildSegments(100, 200, screens, [], []);
+        const segments = buildSegments(100, 200, {screens, interactions: [], operations: [], flows: []});
 
         // Then the whole window belongs to that screen, so a single native query covers it
-        expect(segments).toEqual([{start: 100, end: 200, screen: 'Home', interaction: NONE, operation: NONE}]);
+        expect(segments).toEqual([{start: 100, end: 200, screen: 'Home', interaction: NONE, operation: NONE, flow: NONE}]);
     });
 
     it('splits the window at a screen change', () => {
@@ -24,12 +24,12 @@ describe('buildSegments', () => {
         ];
 
         // When the window is split into segments
-        const segments = buildSegments(100, 200, screens, [], []);
+        const segments = buildSegments(100, 200, {screens, interactions: [], operations: [], flows: []});
 
         // Then frames before and after the navigation belong to different screens
         expect(segments).toEqual([
-            {start: 100, end: 150, screen: 'Home', interaction: NONE, operation: NONE},
-            {start: 150, end: 200, screen: 'Report', interaction: NONE, operation: NONE},
+            {start: 100, end: 150, screen: 'Home', interaction: NONE, operation: NONE, flow: NONE},
+            {start: 150, end: 200, screen: 'Report', interaction: NONE, operation: NONE, flow: NONE},
         ]);
     });
 
@@ -39,13 +39,13 @@ describe('buildSegments', () => {
         const interactions = [{id: 1, label: 'FAB', start: 120, end: 160}];
 
         // When the window is split into segments
-        const segments = buildSegments(100, 200, screens, interactions, []);
+        const segments = buildSegments(100, 200, {screens, interactions, operations: [], flows: []});
 
         // Then only the press window carries the press label
         expect(segments).toEqual([
-            {start: 100, end: 120, screen: 'Home', interaction: NONE, operation: NONE},
-            {start: 120, end: 160, screen: 'Home', interaction: 'FAB', operation: NONE, interactionID: 1},
-            {start: 160, end: 200, screen: 'Home', interaction: NONE, operation: NONE},
+            {start: 100, end: 120, screen: 'Home', interaction: NONE, operation: NONE, flow: NONE},
+            {start: 120, end: 160, screen: 'Home', interaction: 'FAB', operation: NONE, flow: NONE, interactionID: 1},
+            {start: 160, end: 200, screen: 'Home', interaction: NONE, operation: NONE, flow: NONE},
         ]);
     });
 
@@ -57,7 +57,7 @@ describe('buildSegments', () => {
         ];
 
         // When the window is split into segments
-        const segments = buildSegments(100, 200, [], [], operations);
+        const segments = buildSegments(100, 200, {screens: [], interactions: [], operations, flows: []});
 
         // Then the nested operation owns its time, as it's the most specific thing going on, and the outer one owns the rest
         expect(segments.map(({start, end, operation}) => ({start, end, operation}))).toEqual([
@@ -72,7 +72,7 @@ describe('buildSegments', () => {
         const interactions = [{id: 1, label: 'scroll', start: 150}];
 
         // When the window is split into segments
-        const segments = buildSegments(100, 200, [], interactions, []);
+        const segments = buildSegments(100, 200, {screens: [], interactions, operations: [], flows: []});
 
         // Then the scroll owns the rest of the window
         expect(segments.map(({start, end, interaction}) => ({start, end, interaction}))).toEqual([
@@ -84,7 +84,7 @@ describe('buildSegments', () => {
     it('returns nothing for an empty window', () => {
         // Given a window that ends where it starts
         // When the window is split into segments
-        const segments = buildSegments(100, 100, [], [], []);
+        const segments = buildSegments(100, 100, {screens: [], interactions: [], operations: [], flows: []});
 
         // Then there is nothing to query
         expect(segments).toEqual([]);
