@@ -208,4 +208,4 @@ function getBadgeAppearance(state: PaymentHistoryState): {success: boolean; erro
 }
 
 export {getBadgeAppearance, getPaymentHistoryRows, getStateTranslationKey};
-export type {PaymentHistoryRow, PaymentHistoryState};
+export type {PaymentHistoryRow};
