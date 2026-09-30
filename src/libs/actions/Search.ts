@@ -792,7 +792,7 @@ function getOnyxLoadingData(
     const isSearchRequest = isSearchAPI && !!queryJSON;
     const type = queryJSON?.type;
 
-    // Record the query string on the snapshot itself so IOU optimistic updates can later fan to every loaded
+    // Record the query string on the snapshot itself so IOU optimistic updates can later apply to every loaded
     // snapshot whose query matches. Living on the snapshot means it is evicted together with it. It is written
     // optimistically so snapshots first opened offline carry it, and again in finallyData because the SEARCH
     // response can replace `snapshot.search`.
