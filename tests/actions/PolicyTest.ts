@@ -2396,7 +2396,7 @@ describe('actions/Policy', () => {
             const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS);
             const params = requireRecord(requireCallArgument(apiCallArgs, 1));
             expect(params.governmentRateCountry).toBe('DE');
-            expect(Object.keys(JSON.parse(params.optimisticRateIDs))).toEqual(['DE_2026-01-01']);
+            expect(Object.keys(JSON.parse(params.optimisticRateIDs as string))).toEqual(['DE_2026-01-01']);
 
             apiWriteSpy.mockRestore();
         });

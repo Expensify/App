@@ -20,6 +20,7 @@ import getPermittedDecimalSeparator from './getPermittedDecimalSeparator';
 import Log from './Log';
 import {replaceAllDigits} from './MoneyRequestUtils';
 import {generateHexadecimalValue, parseFloatAnyLocale} from './NumberUtils';
+import StringUtils from './StringUtils';
 import {isRequiredFulfilled} from './ValidationUtils';
 
 type RateValueForm = typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM | typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM;
@@ -300,6 +301,7 @@ function getGovernmentRateCountryOptions(translate: LocalizedTranslate, localeCo
             keyForList: countryCode as string,
             text: countryName,
             isSelected: selectedCountry === countryCode,
+            searchValue: StringUtils.sanitizeString(`${countryCode}${countryName}`),
         };
     }).sort((a, b) => localeCompare(a.text, b.text));
 }

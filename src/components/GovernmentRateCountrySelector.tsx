@@ -1,13 +1,5 @@
 // Shared country picker for the government distance rate auto-update flow, used by the distance rates settings page and the currency change page.
 
-import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
-import Text from '@components/Text';
-
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -17,8 +9,16 @@ import type {Option} from '@libs/searchOptions';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
+import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
+import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
+import Header from './Header';
+import ScreenWrapper from './ScreenWrapper';
+import SelectionList from './SelectionList';
+import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
+import Text from './Text';
+
 type GovernmentRateCountrySelectorProps = {
-    /** Header title shown in HeaderWithBackButton */
+    /** Header title shown in the composed Header */
     headerTitle: string;
 
     /** Country that is already stored, shown as selected before the user picks anything */
@@ -63,10 +63,10 @@ function GovernmentRateCountrySelector({headerTitle, initialSelectedCountry, isB
             enableEdgeToEdgeBottomSafeAreaPadding
             testID={testID}
         >
-            <HeaderWithBackButton
-                title={headerTitle}
-                onBackButtonPress={onBackButtonPress}
-            />
+            <Header>
+                <Header.BackButton onPress={onBackButtonPress} />
+                <Header.Title title={headerTitle} />
+            </Header>
             <FullPageBlockingView style={isBlocked ? [] : styles.flexGrow1}>
                 {!isBlocked && (
                     <>
