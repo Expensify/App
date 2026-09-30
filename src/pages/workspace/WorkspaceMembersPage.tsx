@@ -386,10 +386,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     // Unlike the custom fields, this column applies to every workspace type, so it isn't gated on Control.
     const isApprovalsEnabled = areApprovalsEnabled(policy);
     const firstApproverByMemberEmail = useMemo(() => (isApprovalsEnabled ? getFirstApproverByMemberEmail(enforcedApprovalWorkflows) : {}), [enforcedApprovalWorkflows, isApprovalsEnabled]);
-    // Keyed off approvals being enabled rather than off the derived map having entries. Removing an approver blanks the
-    // remaining members' `submitsTo` until the server resolves it, and gating on the map would drop the whole column
-    // for that window (indefinitely, while offline).
-    const shouldShowApproverColumn = hasWideTableLayout && isApprovalsEnabled;
+    const shouldShowApproverColumn = hasWideTableLayout && isApprovalsEnabled && !isEmptyObject(firstApproverByMemberEmail);
     const shouldUseOrdinalApproverLabel = useMemo(() => hasMultiLevelApprovalWorkflow(enforcedApprovalWorkflows), [enforcedApprovalWorkflows]);
 
     // Submit workspaces have a flat role model where every member, including the owner, is an Editor.
