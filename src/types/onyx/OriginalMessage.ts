@@ -545,6 +545,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Report field type */
     fieldType?: string;
 
+    /** Account ID of the workspace member named in a member-scoped change log */
+    accountID?: number;
+
     field?: string;
 
     /** Array of field changes for consolidated employee updates */
@@ -974,6 +977,9 @@ type OriginalMessageModifiedExpense = {
 
     /** The Concierge reasoning for the action */
     reasoning?: string;
+
+    /** Whether a receipt was added to the expense */
+    receiptAdded?: boolean;
 };
 
 /** Model of `concierge auto match vendor` report action — emitted on the transaction thread when the PHP fuzzy matcher auto-matches a non-reimbursable expense to a QBO vendor. */
