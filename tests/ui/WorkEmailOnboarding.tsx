@@ -649,6 +649,35 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should restore Escape dismissal when closing a Concierge add-work-email task', async () => {
+        const taskReportID = 'add-work-email-task-report';
+        const getTopmostReportId = jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(taskReportID);
+        const dismissModalWithReport = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: true});
+            await Onyx.merge(ONYXKEYS.MODAL, {disableDismissOnEscape: true});
+        });
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {isJoinWorkspaceTask: 'true'});
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.close')));
+
+        await waitFor(() => {
+            expect(dismissModalWithReport).toHaveBeenCalledWith({reportID: taskReportID});
+        });
+        expect(await getOnyxValue(ONYXKEYS.MODAL)).toEqual(expect.objectContaining({disableDismissOnEscape: false}));
+
+        getTopmostReportId.mockRestore();
+        dismissModalWithReport.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should show the work-email form when reopening a completed task with an unvalidated primary login', async () => {
         const taskReportID = '123';
 
