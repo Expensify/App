@@ -2924,7 +2924,7 @@ ${amount} para ${merchant} - ${date}`,
             `${memberName} ya está en un flujo de trabajo de aprobación que envía a ${approverName}. Agregarlo aquí lo moverá a este flujo de trabajo.`,
         moveEveryoneToThisWorkflowTitle: 'Mover a todos a este flujo de trabajo',
         moveEveryoneToThisWorkflowPrompt:
-            'Estás a punto de mover a todo el mundo a este flujo de aprobación. Esto eliminará todos los demás flujos de aprobación y trasladará a todo el mundo a este. Esta acción no se puede deshacer.',
+            'Estás a punto de mover a todo el mundo a este nuevo flujo de aprobación. Al guardarlo, se eliminarán todos los demás flujos de aprobación. Esta acción no se puede deshacer.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'El aprobador no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
