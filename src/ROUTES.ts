@@ -1378,6 +1378,11 @@ const DYNAMIC_ROUTES = {
         ],
         getRoute: (feed: CardFeedWithDomainID, cardID: string) => `edit/export/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}` as const,
     },
+    CARD_PREFERRED_WORKSPACE: {
+        path: 'edit/preferred-workspace/:feed/:cardID',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS, SCREENS.WORKSPACE.DYNAMIC_EXPENSIFY_CARD_DETAILS, SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS],
+        getRoute: (feed: CardFeedWithDomainID, cardID: string) => `edit/preferred-workspace/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}` as const,
+    },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE: {
         path: 'assign-card/:feed/:cardID/assignee',
         entryScreens: [SCREENS.WORKSPACE.COMPANY_CARDS],

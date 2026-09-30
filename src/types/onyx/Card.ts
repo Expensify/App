@@ -192,6 +192,18 @@ type Card = OnyxValueWithOfflineFeedback<{
         possibleFraud?: PossibleFraudData;
 
         /**
+         * ID of the workspace that this card's transactions auto report to.
+         * '0' means transactions are unreported; null means the employee default chain applies.
+         */
+        preferredPolicy?: string | null;
+
+        /**
+         * Where this card would route if card's `preferredPolicy` were unset.
+         * It describes the fallback, not the effective destination.
+         */
+        employeeDefault?: CardEmployeeDefaultWorkspace | null;
+
+        /**
          * Set while a digital wallet addition the cardholder verified over the phone is waiting for them to confirm or
          * deny it. Undefined once there is nothing to confirm.
          */
@@ -412,6 +424,20 @@ type CardAssignmentData = {
 };
 
 /**
+ * Where a card would route if it had no preferred workspace set.
+ */
+type CardEmployeeDefaultWorkspace = {
+    policyID: string;
+    name: string;
+    autoReporting: boolean;
+
+    /**
+     * Whether the cardholder's domain security group enforces a restricted workspace.
+     */
+    isEnforcedByDomainGroup: boolean;
+};
+
+/**
  * Data for a frozen card
  */
 type FrozenCardData = {
@@ -437,4 +463,5 @@ export type {
     CardAssignmentData,
     UnassignedCard,
     PossibleFraudData,
+    CardEmployeeDefaultWorkspace,
 };

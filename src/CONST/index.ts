@@ -1523,6 +1523,8 @@ const CONST = {
     TRAVEL_BILLING_HELP_URL: 'https://help.expensify.com/articles/travel/consolidated-travel-billing/Enable-Consolidated-Travel-Billing-in-a-Workspace',
     REGISTER_FOR_WEBINAR_URL: 'https://events.zoom.us/eo/Aif1I8qCi1GZ7KnLnd1vwGPmeukSRoPjFpyFAZ2udQWn0-B86e1Z~AggLXsr32QYFjq8BlYLZ5I06Dg',
     UNLOCK_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Unlock-a-Business-Bank-Account',
+    CARD_PREFERRED_WORKSPACE_HELP_URL: 'https://help.expensify.com/articles/new-expensify/domains/Create-and-Manage-Domain-Groups#what-preferred-workspace-does',
+    WORKSPACE_SUBMISSION_FREQUENCY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Workflows#how-to-set-a-submission-frequency',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
     STORYLANE: {
@@ -5539,6 +5541,16 @@ const CONST = {
              */
             NVP_CAMPFIRE_EXPORT_ACCOUNT_POLICY_ID: 'campfire_export_account_policy_id',
         },
+    },
+    CARD_PREFERRED_POLICY: {
+        /** No auto-reporting for this card */
+        NONE: '0',
+
+        /** Employee default chain applies */
+        EMPLOYEE_DEFAULT: '',
+
+        /** keyForList for the "Employee default" row in the picker */
+        EMPLOYEE_DEFAULT_OPTION_KEY: 'employeeDefault',
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
@@ -9690,6 +9702,7 @@ const CONST = {
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceCompanyCards-BulkActionsDropdown',
                 CARD_NAME: 'WorkspaceCompanyCards-CardName',
                 CARD_EXPORT: 'WorkspaceCompanyCards-CardExport',
+                CARD_PREFERRED_WORKSPACE: 'WorkspaceCompanyCards-CardPreferredWorkspace',
                 UNASSIGN_CARD: 'WorkspaceCompanyCards-UnassignCard',
                 TRANSACTION_START_DATE: 'WorkspaceCompanyCards-TransactionStartDate',
             },

@@ -7365,6 +7365,18 @@ const translations = {
             issueCard: 'Issue card',
             chooseRule: 'Choose a rule',
             searchRules: 'Find spend rule',
+            preferredWorkspace: {
+                title: 'Preferred workspace',
+                none: 'None',
+                unknownWorkspace: 'Unknown workspace',
+                employeeDefault: (workspaceName: string) => `${workspaceName} (Employee default)`,
+                employeeDefaultOption: (workspaceName: string) => `Employee default (${workspaceName})`,
+                employeeDefaultUnknown: 'Employee default',
+                submissionsDisabled: (workflowsSubmissionsLink: string) => `<a href="${workflowsSubmissionsLink}">Submissions</a> must be enabled to configure this setting.`,
+                domainGroupEnforced: (domainGroupSettingsLink: string) => `The preferred workspace is enforced via <a href="${domainGroupSettingsLink}">domain group settings</a>.`,
+                selectDescription: (submissionsHelpLink: string) =>
+                    `All transactions from this card will be created on this workspace.<br /><br />Only workspaces with <a href="${submissionsHelpLink}">submissions enabled</a> will show up here.`,
+            },
             issueNewCard: {
                 whoNeedsCard: 'Who needs a card?',
                 inviteNewMember: 'Invite new member',

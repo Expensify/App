@@ -1584,6 +1584,11 @@ type SettingsNavigatorParamList = {
         cardID: string;
         feed: CompanyCardFeedWithDomainID;
     };
+    [SCREENS.WORKSPACE.DYNAMIC_CARD_PREFERRED_WORKSPACE]: {
+        policyID: string;
+        cardID: string;
+        feed: CardFeedWithDomainID;
+    };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW]: {
         policyID: string;
     };

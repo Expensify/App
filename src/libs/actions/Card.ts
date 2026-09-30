@@ -13,6 +13,7 @@ import type {
     RequestReplacementExpensifyCardParams,
     ResolveFraudAlertParams,
     RevealExpensifyCardDetailsParams,
+    SetCardPreferredPolicyParams,
     SetExpensifyCardRuleParams,
     SetPersonalCardReimbursableParams,
     StartIssueNewCardFlowParams,
@@ -45,6 +46,7 @@ import ROUTES from '@src/ROUTES';
 import type {SpendRuleForm} from '@src/types/form';
 import type {Card, CompanyCardFeedWithDomainID, PersonalDetailsList, Report, Transaction} from '@src/types/onyx';
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep, PossibleFraudData} from '@src/types/onyx/Card';
+import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {ExpensifyCardRule} from '@src/types/onyx/ExpensifyCardSettings';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -853,8 +855,14 @@ function clearIssueNewCardError(policyID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {errors: null});
 }
 
-function buildCardListUpdates(workspaceAccountID: number, cardID: number, cardUpdateData: CardListUpdateData, shouldUpdateCardList: boolean): CardOnyxUpdate[] {
-    const workspaceKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}` as `${typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${string}`;
+function buildCardListUpdates(
+    workspaceAccountID: number,
+    cardID: number,
+    cardUpdateData: CardListUpdateData,
+    shouldUpdateCardList: boolean,
+    bank: CardFeedWithNumber = CONST.EXPENSIFY_CARD.BANK,
+): CardOnyxUpdate[] {
+    const workspaceKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bank}` as `${typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${string}`;
     const updates: CardOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1123,6 +1131,56 @@ function updateExpensifyCardTitle(workspaceAccountID: number, cardID: number, ne
     };
 
     API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_TITLE, parameters, {optimisticData, successData, failureData});
+}
+
+/**
+ * Sets, clears, or pins the card-level preferred workspace that this card's transactions report to.
+ * `newPreferredPolicyID` is `''` to clear the pin (the employee default chain applies), `'0'` for an
+ * explicit None, or a policyID to pin a specific workspace.
+ */
+function setCardPreferredPolicy(
+    domainOrWorkspaceAccountID: number,
+    bank: CardFeedWithNumber,
+    card: Card,
+    newPreferredPolicyID: string,
+    oldPreferredPolicyID: string | undefined,
+    currentUserAccountID: number,
+) {
+    const shouldUpdateCardList = card.accountID === currentUserAccountID;
+
+    const optimisticData = buildCardListUpdates(
+        domainOrWorkspaceAccountID,
+        card.cardID,
+        {
+            nameValuePairs: {
+                preferredPolicy: newPreferredPolicyID === CONST.CARD_PREFERRED_POLICY.EMPLOYEE_DEFAULT ? null : newPreferredPolicyID,
+                pendingFields: {preferredPolicy: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                errorFields: {preferredPolicy: null},
+            },
+        },
+        shouldUpdateCardList,
+        bank,
+    );
+
+    const successData = buildCardListUpdates(domainOrWorkspaceAccountID, card.cardID, {nameValuePairs: {pendingFields: {preferredPolicy: null}}}, shouldUpdateCardList, bank);
+
+    const failureData = buildCardListUpdates(
+        domainOrWorkspaceAccountID,
+        card.cardID,
+        {
+            nameValuePairs: {
+                preferredPolicy: oldPreferredPolicyID ?? null,
+                pendingFields: {preferredPolicy: null},
+                errorFields: {preferredPolicy: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            },
+        },
+        shouldUpdateCardList,
+        bank,
+    );
+
+    const parameters: SetCardPreferredPolicyParams = {cardID: card.cardID, preferredPolicyID: newPreferredPolicyID};
+
+    API.write(WRITE_COMMANDS.SET_CARD_PREFERRED_POLICY, parameters, {optimisticData, successData, failureData});
 }
 
 function updateExpensifyCardLimitType(
@@ -2029,6 +2087,7 @@ export {
     freezeCard,
     unfreezeCard,
     updateExpensifyCardTitle,
+    setCardPreferredPolicy,
     updateSettlementAccount,
     startIssueNewCardFlow,
     configureExpensifyCardsForPolicy,

@@ -659,6 +659,7 @@ const WRITE_COMMANDS = {
     UNASSIGN_CARD: 'UnassignCard',
     SYNC_CARD: 'SyncCard',
     UPDATE_COMPANY_CARD_NAME: 'SetCardName',
+    SET_CARD_PREFERRED_POLICY: 'SetCardPreferredPolicy',
     UPDATE_CARD_TRANSACTION_START_DATE: 'UpdateCardTransactionStartDate',
     SET_PERSONAL_CARD_REIMBURSABLE: 'SetPersonalCardReimbursable',
     SET_CARD_EXPORT_ACCOUNT: 'SetCardExportAccount',
@@ -821,6 +822,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UNASSIGN_CARD]: Parameters.UnassignCardParams;
     [WRITE_COMMANDS.SYNC_CARD]: Parameters.SyncCardParams;
     [WRITE_COMMANDS.UPDATE_COMPANY_CARD_NAME]: Parameters.UpdateCompanyCardNameParams;
+    [WRITE_COMMANDS.SET_CARD_PREFERRED_POLICY]: Parameters.SetCardPreferredPolicyParams;
     [WRITE_COMMANDS.UPDATE_CARD_TRANSACTION_START_DATE]: Parameters.UpdateCardTransactionStartDateParams;
     [WRITE_COMMANDS.SET_PERSONAL_CARD_REIMBURSABLE]: Parameters.SetPersonalCardReimbursableParams;
     [WRITE_COMMANDS.SET_CARD_EXPORT_ACCOUNT]: Parameters.SetCompanyCardExportAccountParams;

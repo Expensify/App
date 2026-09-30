@@ -1,6 +1,7 @@
 import cardScarf from '@assets/images/card-scarf.svg';
 
 import Badge from '@components/Badge';
+import CardPreferredWorkspaceSection from '@components/CardPreferredWorkspaceSection';
 import DecisionModal from '@components/DecisionModal';
 import FrozenCardHeader from '@components/FrozenCardHeader';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -467,6 +468,13 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                             />
                         )}
                     </View>
+                    <CardPreferredWorkspaceSection
+                        card={card}
+                        domainOrWorkspaceAccountID={Number(card?.fundID ?? defaultFundID)}
+                        bank={CONST.EXPENSIFY_CARD.BANK}
+                        feedWithDomainID={getCardFeedWithDomainID(CONST.EXPENSIFY_CARD.BANK, Number(card?.fundID ?? defaultFundID))}
+                        canWrite={canWriteExpensifyCard}
+                    />
                     {exportMenuItem?.shouldShowMenuItem ? (
                         <>
                             <View style={[styles.mh5, styles.pt3, styles.borderTop]}>

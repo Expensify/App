@@ -732,6 +732,13 @@ function isPolicyMember(policy: OnyxEntry<Policy>, userLogin: string | undefined
     return !!policy && !!userLogin && (!!policy.employeeList?.[userLogin] || policy.owner === userLogin);
 }
 
+/**
+ * Whether a workspace is eligible to be a card's preferred workspace.
+ */
+function isEligibleForCardPreferredWorkspace(policy: OnyxEntry<Policy>, cardholderLogin: string | undefined): boolean {
+    return isPolicyMember(policy, cardholderLogin) && isPaidGroupPolicy(policy) && !isArchivedPolicy(policy) && !isPendingDeletePolicy(policy) && policy?.autoReporting === true;
+}
+
 function isPolicyMemberWithoutPendingDelete(currentUserLogin: string | undefined, policy: OnyxEntry<Policy>): boolean {
     if (!currentUserLogin || !policy?.id) {
         return false;
@@ -3889,6 +3896,7 @@ export {
     getUberConnectionErrorDirectlyFromPolicy,
     isPolicyOwner,
     isPolicyMember,
+    isEligibleForCardPreferredWorkspace,
     isPolicyPayer,
     getReimburserEmail,
     getOwnerChangePayerSuccessData,
