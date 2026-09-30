@@ -5915,6 +5915,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     gl1025: 'American Express 公司卡',
                     cdf: '万事达商业卡',
                     vcf: 'Visa 商务卡',
+                    vcfmock: '模拟商业卡数据源',
                     stripe: 'Stripe 卡片',
                 },
                 yourCardProvider: `您的发卡机构是哪一家？`,

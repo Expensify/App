@@ -6148,6 +6148,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     gl1025: 'Karty korporacyjne American Express',
                     cdf: 'Firmowe karty Mastercard',
                     vcf: 'Firmowe karty Visa',
+                    vcfmock: 'Testowy kanał komercyjny',
                     stripe: 'Karty Stripe',
                 },
                 yourCardProvider: `Kto jest wystawcą Twojej karty?`,

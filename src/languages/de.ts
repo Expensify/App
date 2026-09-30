@@ -6170,6 +6170,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     gl1025: 'American Express Corporate Cards',
                     cdf: 'Mastercard Firmenkarten',
                     vcf: 'Visa Firmenkarten',
+                    vcfmock: 'Kommerzieller Mock-Feed',
                     stripe: 'Stripe-Karten',
                 },
                 yourCardProvider: `Wer ist dein Kartenanbieter?`,

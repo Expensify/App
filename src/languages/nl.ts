@@ -6121,6 +6121,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     gl1025: 'American Express Corporate Cards',
                     cdf: 'Mastercard Zakelijke Kaarten',
                     vcf: 'Visa zakelijke kaarten',
+                    vcfmock: 'Commerciële testfeed',
                     stripe: 'Stripe-kaarten',
                 },
                 yourCardProvider: `Wie is je kaartaanbieder?`,

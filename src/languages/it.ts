@@ -6126,6 +6126,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     gl1025: 'Carte Corporate American Express',
                     cdf: 'Carte Commerciali Mastercard',
                     vcf: 'Carte Commerciali Visa',
+                    vcfmock: 'Feed commerciale simulato',
                     stripe: 'Carte Stripe',
                 },
                 yourCardProvider: `Chi è l’emittente della tua carta?`,

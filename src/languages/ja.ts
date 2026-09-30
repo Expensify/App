@@ -6058,6 +6058,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     gl1025: 'American Express コーポレートカード',
                     cdf: 'Mastercard コマーシャルカード',
                     vcf: 'Visaコマーシャルカード',
+                    vcfmock: 'モック商用フィード',
                     stripe: 'Stripeカード',
                 },
                 yourCardProvider: `カードの発行会社はどこですか？`,
