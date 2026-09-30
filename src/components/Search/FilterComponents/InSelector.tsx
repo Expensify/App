@@ -178,9 +178,8 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             currentUserAccountID,
         },
-        translate,
+        {translate, formatPhoneNumber},
         rules,
-        formatPhoneNumber,
     );
 
     const sections: SelectionListSections = [];

@@ -3141,10 +3141,10 @@ function filterAndOrderOptions<T extends SearchOptionData>(
     currentUserAccountID: number,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     config: FilterAndOrderConfig,
-    translate: LocalizedTranslate,
+    localize: {translate: LocalizedTranslate; formatPhoneNumber: LocaleContextProps['formatPhoneNumber']},
     rules: OnyxCollection<Rule>,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): Options<T> {
+    const {translate, formatPhoneNumber} = localize;
     let filterResult = options;
     if (searchInputValue.trim().length > 0) {
         filterResult = filterOptions(

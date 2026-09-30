@@ -1474,9 +1474,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             expect(filteredOptions.personalDetails).toEqual([expect.objectContaining({login: 'contact1003@example.com'})]);
@@ -2177,9 +2176,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then the report must survive both filtering stages
@@ -3730,9 +3728,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then all options should be returned
@@ -3777,9 +3774,8 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     sortByReportTypeInSearch: true,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then we expect all options to be part of the recentReports list and reports should be first:
@@ -3830,9 +3826,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then only one report should be returned
@@ -3897,9 +3892,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then only one report should be returned
@@ -3962,9 +3956,8 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     sortByReportTypeInSearch: true,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then only one report should be returned
@@ -4009,9 +4002,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then only one report should be returned
@@ -4056,9 +4048,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then only one report should be returned
@@ -4113,9 +4104,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then only two reports should be returned
@@ -4160,9 +4150,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then only three reports should be returned
@@ -4209,9 +4198,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then the user to invite should be returned
@@ -4254,9 +4242,8 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then no personal details should be returned
@@ -4300,9 +4287,8 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then the user to invite should be returned
@@ -4346,9 +4332,8 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     maxRecentReportsToShow: 2,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then only two reports should be returned
@@ -4370,9 +4355,8 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     maxRecentReportsToShow: 0,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then no reports should be returned
@@ -4415,9 +4399,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then there should be one matching result
@@ -4479,9 +4462,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then no recent reports should be returned
@@ -4546,9 +4528,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then one recent report should be returned
@@ -4613,9 +4594,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then no recent reports should be returned
@@ -4654,9 +4634,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then no recent reports should be returned
@@ -5007,9 +4986,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then the report should still be found by its reportName even if participantsList is empty
@@ -5049,9 +5027,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then no recent reports or personal details should be returned
@@ -5093,9 +5070,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then no recent reports or personal details should be returned
@@ -5137,9 +5113,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then no recent reports should be returned
@@ -5180,9 +5155,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then one personalDetails with accent mark should be returned
@@ -5221,9 +5195,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then no recent reports or personal details should be returned
@@ -5267,9 +5240,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then no recent reports or personal details should be returned
@@ -5313,9 +5285,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then no recent reports or personal details should be returned
@@ -5359,9 +5330,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then no recent reports or personal details should be returned
@@ -5407,9 +5377,8 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     shouldAcceptName: false,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then userToInvite should be null since plain names are not accepted by default
@@ -5452,9 +5421,8 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     shouldAcceptName: true,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then userToInvite should be returned for the plain name
@@ -5493,9 +5461,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then no personal details should be returned
@@ -5535,9 +5502,8 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     sortByReportTypeInSearch: true,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then one recent report should be returned
@@ -5581,9 +5547,8 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     maxRecentReportsToShow: 5,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then there should be 4 matching personal details
@@ -5631,9 +5596,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then one personal detail should be returned
@@ -5676,9 +5640,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then only three reports should be returned
@@ -5736,9 +5699,8 @@ describe('OptionsListUtils', () => {
                         CURRENT_USER_ACCOUNT_ID,
                         PERSONAL_DETAILS_WITH_PERIODS,
                         {dateFnsLocale: undefined, convertToDisplayString, sortByReportTypeInSearch: true, currentUserAccountID: CURRENT_USER_ACCOUNT_ID},
-                        translateLocal,
+                        {translate: translateLocal, formatPhoneNumber},
                         undefined,
-                        formatPhoneNumber,
                     );
 
                     // Then only one report should be returned
@@ -5788,9 +5750,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
             const matchingEntries = filteredOptions.personalDetails.filter((detail) => detail.login === login);
 
@@ -5852,9 +5813,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then the self dm should be on top.
@@ -5895,9 +5855,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
             const spaceSeparatedQueryResults = filterAndOrderOptions(
                 options,
@@ -5912,9 +5871,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             expect(multiSpaceQueryResults.recentReports.map((option) => option.reportID)).toEqual(spaceSeparatedQueryResults.recentReports.map((option) => option.reportID));
@@ -10463,9 +10421,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             expect(filteredOptions.userToInvite).not.toBeNull();
@@ -10500,9 +10457,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             expect(filteredOptions.userToInvite).not.toBeNull();
@@ -10536,9 +10492,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             expect(filteredOptions.userToInvite).toBeNull();
@@ -10734,9 +10689,8 @@ describe('OptionsListUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
 
             // Then the function should complete without errors and return valid results

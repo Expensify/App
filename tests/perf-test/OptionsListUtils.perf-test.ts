@@ -209,9 +209,8 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
         });
     });
@@ -243,9 +242,8 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
         });
     });
@@ -467,9 +465,8 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
-                formatPhoneNumber,
             );
         });
     });
