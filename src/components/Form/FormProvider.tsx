@@ -8,7 +8,7 @@ import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import type {StartWithLoading} from '@hooks/usePressLoading';
+import usePressLoading from '@hooks/usePressLoading';
 
 import {isSafari} from '@libs/Browser';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -27,7 +27,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
 
 import type {ForwardedRef, ReactNode, RefObject} from 'react';
-import type {GestureResponderEvent, StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
+import type {StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import {deepEqual} from 'fast-equals';
@@ -297,75 +297,73 @@ function FormProvider({
         [touchedInputs],
     );
 
-    // Stays undefined when neither source declares a loading flag, so usePressLoading self-clears instead of waiting for a hand-over that never comes
     const hasExternalLoadingFlag = formState?.isLoading !== undefined || isOnyxLoading !== undefined;
     const isExternalLoading = hasExternalLoadingFlag ? !!formState?.isLoading || !!isOnyxLoading : undefined;
+    const {isLoading: isPressLoading, startWithLoading} = usePressLoading({isLoading: isExternalLoading});
+    const isLoading = shouldShowLoadingImmediatelyOnPress ? isPressLoading : !!isExternalLoading;
 
     const submit = useDebounceNonReactive(
-        useCallback(
-            (startWithLoading?: StartWithLoading) => {
-                // Return early if the form is already submitting to avoid duplicate submission
-                if (isExternalLoading) {
-                    return;
+        useCallback(() => {
+            // Return early if the form is already submitting to avoid duplicate submission
+            if (isLoading) {
+                return;
+            }
+
+            onBeforeSubmit?.();
+
+            // Prepare values before submitting
+            const trimmedStringValues = shouldTrimValues ? prepareValues(inputValues) : inputValues;
+
+            // Touches all form inputs, so we can validate the entire form
+            for (const inputID of Object.keys(inputRefs.current)) {
+                touchedInputs.current[inputID] = true;
+            }
+
+            if (hasServerError) {
+                return;
+            }
+
+            // Validate form and return early if any errors are found
+            if (!isEmptyObject(onValidate(trimmedStringValues))) {
+                setErrorAnnouncementKey((prev) => prev + 1);
+                return;
+            }
+
+            // Do not submit form if network is offline and the form is not enabled when offline
+            if (isOffline && !enabledWhenOffline) {
+                return;
+            }
+
+            const runSubmit = () => {
+                if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT) {
+                    return KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
                 }
-
-                onBeforeSubmit?.();
-
-                // Prepare values before submitting
-                const trimmedStringValues = shouldTrimValues ? prepareValues(inputValues) : inputValues;
-
-                // Touches all form inputs, so we can validate the entire form
-                for (const inputID of Object.keys(inputRefs.current)) {
-                    touchedInputs.current[inputID] = true;
+                if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
+                    return KeyboardUtils.dismissKeyboardAndExecute(() => onSubmit(trimmedStringValues));
                 }
+                return onSubmit(trimmedStringValues);
+            };
 
-                if (hasServerError) {
-                    return;
-                }
+            if (!shouldShowLoadingImmediatelyOnPress) {
+                runSubmit();
+                return;
+            }
 
-                // Validate form and return early if any errors are found
-                if (!isEmptyObject(onValidate(trimmedStringValues))) {
-                    setErrorAnnouncementKey((prev) => prev + 1);
-                    return;
-                }
-
-                // Do not submit form if network is offline and the form is not enabled when offline
-                if (isOffline && !enabledWhenOffline) {
-                    return;
-                }
-
-                // Returns the promise so the caller can await the submit, which keeps the press spinner up until the work settles
-                const runSubmit = () => {
-                    if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT) {
-                        return KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
-                    }
-                    if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
-                        return KeyboardUtils.dismissKeyboardAndExecute(() => onSubmit(trimmedStringValues));
-                    }
-                    return onSubmit(trimmedStringValues);
-                };
-
-                if (!shouldShowLoadingImmediatelyOnPress || !startWithLoading) {
-                    runSubmit();
-                    return;
-                }
-
-                startWithLoading(runSubmit);
-            },
-            [
-                enabledWhenOffline,
-                isExternalLoading,
-                inputValues,
-                isOffline,
-                onSubmit,
-                onValidate,
-                shouldTrimValues,
-                hasServerError,
-                keyboardSubmitBehavior,
-                onBeforeSubmit,
-                shouldShowLoadingImmediatelyOnPress,
-            ],
-        ),
+            startWithLoading(runSubmit);
+        }, [
+            enabledWhenOffline,
+            isLoading,
+            inputValues,
+            isOffline,
+            onSubmit,
+            onValidate,
+            shouldTrimValues,
+            hasServerError,
+            keyboardSubmitBehavior,
+            onBeforeSubmit,
+            shouldShowLoadingImmediatelyOnPress,
+            startWithLoading,
+        ]),
         1000,
         {leading: true, trailing: false},
     );
@@ -586,15 +584,12 @@ function FormProvider({
     const getFallbackAnnouncementMessage = useCallback(() => fallbackAnnouncementMessage, [fallbackAnnouncementMessage]);
     const value = useMemo(() => ({registerInput, getErrorAnnouncementKey, getFallbackAnnouncementMessage}), [registerInput, getErrorAnnouncementKey, getFallbackAnnouncementMessage]);
 
-    const submitAndAnnounce = useCallback(
-        (event?: GestureResponderEvent | KeyboardEvent, startWithLoading?: StartWithLoading) => {
-            if (hasServerError) {
-                setErrorAnnouncementKey((prev) => prev + 1);
-            }
-            submit(startWithLoading);
-        },
-        [hasServerError, submit],
-    );
+    const submitAndAnnounce = useCallback(() => {
+        if (hasServerError) {
+            setErrorAnnouncementKey((prev) => prev + 1);
+        }
+        submit();
+    }, [hasServerError, submit]);
 
     return (
         <FormContext.Provider value={value}>
@@ -607,7 +602,7 @@ function FormProvider({
                 isAlertVisible={isGeneralAlertVisible}
                 serverErrorFields={formState?.errorFields}
                 serverErrorMessage={errorMessage}
-                isLoading={isExternalLoading}
+                isLoading={isLoading}
                 enabledWhenOffline={enabledWhenOffline}
                 shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
                 shouldPreventDefaultFocusOnPressSubmit={shouldPreventDefaultFocusOnPressSubmit}
