@@ -3,7 +3,7 @@ import {READ_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {InsightsDashboardID} from '@src/types/onyx';
+import type {InsightsDashboardID, InsightsSearchKey} from '@src/types/onyx';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 
@@ -42,5 +42,8 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
     read(READ_COMMANDS.GET_INSIGHTS, {jsonQuery}, {optimisticData, failureData});
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {getInsights};
+function setInsightsFilters(searchKey: InsightsSearchKey, query: string) {
+    Onyx.merge(ONYXKEYS.SEARCH_FILTERS, {[searchKey]: {query}});
+}
+
+export {getInsights, setInsightsFilters};
