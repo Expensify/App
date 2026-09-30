@@ -6,7 +6,7 @@ import type {RHPWidthHint} from './types';
 type PendingRHPWidth = {width: RHPWidthHint; markedAt: number};
 
 /**
- * Widths left by presses for the screens they open, keyed by report; one press can leave two. Outside React state, so marking one
+ * Widths left by presses for the screens they open, keyed by report. One press can leave two. Outside React state, so marking one
  * doesn't re-run every mounted `useRHPWidth`, any of which could take it.
  */
 const pendingRHPWidths = new Map<string, PendingRHPWidth>();

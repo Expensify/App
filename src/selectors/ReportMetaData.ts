@@ -56,7 +56,7 @@ const pendingDeleteMemberAccountIDsByReportIDSelector = (reportMetadata: OnyxCol
 };
 
 type PendingNewTransactions = {
-    /** Transaction ID to the flag to sweep once shown; the newest flag wins. */
+    /** Transaction ID to the flag to sweep once shown. The newest flag wins. */
     activeFlagKeys: Record<string, string>;
     /** Flags to sweep without showing: stale, unreadable or superseded. */
     expiredFlagKeys: string[];

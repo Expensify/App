@@ -104,7 +104,7 @@ export default function useAnimatedHighlightStyle({
     }, [borderRadius, height, backgroundColor, highlightColor, theme.appBG, theme.border]);
 
     React.useEffect(() => {
-        // Runs on the JS thread; only the entry below needs to hop threads.
+        // Runs on the JS thread. Only the entry below needs to hop threads.
         const revealRow = () => {
             nonRepeatableProgress.set(withTiming(1, {duration: itemEnterDuration, easing: Easing.inOut(Easing.ease)}));
         };

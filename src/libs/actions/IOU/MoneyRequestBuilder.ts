@@ -469,7 +469,7 @@ function getTransactionWithPreservedLocalReceiptSource(transaction: OnyxTypes.Tr
 /** Whether the report shows rows besides this add, which its `transactionCount` already counts. Only asked on an action's first add. */
 function isReportShowingRowsBesidesThisAdd(report: OnyxInputValue<OnyxTypes.Report>, existingReportTransactions: OnyxTypes.Transaction[]): boolean {
     const countedBesidesThisAdd = Math.max((report?.transactionCount ?? 0) - 1, 0);
-    // Only a complete cache can subtract pending deletes; a partial one would count too few and drop the flag.
+    // Only a complete cache can subtract pending deletes. A partial one would count too few and drop the flag.
     if (existingReportTransactions.length < countedBesidesThisAdd) {
         return true;
     }

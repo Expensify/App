@@ -37,7 +37,7 @@ type WideRHPActionsContextType = {
     // Called on unmount, which ends a dismissing screen's width hold.
     removeRHPRouteKey: (route: NavigationRoute) => void;
 
-    // Leaves a width for the screen this press opens; the latest mark wins.
+    // Leaves a width for the screen this press opens. The latest mark wins.
     markReportRHPWidth: (reportID: string | undefined, width: RHPWidthHint) => void;
 };
 

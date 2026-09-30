@@ -39,7 +39,7 @@ type UseNewTransactionsParams = {
     /** Must be the list's own report: a split and a different report both replace the whole list, and only this tells them apart. */
     transactionsReportID: string | undefined;
 
-    /** Creation flags; their rows are new even on first load. */
+    /** Creation flags. Their rows are new even on first load. */
     pendingNewTransactions: PendingNewTransactions | undefined;
 
     /** Where `pendingNewTransactions` was read, and so where consumed flags are swept. */

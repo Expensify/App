@@ -26,10 +26,8 @@ type UseScrollToNewTransactionParams = {
 };
 
 /**
- * Scroll a newly-created transaction into view, once per transaction. The rows are virtualized, so the row can't
- * drive this itself (an off-window row never mounts) — the list scrolls to it by index/layout instead, which
- * reaches unmounted rows. Skipped when the row is already on screen so the user isn't yanked, and held until the
- * report can be seen.
+ * Scrolls a new transaction into view once. The rows are virtualized and a row outside the window never mounts, so the list scrolls
+ * to it by index or layout instead. Skipped when the row is already on screen, and held until the report can be seen.
  */
 function useScrollToNewTransaction({
     newTransactionID,
@@ -44,9 +42,8 @@ function useScrollToNewTransaction({
     const isScreenVisible = useIsScreenVisible();
     const scrolledToNewTransactionIDRef = useRef<string | undefined>(undefined);
 
-    // The index is derived at render (not inside the effect) so the effect keys on a stable number — the items array
-    // identity churns across the re-renders that follow a transaction insert, and re-firing the effect would cancel
-    // the scheduled frame below before it runs.
+    // Derived at render so the effect keys on a stable number. The items array changes identity on the re-renders after an insert,
+    // and re-running the effect would cancel the frame below before it runs.
     const newTransactionTableIndex = newTransactionID ? transactionListItems.findIndex((item) => item.type === 'transaction' && item.transaction.transactionID === newTransactionID) : -1;
 
     useEffect(() => {
@@ -68,8 +65,8 @@ function useScrollToNewTransaction({
             return () => cancelAnimationFrame(rafId);
         }
 
-        // Horizontal table: the rows live in a nested FlashList whose own scroll is a no-op — only the parent page
-        // scrolls. Ask the table where the row sits in page space (works for unmounted rows) and scroll the parent there.
+        // Horizontal table: the rows live in a nested FlashList whose own scroll does nothing, so only the parent page scrolls.
+        // Ask the table where the row sits on the page, which works for unmounted rows, and scroll the parent there.
         const rafId = requestAnimationFrame(() => {
             scrolledToNewTransactionIDRef.current = newTransactionID;
             const row = tableRef.current?.getRowPageOffset(newTransactionTableIndex);

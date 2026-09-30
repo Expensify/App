@@ -6,7 +6,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-/** Highlight flag writers. An expense report's flags are read by its table, a chat's by its expense preview; a reportID alone can't say which. */
+/** Highlight flag writers. An expense report's flags are read by its table, a chat's by its expense preview. A reportID alone can't say which. */
 
 type ReportMetadataUpdate = OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_METADATA>;
 
@@ -51,7 +51,7 @@ function buildNewTransactionFlagForReportTable({expenseReportID, transactionID}:
     };
 }
 
-/** Clears these flag instances; a flag written since has another key and survives. */
+/** Clears these flag instances. A flag written since has another key and survives. */
 function deletePendingNewTransactionIDs(reportID: string | undefined, flagKeys: string[]) {
     if (!reportID || !flagKeys.length) {
         return;

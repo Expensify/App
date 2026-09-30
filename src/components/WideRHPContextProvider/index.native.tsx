@@ -38,7 +38,7 @@ function useWideRHPActions() {
     return useContext(WideRHPActionsContext);
 }
 
-// Nothing is displayed wide on native; these only mirror the web exports.
+// Nothing is displayed wide on native. These only mirror the web exports.
 function subscribeToRHPRouteKeys(): () => void {
     return () => {};
 }

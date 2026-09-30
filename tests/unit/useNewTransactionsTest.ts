@@ -1136,7 +1136,7 @@ describe('useNewTransactions with a covered report', () => {
                 jest.advanceTimersByTime(100);
             });
 
-            // Then it retires on schedule; a removal must not give the survivor a fresh window
+            // Then it retires on schedule, because a removal must not give the survivor a fresh window
             expect(result.current).toEqual([]);
         } finally {
             jest.useRealTimers();
@@ -1893,7 +1893,7 @@ describe('useNewTransactions rail cleanup lifecycle', () => {
         // When a further expense is added
         rerender({transactions: [txA, txC, txD]});
 
-        // Then only that one is new; the swapped-in row was already part of the list compared against
+        // Then only that one is new, since the swapped-in row was already part of the list compared against
         expect(result.current).toEqual([txD]);
     });
 
@@ -2130,7 +2130,7 @@ describe('useNewTransactions across report switches', () => {
         // When the same instance is reused for report B, which has more expenses and shares none of A's
         rerender({transactions: reportBTransactions, transactionsReportID: 'reportB'});
 
-        // Then none of B's rows is new; under the same report this list would read as a split
+        // Then none of B's rows is new. Under the same report this list would read as a split
         expect(result.current).toEqual([]);
 
         // And an expense added to B afterwards still is
@@ -2162,7 +2162,7 @@ describe('useNewTransactions across report switches', () => {
         // When it is split, which takes the original off the report and puts its children there
         rerender({transactions: splitChildren});
 
-        // Then every child is new; on the same report, a list that shares nothing is a split, not a switch
+        // Then every child is new. On the same report, a list that shares nothing is a split, not a switch
         expect(result.current).toEqual(splitChildren);
     });
 

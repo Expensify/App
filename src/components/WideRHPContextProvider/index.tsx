@@ -149,7 +149,7 @@ function setExpandedRHPProgress(superWideRHPRouteKeys: string[], wideRHPRouteKey
 }
 
 function WideRHPContextProvider({children}: React.PropsWithChildren) {
-    // The only stored width state; what is on screen is derived from navigation below.
+    // The only stored width state. What is on screen is derived from navigation below.
     const [rhpWidthRegistrations, setRHPWidthRegistrations] = useState<RHPWidthRegistration[]>([]);
 
     // In state because the derivation reads it during render, so it must get a new identity when it changes.
@@ -263,7 +263,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         setRHPWidthRegistrations((previousRegistrations) => registerRHPRouteWidth(previousRegistrations, routeKey, width));
     };
 
-    /** Leaves a width for the screen this press opens, until its own data can say. Invoices and tasks are never marked wide; the latest mark wins. */
+    /** Leaves a width for the screen this press opens, until its own data can say. Invoices and tasks are never marked wide, and the latest mark wins. */
     const markReportRHPWidth = (reportID: string | undefined, width: RHPWidthHint) => {
         if (!reportID) {
             return;
