@@ -6,6 +6,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,7 +42,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
     const isReportArchived = useReportIsArchived(reportID);
     const ifUserCanPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const derivedReportName = useDerivedReportNameByReportID(report?.reportID);
 
