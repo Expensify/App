@@ -1,4 +1,3 @@
-import type {ButtonProps} from '@components/Button/types';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormElement from '@components/FormElement';
 import ScrollView from '@components/ScrollView';
@@ -29,7 +28,7 @@ import type {FormInputErrors, FormProps, FormWrapperRef, InputRefs} from './type
 import FormContext from './FormContext';
 
 type FormWrapperProps = ChildrenProps &
-    Omit<FormProps, 'onSubmit'> & {
+    FormProps & {
         submitButtonStyles?: StyleProp<ViewStyle>;
 
         /** Whether to apply flex to the submit button */
@@ -44,7 +43,7 @@ type FormWrapperProps = ChildrenProps &
         /** Whether the submit button is disabled */
         isSubmitDisabled?: boolean;
 
-        onSubmit: NonNullable<ButtonProps['onPress']>;
+        onSubmit: () => void;
 
         /** should render the extra button above submit button */
         shouldRenderFooterAboveSubmit?: boolean;
