@@ -138,20 +138,14 @@ function AddPersonalBankAccountPage() {
         // The unit/suite may be stored either embedded after a newline in `street` (extracted above) or in the
         // separate `street2`/`addressLine2` fields; fall back to those so it isn't dropped, matching UpdatePersonalBankAccountPage.
         const addressStreet2 = street2 ?? currentAddress?.street2 ?? currentAddress?.addressLine2;
-        const savedPersonalDetails = {
-            legalFirstName: privatePersonalDetails?.legalFirstName,
-            legalLastName: privatePersonalDetails?.legalLastName,
+        const accountData = {
+            ...privatePersonalDetails,
             addressStreet,
             addressStreet2,
             addressCity: currentAddress?.city,
             addressState: currentAddress?.state,
             addressZipCode: currentAddress?.zip,
             country: currentAddress?.country,
-            phoneNumber: formatE164PhoneNumber(privatePersonalDetails?.phoneNumber ?? '', countryCode),
-        };
-        const accountData = {
-            ...privatePersonalDetails,
-            ...savedPersonalDetails,
             ...personalBankAccount,
             ...bankAccountWithToken,
             phoneNumber: formatE164PhoneNumber(finalPhoneNumber, countryCode),
@@ -159,6 +153,20 @@ function AddPersonalBankAccountPage() {
         if (confirmedOwnershipDetails.current) {
             accountData.confirmedOwnershipDetails = true;
         }
+
+        // Compare against the values exactly as saved, without the fallbacks and formatting applied above, so that anything the backend treats as a change also asks for the magic
+        // code here. At worst this asks for a code the backend wouldn't need, such as when a saved phone number isn't in E.164 format.
+        const savedPersonalDetails = {
+            legalFirstName: privatePersonalDetails?.legalFirstName,
+            legalLastName: privatePersonalDetails?.legalLastName,
+            addressStreet,
+            addressStreet2: street2,
+            addressCity: currentAddress?.city,
+            addressState: currentAddress?.state,
+            addressZipCode: currentAddress?.zip,
+            country: currentAddress?.country,
+            phoneNumber: privatePersonalDetails?.phoneNumber,
+        };
         const hasPersonalDetailsChanges = PERSONAL_DETAILS_FIELDS.some((field) => (accountData[field] ?? '') !== (savedPersonalDetails[field] ?? ''));
         return {accountData, hasPersonalDetailsChanges};
     };

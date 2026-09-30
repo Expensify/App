@@ -271,6 +271,22 @@ describe('AddPersonalBankAccountPage', () => {
             expect(addPersonalBankAccount).not.toHaveBeenCalled();
         });
 
+        it('asks for a magic code when the saved phone number is not in E.164 format', async () => {
+            // Given a user whose saved phone number is formatted differently from the E.164 number the flow submits
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {...SAVED_PRIVATE_PERSONAL_DETAILS, phoneNumber: '(415) 555-0123'});
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, MANUAL_BANK_ACCOUNT_DRAFT);
+            });
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.CONFIRMATION);
+
+            // When they confirm the bank account
+            fireEvent.press(screen.getByText('Confirm'));
+
+            // Then they are asked for a magic code, since saving the submitted number changes what the backend has stored
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(SUB_PAGE_NAMES.VALIDATE_CODE, undefined));
+            expect(addPersonalBankAccount).not.toHaveBeenCalled();
+        });
+
         it('asks for a magic code when a new user enters personal details for the first time', async () => {
             // Given a new user with no saved private personal details who entered a name, address, and phone number
             await act(async () => {
