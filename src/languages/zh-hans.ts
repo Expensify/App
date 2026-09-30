@@ -1116,6 +1116,7 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: '在支出中查看',
         emptyState: {title: '没有可显示的内容', subtitle: '请尝试调整上面的条件'},
         noExpensesState: {title: '查看你的资金流向', subtitle: '添加报销后，您就能查看消费趋势、主要商家等更多信息。'},
+        compare: {label: '比较', previousPeriod: '上一期', average: '平均'},
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -2116,7 +2117,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: '个人头像',
         customInstructions: '自定义指令',
         copilotIntoAccount: 'Copilot 到账户',
-        viewMemberHistory: '查看成员历史记录',
+        seeChatHistory: '查看聊天记录',
         viewAgentHistory: '查看代理历史记录',
         publicSection: {
             title: '公开',
@@ -2245,7 +2246,13 @@ const translations: TranslationDeepObject<typeof en> = {
             results: '结果',
             releaseOptions: '发布选项',
             testingPreferences: '测试偏好',
-            useStagingServer: '使用预备服务器',
+            server: '服务器',
+            servers: {
+                production: {label: '生产', description: '真实用户所使用的线上环境'},
+                staging: {label: '预备', description: '生产环境的镜像，用于最终验证'},
+                qa: {label: 'QA', description: '用于测试的实验环境'},
+            },
+            serverPinnedDescription: '此版本始终连接到单一服务器，因此无法在此处更改。',
             forceOffline: '强制离线',
             simulatePoorConnection: '模拟较差的互联网连接',
             simulateFailingNetworkRequests: '模拟失败的网络请求',
@@ -2464,7 +2471,7 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredForAdminsHeader: '需要启用双重身份验证',
         twoFactorAuthIsRequiredForAdminsTitle: '请启用双重身份验证',
         twoFactorAuthIsRequiredXero: '您的 Xero 会计连接需要启用双重身份验证。',
-        twoFactorAuthIsRequiredCompany: '您的公司要求使用双重身份验证。',
+        twoFactorAuthIsRequiredCompany: '您的公司要求使用双重身份验证（2FA）。',
         twoFactorAuthCannotDisable: '无法禁用双重验证',
         twoFactorAuthRequired: '您的 Xero 连接需要启用双重身份验证（2FA），且无法将其禁用。',
         replaceDevice: '更换设备',
@@ -2476,6 +2483,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: '使用新设备扫描二维码，然后输入代码完成设置。',
         downloadCodes: '下载代码',
         copyCodes: '复制代码',
+        enable2FA: '启用',
     },
     recoveryCodeForm: {
         error: {
@@ -2899,6 +2907,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         memberAlreadyInWorkflowTitle: '成员已在工作流中',
         memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
             `${memberName}已在提交给${approverName}的审批流程中。在此处添加将把该成员移动到此工作流。`,
+        moveEveryoneToThisWorkflowTitle: '将所有人移至此工作流程',
+        moveEveryoneToThisWorkflowPrompt: '您即将将所有人迁移到此审批流程。这将删除所有其他审批流程，并将所有人迁移到此流程。此操作无法撤销。',
     },
     workflowsApproverPage: {
         genericErrorMessage: '无法更改审批人。请重试或联系支持。',
@@ -3202,7 +3212,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             other: `剩余时间：${count} 秒`,
         }),
         timeExpiredAnnouncement: '时间已到期',
-        error: {pleaseFillSecurityCode: '请输入您的安全码', incorrectSecurityCode: '安全码不正确或无效。请重试或请求新代码。', pleaseFillTwoFactorAuth: '请输入您的双重身份验证代码'},
+        error: {
+            pleaseFillSecurityCode: '请输入您的安全码',
+            tooManyAttempts: '尝试次数过多。请稍后再试。',
+            incorrectSecurityCode: '安全码不正确或无效。请重试或请求新代码。',
+            pleaseFillTwoFactorAuth: '请输入您的双重身份验证代码',
+        },
     },
     passwordForm: {
         pleaseFillOutAllFields: '请填写所有字段',
@@ -5269,9 +5284,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             journalEntriesProvTaxPostingAccount: '日记账分录省税过账科目',
             foreignCurrencyAmount: '导出外币金额',
             exportToNextOpenPeriod: '导出到下一个未结会计期间',
-            exportToNextOpenPeriodLockedSubtitle: '要禁用导出到下一个未结会计期间，请先禁用按期间拆分不可报销导出。',
-            splitExportsByPostingPeriod: '按过账期间拆分导出',
-            splitExportsByPostingPeriodSubtitle: '启用导出到下一个未结会计期间，以在 NetSuite 中启用按期间拆分不可报销导出',
             nonReimbursableJournalPostingAccount: '不可报销日记账入账科目',
             reimbursableJournalPostingAccount: '可报销日记账过账科目',
             journalPostingPreference: {
@@ -6164,6 +6176,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             deleteFailureMessage: '删除类别时出错，请重试',
             categoryName: '类别名称',
             requiresCategory: '成员必须为所有报销分类',
+            autoCategorizeNewExpenses: '自动为新报销分类',
             showCategoryGLCodes: '在分类报销时显示总账科目代码',
             needCategoryForExportToIntegration: (connectionName: string) => `要导出到 ${connectionName}，所有报销都必须先进行分类。`,
             subtitle: '更好地了解资金的支出去向。使用我们的默认类别或添加你自己的类别。',
@@ -6825,6 +6838,15 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             peopleAdmins: '人员管理员',
             paymentsAdmins: '付款管理员',
             members: '成员',
+            workArrangement: '工作安排',
+            officeBased: '以办公室为基地',
+            noRegularWorkspace: '远程或移动',
+            workArrangementPage: {
+                title: '工作安排',
+                optionOfficeBasedHelp: '成员通勤前往办公室。日常通勤不予报销。',
+                optionNoRegularWorkspaceHelp: '成员在家办公或在各地点之间出差，没有固定办公地点，因此通勤规则不适用。',
+                futureOnlyNote: '更改仅适用于未来的里程计算，现有的里程报销将不会重新计算。',
+            },
         },
         card: {
             getStartedIssuing: '从发放您的第一张虚拟卡或实体卡开始使用。',
@@ -7204,6 +7226,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: '若要解锁，请启用自动同步。',
             campfire: 'Campfire',
             businessCentral: 'Dynamics 365 Business Central',
+            qboConnectionExpiring: ({date}: {date: string}) => `您的 QuickBooks Online 连接将于 ${date} 过期。`,
+            qboConnectionExpired: ({date}: {date: string}) => `您与 QuickBooks Online 的连接已于 ${date} 过期。`,
         },
         export: {
             notReadyHeading: '尚未准备好导出',
@@ -7866,6 +7890,7 @@ ${reportName}`,
                 autoPayApprovedReportsSubtitle: '配置哪些报销报告符合自动付款条件。',
                 autoPayApprovedReportsLimitError: (currency?: string) => `请输入小于 ${currency ?? ''}20,000 的金额`,
                 autoPayApprovedReportsLockedSubtitle: '前往“更多功能”并启用“工作流”，然后添加“付款”以解锁此功能。',
+                autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) => `自动付款仅适用于 Control 方案。[升级](${upgradeLink})以解锁此功能。`,
                 autoPayReportsUnderTitle: '自动支付报销单于',
                 autoPayReportsUnderDescription: '在此金额以下且完全合规的报销单将被自动支付。',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `添加 ${featureName} 以解锁此功能。`,
@@ -8496,6 +8521,35 @@ ${reportName}`,
             syncTravelInvoicingSettlements: '同步差旅开票结算',
             travelInvoicingSettlementAccount: {label: '差旅开票结算账户', description: '选择您的结算账户，我们会在 Campfire 中创建这笔付款。'},
             travelInvoicingPayableAccount: {label: '差旅开票应付账户'},
+            exportToMultipleAccounts: '配置导出到多个账户',
+            cardProgramAccount: {
+                label: '卡计划账户',
+                description: '为这些卡计划覆盖工作区账户。',
+                descriptionLevel2: '覆盖此卡计划的工作区账户。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return '所有方案使用默认账户';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} 个自定义账户的项目`;
+                    }
+                    return `${customAccountsCount} 个具有自定义科目的项目`;
+                },
+            },
+            cardAccount: {
+                label: '按卡计费账户',
+                description: '为单张卡片覆盖默认项目账户。',
+                descriptionLevel2: '为这些卡片覆盖默认项目账户。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return '所有卡都使用项目账户';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} 张带有自定义账户的卡`;
+                    }
+                    return `${customAccountsCount} 张带有自定义账户的卡`;
+                },
+            },
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central 设置',
@@ -8512,6 +8566,51 @@ ${reportName}`,
             importDescription: '选择要从 Dynamics 365 Business Central 导入的编码配置。',
             items: '项目',
             enableNewCategories: '启用新导入的类别',
+            exportDescription: '配置 Expensify 数据导出到 Dynamics 365 Business Central 的方式。',
+            exportDate: {
+                label: '交易日期',
+                description: '将报表导出到 Dynamics 365 Business Central 时使用此日期。',
+                values: {
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: '最新支出日期',
+                        description: '报告中最近一次支出的日期。',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: '导出日期',
+                        description: '报告导出至 Dynamics 365 Business Central 的日期。',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: '提交日期',
+                        description: '报告提交审批的日期。',
+                    },
+                },
+            },
+            exportReimbursable: '将可报销费用导出为',
+            exportNonReimbursable: '导出公司卡费用为',
+            exportDestination: {
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY]: '普通日记账',
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE]: '采购发票',
+            },
+            reimbursableAccount: {
+                label: '可报销费用账户',
+                description: '选择可报销费用的导出位置。',
+            },
+            defaultCompanyCardVendor: {
+                label: '默认公司卡供应商',
+                description: '为未自动匹配的费用选择默认的 Dynamics 365 Business Central 供应商。',
+            },
+            companyCardAccount: {
+                label: '公司卡账户',
+                description: '选择公司卡交易的导出位置。',
+            },
+            paymentMethod: {
+                label: '付款方式',
+                description: '为采购发票选择付款方式，以便 Dynamics 365 Business Central 将其与您的银行进行对账。',
+            },
+            noBankAccountsFound: '未找到银行账户',
+            noBankAccountsFoundDescription: '请在 Dynamics 365 Business Central 中添加银行账户，然后重新同步连接',
+            noPaymentMethodsFound: '未找到付款方式',
+            noPaymentMethodsFoundDescription: '请在 Dynamics 365 Business Central 中添加付款方式，然后重新同步连接',
         },
     },
     getAssistancePage: {
@@ -9139,6 +9238,7 @@ ${reportName}`,
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制发票设置`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制出差设置`,
         },
+        updatedAutoCategorizeNewExpenses: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 新报销自动分类`,
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 费用分类要求`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 费用标签要求`,
         updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `将货币转换费用设置更新为“${preferenceLabel}”`,
@@ -9175,6 +9275,10 @@ ${reportName}`,
                 : `已更改 ${member} 的审批流程，停止转发超过 ${previousLimit} 的报销报告`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `已将 ${member} 的审批流程更改为：转交超过 ${limit} 的报销单（之前为 ${previousLimit}）`,
+        updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
+            `已将 ${displayName} 的工作安排更改为 ${newArrangement}（之前为 ${oldArrangement}）`,
+        updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
+            `已将默认工作安排更改为 ${newArrangement}（之前为 ${oldArrangement}）`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -10647,6 +10751,8 @@ ${reportName}`,
         removeCopilotAccessConfirmation: (delegatorName: string) => `您确定要移除对${delegatorName}的 Expensify 账户的副驾驶访问权限吗？此操作无法撤销。`,
         removeCopilotAccessConfirm: '移除访问权限',
         copilotAccess: 'Copilot 访问',
+        leaveAccount: '退出账户',
+        leaveAccountConfirmationText: '您将返回到您自己的账户。您不会完全登出。',
     },
     debug: {
         debug: '调试',
