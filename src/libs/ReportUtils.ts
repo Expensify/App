@@ -9709,25 +9709,6 @@ function buildOptimisticTaskReport(
     };
 }
 
-function buildOptimisticSupportTicketReport(ownerAccountID: number, parentReportID: string): Report {
-    const created = DateUtils.getDBTime();
-    return {
-        reportID: generateReportID(),
-        created,
-        reportName: 'Support ticket',
-        ownerAccountID,
-        participants: {
-            [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-        },
-        type: CONST.REPORT.TYPE.SUPPORT_TICKET,
-        parentReportID,
-        stateNum: CONST.REPORT.STATE_NUM.OPEN,
-        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-        lastVisibleActionCreated: created,
-        hasParentAccess: true,
-    };
-}
-
 /**
  * Builds an optimistic EXPORTED_TO_INTEGRATION report action
  *
@@ -14594,7 +14575,6 @@ export {
     buildOptimisticTaskCommentReportAction,
     buildOptimisticTaskReport,
     buildOptimisticSupportTicketCommentReportAction,
-    buildOptimisticSupportTicketReport,
     buildOptimisticTaskReportAction,
     buildOptimisticUnHoldReportAction,
     buildOptimisticAnnounceChat,

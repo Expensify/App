@@ -1,7 +1,6 @@
 type CreateSupportTicketParams = {
     reportID: string;
-    parentReportActionID: string;
-    createdReportActionID: string;
+    assigneeAccountID: number;
 };
 
 export default CreateSupportTicketParams;
