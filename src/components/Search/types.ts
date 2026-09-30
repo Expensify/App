@@ -434,6 +434,7 @@ type SearchParams = {
     prevReportsLength?: number;
     shouldCalculateTotals: boolean;
     isLoading: boolean;
+    shouldSaveRecentSearch?: boolean;
 };
 
 type BankAccountMenuItem = {
@@ -523,6 +524,7 @@ export type {
     TableColumnSize,
     SearchGroupBy,
     SearchView,
+    SearchCompareMode,
     ChartView,
     SingularSearchStatus,
     SearchDatePreset,
