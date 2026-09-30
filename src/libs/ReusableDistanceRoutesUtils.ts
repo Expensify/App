@@ -1,11 +1,11 @@
-import DateUtils from '@libs/DateUtils';
-import tokenizedSearch from '@libs/tokenizedSearch';
-import {getWaypointIndex} from '@libs/TransactionUtils';
-import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-
 import CONST from '@src/CONST';
 import type {ReusableDistanceRoute} from '@src/types/onyx';
 import type {Waypoint} from '@src/types/onyx/Transaction';
+
+import DateUtils from './DateUtils';
+import tokenizedSearch from './tokenizedSearch';
+import {getWaypointIndex} from './TransactionUtils';
+import tryResolveUrlFromApiRoot from './tryResolveUrlFromApiRoot';
 
 /**
  * Returns the route waypoints as a list ordered by their waypoint index
