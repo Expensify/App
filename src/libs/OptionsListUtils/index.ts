@@ -3047,12 +3047,12 @@ function filterOptions<T extends SearchOptionData>(
     currentUserAccountID: number,
     personalDetailsCollection: OnyxEntry<PersonalDetailsList>,
     config: FilterUserToInviteConfig,
-    translate: LocalizedTranslate,
+    localize: {translate: LocalizedTranslate; formatPhoneNumber: LocaleContextProps['formatPhoneNumber']},
     rules: OnyxCollection<Rule>,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): Options<T> {
     const trimmedSearchInput = searchInputValue.trim();
     const searchInputValueForInvite = config?.searchInputValue ?? trimmedSearchInput;
+    const {translate, formatPhoneNumber} = localize;
 
     const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(trimmedSearchInput), countryCode || CONST.DEFAULT_COUNTRY_CODE));
     const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : trimmedSearchInput.toLowerCase();
@@ -3147,7 +3147,18 @@ function filterAndOrderOptions<T extends SearchOptionData>(
 ): Options<T> {
     let filterResult = options;
     if (searchInputValue.trim().length > 0) {
-        filterResult = filterOptions(options, searchInputValue, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, config, translate, rules, formatPhoneNumber);
+        filterResult = filterOptions(
+            options,
+            searchInputValue,
+            countryCode,
+            loginList,
+            currentUserEmail,
+            currentUserAccountID,
+            personalDetails,
+            config,
+            {translate, formatPhoneNumber},
+            rules,
+        );
     }
 
     const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filterResult, searchInputValue, config);
