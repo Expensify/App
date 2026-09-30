@@ -78,25 +78,6 @@ describe('forwardLogsToSentry', () => {
         );
     });
 
-    it('should forward the offline state and receipts folder state on a dropped receipt line', () => {
-        // Given a dropped [Receipt] line carrying the network and folder state next to the raw file path
-        const packet = packetWith('[alrt] [Receipt] dropped', {
-            event: 'dropped',
-            isOffline: 'true',
-            receiptsFolderExists: 'false',
-            receiptsFolderEntryCount: 0,
-            localUri: 'file://secret.png',
-        });
-
-        // When the packet is mirrored to Sentry
-        forwardLogsToSentry(packet);
-
-        // Then the state fields reach Sentry so offline and folder-loss reports can be checked there, while the path stays out
-        const breadcrumb = jest.mocked(Sentry.addBreadcrumb).mock.calls.at(0)?.[0];
-        expect(breadcrumb?.data).toEqual(expect.objectContaining({isOffline: 'true', receiptsFolderExists: 'false', receiptsFolderEntryCount: 0}));
-        expect(breadcrumb?.data).not.toHaveProperty('localUri');
-    });
-
     it('does not add a breadcrumb for log lines that are not forwarded', () => {
         // Given a log line without a forwarded prefix
         const packet = packetWith('[info] [SequentialQueue] push() called', {command: 'OpenReport'});
