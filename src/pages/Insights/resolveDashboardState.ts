@@ -32,15 +32,15 @@ function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: b
         const isLoaded = isSearchDataLoaded(snapshot, queryJSON) && isEmptyObject(snapshot?.errors);
         return {isLoaded, hasRows: isLoaded && Object.keys(snapshot?.data ?? {}).some(isGroupEntry)};
     });
-    const isWaitingForData = !hasDashboardResponse && !chartStates.some(({isLoaded}) => isLoaded);
+    const hasLoadedChart = chartStates.some(({isLoaded}) => isLoaded);
 
-    if (isOffline && isWaitingForData) {
+    if (isOffline && !hasLoadedChart) {
         return INSIGHTS_DASHBOARD_STATE.OFFLINE;
     }
     if (!isOffline && Object.keys(dashboard?.errors ?? {}).length > 0) {
         return INSIGHTS_DASHBOARD_STATE.ERROR;
     }
-    if (isWaitingForData) {
+    if (!hasDashboardResponse && !hasLoadedChart) {
         return INSIGHTS_DASHBOARD_STATE.LOADING;
     }
     if (chartStates.some(({hasRows}) => hasRows)) {

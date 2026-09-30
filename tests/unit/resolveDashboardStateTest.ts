@@ -92,6 +92,15 @@ describe('getDashboardState', () => {
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.OFFLINE);
     });
 
+    it('says the user is offline when every chart failed after a response landed', () => {
+        // Given a stored response, charts whose later Search requests all failed, and no connection to refresh them
+        // When the page's state is resolved
+        const state = getDashboardState(LOADED_DASHBOARD, true, makeCharts(FAILED_SNAPSHOT, FAILED_SNAPSHOT));
+
+        // Then the whole page says it is offline, rather than every chart saying so on its own
+        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.OFFLINE);
+    });
+
     it('says the user is offline when the only stored rows belong to a failed Search', () => {
         // Given no stored response and no connection, and a snapshot that kept its rows when a later Search failed
         // When the page's state is resolved
