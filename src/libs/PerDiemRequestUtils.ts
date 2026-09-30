@@ -218,7 +218,7 @@ function getSubratesForDisplay(subrate: Subrate | undefined, qtyText: string) {
     return `${subrate.name}, ${qtyText}: ${subrate.quantity}`;
 }
 
-function formatDateTimeTo12Hour(dateTimeString: string, locale: Locale): string {
+function formatToTimeAndMediumDate(dateTimeString: string, locale: Locale): string {
     if (!dateTimeString) {
         return '';
     }
@@ -234,8 +234,8 @@ function formatDateTimeTo12Hour(dateTimeString: string, locale: Locale): string 
 
 function getTimeForDisplay(transaction: OnyxEntry<Transaction>, locale: Locale) {
     const customUnitRateDate = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
-    const start = formatDateTimeTo12Hour(customUnitRateDate.start, locale);
-    const end = formatDateTimeTo12Hour(customUnitRateDate.end, locale);
+    const start = formatToTimeAndMediumDate(customUnitRateDate.start, locale);
+    const end = formatToTimeAndMediumDate(customUnitRateDate.end, locale);
     // Guard the formatted output, not the raw input: an unparsable timestamp is truthy but formats to ''.
     if (!start || !end) {
         return '';

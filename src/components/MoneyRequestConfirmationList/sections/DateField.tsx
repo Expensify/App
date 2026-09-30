@@ -31,6 +31,8 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import AutomaticFieldHint from './AutomaticFieldHint';
+import ExpenseFieldRow from './ExpenseFieldRow';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {dateStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -49,6 +51,7 @@ type DateFieldProps = {
 function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {isEditingSplitBill, canEnterScanFieldsManually} = useConfirmationFields();
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
@@ -152,20 +155,41 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
         );
     }
 
+    const openDatePage = () => {
+        if (!transactionID) {
+            return;
+        }
+
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, reportActionID)));
+    };
+
+    // A stored expense date is date-only, so it renders UTC-anchored, and a draft with no date yet reads as today in the user's own zone.
+    const readOnlyDate = iouCreated ? DateUtils.formatInUTCToMedium(iouCreated, preferredLocale) : DateUtils.formatToMediumDate(new Date(), preferredLocale);
+
+    // On the bordered form the editable date is a text input, so a locked one has to read as a disabled input too
+    // rather than as a push row, or the same screen answers "this field can't be changed" two different ways.
+    if (shouldUseDropdownRows) {
+        return (
+            <ExpenseFieldRow
+                name={translate('common.date')}
+                value={readOnlyDate}
+                errorText={dateErrorText}
+                onPress={openDatePage}
+                isDisabled={didConfirm}
+                isInteractive={false}
+                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DATE_FIELD}
+            />
+        );
+    }
+
     return (
         <MenuItemWithTopDescription
             shouldShowRightIcon={!isReadOnly}
-            title={iouCreated ? DateUtils.formatInUTCToMedium(iouCreated, preferredLocale) : DateUtils.formatToMediumDate(new Date(), preferredLocale)}
+            title={readOnlyDate}
             description={translate('common.date')}
             style={[styles.moneyRequestMenuItem]}
             titleStyle={styles.flex1}
-            onPress={() => {
-                if (!transactionID) {
-                    return;
-                }
-
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, reportActionID)));
-            }}
+            onPress={openDatePage}
             disabled={didConfirm}
             interactive={!isReadOnly}
             brickRoadIndicator={shouldDisplayFieldError && createdMissing ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}

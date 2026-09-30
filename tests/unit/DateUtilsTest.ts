@@ -272,6 +272,30 @@ describe('DateUtils', () => {
         });
     });
 
+    it('should normalize a legacy timezone alias from Intl to its supported timezone', async () => {
+        jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+            () =>
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                ({
+                    resolvedOptions: () => ({timeZone: 'Asia/Calcutta'}),
+                }) as Intl.DateTimeFormat,
+        );
+        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {'999': {accountID: 999, timezone: {selected: 'Asia/Kolkata', automatic: true}}});
+        await waitForBatchedUpdates();
+
+        // Given the stored timezone is already the supported equivalent of the Intl alias, it should stay unchanged
+        expect(DateUtils.getCurrentTimezone({selected: 'Asia/Kolkata', automatic: true})).toEqual({
+            selected: 'Asia/Kolkata',
+            automatic: true,
+        });
+
+        // Given a stored timezone that differs, it should be updated to the supported timezone rather than the alias
+        expect(DateUtils.getCurrentTimezone({selected: 'Europe/London', automatic: true})).toEqual({
+            selected: 'Asia/Kolkata',
+            automatic: true,
+        });
+    });
+
     it('canUpdateTimezone should return true when lastUpdatedTimezoneTime is more than 5 minutes ago', () => {
         // Use fake timers to control the current time
         jest.useFakeTimers();

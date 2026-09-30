@@ -290,7 +290,7 @@ function ParticipantSearchResults({
         !!availableOptions?.userToInvite,
         debouncedSearchTerm.trim(),
         countryCode,
-        participants.some((participant) => doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm)),
+        participants.some((participant) => doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm, translate)),
     );
 
     const showImportContacts =
@@ -318,12 +318,12 @@ function ParticipantSearchResults({
             translate,
             convertToDisplayString,
             preferredLocale,
+            getReportByID,
             rules,
             personalDetails,
             true,
             undefined,
             reportAttributesDerived,
-            getReportByID,
         );
         sections.push({...formatResults.section, sectionIndex: 0});
 

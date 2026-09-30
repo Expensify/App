@@ -80,12 +80,14 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
         const longDate = DateUtils.formatInTimeZoneToLong(eventDate, userTimezone, preferredLocale);
         const startTime = DateUtils.formatInTimeZoneToShortTime(eventDate, userTimezone, preferredLocale);
         const endTime = DateUtils.formatInTimeZoneToShortTime(addMinutes(eventDate, 30), userTimezone, preferredLocale);
-        // Only the display row depends on the formatters. Reschedule and Cancel stay reachable either way.
+        const zoneAbbreviation = DateUtils.getZoneAbbreviation(eventDate, userTimezone, preferredLocale);
+        const timeRange = zoneAbbreviation ? `${startTime} - ${endTime} ${zoneAbbreviation}` : `${startTime} - ${endTime}`;
+
         if (weekday && longDate && startTime && endTime) {
             options.push({
                 text: `${weekday}, ${longDate}`,
                 value: CONST.ONBOARDING_HELP.EVENT_TIME,
-                description: `${startTime} - ${endTime} ${DateUtils.getZoneAbbreviation(eventDate, userTimezone, preferredLocale)}`,
+                description: timeRange,
                 descriptionTextStyle: [styles.themeTextColor, styles.ml2],
                 displayInDefaultIconColor: true,
                 icon: illustrations.HeadSet,

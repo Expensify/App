@@ -482,11 +482,9 @@ function startCurrentDateUpdater() {
 }
 
 function getCurrentTimezone(timezone: Timezone): Required<Timezone> {
-    const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (timezone.automatic && timezone.selected !== currentTimezone) {
-        return {...timezone, selected: currentTimezone as SelectedTimezone, automatic: timezone.automatic ?? false};
-    }
-    return {selected: timezone.selected ?? (CONST.DEFAULT_TIME_ZONE.selected as SelectedTimezone), automatic: timezone.automatic ?? false};
+    const automatic = timezone.automatic ?? false;
+    const currentTimezone = automatic ? formatToSupportedTimezone({selected: Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone}).selected : undefined;
+    return {selected: currentTimezone ?? timezone.selected ?? (CONST.DEFAULT_TIME_ZONE.selected as SelectedTimezone), automatic};
 }
 
 function monthNamesIn(locale: Locale, formatKey: IntlFormatKey): string[] {

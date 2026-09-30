@@ -11,12 +11,16 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getInsights} from '@libs/actions/Insights';
 
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InsightsDashboardID} from '@src/types/onyx';
 
@@ -28,7 +32,8 @@ import type {InsightsFilters} from './insightsFilters';
 import type {InsightsDashboardState} from './resolveDashboardState';
 
 import InsightsChartWidget from './charts/InsightsChartWidget';
-import INSIGHTS_DASHBOARD_SPECS from './dashboardSpecs';
+import InsightsPageControls from './controls/InsightsPageControls';
+import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from './dashboardSpecs';
 import buildInsightsJsonQuery from './insightsQueries';
 import {getDashboardState, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
 import InsightsEmptyState from './states/InsightsEmptyState';
@@ -48,9 +53,12 @@ type InsightsDashboardContentProps = {
 
     /** Called by the retry button to request the dashboard again */
     onRetry: () => void;
+
+    /** Changes the time bucket the headline chart aggregates into */
+    onGroupByChange: (groupBy: InsightsFilters['groupBy']) => void;
 };
 
-function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry}: InsightsDashboardContentProps) {
+function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -59,14 +67,29 @@ function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry}: 
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
-    if (state === INSIGHTS_DASHBOARD_STATE.ERROR) {
+    const didRequestFail = state === INSIGHTS_DASHBOARD_STATE.ERROR || state === INSIGHTS_DASHBOARD_STATE.STALE;
+
+    if (didRequestFail) {
+        const failureViewByState = {
+            [INSIGHTS_DASHBOARD_STATE.STALE]: {
+                title: translate('search.searchResults.staleResults.title'),
+                subtitle: translate('search.searchResults.staleResults.subtitle'),
+                illustration: 'ChartSync',
+                illustrationWidth: variables.iconSizeUltraLarge,
+                illustrationHeight: variables.iconSizeUltraLarge,
+                buttonTranslationKey: 'search.searchResults.staleResults.buttonText',
+            },
+            [INSIGHTS_DASHBOARD_STATE.ERROR]: {
+                title: translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout}),
+                subtitle: translate('errorPage.subtitle'),
+                buttonTranslationKey: 'common.tryAgain',
+            },
+        } as const;
         return (
             <FullPageErrorView
                 shouldShow
-                title={translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout})}
-                subtitle={translate('errorPage.subtitle')}
-                buttonTranslationKey="common.tryAgain"
                 onButtonPress={onRetry}
+                {...failureViewByState[state]}
             />
         );
     }
@@ -96,8 +119,7 @@ function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry}: 
     }
 
     const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
-    const policiesInScope = Object.values(policies ?? {}).filter((policy) => !!policy && (filters.policyIDs.length === 0 || filters.policyIDs.includes(policy.id)));
-    const visibleCharts = supportingCharts.filter(({isPolicyEligible}) => !isPolicyEligible || policiesInScope.some((policy) => !!policy && isPolicyEligible(policy, login)));
+    const visibleCharts = getVisibleCharts(supportingCharts, policies, filters.policyIDs, login);
 
     // Wide layout stacks the cards in two independent columns, so a short card doesn't leave a gap under it
     const columns = shouldUseNarrowLayout ? [visibleCharts] : [visibleCharts.filter((chart, index) => index % 2 === 0), visibleCharts.filter((chart, index) => index % 2 === 1)];
@@ -114,6 +136,7 @@ function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry}: 
                     chart={headlineChart}
                     filters={filters}
                     onRetry={onRetry}
+                    onGroupByChange={onGroupByChange}
                 />
                 <View style={styles.insightsChartGrid}>
                     {columns.map((columnCharts, columnIndex) => (
@@ -144,9 +167,10 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
-    const {filters, isResolved} = useInsightsFilters();
+    const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(dashboardID);
+    const {isBetaEnabled} = usePermissions();
 
-    const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters) : undefined;
+    const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters, isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE)) : undefined;
     const jsonQuery = query?.jsonQuery;
     const hash = query?.hash;
 
@@ -170,6 +194,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
     const [headlineSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${dashboard?.graphs?.[INSIGHTS_DASHBOARD_SPECS[dashboardID].headlineChart.graphKey]?.snapshotHash}`);
+    const state = getDashboardState(dashboard, isOffline, headlineSnapshot);
 
     return (
         <ScreenWrapper
@@ -182,12 +207,20 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
                 breadcrumbLabel={translate('common.insights')}
                 shouldDisplayHelpButton
             />
+            {state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && (
+                <InsightsPageControls
+                    filters={filters}
+                    defaultFilters={defaultFilters}
+                    onChange={setFilters}
+                />
+            )}
             <InsightsDashboardContent
                 dashboardID={dashboardID}
                 hash={hash}
-                state={getDashboardState(dashboard, isOffline, headlineSnapshot)}
+                state={state}
                 filters={filters}
                 onRetry={requestDashboard}
+                onGroupByChange={(groupBy) => setFilters({groupBy})}
             />
         </ScreenWrapper>
     );
