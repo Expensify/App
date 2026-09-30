@@ -14,7 +14,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import Navigation from '@libs/Navigation/Navigation';
 
 import NavigationTabBarAvatar from '@pages/inbox/sidebar/NavigationTabBarAvatar';
@@ -24,7 +23,6 @@ import SupportalSwitcherButton from '@pages/inbox/sidebar/SupportalSwitcherButto
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 
 import type {ValueOf} from 'type-fest';
 
@@ -48,9 +46,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
     const {translate} = useLocalize();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const {isBetaEnabled} = usePermissions();
-    // The native tab navigators register five items and leave Insights out, so the wide layout's own bar must not
-    // offer a tab the navigator cannot route to.
-    const isInsightsTabVisible = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) && (TAB_SCREENS as readonly string[]).includes(SCREENS.INSIGHTS);
+    const isInsightsTabVisible = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home']);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();

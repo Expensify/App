@@ -68,11 +68,9 @@
 - E/App issue: [#94571](https://github.com/Expensify/App/issues/94571)
 - PR Introducing Patch: [#95980](https://github.com/Expensify/App/pull/95980)
 
-### [@react-navigation+bottom-tabs+7.16.2+002+android-tab-item-colors.patch](@react-navigation+bottom-tabs+7.16.2+002+android-tab-item-colors.patch)
+### [@react-navigation+bottom-tabs+7.16.2+002+active-indicator-color-precedence.patch](@react-navigation+bottom-tabs+7.16.2+002+active-indicator-color-precedence.patch)
 
-- Reason: Lets the native Android tab bar take the colors from the design, where the selected tab's icon and active indicator are green and its label keeps the regular text color.
-    - `tabBarActiveIndicatorColor` was never applied: a missing pair of parentheses made `??` bind to the `typeof` check, so the indicator always got `tabBarActiveTintColor` at 10% alpha. The patch restores the intended precedence.
-    - `tabBarActiveTintColor` and `tabBarInactiveTintColor` each color an icon and its label together. The patch adds Android-only `tabBarActiveLabelColor` and `tabBarInactiveLabelColor`, which override the tint for the label only. The native `TabsScreenItemStateAppearanceAndroid` already takes separate title and icon colors, so nothing native changes.
+- Reason: `tabBarActiveIndicatorColor` was never applied on the native Android tab bar: a missing pair of parentheses made `??` bind to the `typeof` check, so the indicator always got `tabBarActiveTintColor` at 10% alpha. The patch restores the intended precedence, so the active indicator pill takes the color from the design.
 - Upstream PR/issue: not reported yet.
 - E/App issue: [#101169](https://github.com/Expensify/App/issues/101169)
 - PR Introducing Patch: [#101339](https://github.com/Expensify/App/pull/101339)

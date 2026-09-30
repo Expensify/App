@@ -65,14 +65,13 @@ function TabNavigator() {
     const {getTabBarIcon, accountAvatarIcon, areTabIconsReady} = useAndroidTabIcons();
 
     // Colors and the label face come from the Expensify theme and match the side bar on wide layouts: the
-    // selected tab has the menu icon color and a bold label in the regular text color, the others the plain icon
-    // color and a supporting text label. The bar takes the raised surface tone with no top border.
+    // selected tab has a bold label in the regular text color, the others a supporting text label. The tint only
+    // reaches the labels, since the icons arrive already recolored (react-native-screens patch 003). The bar takes
+    // the raised surface tone with no top border.
     const screenOptions: NativeBottomTabNavigationOptions = {
         headerShown: false,
-        tabBarActiveTintColor: theme.iconMenu,
-        tabBarInactiveTintColor: theme.icon,
-        tabBarActiveLabelColor: theme.text,
-        tabBarInactiveLabelColor: theme.textSupporting,
+        tabBarActiveTintColor: theme.text,
+        tabBarInactiveTintColor: theme.textSupporting,
         tabBarLabelStyle: {fontFamily: styles.textSmall.fontFamily, fontSize: styles.textSmall.fontSize},
         tabBarActiveIndicatorColor: theme.androidTabBarActiveIndicatorBG,
         tabBarLabelVisibilityMode: 'labeled',
