@@ -16,6 +16,7 @@ import {dismissASAPSubmitExplanation} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
@@ -45,7 +46,7 @@ function AutoSubmitModal() {
                     descriptionTranslationKey: 'autoSubmitModal.pendingExpensesDescription',
                 },
             ] satisfies Array<{
-                icon: (typeof illustrations)['PaperAirplane' | 'Pencil'];
+                icon: IconAsset;
                 titleTranslationKey: TranslationPaths;
                 descriptionTranslationKey: TranslationPaths;
             }>,

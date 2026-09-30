@@ -26271,9 +26271,9 @@ async function run() {
     }
     setOutput("MOBILE_EXPENSIFY_PR_LIST", mobileExpensifyPRList);
   } catch (error2) {
-    const failure = error2 instanceof Error ? error2 : String(error2);
-    console.error(failure instanceof Error ? failure.message : failure);
-    setFailed(failure);
+    const message = error2 instanceof Error ? error2.message : String(error2);
+    console.error(message);
+    setFailed(error2 instanceof Error ? error2 : message);
   }
 }
 if (import.meta.main) {

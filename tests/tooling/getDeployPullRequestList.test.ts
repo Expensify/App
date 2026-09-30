@@ -39,10 +39,13 @@ afterEach(() => {
 describe('getDeployPullRequestList', () => {
     for (const {name, rejection, expectedConsoleValue} of rejectionCases) {
         it(`reports a rejected ${name} without a secondary failure`, async () => {
+            // Given release lookup can reject with an Error or a non-Error value.
             paginateSpy.mockRejectedValueOnce(rejection);
 
+            // When deployment-list generation encounters that rejection.
             await expect(run()).resolves.toBeUndefined();
 
+            // Then reporting preserves Error identity and safely normalizes every other shape.
             expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
             expect(consoleErrorSpy).toHaveBeenCalledWith(expectedConsoleValue);
             expect(setFailedSpy).toHaveBeenCalledTimes(1);

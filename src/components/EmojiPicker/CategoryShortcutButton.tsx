@@ -8,6 +8,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getButtonState from '@libs/getButtonState';
+import Log from '@libs/Log';
 
 import variables from '@styles/variables';
 
@@ -50,8 +51,11 @@ function CategoryShortcutButton({code, icon, onPress, isSelected = false}: Categ
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [isHighlighted, setIsHighlighted] = useState(false);
-    const translationKey = CATEGORY_TRANSLATION_KEYS.get(code) ?? FALLBACK_CATEGORY_TRANSLATION_KEY;
-    const label = translate(translationKey);
+    const translationKey = CATEGORY_TRANSLATION_KEYS.get(code);
+    if (!translationKey) {
+        Log.alert(`No emoji category translation mapped for code: ${code}`);
+    }
+    const label = translate(translationKey ?? FALLBACK_CATEGORY_TRANSLATION_KEY);
 
     return (
         <Tooltip
