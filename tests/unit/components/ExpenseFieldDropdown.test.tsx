@@ -4,6 +4,8 @@ import type {ExpenseFieldDropdownRenderProps} from '@components/MoneyRequestConf
 import ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import Text from '@components/Text';
 
+import variables from '@styles/variables';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ReactNode} from 'react';
@@ -134,6 +136,36 @@ describe('ExpenseFieldDropdown', () => {
         // Then the container is positioned from its bottom edge, just above the row, so it is never clipped
         expect(renderedProps?.shouldMeasureAnchorPositionFromTop).toBe(false);
         expect(renderedProps?.anchorPosition.vertical).toBeLessThan(rowTop);
+    });
+
+    it('stops short of the header when it opens above the row', () => {
+        // Given a row with just enough room above it that a container ignoring the header would reach the top of
+        // the window, and too little room below it to open downwards
+        mockWindowHeight = 500;
+        mockRowAt(304);
+        renderField();
+
+        // When the row is pressed
+        act(() => pressRow());
+
+        // Then the container's top edge clears the page header, so it never covers the back button. Opening
+        // above is positioned from the container's bottom edge, so its top is that minus its height.
+        expect(renderedProps?.shouldMeasureAnchorPositionFromTop).toBe(false);
+        const containerTop = (renderedProps?.anchorPosition.vertical ?? 0) - (renderedProps?.popoverHeight ?? 0);
+        expect(containerTop).toBeGreaterThanOrEqual(variables.contentHeaderHeight);
+    });
+
+    it('prefers the side of the row with more room', () => {
+        // Given a row with enough room below it for a usable list, but more room above it than below
+        mockWindowHeight = 900;
+        mockRowAt(500);
+        renderField();
+
+        // When the row is pressed
+        act(() => pressRow());
+
+        // Then it opens above, into the room it has, rather than below into the smaller gap
+        expect(renderedProps?.shouldMeasureAnchorPositionFromTop).toBe(false);
     });
 
     it('never asks for more height than the row leaves it', () => {

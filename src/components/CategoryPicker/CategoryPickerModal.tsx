@@ -29,8 +29,8 @@ const SEARCH_INPUT_HEIGHT = 64;
 /** Vertical padding the pop-over draws around the list */
 const CONTENT_VERTICAL_PADDING = 32;
 
-/** Shortest the list area may be, so a one-option list still reads as a list rather than as a sliver */
-const MIN_LIST_HEIGHT = variables.optionRowHeight * 2;
+/** Shortest the list area may be: one full row, so a one-option list is exactly as tall as its one option */
+const MIN_LIST_HEIGHT = variables.optionRowHeight;
 
 const DEFAULT_ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,

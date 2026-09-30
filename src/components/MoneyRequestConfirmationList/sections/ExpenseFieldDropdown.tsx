@@ -1,5 +1,9 @@
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
@@ -16,15 +20,21 @@ import ExpenseFieldRow from './ExpenseFieldRow';
 /** Gap between the row and the container it opens, so the container reads as attached to the row without touching it */
 const CONTAINER_GAP = 4;
 
-/** Below this the container is too short to be worth opening downwards, and it opens above the row instead */
-const MIN_CONTAINER_HEIGHT = 180;
+/** How many options the container shows before the list starts scrolling */
+const MAX_VISIBLE_OPTIONS = 4;
+
+/** Height the search input takes when the list is long enough to show one */
+const SEARCH_INPUT_HEIGHT = 64;
+
+/** Vertical padding the container draws around its list */
+const CONTENT_VERTICAL_PADDING = 32;
 
 /**
- * Tallest the container may be as a share of the window, matching what every other popover in the app is held
- * to. The form the row belongs to can sit inside an RHP, and a container measured only against the window would
- * run past the panel it was opened from.
+ * Tallest the container may be: `MAX_VISIBLE_OPTIONS` rows plus the chrome around them. One row shorter than
+ * `CONST.POPOVER_DROPDOWN_MAX_HEIGHT`, because a row inside an RHP shares its panel with the container rather
+ * than having the whole window to open into.
  */
-const MAX_CONTAINER_HEIGHT = CONST.POPOVER_DROPDOWN_MAX_HEIGHT;
+const MAX_CONTAINER_HEIGHT = MAX_VISIBLE_OPTIONS * variables.optionRowHeight + SEARCH_INPUT_HEIGHT + CONTENT_VERTICAL_PADDING;
 
 const ANCHOR_ALIGNMENT_BELOW: AnchorAlignment = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -103,6 +113,8 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, ..
     // rather than by the row, so none of the measured geometry applies to it.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match the dock decision PopoverWithMeasuredContent makes, which is on isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const {contentHeaderHeight} = useContentHeaderHeight();
+    const {top: safeAreaTop} = useSafeAreaInsets();
     const anchorRef = useRef<ComponentRef<typeof View> | null>(null);
     const [isVisible, setIsVisible] = useState(false);
     // The list stays mounted after the first open so reopening it is instant, but it is never mounted for a field
@@ -121,12 +133,14 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, ..
     const openDropdown = () => {
         anchorRef.current?.measureInWindow((x, y, width, height) => {
             const spaceBelow = windowHeight - (y + height + CONTAINER_GAP);
-            const spaceAbove = y - CONTAINER_GAP;
-            // Below is the default. The container only flips above the row when below can't hold a usable list and
-            // above can hold more of one, so a row near the bottom of a tall form doesn't open into a sliver.
-            const shouldOpenAbove = spaceBelow < MIN_CONTAINER_HEIGHT && spaceAbove > spaceBelow;
+            // The page's header holds the back button, so the container stops short of it rather than opening
+            // over the way out of the page it belongs to.
+            const spaceAbove = y - CONTAINER_GAP - (safeAreaTop + contentHeaderHeight);
+            // Below is the default, and it stays the default as long as it can hold the whole container. Only
+            // once it can't does the side with more room win, so a row low down in a panel opens upwards into
+            // the space it has rather than downwards into a sliver.
+            const shouldOpenAbove = spaceBelow < MAX_CONTAINER_HEIGHT && spaceAbove > spaceBelow;
             const availableHeight = shouldOpenAbove ? spaceAbove : spaceBelow;
-
             setLayout({
                 horizontal: x,
                 vertical: shouldOpenAbove ? y - CONTAINER_GAP : y + height + CONTAINER_GAP,
