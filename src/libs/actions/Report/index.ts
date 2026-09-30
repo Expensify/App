@@ -4854,44 +4854,12 @@ function createNewReport(
 function openSupportTicket({assigneeAccountID}: {assigneeAccountID: number}) {
     const reportID = generateReportID();
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {reportID, type: CONST.REPORT.TYPE.SUPPORT_TICKET},
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-            value: {isOptimisticReport: true},
-        },
-    ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-            value: {isOptimisticReport: false},
-        },
-    ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: null,
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-            value: null,
-        },
-    ];
-
     const parameters: CreateSupportTicketParams = {
         reportID,
         assigneeAccountID,
     };
-    API.write(WRITE_COMMANDS.CREATE_SUPPORT_TICKET, parameters, {optimisticData, successData, failureData});
-    Navigation.navigate(getReportRouteForCurrentContext({reportID}));
+    API.write(WRITE_COMMANDS.CREATE_SUPPORT_TICKET, parameters);
+    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, Navigation.getActiveRoute(), undefined, true));
 }
 
 function dismissFailedSupportTicket(supportTicketReportID: string, parentReportID: string, parentReportActionID: string) {

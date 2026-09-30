@@ -9,13 +9,12 @@ import useReportTransactionsCollection from '@hooks/useReportTransactionsCollect
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
-import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport, isSupportTicket} from '@libs/ReportUtils';
+import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {useRoute} from '@react-navigation/native';
-import {isOptimisticReportSelector} from '@selectors/ReportMetaData';
 import React from 'react';
 
 import type ReportScreenNavigationProps from './types';
@@ -46,7 +45,6 @@ function ReportActions() {
     const {isOffline} = useNetwork();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
-    const [isOptimisticReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {selector: isOptimisticReportSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
@@ -71,7 +69,7 @@ function ReportActions() {
     const isConciergeMainDM = isConciergeChatReport(report, conciergeReportID);
     const shouldShowAppLoadSkeleton = isAppLoadPending && !isOffline && !!report && !shouldWaitForTransactions && !shouldDisplayMoneyRequestActionsList && !isConciergeMainDM;
 
-    if (!report || shouldWaitForTransactions || (isSupportTicket(report) && isOptimisticReport)) {
+    if (!report || shouldWaitForTransactions) {
         return (
             <ReportActionsLoadingSkeleton
                 reportID={reportIDFromRoute}

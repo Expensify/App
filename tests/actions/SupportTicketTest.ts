@@ -5,16 +5,9 @@ import * as ReportUtils from '@libs/ReportUtils';
 
 import {openSupportTicket} from '@userActions/Report';
 
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-
-import Onyx from 'react-native-onyx';
+import ROUTES from '@src/ROUTES';
 
 jest.mock('@libs/API');
-jest.mock('@libs/Navigation/helpers/getReportRouteForCurrentContext', () => ({
-    __esModule: true,
-    default: jest.fn(() => 'r/optimisticSupportTicketReportID'),
-}));
 jest.mock('@libs/Navigation/Navigation');
 
 const mockWrite = jest.mocked(API.write);
@@ -32,34 +25,10 @@ describe('actions/Report', () => {
         jest.restoreAllMocks();
     });
 
-    it('shows a skeleton while the support ticket assignment is pending', () => {
+    it('navigates to a pending report while the support ticket assignment is in progress', () => {
         openSupportTicket({assigneeAccountID: 123});
 
-        expect(mockWrite).toHaveBeenCalledWith(
-            WRITE_COMMANDS.CREATE_SUPPORT_TICKET,
-            {reportID, assigneeAccountID: 123},
-            expect.objectContaining({
-                optimisticData: [
-                    {
-                        onyxMethod: Onyx.METHOD.SET,
-                        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                        value: {reportID, type: CONST.REPORT.TYPE.SUPPORT_TICKET},
-                    },
-                    {
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-                        value: {isOptimisticReport: true},
-                    },
-                ],
-                successData: [
-                    {
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-                        value: {isOptimisticReport: false},
-                    },
-                ],
-            }),
-        );
-        expect(mockNavigate).toHaveBeenCalledTimes(1);
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_SUPPORT_TICKET, {reportID, assigneeAccountID: 123});
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, undefined, undefined, true));
     });
 });
