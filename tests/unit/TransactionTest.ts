@@ -196,6 +196,10 @@ describe('Transaction', () => {
     describe('changeTransactionsReport', () => {
         let reports: OnyxCollection<Report>;
 
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
         async function loadReports() {
             await TestHelper.getOnyxData({
                 key: ONYXKEYS.COLLECTION.REPORT,
