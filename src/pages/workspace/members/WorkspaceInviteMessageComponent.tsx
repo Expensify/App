@@ -124,6 +124,8 @@ function WorkspaceInviteMessageComponent({
     const selectedHasOfficeWorkArrangement = workspaceInviteWorkArrangementDraft ?? policy?.commuterExclusions?.isOfficeWorkArrangement ?? true;
     const officeLocations = Object.values(policy?.officeLocations ?? {});
     const defaultOfficeName = officeLocations.find((office) => office.isDefault)?.name;
+    const selectedWorkArrangementLabel = translate(selectedHasOfficeWorkArrangement ? 'workspace.people.officeBased' : 'workspace.people.noRegularWorkspace');
+    const defaultOfficeLabel = officeLocations.length > 1 ? defaultOfficeName : undefined;
 
     const isApproverValid = !!workspaceInviteApproverDraft && workspaceInviteApproverDraft in (policy?.employeeList ?? {});
     const validatedApprover = isApproverValid ? workspaceInviteApproverDraft : undefined;
@@ -364,22 +366,11 @@ function WorkspaceInviteMessageComponent({
                                 />
                             )}
                             {shouldShowWorkArrangement && (
-                                <>
-                                    <MenuItemField
-                                        name={translate('workspace.people.workArrangement')}
-                                        onPress={navigateToWorkArrangementPage}
-                                        value={translate(selectedHasOfficeWorkArrangement ? 'workspace.people.officeBased' : 'workspace.people.noRegularWorkspace')}
-                                    >
-                                        {officeLocations.length > 1 && !!defaultOfficeName && (
-                                            <Text
-                                                numberOfLines={1}
-                                                style={[styles.textLabelSupportingNormal, styles.ml2]}
-                                            >
-                                                {defaultOfficeName}
-                                            </Text>
-                                        )}
-                                    </MenuItemField>
-                                </>
+                                <MenuItemField
+                                    name={translate('workspace.people.workArrangement')}
+                                    onPress={navigateToWorkArrangementPage}
+                                    value={defaultOfficeLabel ? `${selectedWorkArrangementLabel}, ${defaultOfficeLabel}` : selectedWorkArrangementLabel}
+                                />
                             )}
                         </View>
                         <View style={[styles.mb3]}>
