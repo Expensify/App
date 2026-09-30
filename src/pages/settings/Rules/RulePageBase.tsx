@@ -3,6 +3,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import RuleNotFoundPageWrapper from '@components/Rule/RuleNotFoundPageWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -207,16 +208,11 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                             onPress={() => navigateTo(EXPENSE_RULE_INPUT_IDS.TAX, hash)}
                         />
                     )}
-                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => navigateTo(EXPENSE_RULE_INPUT_IDS.DESCRIPTION, hash))}>
-                        <MenuItem.Row>
-                            <MenuItemField.Content name={translate('common.description')}>
-                                {!!form?.comment && <MenuItem.FieldValueHTML>{Parser.replace(form.comment)}</MenuItem.FieldValueHTML>}
-                            </MenuItemField.Content>
-                            <MenuItem.Trailing>
-                                <MenuItem.Chevron />
-                            </MenuItem.Trailing>
-                        </MenuItem.Row>
-                    </MenuItem.Root>
+                    <MenuItemFieldHTML
+                        name={translate('common.description')}
+                        value={form?.comment ? Parser.replace(form.comment) : undefined}
+                        onPress={() => navigateTo(EXPENSE_RULE_INPUT_IDS.DESCRIPTION, hash)}
+                    />
                     <MenuItemField
                         name={translate('common.reimbursable')}
                         value={form?.reimbursable ? translate(form.reimbursable === 'true' ? 'common.yes' : 'common.no') : translate('common.dontChange')}

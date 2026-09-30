@@ -1,7 +1,7 @@
 import {AttachmentContext} from '@components/AttachmentContext';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
-import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -16,8 +16,6 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/inbox/report/withReportAndPrivateNotesOrNotFound';
 import withReportAndPrivateNotesOrNotFound from '@pages/inbox/report/withReportAndPrivateNotesOrNotFound';
-
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -55,20 +53,16 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
     function getMenuItem(item: NoteListItem) {
         return (
             <AttachmentContext.Provider
-                key={item.title}
+                key={item.accountID}
                 value={getAttachmentValue(item)}
             >
-                <MenuItem.Root onPress={item.disabled ? undefined : callFunctionIfActionIsAllowed(item.action)}>
-                    <MenuItem.Row>
-                        <MenuItemField.Content name={item.title}>{!!item.note && <MenuItem.FieldValueHTML>{item.note}</MenuItem.FieldValueHTML>}</MenuItemField.Content>
-                        {(!!item.brickRoadIndicator || !item.disabled) && (
-                            <MenuItem.Trailing>
-                                {!!item.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={item.brickRoadIndicator} />}
-                                {!item.disabled && <MenuItem.Chevron />}
-                            </MenuItem.Trailing>
-                        )}
-                    </MenuItem.Row>
-                </MenuItem.Root>
+                <MenuItemFieldHTML
+                    name={item.title}
+                    value={item.note}
+                    onPress={item.disabled ? undefined : item.action}
+                >
+                    {!!item.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={item.brickRoadIndicator} />}
+                </MenuItemFieldHTML>
             </AttachmentContext.Provider>
         );
     }

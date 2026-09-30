@@ -1,9 +1,7 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import RenderHTML from '@components/RenderHTML';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
@@ -84,15 +82,7 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
                     {areSettingsInErrorFields([exportDestinationSettingName], config?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                 </MenuItemField>
                 {!!exportDestination && (
-                    <FormHelpMessage
-                        isError={false}
-                        shouldShowRedDotIndicator={false}
-                        style={[styles.mt0, styles.mb0, styles.ph5, styles.pb5]}
-                    >
-                        <RenderHTML
-                            html={`<comment><muted-text-label>${Parser.replace(translate(`workspace.netsuite.exportDestination.values.${exportDestination}.${helperTextType}`))}</muted-text-label></comment>`}
-                        />
-                    </FormHelpMessage>
+                    <MenuItem.HelpTextHTML>{Parser.replace(translate(`workspace.netsuite.exportDestination.values.${exportDestination}.${helperTextType}`))}</MenuItem.HelpTextHTML>
                 )}
             </OfflineWithFeedback>
             {!shouldHideReimbursableDefaultVendor(isReimbursable, config) && (

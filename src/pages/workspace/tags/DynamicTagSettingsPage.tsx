@@ -1,11 +1,10 @@
-import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
@@ -30,6 +29,7 @@ import {isDisablingOrDeletingLastEnabledTag} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {
     arePolicyRulesEnabled,
+    findPolicyTagEntryByParentFilter,
     getCleanedTagName,
     getTagApproverRule,
     getTagListByOrderWeight,
@@ -80,9 +80,8 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
     const tagApprover = getTagApproverRule(policy, route.params?.tagName)?.approver ?? '';
     const approverText = usePersonalDetailByLogin(tagApprover, (personalDetails) => formatPhoneNumber(personalDetails?.displayName ?? tagApprover));
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
-    const currentPolicyTag = hasDependentTags
-        ? Object.values(policyTag.tags ?? {}).find((tag) => tag?.name === tagName && tag.rules?.parentTagsFilter === parentTagsFilter)
-        : (policyTag.tags[tagName] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === tagName));
+    const currentPolicyTagEntry = findPolicyTagEntryByParentFilter(policyTag.tags, tagName, parentTagsFilter);
+    const currentPolicyTag = currentPolicyTagEntry?.tag;
 
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledTag(policyTag, [currentPolicyTag]);
 
@@ -121,6 +120,10 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
     };
 
     const navigateToEditGlCode = () => {
+        const glCodeRoute = isQuickSettingsFlow
+            ? buildDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, currentPolicyTag.name))
+            : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE.path);
+
         if (!isControlPolicy(policy)) {
             Navigation.navigate(
                 ROUTES.WORKSPACE_UPGRADE.getRoute(
@@ -133,11 +136,7 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
             );
             return;
         }
-        Navigation.navigate(
-            isQuickSettingsFlow
-                ? buildDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, currentPolicyTag.name))
-                : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE.path),
-        );
+        Navigation.navigate(glCodeRoute);
     };
 
     const navigateToEditTagApprover = () => {
@@ -209,18 +208,16 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                             value={cleanedTagName}
                         />
                     </OfflineWithFeedback>
-                    {(!hasDependentTags || !!currentPolicyTag?.['GL Code']) && (
-                        <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.['GL Code']}>
-                            <MenuItemWithTopDescription
-                                description={translate(`workspace.tags.glCode`)}
-                                title={currentPolicyTag?.['GL Code']}
-                                onPress={navigateToEditGlCode}
-                                iconRight={hasAccountingConnections ? expensifyIcons.Lock : undefined}
-                                interactive={canWriteTags && !hasAccountingConnections && !hasDependentTags}
-                                shouldShowRightIcon={canWriteTags && !hasDependentTags}
-                            />
-                        </OfflineWithFeedback>
-                    )}
+                    <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.['GL Code']}>
+                        <MenuItemWithTopDescription
+                            description={translate(`workspace.tags.glCode`)}
+                            title={currentPolicyTag?.['GL Code']}
+                            onPress={navigateToEditGlCode}
+                            iconRight={hasAccountingConnections ? expensifyIcons.Lock : undefined}
+                            interactive={canWriteTags && !hasAccountingConnections}
+                            shouldShowRightIcon={canWriteTags}
+                        />
+                    </OfflineWithFeedback>
 
                     {arePolicyRulesEnabled(policy, policyData.categories) && !isMultiLevelTags && (
                         <>
@@ -234,15 +231,9 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                                 isDisabled={approverDisabled}
                             />
                             {approverDisabled && (
-                                <FormHelpMessage
-                                    isError={false}
-                                    shouldShowRedDotIndicator={false}
-                                    style={[styles.mt0, styles.mb0, styles.ph5, styles.pb5]}
-                                >
-                                    <RenderHTML
-                                        html={`<comment><muted-text-label>${Parser.replace(translate('workspace.rules.categoryRules.enableWorkflows', `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`))}</muted-text-label></comment>`}
-                                    />
-                                </FormHelpMessage>
+                                <MenuItem.HelpTextHTML>
+                                    {Parser.replace(translate('workspace.rules.categoryRules.enableWorkflows', `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`))}
+                                </MenuItem.HelpTextHTML>
                             )}
                         </>
                     )}

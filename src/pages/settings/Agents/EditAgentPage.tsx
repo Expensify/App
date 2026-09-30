@@ -1,9 +1,9 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,6 +14,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,8 +28,6 @@ import Parser from '@libs/Parser';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,7 +46,7 @@ function EditAgentPage({route}: EditAgentPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan', 'ChatBubble', 'MagnifyingGlass', 'Users']);
     const accountID = route.params.accountID;
     const [agent, agentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
-    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
+    const [personalDetails, personalDetailsMetadata] = usePersonalDetail(accountID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {showConfirmModal} = useConfirmModal();
     const showRuleBotGuardModal = useRuleBotGuardModal();
@@ -152,20 +151,12 @@ function EditAgentPage({route}: EditAgentPageProps) {
                     errorRowStyles={[styles.mh5, styles.mb2]}
                     onClose={() => clearAgentPromptUpdateError(accountID)}
                 >
-                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(handleEditPromptPress)}>
-                        <MenuItem.Row>
-                            <MenuItemField.Content name={translate('editAgentPage.instructions')}>
-                                {!!agentPrompt && (
-                                    <MenuItem.FieldValueHTML characterLimit={CONST.AGENT_PROMPT_LIMIT}>
-                                        {Parser.replace(agentPrompt, {disabledRules: ['reportMentions']})}
-                                    </MenuItem.FieldValueHTML>
-                                )}
-                            </MenuItemField.Content>
-                            <MenuItem.Trailing>
-                                <MenuItem.Chevron />
-                            </MenuItem.Trailing>
-                        </MenuItem.Row>
-                    </MenuItem.Root>
+                    <MenuItemFieldHTML
+                        name={translate('editAgentPage.instructions')}
+                        value={agentPrompt ? Parser.replace(agentPrompt, {disabledRules: ['reportMentions']}) : undefined}
+                        characterLimit={CONST.AGENT_PROMPT_LIMIT}
+                        onPress={handleEditPromptPress}
+                    />
                 </OfflineWithFeedback>
                 <MenuItemAction
                     title={translate('editAgentPage.viewAgentHistory')}

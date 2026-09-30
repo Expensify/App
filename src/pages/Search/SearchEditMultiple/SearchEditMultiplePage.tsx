@@ -1,7 +1,7 @@
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -15,6 +15,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -37,12 +38,9 @@ import {
     isTimeRequest,
 } from '@libs/TransactionUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
 
 import type {ValueOf} from 'type-fest';
@@ -84,14 +82,12 @@ function SearchEditMultiplePage() {
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsListSelector(
-            selectedTransactionIDs.map((transactionID) => {
-                const iouReportID = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID;
-                return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]?.ownerAccountID;
-            }),
-        ),
-    });
+    const [personalDetailsList] = usePersonalDetailsByIDs(
+        selectedTransactionIDs.map((transactionID) => {
+            const iouReportID = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID;
+            return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]?.ownerAccountID;
+        }),
+    );
 
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -318,16 +314,11 @@ function SearchEditMultiplePage() {
                         onPress={isAmountDisabled ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_AMOUNT_RHP)}
                         isDisabled={isAmountDisabled}
                     />
-                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_DESCRIPTION_RHP))}>
-                        <MenuItem.Row>
-                            <MenuItemField.Content name={translate('common.description')}>
-                                {!!description && <MenuItem.FieldValueHTML>{Parser.replace(description)}</MenuItem.FieldValueHTML>}
-                            </MenuItemField.Content>
-                            <MenuItem.Trailing>
-                                <MenuItem.Chevron />
-                            </MenuItem.Trailing>
-                        </MenuItem.Row>
-                    </MenuItem.Root>
+                    <MenuItemFieldHTML
+                        name={translate('common.description')}
+                        value={description ? Parser.replace(description) : undefined}
+                        onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_DESCRIPTION_RHP)}
+                    />
                     <MenuItemField
                         name={translate('common.merchant')}
                         value={draftTransaction?.merchant}

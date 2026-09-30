@@ -3,7 +3,8 @@ import {act, render, screen} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
-import MoneyRequestConfirmationListFooter from '@components/MoneyRequestConfirmationListFooter';
+import type {ExpenseFieldRowProps} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow';
+import ManualFooter from '@components/MoneyRequestConfirmationListFooter/variants/ManualFooter';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -19,6 +20,26 @@ import Onyx from 'react-native-onyx';
 import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+// The manual form renders its selectable rows as bordered fields, stood in for a plain View exposing name, value and
+// disabled state.
+jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View, Text} = require('react-native');
+    return (props: ExpenseFieldRowProps) => (
+        <View
+            testID={`menu-item-${props.name}`}
+            accessibilityLabel={props.name}
+            onPress={props.onPress}
+            // Mirrors the component's own `isInteractive = true` default, so a row that simply omits the prop
+            // does not read as disabled.
+            accessibilityState={{disabled: !(props.isInteractive ?? true)}}
+        >
+            <Text>{props.name}</Text>
+            <Text>{props.value}</Text>
+        </View>
+    );
+});
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     getCurrentRoute: jest.fn(() => ({
@@ -99,6 +120,7 @@ const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction
             shouldShowCategories: false,
             shouldShowTax: false,
             isParticipantPickerVisible: false,
+            hasParticipantSection: false,
         },
         errorState: {shouldDisplayFieldError: false, formError: '', clearFormErrors: jest.fn(), setFormError: jest.fn()},
         receiptOptions: {
@@ -113,7 +135,7 @@ const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <ScreenWrapper testID="MoneyRequestConfirmationListFooter">
                 <ConfirmationFieldsProvider {...providerProps}>
-                    <MoneyRequestConfirmationListFooter {...defaultProps} />
+                    <ManualFooter {...defaultProps} />
                 </ConfirmationFieldsProvider>
             </ScreenWrapper>
         </ComposeProviders>,
@@ -174,7 +196,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-Report');
-        expect(reportItem.props.role).toBe(CONST.ROLE.BUTTON);
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
     });
 
     it('should disable report field when there is only 1 outstanding report and creating from policy chat', async () => {
@@ -205,7 +227,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-Report');
-        expect(reportItem.props.role).toBeUndefined();
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
     });
 
     it('should disable report field when there are no reports available', async () => {
@@ -227,7 +249,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-Report');
-        expect(reportItem.props.role).toBeUndefined();
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
     });
 
     it('should disable report field when transaction has reportID and creating from FAB with only 1 outstanding report', async () => {
@@ -258,7 +280,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-Report');
-        expect(reportItem.props.role).toBeUndefined();
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
     });
 
     it('should allow editing report field when transaction is unReported and creating from FAB with only 1 outstanding report', async () => {
@@ -289,6 +311,6 @@ describe('MoneyRequestConfirmationListFooter', () => {
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-Report');
-        expect(reportItem.props.role).toBe(CONST.ROLE.BUTTON);
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
     });
 });

@@ -1,6 +1,6 @@
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import MenuItem from '@components/MenuItem';
-import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import TextInput from '@components/TextInput';
@@ -12,6 +12,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setMoneyRequestDescription} from '@libs/actions/IOU/MoneyRequest';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 
 import variables from '@styles/variables';
@@ -20,6 +22,7 @@ import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {ComponentRef} from 'react';
@@ -28,6 +31,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 
+import ExpenseFieldRow from './ExpenseFieldRow';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {descriptionStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -37,7 +42,8 @@ type DescriptionFieldProps = {
 };
 
 function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps) {
-    const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm, isReadOnly, didConfirm, transactionID, reportID} = useConfirmationFields();
+    const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -92,6 +98,38 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
         setMoneyRequestDescription(transactionID, newDescription, true, transactionHasReceipt);
     };
 
+    const openDescriptionPage = () => {
+        if (!transactionID) {
+            return;
+        }
+
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, reportActionID)));
+    };
+
+    // On the bordered form the editable description is a text input, so a locked one has to read as a disabled input
+    // too rather than as a push row, or the same screen answers "this field can't be changed" two different ways.
+    const readOnlyDescription = shouldUseDropdownRows ? (
+        <ExpenseFieldRow
+            name={translate('common.description')}
+            value={iouComment}
+            numberOfLinesValue={2}
+            rightLabel={isDescriptionRequired ? translate('common.required') : ''}
+            onPress={openDescriptionPage}
+            isDisabled={didConfirm}
+            isInteractive={false}
+            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
+        />
+    ) : (
+        <MenuItemFieldHTML
+            name={translate('common.description')}
+            value={iouComment ? Parser.replace(iouComment, {disabledRules: !policy ? ['reportMentions'] : []}) : undefined}
+            isDisabled={didConfirm}
+            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
+        >
+            {!iouComment && isDescriptionRequired && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
+        </MenuItemFieldHTML>
+    );
+
     return (
         <View>
             <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
@@ -118,21 +156,7 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
                                 />
                             </View>
                         ) : (
-                            <MenuItem.Root
-                                isDisabled={didConfirm}
-                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
-                            >
-                                <MenuItem.Row>
-                                    <MenuItemField.Content name={translate('common.description')}>
-                                        {!!iouComment && <MenuItem.FieldValueHTML>{Parser.replace(iouComment, {disabledRules: !policy ? ['reportMentions'] : []})}</MenuItem.FieldValueHTML>}
-                                    </MenuItemField.Content>
-                                    {!iouComment && isDescriptionRequired && (
-                                        <MenuItem.Trailing>
-                                            <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>
-                                        </MenuItem.Trailing>
-                                    )}
-                                </MenuItem.Row>
-                            </MenuItem.Root>
+                            readOnlyDescription
                         )}
                     </MentionReportContext.Provider>
                 </ShowContextMenuActionsContext.Provider>

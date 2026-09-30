@@ -1,9 +1,7 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import RenderHTML from '@components/RenderHTML';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -96,15 +94,9 @@ function NetSuiteTravelBillingConfigurationPage({policy}: WithPolicyConnectionsP
                 name={translate('workspace.accounting.exportAs')}
                 value={translate(`workspace.netsuite.exportDestination.values.${CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY}.label`)}
             />
-            <FormHelpMessage
-                isError={false}
-                shouldShowRedDotIndicator={false}
-                style={[styles.mt0, styles.mb0, styles.ph5, styles.pb5]}
-            >
-                <RenderHTML
-                    html={`<comment><muted-text-label>${Parser.replace(translate(`workspace.netsuite.exportDestination.values.${CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY}.travelDescription`))}</muted-text-label></comment>`}
-                />
-            </FormHelpMessage>
+            <MenuItem.HelpTextHTML>
+                {Parser.replace(translate(`workspace.netsuite.exportDestination.values.${CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY}.travelDescription`))}
+            </MenuItem.HelpTextHTML>
             {sections.map((section) => (
                 <OfflineWithFeedback
                     pendingAction={section.pendingAction}
