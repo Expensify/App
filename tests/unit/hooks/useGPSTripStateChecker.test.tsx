@@ -185,7 +185,7 @@ describe('useGPSTripStateChecker', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        // Then the trip is submitted with the points as they stand now; reading the show-time value would truncate it
+        // Then the trip is submitted with the points as they stand now. Reading the show-time value would truncate it
         expect(mockStopGpsTrip).toHaveBeenCalledWith(false, [[FIRST_POINT, LATER_POINT]]);
     });
 

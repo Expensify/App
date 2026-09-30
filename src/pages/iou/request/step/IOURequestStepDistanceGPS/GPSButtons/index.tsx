@@ -23,7 +23,7 @@ import type {GPSPoint} from '@src/types/onyx/GpsDraftDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 
 import {hasServicesEnabledAsync, startLocationUpdatesAsync} from 'expo-location';
-import React from 'react';
+import React, {useRef} from 'react';
 import {Linking, View} from 'react-native';
 
 import GPSTooltip from './GPSTooltip';
@@ -61,45 +61,62 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
 
     const isTripStopped = isTripStoppedUtil(gpsDraftDetails);
 
-    const showDisabledServicesModal = () => {
-        showConfirmModal({
-            title: translate('gps.locationServicesRequiredModal.title'),
-            prompt: translate('gps.locationServicesRequiredModal.prompt'),
-            confirmText: translate('gps.locationServicesRequiredModal.confirm'),
-            cancelText: translate('common.dismiss'),
-            shouldReverseStackedButtons: true,
-        }).then((result) => {
+    // The prompts live on the global modal stack, which adds a new entry on every call. Two quick presses can both get
+    // past the awaited services check before either prompt is up, so this keeps a second prompt from stacking on the first.
+    const isPromptOpenRef = useRef(false);
+
+    const showPrompt = (options: Parameters<typeof showConfirmModal>[0], onConfirm?: () => void) => {
+        if (isPromptOpenRef.current) {
+            return;
+        }
+        isPromptOpenRef.current = true;
+
+        showConfirmModal(options).then((result) => {
+            isPromptOpenRef.current = false;
+
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
 
-            openSettings();
+            onConfirm?.();
         });
+    };
+
+    const showDisabledServicesModal = () => {
+        showPrompt(
+            {
+                title: translate('gps.locationServicesRequiredModal.title'),
+                prompt: translate('gps.locationServicesRequiredModal.prompt'),
+                confirmText: translate('gps.locationServicesRequiredModal.confirm'),
+                cancelText: translate('common.dismiss'),
+                shouldReverseStackedButtons: true,
+            },
+            openSettings,
+        );
     };
 
     const showLocationRequiredModal = () => {
-        showConfirmModal({
-            title: translate('gps.locationRequiredModal.title'),
-            prompt: translate('gps.locationRequiredModal.prompt'),
-            confirmText: translate('common.settings'),
-            cancelText: translate('common.dismiss'),
-            iconSource: ReceiptLocationMarker,
-            iconFill: false,
-            iconWidth: 140,
-            iconHeight: 120,
-            shouldCenterIcon: true,
-            shouldReverseStackedButtons: true,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-
-            Linking.openSettings();
-        });
+        showPrompt(
+            {
+                title: translate('gps.locationRequiredModal.title'),
+                prompt: translate('gps.locationRequiredModal.prompt'),
+                confirmText: translate('common.settings'),
+                cancelText: translate('common.dismiss'),
+                iconSource: ReceiptLocationMarker,
+                iconFill: false,
+                iconWidth: 140,
+                iconHeight: 120,
+                shouldCenterIcon: true,
+                shouldReverseStackedButtons: true,
+            },
+            () => {
+                Linking.openSettings();
+            },
+        );
     };
 
     const showZeroDistanceModal = () => {
-        showConfirmModal({
+        showPrompt({
             title: translate('gps.zeroDistanceTripModal.title'),
             prompt: translate('gps.zeroDistanceTripModal.prompt'),
             confirmText: translate('common.buttonConfirm'),
