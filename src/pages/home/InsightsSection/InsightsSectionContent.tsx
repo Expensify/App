@@ -104,7 +104,7 @@ function InsightsSectionContent() {
             {state === INSIGHT_STATE.EMPTY && <ChartEmptyState testID="insightsSectionEmptyState" />}
             {state === INSIGHT_STATE.ERROR && <ChartErrorState onRetry={retry} />}
             {(state === INSIGHT_STATE.LOADING || state === INSIGHT_STATE.READY) && (
-                <View style={[shouldUseNarrowLayout ? styles.ph5 : [styles.ph8, styles.pt3], view === CONST.SEARCH.VIEW.PIE && styles.pb6]}>
+                <View style={shouldUseNarrowLayout ? [styles.ph5, styles.pb5] : [styles.ph8, styles.pt3, styles.pb8]}>
                     <SearchChartView
                         queryJSON={queryJSON}
                         view={view}

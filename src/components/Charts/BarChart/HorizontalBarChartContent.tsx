@@ -345,6 +345,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
 
     const chartPadding = {
         ...VictoryTheme.axis.padding,
+        top: 0,
         right: VictoryTheme.axis.padding.right + valueLabelRightGutter,
         // Just enough to hold the axis-label gap and the label itself. The card's own bottom padding sits below the
         // canvas, so no extra padding is needed here and the labels stay a card-padding's distance from the edge.
