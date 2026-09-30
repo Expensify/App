@@ -20,7 +20,10 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+TestHelper.setupGlobalFetchMock();
 
 jest.mock('@userActions/Tab');
 jest.mock('@rnmapbox/maps', () => ({
