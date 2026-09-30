@@ -3,8 +3,8 @@ import type {SvgProps} from 'react-native-svg';
 import React, {useId} from 'react';
 import Svg, {Defs, G, LinearGradient, Path, RadialGradient, Stop} from 'react-native-svg';
 
-// Web builds give every copy of an SVG file the same gradient ids, and a copy on a hidden screen would own them,
-// so this mark is a component that scopes its gradient ids to each rendered copy.
+// Static SVGs reuse gradient IDs on web. When another copy is hidden, the browser can resolve this icon's gradients
+// to that copy and not draw them. This component gives each render its own gradient IDs.
 function BusinessCentralSquare(props: SvgProps) {
     const id = useId();
     return (
