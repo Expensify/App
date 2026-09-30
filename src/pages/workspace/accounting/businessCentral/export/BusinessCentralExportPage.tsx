@@ -81,7 +81,6 @@ function BusinessCentralExportPage({policy}: WithPolicyConnectionsProps) {
                 label: translate('workspace.businessCentral.reimbursableAccount.label'),
                 value: reimbursableAccount ? `${reimbursableAccount.number} ${reimbursableAccount.name}` : undefined,
                 route: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_REIMBURSABLE_ACCOUNT.getRoute(policyID),
-                // Only journal entries use this account, to settle the employee's balance from it
                 shouldHide: !isReimbursableJournalEntry,
             },
         ],
@@ -103,7 +102,6 @@ function BusinessCentralExportPage({policy}: WithPolicyConnectionsProps) {
                 label: translate('workspace.businessCentral.companyCardAccount.label'),
                 value: nonReimbursableAccount ? `${nonReimbursableAccount.number} ${nonReimbursableAccount.name}` : undefined,
                 route: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_COMPANY_CARD_ACCOUNT.getRoute(policyID),
-                // Only journal entries use this account, to settle the vendor's balance from it
                 shouldHide: !isNonReimbursableJournalEntry,
             },
             {
@@ -111,7 +109,6 @@ function BusinessCentralExportPage({policy}: WithPolicyConnectionsProps) {
                 label: translate('workspace.businessCentral.paymentMethod.label'),
                 value: paymentMethod?.displayName,
                 route: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD.getRoute(policyID),
-                // The payment method is only set on purchase invoices
                 shouldHide: isReimbursableJournalEntry && isNonReimbursableJournalEntry,
             },
         ],
