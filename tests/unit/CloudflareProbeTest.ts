@@ -162,8 +162,8 @@ describe('runCloudflareAuthProbe', () => {
         runCloudflareAuthProbe({shouldRedirectOnSignInFailed: true});
         await waitForBatchedUpdates();
 
-        // Then the redirect starts: the record lasts the whole page load, so without this consent a failed
-        // sign-in could never be retried short of a reload
+        // Then the redirect starts: the record lasts until Clear session, so without this consent a failed
+        // sign-in could not be retried short of Clear session or a reload
         expect(redirectToCloudflareSignIn).toHaveBeenCalledTimes(1);
     });
 
