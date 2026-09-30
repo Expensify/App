@@ -89,6 +89,7 @@ import {
     canEditMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getTransactionDetails,
+    isActionCreator,
     isExpenseReport,
     isInvoiceReport,
     isOpenReport,
@@ -110,6 +111,7 @@ import {
     getOriginalAmountForDisplay,
     getOriginalTransactionWithSplitInfo,
     getReimbursable,
+    getTagArrayFromName,
     getTagForDisplay,
     getTaxName,
     hasMissingSmartscanFields,
@@ -519,7 +521,12 @@ function MoneyRequestView({
         }) &&
         (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy) || (isExpenseUnreported && !!perDiemOriginalPolicy));
 
-    const policyTagLists = getTagLists(policyTagList);
+    // For unreported expenses `policy` is the viewer's own workspace, so when someone other than the expense owner views it,
+    // its tag lists have nothing to do with the expense. Show one row per level of the expense's own tag instead.
+    const shouldUseTransactionTagLevels = isExpenseUnreported && !isPerDiemRequest && !!parentReportAction && !isActionCreator(parentReportAction, currentUserAccountIDParam);
+    const policyTagLists = shouldUseTransactionTagLevels
+        ? getTagArrayFromName(transactionTag ?? '').map((_, index) => ({name: translate('common.tag'), required: false, tags: {}, orderWeight: index}))
+        : getTagLists(policyTagList);
     const policyHasEnabledTags = hasEnabledTags(policyTagLists);
 
     const category = transactionCategory ?? '';
@@ -1121,7 +1128,7 @@ function MoneyRequestView({
         </>
     );
 
-    const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTagList);
+    const hasDependentTags = !shouldUseTransactionTagLevels && hasDependentTagsPolicyUtils(policy, policyTagList);
     const shouldShowTagList = hasDependentTags ? getDependentTagVisibility(policyTagLists, transactionTag) : [];
 
     const [previousTransactionTag, setPreviousTransactionTag] = useState(transactionTag);
@@ -1160,7 +1167,7 @@ function MoneyRequestView({
 
         return (
             <OfflineWithFeedback
-                key={name}
+                key={`${orderWeight}-${name}`}
                 pendingAction={getPendingFieldAction('tag')}
             >
                 <HighlightableMenuItemWithTopDescription
