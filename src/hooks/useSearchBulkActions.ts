@@ -1513,7 +1513,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
                 const serializedQuery = allMatchingQuery ? serializeQueryJSONForBackend(allMatchingQuery) : JSON.stringify(allMatchingQuery);
                 queueBulkPayReports(serializedQuery);
-                playSound(SOUNDS.SUCCESS);
                 clearSelectedTransactions();
                 return;
             }
