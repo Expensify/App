@@ -1917,6 +1917,25 @@ function getReportNotificationPreference(report: OnyxEntry<Report>, currentUserA
 }
 
 /**
+ * Returns the effective notification preference for the settings UI.
+ * Legacy admin rooms can have known participants with an empty preference, so use the report default for those participants.
+ */
+function getReportNotificationPreferenceForSettings(report: OnyxEntry<Report>, currentUserAccountID?: number): ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> {
+    if (!isAdminRoom(report)) {
+        return getReportNotificationPreference(report, currentUserAccountID);
+    }
+
+    const accountID = currentUserAccountID ?? deprecatedCurrentUserAccountID;
+    const participant = accountID ? report?.participants?.[accountID] : undefined;
+
+    if (!participant) {
+        return CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    }
+
+    return participant.notificationPreference || getDefaultNotificationPreferenceForReport(report);
+}
+
+/**
  * Only returns true if this is our main 1:1 DM report with Concierge.
  */
 function isConciergeChatReport(report: OnyxInputOrEntry<Report>, conciergeReportID: string | undefined): boolean {
@@ -3703,7 +3722,10 @@ function excludeParticipantsForDisplay(
             return false;
         }
 
-        if (shouldExcludeHidden && isHiddenForCurrentUser(allReportParticipants[accountID]?.notificationPreference)) {
+        const reportParticipant = allReportParticipants[accountID];
+        // An empty preference is used by legacy rooms for members who have access but have not set a preference yet.
+        // Only an explicit hidden preference should remove a known member from the members list.
+        if (shouldExcludeHidden && (!reportParticipant || reportParticipant.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN)) {
             return false;
         }
 
@@ -13803,8 +13825,9 @@ function canRejectReportAction(report: Report, currentUserAccountID: number | un
     const isIOU = isIOUReport(report);
     const isInvoice = isInvoiceReport(report);
     const isCurrentUserManager = !!currentUserAccountID && report?.managerID === currentUserAccountID;
+    const isCurrentUserAdmin = isPolicyAdmin(policy);
 
-    if (!isCurrentUserManager) {
+    if (!isCurrentUserManager && !(isCurrentUserAdmin && !isCurrentUserSubmitter(report, currentUserAccountID))) {
         return false;
     }
 
@@ -14626,6 +14649,7 @@ export {
     getReportIDFromLink,
     getReportTransactions,
     getReportNotificationPreference,
+    getReportNotificationPreferenceForSettings,
     getReportOfflinePendingActionAndErrors,
     getReportParticipantsTitle,
     getReportPreviewMessage,

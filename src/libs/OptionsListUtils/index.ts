@@ -2229,26 +2229,6 @@ function getValidOptions(
         const isWorkspaceChat = (report: SearchOption<Report>) => shouldSeparateWorkspaceChat && report.isPolicyExpenseChat && !report.private_isArchived;
         const isSelfDMChat = (report: SearchOption<Report>) => shouldSeparateSelfDMChat && report.isSelfDM && !report.private_isArchived;
 
-        const isSearchTermsFound = (report: SearchOption<Report>) => {
-            let searchText = `${report.text ?? ''}${report.login ?? ''}`;
-            if (report.isThread) {
-                searchText += report.alternateText ?? '';
-            } else if (report.isChatRoom) {
-                searchText += report.subtitle ?? '';
-            } else if (report.isPolicyExpenseChat) {
-                searchText += `${report.subtitle ?? ''}${report.item.policyName ?? ''}`;
-            } else if (report.item.chatType === CONST.REPORT.CHAT_TYPE.GROUP) {
-                const participantsSearchText = report.participantsList?.map((participant) => [participant.displayName, participant.login].filter(Boolean).join(' ')).join(' ') ?? '';
-                searchText += participantsSearchText;
-            }
-            searchText = deburr(searchText.toLocaleLowerCase());
-
-            // Keep the pre-filter a superset of filterReports(). The canonical matcher handles apostrophes,
-            // hyphens, zero-width characters, diacritics, and email searches without dots that this cheap
-            // substring check may miss. Run it only when the cheap check does not find a match.
-            return searchTerms.every((term) => searchText.includes(term)) || filterReports([report], searchTerms).length > 0;
-        };
-
         const filteringFunction = (report: SearchOption<Report>) => {
             if (excludeHidden) {
                 if (report.isThread && report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
@@ -2272,7 +2252,7 @@ function getValidOptions(
             }
 
             const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-            if (!isSearchTermsFound(report)) {
+            if (!doesReportMatchSearchTerms(report, searchTerms)) {
                 return false;
             }
 
@@ -2440,12 +2420,12 @@ function getValidOptions(
             }
 
             // Keep this pre-filter a superset of filterPersonalDetails().
-            if (searchTerms.length > 0 && filterPersonalDetails([personalDetail], searchTerms, currentUserAccountID).length > 0) {
+            if (searchTerms.length > 0 && filterPersonalDetails([personalDetail], searchTerms, currentUserAccountID, translate).length > 0) {
                 return true;
             }
 
             return searchTerms.every((term) =>
-                doesPersonalDetailMatchSearchTerm(personalDetail, currentUserAccountID, term, {
+                doesPersonalDetailMatchSearchTerm(personalDetail, currentUserAccountID, term, translate, {
                     useLocaleLowerCase: true,
                     transformSearchText: (concatenatedSearchTerms) => deburr(`${concatenatedSearchTerms} ${(personalDetail.text ?? '').toLocaleLowerCase()}`),
                 }),
@@ -2814,7 +2794,7 @@ function formatSectionsFromSearchTerm(
     // This will add them to the list of options, deduping them if they already exist in the other lists
     const selectedParticipantsWithoutDetails = selectedOptions.filter((participant) => {
         const accountID = participant.accountID ?? null;
-        const isPartOfSearchTerm = doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm);
+        const isPartOfSearchTerm = doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm, translate);
         const isReportInRecentReports = filteredRecentReports.some((report) => report.accountID === accountID) || filteredWorkspaceChats.some((report) => report.accountID === accountID);
         const isReportInPersonalDetails = filteredPersonalDetails.some((personalDetail) => personalDetail.accountID === accountID);
 
@@ -2900,6 +2880,30 @@ function filterReports(reports: SearchOptionData[], searchTerms: string[]): Sear
     return filteredReports;
 }
 
+/**
+ * Whether a report matches every search term. Keep the cheap substring check a superset of filterReports(): that
+ * canonical matcher handles apostrophes, hyphens, zero-width characters, diacritics, and emails searched without
+ * their dots, and only runs when the cheap check misses. Narrowing the cheap check silently drops matches.
+ */
+function doesReportMatchSearchTerms(report: SearchOption<Report>, searchTerms: string[]): boolean {
+    const normalizeSearchText = (value: string) => deburr(StringUtils.normalizeForMatch(value).toLocaleLowerCase());
+    const normalizedSearchTerms = searchTerms.map(normalizeSearchText);
+    let searchText = `${report.text ?? ''}${report.login ?? ''}`;
+    if (report.isThread) {
+        searchText += report.alternateText ?? '';
+    } else if (report.isChatRoom) {
+        searchText += report.subtitle ?? '';
+    } else if (report.isPolicyExpenseChat) {
+        searchText += `${report.subtitle ?? ''}${report.item.policyName ?? ''}`;
+    } else if (report.item.chatType === CONST.REPORT.CHAT_TYPE.GROUP) {
+        const participantsSearchText = report.participantsList?.map((participant) => [participant.displayName, participant.login].filter(Boolean).join(' ')).join(' ') ?? '';
+        searchText += participantsSearchText;
+    }
+    searchText = normalizeSearchText(searchText);
+
+    return normalizedSearchTerms.every((term) => searchText.includes(term)) || filterReports([report], normalizedSearchTerms).length > 0;
+}
+
 function filterWorkspaceChats(reports: SearchOptionData[], searchTerms: string[]): SearchOptionData[] {
     const filteredReports = searchTerms.reduceRight(
         (items, term) =>
@@ -2917,24 +2921,24 @@ function filterWorkspaceChats(reports: SearchOptionData[], searchTerms: string[]
     return filteredReports;
 }
 
-function filterPersonalDetails<T extends SearchOptionData>(personalDetails: T[], searchTerms: string[], currentUserAccountID: number): T[] {
+function filterPersonalDetails<T extends SearchOptionData>(personalDetails: T[], searchTerms: string[], currentUserAccountID: number, translate: LocalizedTranslate): T[] {
     return searchTerms.reduceRight(
         (items, term) =>
             filterArrayByMatch(items, term, (item) => {
-                const values = getPersonalDetailSearchTerms(item, currentUserAccountID);
+                const values = getPersonalDetailSearchTerms(item, currentUserAccountID, translate);
                 return uniqFast(values);
             }),
         personalDetails,
     );
 }
 
-function filterCurrentUserOption<T extends SearchOptionData>(currentUserOption: T | null | undefined, searchTerms: string[]): T | null | undefined {
+function filterCurrentUserOption<T extends SearchOptionData>(currentUserOption: T | null | undefined, searchTerms: string[], translate: LocalizedTranslate): T | null | undefined {
     return searchTerms.reduceRight<T | null | undefined>((item, term) => {
         if (!item) {
             return null;
         }
 
-        const currentUserOptionSearchText = uniqFast(getCurrentUserSearchTerms(item)).join(' ');
+        const currentUserOptionSearchText = uniqFast(getCurrentUserSearchTerms(item, translate)).join(' ');
         return isSearchStringMatch(term, currentUserOptionSearchText) ? item : null;
     }, currentUserOption);
 }
@@ -2995,6 +2999,7 @@ function filterOptions<T extends SearchOptionData>(
     currentUserAccountID: number,
     personalDetailsCollection: OnyxEntry<PersonalDetailsList>,
     config: FilterUserToInviteConfig,
+    translate: LocalizedTranslate,
     rules: OnyxCollection<Rule>,
 ): Options<T> {
     const trimmedSearchInput = searchInputValue.trim();
@@ -3005,8 +3010,8 @@ function filterOptions<T extends SearchOptionData>(
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
     const recentReports = filterReports(options.recentReports, searchTerms);
-    const personalDetails = filterPersonalDetails(options.personalDetails, searchTerms, currentUserAccountID);
-    const currentUserOption = filterCurrentUserOption(options.currentUserOption, searchTerms);
+    const personalDetails = filterPersonalDetails(options.personalDetails, searchTerms, currentUserAccountID, translate);
+    const currentUserOption = filterCurrentUserOption(options.currentUserOption, searchTerms, translate);
     const userToInvite = filterUserToInvite(
         {
             recentReports,
@@ -3086,11 +3091,12 @@ function filterAndOrderOptions<T extends SearchOptionData>(
     currentUserAccountID: number,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     config: FilterAndOrderConfig,
+    translate: LocalizedTranslate,
     rules: OnyxCollection<Rule>,
 ): Options<T> {
     let filterResult = options;
     if (searchInputValue.trim().length > 0) {
-        filterResult = filterOptions(options, searchInputValue, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, config, rules);
+        filterResult = filterOptions(options, searchInputValue, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, config, translate, rules);
     }
 
     const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filterResult, searchInputValue, config);
@@ -3170,6 +3176,7 @@ export {
     createFilteredOptionList,
     hydrateContactOption,
     createOption,
+    doesReportMatchSearchTerms,
     filterAndOrderOptions,
     filterReports,
     filterSelfDMChat,

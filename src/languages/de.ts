@@ -2332,7 +2332,13 @@ const translations: TranslationDeepObject<typeof en> = {
             results: 'Ergebnisse',
             releaseOptions: 'Release-Optionen',
             testingPreferences: 'Testeinstellungen',
-            useStagingServer: 'Staging-Server verwenden',
+            server: 'Server',
+            servers: {
+                production: {label: 'Produktion', description: 'Die Live-Umgebung, die echte Nutzer sehen'},
+                staging: {label: 'Staging', description: 'Spiegel der Produktion. Wird für die endgültige Validierung verwendet'},
+                qa: {label: 'QA', description: 'Experimentelle Umgebung für Tests'},
+            },
+            serverPinnedDescription: 'Dieser Build kommuniziert immer mit einem Server, daher kann er hier nicht geändert werden.',
             forceOffline: 'Offline erzwingen',
             simulatePoorConnection: 'Schlechte Internetverbindung simulieren',
             simulateFailingNetworkRequests: 'Fehlgeschlagene Netzwerk­anfragen simulieren',
@@ -2557,7 +2563,7 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredForAdminsHeader: 'Zwei-Faktor-Authentifizierung erforderlich',
         twoFactorAuthIsRequiredForAdminsTitle: 'Bitte aktiviere die Zwei-Faktor-Authentifizierung',
         twoFactorAuthIsRequiredXero: 'Ihre Xero-Buchhaltungsverbindung erfordert eine Zwei-Faktor-Authentifizierung.',
-        twoFactorAuthIsRequiredCompany: 'Ihr Unternehmen verlangt eine Zwei-Faktor-Authentifizierung.',
+        twoFactorAuthIsRequiredCompany: 'Ihr Unternehmen erfordert eine Zwei-Faktor-Authentifizierung (2FA).',
         twoFactorAuthCannotDisable: '2FA kann nicht deaktiviert werden',
         twoFactorAuthRequired: 'Die Zwei-Faktor-Authentifizierung (2FA) ist für Ihre Xero-Verbindung erforderlich und kann nicht deaktiviert werden.',
         replaceDevice: 'Gerät ersetzen',
@@ -2569,6 +2575,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: 'Scannen Sie den QR-Code mit Ihrem neuen Gerät und geben Sie dann den Code ein, um die Einrichtung abzuschließen.',
         downloadCodes: 'Codes herunterladen',
         copyCodes: 'Codes kopieren',
+        enable2FA: 'Aktivieren',
     },
     recoveryCodeForm: {
         error: {
@@ -3015,6 +3022,9 @@ ${amount} für ${merchant} – ${date}`,
         memberAlreadyInWorkflowTitle: 'Mitglied ist bereits in einem Workflow',
         memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
             `${memberName} befindet sich bereits in einem Genehmigungs-Workflow, der an ${approverName} übermittelt wird. Wenn du das Mitglied hier hinzufügst, wird es in diesen Workflow verschoben.`,
+        moveEveryoneToThisWorkflowTitle: 'Verschieben Sie alle in diesen Workflow',
+        moveEveryoneToThisWorkflowPrompt:
+            'Sie sind dabei, alle auf diesen Genehmigungs-Workflow umzustellen. Dadurch werden alle anderen Genehmigungs-Workflows gelöscht und alle auf diesen verschoben. Diese Aktion kann nicht rückgängig gemacht werden.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Die genehmigende Person konnte nicht geändert werden. Bitte versuche es erneut oder kontaktiere den Support.',
@@ -5499,11 +5509,6 @@ ${amount} für ${merchant} – ${date}`,
             journalEntriesProvTaxPostingAccount: 'Buchungszeilen-Konto für Provinzsteuerbuchungen',
             foreignCurrencyAmount: 'Betrag in Fremdwährung exportieren',
             exportToNextOpenPeriod: 'In die nächste offene Periode exportieren',
-            exportToNextOpenPeriodLockedSubtitle:
-                'Um den Export in die nächste offene Periode zu deaktivieren, deaktiviere zuerst die Aufteilung nicht erstattungsfähiger Exporte nach Periode.',
-            splitExportsByPostingPeriod: 'Exporte nach Buchungsperiode aufteilen',
-            splitExportsByPostingPeriodSubtitle:
-                'Aktiviere den Export in die nächste offene Periode, um die Aufteilung nicht erstattungsfähiger Exporte nach Periode in NetSuite zu aktivieren',
             nonReimbursableJournalPostingAccount: 'Nicht erstattungsfähiges Konto für Buchungssätze',
             reimbursableJournalPostingAccount: 'Konto für die Verbuchung erstattungsfähiger Posten',
             journalPostingPreference: {
@@ -6431,6 +6436,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             deleteFailureMessage: 'Beim Löschen der Kategorie ist ein Fehler aufgetreten, bitte versuche es erneut.',
             categoryName: 'Kategoriename',
             requiresCategory: 'Mitglieder müssen alle Ausgaben kategorisieren',
+            autoCategorizeNewExpenses: 'Neue Ausgaben automatisch kategorisieren',
             showCategoryGLCodes: 'Sachkonten beim Kategorisieren von Ausgaben anzeigen',
             needCategoryForExportToIntegration: (connectionName: string) => `Alle Ausgaben müssen kategorisiert werden, um nach ${connectionName} exportiert zu werden.`,
             subtitle: 'Verschaffe dir einen besseren Überblick darüber, wofür Geld ausgegeben wird. Verwende unsere Standardkategorien oder füge eigene hinzu.',
@@ -7519,6 +7525,8 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Zum Entsperren automatische Synchronisierung aktivieren.',
             campfire: 'Campfire',
             businessCentral: 'Dynamics 365 Business Central',
+            qboConnectionExpiring: ({date}: {date: string}) => `Ihre QuickBooks Online-Verbindung läuft am ${date} ab.`,
+            qboConnectionExpired: ({date}: {date: string}) => `Ihre QuickBooks Online-Verbindung ist am ${date} abgelaufen.`,
         },
         export: {
             notReadyHeading: 'Nicht bereit zum Export',
@@ -8193,6 +8201,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 autoPayApprovedReportsSubtitle: 'Legen Sie fest, welche Spesenabrechnungen für die automatische Zahlung infrage kommen.',
                 autoPayApprovedReportsLimitError: (currency?: string) => `Bitte gib einen Betrag ein, der kleiner als ${currency ?? ''}20.000 ist`,
                 autoPayApprovedReportsLockedSubtitle: 'Gehe zu „Weitere Funktionen“ und aktiviere Workflows, dann füge Zahlungen hinzu, um diese Funktion freizuschalten.',
+                autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) =>
+                    `Automatische Zahlung ist nur im Control-Tarif verfügbar. [Upgrade](${upgradeLink}), um diese Funktion freizuschalten.`,
                 autoPayReportsUnderTitle: 'Berichte für automatische Bezahlung unter',
                 autoPayReportsUnderDescription: 'Vollständig konforme Spesenabrechnungen unter diesem Betrag werden automatisch bezahlt.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Füge ${featureName} hinzu, um diese Funktion freizuschalten.`,
@@ -9556,6 +9566,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `Rechnungseinstellungen von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `Reiseeinstellungen von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
         },
+        updatedAutoCategorizeNewExpenses: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} die automatische Kategorisierung neuer Ausgaben`,
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} die Anforderung zur Ausgabenkategorisierung`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} die Anforderung zur Ausgaben-Taggierung`,
         updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `hat die Einstellung für die Währungsumrechnungsgebühr auf „${preferenceLabel}“ aktualisiert`,
@@ -11127,6 +11138,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             `Sind Sie sicher, dass Sie Ihren Copilot-Zugriff auf das Expensify-Konto von ${delegatorName} entfernen möchten? Diese Aktion kann nicht rückgängig gemacht werden.`,
         removeCopilotAccessConfirm: 'Zugriff entfernen',
         copilotAccess: 'Copilot-Zugriff',
+        leaveAccount: 'Konto verlassen',
+        leaveAccountConfirmationText: 'Sie kehren zu Ihrem eigenen Konto zurück. Sie werden nicht vollständig abgemeldet.',
     },
     debug: {
         debug: 'Debug',
