@@ -62,7 +62,6 @@ function Button({
     // Merges the consumer's isLoading with the pressed state into the single flag that drives the spinner.
     const {isLoading, startWithLoading} = usePressLoading({isLoading: isOnyxLoading});
 
-    // Shared by a pointer press and the Enter shortcut, so both take the same route into onPress.
     const runPress = (event?: GestureResponderEvent | KeyboardEvent) => {
         if (isDisabled || isLoading) {
             return;
