@@ -54,7 +54,6 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, se
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -71,7 +70,6 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, se
             introSelected,
             currentUserAccountID,
             isSelfTourViewed,
-            betas,
             personalDetails: conciergePersonalDetails,
             shouldDismissModal: true,
             reportActionID: reimbursementAccount?.achData?.ACHRequestReportActionID,

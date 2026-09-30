@@ -201,12 +201,9 @@ describe('SelectableListItem', () => {
         expect(screen.getByTestId('hovered-false')).toBeVisible();
     });
 
-    it('resolves a function-form rightHandSideComponent with the item and focus state', () => {
-        const item = buildItem();
-        const rightHandSideComponent = jest.fn(() => <View testID="rhs" />);
-        renderItem({item, isFocused: true, rightHandSideComponent});
+    it('renders the action element the item carries', () => {
+        renderItem({item: buildItem({actionElement: <View testID="action" />})});
 
-        expect(rightHandSideComponent).toHaveBeenCalledWith(item, true);
-        expect(screen.getByTestId('rhs')).toBeVisible();
+        expect(screen.getByTestId('action')).toBeVisible();
     });
 });

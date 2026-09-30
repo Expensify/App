@@ -35,7 +35,6 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
     const styles = useThemeStyles();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -46,15 +45,7 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
      */
     const navigateToConciergeChat = () => {
         onPressFromProps?.();
-        navigateToConciergeChatAction({
-            conciergeReportID,
-            introSelected,
-            currentUserAccountID,
-            isSelfTourViewed,
-            betas,
-            personalDetails: conciergePersonalDetails,
-            shouldDismissModal: false,
-        });
+        navigateToConciergeChatAction({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, personalDetails: conciergePersonalDetails, shouldDismissModal: false});
     };
 
     // Define link style based on context

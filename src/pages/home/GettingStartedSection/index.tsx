@@ -57,7 +57,7 @@ function GettingStartedSection() {
 
     return (
         <WidgetContainer title={translate('homePage.gettingStartedSection.title')}>
-            <View style={[styles.getForYouSectionContainerStyle(shouldUseNarrowLayout), styles.mb2]}>
+            <View style={[styles.getWidgetRowGroupStyle(shouldUseNarrowLayout), styles.mb2]}>
                 {items.map((item) => (
                     <GettingStartedRow
                         key={item.key}

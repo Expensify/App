@@ -27,7 +27,6 @@ function useCopyPolicySettingsProgressModal() {
     const [bulkPolicyCopySettings] = useOnyx(ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
@@ -125,15 +124,7 @@ function useCopyPolicySettingsProgressModal() {
             shouldShowCancelButton: true,
             onConfirm: () => {
                 clearCopyPolicySettings();
-                navigateToConciergeChat({
-                    conciergeReportID,
-                    introSelected,
-                    currentUserAccountID,
-                    isSelfTourViewed,
-                    betas,
-                    personalDetails: conciergePersonalDetails,
-                    shouldDismissModal: false,
-                });
+                navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, personalDetails: conciergePersonalDetails, shouldDismissModal: false});
             },
             onCancel: () => {
                 clearCopyPolicySettings();

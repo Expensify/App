@@ -32,7 +32,6 @@ function ConciergePage() {
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
@@ -49,7 +48,6 @@ function ConciergePage() {
                         introSelected,
                         currentUserAccountID: session.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         isSelfTourViewed,
-                        betas,
                         personalDetails: conciergePersonalDetails,
                         shouldDismissModal: true,
                         checkIfCurrentPageActive: () => !isUnmounted.current,
@@ -58,7 +56,7 @@ function ConciergePage() {
             } else {
                 Navigation.navigate(ROUTES.INBOX);
             }
-        }, [session, isLoadingReportData, conciergeReportID, introSelected, isSelfTourViewed, betas, conciergePersonalDetails]),
+        }, [session, isLoadingReportData, conciergeReportID, introSelected, isSelfTourViewed, conciergePersonalDetails]),
     );
 
     useEffect(() => {

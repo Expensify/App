@@ -74,7 +74,6 @@ function ReportNavigateAwayHandler() {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [userLeavingStatus = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const isSelfTourViewed = onboarding?.selfTourViewed;
@@ -145,7 +144,7 @@ function ReportNavigateAwayHandler() {
         }
 
         Navigation.isNavigationReady().then(() => {
-            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, personalDetails: conciergePersonalDetails, shouldDismissModal: false});
+            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, personalDetails: conciergePersonalDetails, shouldDismissModal: false});
         });
     });
 
@@ -236,7 +235,7 @@ function ReportNavigateAwayHandler() {
             }
 
             // Fallback to Concierge
-            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, personalDetails: conciergePersonalDetails});
+            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, personalDetails: conciergePersonalDetails});
         });
     }, [
         reportWasDeleted,
@@ -247,7 +246,6 @@ function ReportNavigateAwayHandler() {
         introSelected,
         currentUserAccountID,
         isSelfTourViewed,
-        betas,
         conciergePersonalDetails,
         reportIDFromRoute,
     ]);

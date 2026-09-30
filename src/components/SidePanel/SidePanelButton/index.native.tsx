@@ -33,7 +33,6 @@ function SidePanelButton({style}: SidePanelButtonProps) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
 
     if (shouldHideHelpButton) {
@@ -56,7 +55,6 @@ function SidePanelButton({style}: SidePanelButtonProps) {
                         introSelected,
                         currentUserAccountID,
                         isSelfTourViewed,
-                        betas,
                         personalDetails: conciergePersonalDetails,
                         sourceReportID: sourceReportID && sourceReportID !== conciergeReportID ? sourceReportID : undefined,
                     });

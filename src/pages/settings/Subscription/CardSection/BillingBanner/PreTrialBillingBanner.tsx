@@ -27,7 +27,6 @@ function PreTrialBillingBanner() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const isSelfTourViewed = onboarding?.selfTourViewed;
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -36,7 +35,7 @@ function PreTrialBillingBanner() {
         const reportUsedForOnboarding = getChatUsedForOnboarding(onboarding, conciergeReportID);
 
         if (!reportUsedForOnboarding) {
-            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, personalDetails: conciergePersonalDetails, shouldDismissModal: false});
+            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, personalDetails: conciergePersonalDetails, shouldDismissModal: false});
             return;
         }
 

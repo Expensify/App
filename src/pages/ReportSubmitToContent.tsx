@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,10 +25,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import {getSearchValueForPhoneOrEmail, getUserToInviteOption, sortAlphabetically} from '@libs/OptionsListUtils';
-import {getKnownAccountIDByLogin, getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
+import {getSearchValueForPhoneOrEmail, getUserToInviteOption} from '@libs/OptionsListUtils';
+import {getKnownAccountIDByLogin, getLoginByAccountID, getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
 import {getAccountIDForSubmitManagerEmail, getMemberAccountIDsForWorkspace, getSubmitToEmail} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isExpenseReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
@@ -38,7 +40,6 @@ import {searchUserInServer} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -93,9 +94,9 @@ function ReportSubmitToContent({
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const delegateAccountID = useDelegateAccountID();
-    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
+    const submitterLogin = getLoginByAccountID(report?.ownerAccountID, personalDetails);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -124,7 +125,7 @@ function ReportSubmitToContent({
             return [];
         }
         const prepopulatedEmailLower = prepopulatedEmail?.trim().toLowerCase();
-        const emailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, true, false);
+        const emailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, undefined, true, false);
         return Object.values(employeeList).flatMap((employee): WorkspaceMemberItem[] => {
             const email = employee.email?.trim();
             if (!email || employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -216,6 +217,7 @@ function ReportSubmitToContent({
             personalDetails,
             loginList,
             currentUserEmail: currentUserDetails.email ?? '',
+            currentUserAccountID: currentUserDetails.accountID,
             countryCode,
             selectedOptions: [],
             loginsToExclude: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -233,7 +235,19 @@ function ReportSubmitToContent({
             keyForList: `nonWorkspace:${login}`,
             isSelected: managerEmail.trim().toLowerCase() === login.trim().toLowerCase(),
         };
-    }, [countryCode, currentUserDetails.email, searchTerm, filteredWorkspaceMembers.length, loginList, managerEmail, personalDetails, dateFnsLocale, convertToDisplayString, rules]);
+    }, [
+        countryCode,
+        currentUserDetails.email,
+        searchTerm,
+        filteredWorkspaceMembers.length,
+        loginList,
+        managerEmail,
+        personalDetails,
+        dateFnsLocale,
+        convertToDisplayString,
+        rules,
+        currentUserDetails.accountID,
+    ]);
 
     const submitToSelectionData = useMemo(() => {
         if (!nonWorkspaceInviteRow) {

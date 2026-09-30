@@ -29,7 +29,6 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
 
     const webViewRef = useRef<WebView>(null);
@@ -53,7 +52,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
         if (!webViewRef.current || !parsedData) {
             return;
         }
-        handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, betas, conciergePersonalDetails, parsedData.type, parsedData.url);
+        handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, conciergePersonalDetails, parsedData.type, parsedData.url);
     };
 
     return (
