@@ -511,6 +511,7 @@ function Search({
             shouldCalculateTotals,
             prevReportsLength: filteredDataLength,
             isLoading: !!searchResults?.search?.isLoading,
+            shouldSaveRecentSearch: searchRequestOffset === 0 && !shouldUseLiveData,
         });
 
         // We don't need to run the effect on change of isFocused.
