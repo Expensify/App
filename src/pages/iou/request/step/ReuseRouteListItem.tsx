@@ -2,7 +2,7 @@ import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import ReceiptImage from '@components/ReceiptImage';
 import SelectableListItem from '@components/SelectionList/ListItem/SelectableListItem';
-import type {ListItem, SelectableListItemProps} from '@components/SelectionList/ListItem/types';
+import type {ListItem, ListItemProps} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -23,25 +23,24 @@ type ReuseRouteListItemData = ListItem & {
     route: ReusableDistanceRoute;
 };
 
+function isReuseRouteListItemData(item: ListItem): item is ReuseRouteListItemData {
+    return 'route' in item && typeof item.route === 'object' && item.route !== null;
+}
+
 /**
  * Card for the "reuse prior route" list. Shows the map receipt of the source expense
  * with a "Last used" badge, plus Start and End rows.
  */
-function ReuseRouteListItem<TItem extends ReuseRouteListItemData>({
-    item,
-    isFocused,
-    isFocusVisible,
-    showTooltip,
-    isDisabled,
-    onSelectRow,
-    onDismissError,
-    onFocus,
-    shouldSyncFocus,
-}: SelectableListItemProps<TItem>) {
+function ReuseRouteListItem<TItem extends ListItem>({item, isFocused, isFocusVisible, showTooltip, isDisabled, onSelectRow, onDismissError, onFocus, shouldSyncFocus}: ListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Receipt', 'DotIndicatorUnfilled', 'Location']);
+
+    if (!isReuseRouteListItemData(item)) {
+        return null;
+    }
+
     const {start, end} = getRouteEndpoints(item.route);
     const thumbnailSource = getRouteThumbnailSource(item.route.receiptSource);
 
