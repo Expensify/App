@@ -801,6 +801,7 @@ describe('DebugUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBeNull();
         });
@@ -814,6 +815,7 @@ describe('DebugUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasDraftComment');
         });
@@ -830,6 +832,7 @@ describe('DebugUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasGBR');
         });
@@ -845,6 +848,7 @@ describe('DebugUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.pinnedByUser');
         });
@@ -864,6 +868,7 @@ describe('DebugUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasAddWorkspaceRoomErrors');
         });
@@ -891,6 +896,7 @@ describe('DebugUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isUnread');
         });
@@ -911,6 +917,7 @@ describe('DebugUtils', () => {
                 draftComment: '',
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isArchived');
         });
@@ -926,6 +933,7 @@ describe('DebugUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isSelfDM');
         });
@@ -938,6 +946,7 @@ describe('DebugUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isFocused');
         });
@@ -999,6 +1008,7 @@ describe('DebugUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
@@ -1060,6 +1070,7 @@ describe('DebugUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
@@ -1073,6 +1084,7 @@ describe('DebugUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
@@ -1436,7 +1448,7 @@ describe('DebugUtils', () => {
                             modifiedCreated: '',
                         }),
                     };
-                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS, mockTransactions, RORY_ACCOUNT_ID);
+                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS, mockTransactions, RORY_ACCOUNT_ID, undefined);
                     const {reportAction} =
                         DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                             MOCK_CHAT_REPORT,
@@ -1518,7 +1530,7 @@ describe('DebugUtils', () => {
                             modifiedCreated: '',
                         }),
                     };
-                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, mockTransactions, RORY_ACCOUNT_ID);
+                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, mockTransactions, RORY_ACCOUNT_ID, undefined);
                     const {reportAction} =
                         DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                             MOCK_CHAT_REPORT,
@@ -1576,7 +1588,7 @@ describe('DebugUtils', () => {
                         ],
                     },
                 };
-                const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, sharedAllTransactions, RORY_ACCOUNT_ID);
+                const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, sharedAllTransactions, RORY_ACCOUNT_ID, undefined);
                 const {reportAction} =
                     DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                         {
@@ -1616,7 +1628,7 @@ describe('DebugUtils', () => {
                     },
                 };
 
-                const reportErrors = getAllReportErrors(mockedReport, mockedReportActions, sharedAllTransactions, RORY_ACCOUNT_ID);
+                const reportErrors = getAllReportErrors(mockedReport, mockedReportActions, sharedAllTransactions, RORY_ACCOUNT_ID, undefined);
                 const {reason} =
                     DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                         mockedReport,

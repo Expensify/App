@@ -44,7 +44,7 @@ jest.mock('@hooks/useDelegateAccountID', () => ({
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: () => mockIsBetaEnabled}),
+    default: () => ({isBetaEnabled: () => mockIsBetaEnabled, isBetaEnabledOrUnknown: () => mockIsBetaEnabled}),
 }));
 
 jest.mock('@userActions/Report', () => ({

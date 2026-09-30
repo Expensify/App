@@ -2,7 +2,6 @@ import type {HorizontalStackingOptions} from '@components/Avatar/layouts/Horizon
 import ReportActionAvatars from '@components/ReportActionAvatars';
 
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
@@ -16,6 +15,7 @@ import {reportAvatarKindSelector} from '@selectors/Report';
 import React from 'react';
 
 import AccountAvatar from './AccountAvatar';
+import ChatThreadAvatar from './ChatThreadAvatar';
 import ExpenseReportAvatar from './ExpenseReportAvatar';
 import GroupChatAvatar from './GroupChatAvatar';
 
@@ -31,8 +31,7 @@ type ReportAvatarProps = {
     /** Color of the row surface behind the avatar. Affects secondary avatar so it blends into the row. */
     backdropColor?: ColorValue;
 
-    /** Whether to show the subscript avatar without margin */
-    noRightMarginOnSubscriptContainer?: boolean;
+    subscriptAvatarContainerStyle?: StyleProp<ViewStyle>;
 
     /** Whether (and how) to stack the avatars horizontally */
     horizontalStacking?: HorizontalStackingOptions | boolean;
@@ -50,12 +49,11 @@ function ReportAvatar({
     size = CONST.AVATAR_SIZE.DEFAULT,
     singleAvatarContainerStyle,
     backdropColor,
-    noRightMarginOnSubscriptContainer = false,
+    subscriptAvatarContainerStyle,
     horizontalStacking,
+    sort,
     fallbackDisplayName,
-    ...rest
 }: ReportAvatarProps) {
-    const styles = useThemeStyles();
     const [kindFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: reportAvatarKindSelector});
     const kind = kindFromOnyx ?? CONST.REPORT_AVATAR_KIND.DEFAULT;
 
@@ -87,7 +85,21 @@ function ReportAvatar({
                     reportID={reportID}
                     size={size}
                     backdropColor={backdropColor}
-                    containerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : undefined}
+                    containerStyle={subscriptAvatarContainerStyle}
+                    fallbackDisplayName={fallbackDisplayName}
+                />
+            );
+        case CONST.REPORT_AVATAR_KIND.CHAT_THREAD:
+            return (
+                <ChatThreadAvatar
+                    reportID={reportID}
+                    size={size}
+                    backdropColor={backdropColor}
+                    // A thread without a workspace icon renders a single avatar even inside a horizontal stack, and there it drops its container styles.
+                    containerStyle={horizontalStacking ? [] : singleAvatarContainerStyle}
+                    subscriptContainerStyle={subscriptAvatarContainerStyle}
+                    horizontalStacking={horizontalStacking}
+                    sort={sort}
                     fallbackDisplayName={fallbackDisplayName}
                 />
             );
@@ -96,7 +108,6 @@ function ReportAvatar({
         case CONST.REPORT_AVATAR_KIND.IOU:
         case CONST.REPORT_AVATAR_KIND.TASK:
         case CONST.REPORT_AVATAR_KIND.INVOICE:
-        case CONST.REPORT_AVATAR_KIND.CHAT_THREAD:
         case CONST.REPORT_AVATAR_KIND.POLICY_EXPENSE_CHAT:
         case CONST.REPORT_AVATAR_KIND.ROOM:
         case CONST.REPORT_AVATAR_KIND.DEFAULT:
@@ -107,10 +118,10 @@ function ReportAvatar({
                     size={size}
                     singleAvatarContainerStyle={singleAvatarContainerStyle}
                     backdropColor={backdropColor}
-                    noRightMarginOnSubscriptContainer={noRightMarginOnSubscriptContainer}
+                    subscriptAvatarContainerStyle={subscriptAvatarContainerStyle}
                     horizontalStacking={horizontalStacking}
+                    sort={sort}
                     fallbackDisplayName={fallbackDisplayName}
-                    {...rest}
                 />
             );
     }

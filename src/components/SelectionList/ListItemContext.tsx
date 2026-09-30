@@ -1,6 +1,9 @@
 import {createContext, useContext} from 'react';
 
 type ListItemContextValue = {
+    /** Whether the row is the list's focused row (keyboard index), regardless of whether the focus highlight is shown */
+    isFocused: boolean;
+
     /**
      * Whether the row should render focus styling. True when the row is logically focused (keyboard index)
      * AND the highlight is allowed to show (initial highlight enabled or the user is keyboard-navigating),
@@ -25,6 +28,7 @@ type ListItemContextValue = {
 };
 
 const ListItemContext = createContext<ListItemContextValue>({
+    isFocused: false,
     isFocusVisible: false,
     shouldShowTooltip: false,
     isDisabled: false,
