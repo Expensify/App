@@ -145,6 +145,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_THEME,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.TROUBLESHOOT_SERVER]: {
+                            path: ROUTES.SETTINGS_TROUBLESHOOT_SERVER,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.PREFERENCES.PAYMENT_CURRENCY]: {
                             path: ROUTES.SETTINGS_PAYMENT_CURRENCY,
                             exact: true,
@@ -1126,6 +1130,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: {
                             path: ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.route,
+                        },
+                        [SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT]: {
+                            path: ROUTES.WORKSPACE_MEMBER_WORK_ARRANGEMENT.route,
                         },
                         [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_SUCCESS]: DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.path,
                         [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_ERROR]: DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.path,
@@ -2297,9 +2304,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             },
         },
         [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: {
+            initialRouteName: SCREENS.TEST_TOOLS_MODAL.ROOT,
             screens: {
                 [SCREENS.TEST_TOOLS_MODAL.ROOT]: {
                     path: ROUTES.TEST_TOOLS_MODAL.route,
+                    exact: true,
+                },
+                [SCREENS.TEST_TOOLS_MODAL.SERVER]: {
+                    path: ROUTES.TEST_TOOLS_SERVER.route,
                     exact: true,
                 },
             },

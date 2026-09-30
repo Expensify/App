@@ -2654,6 +2654,7 @@ const ROUTES = {
     SETTINGS_VACATION_DELEGATE: 'settings/profile/status/vacation-delegate',
     SETTINGS_VACATION_DELEGATE_MISSING_WORKSPACES: 'settings/profile/status/vacation-delegate/missing-workspaces',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
+    SETTINGS_TROUBLESHOOT_SERVER: 'settings/troubleshoot/server',
     SETTINGS_HELP: 'settings/help',
 
     SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
@@ -3628,6 +3629,10 @@ const ROUTES = {
     WORKSPACE_MEMBER_DETAILS_ROLE: {
         route: 'workspaces/:policyID/members/:accountID/role',
         getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/role` as const,
+    },
+    WORKSPACE_MEMBER_WORK_ARRANGEMENT: {
+        route: 'workspaces/:policyID/members/:accountID/work-arrangement',
+        getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/work-arrangement` as const,
     },
     WORKSPACE_CUSTOM_FIELDS: {
         route: 'workspaces/:policyID/members/:accountID/:customFieldType',
@@ -5249,6 +5254,11 @@ const ROUTES = {
         route: 'test-tools',
 
         getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools' as const, backTo),
+    },
+    TEST_TOOLS_SERVER: {
+        route: 'test-tools/server',
+
+        getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools/server' as const, backTo),
     },
     WORKSPACES_VERIFY_DOMAIN: {
         route: 'workspaces/verify-domain/:domainAccountID',
