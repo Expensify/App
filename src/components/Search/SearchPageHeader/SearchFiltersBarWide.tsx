@@ -17,7 +17,7 @@ type SearchFiltersBarWideProps = {
 
 function SearchFiltersBarWide({queryJSON}: SearchFiltersBarWideProps) {
     const styles = useThemeStyles();
-    const {filters, hasErrors, shouldShowFiltersBarLoading, hasFiltersChanged, resetFilters} = useSearchFiltersBar(queryJSON);
+    const {filters, hasErrors, shouldShowFiltersBarLoading, hasFiltersChanged, hasFiltersOrKeywordChanged, resetFilters} = useSearchFiltersBar(queryJSON);
 
     if (hasErrors) {
         return null;
@@ -35,9 +35,9 @@ function SearchFiltersBarWide({queryJSON}: SearchFiltersBarWideProps) {
                     item={item}
                 />
             ))}
-            {hasFiltersChanged && (
+            {hasFiltersOrKeywordChanged && (
                 <View style={[styles.flexRow]}>
-                    <SearchFiltersResetButton onPress={resetFilters} />
+                    {hasFiltersChanged && <SearchFiltersResetButton onPress={resetFilters} />}
                     <SearchFiltersSaveButton />
                 </View>
             )}

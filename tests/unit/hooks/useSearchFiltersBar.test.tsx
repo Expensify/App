@@ -84,6 +84,7 @@ function buildQueryJSON(flatFilters: SearchQueryJSON['flatFilters']): SearchQuer
 
 const merchantFilters: SearchQueryJSON['flatFilters'] = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'Uber'}]}];
 const categoryFilters: SearchQueryJSON['flatFilters'] = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'Travel'}]}];
+const keywordFilters: SearchQueryJSON['flatFilters'] = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'lunch'}]}];
 
 describe('useSearchFiltersBar', () => {
     beforeEach(() => {
@@ -131,6 +132,64 @@ describe('useSearchFiltersBar', () => {
 
             const {result} = renderHook(() => useSearchFiltersBar(queryJSON));
 
+            expect(result.current.hasFiltersChanged).toBe(false);
+        });
+    });
+
+    describe('hasFiltersOrKeywordChanged', () => {
+        it('is true but leaves hasFiltersChanged false when only the keyword differs from the default query', () => {
+            // Given a search whose filters match the default but which also has a keyword
+            mockSearchQueryContext({
+                currentDefaultSearchQueryJSON: buildQueryJSON(merchantFilters),
+                currentSearchQueryJSON: buildQueryJSON([...merchantFilters, ...keywordFilters]),
+            });
+
+            // When the hook evaluates the query
+            const {result} = renderHook(() => useSearchFiltersBar(queryJSON));
+
+            // Then the search can be saved, but there are no filters to reset because resetting keeps the keyword
+            expect(result.current.hasFiltersOrKeywordChanged).toBe(true);
+            expect(result.current.hasFiltersChanged).toBe(false);
+        });
+
+        it('is true when the filters differ from the default query', () => {
+            // Given a search whose filters differ from the default
+            mockSearchQueryContext({
+                currentDefaultSearchQueryJSON: buildQueryJSON(merchantFilters),
+                currentSearchQueryJSON: buildQueryJSON(categoryFilters),
+            });
+
+            // When the hook evaluates the query
+            const {result} = renderHook(() => useSearchFiltersBar(queryJSON));
+
+            // Then the search can be saved
+            expect(result.current.hasFiltersOrKeywordChanged).toBe(true);
+        });
+
+        it('is false when the query equals the default query', () => {
+            // Given a search that matches the default, keyword included
+            mockSearchQueryContext({
+                currentDefaultSearchQueryJSON: buildQueryJSON(merchantFilters),
+                currentSearchQueryJSON: buildQueryJSON(merchantFilters),
+            });
+
+            // When the hook evaluates the query
+            const {result} = renderHook(() => useSearchFiltersBar(queryJSON));
+
+            // Then there is nothing new to save
+            expect(result.current.hasFiltersOrKeywordChanged).toBe(false);
+        });
+
+        it('falls back to having a keyword when there is no default query JSON', () => {
+            // Given no default query to compare against and a query with only a keyword
+            mockSearchQueryContext();
+            mockMapFiltersFormToLabelValueList.mockReturnValue([]);
+
+            // When the hook evaluates the query
+            const {result} = renderHook(() => useSearchFiltersBar(buildQueryJSON(keywordFilters)));
+
+            // Then the keyword alone is enough to save the search
+            expect(result.current.hasFiltersOrKeywordChanged).toBe(true);
             expect(result.current.hasFiltersChanged).toBe(false);
         });
     });

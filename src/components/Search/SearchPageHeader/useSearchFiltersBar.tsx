@@ -46,7 +46,12 @@ type UseSearchFiltersBarResult = {
     filters: Array<SearchFilter & FilterItem>;
     hasErrors: boolean;
     shouldShowFiltersBarLoading: boolean;
+
+    /** Whether the filter chips differ from the default search, which is when they can be reset. */
     hasFiltersChanged: boolean;
+
+    /** Whether the filters or the keyword differ from the default search, which is when the search can be saved. */
+    hasFiltersOrKeywordChanged: boolean;
     resetFilters: () => void;
 };
 
@@ -58,6 +63,8 @@ type FilterPopupProps = {
     setPopoverWidth: PopoverComponentProps['setPopoverWidth'];
     updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
+
+const NON_SAVABLE_FILTER_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
 
 function getFilterSentryLabel(filterKey: SearchAdvancedFiltersKey | SearchFilterKey) {
     return `Search-Filter-${filterKey}`;
@@ -223,12 +230,16 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         setSearchContext(false);
     };
     const isCategoryFilterLoading = shouldShowInitialCategoryFilterLoading(queryJSON, areCategoriesLoaded, isLoadingCategories, isOffline);
+    const hasDefaultQuery = !!currentDefaultSearchQueryJSON && !!currentSearchQueryJSON;
 
     return {
         filters,
         hasErrors: Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline,
         shouldShowFiltersBarLoading: shouldShowFiltersBarLoading || isCategoryFilterLoading,
-        hasFiltersChanged: currentDefaultSearchQueryJSON && currentSearchQueryJSON ? hasFiltersChangedFromDefault(currentSearchQueryJSON, currentDefaultSearchQueryJSON) : filters.length > 0,
+        hasFiltersChanged: hasDefaultQuery ? hasFiltersChangedFromDefault(currentSearchQueryJSON, currentDefaultSearchQueryJSON) : filters.length > 0,
+        hasFiltersOrKeywordChanged: hasDefaultQuery
+            ? hasFiltersChangedFromDefault(currentSearchQueryJSON, currentDefaultSearchQueryJSON, NON_SAVABLE_FILTER_KEYS)
+            : filters.length > 0 || queryJSON.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD),
         resetFilters,
     };
 }
