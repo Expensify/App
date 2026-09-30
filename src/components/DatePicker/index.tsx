@@ -52,7 +52,9 @@ function DatePicker({
     rightHandSideComponent,
     onPickerVisibilityChange,
     shouldHideCalendarIcon = false,
+    shouldKeepCalendarIconWhenSelected = false,
     shouldForceActiveLabel = true,
+    icon,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
@@ -235,7 +237,7 @@ function DatePicker({
                     ref={combinedTextInputRef}
                     inputID={inputID}
                     forceActiveLabel={shouldForceActiveLabel}
-                    icon={selectedDate || shouldHideCalendarIcon ? null : icons.Calendar}
+                    icon={(selectedDate && !shouldKeepCalendarIconWhenSelected) || shouldHideCalendarIcon ? null : (icon ?? icons.Calendar)}
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}

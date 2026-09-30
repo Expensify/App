@@ -57,7 +57,7 @@ type VacationDelegateFormProps = {
 function VacationDelegateForm({vacationDelegate, description, onChangeDelegate, onSubmit, onRemove, errors, pendingAction, onCloseError}: VacationDelegateFormProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Trashcan']);
     const {timezone} = useCurrentUserPersonalDetails();
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM_DRAFT);
 
@@ -105,24 +105,31 @@ function VacationDelegateForm({vacationDelegate, description, onChangeDelegate, 
                 onCloseError={onCloseError}
                 onPress={onChangeDelegate}
             />
-            <View style={[styles.ph5, styles.mt4]}>
+            <View style={styles.ph5}>
+                {/* The date can only be changed through the picker, so it keeps its icon and has no clear button, as in the mockups */}
                 <InputWrapper
                     InputComponent={DatePicker}
                     inputID={INPUT_IDS.CLEAR_AFTER_DATE}
                     label={translate('statusPage.vacationDelegate.clearAfterRecommended')}
                     defaultValue={savedClearDate}
                     minDate={new Date()}
+                    icon={icons.CalendarSolid}
                     shouldForceActiveLabel={false}
+                    shouldKeepCalendarIconWhenSelected
+                    shouldHideClearButton
                     shouldSaveDraft
                 />
-                {!!formattedClearDate && <Text style={[styles.textLabelSupporting, styles.mt2]}>{translate('statusPage.vacationDelegate.willClearOn', formattedClearDate)}</Text>}
+                {/* The bottom margin matches the date input's own, so the remove button below sits the same distance from whichever is last */}
+                {!!formattedClearDate && <Text style={[styles.textLabelSupporting, styles.mt2, styles.mb2]}>{translate('statusPage.vacationDelegate.willClearOn', formattedClearDate)}</Text>}
             </View>
             {!!savedDelegate && (
-                <MenuItemAction
-                    title={translate('statusPage.vacationDelegate.removeDelegate')}
-                    icon={icons.Trashcan}
-                    onPress={onRemove}
-                />
+                <View style={styles.mt4}>
+                    <MenuItemAction
+                        title={translate('statusPage.vacationDelegate.removeDelegate')}
+                        icon={icons.Trashcan}
+                        onPress={onRemove}
+                    />
+                </View>
             )}
         </FormProvider>
     );

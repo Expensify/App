@@ -25,6 +25,12 @@ function goBackToProfile() {
     Navigation.goBack(ROUTES.SETTINGS_PROFILE.route);
 }
 
+// Pops only this form, so a member picker opened straight from Profile is shown again.
+function goBack() {
+    clearDraftValues(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM);
+    Navigation.goBack();
+}
+
 function VacationDelegateFormPage() {
     const {translate} = useLocalize();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
@@ -104,7 +110,7 @@ function VacationDelegateFormPage() {
         >
             <HeaderWithBackButton
                 title={translate('common.vacationDelegate')}
-                onBackButtonPress={goBackToProfile}
+                onBackButtonPress={goBack}
             />
             <VacationDelegateForm
                 vacationDelegate={vacationDelegate}

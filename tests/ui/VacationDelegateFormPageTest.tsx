@@ -39,6 +39,7 @@ const ORIGINAL_CLEAR_AFTER = '2026-09-30 06:59:59';
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
+    getTopmostReportId: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
     getActiveRouteWithoutParams: jest.fn(() => ''),
     isNavigationReady: jest.fn(() => Promise.resolve()),
@@ -220,6 +221,27 @@ describe('VacationDelegateFormPage', () => {
         // Then the delegate is deleted, since removal now lives on the form instead of re-picking the same member
         expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DELETE_VACATION_DELEGATE, null, expect.anything());
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.SETTINGS_PROFILE.route);
+    });
+
+    it('pops only the form and drops the unsaved pick when the header back button is pressed', async () => {
+        // Given a member picked on the picker but not saved yet
+        jest.mocked(Navigation.goBack).mockClear();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM_DRAFT, {delegate: DELEGATE_A_EMAIL});
+        });
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the header back button is pressed
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.back')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only this screen is popped, so a picker opened straight from Profile shows again instead of the whole RHP closing,
+        // and the unsaved pick is cleared on the way out
+        expect(Navigation.goBack).toHaveBeenCalledWith();
+        const draft = await getOnyxValue(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM_DRAFT);
+        expect(draft?.delegate).toBeFalsy();
     });
 
     it('surfaces the EXP_ERROR response message in the error modal and restores the previous delegate on dismissal', async () => {

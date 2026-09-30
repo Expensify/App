@@ -9,12 +9,14 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {VacationDelegateForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/VacationDelegateForm';
 import type {Participant} from '@src/types/onyx/IOU';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {useNavigationState} from '@react-navigation/native';
 import React from 'react';
 
 const draftDelegateSelector = (draft: OnyxEntry<VacationDelegateForm>) => draft?.[INPUT_IDS.DELEGATE];
@@ -24,6 +26,7 @@ function VacationDelegatePage() {
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
     const [draftDelegate] = useOnyx(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM_DRAFT, {selector: draftDelegateSelector});
+    const isFormInStack = useNavigationState((state) => state.routes.some((route) => route.name === SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE));
 
     const onSelectRow = (option: Participant) => {
         if (!option?.login) {
@@ -32,7 +35,14 @@ function VacationDelegatePage() {
 
         // The pick is only saved from the form, where the clear after date is chosen too.
         setDraftValues(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM, {[INPUT_IDS.DELEGATE]: option.login});
-        Navigation.goBack(ROUTES.SETTINGS_VACATION_DELEGATE);
+
+        // Opened from the form's delegate row, so go back to it. Opened straight from Profile, the form comes next, so push it
+        // and keep this picker under it for the form's back button.
+        if (isFormInStack) {
+            Navigation.goBack(ROUTES.SETTINGS_VACATION_DELEGATE);
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE);
     };
 
     return (
@@ -44,7 +54,7 @@ function VacationDelegatePage() {
             <BaseVacationDelegateSelectionComponent
                 vacationDelegate={draftDelegate ? {...vacationDelegate, delegate: draftDelegate} : vacationDelegate}
                 onSelectRow={onSelectRow}
-                headerTitle={translate('common.vacationDelegate')}
+                headerTitle={translate('statusPage.vacationDelegate.chooseDelegate')}
                 onBackButtonPress={() => Navigation.goBack()}
                 cannotSetDelegateMessage={translate('statusPage.cannotSetVacationDelegate')}
                 includeCurrentUser={false}

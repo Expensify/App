@@ -44,6 +44,12 @@ function DomainMemberVacationDelegateFormPage({route}: DomainMemberVacationDeleg
         Navigation.goBack(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID));
     };
 
+    // Pops only this form, so a member picker opened straight from the member details page is shown again.
+    const goBack = () => {
+        clearDraftValues(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM);
+        Navigation.goBack();
+    };
+
     const onSubmit = (delegate: string, clearAfter: string | undefined) => {
         if (!memberLogin) {
             return;
@@ -71,7 +77,7 @@ function DomainMemberVacationDelegateFormPage({route}: DomainMemberVacationDeleg
             >
                 <HeaderWithBackButton
                     title={translate('common.vacationDelegate')}
-                    onBackButtonPress={goBackToMemberDetails}
+                    onBackButtonPress={goBack}
                 />
                 <VacationDelegateForm
                     vacationDelegate={vacationDelegate}

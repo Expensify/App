@@ -14,13 +14,14 @@ import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type {VacationDelegateForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/VacationDelegateForm';
 import type {Participant} from '@src/types/onyx/IOU';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {useNavigationState} from '@react-navigation/native';
 import {vacationDelegateSelector} from '@selectors/Domain';
 import {personalDetailsSelector} from '@selectors/PersonalDetails';
 import React from 'react';
@@ -37,6 +38,7 @@ function DomainMemberVacationDelegatePage({route}: DomainMemberVacationDelegateP
         selector: vacationDelegateSelector(accountID),
     });
     const [draftDelegate] = useOnyx(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM_DRAFT, {selector: draftDelegateSelector});
+    const isFormInStack = useNavigationState((state) => state.routes.some((stackRoute) => stackRoute.name === SCREENS.DOMAIN.VACATION_DELEGATE));
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: personalDetailsSelector(accountID),
@@ -52,7 +54,14 @@ function DomainMemberVacationDelegatePage({route}: DomainMemberVacationDelegateP
 
         // The pick is only saved from the form, where the clear after date is chosen too.
         setDraftValues(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM, {[INPUT_IDS.DELEGATE]: delegateLogin});
-        Navigation.goBack(ROUTES.DOMAIN_VACATION_DELEGATE.getRoute(domainAccountID, accountID));
+
+        // Opened from the form's delegate row, so go back to it. Opened straight from the member details page, the form comes
+        // next, so push it and keep this picker under it for the form's back button.
+        if (isFormInStack) {
+            Navigation.goBack(ROUTES.DOMAIN_VACATION_DELEGATE.getRoute(domainAccountID, accountID));
+            return;
+        }
+        Navigation.navigate(ROUTES.DOMAIN_VACATION_DELEGATE.getRoute(domainAccountID, accountID));
     };
 
     return (
@@ -63,7 +72,7 @@ function DomainMemberVacationDelegatePage({route}: DomainMemberVacationDelegateP
             >
                 <BaseVacationDelegateSelectionComponent
                     vacationDelegate={draftDelegate ? {...vacationDelegate, delegate: draftDelegate} : vacationDelegate}
-                    headerTitle={translate('common.vacationDelegate')}
+                    headerTitle={translate('statusPage.vacationDelegate.chooseDelegate')}
                     onSelectRow={onSelectRow}
                     onBackButtonPress={() => Navigation.goBack()}
                     cannotSetDelegateMessage={translate('domain.members.cannotSetVacationDelegateForMember', memberLogin ?? '')}

@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {openWorkspaceMembersPage} from '@libs/actions/Policy/Member';
 import {clearVacationDelegateError, inviteVacationDelegateToWorkspaces, setVacationDelegate} from '@libs/actions/VacationDelegate';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -29,7 +29,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {NavigationAction} from '@react-navigation/native';
 
-import {useNavigation, usePreventRemove} from '@react-navigation/native';
+import {usePreventRemove} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 
 import MissingWorkspacesFooter from './MissingWorkspacesFooter';
@@ -45,7 +45,6 @@ type ScreenInput = {
 function VacationDelegateMissingWorkspacesPage() {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const navigation = useNavigation();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [vacationDelegate, vacationDelegateMetadata] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
@@ -97,7 +96,9 @@ function VacationDelegateMissingWorkspacesPage() {
             clearVacationDelegateError(previousDelegate, previousClearAfter);
         }
 
-        navigation.dispatch(data.action);
+        // Replayed through the container: this screen's own dispatch stamps its key as the action's source, and a stack
+        // above this one (e.g. the root when the whole RHP closes) can't find that key, so it would drop the action.
+        navigationRef.dispatch(data.action);
     });
 
     if (!submittedInput && isLoadingOnyxValue(vacationDelegateMetadata)) {
@@ -133,7 +134,7 @@ function VacationDelegateMissingWorkspacesPage() {
         setSubmittedInput({delegate, clearAfter, policyDiff});
         setVacationDelegate({creator, delegate, clearAfter, currentDelegate: previousDelegate, currentClearAfter: previousClearAfter, shouldOverridePolicyDiffWarning: true});
         clearDraftValues(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM);
-        Navigation.goBack(ROUTES.SETTINGS_PROFILE.route);
+        Navigation.dismissModal();
     };
 
     return (
