@@ -43,8 +43,8 @@ type ButtonBehaviorProps = {
      * Shows the loading spinner the moment the button is pressed, ahead of `onPress`. Defaults to false.
      *
      * The spinner is painted before `onPress` runs, so a JS-blocking handler still gives instant feedback. What clears it
-     * depends on `isLoading` being defined: without one it clears as `onPress` settles, with one the button hands it over,
-     * so pass a stable boolean that does turn true, or none at all.
+     * depends on `isLoading` being defined: without one it clears as `onPress` settles or on the screen regaining focus
+     * when `onPress` navigated away. With one the button hands it over, so pass a stable boolean that does turn true, or none at all.
      *
      * It wraps the whole handler. To spin on only some branches, leave this off and wrap those branches in the
      * `startWithLoading` argument passed to `onPress`.

@@ -42,6 +42,9 @@ function usePressLoading({isLoading, resetOnFocus = true}: UsePressLoadingOption
     if (isPressed && isLoading) {
         setIsPressed(false);
     }
+
+    const navigationContext = useContext(NavigationContext);
+
     // Defer the work by one macrotask so React can commit isPressed and paint the spinner before the consumer code that may block the JS thread runs.
     const startWithLoading: StartWithLoading = async (runAfterPaint) => {
         if (isRunningRef.current) {
@@ -54,10 +57,8 @@ function usePressLoading({isLoading, resetOnFocus = true}: UsePressLoadingOption
         await new Promise((resolve) => {
             setTimeout(resolve, 0);
         });
-        let result: void | Promise<void>;
         try {
-            result = runAfterPaint();
-            await result;
+            await runAfterPaint();
         } catch (error) {
             if (invocation === invocationRef.current) {
                 isRunningRef.current = false;
@@ -69,12 +70,11 @@ function usePressLoading({isLoading, resetOnFocus = true}: UsePressLoadingOption
             return;
         }
         isRunningRef.current = false;
-        if (!hasExternalLoading && result instanceof Promise) {
+        // A handler that navigated away leaves the pressed state to the focus reset, so the spinner does not blink off during the transition
+        if (!hasExternalLoading && (navigationContext?.isFocused() ?? true)) {
             setIsPressed(false);
         }
     };
-
-    const navigationContext = useContext(NavigationContext);
 
     useEffect(() => {
         if (!resetOnFocus || !isPressed || !navigationContext) {

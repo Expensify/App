@@ -19,8 +19,10 @@ const flush = async () => {
 /** Stands in for a screen's navigation object, so a test can fire the 'focus' event the hook subscribes to. */
 const createNavigationStub = () => {
     const focusListeners = new Set<() => void>();
+    let isFocused = true;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const navigation = {
+        isFocused: () => isFocused,
         addListener: (event: string, callback: () => void) => {
             if (event !== 'focus') {
                 return () => {};
@@ -34,7 +36,11 @@ const createNavigationStub = () => {
 
     return {
         wrapper: ({children}: {children: ReactNode}) => createElement(NavigationContext.Provider, {value: navigation}, children),
+        blur: () => {
+            isFocused = false;
+        },
         emitFocus: () => {
+            isFocused = true;
             for (const listener of focusListeners) {
                 listener();
             }
@@ -187,6 +193,44 @@ describe('usePressLoading', () => {
         });
 
         // Then the button is pressable again, instead of spinning for the rest of the session
+        expect(result.current.isLoading).toBe(false);
+    });
+
+    it('holds the loading state after a synchronous handler that navigated away, until the screen regains focus', async () => {
+        // Given a synchronous handler that navigates away, as a save-and-dismiss handler does
+        const {wrapper, blur, emitFocus} = createNavigationStub();
+        const {result} = renderHook(() => usePressLoading(), {wrapper});
+
+        // When it is pressed and returns with the screen no longer focused
+        act(() => {
+            result.current.startWithLoading(() => {
+                blur();
+            });
+        });
+        await flush();
+
+        // Then the spinner stays up, so it does not blink off and reopen the press guard during the transition
+        expect(result.current.isLoading).toBe(true);
+
+        // And the focus reset clears it once the user comes back
+        act(() => {
+            emitFocus();
+        });
+        expect(result.current.isLoading).toBe(false);
+    });
+
+    it('clears the loading state after a synchronous handler that stayed on a focused screen', async () => {
+        // Given a synchronous handler that bails out without navigating, as a validation failure does
+        const {wrapper} = createNavigationStub();
+        const {result} = renderHook(() => usePressLoading(), {wrapper});
+
+        // When it is pressed and returns
+        act(() => {
+            result.current.startWithLoading(() => {});
+        });
+        await flush();
+
+        // Then the button is usable again instead of spinning until some later focus event
         expect(result.current.isLoading).toBe(false);
     });
 
