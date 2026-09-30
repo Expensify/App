@@ -89,7 +89,7 @@ jobs:
               "channel": "#deployer",
               "attachments": [{
                 "color": "good",
-                "text": "✅ Version sync completed. E/App and Mobile-Expensify are at ${{ steps.performSync.outputs.POST_SYNC_APP_VERSION }}; submodule matches Mobile-Expensify main."
+                "text": "✅ Version sync completed. E/App and Mobile-Expensify are at ${{ steps.performSync.outputs.POST_SYNC_APP_VERSION }}; ${{ steps.performSync.outputs.SUBMODULE_MATCHES_REMOTE == 'true' && 'submodule matches Mobile-Expensify main.' || 'Mobile-Expensify main has advanced since, so run this again to record it.' }}"
               }]
             }
 

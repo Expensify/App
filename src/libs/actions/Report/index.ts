@@ -6167,18 +6167,22 @@ async function completeOnboarding({
         personalTrackGoal,
     };
 
-    if (shouldWaitForRHPVariantInitialization) {
+    // Side-effect requests are never queued or retried, so offline we fall through to API.write.
+    // Checked twice because waitForWrites also resolves when the connection drops mid-wait.
+    if (shouldWaitForRHPVariantInitialization && !isOfflineNetwork()) {
         // Wait for the workspace to be created before completing the guided setup
         await waitForWrites(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP);
 
-        // Pop onboarding nested stack after waiting so the modal doesn't rewind to step 1
-        // during the wait. Must run before the API call so useLinking processes each step
-        // pop before the optimistic data unmounts the modal.
-        resetOnboardingStackToRoot();
+        if (!isOfflineNetwork()) {
+            // Pop onboarding nested stack after waiting so the modal doesn't rewind to step 1
+            // during the wait. Must run before the API call so useLinking processes each step
+            // pop before the optimistic data unmounts the modal.
+            resetOnboardingStackToRoot();
 
-        // We need to access the nvp_onboardingRHPVariant directly from the response to redirect the user to the correct page
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
+            // We need to access the nvp_onboardingRHPVariant directly from the response to redirect the user to the correct page
+            // eslint-disable-next-line rulesdir/no-api-side-effects-method
+            return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
+        }
     }
 
     // Pop onboarding nested stack just before the API write so useLinking removes browser
@@ -6272,6 +6276,11 @@ function performServerSearch(searchInput: string, policyID?: string, isUserSearc
     const searchLoadingKey = isUserSearch ? ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS : ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS;
     // We are not getting isOffline from components as useEffect change will re-trigger the search on network change
     const isOffline = isOfflineNetwork();
+
+    if (!policyID && !isUserSearch) {
+        Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, null);
+    }
+
     if (isOffline || !searchInput.trim().length) {
         Onyx.set(searchLoadingKey, false);
         return;
