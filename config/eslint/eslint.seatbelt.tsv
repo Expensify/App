@@ -180,7 +180,6 @@
 "../../src/components/LHNOptionsList/LHNEmptyState.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/LHNOptionsList/OptionRowLHN/OptionRow/Pressable.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/LocaleContextProvider.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/LocaleContextProvider.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/Lottie/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/MapView/MapView.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/MapView/MapView.web.tsx"	"react-hooks/set-state-in-effect"	1
