@@ -5079,6 +5079,9 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
                     ? {
                           disabledOptions: policyReportField.disabledOptions,
                           values: policyReportField.values,
+                          // For the title field, `deletable` reflects the workspace "Prevent members from changing custom report titles" setting,
+                          // so the workspace value wins over a stale copy stored on the report.
+                          ...(isReportFieldOfTypeTitle(policyReportField) && typeof policyReportField.deletable === 'boolean' ? {deletable: policyReportField.deletable} : {}),
                       }
                     : {}),
             };

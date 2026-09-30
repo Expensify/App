@@ -20442,6 +20442,32 @@ describe('ReportUtils', () => {
             ]);
             expect(getAvailableReportFields(report, policyFieldList)).toEqual(expectedFieldList);
         });
+
+        it('should only overwrite report fieldList deletable for the title field', async () => {
+            // Given a report whose title field and custom field are both not deletable
+            const report = createMock<Report>({
+                reportID: '3',
+                policyID: '1',
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID, name: 'title', type: 'text', deletable: false},
+                    expensify_field_id_TEXT: {fieldID: 'field_id_TEXT', name: 'text', type: 'text', deletable: false},
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            // And a policy where both fields are deletable
+            const policyFieldList = createMock<PolicyReportField[]>([
+                {fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID, name: 'title', type: 'text', deletable: true},
+                {fieldID: 'field_id_TEXT', name: 'text', type: 'text', deletable: true},
+            ]);
+
+            // When getting the available report fields
+            const availableFields = getAvailableReportFields(report, policyFieldList);
+
+            // Then only the title field takes the policy deletable value, because for the title field it reflects the workspace setting
+            expect(availableFields.find((field) => field.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID)?.deletable).toBe(true);
+            expect(availableFields.find((field) => field.fieldID === 'field_id_TEXT')?.deletable).toBe(false);
+        });
     });
 
     describe('getReportFieldMaps', () => {
@@ -20633,6 +20659,62 @@ describe('ReportUtils', () => {
 
             mockedPolicyUtils.isPaidGroupPolicy.mockReturnValueOnce(true);
             expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined)).toBe(true);
+        });
+
+        it('returns true for the report owner when the workspace allows title changes but the report copy of the title field is still locked', async () => {
+            // Given the current user is signed in as a workspace member
+            await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await waitForBatchedUpdates();
+
+            // And a workspace where "Prevent members from changing custom report titles" was turned back off
+            const testPolicy = getPolicy({ownerAccountID: 777, role: CONST.POLICY.ROLE.USER});
+
+            // And a report owned by the current user that still has a stale locked copy of the title field from when the setting was on
+            const report = {
+                ...createExpenseReport(130),
+                policyID: testPolicy.id,
+                ownerAccountID: currentUserAccountID,
+                managerID: 999,
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: getTitleField(false),
+                },
+            };
+
+            // When checking whether the report owner can edit the title
+            mockedPolicyUtils.isPaidGroupPolicy.mockReturnValueOnce(true);
+
+            // Then the workspace setting wins, so the title is editable
+            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined)).toBe(true);
+        });
+
+        it('returns false for the report owner when the workspace prevents title changes even if the report copy of the title field is unlocked', async () => {
+            // Given the current user is signed in as a workspace member
+            await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await waitForBatchedUpdates();
+
+            // And a workspace where "Prevent members from changing custom report titles" is on
+            const testPolicy = getPolicy({
+                ownerAccountID: 777,
+                role: CONST.POLICY.ROLE.USER,
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: getTitleField(false),
+                },
+            });
+
+            // And a report owned by the current user whose copy of the title field is unlocked
+            const report = {
+                ...createExpenseReport(131),
+                policyID: testPolicy.id,
+                ownerAccountID: currentUserAccountID,
+                managerID: 999,
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: getTitleField(true),
+                },
+            };
+
+            // When checking whether the report owner can edit the title
+            // Then the workspace setting wins, so the title is not editable
+            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined)).toBe(false);
         });
     });
 

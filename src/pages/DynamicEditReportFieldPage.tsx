@@ -73,6 +73,13 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
         policyField = fallbackTitleField;
     }
 
+    // The workspace title field's `deletable` reflects the "Prevent members from changing custom report titles" setting,
+    // so it wins over a stale copy stored on the report.
+    const policyTitleFieldDeletable = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.deletable;
+    if (isTitleField && reportField && typeof policyTitleFieldDeletable === 'boolean') {
+        reportField = {...reportField, deletable: policyTitleFieldDeletable};
+    }
+
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isDisabled = isReportFieldDisabledForUser(report, reportField, policy, currentUserAccountID, rules) && reportField?.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
