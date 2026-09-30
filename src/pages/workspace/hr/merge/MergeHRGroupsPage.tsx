@@ -134,10 +134,12 @@ function MergeHRGroupsPage({
                         onSelectRow={toggleItem}
                         onSelectAll={toggleSelectAll}
                         listEmptyContent={listEmptyContent}
+                        shouldShowListEmptyContent={availableGroups.length === 0}
                         textInputOptions={{
                             label: translate('common.search'),
                             value: searchText,
                             onChangeText: setSearchText,
+                            headerMessage: availableGroups.length > 0 && filteredGroups.length === 0 ? translate('common.noResultsFound') : undefined,
                             style: {containerStyle: styles.pb5},
                         }}
                         style={{listHeaderSelectAllTextStyle: styles.textLabelSupporting, listItemWrapperStyle: styles.pv4}}
