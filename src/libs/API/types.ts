@@ -734,6 +734,8 @@ const WRITE_COMMANDS = {
     DELETE_AGENT: 'DeleteAgent',
     SEND_EXPORT_FILE_FROM_CONCIERGE: 'SendExportFileFromConcierge',
     CLEAR_EXPORT_DOWNLOAD: 'ClearExportDownload',
+    SEND_BULK_ACTION_SUMMARY_FROM_CONCIERGE: 'SendBulkActionSummaryFromConcierge',
+    CLEAR_BULK_ACTION: 'ClearBulkAction',
     UPGRADE_SUBMIT: 'UpgradeSubmit',
     UPLOAD_USER_KYB_DOCS: 'UploadUserKYBDocs',
     JOIN_REPORT_VIA_SECURE_LINK: 'JoinReportViaSecureLink',
@@ -1496,6 +1498,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DELETE_AGENT]: Parameters.DeleteAgentParams;
     [WRITE_COMMANDS.SEND_EXPORT_FILE_FROM_CONCIERGE]: Parameters.SendExportFileFromConciergeParams;
     [WRITE_COMMANDS.CLEAR_EXPORT_DOWNLOAD]: Parameters.ClearExportDownloadParams;
+    [WRITE_COMMANDS.SEND_BULK_ACTION_SUMMARY_FROM_CONCIERGE]: Parameters.SendBulkActionSummaryFromConciergeParams;
+    [WRITE_COMMANDS.CLEAR_BULK_ACTION]: Parameters.ClearBulkActionParams;
 };
 
 const READ_COMMANDS = {
