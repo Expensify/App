@@ -29,12 +29,13 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
         return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED};
     }
 
-    // The backend rejects DNG (iPhone ProRAW / Android RAW), so it must never be uploaded as-is. On native it is flagged
-    // for conversion to JPEG (like HEIC below), which covers paths that don't go through the pickers' own conversion,
-    // e.g. sharing into the app. Web can't decode DNG, so it gets the invalid-file-type error there. This runs before
-    // the receipt extension check, which would otherwise reject the DNG before it gets a chance to be converted.
-    if (isLabelledDng(file)) {
-        return {isValid: false, error: canConvertDngToJpeg ? CONST.FILE_VALIDATION_ERRORS.DNG_IMAGE : CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE};
+    // The backend can't parse DNG (iPhone ProRAW / Android RAW), so on native it is flagged for conversion to JPEG (like
+    // HEIC below), which covers paths that don't go through the pickers' own conversion, e.g. sharing into the app. This
+    // runs before the receipt extension check, which would otherwise reject the DNG before it gets a chance to be
+    // converted. Web can't decode DNG and gets no special case: a DNG receipt fails the receipt extension check below,
+    // and a DNG chat attachment is uploaded like any other file, as it was before native learned to convert it.
+    if (canConvertDngToJpeg && isLabelledDng(file)) {
+        return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.DNG_IMAGE};
     }
 
     if (isValidatingReceipts && !isValidReceiptExtension(file)) {

@@ -1,4 +1,4 @@
-import {isLabelledDng} from '@libs/fileDownload/FileUtils';
+import {getConvertedJpegFileName, getFileName, isLabelledDng} from '@libs/fileDownload/FileUtils';
 import fileURIToPath from '@libs/fileURIToPath';
 import Log from '@libs/Log';
 
@@ -21,27 +21,14 @@ function getConvertedFileSize(uri: string, fallbackSize: number | null | undefin
 }
 
 /**
- * Name for the converted JPEG: the original extension is swapped for `.jpg`, or `.jpg` is appended when the file was
- * recognized by MIME type and its name carries no matching extension.
- */
-function getConvertedFileName(fileName: string | undefined, originalExtension: RegExp): string {
-    if (!fileName) {
-        return 'converted-image.jpg';
-    }
-    return originalExtension.test(fileName) ? fileName.replace(originalExtension, '.jpg') : `${fileName}.jpg`;
-}
-
-/**
  * Helper function to convert a HEIC/HEIF or DNG image to JPEG using ImageManipulator
  * @param file - The original file object
  * @param sourceUri - URI of the image to convert
- * @param originalExtension - The original file extension pattern to replace
  * @param callbacks - Callback functions for the conversion process
  */
 const convertImageWithManipulator = (
     file: FileObject,
     sourceUri: string,
-    originalExtension: RegExp,
     {
         onSuccess = () => {},
         onError = () => {},
@@ -60,7 +47,7 @@ const convertImageWithManipulator = (
             getConvertedFileSize(manipulationResult.uri, file.size).then((size) => {
                 const convertedFile = {
                     uri: manipulationResult.uri,
-                    name: getConvertedFileName(file.name, originalExtension),
+                    name: getConvertedJpegFileName(file.name, getFileName(manipulationResult.uri)),
                     type: 'image/jpeg',
                     size,
                     width: manipulationResult.width,
@@ -89,16 +76,16 @@ const convertHeicImage: HeicConverterFunction = (file, {onSuccess = () => {}, on
     // A DNG can arrive without an `image/*` type (Android's MIME map doesn't know it on every device), so the type check
     // below only applies to HEIC. The backend rejects DNG, so it must be converted rather than passed through.
     const isDng = isLabelledDng(file);
+    const needsConversion = isDng || (isHeic && !!file.type?.startsWith('image'));
 
-    if (!file.uri || (!isDng && (!isHeic || !file.type?.startsWith('image')))) {
+    if (!file.uri || !needsConversion) {
         onSuccess(file);
         return;
     }
 
     onStart();
 
-    // Conversion based on extension
-    convertImageWithManipulator(file, file.uri, isDng ? /\.dng$/i : /\.(heic|heif)$/i, {
+    convertImageWithManipulator(file, file.uri, {
         onSuccess,
         onError,
         onFinish,

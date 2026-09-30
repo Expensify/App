@@ -3092,7 +3092,7 @@ const CONST = {
         FILE_TOO_LARGE: 'fileTooLarge',
         FILE_TOO_SMALL: 'fileTooSmall',
         FILE_CORRUPTED: 'fileCorrupted',
-        HEIC_CONVERSION_FAILED: 'heicConversionFailed',
+        IMAGE_CONVERSION_FAILED: 'imageConversionFailed',
         PROTECTED_FILE: 'protectedFile',
         HEIC_OR_HEIF_IMAGE: 'heicOrHeifImage',
         DNG_IMAGE: 'dngImage',

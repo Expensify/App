@@ -439,7 +439,7 @@ function readFileHeaderBase64IOS(path: string): Promise<string> {
 
 /**
  * Android counterpart of `readFileHeaderBase64IOS`, streaming the file and stopping at the first chunk.
- * Read errors reject, as on iOS, so a file whose format can't be verified is never uploaded unconverted.
+ * Read errors reject, as on iOS, instead of being mistaken for "no signature found", so callers can decide what to do.
  */
 function readFileHeaderBase64Android(path: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
@@ -756,6 +756,17 @@ function isLabelledDng({name, type}: {name?: string | null; type?: string | null
 }
 
 /**
+ * Name for a JPEG transcoded from a HEIC or DNG. Keeps the name the user picked and swaps its extension, whatever it was,
+ * for `.jpg` (`IMG_1234.DNG` becomes `IMG_1234.jpg`, and so does the `<uuid>.jpg` iOS relabels a ProRAW to). A name
+ * without an extension, as when the file was recognized by MIME type, gets `.jpg` appended. Falls back to
+ * `fallbackFileName` (typically the name of the file the converter saved) when the picker gave no name.
+ */
+function getConvertedJpegFileName(originalFileName: string | null | undefined, fallbackFileName: string): string {
+    const baseName = originalFileName ? splitExtensionFromFileName(originalFileName).fileName : '';
+    return baseName ? `${baseName}.jpg` : fallbackFileName;
+}
+
+/**
  * Normalizes a file-like object specifically for Android clipboard image pasting,
  * where limited file metadata is available (e.g., only a URI).
  * If the object is already a File or contains a size, it is returned as-is.
@@ -861,7 +872,7 @@ const getFileValidationErrorText = (
                 title: translate('attachmentPicker.attachmentError'),
                 reason: translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
             };
-        case CONST.FILE_VALIDATION_ERRORS.HEIC_CONVERSION_FAILED:
+        case CONST.FILE_VALIDATION_ERRORS.IMAGE_CONVERSION_FAILED:
             return {
                 title: translate('attachmentPicker.attachmentError'),
                 reason: translate('attachmentPicker.errorWhileConvertingImage'),
@@ -1009,6 +1020,7 @@ export {
     hasHeicOrHeifExtension,
     isLabelledTiff,
     isLabelledDng,
+    getConvertedJpegFileName,
     canvasFallback,
     getFilesFromClipboardEvent,
     cleanFileObject,

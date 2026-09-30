@@ -330,7 +330,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                         onError: () => {
                             Log.warn('Image conversion to JPEG failed, blocking file', {fileName: file.name});
                             collectedErrors.current.push({
-                                error: CONST.FILE_VALIDATION_ERRORS.HEIC_CONVERSION_FAILED,
+                                error: CONST.FILE_VALIDATION_ERRORS.IMAGE_CONVERSION_FAILED,
                                 isValidatingMultipleFiles: validationState.isValidatingMultipleFiles,
                             });
                             resolve();

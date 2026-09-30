@@ -5,6 +5,7 @@ import {
     ANDROID_SAFE_FILE_NAME_LENGTH,
     appendTimeToFileName,
     canvasFallback,
+    getConvertedJpegFileName,
     getExportFileName,
     getFileNameWithFallback,
     getFileValidationErrorText,
@@ -617,6 +618,28 @@ describe('FileUtils', () => {
             // When checked for DNG specifically
             // Then only DNGs match, since TIFFs are an accepted receipt format and must not be swept up with them
             expect(isLabelledDng(file)).toBe(expected);
+        });
+    });
+
+    describe('getConvertedJpegFileName', () => {
+        it.each([
+            ['swaps a DNG extension for .jpg', 'IMG_0001.DNG', 'IMG_0001.jpg'],
+            ['swaps a HEIC extension for .jpg', 'photo.heic', 'photo.jpg'],
+            ['keeps a relabelled .jpg name as-is', 'D1F3.jpg', 'D1F3.jpg'],
+            ['appends .jpg to a name with no extension', 'raw', 'raw.jpg'],
+            ['keeps dots inside the base name', 'trip.day 2.dng', 'trip.day 2.jpg'],
+        ])('%s', (description, originalFileName, expected) => {
+            // Given the name the picker returned for an image about to be transcoded
+            // When the JPEG's name is derived from it
+            // Then the user's name is kept and only the extension changes, so the upload doesn't get the converter's random name
+            expect(getConvertedJpegFileName(originalFileName, 'ABCD.jpg')).toBe(expected);
+        });
+
+        it.each([undefined, null, ''])('falls back to the converted file name when the picker gave %p', (originalFileName) => {
+            // Given a picker that returned no file name
+            // When the JPEG's name is derived
+            // Then the name of the file the converter saved is used, since there is no picked name to keep
+            expect(getConvertedJpegFileName(originalFileName, 'ABCD.jpg')).toBe('ABCD.jpg');
         });
     });
 });

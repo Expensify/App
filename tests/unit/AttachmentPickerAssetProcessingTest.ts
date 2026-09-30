@@ -285,33 +285,49 @@ describe('processPickedAssetsSequentially', () => {
         expect(result?.at(0)?.fileName).toBe('doc.pdf');
     });
 
-    it('shows the generic message instead of the native error when the header read fails', async () => {
-        // Given a header read that rejects with a native filesystem error
-        mockReadFileHeaderHex.mockRejectedValueOnce(new Error('EACCES: permission denied'));
+    it.each([
+        ['an Error', new Error('EACCES: permission denied')],
+        ['a non-Error value', 'not an error object'],
+    ])('passes the asset through unconverted instead of dropping it when the header read fails with %s', async (description, failure) => {
+        // Given a JPEG whose header read rejects with a native filesystem error that says nothing about its format
+        mockReadFileHeaderHex.mockRejectedValueOnce(failure);
+        const pickedAsset: Asset = {uri: 'file:///photo.jpg', fileName: 'photo.jpg', type: 'image/jpeg'};
 
         // When the selection is processed
-        await processPickedAssetsSequentially(buildHeicAssets(1), showGeneralAlert, translate);
+        const result = await processPickedAssetsSequentially([pickedAsset], showGeneralAlert, translate);
 
-        // Then the user sees localized copy rather than an error code that means nothing to them
-        expect(showGeneralAlert).toHaveBeenCalledWith('attachmentPicker.errorWhileSelectingAttachment');
+        // Then the asset is kept as picked, as it was before read errors were surfaced, and the user is not alerted about a
+        // file that will most likely upload fine
+        expect(mockRenderAsync).not.toHaveBeenCalled();
+        expect(result).toEqual([pickedAsset]);
+        expect(showGeneralAlert).not.toHaveBeenCalled();
     });
 
-    it('falls back to localized copy when the failure is not an Error', async () => {
-        mockReadFileHeaderHex.mockRejectedValueOnce('not an error object');
+    it('still transcodes a labelled DNG when the header can not be read', async () => {
+        // Given a labelled DNG, for which the label alone decides, and a filesystem that refuses every read
+        mockReadFileHeaderHex.mockRejectedValue(new Error('EACCES: permission denied'));
 
-        await processPickedAssetsSequentially(buildHeicAssets(1), showGeneralAlert, translate);
+        // When the selection is processed
+        const result = await processPickedAssetsSequentially([{uri: 'file:///raw.dng', fileName: 'raw.dng', type: 'image/x-adobe-dng'}], showGeneralAlert, translate);
 
-        expect(showGeneralAlert).toHaveBeenCalledWith('attachmentPicker.errorWhileSelectingAttachment');
+        // Then no read is attempted and the DNG is transcoded regardless of the read failure
+        expect(mockReadFileHeaderHex).not.toHaveBeenCalled();
+        expect(mockRenderAsync).toHaveBeenCalledTimes(1);
+        expect(result?.at(0)?.type).toBe('image/jpeg');
     });
 
-    it('shows one alert even when the selection fails in different ways', async () => {
+    it('keeps the assets whose header could not be read while alerting for the ones that failed to convert', async () => {
+        // Given a selection where the first asset's header read fails and the second decodes fine but fails to convert
         mockReadFileHeaderHex.mockRejectedValueOnce(new Error('format check failed'));
         mockRenderAsync.mockRejectedValue(new Error('decode failed'));
 
-        await processPickedAssetsSequentially(buildHeicAssets(2), showGeneralAlert, translate);
+        // When the selection is processed
+        const result = await processPickedAssetsSequentially(buildHeicAssets(2), showGeneralAlert, translate);
 
+        // Then the unreadable asset is passed through and only the conversion failure is reported, in a single alert
+        expect(result).toHaveLength(1);
         expect(showGeneralAlert).toHaveBeenCalledTimes(1);
-        expect(showGeneralAlert).toHaveBeenCalledWith('attachmentPicker.errorWhileSelectingAttachment\nattachmentPicker.errorWhileConvertingImage');
+        expect(showGeneralAlert).toHaveBeenCalledWith('attachmentPicker.errorWhileConvertingImage');
     });
     it.each([
         ['the rendered image', () => mockImageRelease],

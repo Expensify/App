@@ -109,16 +109,13 @@ describe('validateAttachmentFile', () => {
         it.each([
             ['by extension', {name: 'IMG_0001.DNG', size: 1000}],
             ['by MIME type', {name: 'photo', size: 1000, type: 'image/x-adobe-dng'}],
-        ])('rejects a DNG chat attachment %s on web even though attachments get no receipt extension check', async (description, file: FileObject) => {
-            // Given a ProRAW picked as a chat attachment on web, where nothing transcodes it and the browser can't render it
-            // When validated outside the receipt flow
+        ])('still accepts a DNG chat attachment %s on web', async (description, file: FileObject) => {
+            // Given a ProRAW picked as a chat attachment on web, where nothing can transcode it
+            // When validated outside the receipt flow, which has no extension check
             const error = await validateAttachmentFile(file, undefined, false);
 
-            // Then it is refused with the invalid-file-type modal rather than uploaded as an attachment nobody can preview
-            if (error.isValid) {
-                throw new Error('validateAttachmentFile should return an invalid result');
-            }
-            expect(error.error).toEqual(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE);
+            // Then it is uploaded like any other attachment, as it was before native learned to convert DNG
+            expect(error.isValid).toBe(true);
         });
 
         it('still accepts a plain TIFF chat attachment', async () => {
@@ -175,7 +172,7 @@ describe('validateAttachmentFile', () => {
             // When a DNG receipt is validated
             const error = await validateAttachmentFile(createMockFile('IMG_0001.dng', 1000), undefined, true);
 
-            // Then the user sees the invalid-file-type error
+            // Then it falls through to the receipt extension check and the user sees the invalid-file-type error
             if (error.isValid) {
                 throw new Error('validateAttachmentFile should return an invalid result');
             }

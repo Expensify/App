@@ -1,4 +1,4 @@
-import {getFileName, isLabelledDng, isLabelledTiff, matchesFileSignature, readFileHeaderHex, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+import {getConvertedJpegFileName, getFileName, isLabelledDng, isLabelledTiff, matchesFileSignature, readFileHeaderHex} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
@@ -64,6 +64,11 @@ const TIFF_CONTAINER_FORMAT = TRANSCODED_FORMATS[1];
  *   only the first page of a multi-page scan.
  * Everything else, including the `.jpg` that iOS relabels a ProRAW to, is sniffed from its magic bytes, which
  * are read once and matched against every format.
+ *
+ * A failed header read (a native filesystem error such as ENOENT/EACCES) says nothing about the format, so the asset
+ * is passed through as picked rather than dropped: a good JPEG that hits a transient read error still uploads, as it
+ * did before read errors were surfaced. A relabelled HEIC or DNG that slips through this way fails later with the
+ * image corruption alert, which is what happened to it before this detection existed.
  */
 async function detectFormatToTranscode(asset: Asset & {uri: string}): Promise<TranscodedFormat | undefined> {
     const label = {name: asset.fileName ?? getFileName(asset.uri), type: asset.type};
@@ -74,17 +79,14 @@ async function detectFormatToTranscode(asset: Asset & {uri: string}): Promise<Tr
         return undefined;
     }
 
-    const headerHex = await readFileHeaderHex(asset.uri);
+    let headerHex: string;
+    try {
+        headerHex = await readFileHeaderHex(asset.uri);
+    } catch (error) {
+        Log.warn('Failed to read picked asset header, passing the asset through unconverted', {error: getErrorMessage(error, 'An unknown error occurred')});
+        return undefined;
+    }
     return TRANSCODED_FORMATS.find((format) => matchesFileSignature(headerHex, format.formatSignatures, format.signatureOffset));
-}
-
-/**
- * Name for the transcoded JPEG. Keeps the name the user picked (`IMG_1234.DNG` becomes `IMG_1234.jpg`) rather than the
- * random name ImageManipulator saves under, falling back to the latter when the picker gave no name.
- */
-function getConvertedFileName(originalFileName: string | undefined, convertedUri: string): string {
-    const baseName = originalFileName ? splitExtensionFromFileName(originalFileName).fileName : '';
-    return baseName ? `${baseName}.jpg` : getFileName(convertedUri);
 }
 
 /**
@@ -109,7 +111,7 @@ async function convertToJpeg(uri: string, formatName: TranscodedFormat['name'], 
             const manipulationResult = await manipulatedImage.saveAsync({format: SaveFormat.JPEG});
             return {
                 uri: manipulationResult.uri,
-                fileName: getConvertedFileName(originalFileName, manipulationResult.uri),
+                fileName: getConvertedJpegFileName(originalFileName, getFileName(manipulationResult.uri)),
                 type: 'image/jpeg',
                 width: manipulationResult.width,
                 height: manipulationResult.height,
@@ -154,31 +156,24 @@ const processPickedAssetsSequentially: ProcessPickedAssetsFunction = async (asse
             continue;
         }
 
-        try {
-            // eslint-disable-next-line no-await-in-loop -- converting one image at a time is the point, see the doc comment above
-            const formatToTranscode = await detectFormatToTranscode({...asset, uri: asset.uri});
+        // eslint-disable-next-line no-await-in-loop -- converting one image at a time is the point, see the doc comment above
+        const formatToTranscode = await detectFormatToTranscode({...asset, uri: asset.uri});
 
-            if (!formatToTranscode) {
-                // Ensure the asset has proper fileName and type for images that need no transcoding
-                processedAssets.push(processAssetWithFallbacks(asset));
-                continue;
-            }
+        if (!formatToTranscode) {
+            // Ensure the asset has proper fileName and type for images that need no transcoding
+            processedAssets.push(processAssetWithFallbacks(asset));
+            continue;
+        }
 
-            // react-native-image-picker sniffs only the first byte and labels anything it doesn't recognize as JPEG without
-            // transcoding it. HEIC and TIFF/DNG both end up as a broken `<uuid>.jpg`, so we transcode them for real here.
-            // eslint-disable-next-line no-await-in-loop -- converting one image at a time is the point, see the doc comment above
-            const convertedAsset = await convertToJpeg(asset.uri, formatToTranscode.name, asset.fileName);
+        // react-native-image-picker sniffs only the first byte and labels anything it doesn't recognize as JPEG without
+        // transcoding it. HEIC and TIFF/DNG both end up as a broken `<uuid>.jpg`, so we transcode them for real here.
+        // eslint-disable-next-line no-await-in-loop -- converting one image at a time is the point, see the doc comment above
+        const convertedAsset = await convertToJpeg(asset.uri, formatToTranscode.name, asset.fileName);
 
-            if (convertedAsset) {
-                processedAssets.push(convertedAsset);
-            } else {
-                failureMessages.add(translate('attachmentPicker.errorWhileConvertingImage'));
-            }
-        } catch (error) {
-            // Only the header read can throw here (a native filesystem error such as ENOENT/EACCES), which means nothing
-            // to the user, so it is logged and the generic message is shown instead.
-            Log.warn('Failed to read picked asset, skipping it', {error: getErrorMessage(error, 'An unknown error occurred')});
-            failureMessages.add(translate('attachmentPicker.errorWhileSelectingAttachment'));
+        if (convertedAsset) {
+            processedAssets.push(convertedAsset);
+        } else {
+            failureMessages.add(translate('attachmentPicker.errorWhileConvertingImage'));
         }
     }
 
