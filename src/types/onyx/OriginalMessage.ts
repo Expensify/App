@@ -79,6 +79,9 @@ type OriginalMessageIOU = {
     /** Masked number (e.g., 'XXXXXX1234') of the bank account used to fund the payment */
     accountNumber?: string;
 
+    /** Estimated date the reimbursement will reach the recipient's bank account */
+    expectedDate?: string;
+
     /** True when the submitter marked the report as payment received outside Expensify */
     isSubmitterMarkedPaymentReceived?: boolean;
 
@@ -971,6 +974,9 @@ type OriginalMessageModifiedExpense = {
 
     /** The Concierge reasoning for the action */
     reasoning?: string;
+
+    /** Whether a receipt was added to the expense */
+    receiptAdded?: boolean;
 };
 
 /** Model of `concierge auto match vendor` report action — emitted on the transaction thread when the PHP fuzzy matcher auto-matches a non-reimbursable expense to a QBO vendor. */

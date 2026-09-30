@@ -236,16 +236,25 @@ describe('groupFieldsIntoPages', () => {
     });
 
     it('keeps a dependent hidden while its controlling field is itself hidden', () => {
+        const directorCount: DynamicFormField = {
+            key: 'directorCount',
+            label: 'Directors',
+            group: 'Business',
+            type: 'number',
+            required: true,
+            showWhen: {key: 'hasDirectors', equals: ['true']},
+            refreshOnChange: false,
+        };
         const fields: DynamicFormField[] = [
             {key: 'legalType', label: 'Type', group: 'Business', type: 'radio', required: true, values: [{key: 'BUSINESS'}, {key: 'PRIVATE'}], refreshOnChange: false},
             {key: 'hasDirectors', label: 'Has directors', group: 'Business', type: 'boolean', required: false, showWhen: {key: 'legalType', equals: ['BUSINESS']}, refreshOnChange: false},
-            {key: 'directorCount', label: 'Directors', group: 'Business', type: 'number', required: true, showWhen: {key: 'hasDirectors', equals: ['true']}, refreshOnChange: false},
+            directorCount,
         ];
         const answers = {legalType: 'PRIVATE', hasDirectors: true};
 
-        expect(isFieldVisible(fields[2], answers, fields)).toBe(false);
+        expect(isFieldVisible(directorCount, answers, fields)).toBe(false);
         expect(getDynamicFieldErrors(fields, answers, translateLocal)).toEqual({});
-        expect(isFieldVisible(fields[2], {...answers, legalType: 'BUSINESS'}, fields)).toBe(true);
+        expect(isFieldVisible(directorCount, {...answers, legalType: 'BUSINESS'}, fields)).toBe(true);
     });
 
     it('resolves dependent options from a boolean controller', () => {
