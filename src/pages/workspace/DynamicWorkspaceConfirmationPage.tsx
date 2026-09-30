@@ -4,6 +4,7 @@ import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/Worksp
 
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useHasOwnedPaidPolicy from '@hooks/useHasOwnedPaidPolicy';
@@ -32,12 +33,12 @@ function DynamicWorkspaceConfirmationPage() {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const privateSubscription = usePrivateSubscription();
     const isAnnualSubscription = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const activePolicy = useActivePolicy();
@@ -79,10 +80,10 @@ function DynamicWorkspaceConfirmationPage() {
             shouldCreateControlPolicy: isSubscriptionTypeOfInvoicing(privateSubscription?.type),
             type: params.planType,
             isSelfTourViewed,
-            betas,
             hasActiveAdminPolicies,
             hasOwnedPaidPolicy,
             isAnnualSubscription,
+            delegateAccountID,
         });
     };
     const currentUrl = getCurrentUrl();

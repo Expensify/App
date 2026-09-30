@@ -28,7 +28,6 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {startApprovedAnimation} = useReportPreviewActions();
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
@@ -47,7 +46,6 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
                 currentUserEmailParam: currentUserDetails.email ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
-                betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,

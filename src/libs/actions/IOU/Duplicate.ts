@@ -12,7 +12,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getExistingTransactionID} from '@libs/IOUUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
-import {isInstantSubmitEnabled, isPolicyAccessible, isSubmitAndClose} from '@libs/PolicyUtils';
+import {getReimbursementChoice, isInstantSubmitEnabled, isPolicyAccessible, isSubmitAndClose} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticCreatedReportAction,
@@ -66,7 +66,7 @@ import type {PerDiemExpenseInformation} from './PerDiem';
 import type {CreateDistanceRequestInformation} from './Split';
 import type {CreateTrackExpenseParams} from './TrackExpense';
 
-import {getAllReports, getAllTransactions, getCurrentUserAccountIDFromSession} from '.';
+import {getAllTransactions, getCurrentUserAccountIDFromSession} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {submitPerDiemExpense} from './PerDiem';
@@ -182,6 +182,7 @@ type MergeDuplicatesFuncParams = MergeDuplicatesParams & {
     taxValue?: string;
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
+    allReportsList: OnyxCollection<OnyxTypes.Report>;
 };
 
 /** Merge several transactions into one by updating the fields of the one we want to keep and deleting the rest */
@@ -193,11 +194,11 @@ function mergeDuplicates({
     taxValue,
     allTransactionViolations,
     allReportActionsList,
+    allReportsList,
     ...params
 }: MergeDuplicatesFuncParams) {
     const allParams: MergeDuplicatesParams = {...params};
     const allTransactions = getAllTransactions();
-    const allReports = getAllReports();
     const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
 
     const optimisticTransactionData = buildOptimisticTransactionData({
@@ -249,7 +250,7 @@ function mergeDuplicates({
         };
     });
 
-    const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`];
+    const expenseReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`];
 
     // Group each discarded duplicate's IOU action and amount by its own source report so the
     // soft-delete MERGE and total decrement target the correct keys when duplicates span reports.
@@ -276,7 +277,7 @@ function mergeDuplicates({
     const cleanUpTransactionThreadReportsSuccessData = [];
     const cleanUpTransactionThreadReportsFailureData = [];
     for (const [sourceReportID, {amount, reimbursableAmount, actions}] of sources) {
-        const sourceReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`];
+        const sourceReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`];
         const sourceReimbursableTotal = getReimbursableTotal(sourceReport);
         expenseReportOptimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -304,6 +305,10 @@ function mergeDuplicates({
         let updatedReportPreviewAction;
         for (const [index, iouAction] of actions.entries()) {
             const transactionThreadID = iouAction.childReportID;
+            const transactionThread = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`];
+            const iouReportID = isMoneyRequestAction(iouAction) ? iouAction?.reportID : undefined;
+            const iouReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+            const chatReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
             const cleanUp = getCleanUpTransactionThreadReportOnyxData({
                 transactionThreadID,
                 shouldDeleteTransactionThread: !!transactionThreadID,
@@ -311,6 +316,9 @@ function mergeDuplicates({
                 updatedReportPreviewAction,
                 shouldAddUpdatedReportPreviewActionToOnyxData: index === actions.length - 1,
                 currentUserAccountID,
+                transactionThread,
+                iouReport,
+                chatReport,
                 transactionThreadReportActionsParam: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`],
             });
             cleanUpTransactionThreadReportsOptimisticData.push(...cleanUp.optimisticData);
@@ -798,7 +806,6 @@ type DuplicateExpenseTransactionParams = {
     targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     targetReport?: OnyxTypes.Report;
     existingTransactionDraft: OnyxEntry<OnyxTypes.Transaction>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     targetPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
@@ -816,6 +823,7 @@ type DuplicateExpenseTransactionParams = {
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 function duplicateExpenseTransaction({
@@ -833,7 +841,6 @@ function duplicateExpenseTransaction({
     targetPolicyCategories,
     targetReport,
     existingTransactionDraft,
-    betas,
     personalDetails,
     recentWaypoints,
     shouldPlaySound = true,
@@ -851,6 +858,7 @@ function duplicateExpenseTransaction({
     conciergeChat,
     targetPolicyTags,
     rules,
+    isVendorMatchingBetaEnabled,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -866,6 +874,7 @@ function duplicateExpenseTransaction({
     const duplicateRequestType = getDuplicateRequestType(transaction, shouldDuplicateSelfDMExpense);
 
     const params: RequestMoneyInformation = {
+        isVendorMatchingBetaEnabled,
         report: targetReport,
         existingIOUReport,
         optimisticChatReportID,
@@ -901,7 +910,6 @@ function duplicateExpenseTransaction({
         },
         isSelfTourViewed,
         conciergeChat,
-        betas,
         personalDetails,
         shouldDeferAutoSubmit,
         isTrackIntentUser,
@@ -946,7 +954,6 @@ function duplicateExpenseTransaction({
             conciergeChat,
             quickAction,
             recentWaypoints,
-            betas,
             isSelfTourViewed,
             currentUserLocalCurrency,
             delegateAccountID,
@@ -994,7 +1001,6 @@ type DuplicateReportParams = {
     parentChatReport: OnyxEntry<OnyxTypes.Report>;
     ownerPersonalDetails: CurrentUserPersonalDetails;
     isASAPSubmitBetaEnabled: boolean;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
@@ -1012,6 +1018,7 @@ type DuplicateReportParams = {
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 /**
@@ -1081,7 +1088,6 @@ function duplicateReport({
     parentChatReport,
     ownerPersonalDetails,
     isASAPSubmitBetaEnabled,
-    betas,
     personalDetails,
     quickAction,
     policyRecentlyUsedCurrencies,
@@ -1099,6 +1105,7 @@ function duplicateReport({
     participantsPolicyTags,
     conciergeChat,
     rules,
+    isVendorMatchingBetaEnabled,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
         return;
@@ -1110,7 +1117,6 @@ function duplicateReport({
         false,
         isASAPSubmitBetaEnabled,
         targetPolicy,
-        betas,
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
@@ -1187,6 +1193,7 @@ function duplicateReport({
         const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails);
 
         const params: RequestMoneyInformation = {
+            isVendorMatchingBetaEnabled,
             report: parentChatReport,
             existingIOUReport: currentIOUReport,
             optimisticReportPreviewActionID: reportPreviewReportActionID,
@@ -1228,7 +1235,6 @@ function duplicateReport({
             },
             isSelfTourViewed,
             conciergeChat,
-            betas,
             personalDetails,
             shouldDeferAutoSubmit: !isLastExpense,
             isTrackIntentUser,
@@ -1283,7 +1289,6 @@ type BulkDuplicateExpensesParams = {
     policyRecentlyUsedCurrencies: string[];
     isSelfTourViewed: boolean;
     transactionDrafts: Record<string, OnyxTypes.Transaction> | undefined;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     currentUser: CurrentUser;
     currentUserLocalCurrency: string | undefined;
@@ -1295,6 +1300,7 @@ type BulkDuplicateExpensesParams = {
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 function bulkDuplicateExpenses({
@@ -1313,7 +1319,6 @@ function bulkDuplicateExpenses({
     policyRecentlyUsedCurrencies,
     isSelfTourViewed,
     transactionDrafts,
-    betas,
     recentWaypoints,
     currentUser,
     currentUserLocalCurrency,
@@ -1325,6 +1330,7 @@ function bulkDuplicateExpenses({
     participantsPolicyTags,
     conciergeChat,
     rules,
+    isVendorMatchingBetaEnabled,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1361,7 +1367,7 @@ function bulkDuplicateExpenses({
     const policyWillSplitReport =
         isInstantSubmitEnabled(targetPolicy) &&
         isSubmitAndClose(targetPolicy) &&
-        (allNonReimbursable || targetPolicy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO);
+        (allNonReimbursable || getReimbursementChoice(targetPolicy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO);
 
     // A copy of an unreported expense is tracked, so only an expense that lands on the report can submit it.
     const lastReportBoundIndex = targetPolicy ? transactionsToDuplicate.findLastIndex((t) => !!t.reportID && t.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) : -1;
@@ -1399,6 +1405,7 @@ function bulkDuplicateExpenses({
         const shouldDeferAutoSubmit = i < lastReportBoundIndex && !reportWasSplit && !policyWillSplitReport;
 
         const result = duplicateExpenseTransaction({
+            isVendorMatchingBetaEnabled,
             dateFnsLocale,
             transaction: item,
             optimisticChatReportID,
@@ -1413,7 +1420,6 @@ function bulkDuplicateExpenses({
             targetPolicyCategories: targetPolicyCategories ?? {},
             targetReport: currentTargetReport,
             existingTransactionDraft,
-            betas,
             personalDetails,
             recentWaypoints,
             targetPolicyTags,
@@ -1457,7 +1463,6 @@ type BulkDuplicateReportsParams = {
     activePolicyExpenseChat: OnyxEntry<OnyxTypes.Report>;
     ownerPersonalDetails: CurrentUserPersonalDetails;
     isASAPSubmitBetaEnabled: boolean;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
@@ -1473,6 +1478,7 @@ type BulkDuplicateReportsParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 async function bulkDuplicateReports({
@@ -1487,7 +1493,6 @@ async function bulkDuplicateReports({
     activePolicyExpenseChat,
     ownerPersonalDetails,
     isASAPSubmitBetaEnabled,
-    betas,
     personalDetails,
     quickAction,
     policyRecentlyUsedCurrencies,
@@ -1503,6 +1508,7 @@ async function bulkDuplicateReports({
     getCurrencyDecimals,
     conciergeChat,
     rules,
+    isVendorMatchingBetaEnabled,
 }: BulkDuplicateReportsParams) {
     const allTransactionsMap = getAllTransactions();
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
@@ -1578,6 +1584,7 @@ async function bulkDuplicateReports({
         const participantsPolicyTags = getPolicyTagsSelector(participants)(allPolicyTags);
 
         duplicateReport({
+            isVendorMatchingBetaEnabled,
             dateFnsLocale,
             sourceReport: report,
             sourceReportTransactions: reportTransactions,
@@ -1588,7 +1595,6 @@ async function bulkDuplicateReports({
             parentChatReport,
             ownerPersonalDetails,
             isASAPSubmitBetaEnabled,
-            betas,
             personalDetails,
             quickAction,
             policyRecentlyUsedCurrencies,

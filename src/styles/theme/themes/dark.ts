@@ -48,7 +48,7 @@ const darkTheme = {
     receiptPlaceholderPlus: colors.productLight100,
 
     // Additional keys
-    overlay: colors.productDark400,
+    overlay: colors.productDark300,
     inverse: colors.productDark900,
     shadow: '0px 4px 12px 0px rgba(2,18,4,0.24)',
     componentBG: colors.productDark100,
@@ -64,7 +64,8 @@ const darkTheme = {
     textReversed: colors.productLight900,
     textBackground: colors.productDark200,
     textMutedReversed: colors.productDark700,
-    textError: colors.red,
+    textError: colors.tangerine300,
+    textSuccess: colors.green300,
     offline: colors.productDark700,
     modalBackground: colors.productDark100,
     cardBG: colors.productDark200,
@@ -87,6 +88,7 @@ const darkTheme = {
     imageCropBackgroundColor: colors.productDark700,
     fallbackIconColor: colors.green700,
     reactionActiveBackground: colors.green600,
+    selectedOptionBG: colors.green700,
     reactionActiveText: colors.green100,
     badgeDefaultBG: colors.productDark400,
     badgeSuccessBG: colors.green700,

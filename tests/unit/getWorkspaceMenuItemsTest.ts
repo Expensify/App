@@ -34,6 +34,7 @@ const icons = {
     Gear: mockIcon,
     Bolt: mockIcon,
     Bot: mockIcon,
+    UserPlus: mockIcon,
 };
 
 function buildPolicy(role: Policy['role']): Policy {
@@ -316,6 +317,52 @@ describe('getWorkspaceMenuItems', () => {
         expect(items.find((item) => item.translationKey === 'workspace.common.hr')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.INFO);
     });
 
+    it('shows an information indicator on Accounting when the QBO refresh token is about to expire', () => {
+        const policy = createMock<Policy>({
+            ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
+            areConnectionsEnabled: true,
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {credentials: {companyID: '12345', refreshTokenExpiresAt: Math.floor(Date.now() / 1000) + 3 * 86400}},
+                    lastSync: {isSuccessful: true, isConnected: true, isAuthenticationError: false},
+                },
+            },
+        });
+
+        const items = getWorkspaceMenuItems({
+            policy,
+            policyID: policy.id,
+            currentUserLogin,
+            icons,
+            convertToDisplayString: () => '',
+        });
+
+        expect(items.find((item) => item.translationKey === 'workspace.common.accounting')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.INFO);
+    });
+
+    it('keeps the error indicator on Accounting when a sync error exists even if the QBO refresh token is about to expire', () => {
+        const policy = createMock<Policy>({
+            ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
+            areConnectionsEnabled: true,
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {credentials: {companyID: '12345', refreshTokenExpiresAt: Math.floor(Date.now() / 1000) + 3 * 86400}},
+                    lastSync: {isSuccessful: false, isConnected: false, isAuthenticationError: true, errorDate: new Date().toISOString(), errorMessage: 'Error'},
+                },
+            },
+        });
+
+        const items = getWorkspaceMenuItems({
+            policy,
+            policyID: policy.id,
+            currentUserLogin,
+            icons,
+            convertToDisplayString: () => '',
+        });
+
+        expect(items.find((item) => item.translationKey === 'workspace.common.accounting')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+    });
+
     it('shows an error indicator when the Merge HR connection has an authentication error', () => {
         const policy = createMock<Policy>({
             ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
@@ -339,11 +386,90 @@ describe('getWorkspaceMenuItems', () => {
         expect(items.find((item) => item.translationKey === 'workspace.common.hr')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
     });
 
+    it('hides the Recruiting row when the Merge ATS beta is disabled', () => {
+        const policy = createMock<Policy>({...buildPolicy(CONST.POLICY.ROLE.ADMIN), isRecruitingEnabled: true});
+
+        const buildItems = (isRecruitingBetaEnabled: boolean) =>
+            getWorkspaceMenuItems({
+                policy,
+                policyID: policy.id,
+                currentUserLogin,
+                icons,
+                isRecruitingBetaEnabled,
+                convertToDisplayString: () => '',
+            });
+
+        expect(buildItems(false).find((item) => item.translationKey === 'workspace.common.recruiting')).toBeUndefined();
+
+        const recruitingItem = buildItems(true).find((item) => item.translationKey === 'workspace.common.recruiting');
+        expect(recruitingItem?.getRoute()).toBe(ROUTES.WORKSPACE_RECRUITING.getRoute(policy.id));
+        expect(recruitingItem?.screenName).toBe(SCREENS.WORKSPACE.RECRUITING);
+    });
+
+    it('shows the Recruiting row when an ATS connection exists even without the policy flag', () => {
+        const policy = createMock<Policy>({
+            ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
+            isRecruitingEnabled: undefined,
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: {
+                    config: {integration: 'greenhouse'},
+                    lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.DONE},
+                },
+            },
+        });
+
+        const items = getWorkspaceMenuItems({
+            policy,
+            policyID: policy.id,
+            currentUserLogin,
+            icons,
+            isRecruitingBetaEnabled: true,
+            convertToDisplayString: () => '',
+        });
+
+        expect(items.find((item) => item.translationKey === 'workspace.common.recruiting')).toBeDefined();
+    });
+
+    it('hides the Recruiting row on a workspace whose plan cannot access the feature', () => {
+        const policy = createMock<Policy>({...buildPolicy(CONST.POLICY.ROLE.ADMIN), type: CONST.POLICY.TYPE.TEAM, isRecruitingEnabled: true});
+
+        const items = getWorkspaceMenuItems({
+            policy,
+            policyID: policy.id,
+            currentUserLogin,
+            icons,
+            isRecruitingBetaEnabled: true,
+            convertToDisplayString: () => '',
+        });
+
+        expect(items.find((item) => item.translationKey === 'workspace.common.recruiting')).toBeUndefined();
+    });
+
+    it('does not highlight a newly enabled Recruiting feature while the Merge ATS beta is disabled', () => {
+        const policy = createMock<Policy>({
+            ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
+            isRecruitingEnabled: true,
+            pendingFields: {isRecruitingEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+        });
+
+        const items = getWorkspaceMenuItems({
+            policy,
+            policyID: policy.id,
+            currentUserLogin,
+            icons,
+            previousPendingFields: {},
+            convertToDisplayString: () => '',
+        });
+
+        expect(items.filter((item) => item.highlighted)).toHaveLength(0);
+    });
+
     it('preserves the complete enabled Workspace menu order and presentation data', () => {
         const policy = createMock<Policy>({
             ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
             areConnectionsEnabled: true,
             isHREnabled: true,
+            isRecruitingEnabled: true,
             receiptPartners: {enabled: true},
             areCategoriesEnabled: true,
             areTagsEnabled: true,
@@ -373,6 +499,7 @@ describe('getWorkspaceMenuItems', () => {
             currentUserLogin,
             icons,
             isVendorMatchingBetaEnabled: true,
+            isRecruitingBetaEnabled: true,
             convertToDisplayString,
         });
 
@@ -383,12 +510,13 @@ describe('getWorkspaceMenuItems', () => {
             'common.reports',
             'workspace.common.accounting',
             'workspace.common.hr',
+            'workspace.common.recruiting',
             'workspace.common.receiptPartners',
             'workspace.common.mcp',
             'workspace.common.categories',
-            'workspace.common.vendors',
             'workspace.common.tags',
             'workspace.common.taxes',
+            'workspace.common.vendors',
             'workspace.common.workflows',
             'workspace.common.rules',
             'workspace.common.distanceRates',
@@ -407,12 +535,13 @@ describe('getWorkspaceMenuItems', () => {
             ROUTES.WORKSPACE_REPORTS.getRoute(policy.id),
             ROUTES.POLICY_ACCOUNTING.getRoute(policy.id),
             ROUTES.WORKSPACE_HR.getRoute(policy.id),
+            ROUTES.WORKSPACE_RECRUITING.getRoute(policy.id),
             ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policy.id),
             ROUTES.WORKSPACE_MCP.getRoute(policy.id),
             ROUTES.WORKSPACE_CATEGORIES.getRoute(policy.id),
-            ROUTES.WORKSPACE_VENDORS.getRoute(policy.id),
             ROUTES.WORKSPACE_TAGS.getRoute(policy.id),
             ROUTES.WORKSPACE_TAXES.getRoute(policy.id),
+            ROUTES.WORKSPACE_VENDORS.getRoute(policy.id),
             ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id),
             ROUTES.WORKSPACE_RULES.getRoute(policy.id),
             ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policy.id),
@@ -431,12 +560,13 @@ describe('getWorkspaceMenuItems', () => {
             SCREENS.WORKSPACE.REPORTS,
             SCREENS.WORKSPACE.ACCOUNTING.ROOT,
             SCREENS.WORKSPACE.HR,
+            SCREENS.WORKSPACE.RECRUITING,
             SCREENS.WORKSPACE.RECEIPT_PARTNERS,
             SCREENS.WORKSPACE.MCP,
             SCREENS.WORKSPACE.CATEGORIES,
-            SCREENS.WORKSPACE.VENDORS,
             SCREENS.WORKSPACE.TAGS,
             SCREENS.WORKSPACE.TAXES,
+            SCREENS.WORKSPACE.VENDORS,
             SCREENS.WORKSPACE.WORKFLOWS,
             SCREENS.WORKSPACE.RULES,
             SCREENS.WORKSPACE.DISTANCE_RATES,

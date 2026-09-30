@@ -27,6 +27,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -54,6 +55,7 @@ import {getExportMenuItem} from '@pages/workspace/companyCards/utils';
 import variables from '@styles/variables';
 
 import {deactivateCard as deactivateCardAction, freezeCard as freezeCardAction, openCardDetailsPage, unfreezeCard as unfreezeCardAction} from '@userActions/Card';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -116,6 +118,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'BusinessCentralSquare',
         'GustoSquare',
     ]);
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
@@ -126,7 +129,6 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
     const StyleUtils = useStyleUtils();
     const {showConfirmModal} = useConfirmModal();
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -149,7 +151,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
         policyID,
         fundID: defaultFundID,
     });
-    const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
+    const [cardholder] = usePersonalDetail(card?.accountID);
     const isVirtual = !!card?.nameValuePairs?.isVirtual;
     const formattedAvailableSpendAmount = convertToDisplayString(card?.availableSpend, currency);
     const formattedLimit = convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency);
@@ -414,23 +416,32 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                         />
                     )}
                     <OfflineWithFeedback pendingAction={card?.pendingFields?.availableSpend}>
-                        <MenuItemWithTopDescription
-                            description={translate('cardPage.availableSpend')}
-                            title={formattedAvailableSpendAmount}
-                            interactive={false}
-                            titleStyle={styles.walletCardLimit}
-                            hintText={remainingLimitHint}
-                        />
+                        <MenuItem.Root>
+                            <MenuItemField.Row
+                                name={translate('cardPage.availableSpend')}
+                                value={formattedAvailableSpendAmount}
+                            />
+                            {!!remainingLimitHint && <MenuItem.HelpText message={remainingLimitHint} />}
+                        </MenuItem.Root>
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.limitType}>
-                        <MenuItemWithTopDescription
-                            description={translate('workspace.card.issueNewCard.limitType')}
-                            title={translationForLimitType ? translate(translationForLimitType) : ''}
-                            shouldShowRightIcon={canWriteExpensifyCard}
-                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.path))}
-                            interactive={canWriteExpensifyCard}
-                            hintText={getCardHintText(card?.nameValuePairs?.validFrom, card?.nameValuePairs?.validThru, cardholder?.timezone?.selected, dateFnsLocale, translate)}
-                        />
+                        <MenuItem.Root
+                            onPress={
+                                canWriteExpensifyCard
+                                    ? callFunctionIfActionIsAllowed(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.path)))
+                                    : undefined
+                            }
+                        >
+                            <MenuItemField.Row
+                                name={translate('workspace.card.issueNewCard.limitType')}
+                                value={translationForLimitType ? translate(translationForLimitType) : ''}
+                            >
+                                {!!canWriteExpensifyCard && <MenuItem.Chevron />}
+                            </MenuItemField.Row>
+                            <MenuItem.HelpText
+                                message={getCardHintText(card?.nameValuePairs?.validFrom, card?.nameValuePairs?.validThru, cardholder?.timezone?.selected, dateFnsLocale, translate)}
+                            />
+                        </MenuItem.Root>
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.unapprovedExpenseLimit}>
                         <MenuItemField

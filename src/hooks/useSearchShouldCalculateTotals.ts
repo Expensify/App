@@ -1,5 +1,5 @@
-import {searchKeyToSavedSearchID} from '@libs/SearchUIUtils';
-import type {SearchKey} from '@libs/SearchUIUtils';
+import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
