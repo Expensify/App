@@ -24,6 +24,7 @@ function SearchFiltersBarButton({icon, text, onPress, sentryLabel}: SearchFilter
     return (
         <PressableWithFeedback
             accessibilityLabel={text}
+            accessibilityRole="button"
             onPress={onPress}
             style={[styles.searchFiltersBarButton]}
             hoverStyle={styles.hoveredComponentBG}
