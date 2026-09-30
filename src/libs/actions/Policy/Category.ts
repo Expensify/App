@@ -53,6 +53,8 @@ import type {PartialDeep} from 'type-fest';
 import lodashCloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 
+import {buildOptimisticPolicyCategories} from './OptimisticPolicyCategoriesAndMccGroups';
+
 type CreatePolicyCategoryParams = {
     policyID: string;
     categoryName: string;
@@ -118,160 +120,6 @@ function appendSetupCategoriesOnboardingData(
     onyxData.successData?.push(...(finishOnboardingTaskData.successData ?? []));
     onyxData.failureData?.push(...(finishOnboardingTaskData.failureData ?? []));
     return onyxData;
-}
-
-function buildOptimisticPolicyWithExistingCategories(policyID: string, categories: PolicyCategories) {
-    const categoriesValues = Object.values(categories);
-    const optimisticCategoryMap = categoriesValues.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
-        if (category.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return acc;
-        }
-        acc[category.name] = {
-            ...category,
-            errors: null,
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        };
-        return acc;
-    }, {});
-
-    const successCategoryMap = categoriesValues.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
-        acc[category.name] = {
-            errors: null,
-            pendingAction: null,
-        };
-        return acc;
-    }, {});
-
-    const failureCategoryMap = categoriesValues.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
-        acc[category.name] = {
-            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.createFailureMessage'),
-        };
-        return acc;
-    }, {});
-
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT> = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: optimisticCategoryMap,
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`,
-                value: null,
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: successCategoryMap,
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: failureCategoryMap,
-            },
-        ],
-    };
-
-    return onyxData;
-}
-
-function buildOptimisticPolicyCategories(policyID: string, categories: readonly string[]) {
-    const optimisticCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
-        acc[category] = {
-            name: category,
-            enabled: true,
-            errors: null,
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        };
-        return acc;
-    }, {});
-
-    const successCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
-        acc[category] = {
-            errors: null,
-            pendingAction: null,
-        };
-        return acc;
-    }, {});
-
-    const failureCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
-        acc[category] = {
-            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.createFailureMessage'),
-        };
-        return acc;
-    }, {});
-
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT> = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: optimisticCategoryMap,
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`,
-                value: null,
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: successCategoryMap,
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: failureCategoryMap,
-            },
-        ],
-    };
-
-    return onyxData;
-}
-
-type DefaultMccGroupID = keyof typeof CONST.POLICY.DEFAULT_MCC_GROUPS;
-
-const DEFAULT_MCC_GROUP: Record<string, MccGroup> = Object.fromEntries(
-    Object.entries(CONST.POLICY.DEFAULT_MCC_GROUPS).map(([groupID, definition]) => [
-        groupID,
-        {
-            ...definition,
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        },
-    ]),
-);
-
-function buildOptimisticMccGroup() {
-    const optimisticMccGroup: Record<'mccGroup', Record<string, MccGroup>> = {
-        mccGroup: Object.fromEntries(Object.entries(DEFAULT_MCC_GROUP).map(([groupID, group]) => [groupID, {...group}])),
-    };
-
-    const successMccGroup: Record<'mccGroup', Record<string, Partial<MccGroup>>> = {mccGroup: {}};
-    for (const key of Object.keys(optimisticMccGroup.mccGroup)) {
-        successMccGroup.mccGroup[key] = {pendingAction: null};
-    }
-
-    const mccGroupData = {
-        optimisticData: optimisticMccGroup,
-        successData: successMccGroup,
-        failureData: {mccGroup: null},
-    };
-
-    return mccGroupData;
-}
-
-function isDefaultMccGroupID(groupID: string): groupID is DefaultMccGroupID {
-    return Object.hasOwn(CONST.POLICY.DEFAULT_MCC_GROUPS, groupID);
 }
 
 /**
@@ -1307,6 +1155,62 @@ function setWorkspaceRequiresCategory(
     API.write(WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
+function setPolicyAutoCategorizeNewExpenses(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    autoCategorizeNewExpenses: enabled,
+                    errorFields: {
+                        autoCategorizeNewExpenses: null,
+                    },
+                    pendingFields: {
+                        autoCategorizeNewExpenses: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    errorFields: {
+                        autoCategorizeNewExpenses: null,
+                    },
+                    pendingFields: {
+                        autoCategorizeNewExpenses: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    autoCategorizeNewExpenses: !enabled,
+                    errorFields: {
+                        autoCategorizeNewExpenses: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updateFailureMessage'),
+                    },
+                    pendingFields: {
+                        autoCategorizeNewExpenses: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        enabled,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_AUTO_CATEGORIZE_NEW_EXPENSES, parameters, onyxData);
+}
+
 function setPolicyShowCategoryGLCodes(policyID: string | undefined, showCategoryGLCodes: boolean) {
     if (!policyID) {
         return;
@@ -2150,10 +2054,6 @@ function setPolicyCategoryAttendeesRequired(policyID: string, categoryName: stri
 }
 
 export {
-    buildOptimisticPolicyCategories,
-    buildOptimisticMccGroup,
-    DEFAULT_MCC_GROUP,
-    isDefaultMccGroupID,
     clearCategoryErrors,
     deletePolicyCategoryTax,
     deletePolicyCategoryTaxes,
@@ -2171,7 +2071,6 @@ export {
     setPolicyCategoryApprover,
     setPolicyCategoryAttendeesRequired,
     setPolicyCategoryDescriptionRequired,
-    buildOptimisticPolicyWithExistingCategories,
     setPolicyCategoryGLCode,
     setPolicyCategoryMaxAmount,
     setPolicyCategoryPayrollCode,
@@ -2184,5 +2083,6 @@ export {
     setWorkspaceCategoryDescriptionHint,
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
+    setPolicyAutoCategorizeNewExpenses,
     setPolicyShowCategoryGLCodes,
 };

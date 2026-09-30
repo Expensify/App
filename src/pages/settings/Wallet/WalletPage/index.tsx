@@ -6,6 +6,7 @@ import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType, Source} from '@components/KYCWall/types';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -28,11 +29,13 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
 import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/types';
+import useRefreshPendingDigitalWalletApproval from '@hooks/useRefreshPendingDigitalWalletApproval';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
+import {isPersonalBankAccountMissingInfo, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 import {hasDisplayableAssignedCards, isDirectFeed, maskCardNumber} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -58,7 +61,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {ForwardedRef, RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
@@ -97,7 +100,8 @@ function WalletPage() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [nvpLockedVbaUnlockRequested] = useOnyx(ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED);
+    const [initiatingBankAccountUnlock] = useOnyx(ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK);
     const delegateAccountID = useDelegateAccountID();
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked} = useLockedAccountState();
@@ -116,6 +120,7 @@ function WalletPage() {
 
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const network = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
@@ -128,6 +133,7 @@ function WalletPage() {
     const kycWallRef = useContext(KYCWallContext);
     const isCurrentUserPolicyAdmin = hasActiveAdminWorkspaces(currentUserLogin, allPolicies);
     const personalCardList = useBankLinkedPersonalCards();
+    useRefreshPendingDigitalWalletApproval();
 
     const hasWallet = !isEmpty(userWallet);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
@@ -155,8 +161,12 @@ function WalletPage() {
         paymentMethodButtonRef.current = event?.currentTarget as HTMLDivElement;
 
         if (accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED && accountData?.bankAccountID) {
-            pressLockedBankAccount(accountData?.bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID);
-            navigateToConciergeChat({conciergeReportID: conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, betas});
+            if (nvpLockedVbaUnlockRequested?.[`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${accountData.bankAccountID}`]) {
+                showUnlockAlreadyRequestedModal(showConfirmModal, translate);
+                return;
+            }
+            pressLockedBankAccount(accountData.bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID, initiatingBankAccountUnlock);
+            navigateToConciergeChat({conciergeReportID: conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed});
             return;
         }
 
@@ -594,6 +604,19 @@ function WalletPage() {
         Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW);
     };
 
+    const enableWallet = () => {
+        if (isAccountLocked) {
+            showLockedAccountModal();
+            return;
+        }
+
+        if (!isUserValidated) {
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute());
+    };
+
     const openCompanyCardFlow = () => {
         if (hasSinglePolicy) {
             const policy = activeAdminPolicies.at(0);
@@ -729,41 +752,51 @@ function WalletPage() {
                                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                     shouldShowConnectionStatus
                                 />
-                                <View style={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}>
-                                    <MenuItem
-                                        onPress={onAddPersonalCardPress}
-                                        title={translate('personalCard.addPersonalCard')}
-                                        icon={icons.Plus}
-                                        wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
-                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_PERSONAL_CARD}
-                                    />
-                                </View>
+                                <MenuItemSectionRoot
+                                    onPress={onAddPersonalCardPress}
+                                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_PERSONAL_CARD}
+                                >
+                                    <MenuItem.Row>
+                                        <MenuItem.Icon src={icons.Plus} />
+                                        <MenuItem.Content>
+                                            <MenuItem.Title>{translate('personalCard.addPersonalCard')}</MenuItem.Title>
+                                        </MenuItem.Content>
+                                    </MenuItem.Row>
+                                </MenuItemSectionRoot>
                             </>
-                            <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
-                                <MenuItem
-                                    title={translate('workspace.companyCards.importTransactions.importButton')}
-                                    icon={icons.Table}
-                                    shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
-                                    wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
-                                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS}
-                                />
-                            </View>
+                            <MenuItemSectionRoot
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS}
+                            >
+                                <MenuItem.Row>
+                                    <MenuItem.Icon src={icons.Table} />
+                                    <MenuItem.Content>
+                                        <MenuItem.Title>{translate('workspace.companyCards.importTransactions.importButton')}</MenuItem.Title>
+                                    </MenuItem.Content>
+                                    <MenuItem.Trailing>
+                                        <MenuItem.Chevron />
+                                    </MenuItem.Trailing>
+                                </MenuItem.Row>
+                            </MenuItemSectionRoot>
                             {!hasAssignedCard && (
-                                <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
-                                    <MenuItem
-                                        iconHeight={40}
-                                        iconWidth={40}
-                                        shouldShowRightIcon
-                                        icon={illustrations.VerticalCreditCards}
-                                        displayInDefaultIconColor
-                                        wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
-                                        title={translate('personalCard.lookingForCompanyCards')}
-                                        description={translate('personalCard.lookingForCompanyCardsDescription')}
-                                        titleStyle={styles.textStrong}
-                                        onPress={openCompanyCardFlow}
-                                    />
-                                </View>
+                                <MenuItemSectionRoot onPress={openCompanyCardFlow}>
+                                    <MenuItem.Row>
+                                        <View style={[styles.popoverMenuIcon, StyleUtils.getAvatarWidthStyle(CONST.AVATAR_SIZE.DEFAULT)]}>
+                                            <Icon
+                                                src={illustrations.VerticalCreditCards}
+                                                width={40}
+                                                height={40}
+                                            />
+                                        </View>
+                                        <MenuItem.Content>
+                                            <MenuItem.Title>{translate('personalCard.lookingForCompanyCards')}</MenuItem.Title>
+                                            <MenuItem.Description>{translate('personalCard.lookingForCompanyCardsDescription')}</MenuItem.Description>
+                                        </MenuItem.Content>
+                                        <MenuItem.Trailing>
+                                            <MenuItem.Chevron />
+                                        </MenuItem.Trailing>
+                                    </MenuItem.Row>
+                                </MenuItemSectionRoot>
                             )}
                         </Section>
                         {hasWallet && (
@@ -816,28 +849,30 @@ function WalletPage() {
                                         source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
                                         shouldIncludeDebitCard={hasActivatedWallet}
                                     >
-                                        {(triggerKYCFlow, buttonRef: RefObject<View | null>) => {
+                                        {(triggerKYCFlow, buttonRef: RefObject<ComponentRef<typeof View> | null>) => {
                                             if (shouldShowLoadingSpinner) {
                                                 return null;
                                             }
 
                                             if (hasActivatedWallet) {
                                                 return (
-                                                    <MenuItem
-                                                        ref={buttonRef as ForwardedRef<View>}
-                                                        title={translate('common.transferBalance')}
-                                                        icon={icons.Transfer}
+                                                    <MenuItemSectionRoot
+                                                        ref={buttonRef}
                                                         onPress={(event) => {
                                                             triggerKYCFlow({event});
                                                         }}
-                                                        shouldShowRightIcon
-                                                        wrapperStyle={[
-                                                            styles.transferBalance,
-                                                            shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
-                                                            shouldUseNarrowLayout ? styles.ph5 : styles.ph8,
-                                                        ]}
                                                         sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.TRANSFER_BALANCE}
-                                                    />
+                                                    >
+                                                        <MenuItem.Row>
+                                                            <MenuItem.Icon src={icons.Transfer} />
+                                                            <MenuItem.Content>
+                                                                <MenuItem.Title>{translate('common.transferBalance')}</MenuItem.Title>
+                                                            </MenuItem.Content>
+                                                            <MenuItem.Trailing>
+                                                                <MenuItem.Chevron />
+                                                            </MenuItem.Trailing>
+                                                        </MenuItem.Row>
+                                                    </MenuItemSectionRoot>
                                                 );
                                             }
 
@@ -868,29 +903,18 @@ function WalletPage() {
                                             }
 
                                             return (
-                                                <MenuItem
-                                                    title={translate('walletPage.enableWallet')}
-                                                    icon={icons.Wallet}
-                                                    ref={buttonRef as ForwardedRef<View>}
-                                                    onPress={() => {
-                                                        if (isAccountLocked) {
-                                                            showLockedAccountModal();
-                                                            return;
-                                                        }
-
-                                                        if (!isUserValidated) {
-                                                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
-                                                            return;
-                                                        }
-                                                        Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute());
-                                                    }}
-                                                    wrapperStyle={[
-                                                        styles.transferBalance,
-                                                        shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
-                                                        shouldUseNarrowLayout ? styles.ph5 : styles.ph8,
-                                                    ]}
+                                                <MenuItemSectionRoot
+                                                    ref={buttonRef}
+                                                    onPress={enableWallet}
                                                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ENABLE_WALLET}
-                                                />
+                                                >
+                                                    <MenuItem.Row>
+                                                        <MenuItem.Icon src={icons.Wallet} />
+                                                        <MenuItem.Content>
+                                                            <MenuItem.Title>{translate('walletPage.enableWallet')}</MenuItem.Title>
+                                                        </MenuItem.Content>
+                                                    </MenuItem.Row>
+                                                </MenuItemSectionRoot>
                                             );
                                         }}
                                     </KYCWall>

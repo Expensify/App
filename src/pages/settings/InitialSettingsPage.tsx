@@ -1,4 +1,5 @@
 import AccountSwitcher from '@components/AccountSwitcher';
+import AccountSwitcherButton from '@components/AccountSwitcherButton';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
@@ -28,6 +29,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 
@@ -116,16 +118,17 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     shouldShowSwitchButton={canSwitchAccounts}
                 />
             ) : (
-                <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                    <AccountSwitcher isScreenFocused={isScreenFocused} />
-                </View>
+                <AccountSwitcher
+                    isScreenFocused={isScreenFocused}
+                    shouldShowSwitchButton={shouldUseNarrowLayout}
+                />
             )}
         </View>
     );
 
     const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
     const route = useRoute();
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const triggerScrollEvent = useScrollEventEmitter();
 
     const onScroll: NonNullable<ScrollViewProps['onScroll']> = (e) => {
@@ -158,7 +161,14 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 breadcrumbLabel={translate('initialSettingsPage.account')}
                 shouldDisplaySearch={shouldUseNarrowLayout}
                 shouldDisplayHelpButton={shouldUseNarrowLayout}
-            />
+            >
+                {!shouldUseNarrowLayout && !isPersonalDetailsEmpty && (
+                    /* The top bar row ends 12px from the screen edge, so add 8px to sit the button 20px in. */
+                    <View style={styles.mr2}>
+                        <AccountSwitcherButton isScreenFocused={isScreenFocused} />
+                    </View>
+                )}
+            </TopBarWithLoadingBar>
             <ScrollView
                 ref={scrollViewRef}
                 onScroll={onScroll}

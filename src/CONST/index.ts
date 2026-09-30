@@ -14,7 +14,7 @@ import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/V
 
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import {add as dateAdd} from 'date-fns';
@@ -58,6 +58,7 @@ const UBER_CONNECT_URL = 'https://business-integrations.uber.com/connect';
 const CHATGPT_CONNECT_URL = 'https://chatgpt.com/plugins/plugin_asdk_app_6a56a498be548191bdf3743878810456?q=expensify';
 const MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Use-the-Expensify-MCP-Server-With-AI-Assistants';
 const CLAUDE_CONNECT_URL = 'https://claude.ai/directory/connectors/expensify';
+const CLAUDE_MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Connect-Claude-to-Expensify-Using-MCP';
 const CURSOR_MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Connect-Cursor-to-Expensify-Using-MCP';
 const XERO_PARTNER_LINK = 'https://referrals.xero.com/uzfjy4uegog2-v0pj1v';
 const UBER_TERMS_LINK = 'https://www.uber.com/us/en/business/sign-up/terms/expense-partners/';
@@ -101,17 +102,36 @@ const chatTypes = {
     SYSTEM: 'system',
 } as const;
 
+// Options on the onboarding accounting step, in display order. BaseOnboardingAccounting needs an icon and label for each key.
 const ONBOARDING_ACCOUNTING_MAPPING = {
     quickbooksOnline: 'QuickBooks Online',
+    intuitEnterpriseSuite: 'Intuit Enterprise Suite',
+    quickbooksDesktop: 'QuickBooks Desktop',
     xero: 'Xero',
     netsuite: 'NetSuite',
     intacct: 'Sage Intacct',
-    quickbooksDesktop: 'QuickBooks Desktop',
+    financialforce: 'Certinia',
+    rillet: 'Rillet',
     sap: 'SAP',
     oracle: 'Oracle',
     microsoftDynamics: 'Microsoft Dynamics',
     other: 'accounting software',
 };
+
+type OnboardingAccountingOption = keyof typeof ONBOARDING_ACCOUNTING_MAPPING;
+
+/** Accounting connections not offered on the onboarding accounting step. Remove one from this union to offer it. */
+type UnofferedOnboardingAccountingConnection =
+    | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY
+    | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE
+    // Covered by the Microsoft Dynamics option, and still behind the BUSINESS_CENTRAL beta.
+    | typeof CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL;
+
+type UnhandledAccountingConnection = Exclude<TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>, OnboardingAccountingOption | UnofferedOnboardingAccountingConnection>;
+
+// Fails typecheck if an accounting connection is neither offered on the onboarding step nor listed above.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type AssertEveryAccountingConnectionIsHandled<T extends never = UnhandledAccountingConnection> = T;
 
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
@@ -264,7 +284,6 @@ const CONST = {
     // error under, and the ValidateCodeForm reads it back from, so the action and the page stay in sync.
     MISSING_PERSONAL_DETAILS_VALIDATE_CODE_FIELD: 'personalDetails',
     DEFAULT_DB_NAME: 'OnyxDB',
-    DEFAULT_TABLE_NAME: 'keyvaluepairs',
     DEFAULT_ONYX_DUMP_FILE_NAME: 'onyx-state.txt',
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
     DEFAULT_IMAGE_FILE_NAME: 'image',
@@ -686,6 +705,7 @@ const CONST = {
     CHATGPT_CONNECT_URL,
     MCP_HELP_URL,
     CLAUDE_CONNECT_URL,
+    CLAUDE_MCP_HELP_URL,
     CURSOR_MCP_HELP_URL,
     XERO_PARTNER_LINK,
     UBER_TERMS_LINK,
@@ -705,7 +725,10 @@ const CONST = {
         // 12-hour clock and its own `μ.μ.` marker. `p` is a date-fns extension, and still needs `{locale}`.
         LOCAL_TIME_FORMAT: 'p',
         YEAR_MONTH_FORMAT: 'yyyyMM',
-        MONTH_FORMAT: 'MMMM',
+        // `LLLL` is the standalone month, not `MMMM`. Greek and Polish inflect the month name when it accompanies
+        // a day, so `stycznia` means "of January". A month shown on its own, like a picker list or a statement
+        // heading, needs the nominative `styczeń` instead. Both uses of this constant are a month standing alone.
+        MONTH_FORMAT: 'LLLL',
         WEEKDAY_TIME_FORMAT: 'eeee',
         MONTH_DAY_ABBR_FORMAT: 'MMM d',
         SHORT_DATE_FORMAT: 'MM-dd',
@@ -734,6 +757,7 @@ const CONST = {
     MARKETING_WINDOW_UPDATE_KEYS: {
         PRODUCT_UPDATE_JULY_2026: 'productUpdateJuly2026',
         PRODUCT_UPDATE_AUGUST_2026: 'productUpdateAugust2026',
+        PRODUCT_UPDATE_SEPTEMBER_2026: 'productUpdateSeptember2026',
     },
     BANK_ACCOUNT: {
         BENEFICIAL_OWNER_INFO_STEP: {
@@ -743,7 +767,7 @@ const CONST = {
                 FIRST_NAME: 'firstName',
                 LAST_NAME: 'lastName',
                 DOB: 'dob',
-                SSN: 'ssn',
+                SSN_LAST_4: 'ssnLast4',
                 STREET: 'street',
                 CITY: 'city',
                 STATE: 'state',
@@ -818,7 +842,7 @@ const CONST = {
                 UBOS_LIST: 'ubos-list',
                 LEGAL_NAME: 'legal-name',
                 DATE_OF_BIRTH: 'date-of-birth',
-                SSN: 'ssn',
+                SSN_LAST_4: 'ssn',
                 ADDRESS: 'address',
                 CONFIRMATION: 'confirmation',
             },
@@ -1117,6 +1141,8 @@ const CONST = {
         MERGE_ATS: 'mergeATSConnections',
         REPORT_MERGE: 'reportMerge',
         INSIGHTS_PAGE: 'insightsPage',
+        INSIGHTS_COMPARE: 'insightsCompare',
+        PAYMENT_HISTORY: 'paymentHistory',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1890,6 +1916,7 @@ const CONST = {
                     UPDATE_FEATURE_ENABLED: 'POLICYCHANGELOG_UPDATE_FEATURE_ENABLED',
                     UPDATE_IS_ATTENDEE_TRACKING_ENABLED: 'POLICYCHANGELOG_UPDATE_IS_ATTENDEE_TRACKING_ENABLED',
                     UPDATE_REQUIRE_COMPANY_CARDS_ENABLED: 'POLICYCHANGELOG_UPDATE_REQUIRE_COMPANY_CARDS_ENABLED',
+                    UPDATE_AUTO_CATEGORIZE_NEW_EXPENSES: 'POLICYCHANGELOG_UPDATE_AUTO_CATEGORIZE_NEW_EXPENSES',
                     UPDATE_REQUIRES_CATEGORY: 'POLICYCHANGELOG_UPDATE_REQUIRES_CATEGORY',
                     UPDATE_REQUIRES_TAG: 'POLICYCHANGELOG_UPDATE_REQUIRES_TAG',
                     UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE: 'POLICYCHANGELOG_UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE',
@@ -2270,10 +2297,6 @@ const CONST = {
         GET_INITIAL_URL_TIMEOUT: 10000,
         MIN_SMOOTH_SCROLL_EVENT_THROTTLE: 16,
     },
-    DEFERRED_LAYOUT_WRITE_KEYS: {
-        SEARCH: 'search',
-        DISMISS_MODAL: 'dismiss_modal',
-    },
     TELEMETRY: {
         CONTEXT_FULLSTORY: 'Fullstory',
         CONTEXT_MEMORY: 'Memory',
@@ -2441,6 +2464,9 @@ const CONST = {
         // Stamped on the navigate-to-inbox-tab span when the app-loading skeleton was shown instead of the
         // report list, so durations that include the openApp wait can be excluded from render measurements.
         ATTRIBUTE_SKELETON_SHOWN: 'skeleton_shown',
+        ATTRIBUTE_IS_PRELOADED: 'is_preloaded',
+        // The tap also kicked off an OpenReport request, so exclude these from render-only comparisons.
+        ATTRIBUTE_WAITED_ON_OPEN_REPORT: 'waited_on_open_report',
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
         ATTRIBUTE_SCENARIO: 'scenario',
         // Start type stamped on the navigate-to-reports spans: cold, warm_first, or warm_subsequent.
@@ -2473,6 +2499,12 @@ const CONST = {
         ATTRIBUTE_PHOTO_WIDTH: 'photo_width',
         ATTRIBUTE_PHOTO_HEIGHT: 'photo_height',
         ATTRIBUTE_SOURCE: 'source',
+        ATTRIBUTE_PHASE_DETECTION_FORMAT_COUNT: 'phase_detection_format_count',
+        ATTRIBUTE_SELECTED_FORMAT_AF_SYSTEM: 'selected_format_af_system',
+        ATTRIBUTE_HAS_INTERCHANGEABLE_PHASE_FORMAT: 'has_interchangeable_phase_format',
+        ATTRIBUTE_MIN_FOCUS_DISTANCE: 'min_focus_distance',
+        ATTRIBUTE_PHYSICAL_DEVICE_COUNT: 'physical_device_count',
+        ATTRIBUTE_NEUTRAL_ZOOM: 'neutral_zoom',
         ATTRIBUTE_ODOMETER_IMAGE_TYPE: 'odometer_image_type',
         ATTRIBUTE_DURATION_SINCE_NATIVE_APP_STARTUP_MS: 'duration_since_native_app_startup_ms',
         CAPTURE_METHOD: {
@@ -2685,6 +2717,7 @@ const CONST = {
         BAD_REQUEST: 400,
         INVALID_SEARCH_QUERY: 401,
         NOT_AUTHENTICATED: 407,
+        SUPPORT_NOT_AUTHORIZED: 411,
         EXP_ERROR: 666,
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
@@ -3151,8 +3184,8 @@ const CONST = {
             CUSTOMERS: 'customers',
         },
         IMPORT_ITEMS: 'importItems',
-        AUTO_SYNC_ENABLED: 'enabled',
         ACCOUNTING_METHOD: 'accountingMethod',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
     },
 
     QUICKBOOKS_CONFIG: {
@@ -3269,6 +3302,7 @@ const CONST = {
         TAX_NON_BILLABLE: 'taxNonBillable',
         EXPORT_FOREIGN_CURRENCY: 'exportForeignCurrency',
         COMPANY: 'company',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
     },
 
     // These are the native values stored in the connection's export.exportStatus config, shared with
@@ -3373,7 +3407,12 @@ const CONST = {
         },
         ATS_APPROVER_FIELD: {
             RECRUITER: 'recruiter',
-            RECRUITING_COORDINATOR: 'recruitingCoordinator',
+            RECRUITING_COORDINATOR: 'coordinator',
+        },
+        ATS_FILTER_TYPE: {
+            TAGS: 'tags',
+            STAGES: 'stages',
+            OFFICES: 'offices',
         },
         CATEGORY: {
             HRIS: 'hris',
@@ -3916,6 +3955,8 @@ const CONST = {
         LONG_TERM_LIABILITY: 'LONG_TERM_LIABILITY',
         CREDIT_CARD: 'CREDIT_CARD',
         BANK: 'BANK',
+        OTHER_CURRENT_ASSET: 'OTHER_CURRENT_ASSET',
+        OTHER_CURRENT_LIABILITY: 'OTHER_CURRENT_LIABILITY',
     },
 
     CAMPFIRE_VENDOR_TYPE: {
@@ -3926,12 +3967,25 @@ const CONST = {
 
     BUSINESS_CENTRAL_CONFIG: {
         COMPANY_ID: 'companyID',
+        ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+        SYNC_TAX_RATES: 'syncTaxRates',
+        SYNC_ITEMS: 'syncItems',
         FIELD_MAPPING_PREFIX: 'fieldMapping_',
     },
 
     BUSINESS_CENTRAL_MAPPING_VALUE: {
         NONE: 'NONE',
         TAG: 'TAG',
+    },
+
+    /**
+     * How far a Business Central vendor is blocked. `_x0020_` is the unblocked value Business Central
+     * sends, `PAYMENT` still allows purchase invoices, and `ALL` forbids every transaction.
+     */
+    BUSINESS_CENTRAL_VENDOR_BLOCKED: {
+        NONE: '_x0020_',
+        PAYMENT: 'Payment',
+        ALL: 'All',
     },
 
     UPDATE_PERSONAL_BANK_ACCOUNT: {
@@ -4799,7 +4853,8 @@ const CONST = {
             get EXPORTED_TO_INTEGRATION_DISPLAY_NAMES(): string[] {
                 return this.ACCOUNTING_CONNECTION_NAMES.map((name) => this.NAME_USER_FRIENDLY[name as keyof typeof this.NAME_USER_FRIENDLY]);
             },
-            CORPORATE: ['quickbooksDesktop', 'netsuite', 'intacct', 'oracle', 'sap', 'microsoftDynamics', 'other'],
+            // Onboarding accounting choices that create a Control workspace, since their integrations need Control to connect.
+            CORPORATE: ['quickbooksDesktop', 'intuitEnterpriseSuite', 'netsuite', 'intacct', 'financialforce', 'rillet', 'oracle', 'sap', 'microsoftDynamics', 'other'],
             AUTH_HELP_LINKS: {
                 intacct:
                     "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
@@ -4912,6 +4967,12 @@ const CONST = {
                 BUSINESS_CENTRAL_SYNC_IMPORT_DATA: 'businessCentralSyncImportData',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
+            /** How many days before a QuickBooks Online refresh token expires the workspace starts warning admins to reconnect */
+            QBO_REFRESH_TOKEN_EXPIRY_WARNING_DAYS: 7,
+            QBO_REFRESH_TOKEN_EXPIRY_STATUS: {
+                EXPIRING_SOON: 'expiringSoon',
+                EXPIRED: 'expired',
+            },
         },
         ACCESS_VARIANTS: {
             PAID: 'paid',
@@ -4985,6 +5046,9 @@ const CONST = {
             CAD: 'CA',
             GBP: 'GB',
             AUD: 'AU',
+            NOK: 'NO',
+            SEK: 'SE',
+            ZAR: 'ZA',
         },
         // Unit each country publishes its rates in
         GOVERNMENT_RATE_COUNTRY_TO_UNIT: {
@@ -4992,6 +5056,9 @@ const CONST = {
             GB: 'mi',
             CA: 'km',
             AU: 'km',
+            NO: 'km',
+            SE: 'km',
+            ZA: 'km',
         },
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
         UNSET_DISTANCE_RATE_ID: '-1',
@@ -5349,6 +5416,15 @@ const CONST = {
         },
         CARD_LIST_THRESHOLD: 8,
         DEFAULT_EXPORT_TYPE: 'default',
+
+        /**
+         * How a card's export account is resolved. Most integrations point a card's NVP at one entry in a flat account
+         * list, while Rillet and DualEntry resolve it through a program account that each card feed can override.
+         */
+        EXPORT_RESOLVER: {
+            SINGLE_ACCOUNT: 'singleAccount',
+            PROGRAM_ACCOUNT: 'programAccount',
+        },
         EXPORT_CARD_TYPES: {
             /**
              * Name of Card NVP for QBO custom export accounts
@@ -6820,8 +6896,6 @@ const CONST = {
         HIDDEN_BORDER_BOTTOM_WIDTH: 0,
     },
 
-    MISSING_TRANSLATION: 'MISSING TRANSLATION',
-
     /**
      * The count of characters we'll allow the user to type after reaching SEARCH_MAX_LENGTH in an input.
      */
@@ -7101,12 +7175,6 @@ const CONST = {
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
-    /** How many report fields are shown side by side in the report view on a wide layout */
-    REPORT_FIELDS_PER_ROW: 3,
-
-    /** Below this many options, a report field list is short enough to scan without a search input */
-    REPORT_FIELD_LIST_SEARCH_THRESHOLD: 8,
-
     MOBILE_PAGINATION_SIZE: 15,
     WEB_PAGINATION_SIZE: 30,
 
@@ -7259,8 +7327,11 @@ const CONST = {
 
     SEARCH: {
         RESULTS_PAGE_SIZE: 50,
+        TAG_FILTER_PAGE_SIZE: 200,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
+        // Null byte can't appear in a query, so it's safe to join query parts with it
+        QUERY_PARAMS_SEPARATOR: '\x00',
         /** How far the cursor may wander from where it last counted as moving over the advanced filter list and still count as resting */
         HOVER_INTENT_REST_RADIUS_PX: 8,
         DATA_TYPES: {
@@ -7905,12 +7976,18 @@ const CONST = {
             GROUP_BY: 'groupBy',
             COLUMNS: 'columns',
             LIMIT: 'limit',
+            COMPARE: 'compare',
         },
         VIEW: {
             TABLE: 'table',
             BAR: 'bar',
             LINE: 'line',
             PIE: 'pie',
+        },
+        // Comparison modes for Insights queries, defined by the API.
+        COMPARE: {
+            PREVIOUS_PERIOD: 'previousPeriod',
+            AVERAGE: 'average',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
@@ -8052,6 +8129,7 @@ const CONST = {
             ORDER_DEAL_NUMBERS: 'order-deal-numbers',
             COLUMNS: 'columns',
             LIMIT: 'limit',
+            COMPARE: 'compare',
         },
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
@@ -8171,10 +8249,14 @@ const CONST = {
         SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',
         ANIMATION: {
-            FADE_DURATION: 200,
+            FADE_DURATION: 150,
+
+            // How long the results area may keep showing the previous query's results while a new query loads. Past
+            // this, a slow query gives up the stale results and swaps to the skeleton so the wait is visible.
+            MAX_STALE_HOLD_DURATION: 500,
         },
         TODO_BADGE_MAX_COUNT: 50,
-        TOP_SEARCH_LIMIT: 10,
+        TOP_SEARCH_LIMIT: 5,
     },
     SEARCH_SELECTOR: {
         SELECTION_MODE_SINGLE: 'single',
@@ -8686,7 +8768,7 @@ const CONST = {
         CATEGORY: 'category',
         DATE: 'date',
         MERCHANT: 'merchant',
-        TRANSACTION_FIELDS: ['date', 'merchant', 'amount', 'category'] as const,
+        TRANSACTION_FIELDS: ['date', 'merchant', 'amount', 'category', 'tag'] as const,
         CARD_NUMBER: 'cardNumber',
         CARD_NAME: 'cardName',
         POSTED_DATE: 'postedDate',
@@ -8825,6 +8907,7 @@ const CONST = {
     },
 
     CORPAY_FIELDS: {
+        STRICT_SWIFT_BIC_REGEX: '^[A-Za-z]{6}[A-Za-z0-9]{2}([A-Za-z0-9]{3})?$',
         EXCLUDED_COUNTRIES: ['IR', 'CU', 'SY', 'UA', 'KP', 'RU'] as string[],
         EXCLUDED_CURRENCIES: ['IRR', 'CUP', 'SYP', 'UAH', 'KPW', 'RUB'] as string[],
         ACCOUNT_TYPE_KEY: 'BeneficiaryAccountType',
@@ -9059,6 +9142,18 @@ const CONST = {
             MULTI_SELECT: 'multiSelect',
         },
 
+        /** Where the column header is rendered. The placements are exclusive, so the table is always in exactly one of them. */
+        COLUMN_HEADER_PLACEMENT: {
+            /** The table has no column header anywhere. */
+            NONE: 'none',
+            /** A direct child of the table container, outside the list. Where every table without a page header keeps it. */
+            OUTSIDE_LIST: 'outsideList',
+            /** A synthetic list row, which FlashList paints as a sticky overlay outside the scroller. */
+            STICKY_ROW: 'stickyRow',
+            /** In flow inside the list header, so the scroller carries it sideways with the columns it labels. */
+            LIST_HEADER: 'listHeader',
+        },
+
         DYNAMIC_COLUMNS: {
             /** How many of the longest strings are measured per column, since character count only approximates rendered width. */
             MEASURED_CANDIDATES_PER_COLUMN: 5,
@@ -9072,6 +9167,9 @@ const CONST = {
     },
 
     SENTRY_LABEL: {
+        TEST_TOOL_MENU: {
+            SERVER: 'TestToolMenu-Server',
+        },
         BILLING_BANNER: {
             RIGHT_ICON: 'BillingBanner-RightIcon',
         },
@@ -9251,6 +9349,12 @@ const CONST = {
             UNREPORTED_EXPENSE_LIST_ITEM: 'UnreportedExpenseListItem',
             WORKSPACE_SELECTOR_SELECT_ALL: 'Search-WorkspaceSelectorSelectAll',
         },
+        INSIGHTS: {
+            CONTROL_DATE: 'Insights-ControlDate',
+            CONTROL_WORKSPACE: 'Insights-ControlWorkspace',
+            CONTROL_GROUP_CURRENCY: 'Insights-ControlGroupCurrency',
+            CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
+        },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',
         },
@@ -9397,6 +9501,7 @@ const CONST = {
             TIME_FIELD: 'RequestConfirmationList-TimeField',
             SUBRATE_FIELD: 'RequestConfirmationList-SubrateField',
             SEND_FROM_FIELD: 'RequestConfirmationList-SendFromField',
+            ADD_RECEIPT_BUTTON: 'RequestConfirmationList-AddReceiptButton',
         },
         TRANSACTION_PREVIEW: {
             CARD: 'TransactionPreview-Card',
@@ -9453,9 +9558,6 @@ const CONST = {
             COPILOT: 'Account-Copilot',
             SECURITY: 'Account-Security',
             SUBSCRIPTION: 'Account-Subscription',
-        },
-        DISCOVER_SECTION: {
-            TEST_DRIVE: 'DiscoverSection-TestDrive',
         },
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',
@@ -9726,6 +9828,7 @@ const CONST = {
                 AGENT_RULE_ITEM: 'WorkspaceRules-AgentRuleItem',
                 ADD_AGENT_RULE: 'WorkspaceRules-AddAgentRule',
                 SUGGESTED_AGENT_RULE: 'WorkspaceRules-SuggestedAgentRule',
+                SUGGESTED_AGENT_RULE_CATEGORY: 'WorkspaceRules-SuggestedAgentRuleCategory',
                 AGENT_RULE_DELETE: 'WorkspaceRules-AgentRuleDelete',
                 NEW_RULE_MENU_ITEM: 'WorkspaceRules-NewRuleMenuItem',
                 NEW_RULE_MENU_ITEM_RESTRICT_CARD_SPEND: 'WorkspaceRules-NewRuleMenuItem-RestrictCardSpend',
@@ -9995,6 +10098,19 @@ const CONST = {
         },
     },
 
+    /**
+     * Stable test IDs rendered as `data-testid` on web, used both by tests and by analytics tooling
+     * (e.g. Fullstory) that needs a selector which survives react-native-web's generated class names.
+     */
+    TEST_ID: {
+        QUICK_CREATION_ACTIONS_BAR: {
+            EXPENSE: 'QuickCreationActionsBar-Expense',
+            REPORT: 'QuickCreationActionsBar-Report',
+            DISTANCE: 'QuickCreationActionsBar-Distance',
+            BOOK_TRAVEL: 'QuickCreationActionsBar-BookTravel',
+        },
+    },
+
     AGENTS: {
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
@@ -10185,6 +10301,7 @@ export type {
     CancellationType,
     OnboardingInvite,
     OnboardingAccounting,
+    OnboardingAccountingOption,
     OnboardingIntent,
     IOUActionParams,
     EnablePaymentsPageType,

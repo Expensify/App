@@ -105,7 +105,8 @@ function buildOptimisticPolicyRecentlyUsedTags({policyTags, policyRecentlyUsedTa
         }
 
         const tagListKey = policyTagKeys.at(index) ?? '';
-        newOptimisticPolicyRecentlyUsedTags[tagListKey] = [...new Set([tag, ...(policyRecentlyUsedTags?.[tagListKey] ?? [])])];
+        const recentlyUsedTagsForList = policyRecentlyUsedTags?.[tagListKey];
+        newOptimisticPolicyRecentlyUsedTags[tagListKey] = [...new Set([tag, ...(Array.isArray(recentlyUsedTagsForList) ? recentlyUsedTagsForList : [])])];
     }
 
     return newOptimisticPolicyRecentlyUsedTags;
@@ -1290,11 +1291,18 @@ type SetPolicyTagGLCodeProps = {
     tagListIndex: number;
     glCode: string;
     policyTags: OnyxEntry<PolicyTagLists>;
+    parentTagsFilter?: string;
 };
 
-function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags}: SetPolicyTagGLCodeProps) {
+function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags, parentTagsFilter}: SetPolicyTagGLCodeProps) {
     const tagListName = PolicyUtils.getTagListName(policyTags, tagListIndex);
-    const policyTagToUpdate = policyTags?.[tagListName]?.tags?.[tagName] ?? {};
+    const policyTagEntry = PolicyUtils.findPolicyTagEntryByParentFilter(policyTags?.[tagListName]?.tags, tagName, parentTagsFilter);
+
+    if (!policyTagEntry) {
+        return;
+    }
+
+    const {tag: policyTagToUpdate, tagKey} = policyTagEntry;
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS> = {
         optimisticData: [
@@ -1304,7 +1312,7 @@ function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags
                 value: {
                     [tagListName]: {
                         tags: {
-                            [tagName]: {
+                            [tagKey]: {
                                 ...policyTagToUpdate,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 pendingFields: {
@@ -1326,7 +1334,7 @@ function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags
                 value: {
                     [tagListName]: {
                         tags: {
-                            [tagName]: {
+                            [tagKey]: {
                                 errors: null,
                                 pendingAction: null,
                                 pendingFields: {
@@ -1346,7 +1354,7 @@ function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags
                 value: {
                     [tagListName]: {
                         tags: {
-                            [tagName]: {
+                            [tagKey]: {
                                 ...policyTagToUpdate,
                                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.updateGLCodeFailureMessage'),
                             },
@@ -1359,10 +1367,11 @@ function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags
 
     const parameters: UpdatePolicyTagGLCodeParams = {
         policyID,
-        tagName,
+        tagName: policyTagToUpdate.name,
         tagListName,
         tagListIndex,
         glCode,
+        ...(parentTagsFilter ? {parentTagsFilter} : {}),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_TAG_GL_CODE, parameters, onyxData);
