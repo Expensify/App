@@ -1881,13 +1881,13 @@ type RailPnr = {
         passengerType: string;
 
         /** Organization and user ID associated with the passenger. */
-        userOrgId: {
+        userOrgId?: {
             organizationId: {
                 /** ID of the organization. */
                 id: string;
             };
 
-            userId: {
+            userId?: {
                 id: string;
             };
         };
