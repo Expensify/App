@@ -3080,16 +3080,7 @@ function isReportIneligibleForMoveExpenses(moneyRequestReport: OnyxEntry<Report>
     }
 
     const hasCompleteLocalTransactions = transactions.length > 0 && moneyRequestReport?.transactionCount === transactions.length;
-    const hasOnlyNonReimbursableTransactionsFromReportTotals =
-        moneyRequestReport?.transactionCount !== undefined &&
-        moneyRequestReport.transactionCount > 0 &&
-        moneyRequestReport.total !== undefined &&
-        moneyRequestReport.nonReimbursableTotal !== undefined &&
-        getReimbursableTotal(moneyRequestReport) === 0;
-
-    const hasOnlyNonReimbursable = hasCompleteLocalTransactions
-        ? hasOnlyNonReimbursableTransactions(moneyRequestReport.reportID, transactions)
-        : hasOnlyNonReimbursableTransactionsFromReportTotals;
+    const hasOnlyNonReimbursable = hasCompleteLocalTransactions && hasOnlyNonReimbursableTransactions(moneyRequestReport.reportID, transactions);
 
     return isInstantSubmitAndCloseWithOnlyNonReimbursableTransactions(policy, hasOnlyNonReimbursable);
 }

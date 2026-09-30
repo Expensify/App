@@ -11914,8 +11914,8 @@ describe('ReportUtils', () => {
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
         };
 
-        it('returns true from the report totals when the destination transactions have not been loaded', () => {
-            // Given an instant-submit, submit-and-close report whose totals show that its existing transaction is non-reimbursable
+        it('returns false when the destination transactions have not been loaded', () => {
+            // Given an instant-submit, submit-and-close report whose summary totals look non-reimbursable
             const report: Report = {
                 ...createRandomReport(30001, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
@@ -11925,8 +11925,25 @@ describe('ReportUtils', () => {
                 nonReimbursableTotal: -100,
             };
 
-            // When the move eligibility is checked without a locally cached transaction
+            // When the move eligibility is checked without locally cached transactions
             const result = isReportIneligibleForMoveExpenses(report, instantSubmitPolicy, []);
+
+            // Then the report remains available because aggregate totals cannot prove every transaction is non-reimbursable
+            expect(result).toBe(false);
+        });
+
+        it('returns true when all destination transactions are loaded and non-reimbursable', () => {
+            // Given an instant-submit, submit-and-close report with a complete non-reimbursable transaction list
+            const report: Report = {
+                ...createRandomReport(30006, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: instantSubmitPolicy.id,
+                transactionCount: 1,
+            };
+            const transactions: Transaction[] = [{...createRandomTransaction(30006), reportID: report.reportID, reimbursable: false}];
+
+            // When the move eligibility is checked with all destination transactions
+            const result = isReportIneligibleForMoveExpenses(report, instantSubmitPolicy, transactions);
 
             // Then the report is excluded before it can be selected as a move destination
             expect(result).toBe(true);
@@ -11950,24 +11967,6 @@ describe('ReportUtils', () => {
             const result = isReportIneligibleForMoveExpenses(report, instantSubmitPolicy, []);
 
             // Then the draft remains available because Auth allows transactions to be moved into it
-            expect(result).toBe(false);
-        });
-
-        it('returns false when the report totals include a reimbursable amount', () => {
-            // Given an instant-submit, submit-and-close report with a reimbursable total
-            const report: Report = {
-                ...createRandomReport(30003, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: instantSubmitPolicy.id,
-                transactionCount: 2,
-                total: -200,
-                nonReimbursableTotal: -100,
-            };
-
-            // When the move eligibility is checked
-            const result = isReportIneligibleForMoveExpenses(report, instantSubmitPolicy, []);
-
-            // Then the report remains available as a destination
             expect(result).toBe(false);
         });
 
@@ -12007,25 +12006,6 @@ describe('ReportUtils', () => {
             const result = isReportIneligibleForMoveExpenses(report, instantSubmitPolicy, transactions);
 
             // Then the report remains available because it contains a reimbursable transaction
-            expect(result).toBe(false);
-        });
-
-        it('uses the fresh reimbursable total when legacy report totals are stale', () => {
-            // Given report totals that still look non-reimbursable but a fresh reimbursable total from the backend
-            const report: Report = {
-                ...createRandomReport(30005, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: instantSubmitPolicy.id,
-                transactionCount: 2,
-                total: -100,
-                nonReimbursableTotal: -100,
-                reimbursableTotal: -100,
-            };
-
-            // When move eligibility is checked without cached destination transactions
-            const result = isReportIneligibleForMoveExpenses(report, instantSubmitPolicy, []);
-
-            // Then the report remains available because the fresh total records a reimbursable amount
             expect(result).toBe(false);
         });
     });
