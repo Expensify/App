@@ -84,7 +84,7 @@ export default function enhanceParameters(command: string, parameters: Record<st
         const authToken = getAuthToken();
         if (!authToken) {
             const lastDrop = getLastAuthTokenDrop();
-            Log.warn('[enhanceParameters] Sending request without authToken', {
+            Log.info('[enhanceParameters] Sending request without authToken', false, {
                 command,
                 authTokenState: authToken === undefined ? 'notHydrated' : 'empty',
                 lastDropSource: lastDrop?.source,

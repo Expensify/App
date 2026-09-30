@@ -10,7 +10,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 const DROP_MESSAGE = '[NetworkStore] authToken dropped';
 
 describe('NetworkStore authToken drop logging', () => {
-    let logWarnSpy: jest.SpyInstance<void, Parameters<typeof Log.warn>>;
+    let logInfoSpy: jest.SpyInstance<void, Parameters<typeof Log.info>>;
 
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -20,11 +20,11 @@ describe('NetworkStore authToken drop logging', () => {
         await Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@test.com', accountID: 1, authToken: 'token'});
         await waitForBatchedUpdates();
-        logWarnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => {});
+        logInfoSpy = jest.spyOn(Log, 'info').mockImplementation(() => {});
     });
 
     afterEach(() => {
-        logWarnSpy.mockRestore();
+        logInfoSpy.mockRestore();
     });
 
     it('should log the caller stack when setAuthToken empties a live token', () => {
@@ -37,7 +37,7 @@ describe('NetworkStore authToken drop logging', () => {
         const lastDrop = getLastAuthTokenDrop();
         expect(lastDrop?.source).toBe('setAuthToken');
         expect(lastDrop?.stack).toContain('Error');
-        expect(logWarnSpy).toHaveBeenCalledWith(DROP_MESSAGE, {source: 'setAuthToken', stack: lastDrop?.stack});
+        expect(logInfoSpy).toHaveBeenCalledWith(DROP_MESSAGE, false, {source: 'setAuthToken', stack: lastDrop?.stack});
     });
 
     it('should not log when setAuthToken replaces the token with the deliberate invalid token', () => {
@@ -47,7 +47,7 @@ describe('NetworkStore authToken drop logging', () => {
         setAuthToken('pizza');
 
         // Then nothing is logged, because the token was not emptied
-        expect(logWarnSpy).not.toHaveBeenCalledWith(DROP_MESSAGE, expect.anything());
+        expect(logInfoSpy).not.toHaveBeenCalledWith(DROP_MESSAGE, expect.anything(), expect.anything());
     });
 
     it('should log what survived when a session update empties the token', async () => {
@@ -58,7 +58,7 @@ describe('NetworkStore authToken drop logging', () => {
         await waitForBatchedUpdates();
 
         // Then the drop is logged along with the session fields that are still there
-        expect(logWarnSpy).toHaveBeenCalledWith(DROP_MESSAGE, {source: 'session', hasEmail: true, accountID: 1});
+        expect(logInfoSpy).toHaveBeenCalledWith(DROP_MESSAGE, false, {source: 'session', hasEmail: true, accountID: 1});
         expect(getLastAuthTokenDrop()?.source).toBe('session');
     });
 });

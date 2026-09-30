@@ -60,14 +60,14 @@ test('Enhance parameters adds correct parameters for a command that requires aut
 });
 
 describe('enhanceParameters missing authToken logging', () => {
-    let logWarnSpy: jest.SpyInstance<void, Parameters<typeof Log.warn>>;
+    let logInfoSpy: jest.SpyInstance<void, Parameters<typeof Log.info>>;
 
     beforeEach(() => {
-        logWarnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => {});
+        logInfoSpy = jest.spyOn(Log, 'info').mockImplementation(() => {});
     });
 
     afterEach(() => {
-        logWarnSpy.mockRestore();
+        logInfoSpy.mockRestore();
     });
 
     it('should log the command and an empty token state when a session exists without a token', async () => {
@@ -80,7 +80,7 @@ describe('enhanceParameters missing authToken logging', () => {
 
         // Then the request still goes out without a token, and the log tells hydrated-empty apart from not yet hydrated
         expect(finalParameters.authToken).toBeNull();
-        expect(logWarnSpy).toHaveBeenCalledWith('[enhanceParameters] Sending request without authToken', expect.objectContaining({command: 'RequestMoney', authTokenState: 'empty'}));
+        expect(logInfoSpy).toHaveBeenCalledWith('[enhanceParameters] Sending request without authToken', false, expect.objectContaining({command: 'RequestMoney', authTokenState: 'empty'}));
     });
 
     it('should not log for the Log command so logging cannot recurse through the log flush', async () => {
@@ -92,6 +92,6 @@ describe('enhanceParameters missing authToken logging', () => {
         enhanceParameters('Log', {});
 
         // Then nothing is logged, because Log does not need a token
-        expect(logWarnSpy).not.toHaveBeenCalled();
+        expect(logInfoSpy).not.toHaveBeenCalledWith('[enhanceParameters] Sending request without authToken', expect.anything(), expect.anything());
     });
 });

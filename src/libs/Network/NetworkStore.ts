@@ -57,7 +57,7 @@ Onyx.connectWithoutView({
         const newAuthToken = val?.authToken ?? null;
         if (authToken && !newAuthToken) {
             lastAuthTokenDrop = {source: 'session', droppedAt: Date.now()};
-            Log.warn('[NetworkStore] authToken dropped', {source: 'session', hasEmail: !!val?.email, accountID: val?.accountID});
+            Log.info('[NetworkStore] authToken dropped', false, {source: 'session', hasEmail: !!val?.email, accountID: val?.accountID});
         }
         authToken = newAuthToken;
         authTokenType = val?.authTokenType ?? null;
@@ -104,7 +104,7 @@ function setAuthToken(newAuthToken: string | null) {
     if (authToken && !newAuthToken) {
         const stack = new Error().stack?.split('\n').slice(0, AUTH_TOKEN_DROP_STACK_FRAMES).join('\n');
         lastAuthTokenDrop = {source: 'setAuthToken', droppedAt: Date.now(), stack};
-        Log.warn('[NetworkStore] authToken dropped', {source: 'setAuthToken', stack});
+        Log.info('[NetworkStore] authToken dropped', false, {source: 'setAuthToken', stack});
     }
     authToken = newAuthToken;
 }
