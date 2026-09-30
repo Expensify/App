@@ -4167,7 +4167,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         reuseRouteThumbnail: {
             width: '100%',
-            aspectRatio: 1.84,
+            // Matches the 600x500 aspect of the server-generated map receipt so the route is never cropped or letterboxed.
+            aspectRatio: 1.2,
             borderRadius: 12,
             overflow: 'hidden',
             backgroundColor: theme.border,
