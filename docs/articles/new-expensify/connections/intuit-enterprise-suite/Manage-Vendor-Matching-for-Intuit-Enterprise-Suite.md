@@ -53,7 +53,7 @@ Vendors are managed in Intuit Enterprise Suite, so the list is read-only in Expe
 2. Select **Accounting**.
 3. On the Intuit Enterprise Suite connection, select **Export**.
 4. Select **Export company card expenses as**.
-5. Select **Default company card vendor**.
+5. Select **Default vendor**.
 6. Select a vendor from your imported Intuit Enterprise Suite vendor list.
 
 The default company card vendor is used only when an expense doesn't already have a vendor assigned.
