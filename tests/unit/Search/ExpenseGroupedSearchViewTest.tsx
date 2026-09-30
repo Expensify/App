@@ -112,9 +112,12 @@ jest.mock('@components/Search/primitives/SelectionTopBar', () => ({
 const mockToggle = jest.fn();
 const mockToggleAll = jest.fn();
 const mockSelectedTransactions: {current: Record<string, {isSelected: boolean}>} = {current: {}};
+/** Stable by construction, as the registry's own are: a subscriber lists these in its effect dependencies. */
+const mockShiftRangeGroups = {addGroupToRange: jest.fn(), removeGroupFromRange: jest.fn(), registryGeneration: 0};
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchRowSelectionActions: () => ({toggle: mockToggle, toggleAll: mockToggleAll}),
-    useSearchSelectionContext: () => ({selectedTransactions: mockSelectedTransactions.current}),
+    useSearchSelectionContext: () => ({selectedTransactions: mockSelectedTransactions.current, excludedTransactions: {}, areAllMatchingItemsSelected: false}),
+    useSearchShiftRangeGroups: () => mockShiftRangeGroups,
 }));
 
 function selectKeys(...keys: string[]): Record<string, {isSelected: boolean}> {

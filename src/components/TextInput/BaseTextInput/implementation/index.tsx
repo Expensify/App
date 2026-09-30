@@ -31,7 +31,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
 
 import {Str} from 'expensify-common';
@@ -370,7 +370,7 @@ function BaseTextInput({
             {/* Scoped to markdown inputs so plain text fields never subscribe to reports. */}
             {isMarkdownEnabled && (
                 <HtmlPasteHandler
-                    inputRef={input as RefObject<TextInput | null>}
+                    inputRef={input as RefObject<ComponentRef<typeof TextInput> | null>}
                     maxLength={maxLength}
                 />
             )}

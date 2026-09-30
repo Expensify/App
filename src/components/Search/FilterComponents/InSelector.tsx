@@ -54,7 +54,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
     const {convertToDisplayString} = useCurrencyListActions();
     const personalDetails = usePersonalDetails();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const {options, isLoading} = useFilteredOptions({
+    const {options, isLoading, getReportByID} = useFilteredOptions({
         enabled: ready,
         isSearching: !!debouncedSearchTerm.trim(),
         // The sections below read recentReports and never personalDetails, so contacts would never reach the list.
@@ -100,6 +100,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                     conciergeReportID,
                     reportAttributesDerived,
                     isTrackIntentUser,
+                    currentUserAccountID,
                 }),
             ),
             isSelected,
@@ -120,6 +121,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                 policyTags: reportPolicyTags,
                 conciergeReportID,
                 isTrackIntentUser,
+                currentUserAccountID,
                 rules,
             },
         );
@@ -154,6 +156,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                   conciergeReportID,
                   isTrackIntentUser,
                   translate,
+                  getReportByID,
                   rules,
               }).options;
 
@@ -170,7 +173,9 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
             convertToDisplayString,
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            currentUserAccountID,
         },
+        translate,
         rules,
     );
 
