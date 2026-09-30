@@ -14,6 +14,7 @@ import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 
 import {resetSignInFlow} from './HybridApp';
+import parkPersistedRequests from './ParkedPersistedRequests';
 
 let currentShouldForceOffline: boolean | undefined;
 let currentIsUsingImportedState: boolean | undefined;
@@ -67,7 +68,7 @@ const KEYS_TO_PRESERVE_ON_SIGN_OUT: OnyxKey[] = [
     ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
 ];
 
-function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
+async function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: string, isSAMLReauthentication?: boolean, shouldParkPersistedRequests?: boolean): Promise<void> {
     Log.info('[SignInRedirect] Clearing storage and redirecting to sign in', false, {signOutReason});
     logReceiptQueueSnapshot('signOut', signOutReason);
 
@@ -107,6 +108,12 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
         keysToPreserve.push(ONYXKEYS.LAST_VISITED_PATH);
     }
 
+    // The park write must land before the clear, otherwise the queued writes are wiped with the rest of the storage
+    const didParkPersistedRequests = shouldParkPersistedRequests ? await parkPersistedRequests() : false;
+    if (didParkPersistedRequests) {
+        keysToPreserve.push(ONYXKEYS.PARKED_PERSISTED_REQUESTS);
+    }
+
     return Onyx.clear(keysToPreserve).then(async () => {
         // Requests may be processed while sign-out is in progress. Clear again after credentials have been removed so none of those requests remain queued for the next startup.
         await clearPrefetchOnAppStart();
@@ -141,9 +148,10 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
  * @param signOutReason Which path tore down the session. Telemetry only, it must not drive behavior.
  * @param errorMessage Error message to be displayed on the sign in page
  * @param isSAMLReauthentication Whether the redirection was triggered by reauthentication for SAML required account
+ * @param shouldParkPersistedRequests Whether to hold the queued writes so they are re-queued if the same account signs back in within an hour
  */
-function redirectToSignIn(signOutReason: SignOutReason, errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
-    return clearStorageAndRedirect(signOutReason, errorMessage, isSAMLReauthentication).then(() => {
+function redirectToSignIn(signOutReason: SignOutReason, errorMessage?: string, isSAMLReauthentication?: boolean, shouldParkPersistedRequests?: boolean): Promise<void> {
+    return clearStorageAndRedirect(signOutReason, errorMessage, isSAMLReauthentication, shouldParkPersistedRequests).then(() => {
         clearSessionStorage();
     });
 }

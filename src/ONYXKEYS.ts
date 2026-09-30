@@ -65,6 +65,9 @@ const ONYXKEYS = {
     PERSISTED_REQUESTS: 'networkRequestQueue',
     PERSISTED_ONGOING_REQUESTS: 'networkOngoingRequestQueue',
 
+    /** Queued write requests held across a sign-out caused by a failed reauthentication, re-queued when the same account signs back in */
+    PARKED_PERSISTED_REQUESTS: 'parkedPersistedRequests',
+
     /** Stores current date */
     CURRENT_DATE: 'currentDate',
 
@@ -1630,6 +1633,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]: boolean;
     [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.AnyRequest[];
     [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: OnyxTypes.AnyRequest;
+    [ONYXKEYS.PARKED_PERSISTED_REQUESTS]: OnyxTypes.ParkedPersistedRequests;
     [ONYXKEYS.CURRENT_DATE]: string;
     [ONYXKEYS.CREDENTIALS]: OnyxTypes.Credentials;
     [ONYXKEYS.STASHED_CREDENTIALS]: OnyxTypes.Credentials;
