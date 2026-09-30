@@ -61,14 +61,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
 const RORY_EMAIL = 'rory@expensifail.com';
@@ -82,6 +74,48 @@ const isWriteMockCallForCommand =
         call.at(0) === command && isObject(call.at(1));
 
 OnyxUpdateManager();
+type OptimisticUpdates = Parameters<typeof Onyx.update>[0] | undefined;
+
+/** Applies a write's optimistic data, so assertions can read the result back out of Onyx. */
+function applyOptimisticUpdates(updates: OptimisticUpdates) {
+    if (!updates) {
+        return;
+    }
+    for (const update of updates) {
+        if (update.onyxMethod === Onyx.METHOD.MERGE) {
+            Onyx.merge(update.key, update.value);
+        } else if (update.onyxMethod === Onyx.METHOD.SET) {
+            Onyx.set(update.key, update.value);
+        }
+    }
+}
+
+/**
+ * Spies on both API write entry points and funnels their calls into `sink`. Both are needed: the migrated
+ * expense creations go out through `writeWhenReady`, while other commands in these flows still use `write`.
+ * Split into two functions at module scope because `no-multiple-api-calls` counts `API` tokens per
+ * function body.
+ */
+function spyOnApiWrites(sink: jest.Mock): jest.SpyInstance[] {
+    return [spyOnWrite(sink), spyOnWriteWhenReady(sink)];
+}
+
+function spyOnWrite(sink: jest.Mock) {
+    return jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
+        sink(command, params, options);
+        applyOptimisticUpdates(options?.optimisticData);
+        return Promise.resolve();
+    });
+}
+
+function spyOnWriteWhenReady(sink: jest.Mock) {
+    return jest.spyOn(API, 'writeWhenReady').mockImplementation((command, params, options) => {
+        sink(command, params, options);
+        applyOptimisticUpdates(options?.optimisticData);
+        return Promise.resolve();
+    });
+}
+
 describe('actions/Duplicate', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -91,26 +125,16 @@ describe('actions/Duplicate', () => {
     });
 
     describe('mergeDuplicates', () => {
-        let writeSpy: jest.SpyInstance;
+        let writeSpy: jest.Mock;
+        let apiSpies: jest.SpyInstance[];
         let currencyListProvider: RenderAPI;
 
         beforeEach(async () => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
 
-            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
-                // Apply optimistic data for testing
-                if (options?.optimisticData) {
-                    for (const update of options.optimisticData) {
-                        if (update.onyxMethod === Onyx.METHOD.MERGE) {
-                            Onyx.merge(update.key, update.value);
-                        } else if (update.onyxMethod === Onyx.METHOD.SET) {
-                            Onyx.set(update.key, update.value);
-                        }
-                    }
-                }
-                return Promise.resolve();
-            });
+            writeSpy = jest.fn();
+            apiSpies = spyOnApiWrites(writeSpy);
             await Onyx.clear();
             currencyListProvider = await initCurrencyListContext({
                 keys: ONYXKEYS,
@@ -123,7 +147,9 @@ describe('actions/Duplicate', () => {
 
         afterEach(() => {
             currencyListProvider.unmount();
-            writeSpy.mockRestore();
+            for (const spy of apiSpies) {
+                spy.mockRestore();
+            }
         });
 
         const createMockTransaction = (id: string, reportID: string, amount = 100): Transaction => ({
@@ -228,6 +254,9 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`]: duplicate2Violations,
+                },
+                allReportsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: expenseReport,
                 },
                 allReportActionsList: {
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {action456: iouAction1, action789: iouAction2},
@@ -341,6 +370,9 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {action789: iouAction1},
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`]: passedInChildReportActions,
                 },
+                allReportsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: expenseReport,
+                },
             });
             await waitForBatchedUpdates();
 
@@ -354,6 +386,100 @@ describe('actions/Duplicate', () => {
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
                             value: passedInChildReportActions,
+                        }),
+                    ]),
+                }),
+            );
+        });
+
+        it('threads allReportsList into the transaction-thread cleanup instead of relying on the deprecated reports cache', async () => {
+            // Given: A duplicate whose expense report and transaction thread are already cached in Onyx
+            const reportID = 'reportReports';
+            const mainTransactionID = 'mainReports';
+            const duplicate1ID = 'dupReports';
+            const childReportID = 'childReports';
+
+            const mainTransaction = createMockTransaction(mainTransactionID, reportID);
+            const duplicateTransaction1 = createMockTransaction(duplicate1ID, reportID, 100);
+            const mainViolations = createMockViolations();
+            const duplicate1Violations = createMockViolations();
+
+            const iouAction1 = createMockIouAction(duplicate1ID, 'action789', childReportID);
+
+            // The values already cached via the deprecated Onyx.connect-backed reports accessor —
+            // deliberately different from what's passed via allReportsList below.
+            const cachedExpenseReport = createMockReport(reportID, 500);
+            const cachedThreadReport = createMockReport(childReportID, 999);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`, duplicateTransaction1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, cachedExpenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, cachedThreadReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`, duplicate1Violations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {action789: iouAction1});
+            await waitForBatchedUpdates();
+
+            // The reports explicitly passed in, distinct from the cached ones above.
+            const passedExpenseReport = createMockReport(reportID, 200);
+            const passedThreadReport = createMockReport(childReportID, 42);
+
+            // When: Call mergeDuplicates, passing allReportsList with DIFFERENT values for the source and child reports
+            mergeDuplicates({
+                transactionID: mainTransactionID,
+                transactionIDList: [duplicate1ID],
+                created: '2024-01-01 12:00:00',
+                merchant: 'Updated Merchant',
+                amount: 200,
+                currency: CONST.CURRENCY.EUR,
+                category: 'Travel',
+                comment: 'Updated comment',
+                billable: true,
+                reimbursable: false,
+                tag: 'UpdatedProject',
+                taxCode: '',
+                receiptID: 123,
+                reportID,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
+                },
+                allReportsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: passedExpenseReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`]: passedThreadReport,
+                },
+                allReportActionsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {action789: iouAction1},
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`]: {},
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Then: The source-report total math and the transaction-thread rollback data use the PASSED-IN reports,
+            // not the stale cached ones — proving mergeDuplicates used the explicit allReportsList slice instead of
+            // the deprecated reports cache.
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MERGE_DUPLICATES,
+                expect.anything(),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                            value: expect.objectContaining({total: (passedExpenseReport.total ?? 0) - duplicateTransaction1.amount}),
+                        }),
+                    ]),
+                }),
+            );
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MERGE_DUPLICATES,
+                expect.anything(),
+                expect.objectContaining({
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${childReportID}`,
+                            value: passedThreadReport,
                         }),
                     ]),
                 }),
@@ -395,6 +521,9 @@ describe('actions/Duplicate', () => {
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 allTransactionViolations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: []},
+                allReportsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: expenseReport,
+                },
                 allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {}},
             });
             await waitForBatchedUpdates();
@@ -455,6 +584,7 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: [],
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: [],
                 },
+                allReportsList: {},
                 allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {}},
             });
             await waitForBatchedUpdates();
@@ -557,7 +687,6 @@ describe('actions/Duplicate', () => {
                 introSelected: undefined,
                 personalDetails: allPersonalDetails,
                 participants,
-                betas: undefined,
                 newReportObject: transactionThreadReport1,
                 parentReportActionID: iouAction1?.reportActionID,
                 currentUserAccountID: RORY_ACCOUNT_ID,
@@ -569,7 +698,6 @@ describe('actions/Duplicate', () => {
                 introSelected: undefined,
                 personalDetails: allPersonalDetails,
                 participants,
-                betas: undefined,
                 newReportObject: transactionThreadReport1,
                 parentReportActionID: iouAction2?.reportActionID,
                 currentUserAccountID: RORY_ACCOUNT_ID,
@@ -668,6 +796,15 @@ describe('actions/Duplicate', () => {
                 reportID,
             };
 
+            // Mirror what the page passes: the full REPORT collection from useOnyx(ONYXKEYS.COLLECTION.REPORT),
+            // including the transaction thread reports created optimistically above.
+            const allReportsList = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]: chatReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: expenseReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport1.reportID}`]: transactionThreadReport1,
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport2.reportID}`]: transactionThreadReport2,
+            };
+
             // When: Call mergeDuplicates
             mergeDuplicates({
                 ...mergeParams,
@@ -678,6 +815,7 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`]: duplicate2Violations,
                 },
+                allReportsList,
                 allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {[iouAction1ID]: iouAction1, [iouAction2ID]: iouAction2}},
             });
             await waitForBatchedUpdates();
@@ -785,6 +923,9 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
                 },
+                allReportsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: expenseReport,
+                },
                 allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {mainAction123: mainIouAction, action456: dupIouAction}},
             });
             await waitForBatchedUpdates();
@@ -873,6 +1014,10 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${crossReportDuplicateID}`]: crossDuplicateViolations,
                 },
+                allReportsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${keptReportID}`]: keptReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${crossReportID}`]: crossReport,
+                },
                 allReportActionsList: {
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${keptReportID}`]: {actionMain: mainIouAction},
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${crossReportID}`]: {actionCross: crossIouAction},
@@ -912,30 +1057,21 @@ describe('actions/Duplicate', () => {
     });
 
     describe('resolveDuplicates', () => {
-        let writeSpy: jest.SpyInstance;
+        let writeSpy: jest.Mock;
+        let apiSpies: jest.SpyInstance[];
 
         beforeEach(() => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
-                // Apply optimistic data for testing
-                if (options?.optimisticData) {
-                    for (const update of options.optimisticData) {
-                        if (update.onyxMethod === Onyx.METHOD.MERGE) {
-                            Onyx.merge(update.key, update.value);
-                        } else if (update.onyxMethod === Onyx.METHOD.SET) {
-                            Onyx.set(update.key, update.value);
-                        }
-                    }
-                }
-                return Promise.resolve();
-            });
+            writeSpy = jest.fn();
+            apiSpies = spyOnApiWrites(writeSpy);
             return Onyx.clear();
         });
 
         afterEach(() => {
-            writeSpy.mockRestore();
+            for (const spy of apiSpies) {
+                spy.mockRestore();
+            }
         });
 
         const createMockTransaction = (id: string, reportID: string, amount = 100): Transaction => ({
@@ -1198,7 +1334,6 @@ describe('actions/Duplicate', () => {
             expect(updatedMainViolations).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}]);
 
             // Then: Verify API was called
-            // eslint-disable-next-line
             expect(API.write).toHaveBeenCalledWith(WRITE_COMMANDS.RESOLVE_DUPLICATES, expect.objectContaining({}), expect.objectContaining({}));
         });
 
@@ -1605,7 +1740,8 @@ describe('actions/Duplicate', () => {
     });
 
     describe('duplicateExpenseTransaction', () => {
-        let writeSpy: jest.SpyInstance;
+        let writeSpy: jest.Mock;
+        let apiSpies: jest.SpyInstance[];
         let recentWaypoints: RecentWaypoint[] = [];
         let targetPolicyTags: OnyxEntry<PolicyTagLists>;
 
@@ -1628,20 +1764,8 @@ describe('actions/Duplicate', () => {
         beforeEach(async () => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
-                // Apply optimistic data for testing
-                if (options?.optimisticData) {
-                    for (const update of options.optimisticData) {
-                        if (update.onyxMethod === Onyx.METHOD.MERGE) {
-                            Onyx.merge(update.key, update.value);
-                        } else if (update.onyxMethod === Onyx.METHOD.SET) {
-                            Onyx.set(update.key, update.value);
-                        }
-                    }
-                }
-                return Promise.resolve();
-            });
+            writeSpy = jest.fn();
+            apiSpies = spyOnApiWrites(writeSpy);
             recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
             await getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
@@ -1653,7 +1777,9 @@ describe('actions/Duplicate', () => {
         });
 
         afterEach(() => {
-            writeSpy.mockRestore();
+            for (const spy of apiSpies) {
+                spy.mockRestore();
+            }
         });
 
         it('threads the conciergeChat report through to requestMoney', () => {
@@ -1661,6 +1787,7 @@ describe('actions/Duplicate', () => {
             const conciergeChat = {reportID: 'concierge-duplicate-1'};
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 conciergeChat,
                 dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -1679,7 +1806,6 @@ describe('actions/Duplicate', () => {
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
                 personalDetails: mockPersonalDetails,
-                betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
@@ -1708,6 +1834,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
@@ -1724,7 +1851,6 @@ describe('actions/Duplicate', () => {
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
                 personalDetails: mockPersonalDetails,
-                betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
@@ -1780,6 +1906,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockTimeExpenseTransaction,
@@ -1796,7 +1923,6 @@ describe('actions/Duplicate', () => {
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
                 personalDetails: mockPersonalDetails,
-                betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
@@ -1844,6 +1970,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockScanExpenseTransaction,
@@ -1860,7 +1987,6 @@ describe('actions/Duplicate', () => {
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
                 personalDetails: mockPersonalDetails,
-                betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
@@ -1901,6 +2027,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockScanExpenseTransaction,
@@ -1916,7 +2043,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: undefined,
                 targetReport: undefined,
                 existingTransactionDraft: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
@@ -1973,6 +2099,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockGPSDistanceTransaction,
@@ -1988,7 +2115,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: targetPolicy ? fakePolicyCategories : undefined,
                 targetReport: targetPolicy ? policyExpenseChat : undefined,
                 existingTransactionDraft: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
@@ -2054,6 +2180,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockGPSDistanceTransaction,
@@ -2069,7 +2196,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
@@ -2122,6 +2248,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
@@ -2137,7 +2264,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
@@ -2183,6 +2309,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
@@ -2197,7 +2324,6 @@ describe('actions/Duplicate', () => {
                 targetReport: policyExpenseChat,
                 isSelfTourViewed: false,
                 existingTransactionDraft: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
@@ -2253,6 +2379,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockTimeExpenseTransaction,
@@ -2267,7 +2394,6 @@ describe('actions/Duplicate', () => {
                 targetReport: policyExpenseChat,
                 isSelfTourViewed: false,
                 existingTransactionDraft: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
@@ -2307,6 +2433,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: undefined,
@@ -2322,7 +2449,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
@@ -2356,6 +2482,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
@@ -2371,7 +2498,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: undefined,
                 targetReport: undefined,
                 existingTransactionDraft: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
@@ -2406,6 +2532,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockUnreportedTransaction,
@@ -2421,7 +2548,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: mockPersonalDetails,
                 recentWaypoints,
                 targetPolicyTags,
@@ -2458,6 +2584,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockDistanceTransaction,
@@ -2474,7 +2601,6 @@ describe('actions/Duplicate', () => {
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
                 personalDetails: mockPersonalDetails,
-                betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
@@ -2516,6 +2642,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockDistanceTransaction,
@@ -2532,7 +2659,6 @@ describe('actions/Duplicate', () => {
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
                 personalDetails: mockPersonalDetails,
-                betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
@@ -2589,6 +2715,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockPerDiemTransaction,
@@ -2604,7 +2731,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
@@ -2663,6 +2789,7 @@ describe('actions/Duplicate', () => {
 
             // When duplicating the transaction
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockTransactionWithLinkedAction,
@@ -2678,7 +2805,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
@@ -2720,6 +2846,7 @@ describe('actions/Duplicate', () => {
 
             // When duplicating the transaction without targetPolicy
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
@@ -2735,7 +2862,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: undefined,
                 targetReport: undefined,
                 existingTransactionDraft: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
@@ -2788,6 +2914,7 @@ describe('actions/Duplicate', () => {
 
             // When duplicating the transaction
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockCashExpense,
@@ -2803,7 +2930,6 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
@@ -2925,7 +3051,8 @@ describe('actions/Duplicate', () => {
     });
 
     describe('duplicateReport', () => {
-        let writeSpy: jest.SpyInstance;
+        let writeSpy: jest.Mock;
+        let apiSpies: jest.SpyInstance[];
 
         const mockPolicy = createRandomPolicy(1);
         const mockPolicyCategories = createRandomPolicyCategories(3);
@@ -2967,6 +3094,7 @@ describe('actions/Duplicate', () => {
         const POLICY_EXPENSE_CHAT_REPORT_ID = 'policyExpenseChatReport';
 
         const getDefaultParams = (sourceTransactions: Transaction[], overrides: Partial<DuplicateReportParams> = {}): DuplicateReportParams => ({
+            isVendorMatchingBetaEnabled: false,
             dateFnsLocale: undefined,
             sourceReport: undefined,
             sourceReportTransactions: sourceTransactions,
@@ -2983,7 +3111,6 @@ describe('actions/Duplicate', () => {
             },
             ownerPersonalDetails: mockOwnerPersonalDetails,
             isASAPSubmitBetaEnabled: false,
-            betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
@@ -3008,19 +3135,8 @@ describe('actions/Duplicate', () => {
         beforeEach(async () => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
-                if (options?.optimisticData) {
-                    for (const update of options.optimisticData) {
-                        if (update.onyxMethod === Onyx.METHOD.MERGE) {
-                            Onyx.merge(update.key, update.value);
-                        } else if (update.onyxMethod === Onyx.METHOD.SET) {
-                            Onyx.set(update.key, update.value);
-                        }
-                    }
-                }
-                return Promise.resolve();
-            });
+            writeSpy = jest.fn();
+            apiSpies = spyOnApiWrites(writeSpy);
             await Onyx.clear();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${POLICY_EXPENSE_CHAT_REPORT_ID}`, {
                 reportID: POLICY_EXPENSE_CHAT_REPORT_ID,
@@ -3033,7 +3149,9 @@ describe('actions/Duplicate', () => {
         });
 
         afterEach(() => {
-            writeSpy.mockRestore();
+            for (const spy of apiSpies) {
+                spy.mockRestore();
+            }
         });
 
         it('should create a new report and duplicate all eligible transactions', async () => {
@@ -3660,7 +3778,8 @@ describe('actions/Duplicate', () => {
     });
 
     describe('bulkDuplicateExpenses', () => {
-        let writeSpy: jest.SpyInstance;
+        let writeSpy: jest.Mock;
+        let apiSpies: jest.SpyInstance[];
 
         const mockPolicy: Policy = {
             ...createRandomPolicy(1),
@@ -3675,26 +3794,17 @@ describe('actions/Duplicate', () => {
         beforeEach(async () => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
-                if (options?.optimisticData) {
-                    for (const update of options.optimisticData) {
-                        if (update.onyxMethod === Onyx.METHOD.MERGE) {
-                            Onyx.merge(update.key, update.value);
-                        } else if (update.onyxMethod === Onyx.METHOD.SET) {
-                            Onyx.set(update.key, update.value);
-                        }
-                    }
-                }
-                return Promise.resolve();
-            });
+            writeSpy = jest.fn();
+            apiSpies = spyOnApiWrites(writeSpy);
             await Onyx.clear();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mockPolicy.id}`, mockPolicy);
             await waitForBatchedUpdates();
         });
 
         afterEach(() => {
-            writeSpy.mockRestore();
+            for (const spy of apiSpies) {
+                spy.mockRestore();
+            }
         });
 
         it('should create a single IOU report for multiple bulk-duplicated expenses', async () => {
@@ -3723,6 +3833,7 @@ describe('actions/Duplicate', () => {
             };
 
             bulkDuplicateExpenses({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transactionIDs: ['bulk_1', 'bulk_2', 'bulk_3'],
@@ -3740,7 +3851,6 @@ describe('actions/Duplicate', () => {
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
                 transactionDrafts: undefined,
-                betas: [CONST.BETAS.ALL],
                 recentWaypoints: [],
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
@@ -3781,6 +3891,7 @@ describe('actions/Duplicate', () => {
             };
 
             bulkDuplicateExpenses({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transactionIDs: ['bulk_reported', 'bulk_unreported'],
@@ -3798,7 +3909,6 @@ describe('actions/Duplicate', () => {
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
                 transactionDrafts: undefined,
-                betas: [CONST.BETAS.ALL],
                 recentWaypoints: [],
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
@@ -3821,7 +3931,8 @@ describe('actions/Duplicate', () => {
     });
 
     describe('bulkDuplicateReports', () => {
-        let writeSpy: jest.SpyInstance;
+        let writeSpy: jest.Mock;
+        let apiSpies: jest.SpyInstance[];
 
         const SOURCE_POLICY_ID = 'sourcePolicy1';
         const DEFAULT_POLICY_ID = 'defaultPolicy1';
@@ -3884,6 +3995,7 @@ describe('actions/Duplicate', () => {
         });
 
         const getDefaultBulkParams = (reportIDs: string[], overrides: Partial<BulkDuplicateReportsParams> = {}): BulkDuplicateReportsParams => ({
+            isVendorMatchingBetaEnabled: false,
             dateFnsLocale: undefined,
             selectedReports: reportIDs.map((id) => ({
                 reportID: id,
@@ -3911,7 +4023,6 @@ describe('actions/Duplicate', () => {
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,
             isASAPSubmitBetaEnabled: false,
-            betas: [CONST.BETAS.ALL],
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL, displayName: 'Rory'}},
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
@@ -3933,26 +4044,17 @@ describe('actions/Duplicate', () => {
         beforeEach(async () => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
-                if (options?.optimisticData) {
-                    for (const update of options.optimisticData) {
-                        if (update.onyxMethod === Onyx.METHOD.MERGE) {
-                            Onyx.merge(update.key, update.value);
-                        } else if (update.onyxMethod === Onyx.METHOD.SET) {
-                            Onyx.set(update.key, update.value);
-                        }
-                    }
-                }
-                return Promise.resolve();
-            });
+            writeSpy = jest.fn();
+            apiSpies = spyOnApiWrites(writeSpy);
             await Onyx.clear();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`, activePolicyExpenseChat);
             await waitForBatchedUpdates();
         });
 
         afterEach(() => {
-            writeSpy.mockRestore();
+            for (const spy of apiSpies) {
+                spy.mockRestore();
+            }
         });
 
         it('should duplicate multiple reports, calling CREATE_APP_REPORT for each', async () => {

@@ -18,8 +18,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getChangedApproverActionMessage,
+    getCompanyCardConnectionBroken30DaysMessage,
     getCommuterExclusionMessage,
     getCompanyCardConnectionBrokenMessage,
+    getConciergeAutoSelectDistanceRateMessage,
     getDelegateSubmitMessage,
     getForwardedReportActionMessage,
     getIOUReportIDFromReportActionPreview,
@@ -60,6 +62,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {Str} from 'expensify-common';
 import React from 'react';
 
 import ApprovalFlowContent, {isApprovalFlowAction} from './ApprovalFlowContent';
@@ -129,8 +132,12 @@ type ActionContentRouterProps = {
     /** Whether the search-page UI is active */
     isOnSearch: boolean;
 
+    /** Whether this is the newest Concierge comment eligible for the inline feedback prompt */
+    isLatestConciergeFeedbackAction: boolean;
+
     setIsPaymentMethodPopoverActive: (value: boolean) => void;
     isTrackIntentUser?: boolean;
+    paymentExpectedDate?: string;
 };
 
 function ActionContentRouter({
@@ -152,6 +159,8 @@ function ActionContentRouter({
     isOnSearch,
     setIsPaymentMethodPopoverActive,
     isTrackIntentUser,
+    isLatestConciergeFeedbackAction,
+    paymentExpectedDate,
 }: ActionContentRouterProps): React.JSX.Element | null {
     const {translate, formatTravelDate} = useLocalize();
     const styles = useThemeStyles();
@@ -284,6 +293,7 @@ function ActionContentRouter({
         return (
             <PaymentContent
                 action={action}
+                expectedDate={paymentExpectedDate}
                 policyID={policyID}
             />
         );
@@ -356,6 +366,14 @@ function ActionContentRouter({
         return (
             <ReportActionItemBasicMessage message="">
                 <RenderHTML html={`<comment><muted-text>${getTravelUpdateMessage(translate, action, formatTravelDate)}</muted-text></comment>`} />
+            </ReportActionItemBasicMessage>
+        );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE)) {
+        return (
+            <ReportActionItemBasicMessage message="">
+                {/* The helper returns plain text, so encode it before it becomes HTML or a workspace name containing an entity like `&copy;` would be parsed as markup. */}
+                <RenderHTML html={`<comment><muted-text>${Str.htmlEncode(getConciergeAutoSelectDistanceRateMessage(translate, action))}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>
         );
     }
@@ -476,6 +494,13 @@ function ActionContentRouter({
             </ReportActionItemBasicMessage>
         );
     }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS)) {
+        return (
+            <ReportActionItemBasicMessage message="">
+                <RenderHTML html={`<comment><muted-text>${getCompanyCardConnectionBroken30DaysMessage(translate, action)}</muted-text></comment>`} />
+            </ReportActionItemBasicMessage>
+        );
+    }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE)) {
         return (
             <ReportActionItemBasicMessage message="">
@@ -541,6 +566,7 @@ function ActionContentRouter({
             isHidden={isHidden}
             updateHiddenState={updateHiddenState}
             isOnSearch={isOnSearch}
+            isLatestConciergeFeedbackAction={isLatestConciergeFeedbackAction}
         />
     );
 }

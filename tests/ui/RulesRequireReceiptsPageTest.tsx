@@ -84,11 +84,11 @@ const getItemizedTooLowError = (receiptAmountInCents: number) =>
 /** The single message shown below both amounts when they break their shared constraint. */
 const getSharedAmountError = () => TestHelper.translateLocal('workspace.rules.requireReceipts.receiptAmountGreaterThanItemizedError');
 
-/** The page is gated behind the rulesRevamp beta, and its wrapper needs an admin on a Control workspace with Rules on. */
+/** The page wrapper needs an admin on a Control workspace with Rules on. */
 const setupPolicy = async (policyOverrides: Partial<Policy>) => {
     await TestHelper.signInWithTestUser();
     await act(async () => {
-        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.RULES_REVAMP]);
+        await Onyx.set(ONYXKEYS.BETAS, []);
     });
     const policy = {
         ...LHNTestUtils.getFakePolicy(),

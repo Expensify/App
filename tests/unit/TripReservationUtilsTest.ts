@@ -2,7 +2,8 @@
 import {formatTransitLocationLabel, getAirReservations, getPNRReservationDataFromTripReport, getReservationsFromTripReport, isPnrCancelled} from '@libs/TripReservationUtils';
 
 import CONST from '@src/CONST';
-import type {Pnr, TripData} from '@src/types/onyx/TripData';
+import type {ReportNameValuePairs} from '@src/types/onyx';
+import type {Pnr, RailPnr, TripData} from '@src/types/onyx/TripData';
 
 import {airReservationPnrData, airReservationTravelers} from '../data/TripAirReservationData';
 import {createRandomReport} from '../utils/collections/reports';
@@ -2458,18 +2459,20 @@ describe('TripReservationUtils', () => {
     describe('getReservationsFromTripReport', () => {
         it('should return an empty array when there are no transactions and trip payload', () => {
             const report = createRandomReport(1, undefined);
-            const result = getReservationsFromTripReport(report, []);
+            const reportNameValuePairs: ReportNameValuePairs = {};
+            const result = getReservationsFromTripReport(report, reportNameValuePairs, []);
             expect(result).toEqual([]);
         });
 
         it('should return reservations from tripPayload', () => {
             const report = createRandomReport(1, undefined);
-            report.tripData = {
+            const reportNameValuePairs: ReportNameValuePairs = {};
+            reportNameValuePairs.tripData = {
                 tripID: 'trip123',
                 payload: tripWithAllReservations,
             };
 
-            const result = getReservationsFromTripReport(report, []);
+            const result = getReservationsFromTripReport(report, reportNameValuePairs, []);
             expect(result).toHaveLength(7);
             expect(result.at(0)?.reservation.reservationID).toEqual('PNR_AIR_789');
             expect(result.at(1)?.reservation.reservationID).toEqual('PNR_RAIL_789');
@@ -2479,14 +2482,14 @@ describe('TripReservationUtils', () => {
             expect(result.at(5)?.reservation.reservationID).toEqual('PNR_AIR_CONNECTING_789');
             expect(result.at(6)?.reservation.reservationID).toEqual('PNR_AIR_CONNECTING_789');
 
-            report.tripData = {
+            reportNameValuePairs.tripData = {
                 tripID: 'trip123',
                 payload: {
                     ...basicTripData,
                     pnrs: [hotelPnr],
                 },
             };
-            const resultWithSingleReservation = getReservationsFromTripReport(report, []);
+            const resultWithSingleReservation = getReservationsFromTripReport(report, reportNameValuePairs, []);
 
             expect(resultWithSingleReservation).toHaveLength(1);
             expect(resultWithSingleReservation.at(0)?.reservation.reservationID).toEqual('PNR_HOTEL_789');
@@ -2507,7 +2510,8 @@ describe('TripReservationUtils', () => {
             };
 
             const report = createRandomReport(1, undefined);
-            report.tripData = {
+            const reportNameValuePairs: ReportNameValuePairs = {};
+            reportNameValuePairs.tripData = {
                 tripID: 'trip123',
                 payload: {
                     ...basicTripData,
@@ -2515,7 +2519,7 @@ describe('TripReservationUtils', () => {
                 },
             };
 
-            const result = getReservationsFromTripReport(report, []);
+            const result = getReservationsFromTripReport(report, reportNameValuePairs, []);
             expect(result).toHaveLength(3);
             const cancelledReservation = result.find((r) => r.reservation.reservationID === 'PNR_HOTEL_CANCELLED');
             expect(cancelledReservation?.isCancelled).toBe(true);
@@ -2536,7 +2540,8 @@ describe('TripReservationUtils', () => {
             };
 
             const report = createRandomReport(1, undefined);
-            report.tripData = {
+            const reportNameValuePairs: ReportNameValuePairs = {};
+            reportNameValuePairs.tripData = {
                 tripID: 'trip123',
                 payload: {
                     ...basicTripData,
@@ -2544,7 +2549,7 @@ describe('TripReservationUtils', () => {
                 },
             };
 
-            const result = getReservationsFromTripReport(report, []);
+            const result = getReservationsFromTripReport(report, reportNameValuePairs, []);
             expect(result).toHaveLength(3);
             const cancelledReservation = result.find((r) => r.reservation.reservationID === 'PNR_CAR_CANCELLED');
             expect(cancelledReservation?.isCancelled).toBe(true);
@@ -2574,7 +2579,8 @@ describe('TripReservationUtils', () => {
             };
 
             const report = createRandomReport(1, undefined);
-            report.tripData = {
+            const reportNameValuePairs: ReportNameValuePairs = {};
+            reportNameValuePairs.tripData = {
                 tripID: 'trip123',
                 payload: {
                     ...basicTripData,
@@ -2582,7 +2588,7 @@ describe('TripReservationUtils', () => {
                 },
             };
 
-            const result = getReservationsFromTripReport(report, []);
+            const result = getReservationsFromTripReport(report, reportNameValuePairs, []);
             expect(result).toHaveLength(2);
             expect(result.every((r) => r.isCancelled)).toBe(true);
         });
@@ -2591,7 +2597,8 @@ describe('TripReservationUtils', () => {
     describe('cityName mapping', () => {
         it('should set hotel cityName to address.locality, not chainName', () => {
             const report = createRandomReport(1, undefined);
-            report.tripData = {
+            const reportNameValuePairs: ReportNameValuePairs = {};
+            reportNameValuePairs.tripData = {
                 tripID: 'trip123',
                 payload: {
                     ...basicTripData,
@@ -2599,7 +2606,7 @@ describe('TripReservationUtils', () => {
                 },
             };
 
-            const result = getReservationsFromTripReport(report, []);
+            const result = getReservationsFromTripReport(report, reportNameValuePairs, []);
             expect(result).toHaveLength(1);
 
             const hotelReservation = result.at(0)?.reservation;
@@ -2611,7 +2618,8 @@ describe('TripReservationUtils', () => {
 
         it('should set car cityName to pickup and dropoff location locality', () => {
             const report = createRandomReport(1, undefined);
-            report.tripData = {
+            const reportNameValuePairs: ReportNameValuePairs = {};
+            reportNameValuePairs.tripData = {
                 tripID: 'trip123',
                 payload: {
                     ...basicTripData,
@@ -2619,7 +2627,7 @@ describe('TripReservationUtils', () => {
                 },
             };
 
-            const result = getReservationsFromTripReport(report, []);
+            const result = getReservationsFromTripReport(report, reportNameValuePairs, []);
             expect(result).toHaveLength(1);
 
             const carReservation = result.at(0)?.reservation;
@@ -2630,7 +2638,8 @@ describe('TripReservationUtils', () => {
 
         it('should preserve flight cityName in "CityName, StateCode, CountryName" format', () => {
             const report = createRandomReport(1, undefined);
-            report.tripData = {
+            const reportNameValuePairs: ReportNameValuePairs = {};
+            reportNameValuePairs.tripData = {
                 tripID: 'trip123',
                 payload: {
                     ...basicTripData,
@@ -2638,7 +2647,7 @@ describe('TripReservationUtils', () => {
                 },
             };
 
-            const result = getReservationsFromTripReport(report, []);
+            const result = getReservationsFromTripReport(report, reportNameValuePairs, []);
             expect(result).toHaveLength(1);
 
             const flightReservation = result.at(0)?.reservation;
@@ -2649,7 +2658,8 @@ describe('TripReservationUtils', () => {
 
         it('should preserve train cityName as clean city name', () => {
             const report = createRandomReport(1, undefined);
-            report.tripData = {
+            const reportNameValuePairs: ReportNameValuePairs = {};
+            reportNameValuePairs.tripData = {
                 tripID: 'trip123',
                 payload: {
                     ...basicTripData,
@@ -2657,7 +2667,7 @@ describe('TripReservationUtils', () => {
                 },
             };
 
-            const result = getReservationsFromTripReport(report, []);
+            const result = getReservationsFromTripReport(report, reportNameValuePairs, []);
             expect(result).toHaveLength(1);
 
             const trainReservation = result.at(0)?.reservation;
@@ -2668,12 +2678,13 @@ describe('TripReservationUtils', () => {
 
         it('should set correct cityName for all reservation types in a mixed trip', () => {
             const report = createRandomReport(1, undefined);
-            report.tripData = {
+            const reportNameValuePairs: ReportNameValuePairs = {};
+            reportNameValuePairs.tripData = {
                 tripID: 'trip123',
                 payload: tripWithAllReservations,
             };
 
-            const result = getReservationsFromTripReport(report, []);
+            const result = getReservationsFromTripReport(report, reportNameValuePairs, []);
 
             const hotelReservation = result.find((r) => r.reservation.type === CONST.RESERVATION_TYPE.HOTEL);
             expect(hotelReservation?.reservation.start?.cityName).toEqual('New York');
@@ -2691,6 +2702,67 @@ describe('TripReservationUtils', () => {
             const trainReservation = result.find((r) => r.reservation.type === CONST.RESERVATION_TYPE.TRAIN);
             expect(trainReservation?.reservation.start?.cityName).toEqual('City X');
             expect(trainReservation?.reservation.end?.cityName).toEqual('City Y');
+        });
+    });
+
+    describe('rail traveler information', () => {
+        it.each<{description: string; passengerInfos: RailPnr['passengerInfos']}>([
+            {description: 'passenger entry', passengerInfos: []},
+            {description: 'userOrgId', passengerInfos: [{passengerType: ''}]},
+            {description: 'userId', passengerInfos: [{passengerType: '', userOrgId: {organizationId: {id: ''}}}]},
+        ])('should preserve reservations when the rail $description is missing', ({passengerInfos}) => {
+            // Given a mixed trip with incomplete rail passenger data that must not prevent access to other bookings
+            const report = createRandomReport(1, undefined);
+            const reportNameValuePairs: ReportNameValuePairs = {
+                tripData: {
+                    tripID: 'trip123',
+                    payload: {
+                        ...tripWithAllReservations,
+                        pnrs: [
+                            airPnrDirect,
+                            airPnrConnecting,
+                            {
+                                ...railPnr,
+                                data: {
+                                    ...railPnr.data,
+                                    railPnr: {...railPnrData, passengerInfos},
+                                },
+                            },
+                            carPnr,
+                            hotelPnr,
+                        ],
+                    },
+                },
+            };
+
+            // When the trip reservations are extracted for the Home page
+            const result = getReservationsFromTripReport(report, reportNameValuePairs);
+
+            // Then all bookings remain available and only the rail traveler details are omitted
+            const expectedReservations = getReservationsFromTripReport(report, {tripData: {tripID: 'trip123', payload: tripWithAllReservations}});
+            expect(result).toHaveLength(7);
+            expect(result).toEqual(
+                expectedReservations.map((reservationData) =>
+                    reservationData.reservation.type === CONST.RESERVATION_TYPE.TRAIN
+                        ? {...reservationData, reservation: {...reservationData.reservation, travelerPersonalInfo: {name: '', email: ''}}}
+                        : reservationData,
+                ),
+            );
+        });
+
+        it('should preserve traveler details when the rail passenger has a matching user ID', () => {
+            // Given a rail booking with complete passenger data linked to a known traveler
+            const report = createRandomReport(1, undefined);
+            const reportNameValuePairs: ReportNameValuePairs = {
+                tripData: {tripID: 'trip123', payload: {...basicTripData, pnrs: [railPnr]}},
+            };
+
+            // When the trip reservations are extracted for the Home page
+            const result = getReservationsFromTripReport(report, reportNameValuePairs);
+
+            // Then valid traveler details remain visible alongside the rail reservation
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.reservation.travelerPersonalInfo).toEqual({name: 'Smith Alice', email: 'alice.smith@example.com'});
         });
     });
 
@@ -2716,7 +2788,8 @@ describe('TripReservationUtils', () => {
             };
 
             const report = createRandomReport(1, undefined);
-            report.tripData = {
+            const reportNameValuePairs: ReportNameValuePairs = {};
+            reportNameValuePairs.tripData = {
                 tripID: 'trip123',
                 payload: {
                     ...basicTripData,
@@ -2724,7 +2797,7 @@ describe('TripReservationUtils', () => {
                 },
             };
 
-            const result = getReservationsFromTripReport(report, []);
+            const result = getReservationsFromTripReport(report, reportNameValuePairs, []);
             expect(result).toHaveLength(1);
 
             const trainReservation = result.at(0)?.reservation;
@@ -2743,7 +2816,8 @@ describe('TripReservationUtils', () => {
 
         it('should preserve a clean station code in rail shortName', () => {
             const report = createRandomReport(1, undefined);
-            report.tripData = {
+            const reportNameValuePairs: ReportNameValuePairs = {};
+            reportNameValuePairs.tripData = {
                 tripID: 'trip123',
                 payload: {
                     ...basicTripData,
@@ -2751,7 +2825,7 @@ describe('TripReservationUtils', () => {
                 },
             };
 
-            const result = getReservationsFromTripReport(report, []);
+            const result = getReservationsFromTripReport(report, reportNameValuePairs, []);
             expect(result).toHaveLength(1);
 
             const trainReservation = result.at(0)?.reservation;
@@ -2764,18 +2838,20 @@ describe('TripReservationUtils', () => {
     describe('getPNRReservationDataFromTripReport', () => {
         it('should return an empty array when there are no transactions and trip payload', () => {
             const report = createRandomReport(1, undefined);
-            const result = getPNRReservationDataFromTripReport(report, []);
+            const reportNameValuePairs: ReportNameValuePairs = {};
+            const result = getPNRReservationDataFromTripReport(report, reportNameValuePairs, []);
             expect(result).toEqual([]);
         });
 
         it('should return PNR reservation data from tripPayload', () => {
             const report = createRandomReport(1, undefined);
-            report.tripData = {
+            const reportNameValuePairs: ReportNameValuePairs = {};
+            reportNameValuePairs.tripData = {
                 tripID: 'trip123',
                 payload: tripWithAllReservations,
             };
 
-            const result = getPNRReservationDataFromTripReport(report, []);
+            const result = getPNRReservationDataFromTripReport(report, reportNameValuePairs, []);
             expect(result).toHaveLength(5);
             expect(result.at(0)?.pnrID).toEqual('PNR_AIR_789');
             expect(result.at(1)?.pnrID).toEqual('PNR_RAIL_789');
@@ -2783,14 +2859,14 @@ describe('TripReservationUtils', () => {
             expect(result.at(3)?.pnrID).toEqual('PNR_HOTEL_789');
             expect(result.at(4)?.pnrID).toEqual('PNR_AIR_CONNECTING_789');
 
-            report.tripData = {
+            reportNameValuePairs.tripData = {
                 tripID: 'trip123',
                 payload: {
                     ...basicTripData,
                     pnrs: [airPnrConnecting],
                 },
             };
-            const resultWithSingleReservation = getPNRReservationDataFromTripReport(report, []);
+            const resultWithSingleReservation = getPNRReservationDataFromTripReport(report, reportNameValuePairs, []);
 
             expect(resultWithSingleReservation).toHaveLength(1);
             expect(resultWithSingleReservation.at(0)?.pnrID).toEqual('PNR_AIR_CONNECTING_789');

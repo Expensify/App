@@ -17,5 +17,7 @@ const reportByIDsSelector = (reportIDs: string[]) => (attributes: OnyxEntry<Repo
 
 const reportNameSelector = (attributes: OnyxEntry<ReportAttributesDerivedValue>, reportID: string | undefined) => (reportID ? attributes?.reports?.[reportID]?.reportName : undefined);
 
-export {reportNameSelector};
+const reportIsEmptySelector = (attributes: OnyxEntry<ReportAttributesDerivedValue>, reportID: string | undefined) => (reportID ? attributes?.reports?.[reportID]?.isEmpty : undefined);
+
+export {reportNameSelector, reportIsEmptySelector};
 export default reportByIDsSelector;
