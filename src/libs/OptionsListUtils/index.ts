@@ -2081,7 +2081,8 @@ function prepareReportOptionsForDisplay(
                     : undefined;
             const oneTransactionThreadReport = oneTransactionThreadReportID ? getReportByID(oneTransactionThreadReportID) : undefined;
 
-            isOptionUnread = isUnread(report, oneTransactionThreadReport, option.private_isArchived, reportAttributesDerived?.[report.reportID]?.isEmpty) && !!report.lastActorAccountID;
+            // isUnread() gates on isEmptyReport, so an empty chat is not shown in bold here.
+            isOptionUnread = isUnread(report, oneTransactionThreadReport, option.private_isArchived, reportAttributesDerived?.[report.reportID]?.isEmpty);
         }
 
         let lastIOUCreationDate;
