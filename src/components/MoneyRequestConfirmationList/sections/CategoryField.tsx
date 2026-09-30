@@ -4,6 +4,7 @@ import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDecodedLeafCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
@@ -61,6 +62,7 @@ function CategoryField({
 }: CategoryFieldProps) {
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const {isEditingSplitBill} = useConfirmationFields();
+    const {canUseAnchoredFieldDropdowns} = usePermissions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
@@ -150,7 +152,8 @@ function CategoryField({
 
     // The list answers the field in place only when it is the whole answer. Sending the user to pick a workspace
     // or through an upgrade first, or having no list loaded to show, all still take the page they took before.
-    const shouldOpenInDropdown = !!transactionID && !!policy && !shouldNavigateToUpgradePath && !shouldSelectPolicy && hasEnabledCategories && canSaveFromThisForm;
+    const shouldOpenInDropdown =
+        !!canUseAnchoredFieldDropdowns && !!transactionID && !!policy && !shouldNavigateToUpgradePath && !shouldSelectPolicy && hasEnabledCategories && canSaveFromThisForm;
 
     if (shouldUseDropdownRows) {
         return (
