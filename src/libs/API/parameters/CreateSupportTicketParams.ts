@@ -1,5 +1,5 @@
 type CreateSupportTicketParams = {
-    reportID: string;
+    reportID?: string;
     assigneeAccountID: number;
 };
 

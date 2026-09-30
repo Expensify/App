@@ -4852,14 +4852,18 @@ function createNewReport(
 }
 
 function openSupportTicket({assigneeAccountID}: {assigneeAccountID: number}) {
-    const reportID = generateReportID();
-
     const parameters: CreateSupportTicketParams = {
-        reportID,
         assigneeAccountID,
     };
-    API.write(WRITE_COMMANDS.CREATE_SUPPORT_TICKET, parameters);
-    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, Navigation.getActiveRoute(), undefined, true));
+
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- navigation requires the server-generated report ID.
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, parameters).then((response) => {
+        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS || !response.reportID) {
+            return;
+        }
+
+        Navigation.navigate(getReportRouteForCurrentContext({reportID: response.reportID}));
+    });
 }
 
 function dismissFailedSupportTicket(supportTicketReportID: string, parentReportID: string, parentReportActionID: string) {

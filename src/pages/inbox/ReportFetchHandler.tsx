@@ -201,12 +201,6 @@ function ReportFetchHandler() {
             return;
         }
 
-        // A support ticket receives all of its report data from CreateSupportTicket. Opening it before that
-        // response arrives would race the assignment and can incorrectly show it as not found.
-        if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.SUPPORT_TICKET) {
-            return;
-        }
-
         // A draft-only report (created optimistically via createDraftWorkspace, e.g. the "Submit to my employer" Submit
         // workspace when the user has none) exists only in REPORT_DRAFT and has no server counterpart. openReport would
         // 403 "Report not found" and merge an errorFields.notFound stub into REPORT, shadowing the draft. It's persisted
