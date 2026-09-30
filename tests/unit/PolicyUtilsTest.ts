@@ -5498,7 +5498,7 @@ describe('PolicyUtils', () => {
                 // When the vendor feature is checked across the workspaces without the vendorMatching beta
                 const isVendorFeatureAvailable = hasVendorFeatureOnAnyPolicy(policies, false);
 
-                // Then the feature is not available on any workspace
+                // Then the feature is not available on any workspace because Business Central still depends on the beta
                 expect(isVendorFeatureAvailable).toBe(false);
             });
         });
