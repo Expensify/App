@@ -29,14 +29,22 @@ function ScanFooter({
     const styles = useThemeStyles();
     const {showMoreFields, setShowMoreFields} = compactControls;
 
+    const receiptSection = (
+        <ReceiptSection
+            policy={policy}
+            showMoreFields={showMoreFields}
+            {...receiptOptions}
+        />
+    );
+
     return (
         <ExpenseFormLayoutContext.Provider value={dropdownRowsExpenseFormLayout}>
             <View style={isCompactMode ? styles.flex1 : undefined}>
-                <ReceiptSection
-                    policy={policy}
-                    showMoreFields={showMoreFields}
-                    {...receiptOptions}
-                />
+                {/* The receipt preview carries no margin of its own, so the 8px that keeps it clear of the first
+                    field below it goes here, the same way every other footer spaces its preview. Compact mode
+                    leaves it unwrapped: the preview sizes itself by flexing into the space the fields leave, and a
+                    content-sized wrapper would collapse it to nothing. */}
+                {isCompactMode ? receiptSection : <View style={styles.mv2}>{receiptSection}</View>}
 
                 <ConfirmationFieldList
                     policy={policy}
