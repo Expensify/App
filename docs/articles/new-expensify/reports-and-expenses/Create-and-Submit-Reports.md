@@ -42,14 +42,15 @@ You can select several reports on the **Reports** tab and submit them in one act
 1. In the navigation tabs on the left, select **Spend**.
 2. Under **Expense reports**, select **Reports**.
 3. Select the checkbox on two or more reports you want to submit.
-4. Select the **X selected** button (for example, **2 selected**), then select **Submit**.
+4. On the selection bar, choose **Submit**.
 
 **Mobile:**
 
 1. In the navigation tabs on the bottom, tap **Spend** > **Reports**.
 2. Long-press a report, then tap **Select** to enter selection mode.
 3. Select two or more reports you want to submit.
-4. Tap the **X selected** button (for example, **2 selected**), then tap **Submit**.
+4. Tap **Selected**.
+5. Tap **Submit**.
 
 **Note:** If your workspace does not use an approval workflow, you’ll see **Mark as done** instead of **Submit**.
 
@@ -132,8 +133,8 @@ This helps keep reports moving forward and ensures expenses are submitted and ap
 ## How Workspace Admins can create a report by moving multiple expenses
 
 1. Select two or more reported or unreported company card expenses, or reported reimbursable expenses.
-2. Select the **Selected** button.
-3. Select **Move expenses**.
+2. On the selection bar, choose **More** 
+3. Select **Move to report**.
 4. Select **Create report** to add the expenses to a report on the member's default workspace. 
    - You must be a Workspace Admin on that workspace.
 
