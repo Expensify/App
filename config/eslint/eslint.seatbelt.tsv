@@ -1513,6 +1513,7 @@
 "../../src/pages/workspace/accounting/ClaimOfferPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/ClaimOfferPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/accounting/dualentry/DualEntryExistingConnectionsPage.tsx"	"no-restricted-imports"	1
+"../../src/pages/workspace/accounting/campfire/export/CampfireExportPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/dualentry/export/DualEntryExportPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/intacct/advanced/DynamicSageIntacctAccountingMethodPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/intacct/DynamicSageIntacctPrerequisitesPage.tsx"	"no-restricted-imports"	1
