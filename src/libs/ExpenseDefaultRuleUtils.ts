@@ -387,7 +387,10 @@ function getExpenseDefaultRuleSummaryFields(rule: Rule | ExpenseDefaultRule | un
         });
     }
 
-    return summaryFields;
+    // Read back in the same field order the editor writes, not the order the actions happen to be indexed in.
+    // The backend reindexes the actions it stores, so ordering the summary by index reshuffles the text once a
+    // save comes back.
+    return summaryFields.sort((first, second) => ACTION_FIELD_ORDER.indexOf(first.field) - ACTION_FIELD_ORDER.indexOf(second.field));
 }
 
 /**
