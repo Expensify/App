@@ -450,8 +450,14 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
         }
         endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
     });
+    loadPersonalDetails();
 
     return openAppPromise;
+}
+
+function loadPersonalDetails() {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOAD_PERSONAL_DETAILS, null);
 }
 
 /**
@@ -504,6 +510,9 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
             }
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
         });
+        if (isFullReconnect) {
+            loadPersonalDetails();
+        }
 
         return reconnectAppPromise;
     });
