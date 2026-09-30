@@ -317,8 +317,10 @@ function initSplitExpenseItemData(
         // the same way DistanceRequestUtils.getTaxableAmount does.
         if (liveTaxValue !== undefined) {
             const splitAmount = Math.abs(amount ?? transactionDetails?.amount ?? 0);
+            const splitCustomUnitRateID = splitCustomUnit?.customUnitRateID;
+            const splitCustomUnitRate = splitCustomUnitRateID ? getDistanceRateCustomUnitRate(policy, splitCustomUnitRateID) : undefined;
             const taxableAmount = isDistanceRequestTransactionUtils(transaction)
-                ? splitAmount * (getDistanceRateCustomUnitRate(policy, splitCustomUnit?.customUnitRateID ?? '')?.attributes?.taxClaimablePercentage ?? CONST.DEFAULT_NUMBER_ID)
+                ? splitAmount * (splitCustomUnitRate?.attributes?.taxClaimablePercentage ?? CONST.DEFAULT_NUMBER_ID)
                 : splitAmount;
             const splitCurrency = transactionDetails?.currency ?? CONST.CURRENCY.USD;
             resolvedTaxCode = liveTaxCode;
