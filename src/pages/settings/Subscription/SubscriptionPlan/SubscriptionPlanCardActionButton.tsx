@@ -1,5 +1,4 @@
 import Button from '@components/Button';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -15,15 +14,13 @@ import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 
 import Navigation from '@navigation/Navigation';
 
-import {getPrivatePromoDiscountInfo} from '@pages/settings/Subscription/utils';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useMemo} from 'react';
+import {useMemo} from 'react';
 import {View} from 'react-native';
 
 import type {PersonalPolicyTypeExcludedProps} from './SubscriptionPlanCard';
@@ -46,10 +43,6 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const privateSubscription = usePrivateSubscription();
-    const [privatePromoCode] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_CODE);
-    const [privatePromoDiscount] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_DISCOUNT);
-    const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
-    const {isSecretPromoCode} = getPrivatePromoDiscountInfo(privatePromoDiscount, isAnnual);
     const ownerPolicies = useMemo(() => getOwnedPaidPolicies(policies, currentUserAccountID), [policies, currentUserAccountID]);
 
     const [canPerformUpgrade, policy] = useMemo(() => {
@@ -131,35 +124,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
         }
     }
 
-    if (isSubscriptionTypeOfInvoicing(privateSubscription?.type)) {
-        return undefined;
-    }
-
-    const autoIncrease = privateSubscription?.addNewUsersAutomatically ? translate('subscription.subscriptionSettings.on') : translate('subscription.subscriptionSettings.off');
-    const subscriptionType = isAnnual ? translate('subscription.subscriptionSettings.annual') : translate('subscription.details.payPerUse');
-    const subscriptionSize = `${privateSubscription?.userCount ?? translate('subscription.subscriptionSettings.none')}`;
-    const autoRenew = privateSubscription?.autoRenew ? translate('subscription.subscriptionSettings.on') : translate('subscription.subscriptionSettings.off');
-    const expensifyCode = isSecretPromoCode ? '' : (privatePromoCode ?? '');
-
-    return (
-        <View>
-            <MenuItemWithTopDescription
-                description={translate('subscription.subscriptionSettings.title')}
-                style={style}
-                interactive={false}
-                numberOfLinesTitle={3}
-                title={translate('subscription.subscriptionSettings.summary', subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease)}
-            />
-            <View style={[style, styles.mt2]}>
-                <Button
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS)}
-                    style={styles.alignSelfStart}
-                >
-                    <Button.Text>{translate('subscription.subscriptionSettings.editSubscription')}</Button.Text>
-                </Button>
-            </View>
-        </View>
-    );
+    return undefined;
 }
 
 export default SubscriptionPlanCardActionButton;

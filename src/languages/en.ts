@@ -11610,8 +11610,14 @@ const translations = {
         subscriptionSettings: {
             title: 'Subscription settings',
             editSubscription: 'Edit subscription',
-            summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
-                `Subscription type: ${subscriptionType}, Subscription size: ${subscriptionSize}${expensifyCode ? `, Expensify code: ${expensifyCode}` : ''}, Auto renew: ${autoRenew}, Auto increase annual seats: ${autoIncrease}`,
+            subscriptionType: 'Subscription type',
+            memberCount: (count: number) => (count === 1 ? '1 member' : `${count} members`),
+            sizeNotSet: `<muted-text>If you don't set your subscription size now, we'll set it automatically based on your first month's active member count. <a href="${CONST.PRICING}">Learn more</a></muted-text>`,
+            expensifyCodeApplied: 'Expensify code applied',
+            addExpensifyCode: 'Add Expensify code',
+            editExpensifyCode: 'Edit Expensify code',
+            saveWithAnnualSubscription: 'Save with an annual subscription',
+            extraSeats: "We'll add extra seats when active members exceed your subscription size.",
             none: 'none',
             on: 'on',
             off: 'off',
