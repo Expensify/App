@@ -29,22 +29,20 @@ You'll receive the exported CSV file in a message from Concierge.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**. 
 2. Select the checkbox next to each report you want to export, or use the top checkbox to select all.
-3. Select **Selected** at the top.
-4. Select **Export**.
+3. On the selection bar, choose **Export**.
 5. Choose an export template from the menu that appears. 
 
 You'll receive the exported CSV file in a message from Concierge.
 
-## How to export the columns currently displayed using Export current view
+## How to export the columns currently displayed using Current view
 
-Use **Export current view** to download a CSV that matches the columns currently shown on the **Reports** page, instead of a fixed export template.
+Use **Current view** to download a CSV that matches the columns currently shown on the **Reports** page, instead of a fixed export template.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**.
 2. Select **Display**, then select **Edit columns** to choose which columns appear on the page.
 3. Select the checkbox next to each report you want to export, or use the top checkbox to select all.
-4. Select **Selected** at the top.
-5. Select **Export**.
-6. Select **Export current view**.
+4. On the selection bar, choose **Export**.
+6. Select **Current view**.
 
 The CSV uses the same columns displayed on the page.
 
@@ -62,7 +60,7 @@ Expensify offers pre-built export templates, or you can build your own custom ex
 
 When you export, the file either downloads immediately or is prepared in the background:
 
-- **Immediate download** – **Basic export** and **Export current view**, when you export selected reports or use **Select all on this page**.
+- **Immediate download** – **Basic export** and **Current view**, when you export selected reports or use **Select all on this page**.
 - **Prepared in the background** – When you use **Select all** to export all matching reports, or select **All Data - expense level**, **All Data - report level**, or a **Custom template**.
 
 While an export is being prepared, either wait for it to download automatically or select **Send me the file when it's ready**. Selecting it lets you close the export window and receive the file later: Expensify delivers it through Concierge and by email once it's ready. If you keep the export window open until the export finishes, the window switches to **Your file is ready!** so you can select **Download file** right away. If the export can't be generated, an error appears in the export window, or is delivered through Concierge if **Send me the file when it's ready** was selected.
@@ -82,9 +80,8 @@ For reports on a Submit workspace, the PDF also includes an **Approve or Pay** b
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**. 
 2. Select the checkbox next to each report you want to download, or use the top checkbox to select all.
-3. Select **Selected** at the top.
-4. Select **Download reports**.
-5. Wait for the files to finish preparing, then select **Download file** to save them to your device. You can also select **Send me the file when it's ready** to have Concierge send the files to you in a chat message instead.
+3. On the selection bar, choose **Download reports**.
+4. Wait for the files to finish preparing, then select **Download file** to save them to your device. You can also select **Send me the file when it's ready** to have Concierge send the files to you in a chat message instead.
 
 Each report downloads as its own PDF, including all expenses, attached receipts, and report notes.
 
@@ -106,9 +103,8 @@ You can download the receipts on several reports at once in a single ZIP file.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**.
 2. Select the checkbox next to each report whose receipts you want to download, or use the top checkbox to select all.
-3. Select **Selected** at the top.
-4. Select **Download receipts**, or **Download receipt** if the selected reports hold only one receipt in total.
-5. Wait for the files to finish preparing. The zip file downloads automatically when it's ready. If it doesn't, select **Download file** to save it to your device.
+3. On the selection bar, choose **Download receipts**.
+4. Wait for the files to finish preparing. The zip file downloads automatically when it's ready. If it doesn't, select **Download file** to save it to your device.
 
 **Note:** This action only appears when at least one selected report has an expense with a receipt. It reads **Download receipt** when the selected reports hold exactly one receipt in total, and **Download receipts** when they hold more than one.
 
@@ -118,7 +114,7 @@ You can download the receipts on several reports at once in a single ZIP file.
 
 ## Where do I find the exported CSV file?
 
-**Basic export** and **Export current view** download directly to your device. Other templates — and any export started with **Select all** — are prepared in the background; the file then downloads automatically, or is delivered through Concierge and by email if you selected **Send me the file when it's ready**.
+**Basic export** and **Current view** download directly to your device. Other templates — and any export started with **Select all** — are prepared in the background; the file then downloads automatically, or is delivered through Concierge and by email if you selected **Send me the file when it's ready**.
 
 ## What happens if I keep the export window open after selecting Send me the file when it's ready?
 
@@ -159,7 +155,7 @@ When you download the receipts on a report, a message tells you how many of the 
 
 ## Can I customize which columns appear in the CSV export?
 
-Yes. Select **Export current view** to download a CSV that matches the columns currently shown on the **Reports** page. Adjust which columns appear by selecting **Display** > **Edit columns**. You can also select a custom export template during export, if your Workspace Admin has created one.
+Yes. Select **Current view** to download a CSV that matches the columns currently shown on the **Reports** page. Adjust which columns appear by selecting **Display** > **Edit columns**. You can also select a custom export template during export, if your Workspace Admin has created one.
 
 ## The data looks wrong in Excel. How can I fix it?
 
