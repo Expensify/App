@@ -56,9 +56,9 @@ function BaseReactionList({hasUserReacted = false, users, isVisible = false, add
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {hoveredComponentBG, reactionListContainer, reactionListContainerFixedWidth, pv2} = useThemeStyles();
+    const {hoveredComponentBG, reactionListContainer, reactionListContainerFixedWidth, pt2, pb2} = useThemeStyles();
     const {accountID} = useCurrentUserPersonalDetails();
-    const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, style: pv2});
+    const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, style: [pt2, pb2]});
 
     if (!isVisible) {
         return null;

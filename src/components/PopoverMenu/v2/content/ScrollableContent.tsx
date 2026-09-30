@@ -56,7 +56,7 @@ function ScrollableContent({contentContainerStyle, children, ...rest}: Scrollabl
             shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
         >
             <ScrollView
-                contentContainerStyle={[isSmallScreenWidth ? styles.pv4 : styles.pv2, contentContainerStyle]}
+                contentContainerStyle={[isSmallScreenWidth ? [styles.pt4, styles.pb4] : [styles.pt2, styles.pb2], contentContainerStyle]}
                 addBottomSafeAreaPadding={shouldAddBottomSafeAreaPadding}
             >
                 {children}

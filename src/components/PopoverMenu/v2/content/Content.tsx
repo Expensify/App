@@ -28,7 +28,7 @@ function Content({containerStyles, ...rest}: ContentProps): React.ReactElement |
     const shouldAddBottomSafeAreaPadding = useShouldAddBottomSafeAreaPadding();
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: shouldAddBottomSafeAreaPadding,
-        style: [isSmallScreenWidth ? styles.pv4 : styles.pv2, containerStyles],
+        style: [isSmallScreenWidth ? [styles.pt4, styles.pb4] : [styles.pt2, styles.pb2], containerStyles],
     });
 
     return (
