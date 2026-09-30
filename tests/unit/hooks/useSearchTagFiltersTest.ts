@@ -6,6 +6,7 @@ import {openSearchTagFiltersPage, setSearchTagFiltersPagination} from '@libs/act
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchTagFilterItem} from '@src/types/onyx';
 
 const mockOpenSearchTagFiltersPage = jest.mocked(openSearchTagFiltersPage);
 const mockSetSearchTagFiltersPagination = jest.mocked(setSearchTagFiltersPagination);
@@ -58,8 +59,8 @@ function setPartialTagFilterState(searchQuery: string, policyIDs = POLICY_ID) {
     onyxData[getResultsKey(policyIDs)] = results;
 }
 
-function setCompleteTagFilterState(searchQuery: string, policyIDs = POLICY_ID) {
-    const results = [
+function setCompleteTagFilterState(searchQuery: string, policyIDs = POLICY_ID): SearchTagFilterItem[] {
+    const results: SearchTagFilterItem[] = [
         {tagName: `${searchQuery}-match`, tagListName: 'TagList'},
         {tagName: 'other-tag', tagListName: 'TagList'},
     ];
@@ -73,6 +74,7 @@ function setCompleteTagFilterState(searchQuery: string, policyIDs = POLICY_ID) {
         baseCursor: '',
     };
     onyxData[getResultsKey(policyIDs)] = results;
+    return results;
 }
 
 describe('useSearchTagFilters', () => {
@@ -253,12 +255,11 @@ describe('useSearchTagFilters', () => {
     });
 
     it('does not call the API when searching with a complete cached dataset', async () => {
-        setCompleteTagFilterState('');
+        const cachedTags = setCompleteTagFilterState('');
         mockOpenSearchTagFiltersPage.mockResolvedValueOnce({
             hasMore: false,
             nextCursor: '',
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            tags: onyxData[getResultsKey()] as OnyxTypes.SearchTagFilterItem[],
+            tags: cachedTags,
         });
 
         const {result} = renderHook(() => useSearchTagFilters(POLICY_ID));
@@ -278,12 +279,11 @@ describe('useSearchTagFilters', () => {
     });
 
     it('does not call the API on consecutive keystrokes when searching with a complete cached dataset', async () => {
-        setCompleteTagFilterState('');
+        const cachedTags = setCompleteTagFilterState('');
         mockOpenSearchTagFiltersPage.mockResolvedValueOnce({
             hasMore: false,
             nextCursor: '',
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            tags: onyxData[getResultsKey()] as OnyxTypes.SearchTagFilterItem[],
+            tags: cachedTags,
         });
 
         const {result} = renderHook(() => useSearchTagFilters(POLICY_ID));

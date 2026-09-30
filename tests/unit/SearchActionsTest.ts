@@ -17,6 +17,7 @@ import {
     search,
 } from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites, read, write} from '@libs/API';
+import type {OpenSearchTagFiltersPageResponse} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import fileDownload from '@libs/fileDownload';
 import {translate} from '@libs/Localize';
@@ -26,16 +27,19 @@ import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ExportTemplate, Policy, Report, SearchTagFilterItem} from '@src/types/onyx';
 import type {ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
+import type Response from '@src/types/onyx/Response';
 
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -780,11 +784,13 @@ describe('getPayOption', () => {
         it('writes first-page tag results to scoped resultsKey for a non-empty search query', async () => {
             const policyIDs = 'policy-1';
             const tags: SearchTagFilterItem[] = [{tagName: 'Marketing', tagListName: 'Department'}];
-            mockMakeRequestWithSideEffects.mockResolvedValueOnce({
-                hasMore: false,
-                nextCursor: '',
-                tags,
-            });
+            mockMakeRequestWithSideEffects.mockResolvedValueOnce(
+                createMock<Response<OnyxKey> & OpenSearchTagFiltersPageResponse>({
+                    hasMore: false,
+                    nextCursor: '',
+                    tags,
+                }),
+            );
 
             await openSearchTagFiltersPage(
                 {
@@ -798,12 +804,12 @@ describe('getPayOption', () => {
 
             await waitForBatchedUpdates();
 
-            const resultsKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${policyIDs}`;
+            const resultsKey: `${typeof ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${string}` = `${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${policyIDs}`;
             let storedResults: SearchTagFilterItem[] | null = null;
             const connection = Onyx.connect({
                 key: resultsKey,
                 callback: (val) => {
-                    storedResults = val;
+                    storedResults = val ?? null;
                 },
             });
             await waitForBatchedUpdates();
@@ -816,11 +822,13 @@ describe('getPayOption', () => {
             const policyIDs = 'policy-1';
             const existingTags: SearchTagFilterItem[] = [{tagName: 'Tag1', tagListName: 'Department'}];
             const nextTags: SearchTagFilterItem[] = [{tagName: 'Tag2', tagListName: 'Department'}];
-            mockMakeRequestWithSideEffects.mockResolvedValueOnce({
-                hasMore: false,
-                nextCursor: '',
-                tags: nextTags,
-            });
+            mockMakeRequestWithSideEffects.mockResolvedValueOnce(
+                createMock<Response<OnyxKey> & OpenSearchTagFiltersPageResponse>({
+                    hasMore: false,
+                    nextCursor: '',
+                    tags: nextTags,
+                }),
+            );
 
             await openSearchTagFiltersPage(
                 {
@@ -835,12 +843,12 @@ describe('getPayOption', () => {
 
             await waitForBatchedUpdates();
 
-            const resultsKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${policyIDs}`;
+            const resultsKey: `${typeof ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${string}` = `${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${policyIDs}`;
             let storedResults: SearchTagFilterItem[] | null = null;
             const connection = Onyx.connect({
                 key: resultsKey,
                 callback: (val) => {
-                    storedResults = val;
+                    storedResults = val ?? null;
                 },
             });
             await waitForBatchedUpdates();
