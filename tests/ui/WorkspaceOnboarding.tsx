@@ -532,6 +532,11 @@ describe('OnboardingWorkspaces Page', () => {
 
         // Then the default-policy fallback does not complete onboarding or navigate a second time.
         expect(mockCompleteOnboarding).toHaveBeenCalledTimes(1);
+        expect(mockCompleteOnboarding).toHaveBeenCalledWith(
+            expect.objectContaining({
+                shouldSkipConciergeOnboarding: false,
+            }),
+        );
 
         unmount();
         await waitForBatchedUpdatesWithAct();
@@ -793,6 +798,7 @@ describe('OnboardingWorkspaces Page', () => {
             expect(mockCompleteOnboarding).toHaveBeenCalledWith(
                 expect.objectContaining({
                     engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                    shouldSkipConciergeOnboarding: true,
                 }),
             );
         });

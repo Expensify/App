@@ -168,6 +168,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             workEmail: session?.email ?? '',
             currentUserAccountID,
             delegateAccountID,
+            shouldSkipConciergeOnboarding: completionIntent === CONST.ONBOARDING_CHOICES.EMPLOYER,
         });
         setOnboardingAdminsChatReportID();
         setOnboardingPolicyID(policy.policyID);
