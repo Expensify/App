@@ -176,16 +176,14 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 hoverStyle={isSelected ? undefined : styles.hoveredComponentBG}
                 style={[
                     styles.onboardingAccountingItem,
-                    isSmallScreenWidth ? styles.onboardingAccountingItemNarrow : styles.onboardingAccountingItemWide,
+                    isSmallScreenWidth && !isInLandscapeMode ? styles.onboardingAccountingItemNarrow : styles.onboardingAccountingItemWide,
                     isSelected && styles.onboardingAccountingItemSelected,
                 ]}
             >
-                {/* Square to match the mocks, but a radio because only one option can be picked. */}
                 <RadioButton
                     isChecked={isSelected}
                     onPress={() => handleIntegrationSelect(optionKey)}
                     accessibilityLabel={label}
-                    containerBorderRadius={variables.componentBorderRadiusSmall}
                     wrapperStyle={styles.onboardingAccountingItemSelectionButton}
                 />
                 <Icon

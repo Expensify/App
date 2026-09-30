@@ -12,6 +12,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -62,9 +63,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const totalMembersSelector = createFilteredMemberCountSelector(policy?.employeeList, policy?.owner, currentUserPersonalDetails.login, employeePersonalDetails);
-    const [totalMembers = 0] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: totalMembersSelector,
-    });
+    const [totalMembers = 0] = useAllPersonalDetails(totalMembersSelector);
     // The invoicing company details are provisioned per workspace, so they aren't copied over to the duplicate and shouldn't be advertised here.
     const invoiceConfigurationTextSelector = createInvoiceConfigurationTextSelector(translate, '');
     const [invoiceConfigurationText = ''] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
