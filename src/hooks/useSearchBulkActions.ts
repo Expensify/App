@@ -36,6 +36,7 @@ import {
     isCurrencySupportWalletBulkPay,
     queueBulkApproveReports,
     queueBulkPayReports,
+    queueBulkSubmitReports,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     resolveSearchPayPaymentMethod,
@@ -2518,6 +2519,36 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 ? selectedReports.some((report) => report.canApprove)
                 : selectedTransactionsKeys.some((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE);
             const shouldShowApproveOptionForAllMatchingItems = !isOffline && !hasSubmitPolicyTransactions && hasLoadedApprovableItem;
+            // The backend only submits the matching reports the user can submit, so one submittable loaded item is enough to offer it.
+            // Submit plan workspaces pick an approver per report and Mark as done is a different action, so neither is sent to the backend.
+            const hasLoadedSubmittableItem = selectedReports.length
+                ? selectedReports.some((report) => report.canSubmit)
+                : selectedTransactionsKeys.some((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.SUBMIT);
+            const shouldShowSubmitOptionForAllMatchingItems = !isOffline && !doSelectedItemsBelongToSubmitPolicy && noReportsShouldMarkAsDone && hasLoadedSubmittableItem;
+            const submitAllMatchingItemsOption: DropdownOption<SearchHeaderOptionValue> = {
+                icon: expensifyIcons.Send,
+                text: translate('common.submit'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    const itemList = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
+                    const restrictedPolicyID = getRestrictedPolicyID(itemList, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, accountID);
+                    if (restrictedPolicyID) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
+                        return;
+                    }
+
+                    const serializedQuery = queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON);
+                    queueBulkSubmitReports(serializedQuery);
+                    playSound(SOUNDS.SUCCESS);
+                    clearSelectedTransactions();
+                },
+            };
 
             // Offer an all-matching move only when no rows are excluded and unloaded matches are unreported.
             // The backend rejects the entire move if any matching expense is invalid
@@ -2526,6 +2557,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const allMatchingOptions: Array<DropdownOption<SearchHeaderOptionValue>> = [];
             if (shouldShowApproveOptionForAllMatchingItems) {
                 allMatchingOptions.push(approveButtonOption);
+            }
+            if (shouldShowSubmitOptionForAllMatchingItems) {
+                allMatchingOptions.push(submitAllMatchingItemsOption);
             }
             if (shouldShowPayOption) {
                 allMatchingOptions.push(payButtonOption);
