@@ -47,7 +47,6 @@ import {View} from 'react-native';
 
 import {PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} from './const';
 import scrollToMultilineInput from './scrollToMultilineInput';
-import useScrollTappedLineIntoView from './useScrollTappedLineIntoView';
 
 type AddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
 
@@ -183,8 +182,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     };
 
     const promptTopOffsetRef = useRef(0);
-    const {ref: promptInputRef, onPressIn: onPromptPressIn, onScroll: onFormScroll} = useScrollTappedLineIntoView(formRef);
-    const handleInputFocus = () => scrollToMultilineInput(formRef, true, promptTopOffsetRef.current);
+    const handleInputFocus = () => scrollToMultilineInput(formRef, isInLandscapeMode, promptTopOffsetRef.current);
 
     const agentAvatar = avatarSource ? (
         <UserAvatar
@@ -213,8 +211,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                 validate={validate}
                 submitButtonText={translate('addAgentPage.createAgent')}
                 style={[styles.flex1, styles.ph5]}
-                shouldUseScrollView
-                onScroll={onFormScroll}
+                shouldUseScrollView={isInLandscapeMode}
                 submitFlexEnabled={false}
                 shouldHideFixErrorsAlert
                 enabledWhenOffline
@@ -243,11 +240,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                         defaultValue={defaultAgentName}
                     />
                     <View
-                        style={
-                            shouldShrinkPromptInput
-                                ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE)
-                                : [isInLandscapeMode ? styles.h42 : styles.flex1, styles.minHeight42]
-                        }
+                        style={shouldShrinkPromptInput ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE) : [isInLandscapeMode ? styles.h42 : styles.flex1]}
                         onLayout={(event) => {
                             promptTopOffsetRef.current = event.nativeEvent.layout.y;
                         }}
@@ -267,8 +260,6 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                             touchableInputWrapperStyle={[styles.flex1]}
                             inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                             onFocus={handleInputFocus}
-                            ref={promptInputRef}
-                            onPressIn={onPromptPressIn}
                         />
                     </View>
                     <Text style={[styles.textLabelSupporting]}>{`${translate('addAgentPage.copilotNote')} ${translate('workspace.rules.agentRules.disclaimer')}`}</Text>

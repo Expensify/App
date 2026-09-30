@@ -22,7 +22,6 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import {PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} from '@pages/settings/Agents/const';
 import scrollToMultilineInput from '@pages/settings/Agents/scrollToMultilineInput';
-import useScrollTappedLineIntoView from '@pages/settings/Agents/useScrollTappedLineIntoView';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,8 +45,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
     const formRef = useRef<FormRef>(null);
     const promptTopOffsetRef = useRef(0);
-    const {ref: promptInputRef, onPressIn: onPromptPressIn, onScroll: onFormScroll} = useScrollTappedLineIntoView(formRef);
-    const scrollToInput = () => scrollToMultilineInput(formRef, true, promptTopOffsetRef.current);
+    const scrollToInput = () => scrollToMultilineInput(formRef, isInLandscapeMode, promptTopOffsetRef.current);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM> = {};
@@ -100,8 +98,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
                 onSubmit={handleSubmit}
                 submitButtonText={translate('common.save')}
                 style={[styles.flex1, styles.ph5]}
-                shouldUseScrollView
-                onScroll={onFormScroll}
+                shouldUseScrollView={isInLandscapeMode}
                 submitFlexEnabled={false}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
@@ -111,11 +108,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
             >
                 <View style={[styles.flex1, styles.flexColumn, styles.gap5]}>
                     <View
-                        style={
-                            shouldShrinkPromptInput
-                                ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE)
-                                : [isInLandscapeMode ? styles.h42 : styles.flex1, styles.minHeight42]
-                        }
+                        style={shouldShrinkPromptInput ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE) : [isInLandscapeMode ? styles.h42 : styles.flex1]}
                         onLayout={(event) => {
                             promptTopOffsetRef.current = event.nativeEvent.layout.y;
                         }}
@@ -134,8 +127,6 @@ function EditPromptPage({route}: EditPromptPageProps) {
                             touchableInputWrapperStyle={[styles.flex1]}
                             inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                             onFocus={scrollToInput}
-                            ref={promptInputRef}
-                            onPressIn={onPromptPressIn}
                         />
                     </View>
                     <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>

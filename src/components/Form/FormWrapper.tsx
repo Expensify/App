@@ -18,7 +18,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ComponentRef, ForwardedRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
+import type {ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useContext, useImperativeHandle, useRef} from 'react';
 import {Keyboard, View} from 'react-native';
@@ -65,7 +65,7 @@ type FormWrapperProps = ChildrenProps &
         shouldSubmitButtonStickToBottom?: boolean;
 
         /** Fires at most once per frame during scrolling. */
-        onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+        onScroll?: () => void;
 
         /** Prevents the submit button from triggering blur on mouse down. */
         shouldPreventDefaultFocusOnPressSubmit?: boolean;
