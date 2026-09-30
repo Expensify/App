@@ -5,7 +5,14 @@
 import {CF_REAUTH_REQUIRED} from '@libs/CloudflareAccess/fetchWithQAAuth';
 
 import {runCloudflareAuthProbe} from '@userActions/CloudflareProbe';
-import {redirectToCloudflareSignIn, getCloudflareSession, getPendingCloudflareCodeExchange, isSessionNearExpiry, refreshCloudflareSession} from '@userActions/CloudflareSession';
+import {
+    redirectToCloudflareSignIn,
+    getCloudflareCodeExchangeError,
+    getCloudflareSession,
+    getPendingCloudflareCodeExchange,
+    isSessionNearExpiry,
+    refreshCloudflareSession,
+} from '@userActions/CloudflareSession';
 
 import CONST from '@src/CONST';
 import type CloudflareSession from '@src/types/onyx/CloudflareSession';
@@ -35,6 +42,7 @@ function jsonResponse(body: unknown): ProbeResponse {
 
 jest.mock('@userActions/CloudflareSession', () => ({
     __esModule: true,
+    getCloudflareCodeExchangeError: jest.fn(() => undefined),
     getCloudflareSession: jest.fn(),
     getPendingCloudflareCodeExchange: jest.fn(() => null),
     isSessionNearExpiry: jest.fn(() => false),
@@ -60,6 +68,7 @@ beforeEach(() => {
     jest.mocked(redirectToCloudflareSignIn).mockReset();
     jest.mocked(isSessionNearExpiry).mockReturnValue(false);
     jest.mocked(getPendingCloudflareCodeExchange).mockReturnValue(null);
+    jest.mocked(getCloudflareCodeExchangeError).mockReturnValue(undefined);
     mockFetchWithQAAuth.mockResolvedValue(jsonResponse({jsonCode: 200, authenticatedVia: 'oauth-bearer'}));
     mockQAAuth.CHECK_PATH = 'api/authCheck';
 });
@@ -128,6 +137,34 @@ describe('runCloudflareAuthProbe', () => {
         // probe launches behind their back
         expect(redirectToCloudflareSignIn).not.toHaveBeenCalled();
         expect(mockFetchWithQAAuth).not.toHaveBeenCalled();
+    });
+
+    it('reports an exchange that failed before Run as signInFailed, with no redirect', async () => {
+        // Given a callback boot whose exchange rejected after the rows mounted. Nothing is pending any more, so
+        // there is no exchange for this press to join, and no session either
+        jest.mocked(getCloudflareSession).mockReturnValue(null);
+        jest.mocked(getCloudflareCodeExchangeError).mockReturnValue('invalid_grant');
+
+        // When the probe runs
+        // Then it reports the recorded failure: a redirect would bring the tab straight back into the same
+        // failure, a silent loop when the misconfiguration this tool diagnoses is the cause
+        await expect(runCloudflareAuthProbe()).resolves.toEqual({status: 'signInFailed', detail: 'invalid_grant'});
+        expect(redirectToCloudflareSignIn).not.toHaveBeenCalled();
+    });
+
+    it('starts a fresh round trip on a press made after seeing signInFailed', async () => {
+        // Given the same recorded failure, and a redirect stub that navigates away and never settles
+        jest.mocked(getCloudflareSession).mockReturnValue(null);
+        jest.mocked(getCloudflareCodeExchangeError).mockReturnValue('invalid_grant');
+        jest.mocked(redirectToCloudflareSignIn).mockReturnValue(new Promise<never>(() => {}));
+
+        // When the user, having seen signInFailed, presses Run again
+        runCloudflareAuthProbe({shouldRedirectOnSignInFailed: true});
+        await waitForBatchedUpdates();
+
+        // Then the redirect starts: the record lasts the whole page load, so without this consent a failed
+        // sign-in could never be retried short of a reload
+        expect(redirectToCloudflareSignIn).toHaveBeenCalledTimes(1);
     });
 
     it('with a fresh session: goes straight to the request, no auth flow', async () => {

@@ -51,7 +51,7 @@ function QAAuthTestToolRows() {
     const {translate, datetimeToCalendarTime} = useLocalize();
 
     const [isOperationRunning, setIsOperationRunning] = useState(false);
-    // Seeded from the boot-time callback, a settled exchange failure included. One still in flight surfaces when Run joins it
+    // Seeded from the boot-time callback, a settled exchange failure included. One that settles after mount surfaces on the next Run
     const [probeResult, setProbeResult] = useState<CloudflareAuthProbeResult | null>(getFailedRedirectResult);
     // Consecutive probes produce identical results, so without a changing element the button reads as dead
     const [probeCompletedAt, setProbeCompletedAt] = useState<string | null>(null);
@@ -70,7 +70,10 @@ function QAAuthTestToolRows() {
                     onPress={() => {
                         setIsOperationRunning(true);
                         // Never rejects. Failures come back as semantic results
-                        runCloudflareAuthProbe({shouldRedirectOnReauthRequired: probeResult?.status === 'reauthRequired'})
+                        runCloudflareAuthProbe({
+                            shouldRedirectOnReauthRequired: probeResult?.status === 'reauthRequired',
+                            shouldRedirectOnSignInFailed: probeResult?.status === 'signInFailed',
+                        })
                             .then((result) => {
                                 setProbeResult(result);
                                 setProbeCompletedAt(DateUtils.getDBTime());

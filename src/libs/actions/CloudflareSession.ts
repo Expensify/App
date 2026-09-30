@@ -138,7 +138,7 @@ function getPendingCloudflareCodeExchange(): Promise<void> | null {
     return codeExchangePromise;
 }
 
-/** Set once this page load's exchange rejected. Its code is spent, so only a fresh round trip can recover */
+/** Set once this page load's exchange rejected, until Clear session. Its code is spent, so only a fresh round trip can recover */
 function getCloudflareCodeExchangeError(): string | undefined {
     return codeExchangeErrorMessage;
 }
@@ -215,6 +215,8 @@ function clearCloudflareSession(): Promise<void> {
     sessionGeneration++;
     // Synchronous, so a probe pressed right after Clear cannot read the dead session
     sessionCache = null;
+    // Otherwise a remount after Clear would show the old failure again, and the probe would still refuse to redirect
+    codeExchangeErrorMessage = undefined;
     return Onyx.set(ONYXKEYS.CLOUDFLARE_SESSION, null);
 }
 

@@ -500,6 +500,19 @@ describe('exchangeCodeForCloudflareSession', () => {
         // learns this page load's callback failed, rather than starting a round trip into the same failure
         expect(SessionActions.getCloudflareCodeExchangeError()).toBe(exchangeError.message);
     });
+
+    it('forgets a recorded exchange failure on Clear session', async () => {
+        // Given an exchange the server rejected, so this page load has a recorded failure
+        jest.mocked(oAuthClient.exchangeCode).mockRejectedValue(new oAuthClient.OAuthError('invalid_grant'));
+        await expect(SessionActions.exchangeCodeForCloudflareSession({code: 'bad-code', codeVerifier: PAIR_1.codeVerifier})).rejects.toThrow();
+
+        // When the user presses Clear session
+        await SessionActions.clearCloudflareSession();
+
+        // Then the failure is gone with the session. The rows seed from it on remount and the probe refuses to
+        // redirect while it is set, so a stale one would outlive the reset the user asked for
+        expect(SessionActions.getCloudflareCodeExchangeError()).toBeUndefined();
+    });
 });
 
 describe('builds without QA auth configured', () => {
