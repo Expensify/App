@@ -106,6 +106,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PREFERENCES.PAYMENT_CURRENCY]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.THEME]: undefined;
+    [SCREENS.SETTINGS.TROUBLESHOOT_SERVER]: undefined;
     [SCREENS.SETTINGS.CLOSE]: undefined;
     [SCREENS.SETTINGS.CLOSE_ACCOUNT_CONFIRM_VALIDATE_CODE]: undefined;
     [SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS]: {
@@ -644,6 +645,7 @@ type SettingsNavigatorParamList = {
         policyID: string;
         orderWeight: number;
         tagName: string;
+        parentTagsFilter?: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_TAG_APPROVER]: {
         policyID: string;
@@ -659,12 +661,14 @@ type SettingsNavigatorParamList = {
         policyID: string;
         orderWeight: number;
         tagName: string;
+        parentTagsFilter?: string;
     };
     [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
         canChangeSize: 0 | 1;
         subPage: string;
     };
     [SCREENS.SETTINGS.SUBSCRIPTION.EXPENSIFY_CODE]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.PAYMENT_HISTORY]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY]: undefined;
@@ -903,6 +907,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_ADVANCED]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT_SELECT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT]: {
@@ -1441,6 +1448,24 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_COMPANY_CARD_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_ADVANCED]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_EXPORT_METHOD]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_BILL_PAYMENT_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_TRAVEL_BILLING_SETTLEMENT_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_TRAVEL_BILLING_PAYABLE_ACCOUNT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_PREREQUISITES]: {
@@ -2946,6 +2971,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS]: NavigatorScreenParams<SearchReportActionsParamList>;
     [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: NavigatorScreenParams<SearchAdvancedFiltersParamList>;
+    [SCREENS.RIGHT_MODAL.RECRUITING_MERGE_IMPORT_SETTINGS]: NavigatorScreenParams<MergeATSFiltersNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.RECRUITING_MERGE_APPROVAL]: NavigatorScreenParams<MergeATSApprovalNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_SAVE]: undefined;
     [SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH]: NavigatorScreenParams<SearchSavedSearchParamList>;
@@ -3551,6 +3577,16 @@ type SearchFullscreenNavigatorParamList = {
     };
 };
 
+type MergeATSFiltersNavigatorParamList = {
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_IMPORT_SETTINGS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_IMPORT_SETTINGS_FILTER]: {
+        policyID: string;
+        filterType: ValueOf<typeof CONST.MERGE.ATS_FILTER_TYPE>;
+    };
+};
+
 type MergeATSApprovalNavigatorParamList = {
     [SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVAL_MODE]: {
         policyID: string;
@@ -3565,7 +3601,6 @@ type MergeATSApprovalNavigatorParamList = {
 
 type SearchAdvancedFiltersParamList = {
     [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: Record<string, never>;
-    [SCREENS.SEARCH.ADVANCED_FILTERS_DESCRIBE_RHP]: Record<string, never>;
     [SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP]: {
         filterKey: string;
         applyDirectly?: string;
@@ -3663,6 +3698,10 @@ type ReportChangeApproverParamList = {
 type TestToolsModalModalNavigatorParamList = {
     [SCREENS.TEST_TOOLS_MODAL.ROOT]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
+    };
+    [SCREENS.TEST_TOOLS_MODAL.SERVER]: {
+        // eslint-disable-next-line no-restricted-syntax -- not a new `backTo`: this screen reads the one TEST_TOOLS_MODAL.ROOT already carries
         backTo?: Routes;
     };
 };
@@ -3790,6 +3829,7 @@ export type {
     ReportChangeApproverParamList,
     TestToolsModalModalNavigatorParamList,
     MergeTransactionNavigatorParamList,
+    MergeATSFiltersNavigatorParamList,
     AttachmentModalScreensParamList,
     ReportCardActivateNavigatorParamList,
     WorkspacesDomainModalNavigatorParamList,
