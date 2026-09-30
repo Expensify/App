@@ -106,8 +106,15 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
      * However, the policyID check is only necessary when the user is not coming from the "Categorize" option.
      * The "isCategorizing" flag is set to true when the user accesses the "Categorize" option in the Self-DM whisper.
      * In such scenarios, a separate Categories upgrade UI is displayed.
+     * The Workflows > Advanced features have no feature-specific copy, so they also use the generic Control upgrade view.
      */
-    if (!feature || (!isCategorizing && !isDistanceRateUpgrade && !isReporting && !policyID)) {
+    if (
+        !feature ||
+        feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.id ||
+        feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.id ||
+        feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.id ||
+        (!isCategorizing && !isDistanceRateUpgrade && !isReporting && !policyID)
+    ) {
         return (
             <GenericFeaturesView
                 onUpgrade={onUpgrade}
@@ -134,9 +141,6 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
 
     const getOnlyAvailableOnPlanHTML = () => {
         const planParams = {formattedPrice, hasTeam2025Pricing};
-        if (feature.id === 'preventSelfApproval' || feature.id === 'autoApproveCompliantReports' || feature.id === 'autoPayApprovedReports') {
-            return translate('workspace.upgrade.approvals.onlyAvailableOnPlan', planParams);
-        }
         if (feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id) {
             return translate('workspace.upgrade.rules.onlyAvailableOnPlanUnlimited', planParams);
         }
