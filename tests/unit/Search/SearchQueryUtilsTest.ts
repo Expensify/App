@@ -2199,114 +2199,84 @@ describe('SearchQueryUtils', () => {
     });
 
     describe('anyApproval date filter', () => {
-        test('round-trips the ON form', () => {
+        const anyApprovalFormKeys = [
+            FILTER_KEYS.ANY_APPROVAL_ON,
+            FILTER_KEYS.ANY_APPROVAL_AFTER,
+            FILTER_KEYS.ANY_APPROVAL_BEFORE,
+            FILTER_KEYS.ANY_APPROVAL_RANGE,
+            FILTER_KEYS.ANY_APPROVAL_NOT,
+        ] as const;
+
+        test.each([
+            {
+                modifier: 'ON',
+                formKey: FILTER_KEYS.ANY_APPROVAL_ON,
+                formValue: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+                expectedQuery: `type:expense ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`,
+            },
+            {
+                modifier: 'AFTER',
+                formKey: FILTER_KEYS.ANY_APPROVAL_AFTER,
+                formValue: '2026-04-01',
+                expectedQuery: `type:expense ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}>2026-04-01`,
+            },
+            {
+                modifier: 'BEFORE',
+                formKey: FILTER_KEYS.ANY_APPROVAL_BEFORE,
+                formValue: '2026-04-30',
+                expectedQuery: `type:expense ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}<2026-04-30`,
+            },
+            {
+                modifier: 'RANGE',
+                formKey: FILTER_KEYS.ANY_APPROVAL_RANGE,
+                formValue: '2026-04-01,2026-04-30',
+                expectedQuery: `type:expense ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}>=2026-04-01 ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}<=2026-04-30`,
+            },
+            {
+                modifier: 'negated',
+                formKey: FILTER_KEYS.ANY_APPROVAL_NOT,
+                formValue: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+                expectedQuery: `type:expense -${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`,
+            },
+        ])('round-trips the $modifier form', ({formKey, formValue, expectedQuery}) => {
+            // Given an expense search with an anyApproval date filter
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [formKey]: formValue,
+            };
+
+            // When the form is converted to a query and back
+            const queryString = buildQueryStringFromFilterFormValues(filterValues);
+            expect(queryString).toBe(expectedQuery);
+
+            const queryJSON = buildSearchQueryJSON(queryString);
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the original form key is preserved and the other anyApproval keys are empty
+            expect(result[formKey]).toBe(formValue);
+            for (const otherKey of anyApprovalFormKeys) {
+                if (otherKey !== formKey) {
+                    expect(result[otherKey]).toBeUndefined();
+                }
+            }
+        });
+
+        test('anyApproval date filters are dropped on an expense-report search', () => {
+            // Given an expense-report search with an anyApproval date filter
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 [FILTER_KEYS.ANY_APPROVAL_ON]: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
             };
 
-            const queryString = buildQueryStringFromFilterFormValues(filterValues);
-            expect(queryString).toBe(`type:expense ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`);
+            // When the form is converted to a query
+            const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            const queryJSON = buildSearchQueryJSON(queryString);
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
-            expect(result[FILTER_KEYS.ANY_APPROVAL_ON]).toBe(CONST.SEARCH.DATE_PRESETS.LAST_MONTH);
-            expect(result[FILTER_KEYS.ANY_APPROVAL_AFTER]).toBeUndefined();
-            expect(result[FILTER_KEYS.ANY_APPROVAL_BEFORE]).toBeUndefined();
-            expect(result[FILTER_KEYS.ANY_APPROVAL_RANGE]).toBeUndefined();
-            expect(result[FILTER_KEYS.ANY_APPROVAL_NOT]).toBeUndefined();
-        });
-
-        test('round-trips the AFTER form', () => {
-            const filterValues: Partial<SearchAdvancedFiltersForm> = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                [FILTER_KEYS.ANY_APPROVAL_AFTER]: '2026-04-01',
-            };
-
-            const queryString = buildQueryStringFromFilterFormValues(filterValues);
-            expect(queryString).toBe(`type:expense ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}>2026-04-01`);
-
-            const queryJSON = buildSearchQueryJSON(queryString);
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
-            expect(result[FILTER_KEYS.ANY_APPROVAL_AFTER]).toBe('2026-04-01');
-            expect(result[FILTER_KEYS.ANY_APPROVAL_ON]).toBeUndefined();
-            expect(result[FILTER_KEYS.ANY_APPROVAL_BEFORE]).toBeUndefined();
-            expect(result[FILTER_KEYS.ANY_APPROVAL_RANGE]).toBeUndefined();
-            expect(result[FILTER_KEYS.ANY_APPROVAL_NOT]).toBeUndefined();
-        });
-
-        test('round-trips the BEFORE form', () => {
-            const filterValues: Partial<SearchAdvancedFiltersForm> = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                [FILTER_KEYS.ANY_APPROVAL_BEFORE]: '2026-04-30',
-            };
-
-            const queryString = buildQueryStringFromFilterFormValues(filterValues);
-            expect(queryString).toBe(`type:expense ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}<2026-04-30`);
-
-            const queryJSON = buildSearchQueryJSON(queryString);
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
-            expect(result[FILTER_KEYS.ANY_APPROVAL_BEFORE]).toBe('2026-04-30');
-            expect(result[FILTER_KEYS.ANY_APPROVAL_ON]).toBeUndefined();
-            expect(result[FILTER_KEYS.ANY_APPROVAL_AFTER]).toBeUndefined();
-            expect(result[FILTER_KEYS.ANY_APPROVAL_RANGE]).toBeUndefined();
-            expect(result[FILTER_KEYS.ANY_APPROVAL_NOT]).toBeUndefined();
-        });
-
-        test('round-trips the RANGE form', () => {
-            const filterValues: Partial<SearchAdvancedFiltersForm> = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                [FILTER_KEYS.ANY_APPROVAL_RANGE]: '2026-04-01,2026-04-30',
-            };
-
-            const queryString = buildQueryStringFromFilterFormValues(filterValues);
-            expect(queryString).toBe(`type:expense ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}>=2026-04-01 ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}<=2026-04-30`);
-
-            const queryJSON = buildSearchQueryJSON(queryString);
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
-            expect(result[FILTER_KEYS.ANY_APPROVAL_RANGE]).toBe('2026-04-01,2026-04-30');
-            expect(result[FILTER_KEYS.ANY_APPROVAL_ON]).toBeUndefined();
-            expect(result[FILTER_KEYS.ANY_APPROVAL_AFTER]).toBeUndefined();
-            expect(result[FILTER_KEYS.ANY_APPROVAL_BEFORE]).toBeUndefined();
-            expect(result[FILTER_KEYS.ANY_APPROVAL_NOT]).toBeUndefined();
-        });
-
-        test('round-trips the negated form', () => {
-            const filterValues: Partial<SearchAdvancedFiltersForm> = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                [FILTER_KEYS.ANY_APPROVAL_NOT]: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
-            };
-
-            const queryString = buildQueryStringFromFilterFormValues(filterValues);
-            expect(queryString).toBe(`type:expense -${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`);
-
-            const queryJSON = buildSearchQueryJSON(queryString);
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
-            expect(result[FILTER_KEYS.ANY_APPROVAL_NOT]).toBe(CONST.SEARCH.DATE_PRESETS.LAST_MONTH);
-            expect(result[FILTER_KEYS.ANY_APPROVAL_ON]).toBeUndefined();
-            expect(result[FILTER_KEYS.ANY_APPROVAL_AFTER]).toBeUndefined();
-            expect(result[FILTER_KEYS.ANY_APPROVAL_BEFORE]).toBeUndefined();
-            expect(result[FILTER_KEYS.ANY_APPROVAL_RANGE]).toBeUndefined();
+            // Then anyApproval is stripped because Auth only supports it for type:expense
+            expect(result).toBe(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}`);
         });
     });
 
