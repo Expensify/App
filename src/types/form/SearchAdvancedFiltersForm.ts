@@ -265,6 +265,7 @@ const FILTER_KEYS = {
 
     COLUMNS: 'columns',
     LIMIT: 'limit',
+    COMPARE: 'compare',
 } as const;
 
 const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
@@ -924,6 +925,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.ATTENDEE_NOT]: string[];
         [FILTER_KEYS.REPORT_FIELD]: string;
         [FILTER_KEYS.LIMIT]: string;
+        [FILTER_KEYS.COMPARE]: string;
     } & Record<ReportFieldTextKey, string> &
         Record<ReportFieldDateKey, string> &
         Record<ReportFieldNegatedKey, string>

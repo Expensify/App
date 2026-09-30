@@ -629,8 +629,8 @@ describe('MoneyRequestReceiptView', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText(translateLocal('iou.error.receiptUploadFailedMessage'))).toBeTruthy();
-            expect(screen.getByText(translateLocal('iou.error.saveReceipt'))).toBeTruthy();
+            expect(screen.getByText(translateLocal('iou.error.receiptUploadFailedSaveOnlyMessage'))).toBeTruthy();
+            expect(screen.getByText(translateLocal('common.save'))).toBeTruthy();
         });
 
         it('does not show the receipt-upload error for a distance expense', async () => {
@@ -646,8 +646,8 @@ describe('MoneyRequestReceiptView', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.queryByText(translateLocal('iou.error.receiptUploadFailedMessage'))).toBeNull();
-            expect(screen.queryByText(translateLocal('iou.error.saveReceipt'))).toBeNull();
+            expect(screen.queryByText(translateLocal('iou.error.receiptUploadFailedSaveOnlyMessage'))).toBeNull();
+            expect(screen.queryByText(translateLocal('common.save'))).toBeNull();
         });
 
         it('shows the receipt-upload error for an odometer distance expense (real uploaded file)', async () => {
@@ -663,8 +663,8 @@ describe('MoneyRequestReceiptView', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText(translateLocal('iou.error.receiptUploadFailedMessage'))).toBeTruthy();
-            expect(screen.getByText(translateLocal('iou.error.saveReceipt'))).toBeTruthy();
+            expect(screen.getByText(translateLocal('iou.error.receiptUploadFailedSaveOnlyMessage'))).toBeTruthy();
+            expect(screen.getByText(translateLocal('common.save'))).toBeTruthy();
         });
     });
 });
