@@ -502,6 +502,26 @@ function getPolicyCardExportSettings(
                 },
             };
         }
+        case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL: {
+            const businessCentralExport = policy?.connections?.businessCentral?.config?.export;
+            const type = translate(`workspace.businessCentral.exportDestination.${businessCentralExport?.nonReimbursable ?? CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE}`);
+            const description = currentConnectionName ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, type) : undefined;
+
+            // Card expenses export against a vendor for both purchase invoices and general journal lines, so the override applies to either destination.
+            return {
+                description,
+                shouldShowMenuItem: true,
+                exportType: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_VENDOR,
+                accountSelection: {
+                    type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.SINGLE_ACCOUNT,
+                    nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_VENDOR,
+                    // Business Central rejects documents with a vendor blocked for all transactions, so it can't be a card's vendor
+                    accounts: normalizeAccounts(policy?.connections?.businessCentral?.data?.vendors?.filter((vendor) => vendor.blocked !== CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.ALL)),
+                    defaultLabel: defaultVendor,
+                    workspaceDefaultAccountID: businessCentralExport?.defaultVendorID,
+                },
+            };
+        }
         default:
             return undefined;
     }
