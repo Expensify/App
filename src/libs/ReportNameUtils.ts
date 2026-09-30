@@ -221,7 +221,7 @@ type ComputeReportName = {
     rules: OnyxCollection<Rule>;
 };
 
-function getSupportTicketReportName(report: Report, personalDetailsList: PersonalDetailsList | undefined, dateFnsLocale: DateFnsLocale | undefined, translate: LocalizedTranslate): string {
+function getLocalizedSupportTicketReportName(report: Report, personalDetailsList: PersonalDetailsList | undefined, dateFnsLocale: DateFnsLocale | undefined, translate: LocalizedTranslate): string {
     const customer = temporaryGetDisplayNameOrDefault({
         passedPersonalDetails: report.ownerAccountID ? personalDetailsList?.[report.ownerAccountID] : undefined,
         defaultValue: '',
