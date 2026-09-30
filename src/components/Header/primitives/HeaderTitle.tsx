@@ -1,8 +1,6 @@
 import {useHeaderContext} from '@components/Header/context/HeaderContext';
 import HeaderTitleComponent from '@components/HeaderTitle';
 
-import useThemeStyles from '@hooks/useThemeStyles';
-
 import type {StyleProp, TextStyle} from 'react-native';
 
 type HeaderTitleProps = {
@@ -10,12 +8,9 @@ type HeaderTitleProps = {
     subtitle?: string;
     subTitleLink?: string;
     titleStyles?: StyleProp<TextStyle>;
-    /** Whether to use the taller headline style bar with the larger title font. */
-    isHeadline?: boolean;
 };
 
-function HeaderTitle({title, subtitle = '', titleStyles, subTitleLink = '', isHeadline = false}: HeaderTitleProps) {
-    const styles = useThemeStyles();
+function HeaderTitle({title, subtitle = '', titleStyles, subTitleLink = ''}: HeaderTitleProps) {
     const {shouldSkipFocusAfterTransition} = useHeaderContext();
 
     return (
@@ -26,7 +21,7 @@ function HeaderTitle({title, subtitle = '', titleStyles, subTitleLink = '', isHe
             {!!title && (
                 <HeaderTitleComponent.Text
                     numberOfLines={1}
-                    style={[isHeadline && styles.textHeadlineH2, titleStyles]}
+                    style={[titleStyles]}
                 >
                     {title}
                 </HeaderTitleComponent.Text>
