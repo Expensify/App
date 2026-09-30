@@ -11988,6 +11988,28 @@ describe('ReportUtils', () => {
             expect(result).toBe(false);
         });
 
+        it('uses fully loaded destination transactions instead of stale report totals', () => {
+            // Given report totals that look non-reimbursable but a complete local transaction list containing a reimbursable transaction
+            const report: Report = {
+                ...createRandomReport(30006, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: instantSubmitPolicy.id,
+                transactionCount: 2,
+                total: -200,
+                nonReimbursableTotal: -200,
+            };
+            const transactions: Transaction[] = [
+                {...createRandomTransaction(30006), reportID: report.reportID, reimbursable: false},
+                {...createRandomTransaction(30007), reportID: report.reportID, reimbursable: true},
+            ];
+
+            // When move eligibility is checked with the complete local transaction list
+            const result = isReportIneligibleForMoveExpenses(report, instantSubmitPolicy, transactions);
+
+            // Then the report remains available because it contains a reimbursable transaction
+            expect(result).toBe(false);
+        });
+
         it('uses the fresh reimbursable total when legacy report totals are stale', () => {
             // Given report totals that still look non-reimbursable but a fresh reimbursable total from the backend
             const report: Report = {

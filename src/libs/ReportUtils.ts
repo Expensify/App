@@ -3079,10 +3079,7 @@ function isReportIneligibleForMoveExpenses(moneyRequestReport: OnyxEntry<Report>
         return false;
     }
 
-    const hasOnlyNonReimbursableTransactionsLocal =
-        moneyRequestReport?.transactionCount !== undefined &&
-        moneyRequestReport.transactionCount === transactions.length &&
-        hasOnlyNonReimbursableTransactions(moneyRequestReport.reportID, transactions);
+    const hasCompleteLocalTransactions = transactions.length > 0 && moneyRequestReport?.transactionCount === transactions.length;
     const hasOnlyNonReimbursableTransactionsFromReportTotals =
         moneyRequestReport?.transactionCount !== undefined &&
         moneyRequestReport.transactionCount > 0 &&
@@ -3090,7 +3087,11 @@ function isReportIneligibleForMoveExpenses(moneyRequestReport: OnyxEntry<Report>
         moneyRequestReport.nonReimbursableTotal !== undefined &&
         getReimbursableTotal(moneyRequestReport) === 0;
 
-    return isInstantSubmitAndCloseWithOnlyNonReimbursableTransactions(policy, hasOnlyNonReimbursableTransactionsLocal || hasOnlyNonReimbursableTransactionsFromReportTotals);
+    const hasOnlyNonReimbursable = hasCompleteLocalTransactions
+        ? hasOnlyNonReimbursableTransactions(moneyRequestReport.reportID, transactions)
+        : hasOnlyNonReimbursableTransactionsFromReportTotals;
+
+    return isInstantSubmitAndCloseWithOnlyNonReimbursableTransactions(policy, hasOnlyNonReimbursable);
 }
 
 /**
@@ -3113,8 +3114,7 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, rules: OnyxCol
         return false;
     }
 
-    const hasOnlyNonReimbursableTransactionsLocal = hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID);
-    const isRejectedForOnlyNonReimbursableTransactions = isInstantSubmitAndCloseWithOnlyNonReimbursableTransactions(policy, hasOnlyNonReimbursableTransactionsLocal);
+    const isRejectedForOnlyNonReimbursableTransactions = isInstantSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID);
     const isRejectedForDisabledReimbursement =
         isInstantSubmitAndClose(policy) &&
         !isMovingTransaction &&
