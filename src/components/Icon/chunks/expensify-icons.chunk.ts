@@ -295,10 +295,9 @@ import Wrench from '@assets/images/wrench.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
 
-// This icon is a React component because its gradient ids must be unique to each rendered copy
-import BusinessCentralSquare from '@components/Icon/BusinessCentralSquare';
-// These icons are React components because they have
+// These icons are React components. BusinessCentralSquare needs gradient ids unique to each rendered copy, and the map icons have
 // drop shadow that is NOT handled by babel-plugin-transform-react-native-svg
+import BusinessCentralSquare from '@components/Icon/BusinessCentralSquare';
 import MapCurrentLocation from '@components/MapView/Icons/MapCurrentLocation';
 import MapCurrentLocationPuck from '@components/MapView/Icons/MapCurrentLocationPuck';
 import MapStartWaypoint from '@components/MapView/Icons/MapStartWaypoint';
