@@ -56,6 +56,7 @@ function SupportalSwitcherButton({isSidebarHovered}: SupportalSwitcherButtonProp
     const {isKeyboardActive} = useKeyboardState();
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: isSmallScreenWidth && !isKeyboardActive,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
         style: [styles.createMenuContainer, styles.ph5],
         additionalPaddingBottom: variables.componentBorderRadiusLarge,
     });
