@@ -228,7 +228,8 @@ function AddPersonalBankAccountPage() {
         startFrom = validatedSavedPageIndex >= 0 ? validatedSavedPageIndex : draftStartFrom;
     }
     const startAction = validatedSavedPageIndex >= 0 && fullPersonalBankAccount?.currentPageAction === 'edit' ? fullPersonalBankAccount.currentPageAction : undefined;
-    const isURLSubPageValid = !urlSubPage || pages.some((page) => page.pageName === urlSubPage);
+    const urlSubPageIndex = pages.findIndex((page) => page.pageName === urlSubPage);
+    const isURLSubPageValid = !urlSubPage || (urlSubPageIndex >= 0 && (urlSubPageIndex === setupPageIndexOrDefault || hasCompletedConnection));
     const fallbackPageName = startFrom >= 0 ? (pages.at(startFrom)?.pageName ?? pages.at(0)?.pageName) : undefined;
     const fallbackRoute = fallbackPageName ? buildRoute(fallbackPageName) : undefined;
 
@@ -256,6 +257,9 @@ function AddPersonalBankAccountPage() {
             isLeavingEdit.current = false;
         }
         if (
+            isResumeStateLoading ||
+            isRedirecting ||
+            !isURLSubPageValid ||
             !shouldPreserveSetupProgress ||
             !isFocused ||
             !currentPageName ||
@@ -271,7 +275,7 @@ function AddPersonalBankAccountPage() {
             return;
         }
         updatePersonalBankAccountCurrentPage(currentPageName);
-    }, [currentPageName, hasPendingEdit, isEditing, isFocused, pages, shouldPreserveSetupProgress]);
+    }, [currentPageName, hasPendingEdit, isEditing, isFocused, isRedirecting, isResumeStateLoading, isURLSubPageValid, pages, shouldPreserveSetupProgress]);
 
     useEffect(() => {
         latestDrafts.current = {personalBankAccountDraft: personalBankAccount, homeAddressDraft};

@@ -151,6 +151,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     // though its dependencies change again while the transition is in flight.
     const hasRedirectedToPendingValidationRef = useRef(false);
     const hasRedirectedToLocalWalletSetupRef = useRef(false);
+    const hasBlurredAfterLocalWalletRedirectRef = useRef(false);
     // Set once this page has actually been covered by the validation step. The redirect ref alone cannot tell that
     // apart from the redirect still being in flight, because it flips while this page is still focused.
     const hasBlurredAfterPendingRedirectRef = useRef(false);
@@ -331,18 +332,22 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         achData?.policyID === policyIDParam &&
         isAuthorizedToValidateBankAccount;
 
-    // Leaves the setup flow entirely. Used everywhere the pending-validation redirect needs an exit, because going back
-    // to this page would only redirect again.
-    const leavePendingValidationFlow = useCallback(() => {
-        // Tells the unmount cleanup that the validation step is not going to keep reading the preserved account data,
-        // so the usual wipe can run. A ref rather than state, so this cannot repaint the entry point on the way out.
-        isNavigatingToPendingValidationRef.current = false;
+    const leaveSetupFlow = useCallback(() => {
         if (backTo) {
             Navigation.goBack(backTo);
             return;
         }
         Navigation.dismissModal();
     }, [backTo]);
+
+    // Leaves the setup flow entirely. Used everywhere the pending-validation redirect needs an exit, because going back
+    // to this page would only redirect again.
+    const leavePendingValidationFlow = useCallback(() => {
+        // Tells the unmount cleanup that the validation step is not going to keep reading the preserved account data,
+        // so the usual wipe can run. A ref rather than state, so this cannot repaint the entry point on the way out.
+        isNavigatingToPendingValidationRef.current = false;
+        leaveSetupFlow();
+    }, [leaveSetupFlow]);
     /**
      When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx.
      Calculating `shouldShowContinueSetupButton` immediately on initial render doesn't make sense as
@@ -491,6 +496,24 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
               });
         Navigation.navigate(resumeRoute);
     }, [backTo, hasLocalWalletBankInfoProgress, isFocused, isLocalUSDWalletSetup, reimbursementAccountDraft?.currentPageAction, reimbursementAccountDraft?.currentSubPage]);
+
+    useEffect(() => {
+        if (!hasRedirectedToLocalWalletSetupRef.current) {
+            return;
+        }
+
+        if (!isFocused) {
+            hasBlurredAfterLocalWalletRedirectRef.current = true;
+            return;
+        }
+
+        if (!hasBlurredAfterLocalWalletRedirectRef.current || !hasLocalWalletBankInfoProgress) {
+            return;
+        }
+
+        hasBlurredAfterLocalWalletRedirectRef.current = false;
+        leaveSetupFlow();
+    }, [hasLocalWalletBankInfoProgress, isFocused, leaveSetupFlow]);
 
     useEffect(() => {
         if (policyIDParam && !isPreviousPolicy) {

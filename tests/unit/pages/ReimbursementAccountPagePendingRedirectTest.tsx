@@ -697,6 +697,38 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
             expect(mockLoadingIndicator).toHaveBeenCalled();
         });
 
+        it('leaves the local Wallet resume flow when Back focuses the root again', async () => {
+            // Given the root redirected a local USD draft to its saved bank-information page
+            await seedOnyx(DEFAULT_REIMBURSEMENT_ACCOUNT, null);
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+                    country: CONST.COUNTRY.US,
+                    currency: CONST.CURRENCY.USD,
+                    source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                    currentPage: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT,
+                    currentSubPage: CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES.MANUAL,
+                    routingNumber: '021000021',
+                    accountNumber: '123456789',
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+            const params: RouteParams = {backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE};
+            const {rerender} = await renderPage(params);
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+
+            // When the resumed page covers the root and Back focuses it again
+            mockIsFocused = false;
+            rerender(pageElement(params));
+            await waitForBatchedUpdatesWithAct();
+            mockIsFocused = true;
+            rerender(pageElement(params));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it exits through backTo instead of remaining on the loader or redirecting again
+            expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE);
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+        });
+
         it('keeps the root mounted and resumes a USD Plaid draft before account creation', async () => {
             // Given a Wallet USD draft saved after selecting an account through Plaid
             await seedOnyx(DEFAULT_REIMBURSEMENT_ACCOUNT, null);

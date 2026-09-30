@@ -5,10 +5,12 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 
 import BankInfo from '@pages/ReimbursementAccount/USD/BankInfo/BankInfo';
+import ConnectBankAccount from '@pages/ReimbursementAccount/USD/ConnectBankAccount/ConnectBankAccount';
 import Country from '@pages/ReimbursementAccount/USD/Country';
 import USDVerifiedBankAccountFlowPage from '@pages/ReimbursementAccount/USD/USDVerifiedBankAccountFlowPage';
 
 import {setDraftValues} from '@userActions/FormActions';
+import {clearReimbursementAccount} from '@userActions/ReimbursementAccount';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,16 +20,18 @@ import SCREENS from '@src/SCREENS';
 import {createNavigationContainerRef, NavigationContainer, StackActions} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 
-let mockReimbursementAccount: {achData?: {subStep?: string}} | undefined;
+let mockReimbursementAccount: {achData?: {state?: string; subStep?: string}} | undefined;
 
 jest.mock('@hooks/useOnyx', () => jest.fn(() => [mockReimbursementAccount]));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => ({flex1: {}, appBG: {}})));
 jest.mock('@expensify/react-native-hybrid-app', () => ({__esModule: true, default: {isHybridApp: jest.fn(() => false)}}));
-jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
+jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn(), dismissModal: jest.fn()}));
 jest.mock('@userActions/FormActions', () => ({setDraftValues: jest.fn()}));
+jest.mock('@userActions/ReimbursementAccount', () => ({clearReimbursementAccount: jest.fn()}));
 jest.mock('@pages/ReimbursementAccount/USD/BankInfo/BankInfo', () => jest.fn(() => null));
+jest.mock('@pages/ReimbursementAccount/USD/ConnectBankAccount/ConnectBankAccount', () => jest.fn(() => null));
 jest.mock('@pages/ReimbursementAccount/USD/Country', () => jest.fn(() => null));
-const [mockBankInfo, mockCountry] = [jest.mocked(BankInfo), jest.mocked(Country)];
+const [mockBankInfo, mockConnectBankAccount, mockCountry] = [jest.mocked(BankInfo), jest.mocked(ConnectBankAccount), jest.mocked(Country)];
 type PageProps = PlatformStackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_USD>;
 const Stack = createStackNavigator<ReimbursementAccountNavigatorParamList>();
 
@@ -153,4 +157,42 @@ it('stores the earlier Wallet route when Back focuses it again', () => {
         currentSubPage: CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES.MANUAL,
         currentPageAction: null,
     });
+});
+
+it('clears Workspace account state after dismissing pending validation', () => {
+    // Given a pending Workspace account displayed on the validation page
+    mockReimbursementAccount = {achData: {state: CONST.BANK_ACCOUNT.STATE.PENDING}};
+    renderPage({policyID: 'policy-1', page: CONST.BANK_ACCOUNT.PAGE_NAMES.VALIDATION});
+    const validationProps = mockConnectBankAccount.mock.calls.at(-1)?.at(0);
+    if (!validationProps) {
+        throw new Error('Expected the validation page to render');
+    }
+
+    // When the user dismisses the validation flow
+    validationProps.onBackButtonPress();
+    const dismissOptions = jest.mocked(Navigation.dismissModal).mock.calls.at(-1)?.at(0);
+    expect(clearReimbursementAccount).not.toHaveBeenCalled();
+    act(() => dismissOptions?.afterTransition?.());
+
+    // Then Workspace account state is cleared only after the closing transition
+    expect(Navigation.dismissModal).toHaveBeenCalledWith({afterTransition: clearReimbursementAccount});
+    expect(clearReimbursementAccount).toHaveBeenCalledTimes(1);
+});
+
+it('preserves Wallet account state after dismissing pending validation', () => {
+    // Given a pending Wallet account displayed on the validation page
+    mockReimbursementAccount = {achData: {state: CONST.BANK_ACCOUNT.STATE.PENDING}};
+    const {unmount} = renderPage({page: CONST.BANK_ACCOUNT.PAGE_NAMES.VALIDATION, backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+    const validationProps = mockConnectBankAccount.mock.calls.at(-1)?.at(0);
+    if (!validationProps) {
+        throw new Error('Expected the validation page to render');
+    }
+
+    // When the user leaves the validation flow
+    validationProps.onBackButtonPress();
+    act(() => unmount());
+
+    // Then the Wallet resume state remains available
+    expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE);
+    expect(clearReimbursementAccount).not.toHaveBeenCalled();
 });

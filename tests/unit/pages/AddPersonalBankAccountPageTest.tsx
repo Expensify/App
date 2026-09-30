@@ -28,6 +28,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ValueOf} from 'type-fest';
 
@@ -70,6 +71,14 @@ jest.mock('@userActions/PaymentMethods', () => ({
 jest.mock('@userActions/Report', () => ({
     openReport: jest.fn(),
 }));
+
+let mockResumeStateLoading: boolean | undefined;
+jest.mock(
+    '@src/types/utils/isLoadingOnyxValue',
+    () =>
+        (...args: Parameters<typeof isLoadingOnyxValue>) =>
+            mockResumeStateLoading ?? args.some((result) => result.status === 'loading'),
+);
 
 const closeRHPFlowSpy = jest.spyOn(Navigation, 'closeRHPFlow').mockImplementation(() => {});
 const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
@@ -168,6 +177,14 @@ async function renderPageOverTab(focusedTabIndex: number) {
     await waitForBatchedUpdatesWithAct();
 }
 
+async function setCompletedManualBankAccountDraft() {
+    await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {
+        setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
+        routingNumber: '123456789',
+        accountNumber: '1234',
+    });
+}
+
 describe('AddPersonalBankAccountPage', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -179,6 +196,7 @@ describe('AddPersonalBankAccountPage', () => {
         initialSubPage = CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.SUCCESS;
         initialAction = undefined;
         shouldUseInitialSubPage = true;
+        mockResumeStateLoading = undefined;
         await act(async () => {
             await Onyx.clear();
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
@@ -186,6 +204,7 @@ describe('AddPersonalBankAccountPage', () => {
     });
 
     it('closes the RHP when the flow was started from the Home tab', async () => {
+        await act(setCompletedManualBankAccountDraft);
         await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === SCREENS.HOME));
 
         fireEvent.press(screen.getByTestId('confirmation-primary-button'));
@@ -197,6 +216,7 @@ describe('AddPersonalBankAccountPage', () => {
 
     // Settings is a tab as well, so this branch was unreachable too while the switch read the root route name
     it('returns to the wallet when the flow was started from the Settings tab', async () => {
+        await act(setCompletedManualBankAccountDraft);
         await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR));
 
         fireEvent.press(screen.getByTestId('confirmation-primary-button'));
@@ -355,6 +375,62 @@ describe('AddPersonalBankAccountPage', () => {
         await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR));
 
         expect(updatePersonalBankAccountCurrentPage).toHaveBeenCalledWith(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PHONE_NUMBER);
+    });
+
+    it('does not overwrite the saved Wallet page while resume state is loading or redirecting', async () => {
+        // Given a Wallet Plaid setup saved on the phone-number page while its resume state is still loading
+        shouldUseInitialSubPage = false;
+        mockResumeStateLoading = true;
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PHONE_NUMBER,
+            });
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {
+                setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
+                selectedPlaidAccountID: 'plaid-account-1',
+                legalFirstName: 'Ada',
+                legalLastName: 'Lovelace',
+                addressStreet: '1 Main St',
+                addressCity: 'New York',
+                addressState: 'NY',
+                addressZipCode: '10001',
+                country: CONST.COUNTRY.US,
+            });
+            await Onyx.set(ONYXKEYS.PLAID_DATA, {
+                plaidAccessToken: 'access-token',
+                errors: {},
+                bankAccounts: [
+                    {
+                        accountNumber: '1234',
+                        addressName: 'Plaid checking',
+                        plaidAccountID: 'plaid-account-1',
+                        routingNumber: '123456789',
+                        mask: '1234',
+                        plaidAccessToken: '',
+                        bankName: 'Plaid Bank',
+                    },
+                ],
+            });
+        });
+
+        // When the page mounts before resume state hydration completes
+        await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR));
+
+        // Then the temporary first page is not persisted over the saved destination
+        expect(updatePersonalBankAccountCurrentPage).not.toHaveBeenCalled();
+
+        // When hydration completes and the saved route finishes redirecting
+        mockResumeStateLoading = false;
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {isLoading: false});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then only the validated saved page is persisted
+        expect(updatePersonalBankAccountCurrentPage).toHaveBeenCalledTimes(1);
+        expect(updatePersonalBankAccountCurrentPage).toHaveBeenCalledWith(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PHONE_NUMBER);
+        expect(updatePersonalBankAccountCurrentPage).not.toHaveBeenCalledWith(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PLAID_BANK_ACCOUNT);
     });
 
     it('resumes saved reimbursement Plaid progress when Plaid stores the access token at the top level', async () => {
@@ -773,6 +849,58 @@ describe('AddPersonalBankAccountPage', () => {
         expect(updatePersonalBankAccountCurrentPage).toHaveBeenCalledWith(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PLAID_BANK_ACCOUNT);
     });
 
+    it('redirects a Plaid deep link to the connection page when the access token is missing', async () => {
+        // Given a Wallet Plaid setup without a completed connection and a URL targeting a later page
+        initialSubPage = CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PHONE_NUMBER;
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {source: CONST.BANK_ACCOUNT.SOURCE.WALLET});
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {
+                setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
+                selectedPlaidAccountID: 'plaid-account-1',
+            });
+            await Onyx.set(ONYXKEYS.PLAID_DATA, {
+                plaidAccessToken: '',
+                errors: {},
+                bankAccounts: [
+                    {
+                        accountNumber: '1234',
+                        addressName: 'Plaid checking',
+                        plaidAccountID: 'plaid-account-1',
+                        routingNumber: '123456789',
+                        mask: '1234',
+                        plaidAccessToken: '',
+                        bankName: 'Plaid Bank',
+                    },
+                ],
+            });
+        });
+
+        // When the deep link is opened
+        await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR));
+
+        // Then it returns to the Plaid connection page without persisting the invalid destination
+        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PLAID_BANK_ACCOUNT), {forceReplace: true});
+        expect(updatePersonalBankAccountCurrentPage).not.toHaveBeenCalled();
+    });
+
+    it('redirects a manual deep link to the account-details page when the bank details are missing', async () => {
+        // Given a Wallet manual setup without routing and account numbers and a URL targeting a later page
+        initialSubPage = CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.CONFIRMATION;
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {source: CONST.BANK_ACCOUNT.SOURCE.WALLET});
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL});
+        });
+
+        // When the deep link is opened
+        await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR));
+
+        // Then it returns to the manual account-details page without persisting the invalid destination
+        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS), {
+            forceReplace: true,
+        });
+        expect(updatePersonalBankAccountCurrentPage).not.toHaveBeenCalled();
+    });
+
     it('does not resume a saved personal-information page that is skipped', async () => {
         shouldUseInitialSubPage = false;
         await act(async () => {
@@ -803,6 +931,7 @@ describe('AddPersonalBankAccountPage', () => {
     });
 
     it('closes the RHP when the flow was started from the Search tab', async () => {
+        await act(setCompletedManualBankAccountDraft);
         await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR));
 
         fireEvent.press(screen.getByTestId('confirmation-primary-button'));
@@ -830,6 +959,7 @@ describe('AddPersonalBankAccountPage', () => {
     it('fetches the exit report only once and keeps the existing navigation when the flow is closed', async () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID: '123', shouldShowSuccess: true});
+            await setCompletedManualBankAccountDraft();
         });
         await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
 
@@ -844,6 +974,7 @@ describe('AddPersonalBankAccountPage', () => {
     it('does not fetch the exit report when the bank account was not added', async () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID: '123'});
+            await setCompletedManualBankAccountDraft();
         });
         await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
 

@@ -9,6 +9,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 
 import {setDraftValues} from '@userActions/FormActions';
+import {clearReimbursementAccount} from '@userActions/ReimbursementAccount';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -147,6 +148,20 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
     // Skip the KYB documents page unless the backend's verification checks flagged documents that still need to be uploaded.
     const shouldSkipKYBDocs = useCallback((pageName?: string) => pageName === PAGE_NAMES.KYB_DOCS && !isKYBDocumentsRequired, [isKYBDocumentsRequired]);
 
+    const leavePendingValidationFlow = useCallback(() => {
+        if (backTo === ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE) {
+            Navigation.goBack(backTo);
+            return;
+        }
+
+        const options = {afterTransition: clearReimbursementAccount};
+        if (backTo) {
+            Navigation.goBack(backTo, options);
+            return;
+        }
+        Navigation.dismissModal(options);
+    }, [backTo]);
+
     // The bank-info step renders either the Plaid or the manual variant depending on the setup type the user
     // picked earlier in the flow
     const getSubPageForNavigation = useCallback(
@@ -181,11 +196,7 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
         // setup pages doesn't make sense. Leave the flow entirely rather than popping to ReimbursementAccountPage:
         // that page redirects a pending account straight back here, so returning to it would trap the user in a loop.
         if (currentEntry?.pageName === PAGE_NAMES.VALIDATION && reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
-            if (backTo) {
-                Navigation.goBack(backTo);
-            } else {
-                Navigation.dismissModal();
-            }
+            leavePendingValidationFlow();
             return;
         }
 
@@ -202,7 +213,16 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
         }
         const prevPage = pages.at(prevIndex);
         Navigation.goBack(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: prevPage?.pageName, subPage: getSubPageForNavigation(prevPage, prevPage?.lastSubPage), backTo}));
-    }, [backTo, currentEntry?.pageName, currentPageIndex, policyID, reimbursementAccount?.achData?.state, shouldSkipVerifyIdentity, shouldSkipKYBDocs, getSubPageForNavigation]);
+    }, [
+        currentEntry?.pageName,
+        currentPageIndex,
+        policyID,
+        reimbursementAccount?.achData?.state,
+        shouldSkipVerifyIdentity,
+        shouldSkipKYBDocs,
+        getSubPageForNavigation,
+        leavePendingValidationFlow,
+    ]);
 
     return (
         <View style={[styles.flex1, styles.appBG]}>
