@@ -9,8 +9,8 @@ import type {SubPageProps} from '@hooks/useSubPage/types';
 import getWalletPersonalDetailsParams from '@pages/EnablePayments/shared/getWalletPersonalDetailsParams';
 import IdologyQuestions from '@pages/EnablePayments/shared/IdologyQuestions';
 import useWalletPhoneValidateCode from '@pages/EnablePayments/shared/useWalletPhoneValidateCode';
+import {getBankAccountOwnerDetails, getPersonalInfoStepValues, getSkippedBankAccountOwnerPages} from '@pages/EnablePayments/Wallet/utils/getBankAccountOwnerDetails';
 import getInitialSubstepForPersonalInfo from '@pages/EnablePayments/Wallet/utils/getInitialSubstepForPersonalInfo';
-import getSubstepValues from '@pages/EnablePayments/Wallet/utils/getSubstepValues';
 
 import {setAdditionalDetailsQuestions, updateCurrentStep} from '@userActions/Wallet';
 
@@ -18,7 +18,6 @@ import CONST from '@src/CONST';
 import type {EnablePaymentsSubPageType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 
 import {useMemo} from 'react';
 
@@ -29,7 +28,6 @@ import LegalName from './substeps/LegalNameStep';
 import PhoneNumber from './substeps/PhoneNumberStep';
 import SocialSecurityNumber from './substeps/SocialSecurityNumberStep';
 
-const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 const PERSONAL_INFO_SUB_PAGES = CONST.ENABLE_PAYMENTS.PERSONAL_INFO_STEP.SUB_PAGE_NAMES;
 
 const formPages = [
@@ -46,12 +44,27 @@ function PersonalInfoPage() {
 
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
     const [walletAdditionalDetailsDraft] = useOnyx(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
 
     const showIdologyQuestions = walletAdditionalDetails?.questions && walletAdditionalDetails?.questions.length > 0;
 
     const {submitPersonalDetails} = useWalletPhoneValidateCode();
 
-    const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails), [walletAdditionalDetails, walletAdditionalDetailsDraft]);
+    const values = useMemo(
+        () => getPersonalInfoStepValues(walletAdditionalDetailsDraft, walletAdditionalDetails, privatePersonalDetails),
+        [privatePersonalDetails, walletAdditionalDetails, walletAdditionalDetailsDraft],
+    );
+    const skipPages = useMemo(
+        () =>
+            getSkippedBankAccountOwnerPages(
+                getBankAccountOwnerDetails({
+                    walletAdditionalDetailsDraft,
+                    walletAdditionalDetails,
+                    privatePersonalDetails,
+                }),
+            ),
+        [privatePersonalDetails, walletAdditionalDetails, walletAdditionalDetailsDraft],
+    );
 
     const submit = () => {
         submitPersonalDetails(getWalletPersonalDetailsParams(values));
@@ -61,6 +74,7 @@ function PersonalInfoPage() {
 
     const {CurrentPage, isEditing, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<SubPageProps, EnablePaymentsSubPageType>({
         pages: formPages,
+        skipPages,
         startFrom,
         onFinished: submit,
         buildRoute: (pageName, action) =>
@@ -82,8 +96,9 @@ function PersonalInfoPage() {
             return;
         }
 
-        if (pageIndex === 0) {
-            // Step back to the Add Bank Account step; the URL correction in EnablePaymentsPage navigates there.
+        const hasPreviousPage = formPages.slice(0, pageIndex).some((page) => !skipPages.some((skippedPage) => skippedPage === page.pageName));
+        if (!hasPreviousPage) {
+            // Step back to the Add Bank Account step. pageIndex is not 0 when legal name was skipped and KYC starts at date of birth.
             updateCurrentStep(CONST.WALLET.STEP.ADD_BANK_ACCOUNT);
             return;
         }
