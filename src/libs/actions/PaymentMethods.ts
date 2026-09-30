@@ -27,7 +27,6 @@ import INPUT_IDS from '@src/types/form/AddPaymentCardForm';
 import type {BankAccountList, CardList, FundList} from '@src/types/onyx';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type Policy from '@src/types/onyx/Policy';
-import type {OnyxData} from '@src/types/onyx/Request';
 import type Session from '@src/types/onyx/Session';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 
@@ -160,6 +159,22 @@ function makeDefaultPaymentMethod(bankAccountID: number, fundID: number, previou
     });
 }
 
+function buildAddPaymentCardFormLoadingOnyxData() {
+    const mergeForm = (isLoading: boolean): Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>> => [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
+            value: {isLoading},
+        },
+    ];
+
+    return {
+        optimisticData: mergeForm(true),
+        successData: mergeForm(false),
+        failureData: mergeForm(false),
+    };
+}
+
 /**
  * Calls the API to add a new card.
  *
@@ -179,35 +194,7 @@ function addPaymentCard(accountID: number, params: PaymentCardParams) {
         isP2PDebitCard: true,
     };
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
-            value: {isLoading: true},
-        },
-    ];
-
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
-            value: {isLoading: false},
-        },
-    ];
-
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
-            value: {isLoading: false},
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, buildAddPaymentCardFormLoadingOnyxData());
 
     GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION.NAME, accountID, getCurrentUserEmail() ?? '');
 }
@@ -228,6 +215,7 @@ function addSubscriptionPaymentCard(
         currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
     },
     fundList: OnyxEntry<FundList>,
+    source?: string,
 ) {
     const {cardNumber, cardYear, cardMonth, cardCVV, addressName, addressZip, currency} = cardData;
 
@@ -243,38 +231,10 @@ function addSubscriptionPaymentCard(
         shouldClaimEarlyDiscountOffer: true,
     };
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
-            value: {isLoading: true},
-        },
-    ];
-
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
-            value: {isLoading: false},
-        },
-    ];
-
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
-            value: {isLoading: false},
-        },
-    ];
-
     if (CONST.SCA_CURRENCIES.has(currency)) {
-        addPaymentCardSCA(parameters, {optimisticData, successData, failureData});
+        addPaymentCardSCA(parameters, source);
     } else {
-        API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
-            optimisticData,
-            successData,
-            failureData,
-        });
+        API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, buildAddPaymentCardFormLoadingOnyxData());
     }
     if (getCardForSubscriptionBilling(fundList)) {
         Log.info(`[GTM] Not logging ${CONST.ANALYTICS.EVENT.PAID_ADOPTION.NAME} because a card was already added`);
@@ -284,11 +244,34 @@ function addSubscriptionPaymentCard(
 }
 
 /**
+ * Goes in successData, not optimisticData, so the source lands in the same Onyx flush as its response's link and the
+ * two stay paired when 3DS requests overlap.
+ */
+function getVerify3dsSubscriptionSourceData(source?: string): Array<OnyxUpdate<typeof ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE>> {
+    if (!source) {
+        return [];
+    }
+    return [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE,
+            value: source,
+        },
+    ];
+}
+
+/**
  * Calls the API to add a new SCA (GBP or EUR) card.
  * Updates verify3dsSubscription Onyx key with a new authentication link for 3DS.
  */
-function addPaymentCardSCA(params: AddPaymentCardParams, onyxData: OnyxData<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM> = {}) {
-    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD_SCA, params, onyxData);
+function addPaymentCardSCA(params: AddPaymentCardParams, source?: string) {
+    prepareCardAuthentication(source);
+    const {optimisticData, successData, failureData} = buildAddPaymentCardFormLoadingOnyxData();
+    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD_SCA, params, {
+        optimisticData,
+        successData: [...successData, ...getVerify3dsSubscriptionSourceData(source)],
+        failureData,
+    });
 }
 
 /**
@@ -307,24 +290,65 @@ function clearPaymentCardFormErrorAndSubmit() {
         [INPUT_IDS.ADDRESS_ZIP_CODE]: '',
         [INPUT_IDS.ADDRESS_STATE]: '',
         [INPUT_IDS.ACCEPT_TERMS]: '',
-        [INPUT_IDS.CURRENCY]: CONST.PAYMENT_CARD_CURRENCY.USD,
     });
 }
 
 /**
- * Clear 3ds flow - when verification will be finished
- *
+ * The caller must not render the form until this resolves: FormProvider seeds its input values from the draft on its
+ * first render and only spread-merges later changes, so a key removed afterwards never leaves the form.
+ */
+function clearAddPaymentCardDraftCurrency() {
+    return Onyx.merge(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM_DRAFT, {[INPUT_IDS.CURRENCY]: null});
+}
+
+/**
+ * Clear the 3DS link so reopening the flow (even with an identical backend link) counts as a change.
  */
 function clearPaymentCard3dsVerification() {
     Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, '');
 }
 
 /**
+ * Clears the previous link before a new 3DS attempt. Skipped without a source: that's the challenge screen
+ * re-verifying its own iframe, which must keep the active link.
+ */
+function prepareCardAuthentication(source?: string) {
+    if (!source) {
+        return;
+    }
+    clearPaymentCard3dsVerification();
+}
+
+/**
  * Properly updates the nvp_privateStripeCustomerID onyx data for 3DS payment
  *
  */
-function verifySetupIntent(accountID: number, isVerifying = true) {
-    API.write(WRITE_COMMANDS.VERIFY_SETUP_INTENT, {accountID, isVerifying});
+function verifySetupIntent(accountID: number, isVerifying = true, source?: string) {
+    prepareCardAuthentication(source);
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SUBSCRIPTION_VERIFY_SETUP_INTENT_PENDING>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SUBSCRIPTION_VERIFY_SETUP_INTENT_PENDING,
+            value: true,
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.SUBSCRIPTION_VERIFY_SETUP_INTENT_PENDING | typeof ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SUBSCRIPTION_VERIFY_SETUP_INTENT_PENDING,
+            value: false,
+        },
+        ...getVerify3dsSubscriptionSourceData(source),
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.SUBSCRIPTION_VERIFY_SETUP_INTENT_PENDING>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SUBSCRIPTION_VERIFY_SETUP_INTENT_PENDING,
+            value: false,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.VERIFY_SETUP_INTENT, {accountID, isVerifying}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -332,7 +356,7 @@ function verifySetupIntent(accountID: number, isVerifying = true) {
  *
  */
 function setPaymentMethodCurrency(currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>) {
-    Onyx.merge(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {
+    Onyx.merge(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM_DRAFT, {
         [INPUT_IDS.CURRENCY]: currency,
     });
 }
@@ -614,6 +638,7 @@ export {
     getMakeDefaultPaymentOnyxData,
     continueSetup,
     addSubscriptionPaymentCard,
+    clearAddPaymentCardDraftCurrency,
     clearPaymentCardFormErrorAndSubmit,
     dismissSuccessfulTransferBalancePage,
     transferWalletBalance,
@@ -626,9 +651,10 @@ export {
     clearAddPaymentMethodError,
     clearWalletError,
     setPaymentMethodCurrency,
-    clearPaymentCard3dsVerification,
     clearWalletTermsError,
     verifySetupIntent,
     addPaymentCardSCA,
+    prepareCardAuthentication,
+    getVerify3dsSubscriptionSourceData,
     setInvoicingTransferBankAccount,
 };
