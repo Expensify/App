@@ -155,7 +155,7 @@ function MoneyRequestReportTransactionItemBody({
 
     const rejectErrorKey = getTransactionRejectErrorKey(transaction);
     const rejectError: TranslationKeyErrors = rejectErrorKey ? {[rejectErrorKey]: {translationKey: 'iou.rejectReport.couldNotRejectExpense'}} : {};
-    // The rule Select All and a range read, so the checkbox cannot disable a row they still reach, or the reverse.
+    // Same check Select All and shift+click ranges use, so this checkbox is disabled exactly for the rows they skip.
     const isSelectable = isSelectableReportTransaction(transaction);
 
     // A reject error is terminal for this row, so it replaces any other message rather than stacking with it.

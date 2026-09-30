@@ -240,7 +240,7 @@ type SearchSelectionContextValue = {
     areAllMatchingItemsSelected: boolean;
 };
 
-/** The rest of the same commit's selection, so an updater never pairs its fresh map with a slice read a commit late */
+/** The exclusions and the select-all-matching flag from the same state update as the selection map, so an updater never combines a new map with stale values */
 type PreviousSelectionSlices = {
     excludedTransactions: SelectedTransactions;
     areAllMatchingItemsSelected: boolean;

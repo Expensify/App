@@ -44,12 +44,12 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
 
     const [{actions: selectionActionsValue, syncSelection, syncSearchHash}] = useState(() => createSelectionActions(setSelectionState, currentSearchHash));
 
-    // Synced as one object, so a handler cannot read two slices of the selection at different freshness.
+    // The whole selection is synced as one object, so a handler never reads parts of it from different renders.
     useLayoutEffect(() => {
         syncSelection(selectionState);
     });
 
-    // Passive, so it lands after the page's own passive effect has cleared against the old hash.
+    // A passive effect, so it runs after the page's own passive effect has cleared the selection against the old hash.
     useEffect(() => {
         syncSearchHash(currentSearchHash);
     }, [currentSearchHash, syncSearchHash]);
@@ -88,7 +88,7 @@ type SelectionActions = {
 /** Built once per provider, so a consumer may list any of these in an effect's dependencies. */
 function createSelectionActions(setSelectionState: React.Dispatch<React.SetStateAction<SelectionState>>, initialSearchHash: number): SelectionActions {
     let latestSelectionState = defaultSelectionState;
-    // Seeded, since a child's layout effect runs before the sync below and may already clear against this hash.
+    // Starts at the current hash rather than undefined, because a child's layout effect runs before the sync below and may already clear against it.
     let latestSearchHash = initialSearchHash;
     let isTransactionIDListEmpty = true;
 
@@ -219,7 +219,7 @@ function createSelectionActions(setSelectionState: React.Dispatch<React.SetState
 
     const clearSelectedTransactions: SearchSelectionActionsValue['clearSelectedTransactions'] = (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
         if (typeof searchHashOrClearIDsFlag === 'boolean') {
-            // No generation bump: this empties the ID list, which the search selection the counter speaks for does not read.
+            // No clear-counter bump: this empties the report list's ID selection, and the counter only tells Search that its own selection was cleared.
             setSelectionState((prevState) => (prevState.selectedTransactionIDs.length === 0 ? prevState : {...prevState, selectedTransactionIDs: []}));
             return;
         }

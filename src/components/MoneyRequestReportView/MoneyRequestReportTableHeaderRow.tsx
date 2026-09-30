@@ -23,10 +23,10 @@ import {View} from 'react-native';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 
 type MoneyRequestReportTableHeaderRowProps = {
-    /** The rows Select All covers, from the list that writes them, so the checkbox and the press cannot answer from two lists */
+    /** IDs of the rows Select All selects. The checkbox's checked state comes from the same list, so the two cannot disagree */
     selectableTransactionIDs: string[];
 
-    /** Select All: the list decides whether that selects every row it can or clears the selection */
+    /** Called when the Select All checkbox is pressed. The list decides whether to select every selectable row or clear the selection */
     onToggleAll: () => void;
 
     /** The report's offline pending action, shown as feedback on the whole row */

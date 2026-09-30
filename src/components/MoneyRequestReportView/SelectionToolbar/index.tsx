@@ -97,7 +97,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK> | null>(null);
 
     const transactionsWithoutPendingDelete = transactions.filter((t) => !isTransactionPendingDelete(t));
-    // Select All answers from the rule the list's own Select All and its group headers use, or it checks a row they cannot uncheck.
+    // Select All skips rejected expenses as well as ones being deleted, since their checkboxes are disabled. The list header and group headers use the same filter.
     const selectableTransactions = transactions.filter(isSelectableReportTransaction);
 
     const beginExportWithTemplate = (templateName: string, templateType: string, transactionIDList: string[], exportName: string) => {
@@ -247,7 +247,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
     };
 
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
-    // The rule the report-level actions answer from, so this checkbox cannot read fully checked while they are withheld.
+    // Same check that decides whether Submit, Approve and Pay are offered, so the checkbox reads fully checked exactly when they are.
     const isSelectAllChecked = isEveryReportTransactionSelected(transactions, selectedTransactionIDs);
 
     return (

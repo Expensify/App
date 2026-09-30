@@ -35,15 +35,15 @@ function getTransactionRejectErrorKey(transaction: OnyxEntry<Transaction>): stri
     return Object.keys(getLatestErrorField(transaction, 'reject')).at(0);
 }
 
-/** The rows a click can select, which Select All and a range both have to reach or the three disagree about one row. */
+/** Whether a row can be selected. A click, Select All and a shift+click range all use this, so they agree on which rows are selectable. */
 function isSelectableReportTransaction(transaction: OnyxEntry<Transaction>): boolean {
     return !isTransactionPendingDelete(transaction) && !getTransactionRejectErrorKey(transaction);
 }
 
 /**
- * Whether a selection covers every row of the report it can reach, which is what the report-level actions are offered on.
- * Asked of the rows Select All writes rather than of every row on the report: an expense the backend refused to reject
- * stays on the report with an error to dismiss, and no checkbox can put it in the selection.
+ * Whether every selectable transaction on the report is selected, which is when the report-level actions (Submit, Approve,
+ * Pay) are offered. Only selectable rows count: an expense the backend refused to reject stays on the report until its error
+ * is dismissed, and its checkbox is disabled, so counting it would hide those actions for good.
  */
 function isEveryReportTransactionSelected(transactions: Transaction[], selectedTransactionIDs: string[]): boolean {
     const selectableTransactions = transactions.filter(isSelectableReportTransaction);

@@ -607,7 +607,7 @@ function SearchWriteActionsProvider({
         getSearchGroupCount(isGroupedItemArray(filteredData) ? filteredData.find((group) => group.keyForList === groupKey) : undefined) ??
         getSearchGroupCountByKey(searchResultsData, groupKey);
 
-    // Read at the gesture, like the refs they come from, and handed to the writers that cannot reach Onyx or the rows themselves.
+    // Read when the click happens, like the refs they come from, and passed to the writers, which cannot read Onyx or the rows themselves.
     const readGroupLookups = () => ({
         groupKeyByChildKey: groupKeyByChildKeyRef.current,
         childrenByGroupKey: childrenByGroupKeyRef.current,
@@ -615,7 +615,7 @@ function SearchWriteActionsProvider({
         getGroupCount,
     });
 
-    // Defaults for the gesture, where they are the committed values. An updater passes its own commit's slices instead.
+    // Called from a click, the defaults read the current selection. A state updater passes the values from its own update instead.
     const groupSelectionParams = (
         groupKey: string | undefined,
         groupChildren: TransactionListItemType[],

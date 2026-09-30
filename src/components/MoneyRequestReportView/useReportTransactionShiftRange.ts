@@ -1,6 +1,6 @@
 /**
- * The report list's selection gestures, so a click writes the selection and moves the range session together.
- * Splitting them is how the two drift: a selection the session never saw is one a later shift+click cannot narrow.
+ * Handles the report list's selection clicks. Each click updates the selection and the shift+click range session together,
+ * because a selection change the session never sees is one a later shift+click cannot narrow.
  */
 import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
 
@@ -12,7 +12,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {useEffect, useRef} from 'react';
 
 type ReportTransactionShiftRangeParams = {
-    /** Dropping the session with it, since the list is reused for the next report and a transaction can be on both */
+    /** This is used to drop the range session when the report changes, since the list is reused for the next report rather than remounted */
     reportID: string | undefined;
 
     /** In the order they render, which is the order a range spans */
@@ -22,7 +22,7 @@ type ReportTransactionShiftRangeParams = {
 
     setSelectedTransactions: (transactionIDs: string[]) => void;
 
-    /** Clearing goes through its own action rather than an empty write, so the hook takes it to own both branches */
+    /** Used by a second Select All press to clear the selection, which has its own action rather than writing an empty list */
     clearSelectedTransactions: (shouldClearIDs: true) => void;
 };
 
@@ -33,7 +33,7 @@ type ReportTransactionShiftRange = {
     /** Toggles a whole group, and records it as the block the next shift+click may narrow */
     toggleGroup: (groupTransactionIDs: string[]) => void;
 
-    /** Select All, and the clear that a second press means */
+    /** Selects every selectable row, or clears the selection if anything is already selected */
     toggleAll: (selectableTransactionIDs: string[]) => void;
 };
 
@@ -48,7 +48,7 @@ function useReportTransactionShiftRange({
     const selectedTransactionIDsSet = new Set(selectedTransactionIDs);
     const transactionsByID = new Map(transactions.map((transaction) => [transaction.transactionID, transaction]));
 
-    // The list this session last wrote, which is how a write from anywhere else is told apart from its own.
+    // The last list this hook wrote. If the selection is a different list, something else changed it.
     const lastWrittenSelectionRef = useRef<string[] | null>(null);
     const writeSelection = (transactionIDs: string[]) => {
         lastWrittenSelectionRef.current = transactionIDs;
