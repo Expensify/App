@@ -4007,6 +4007,11 @@ const CONST = {
         TAG: 'TAG',
     },
 
+    BUSINESS_CENTRAL_FIELD_MAPPING: {
+        CUSTOMER: 'CUSTOMER',
+        PROJECT: 'PROJECT',
+    },
+
     /**
      * How far a Business Central vendor is blocked. `_x0020_` is the unblocked value Business Central
      * sends, `PAYMENT` still allows purchase invoices, and `ALL` forbids every transaction.

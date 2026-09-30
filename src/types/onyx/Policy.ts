@@ -2532,6 +2532,34 @@ type BusinessCentralDimension = {
 };
 
 /**
+ * Customer retrieved from Business Central.
+ */
+type BusinessCentralCustomer = {
+    /** Unique identifier of the customer */
+    id: string;
+
+    /** Customer number shown in Business Central */
+    number: string;
+
+    /** Name of the customer */
+    name: string;
+};
+
+/**
+ * Project retrieved from Business Central.
+ */
+type BusinessCentralProject = {
+    /** Unique identifier of the project */
+    id: string;
+
+    /** Project number shown in Business Central */
+    number: string;
+
+    /** Name of the project */
+    name: string;
+};
+
+/**
  * Vendor retrieved from Business Central.
  */
 type BusinessCentralVendor = {
@@ -2594,6 +2622,12 @@ type BusinessCentralConnectionData = {
 
     /** Dimensions of the selected company */
     dimensions?: BusinessCentralDimension[];
+
+    /** Customers of the selected company */
+    customers?: BusinessCentralCustomer[];
+
+    /** Projects of the selected company */
+    projects?: BusinessCentralProject[];
 
     /** Vendors of the selected company */
     vendors?: BusinessCentralVendor[];
@@ -3883,6 +3917,8 @@ export type {
     CampfireSync,
     BusinessCentralCompany,
     BusinessCentralCoding,
+    BusinessCentralCustomer,
     BusinessCentralExport,
     BusinessCentralCodingOfflineFeedbackKeys,
+    BusinessCentralProject,
 };
