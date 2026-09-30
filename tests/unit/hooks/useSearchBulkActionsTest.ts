@@ -600,6 +600,27 @@ describe('useSearchBulkActions - Approve under Select all', () => {
         expect(mockClearSelectedTransactions).toHaveBeenCalled();
     });
 
+    it('leaves out reports the user deselected from the bulk approval', async () => {
+        // Given "Select all" on a reports search, with one report deselected afterwards
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({action: CONST.SEARCH.ACTION_TYPES.APPROVE, reportID: 'report1'})};
+        mockExcludedTransactions = {tx2: makeSelectedTransaction({reportID: 'report2'})};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE)).toBe(true);
+        });
+
+        // When the user selects Approve
+        const approveOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE);
+        await act(async () => {
+            await approveOption?.onSelected?.();
+        });
+
+        // Then the query sent to the backend excludes the deselected report, so it isn't approved
+        expect(queueBulkApproveReports).toHaveBeenCalledWith(expect.stringContaining('report2'));
+    });
+
     it('keeps the Approve option when a loaded expense is held', async () => {
         // Given a held expense on the loaded page, which hides Approve for a normal selection
         mockSelectedTransactions = {tx1: makeSelectedTransaction({action: CONST.SEARCH.ACTION_TYPES.APPROVE, isHeld: true})};
@@ -671,6 +692,27 @@ describe('useSearchBulkActions - Submit under Select all', () => {
         expect(queueBulkSubmitReports).toHaveBeenCalledWith(expect.any(String));
         expect(submitMoneyRequestOnSearch).not.toHaveBeenCalled();
         expect(mockClearSelectedTransactions).toHaveBeenCalled();
+    });
+
+    it('leaves out reports the user deselected from the bulk submit', async () => {
+        // Given "Select all" on a reports search, with one report deselected afterwards
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({action: CONST.SEARCH.ACTION_TYPES.SUBMIT, reportID: 'report1'})};
+        mockExcludedTransactions = {tx2: makeSelectedTransaction({reportID: 'report2'})};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT)).toBe(true);
+        });
+
+        // When the user selects Submit
+        const submitOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT);
+        await act(async () => {
+            await submitOption?.onSelected?.();
+        });
+
+        // Then the query sent to the backend excludes the deselected report, so it isn't submitted
+        expect(queueBulkSubmitReports).toHaveBeenCalledWith(expect.stringContaining('report2'));
     });
 
     it('hides the Submit option when no loaded expense can be submitted', async () => {
