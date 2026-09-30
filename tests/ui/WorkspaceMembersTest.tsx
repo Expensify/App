@@ -738,11 +738,9 @@ describe('WorkspaceMembers', () => {
             unmount();
         });
 
-        it("keeps the column while a removed approver's submitsTo is still resolving", async () => {
-            // Given approvals are on but no member has a resolved `submitsTo` yet (the base fixture's employeeList
-            // entries have none, e.g. the admin's own approver was just removed and the server hasn't responded):
-            // the derived approver map is empty, but the column must stay, since it is gated on approvals being
-            // enabled, not on the map having entries.
+        it('hides the column when approvals are on but no member has an approver', async () => {
+            // Given approvals are on while no member resolves to an approver other than themselves, so the derived
+            // approver map is empty and the column would render blank for every row.
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
             });
@@ -753,7 +751,7 @@ describe('WorkspaceMembers', () => {
             await waitFor(() => {
                 expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
             });
-            expect(screen.getByLabelText(approverHeaderLabel())).toBeOnTheScreen();
+            expect(screen.queryByLabelText(approverHeaderLabel())).not.toBeOnTheScreen();
 
             unmount();
         });
