@@ -11,12 +11,14 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getInsights} from '@libs/actions/Insights';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InsightsDashboardID} from '@src/types/onyx';
 
@@ -149,8 +151,9 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(dashboardID);
+    const {isBetaEnabled} = usePermissions();
 
-    const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters) : undefined;
+    const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters, isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE)) : undefined;
     const jsonQuery = query?.jsonQuery;
     const hash = query?.hash;
 
