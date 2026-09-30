@@ -6,7 +6,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 
-import {clearInternationalBankAccount, clearPersonalBankAccountPreservingEntryContext, fetchCorpayFields} from '@userActions/BankAccounts';
+import {clearPersonalBankAccountPreservingEntryContext, fetchCorpayFields} from '@userActions/BankAccounts';
 import {clearDraftValues} from '@userActions/FormActions';
 
 import CONST, {COUNTRIES_US_BANK_FLOW} from '@src/CONST';
@@ -24,15 +24,13 @@ function CountrySelection({isEditing, onNext, onMove, formValues, fieldsMap}: Cu
 
     const onCountrySelected = useCallback(() => {
         if (COUNTRIES_US_BANK_FLOW.includes(selectedCountry)) {
-            clearInternationalBankAccount().then(() => {
-                clearPersonalBankAccountPreservingEntryContext(personalBankAccount);
-                clearDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
-                if (isUserValidated) {
-                    Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT_ENTRY_POINT);
-                } else {
-                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
-                }
-            });
+            clearPersonalBankAccountPreservingEntryContext(personalBankAccount);
+            clearDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
+            if (isUserValidated) {
+                Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT_ENTRY_POINT);
+            } else {
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+            }
             return;
         }
         if (!isEmptyObject(fieldsMap) && formValues.bankCountry === selectedCountry) {

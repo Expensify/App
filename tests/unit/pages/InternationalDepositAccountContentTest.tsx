@@ -1,18 +1,29 @@
-import {render, screen} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 
 import FormDraftPersistenceContext from '@components/Form/FormDraftPersistenceContext';
 import Text from '@components/Text';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
 import InternationalDepositAccountContent from '@pages/settings/Wallet/InternationalDepositAccount/InternationalDepositAccountContent';
+import CountrySelection from '@pages/settings/Wallet/InternationalDepositAccount/subPages/CountrySelection';
 
-import {cancelPersonalBankAccountEdit, clearPersonalBankAccount, updatePersonalBankAccountCurrentPage} from '@userActions/BankAccounts';
+import {
+    cancelPersonalBankAccountEdit,
+    clearInternationalBankAccount,
+    clearPersonalBankAccount,
+    clearPersonalBankAccountPreservingEntryContext,
+    fetchCorpayFields,
+    updatePersonalBankAccountCurrentPage,
+} from '@userActions/BankAccounts';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import type * as ReactNavigationModule from '@react-navigation/native';
@@ -24,6 +35,7 @@ import createMock from '../../utils/createMock';
 
 jest.mock('@components/FullscreenLoadingIndicator', () => jest.fn(() => null));
 jest.mock('@components/HeaderWithBackButton', () => jest.fn(() => null));
+jest.mock('@pages/settings/Wallet/CountrySelectionList', () => jest.fn(() => null));
 jest.mock(
     '@components/ScreenWrapper',
     () =>
@@ -37,14 +49,19 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 jest.mock('@hooks/useRootNavigationState', () => jest.fn(() => undefined));
+jest.mock('@hooks/useOnyx', () => jest.fn(() => [undefined, {status: 'loaded'}]));
 jest.mock('@hooks/useSubPage', () => jest.fn());
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
+    navigate: jest.fn(),
 }));
 jest.mock('@userActions/BankAccounts', () => ({
     cancelPersonalBankAccountEdit: jest.fn(),
     clearCorpayBankAccountFields: jest.fn(),
+    clearInternationalBankAccount: jest.fn(),
     clearPersonalBankAccount: jest.fn(),
+    clearPersonalBankAccountPreservingEntryContext: jest.fn(),
+    fetchCorpayFields: jest.fn(),
     finishPersonalBankAccountEdit: jest.fn(),
     startPersonalBankAccountEdit: jest.fn(),
     updatePersonalBankAccountCurrentPage: jest.fn(),
@@ -73,6 +90,8 @@ jest.mock('@react-navigation/native', () => ({
 
 describe('InternationalDepositAccountContent Wallet resume page', () => {
     const mockedUseSubPage = jest.mocked(useSubPage);
+    const mockedUseOnyx = jest.mocked(useOnyx);
+    const mockedCountrySelectionList = jest.mocked(CountrySelectionList);
     const mockedUpdatePersonalBankAccountCurrentPage = jest.mocked(updatePersonalBankAccountCurrentPage);
     const props = createMock<ComponentProps<typeof InternationalDepositAccountContent>>({
         privatePersonalDetails: undefined,
@@ -100,6 +119,15 @@ describe('InternationalDepositAccountContent Wallet resume page', () => {
         mockCurrentPageName = CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION;
         mockPageIndex = CONST.CORPAY_FIELDS.INDEXES.MAPPING.BANK_INFORMATION;
         mockBackButtonHandler = undefined;
+        mockedUseOnyx.mockImplementation((key) => {
+            if (key === ONYXKEYS.ACCOUNT) {
+                return [true, {status: 'loaded'}];
+            }
+            if (key === ONYXKEYS.PERSONAL_BANK_ACCOUNT) {
+                return [{source: CONST.BANK_ACCOUNT.SOURCE.WALLET}, {status: 'loaded'}];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
         jest.mocked(useAndroidBackButtonHandler).mockImplementation((callback) => {
             mockBackButtonHandler = callback;
         });
@@ -285,5 +313,36 @@ describe('InternationalDepositAccountContent Wallet resume page', () => {
         // Then its personal setup state is cleared and the purpose chooser is shown
         expect(clearPersonalBankAccount).toHaveBeenCalledTimes(1);
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE);
+    });
+
+    it('preserves international values when briefly switching to the US flow', () => {
+        // Given a completed non-US setup whose country is being edited
+        const onNext = jest.fn();
+        const onMove = jest.fn();
+        render(
+            <CountrySelection
+                {...createMock<ComponentProps<typeof CountrySelection>>({
+                    isEditing: true,
+                    onNext,
+                    onMove,
+                    formValues: {bankCountry: 'DE', bankCurrency: 'EUR', accountNumber: '12345678'},
+                    fieldsMap: {[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_ACCOUNT_DETAILS]: {accountNumber: {}}},
+                })}
+            />,
+        );
+
+        // When the user selects the US, returns with Back, and selects the original country again
+        act(() => mockedCountrySelectionList.mock.lastCall?.[0]?.onCountrySelected(CONST.COUNTRY.US));
+        act(() => mockedCountrySelectionList.mock.lastCall?.[0]?.onConfirm());
+        act(() => mockedCountrySelectionList.mock.lastCall?.[0]?.onCountrySelected('DE'));
+        act(() => mockedCountrySelectionList.mock.lastCall?.[0]?.onConfirm());
+
+        // Then the non-US data is retained and the flow returns to its previously completed step
+        expect(clearInternationalBankAccount).not.toHaveBeenCalled();
+        expect(clearPersonalBankAccountPreservingEntryContext).toHaveBeenCalledTimes(1);
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT_ENTRY_POINT);
+        expect(fetchCorpayFields).not.toHaveBeenCalled();
+        expect(onMove).not.toHaveBeenCalled();
+        expect(onNext).toHaveBeenCalledTimes(1);
     });
 });
