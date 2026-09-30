@@ -75,7 +75,7 @@ function DistanceField({hasRoute, distance, unit, customUnit}: DistanceFieldProp
 
     return (
         <MenuItem.Root
-            onPress={isInteractive ? callFunctionIfActionIsAllowed(openDistancePage) : undefined}
+            onPress={isDistanceInteractive ? callFunctionIfActionIsAllowed(openDistancePage) : undefined}
             isDisabled={didConfirm}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DISTANCE_FIELD}
         >
@@ -83,7 +83,7 @@ function DistanceField({hasRoute, distance, unit, customUnit}: DistanceFieldProp
                 name={distanceToDisplayDescription}
                 value={displayTitle}
             >
-                {isInteractive && <MenuItem.Chevron />}
+                {isDistanceInteractive && <MenuItem.Chevron />}
             </MenuItemField.Row>
             {!!distanceToDisplayHintText && <MenuItem.HelpText message={distanceToDisplayHintText} />}
         </MenuItem.Root>

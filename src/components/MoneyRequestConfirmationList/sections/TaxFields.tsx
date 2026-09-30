@@ -195,17 +195,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                 <MenuItem.Root
                     key={`${taxRates?.name}_rate`}
                     testID={`${taxRates?.name}_rate`}
-                    onPress={
-                        canModifyTaxFields
-                            ? callFunctionIfActionIsAllowed(() => {
-                                  if (!transactionID) {
-                                      return;
-                                  }
-
-                                  Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID)));
-                              })
-                            : undefined
-                    }
+                    onPress={canModifyTaxFields ? callFunctionIfActionIsAllowed(openTaxRatePage) : undefined}
                     isDisabled={didConfirm}
                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
                 >
