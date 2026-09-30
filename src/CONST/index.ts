@@ -604,6 +604,13 @@ const CONST = {
             RECEIPTS: 'receipts',
         },
     },
+    BULK_ACTION: {
+        STATE: {
+            RUNNING: 'running',
+            DONE: 'done',
+            FAILED: 'failed',
+        },
+    },
 
     SECURE_DOWNLOAD_TYPE: {
         CSV_EXPORT: 'csvexport',
