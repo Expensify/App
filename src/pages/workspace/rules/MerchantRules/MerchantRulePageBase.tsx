@@ -73,6 +73,8 @@ type MerchantRulePageBaseProps = {
      * of through `ruleID`.
      */
     editCategoryTaxRuleFor?: string;
+    /** When true, the category field is non-interactive (category-scoped edit). */
+    isCategoryLocked?: boolean;
     testID: string;
 };
 
@@ -82,6 +84,7 @@ type SectionItemType = {
     required?: boolean;
     title?: string;
     onPress: () => void;
+    isLocked?: boolean;
     shouldRenderAsHTML?: boolean;
     icon?: IconAsset;
 };
@@ -142,7 +145,7 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm)
     return translate('workspace.rules.merchantRules.confirmErrorConditionAndDefault');
 };
 
-function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCategoryTaxRuleFor, testID}: MerchantRulePageBaseProps) {
+function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCategoryTaxRuleFor, isCategoryLocked = false, testID}: MerchantRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
@@ -511,6 +514,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
                           required: true,
                           title: categoriesToMatchDisplayName,
                           onPress: () => Navigation.navigate(ROUTES.RULES_CATEGORY_TO_MATCH.getRoute(policyID, ruleID, editCategoryTaxRuleFor)),
+                          isLocked: isCategoryLocked,
                           icon: icons.Folder,
                       }
                     : undefined,
@@ -684,29 +688,32 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
         />
     ) : null;
 
-    const renderSectionItem = (item: SectionItemType) => (
-        <MenuItemWithTopDescription
-            key={item.key}
-            description={item.description}
-            errorText={canWriteRules && shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : ''}
-            onPress={canWriteRules ? item.onPress : undefined}
-            rightLabel={canWriteRules && item.required ? translate('common.required') : undefined}
-            shouldShowRightIcon={canWriteRules}
-            interactive={canWriteRules}
-            title={item.title}
-            numberOfLinesTitle={2}
-            titleStyle={styles.flex1}
-            shouldRenderAsHTML={item.shouldRenderAsHTML}
-            shouldApplyIconPaddingToHTMLTitle={!!item.icon && !!item.shouldRenderAsHTML}
-            icon={item.icon}
-            {...(item.icon && {
-                iconWidth: variables.iconSizeNormal,
-                iconHeight: variables.iconSizeNormal,
-                shouldIconUseAutoWidthStyle: true,
-            })}
-            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
-        />
-    );
+    const renderSectionItem = (item: SectionItemType) => {
+        const canEditItem = canWriteRules && !item.isLocked;
+        return (
+            <MenuItemWithTopDescription
+                key={item.key}
+                description={item.description}
+                errorText={canEditItem && shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : ''}
+                onPress={canEditItem ? item.onPress : undefined}
+                rightLabel={canEditItem && item.required ? translate('common.required') : undefined}
+                shouldShowRightIcon={canEditItem}
+                interactive={canEditItem}
+                title={item.title}
+                numberOfLinesTitle={2}
+                titleStyle={styles.flex1}
+                shouldRenderAsHTML={item.shouldRenderAsHTML}
+                shouldApplyIconPaddingToHTMLTitle={!!item.icon && !!item.shouldRenderAsHTML}
+                icon={item.icon}
+                {...(item.icon && {
+                    iconWidth: variables.iconSizeNormal,
+                    iconHeight: variables.iconSizeNormal,
+                    shouldIconUseAutoWidthStyle: true,
+                })}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+            />
+        );
+    };
 
     const renderSections = () =>
         sections.map((section, sectionIndex) => (

@@ -487,6 +487,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         categoryName: string;
     };
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_TAX_RULE_EDIT]: {
+        policyID: string;
+        categoryName: string;
+    };
     [SCREENS.WORKSPACE.UPGRADE]: {
         policyID?: string;
         featureName?: string;
@@ -1838,8 +1842,8 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_TAX]: {
         policyID: string;
         ruleID?: undefined;
-        /** The callout flow only ever creates merchant rules, never a category tax default */
-        categoryName?: undefined;
+        /** Set when opened from a category tax default in the category details RHP, absent from the callout flow */
+        categoryName?: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_VENDOR]: {
         policyID: string;

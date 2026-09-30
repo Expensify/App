@@ -921,6 +921,7 @@ const SCREENS = {
         DYNAMIC_CATEGORY_FLAG_FOR_REVIEW_RULE_AMOUNT: 'Dynamic_Category_Flag_For_Review_Rule_Amount',
         DYNAMIC_CATEGORY_REQUIRE_FIELDS_RULE_NEW: 'Dynamic_Category_Require_Fields_Rule_New',
         DYNAMIC_CATEGORY_REQUIRE_FIELDS_RULE_EDIT: 'Dynamic_Category_Require_Fields_Rule_Edit',
+        DYNAMIC_CATEGORY_TAX_RULE_EDIT: 'Dynamic_Category_Tax_Rule_Edit',
         CATEGORIES_SETTINGS: 'Categories_Settings',
         DYNAMIC_CATEGORIES_SETTINGS: 'Dynamic_Categories_Settings',
         DYNAMIC_CATEGORIES_IMPORT: 'Dynamic_Categories_Import',
