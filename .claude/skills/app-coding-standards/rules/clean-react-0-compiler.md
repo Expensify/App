@@ -7,7 +7,7 @@ title: React Compiler compliance
 
 ### Reasoning
 
-React Compiler is enabled in this codebase (`oxc-transform-react` compiles app source in the web, native and Jest pipelines). It automatically memoizes components and hooks at the AST level — analyzing data flow, tracking dependencies, and inserting fine-grained caching that is more precise than any hand-written `useMemo`, `useCallback`, or `React.memo`.
+React Compiler is enabled in this codebase (`oxc-transform-react` compiles app source in the web, native and Jest pipelines; Jest coverage runs use `babel-plugin-react-compiler` with the same options). It automatically memoizes components and hooks at the AST level — analyzing data flow, tracking dependencies, and inserting fine-grained caching that is more precise than any hand-written `useMemo`, `useCallback`, or `React.memo`.
 
 Manual memoization is therefore:
 

@@ -56,7 +56,7 @@ Use the `/react-native-best-practices` skill when working on performance-sensiti
 
 ### Memoization
 
-React Compiler auto-memoizes code in components and hooks (excluding `tests/`). One compiler, `oxc-transform-react`, runs it everywhere: on web (see `config/rsbuild/`), on native (see `config/repack/`) and under Jest (see `config/babel/oxcJestTransformer.js`), all with the options in `config/babel/oxcReactCompilerConfig.js`. The compliance check and the ESLint processor use the same compiler via `config/reactCompiler/checkWithOxc.mjs`, and the ESLint processor only relaxes manual-memoization rules when it memoizes the file.
+React Compiler auto-memoizes code in components and hooks (excluding `tests/`). `oxc-transform-react` runs it on web (see `config/rsbuild/`), on native (see `config/repack/`) and under Jest (see `config/babel/oxcJestTransformer.js`), all with the options in `config/babel/oxcReactCompilerConfig.js`. The one exception is Jest with `--coverage` (what CI runs): it goes through `babel-jest`, so `babel.config.js` still applies `babel-plugin-react-compiler` there, with the same options. The compliance check and the ESLint processor use the same compiler via `config/reactCompiler/checkWithOxc.mjs`, and the ESLint processor only relaxes manual-memoization rules when it memoizes the file.
 
 Do not use `useMemo`, `useCallback`, or `React.memo` in components or hooks that compile with React Compiler.
 

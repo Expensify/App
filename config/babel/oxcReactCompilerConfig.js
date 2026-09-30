@@ -1,6 +1,7 @@
 /**
  * The React Compiler options OXC compiles with, in one place: Re.Pack native, Rsbuild web, the Jest
- * transform and the react-compiler checker. Each used to spell out its own. The native build ended up
+ * transform and the react-compiler checker. babel.config.js passes the same object to the Babel compiler
+ * for Jest coverage runs. Each used to spell out its own. The native build ended up
  * without two of them, so components carrying `react-hooks` suppressions shipped with no memoization
  * while the web build and the checker memoized the same files.
  */

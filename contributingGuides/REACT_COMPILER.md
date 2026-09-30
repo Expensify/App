@@ -4,7 +4,7 @@
 
 [React Compiler](https://react.dev/learn/react-compiler) is a tool designed to enhance the performance of React applications by automatically memoizing components that lack optimizations.
 
-React Compiler runs in every build lane via `oxc-transform-react` (the Rust React Compiler): the web build (Rsbuild), the native build (Re.Pack) and Jest all compile app source with it. They share one set of options, `config/babel/oxcReactCompilerConfig.js`, and the CI check and the ESLint processor use the same compiler through `config/reactCompiler/checkWithOxc.mjs`.
+React Compiler runs in every build lane via `oxc-transform-react` (the Rust React Compiler): the web build (Rsbuild), the native build (Re.Pack) and Jest all compile app source with it. They share one set of options, `config/babel/oxcReactCompilerConfig.js`, and the CI check and the ESLint processor use the same compiler through `config/reactCompiler/checkWithOxc.mjs`. The one exception is Jest with `--coverage`, which CI uses: it compiles through `babel-jest`, so `babel.config.js` applies `babel-plugin-react-compiler` with the same options.
 
 ## React Compiler CI check
 

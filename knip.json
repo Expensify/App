@@ -79,6 +79,7 @@
         "@babel/plugin-proposal-private-property-in-object",
         "@babel/plugin-transform-export-namespace-from",
         "babel-plugin-module-resolver",
+        "babel-plugin-react-compiler",
         "babel-plugin-transform-remove-console",
         "html-entities",
         "@fullstory/babel-plugin-react-native",
