@@ -20,7 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
-import {PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} from '@pages/settings/Agents/const';
+import {PROMPT_MAX_AUTO_GROW_HEIGHT, PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} from '@pages/settings/Agents/const';
 import scrollToMultilineInput from '@pages/settings/Agents/scrollToMultilineInput';
 
 import CONST from '@src/CONST';
@@ -40,7 +40,10 @@ function EditPromptPage({route}: EditPromptPageProps) {
     const styles = useThemeStyles();
     const {isKeyboardActive} = useKeyboardState();
     const isInLandscapeMode = useIsInLandscapeMode();
-    const shouldUseScrollableLayout = Platform.OS !== 'web' || isInLandscapeMode;
+    // On native portrait the prompt grows with its content up to a max height instead of filling the screen, so the open
+    // keyboard can't squeeze it or hide the line being edited, and the form scrolls to fit it above the keyboard.
+    const shouldAutoGrowPromptInput = Platform.OS !== 'web' && !isInLandscapeMode;
+    const shouldUseScrollableLayout = shouldAutoGrowPromptInput || isInLandscapeMode;
     const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
     const accountID = route.params.accountID;
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
@@ -85,7 +88,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
             testID={EditPromptPage.displayName}
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
-            shouldEnableMaxHeight={shouldUseScrollableLayout && !isInLandscapeMode}
+            shouldEnableMaxHeight={shouldAutoGrowPromptInput}
         >
             <CollapsibleHeaderOnKeyboard>
                 <HeaderWithBackButton
@@ -113,7 +116,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
                         style={
                             shouldShrinkPromptInput
                                 ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE)
-                                : [isInLandscapeMode ? styles.h42 : styles.flex1, shouldUseScrollableLayout && styles.minHeight42]
+                                : [isInLandscapeMode && styles.h42, !isInLandscapeMode && !shouldAutoGrowPromptInput && styles.flex1]
                         }
                         onLayout={(event) => {
                             promptTopOffsetRef.current = event.nativeEvent.layout.y;
@@ -129,9 +132,11 @@ function EditPromptPage({route}: EditPromptPageProps) {
                             excludedMarkdownStyles={['mentionReport']}
                             defaultValue={Str.htmlDecode(agentPrompt?.prompt ?? '')}
                             multiline
-                            containerStyles={[styles.h100]}
-                            touchableInputWrapperStyle={[styles.flex1]}
-                            inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
+                            autoGrowHeight={shouldAutoGrowPromptInput}
+                            maxAutoGrowHeight={shouldAutoGrowPromptInput ? PROMPT_MAX_AUTO_GROW_HEIGHT : undefined}
+                            containerStyles={shouldAutoGrowPromptInput ? undefined : [styles.h100]}
+                            touchableInputWrapperStyle={shouldAutoGrowPromptInput ? undefined : [styles.flex1]}
+                            inputStyle={[!shouldAutoGrowPromptInput && styles.flex1, styles.textAlignVerticalTop]}
                             onFocus={scrollToInput}
                         />
                     </View>
