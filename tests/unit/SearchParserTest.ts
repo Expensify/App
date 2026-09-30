@@ -849,6 +849,29 @@ const tests = [
         },
     },
     {
+        query: 'type:expense group-by:violation-approver',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            groupBy: CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER,
+            filters: null,
+        },
+    },
+    {
+        query: 'type:expense group-by:violation-approver columns:group-violation-approver,group-approval-count,group-approved-total',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            groupBy: CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER,
+            columns: [CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION_APPROVER, CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVAL_COUNT, CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVED_TOTAL],
+            filters: null,
+        },
+    },
+    {
         query: 'type:chat is:read',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.CHAT,

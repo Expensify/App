@@ -57,7 +57,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         | null
     >(null);
 
-    const groupBySections = getGroupBySections(translate);
+    const groupBySections = getGroupBySections(translate, queryJSON);
     const groupBy = groupBySections.flatMap((section) => section.options).find((option) => option.value === queryJSON.groupBy) ?? null;
     const viewOptions = getViewOptions(translate);
     const view = viewOptions.find((option) => option.value === queryJSON.view) ?? viewOptions.at(0);

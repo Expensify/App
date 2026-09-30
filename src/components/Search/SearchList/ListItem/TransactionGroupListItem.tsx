@@ -21,7 +21,7 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {isTransactionDayGroupListItemType} from '@libs/SearchUIUtils';
+import {isTransactionDayGroupListItemType, isTransactionViolationApproverGroupListItemType} from '@libs/SearchUIUtils';
 import {getVisibleTransactionViolations, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -70,6 +70,7 @@ import TagListItemHeader from './TagListItemHeader';
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
 import useGroupChildren from './useGroupChildren';
 import useLiveRowCapabilities from './useLiveRowCapabilities';
+import ViolationApproverListItemHeader from './ViolationApproverListItemHeader';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
@@ -461,6 +462,25 @@ function TransactionGroupListItemImpl({
                     isExpanded={isExpanded}
                 />
             ),
+            [CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER]: (() => {
+                if (!isTransactionViolationApproverGroupListItemType(groupItem)) {
+                    return null;
+                }
+                return (
+                    <ViolationApproverListItemHeader
+                        violationApprover={groupItem}
+                        onCheckboxPress={handleSelectionButtonPress}
+                        isDisabled={isDisabledOrEmpty}
+                        columns={columns}
+                        canSelectMultiple={canSelectMultiple}
+                        isSelectAllChecked={isSelectAllChecked}
+                        isIndeterminate={isIndeterminate}
+                        onDownArrowClick={onExpandIconPress}
+                        isExpanded={isExpanded}
+                        isLargeScreenWidth={isLargeScreenWidth}
+                    />
+                );
+            })(),
         };
 
         if (searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {

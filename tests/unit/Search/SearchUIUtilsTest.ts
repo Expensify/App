@@ -14892,3 +14892,39 @@ describe('hasFilterContentValuesChanged', () => {
         }
     });
 });
+
+describe('getGroupBySections', () => {
+    function getGroupByValues(query: string) {
+        const queryJSON = buildSearchQueryJSON(query);
+        return SearchUIUtils.getGroupBySections(translateLocal, queryJSON)
+            .flatMap((section) => section.options)
+            .map((option) => option.value);
+    }
+
+    it('offers violation approver only when the query carries a non-negated has:approved-violation', () => {
+        // Given a spend query that includes has:approved-violation
+        // When the Display menu builds its group-by sections
+        const options = getGroupByValues(`type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
+
+        // Then violation approver is offered because Auth accepts that grouping
+        expect(options).toContain(CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER);
+    });
+
+    it('does not offer violation approver when the query has no approved-violation filter', () => {
+        // Given a spend query without has:approved-violation
+        // When the Display menu builds its group-by sections
+        const options = getGroupByValues('type:expense');
+
+        // Then violation approver is omitted so the UI cannot send a grouping Auth would reject
+        expect(options).not.toContain(CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER);
+    });
+
+    it('does not offer violation approver when has:approved-violation is negated', () => {
+        // Given a spend query that excludes approved violations
+        // When the Display menu builds its group-by sections
+        const options = getGroupByValues(`type:expense -has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
+
+        // Then violation approver is omitted because Auth only accepts the positive has filter
+        expect(options).not.toContain(CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER);
+    });
+});

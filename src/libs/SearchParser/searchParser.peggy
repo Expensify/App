@@ -40,6 +40,7 @@
     week: "groupweek",
     year: "groupyear",
     quarter: "groupquarter",
+    "violation-approver": "groupExpenses",
   };
 
   const GROUP_BY_DEFAULT_SORT_ORDER = {
@@ -54,6 +55,7 @@
     week: "desc",
     year: "desc",
     quarter: "desc",
+    "violation-approver": "desc",
   };
 
   const DEFAULT_SORT_BY_VALUES = new Set([...Object.values(GROUP_BY_DEFAULT_SORT), "date"]);

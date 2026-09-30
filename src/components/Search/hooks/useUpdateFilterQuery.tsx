@@ -9,6 +9,7 @@ import {markQueryAsRefinement} from '@libs/SearchQueryRefinement';
 import {buildFilterQueryWithSortDefaults, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {filterValidHasValues} from '@libs/SearchUIUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -37,6 +38,11 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
             updatedFilterFormValues.columns = [];
         }
 
+        if (updatedFilterFormValues.groupBy === CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER && !updatedFilterFormValues.has?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION)) {
+            updatedFilterFormValues.groupBy = undefined;
+            updatedFilterFormValues.columns = [];
+        }
+
         return updatedFilterFormValues;
     }
 
@@ -44,7 +50,10 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
         const queryString =
             buildFilterQueryWithSortDefaults(
                 values,
-                {view: searchAdvancedFiltersForm.view, groupBy: searchAdvancedFiltersForm.groupBy},
+                {
+                    view: searchAdvancedFiltersForm.view,
+                    groupBy: searchAdvancedFiltersForm.groupBy,
+                },
                 {sortBy: queryJSON?.sortBy, sortOrder: queryJSON?.sortOrder},
                 policies,
             ) ?? '';
@@ -57,14 +66,24 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
 
         const shouldResetSearchKey = !!values.type && values.type !== searchAdvancedFiltersForm.type;
 
-        Navigation.setParams({q: queryString, rawQuery: undefined, ...(shouldResetSearchKey && {searchKey: getSearchKeyForQuery(buildSearchQueryJSON(queryString))})});
+        Navigation.setParams({
+            q: queryString,
+            rawQuery: undefined,
+            ...(shouldResetSearchKey && {
+                searchKey: getSearchKeyForQuery(buildSearchQueryJSON(queryString)),
+            }),
+        });
     }
 
     function updateFilterQueryParams(values: Partial<SearchAdvancedFiltersForm>) {
         setFilterQueryParams(getUpdatedFilterFormValues(searchAdvancedFiltersForm, values));
     }
 
-    return {getUpdatedFilterFormValues, setFilterQueryParams, updateFilterQueryParams};
+    return {
+        getUpdatedFilterFormValues,
+        setFilterQueryParams,
+        updateFilterQueryParams,
+    };
 }
 
 export default useUpdateFilterQuery;

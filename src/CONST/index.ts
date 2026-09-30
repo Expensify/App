@@ -7461,6 +7461,7 @@ const CONST = {
             WEEK: 'week',
             YEAR: 'year',
             QUARTER: 'quarter',
+            VIOLATION_APPROVER: 'violation-approver',
         },
         /**
          * Single source of truth for which transaction-level columns are available in each column-picker surface:
@@ -7783,6 +7784,13 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                VIOLATION_APPROVER: {
+                    AVATAR: this.TABLE_COLUMNS.AVATAR,
+                    VIOLATION_APPROVER: this.TABLE_COLUMNS.GROUP_VIOLATION_APPROVER,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    APPROVAL_COUNT: this.TABLE_COLUMNS.GROUP_APPROVAL_COUNT,
+                    APPROVED_TOTAL: this.TABLE_COLUMNS.GROUP_APPROVED_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -7836,6 +7844,13 @@ const CONST = {
                 WEEK: [this.TABLE_COLUMNS.GROUP_WEEK, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 YEAR: [this.TABLE_COLUMNS.GROUP_YEAR, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 QUARTER: [this.TABLE_COLUMNS.GROUP_QUARTER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                VIOLATION_APPROVER: [
+                    this.TABLE_COLUMNS.AVATAR,
+                    this.TABLE_COLUMNS.GROUP_VIOLATION_APPROVER,
+                    this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    this.TABLE_COLUMNS.GROUP_APPROVAL_COUNT,
+                    this.TABLE_COLUMNS.GROUP_APPROVED_TOTAL,
+                ],
             };
         },
         BOOLEAN: {
@@ -7955,6 +7970,9 @@ const CONST = {
             GROUP_WITHDRAWAL_STATUS: 'groupWithdrawalStatus',
             GROUP_AMOUNT_DEBITED: 'groupAmountDebited',
             GROUP_AMOUNT_REIMBURSED: 'groupAmountReimbursed',
+            GROUP_VIOLATION_APPROVER: 'groupViolationApprover',
+            GROUP_APPROVAL_COUNT: 'groupApprovalCount',
+            GROUP_APPROVED_TOTAL: 'groupApprovedTotal',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -8200,6 +8218,9 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'group-withdrawal-status',
                 [this.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: 'group-amount-debited',
                 [this.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED]: 'group-amount-reimbursed',
+                [this.TABLE_COLUMNS.GROUP_VIOLATION_APPROVER]: 'group-violation-approver',
+                [this.TABLE_COLUMNS.GROUP_APPROVAL_COUNT]: 'group-approval-count',
+                [this.TABLE_COLUMNS.GROUP_APPROVED_TOTAL]: 'group-approved-total',
                 [this.TABLE_COLUMNS.AMOUNT_DEBITED]: 'amount-debited',
                 [this.TABLE_COLUMNS.AMOUNT_REIMBURSED]: 'amount-reimbursed',
             };
