@@ -256,7 +256,6 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                     policy?.autoReimbursement?.limit,
                     getReviewWorkspaceSettingsTaskCompletion(),
                 );
-
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
                 switch (route.params.featureName) {
