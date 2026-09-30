@@ -2618,7 +2618,7 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredForAdminsHeader: 'Απαιτείται έλεγχος ταυτότητας δύο παραγόντων',
         twoFactorAuthIsRequiredForAdminsTitle: 'Παρακαλούμε ενεργοποιήστε τον έλεγχο ταυτότητας δύο παραγόντων',
         twoFactorAuthIsRequiredXero: 'Η σύνδεσή σας με το λογιστικό σύστημα Xero απαιτεί έλεγχο ταυτότητας δύο παραγόντων.',
-        twoFactorAuthIsRequiredCompany: 'Η εταιρεία σας απαιτεί έλεγχο ταυτότητας δύο παραγόντων.',
+        twoFactorAuthIsRequiredCompany: 'Η εταιρεία σας απαιτεί έλεγχο ταυτότητας δύο παραγόντων (2FA).',
         twoFactorAuthCannotDisable: 'Δεν είναι δυνατή η απενεργοποίηση του 2FA',
         twoFactorAuthRequired: 'Η επαλήθευση δύο παραγόντων (2FA) είναι υποχρεωτική για τη σύνδεσή σας με το Xero και δεν μπορεί να απενεργοποιηθεί.',
         replaceDevice: 'Αντικατάσταση συσκευής',
@@ -2628,6 +2628,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescriptionWithRecovery: 'Εισαγάγετε έναν έγκυρο κωδικό ανάκτησης για να επιβεβαιώσετε ότι έχετε πρόσβαση στον λογαριασμό σας.',
         verifyNewDeviceTitle: 'Ρύθμιση νέας συσκευής',
         verifyNewDeviceDescription: 'Σαρώστε τον κωδικό QR με τη νέα σας συσκευή και κατόπιν εισαγάγετε τον κωδικό για να ολοκληρώσετε τη ρύθμιση.',
+        enable2FA: 'Ενεργοποίηση',
     },
     recoveryCodeForm: {
         error: {
@@ -5594,11 +5595,6 @@ ${amount} για ${merchant} - ${date}`,
             journalEntriesProvTaxPostingAccount: 'Λογαριασμός καταχώρισης επαρχιακού φόρου για λογιστικές εγγραφές',
             foreignCurrencyAmount: 'Εξαγωγή ποσού σε ξένο νόμισμα',
             exportToNextOpenPeriod: 'Εξαγωγή στην επόμενη ανοικτή περίοδο',
-            exportToNextOpenPeriodLockedSubtitle:
-                'Για να απενεργοποιήσετε την εξαγωγή στην επόμενη ανοικτή περίοδο, απενεργοποιήστε πρώτα τη διαίρεση των μη αποζημιώσιμων εξαγωγών ανά περίοδο.',
-            splitExportsByPostingPeriod: 'Διαίρεση εξαγωγών ανά περίοδο καταχώρισης',
-            splitExportsByPostingPeriodSubtitle:
-                'Ενεργοποιήστε την εξαγωγή στην επόμενη ανοικτή περίοδο για να ενεργοποιήσετε τη διαίρεση των μη αποζημιώσιμων εξαγωγών ανά περίοδο στο NetSuite',
             nonReimbursableJournalPostingAccount: 'Λογαριασμός καταχώρισης μη αποζημιώσιμων εγγραφών',
             reimbursableJournalPostingAccount: 'Λογαριασμός καταχώρισης ημερολογίου επιστρέψιμων εξόδων',
             journalPostingPreference: {
@@ -6550,6 +6546,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             deleteFailureMessage: 'Παρουσιάστηκε σφάλμα κατά τη διαγραφή της κατηγορίας, δοκιμάστε ξανά',
             categoryName: 'Όνομα κατηγορίας',
             requiresCategory: 'Τα μέλη πρέπει να κατηγοριοποιούν όλες τις δαπάνες',
+            autoCategorizeNewExpenses: 'Αυτόματη κατηγοριοποίηση νέων δαπανών',
             showCategoryGLCodes: 'Εμφάνιση κωδικών GL κατά την κατηγοριοποίηση δαπανών',
             needCategoryForExportToIntegration: (connectionName: string) => `Όλες οι δαπάνες πρέπει να κατηγοριοποιηθούν για να γίνει η εξαγωγή στο ${connectionName}.`,
             subtitle: 'Αποκτήστε μια καλύτερη εικόνα για το πού ξοδεύονται τα χρήματα. Χρησιμοποιήστε τις προεπιλεγμένες κατηγορίες μας ή προσθέστε τις δικές σας.',
@@ -7664,6 +7661,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Για να το ξεκλειδώσετε, ενεργοποιήστε τον αυτόματο συγχρονισμό.',
             campfire: 'Campfire',
             businessCentral: 'Dynamics 365 Business Central',
+            qboConnectionExpiring: ({date}: {date: string}) => `Η σύνδεσή σας με το QuickBooks Online λήγει στις ${date}.`,
+            qboConnectionExpired: ({date}: {date: string}) => `Η σύνδεσή σας με το QuickBooks Online έληξε στις ${date}.`,
         },
         hr: {
             title: 'HR',
@@ -9603,6 +9602,7 @@ ${reportName}`,
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `παρακολούθηση συμμετεχόντων ${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'}`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} η απαίτηση για αγορές με εταιρική κάρτα`,
+        updatedAutoCategorizeNewExpenses: ({enabled}: {enabled: boolean}) => `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} η αυτόματη κατηγοριοποίηση νέων δαπανών`,
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} η απαίτηση κατηγοριοποίησης δαπανών`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} στην απαίτηση κατηγοριοποίησης δαπανών`,
         updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `ενημέρωσε τη ρύθμιση προμήθειας μετατροπής νομίσματος σε «${preferenceLabel}»`,
@@ -11361,6 +11361,8 @@ ${reportName}`,
         notAllowedMessage: (accountOwnerEmail: string) =>
             `Ως <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">συνοδοιπόρος</a> για τον/την ${accountOwnerEmail}, δεν έχετε δικαίωμα να εκτελέσετε αυτήν την ενέργεια. Συγγνώμη!`,
         copilotAccess: 'Πρόσβαση στο Copilot',
+        leaveAccount: 'Αποχώρηση από τον λογαριασμό',
+        leaveAccountConfirmationText: 'Θα επιστρέψετε στον δικό σας λογαριασμό. Δεν θα αποσυνδεθείτε πλήρως.',
     },
     debug: {
         debug: 'Εντοπισμός σφαλμάτων',
