@@ -1,5 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 
+import useLinkedActionTransactionThread from '@hooks/useLinkedActionTransactionThread';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -13,17 +14,9 @@ import type {OnyxKey, UseOnyxResult} from 'react-native-onyx';
 
 import createRandomReportAction from '../../utils/collections/reportActions';
 
-// The behavior change under test lives in the `id` useMemo of usePaginatedReportActions:
-// when a `reportActionID` is provided but does NOT exist in this report's own actions
-// (e.g. a one-transaction expense link where the linked message lives in the merged-in
-// transaction thread), the hook must fall back to the newest window instead of anchoring
-// pagination to a missing action. Previously, getContinuousChain returned an empty array in
-// that case (see tests/unit/PaginationUtilsTest.ts "given an input ID of 8 or 13 ... empty
-// array"), which is what hid the parent-level "Submitted" system message.
-//
-// We deliberately use the REAL getContinuousChain (PaginationUtils is not mocked) so these
-// tests exercise the true integration of the change with pagination, and only mock the Onyx
-// subscriptions so we can control the report, its actions, and its pages.
+// The anchor decision lives in the `id` useMemo. An action that belongs to the merged transaction thread must fall back to
+// the newest window, while an action simply not loaded yet must keep its anchor. getContinuousChain is left real so these
+// exercise the true integration with pagination; only the Onyx subscriptions are mocked.
 
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
@@ -35,9 +28,18 @@ jest.mock('@hooks/useReportIsArchived', () => ({
     default: jest.fn(() => false),
 }));
 
+// Mocked as a unit: resolving the merged thread is covered by the hook's own concerns, and mocking the whole
+// ReportActionsUtils module here would pull in its circular imports.
+jest.mock('@hooks/useLinkedActionTransactionThread', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+
 const mockUseOnyx = jest.mocked(useOnyx);
+const mockUseLinkedActionTransactionThread = jest.mocked(useLinkedActionTransactionThread);
 
 const REPORT_ID = 'expense-report-1';
+const THREAD_REPORT_ID = 'transaction-thread-1';
 const LINKED_ACTION_ID = 'action-in-this-report';
 const SIBLING_ACTION_ID = 'action-in-transaction-thread';
 
@@ -68,11 +70,24 @@ function makeActions(reportActionIds: string[]): ReportAction[] {
 }
 
 /**
- * Wire the three Onyx subscriptions usePaginatedReportActions makes: the report, its
- * (already display-sorted) actions, and its pages. The selector on the actions key is
- * bypassed by the mock, so we pass pre-sorted actions directly.
+ * Wire the Onyx subscriptions usePaginatedReportActions makes. Selectors are bypassed by the mock, so each key returns the
+ * already-derived value: pre-sorted actions for the report, and the membership boolean for the transaction thread's actions.
  */
-function wireOnyx({report, actions, pages}: {report: Report | undefined; actions: ReportAction[] | undefined; pages: Pages | undefined}): void {
+function wireOnyx({
+    report,
+    actions,
+    pages,
+    isLinkedActionInMergedThread = false,
+}: {
+    report: Report | undefined;
+    actions: ReportAction[] | undefined;
+    pages: Pages | undefined;
+    isLinkedActionInMergedThread?: boolean;
+}): void {
+    mockUseLinkedActionTransactionThread.mockReturnValue({
+        linkedActionTransactionThreadReportID: isLinkedActionInMergedThread ? THREAD_REPORT_ID : undefined,
+        isLinkedActionInMergedTransactionThread: isLinkedActionInMergedThread,
+    });
     mockUseOnyx.mockImplementation((key: OnyxKey): MockOnyxResult => {
         if (key === `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`) {
             return [report, {status: 'loaded'}];
@@ -94,6 +109,7 @@ function actionIds(actions: ReportAction[] | undefined): string[] {
 describe('usePaginatedReportActions', () => {
     beforeEach(() => {
         mockUseOnyx.mockReset();
+        mockUseLinkedActionTransactionThread.mockReset();
         jest.mocked(useReportIsArchived).mockReturnValue(false);
     });
 
@@ -124,10 +140,10 @@ describe('usePaginatedReportActions', () => {
     describe('when the linked action lives in the merged transaction thread (the fix)', () => {
         it('falls back to the newest window instead of returning an empty list, with pages absent', () => {
             const actions = makeActions(['c', 'b', 'a']);
-            wireOnyx({report: makeReport(), actions, pages: []});
+            wireOnyx({report: makeReport(), actions, pages: [], isLinkedActionInMergedThread: true});
 
-            // SIBLING_ACTION_ID lives in the transaction thread; the caller confirms this via the flag.
-            const {result} = renderHook(() => usePaginatedReportActions(REPORT_ID, SIBLING_ACTION_ID, {isLinkedActionInMergedTransactionThread: true}));
+            // SIBLING_ACTION_ID lives in the transaction thread merged into this report.
+            const {result} = renderHook(() => usePaginatedReportActions(REPORT_ID, SIBLING_ACTION_ID));
 
             // Without dropping the anchor this was [] (getContinuousChain empty-array behavior); now it is the newest window.
             expect(actionIds(result.current.reportActions)).toEqual(['c', 'b', 'a']);
@@ -138,9 +154,9 @@ describe('usePaginatedReportActions', () => {
         it('falls back to the newest page instead of returning an empty list, with pages present', () => {
             const actions = makeActions(['e', 'd', 'c', 'b', 'a']);
             const pages: Pages = [['e', 'd', 'c']];
-            wireOnyx({report: makeReport(), actions, pages});
+            wireOnyx({report: makeReport(), actions, pages, isLinkedActionInMergedThread: true});
 
-            const {result} = renderHook(() => usePaginatedReportActions(REPORT_ID, SIBLING_ACTION_ID, {isLinkedActionInMergedTransactionThread: true}));
+            const {result} = renderHook(() => usePaginatedReportActions(REPORT_ID, SIBLING_ACTION_ID));
 
             expect(result.current.reportActions.length).toBeGreaterThan(0);
             expect(result.current.linkedAction).toBeUndefined();

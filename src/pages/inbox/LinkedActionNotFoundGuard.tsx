@@ -74,8 +74,7 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
     const [linkedActionInTransactionThread] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionThreadReportID)}`, {
         selector: (actions: OnyxEntry<ReportActions>) => getReportActionByIDSelector(actions, reportActionIDFromRoute),
     });
-    // The thread is fetched by its own OpenReport, so it can still be loading after the route report has settled.
-    // Defaults to false so reports without a transaction thread are unaffected.
+    // The thread has its own OpenReport, so it can still be loading after the route report has settled.
     const [isLoadingTransactionThreadActions = false] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(transactionThreadReportID)}`, {
         selector: isLoadingInitialReportActionsSelector,
     });

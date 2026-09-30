@@ -21,19 +21,16 @@ type ShouldRedirectLinkedActionToParentReportParams = {
 };
 
 /**
- * A copied message link points at the report that owns the action — the transaction thread for a one-transaction expense.
- * While that thread is still the parent's only transaction we open the parent instead, so its "Submitted" message and
- * action buttons are shown. Deciding this at open time keeps old links working: once the report gains a second expense
- * this returns false and the link simply opens the thread, where the action still lives. See issue #86919.
+ * While a transaction thread is still its parent's only transaction, a linked action in it should open the parent's combined
+ * view instead. Deciding this at open time keeps old links working: once a second expense is added this returns false and the
+ * link opens the thread, where the action still lives.
  */
 function shouldRedirectLinkedActionToParentReport({report, parentReport, parentReportAction, reportActionIDFromRoute, isOffline}: ShouldRedirectLinkedActionToParentReportParams): boolean {
     if (!reportActionIDFromRoute || !report?.parentReportID || !isReportTransactionThread(report)) {
         return false;
     }
 
-    // isOneTransactionThread counts the parent's *cached* IOU actions, so a partially cached parent can still look
-    // one-transaction. transactionCount is server-provided, so trust it to veto: the redirect replaces the durable thread
-    // URL, and we shouldn't make that call when the parent is already known to hold more than one transaction.
+    // isOneTransactionThread only counts the parent's cached IOU actions, so trust the server-provided count to veto.
     if ((parentReport?.transactionCount ?? 1) > 1) {
         return false;
     }

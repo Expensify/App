@@ -1,12 +1,12 @@
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getCombinedReportActions, getFilteredReportActionsForReportView, getOneTransactionThreadReportID, getSortedReportActionsForDisplay, isCreatedAction} from '@libs/ReportActionsUtils';
+import {getCombinedReportActions, getFilteredReportActionsForReportView, getSortedReportActionsForDisplay, isCreatedAction} from '@libs/ReportActionsUtils';
 import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport, isReportTransactionThread as isReportTransactionThreadUtil, shouldReportAlignToTop} from '@libs/ReportUtils';
 
 import getReportActionsToDisplay from '@pages/inbox/report/getReportActionsToDisplay';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -48,27 +48,20 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
 
     const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
 
-    // Only drop the pagination anchor when the linked action really lives in the merged transaction thread. Dropping it just
-    // because the action is missing from this report's cache would break the scroll-to for an action that is still loading.
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
-    const [reportActionsForThreadCheck] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`);
-    const linkedActionTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsForThreadCheck ?? {}, isOffline);
-    const [linkedActionTransactionThreadActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(linkedActionTransactionThreadReportID)}`);
-    const isLinkedActionInMergedTransactionThread = !!reportActionIDFromRoute && !!linkedActionTransactionThreadActions?.[reportActionIDFromRoute];
-
     const {
         reportActions: unfilteredReportActions,
         hasOlderActions,
         hasNewerActions,
         sortedAllReportActions,
         oldestUnreadReportAction,
+        isLinkedActionInMergedTransactionThread,
+        linkedActionTransactionThreadReportID,
     } = usePaginatedReportActions(reportID, reportActionIDFromRoute, {
         shouldLinkToOldestUnreadReportAction: !shouldBeAlignedToTop,
         treatAsNoPaginationAnchor,
         // Scope the first-defined lastReadTime snapshot to Concierge so the cold-open unread anchor resolves
         // (https://github.com/Expensify/App/issues/93196) without changing regular inbox chat pagination.
         shouldSnapshotInitialLastReadTime: isConciergeChat,
-        isLinkedActionInMergedTransactionThread,
     });
     const allReportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
 
@@ -85,38 +78,30 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         [report?.chatReportID, report?.reportID, chatReportActions],
     );
 
+    // useTransactionThread resolves the thread from the paginated window, so it comes back empty when the IOU action sits in an older page.
+    const fallbackThreadReportID = !thread.transactionThreadReportID && isLinkedActionInMergedTransactionThread ? linkedActionTransactionThreadReportID : undefined;
+    const [fallbackThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(fallbackThreadReportID)}`);
+    const [fallbackThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(fallbackThreadReportID)}`, {
+        selector: (actions: OnyxEntry<ReportActions>) => getSortedReportActionsForDisplay(actions, true, true, undefined, fallbackThreadReportID),
+    });
+
+    const transactionThreadReportID = thread.transactionThreadReportID ?? fallbackThreadReportID;
+    const transactionThreadReport = thread.transactionThreadReport ?? fallbackThreadReport;
+    const transactionThreadReportActions = thread.transactionThreadReportID ? (thread.transactionThreadReportActions ?? []) : (fallbackThreadReportActions ?? []);
+
     // When we are offline before opening an IOU/Expense report,
     // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
     // We generate a fake created action here if it doesn't exist to display the total whenever possible because the total just depends on report data
     // and we also generate an expense action if the number of expenses in allReportActions is less than the total number of expenses
     // to display at least one expense action to match the total data.
     const reportActionsToDisplay = useMemo(
-        () => getReportActionsToDisplay(allReportActions, lastAction, report, reportPreviewAction, thread.transactionThreadReport, shouldAddCreatedAction, getCurrencyDecimals),
-        [allReportActions, lastAction, report, reportPreviewAction, shouldAddCreatedAction, thread.transactionThreadReport, getCurrencyDecimals],
+        () => getReportActionsToDisplay(allReportActions, lastAction, report, reportPreviewAction, transactionThreadReport, shouldAddCreatedAction, getCurrencyDecimals),
+        [allReportActions, lastAction, report, reportPreviewAction, shouldAddCreatedAction, transactionThreadReport, getCurrencyDecimals],
     );
 
-    // useTransactionThread resolves the thread from the paginated window, so it can come back empty when the IOU action sits
-    // in an older page than the one we selected. Fall back to the full-collection resolution the anchor decision used, so the
-    // thread holding the linked action is still merged and can be scrolled to.
-    const mergedTransactionThreadReportID = thread.transactionThreadReportID ?? (isLinkedActionInMergedTransactionThread ? linkedActionTransactionThreadReportID : undefined);
-    const mergedTransactionThreadReportActions = useMemo(() => {
-        // Key this on the resolved thread ID, not on the actions array: the selector returns a truthy [] when the thread
-        // didn't resolve, which would make the fallback unreachable.
-        if (thread.transactionThreadReportID || !isLinkedActionInMergedTransactionThread) {
-            return thread.transactionThreadReportActions ?? [];
-        }
-        return getSortedReportActionsForDisplay(linkedActionTransactionThreadActions, true, true, undefined, linkedActionTransactionThreadReportID);
-    }, [
-        thread.transactionThreadReportID,
-        thread.transactionThreadReportActions,
-        isLinkedActionInMergedTransactionThread,
-        linkedActionTransactionThreadActions,
-        linkedActionTransactionThreadReportID,
-    ]);
-
     const reportActions = useMemo(
-        () => (reportActionsToDisplay ? getCombinedReportActions(reportActionsToDisplay, mergedTransactionThreadReportID ?? null, mergedTransactionThreadReportActions) : []),
-        [reportActionsToDisplay, mergedTransactionThreadReportActions, mergedTransactionThreadReportID],
+        () => (reportActionsToDisplay ? getCombinedReportActions(reportActionsToDisplay, transactionThreadReportID ?? null, transactionThreadReportActions) : []),
+        [reportActionsToDisplay, transactionThreadReportActions, transactionThreadReportID],
     );
 
     const allReportActionIDs = useMemo(() => allReportActions.map((action) => action.reportActionID), [allReportActions]);
@@ -129,8 +114,8 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         hasNewerActions,
         sortedAllReportActions,
         oldestUnreadReportAction,
-        transactionThreadReportID: thread.transactionThreadReportID,
-        transactionThreadReport: thread.transactionThreadReport,
+        transactionThreadReportID,
+        transactionThreadReport,
         parentReportActionForTransactionThread: thread.parentReportActionForTransactionThread,
         treatAsNoPaginationAnchor,
         setTreatAsNoPaginationAnchor,
