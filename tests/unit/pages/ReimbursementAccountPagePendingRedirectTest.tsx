@@ -316,6 +316,38 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
             expect(draft?.companyName).toBe('Example company');
         });
 
+        it('preserves the pre-edit snapshot when a Wallet edit is dismissed', async () => {
+            const editDraftSnapshot = {
+                firstName: 'Alberta 1',
+                lastName: 'Charleson',
+            };
+            await seedOnyx(PENDING_ACCOUNT);
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+                    country: CONST.COUNTRY.US,
+                    currency: CONST.CURRENCY.USD,
+                    source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                    currentPage: CONST.BANK_ACCOUNT.PAGE_NAMES.REQUESTOR,
+                    currentSubPage: CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.SUB_PAGE_NAMES.FULL_NAME,
+                    currentPageAction: 'edit',
+                    firstName: 'Alberta',
+                    lastName: 'Charleson',
+                    editDraftSnapshot,
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+            const {unmount} = await renderPage({bankAccountID: String(PENDING_ACCOUNT.achData?.bankAccountID), backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+
+            await act(async () => {
+                unmount();
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const draft = await getReimbursementAccountDraft();
+            expect(draft?.editDraftSnapshot).toEqual(editDraftSnapshot);
+            expect(draft?.firstName).toBe('Alberta');
+        });
+
         it('preserves unfinished Wallet bank information before an account is created', async () => {
             // Given a Wallet business setup with locally saved bank information and no backend account
             await seedOnyx(DEFAULT_REIMBURSEMENT_ACCOUNT, null);

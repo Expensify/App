@@ -18,7 +18,9 @@ import SCREENS from '@src/SCREENS';
 import {createNavigationContainerRef, NavigationContainer, StackActions} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 
-jest.mock('@hooks/useOnyx', () => jest.fn(() => [undefined]));
+let mockReimbursementAccount: {achData?: {subStep?: string}} | undefined;
+
+jest.mock('@hooks/useOnyx', () => jest.fn(() => [mockReimbursementAccount]));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => ({flex1: {}, appBG: {}})));
 jest.mock('@expensify/react-native-hybrid-app', () => ({__esModule: true, default: {isHybridApp: jest.fn(() => false)}}));
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
@@ -49,6 +51,7 @@ function renderPage(params: PageProps['route']['params']) {
 
 beforeEach(() => {
     jest.clearAllMocks();
+    mockReimbursementAccount = undefined;
 });
 it('preserves policy-less, valid-policy, and Country-to-Plaid routing behavior', () => {
     renderPage({page: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT});
@@ -85,6 +88,25 @@ it('stores the focused Wallet business bank account route', () => {
         currentPage: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT,
         currentSubPage: CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES.MANUAL,
         currentPageAction: 'edit',
+    });
+});
+
+it('stores the manual bank-information page that is actually rendered', () => {
+    // Given the bank account state switched to manual entry while the route still contains a stale Plaid subpage
+    mockReimbursementAccount = {achData: {subStep: CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES.MANUAL}};
+
+    // When the Wallet bank-information page is focused
+    renderPage({
+        page: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT,
+        subPage: CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES.PLAID,
+        backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE,
+    });
+
+    // Then dismissal resumes the rendered manual form, whose routing and account values remain in the form draft
+    expect(jest.mocked(setDraftValues)).toHaveBeenCalledWith(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {
+        currentPage: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT,
+        currentSubPage: CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES.MANUAL,
+        currentPageAction: null,
     });
 });
 

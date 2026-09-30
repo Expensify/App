@@ -112,6 +112,10 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
     const isFocused = useIsFocused();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const bankInfoSubStep = reimbursementAccount?.achData?.subStep;
+    const isKnownBankInfoSubStep = bankInfoSubStep === BANK_INFO_SUB_PAGES.MANUAL || bankInfoSubStep === BANK_INFO_SUB_PAGES.PLAID;
+    // BankInfo renders from achData.subStep, which can change before the URL updates. Persist what the user actually sees.
+    const currentRenderedSubPage = currentPage === PAGE_NAMES.BANK_ACCOUNT && isKnownBankInfoSubStep ? bankInfoSubStep : currentSubPage;
 
     useEffect(() => {
         if (!isFocused || backTo !== ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE || !currentPage) {
@@ -120,10 +124,10 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
 
         setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {
             currentPage,
-            currentSubPage: currentSubPage ?? null,
+            currentSubPage: currentRenderedSubPage ?? null,
             currentPageAction: currentPageAction ?? null,
         });
-    }, [backTo, currentPage, currentPageAction, currentSubPage, isFocused]);
+    }, [backTo, currentPage, currentPageAction, currentRenderedSubPage, isFocused]);
 
     const requestorStepRef = useRef<ComponentRef<typeof View>>(null);
     const isOnfidoSetupComplete = reimbursementAccount?.achData?.isOnfidoSetupComplete;

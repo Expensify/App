@@ -30,8 +30,9 @@ function PhoneNumberStep({onNext, onMove, isEditing, shouldDelayAutoFocus, enabl
     const {translate} = useLocalize();
 
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [bankAccountPersonalDetails] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const defaultPhoneNumber = privatePersonalDetails?.[PERSONAL_INFO_STEP_KEY.PHONE_NUMBER] ?? '';
+    const defaultPhoneNumber = bankAccountPersonalDetails?.phoneNumber ?? privatePersonalDetails?.[PERSONAL_INFO_STEP_KEY.PHONE_NUMBER] ?? '';
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM> => {
         const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);

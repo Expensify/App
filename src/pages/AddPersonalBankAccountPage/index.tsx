@@ -1,3 +1,4 @@
+import FormDraftPersistenceContext from '@components/Form/FormDraftPersistenceContext';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
@@ -17,7 +18,14 @@ import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 
 import Navigation, {navigationRef} from '@navigation/Navigation';
 
-import {addPersonalBankAccount, clearPersonalBankAccount, updatePersonalBankAccountCurrentPage} from '@userActions/BankAccounts';
+import {
+    addPersonalBankAccount,
+    cancelPersonalBankAccountEdit,
+    clearPersonalBankAccount,
+    finishPersonalBankAccountEdit,
+    startPersonalBankAccountEdit,
+    updatePersonalBankAccountCurrentPage,
+} from '@userActions/BankAccounts';
 import {clearDraftValues} from '@userActions/FormActions';
 import {continueSetup} from '@userActions/PaymentMethods';
 
@@ -26,7 +34,11 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {HomeAddressForm, PersonalBankAccountForm} from '@src/types/form';
+import type {PersonalBankAccount} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useContext, useEffect, useRef} from 'react';
@@ -67,11 +79,18 @@ function AddPersonalBankAccountPage() {
 
     const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [personalBankAccount, personalBankAccountMetadata] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
+    const [homeAddressDraft] = useOnyx(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT);
     const [fullPersonalBankAccount, fullPersonalBankAccountMetadata] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const isManual = personalBankAccount?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL || urlSubPage === SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS;
     const error = getLatestErrorMessage(fullPersonalBankAccount ?? DEFAULT_OBJECT);
     const confirmedOwnershipDetails = useRef(false);
     const hasRefreshedExitReport = useRef(false);
+    const latestDrafts = useRef<{
+        personalBankAccountDraft: OnyxEntry<PersonalBankAccountForm>;
+        homeAddressDraft: OnyxEntry<HomeAddressForm>;
+    }>({personalBankAccountDraft: personalBankAccount, homeAddressDraft});
+    const editDraftSnapshot = useRef<PersonalBankAccount['editDraftSnapshot']>(undefined);
+    const isLeavingEdit = useRef(false);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
@@ -80,6 +99,8 @@ function AddPersonalBankAccountPage() {
 
     const shouldShowSuccess = fullPersonalBankAccount?.shouldShowSuccess ?? false;
     const exitReportID = fullPersonalBankAccount?.exitReportID;
+    const shouldPreserveSetupProgress = fullPersonalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET || !!exitReportID;
+    const hasPendingEdit = fullPersonalBankAccount?.currentPageAction === 'edit' && !!fullPersonalBankAccount.editDraftSnapshot;
     const [hasExitReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(exitReportID)}`, {selector: Boolean});
     const openReport = useOpenReport();
 
@@ -173,7 +194,8 @@ function AddPersonalBankAccountPage() {
     const selectedPlaidAccount = plaidData?.bankAccounts?.find((bankAccount) => bankAccount.plaidAccountID === personalBankAccount?.selectedPlaidAccountID);
     const hasCompletedPlaidConnection = !!selectedPlaidAccount && (!!selectedPlaidAccount.plaidAccessToken || !!plaidData?.plaidAccessToken);
     const hasCompletedManualConnection = !!personalBankAccount?.routingNumber && !!personalBankAccount?.accountNumber;
-    const savedPageIndex = pages.findIndex((page) => page.pageName === fullPersonalBankAccount?.currentPage && !skipPages.includes(page.pageName));
+    const isSavedPageEdit = fullPersonalBankAccount?.currentPageAction === 'edit';
+    const savedPageIndex = pages.findIndex((page) => page.pageName === fullPersonalBankAccount?.currentPage && (isSavedPageEdit || !skipPages.includes(page.pageName)));
     const canResumeSavedPage = savedPageIndex >= 0 && (fullPersonalBankAccount?.currentPage === setupPageName || (isManual ? hasCompletedManualConnection : hasCompletedPlaidConnection));
     const validatedSavedPageIndex = canResumeSavedPage ? savedPageIndex : -1;
     const setupPageIndex = pages.findIndex((page) => page.pageName === setupPageName);
@@ -202,9 +224,10 @@ function AddPersonalBankAccountPage() {
     let startFrom = 0;
     if (isResumeStateLoading) {
         startFrom = -1;
-    } else if (fullPersonalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET) {
+    } else if (shouldPreserveSetupProgress) {
         startFrom = validatedSavedPageIndex >= 0 ? validatedSavedPageIndex : draftStartFrom;
     }
+    const startAction = validatedSavedPageIndex >= 0 && fullPersonalBankAccount?.currentPageAction === 'edit' ? fullPersonalBankAccount.currentPageAction : undefined;
     const isURLSubPageValid = !urlSubPage || pages.some((page) => page.pageName === urlSubPage);
     const fallbackPageName = startFrom >= 0 ? (pages.at(startFrom)?.pageName ?? pages.at(0)?.pageName) : undefined;
     const fallbackRoute = fallbackPageName ? buildRoute(fallbackPageName) : undefined;
@@ -213,6 +236,7 @@ function AddPersonalBankAccountPage() {
         pages,
         skipPages,
         startFrom,
+        startAction,
         onFinished,
         buildRoute,
     });
@@ -228,21 +252,76 @@ function AddPersonalBankAccountPage() {
     }, [fallbackRoute, isResumeStateLoading, isURLSubPageValid, urlSubPage]);
 
     useEffect(() => {
+        if (!isEditing) {
+            isLeavingEdit.current = false;
+        }
         if (
-            fullPersonalBankAccount?.source !== CONST.BANK_ACCOUNT.SOURCE.WALLET ||
+            !shouldPreserveSetupProgress ||
             !isFocused ||
             !currentPageName ||
             currentPageName === SUB_PAGE_NAMES.SUCCESS ||
-            !pages.some((page) => page.pageName === currentPageName)
+            !pages.some((page) => page.pageName === currentPageName) ||
+            isLeavingEdit.current ||
+            (!isEditing && hasPendingEdit)
         ) {
             return;
         }
+        if (isEditing) {
+            updatePersonalBankAccountCurrentPage(currentPageName, 'edit');
+            return;
+        }
         updatePersonalBankAccountCurrentPage(currentPageName);
-    }, [currentPageName, fullPersonalBankAccount?.source, isFocused, pages]);
+    }, [currentPageName, hasPendingEdit, isEditing, isFocused, pages, shouldPreserveSetupProgress]);
+
+    useEffect(() => {
+        latestDrafts.current = {personalBankAccountDraft: personalBankAccount, homeAddressDraft};
+    }, [homeAddressDraft, personalBankAccount]);
+
+    useEffect(() => {
+        if (!isEditing || !currentPageName) {
+            editDraftSnapshot.current = undefined;
+            return;
+        }
+        if (editDraftSnapshot.current?.pageName === currentPageName) {
+            return;
+        }
+        editDraftSnapshot.current =
+            fullPersonalBankAccount?.editDraftSnapshot?.pageName === currentPageName
+                ? fullPersonalBankAccount.editDraftSnapshot
+                : {
+                      pageName: currentPageName,
+                      personalBankAccountDraft: latestDrafts.current.personalBankAccountDraft ?? null,
+                      homeAddressDraft: latestDrafts.current.homeAddressDraft ?? null,
+                  };
+    }, [currentPageName, fullPersonalBankAccount?.editDraftSnapshot, isEditing]);
+
+    const restoreEditDraftSnapshot = () => {
+        const snapshot = fullPersonalBankAccount?.editDraftSnapshot ?? editDraftSnapshot.current;
+        cancelPersonalBankAccountEdit(snapshot, SUB_PAGE_NAMES.CONFIRMATION);
+        editDraftSnapshot.current = undefined;
+    };
+
+    const handleMove = (targetPageIndex: number, turnOnEditMode?: boolean) => {
+        const targetPageName = pages.at(targetPageIndex)?.pageName;
+        if (shouldPreserveSetupProgress && currentPageName === SUB_PAGE_NAMES.CONFIRMATION && turnOnEditMode !== false && targetPageName) {
+            isLeavingEdit.current = false;
+            const snapshot = {
+                pageName: targetPageName,
+                personalBankAccountDraft: latestDrafts.current.personalBankAccountDraft ?? null,
+                homeAddressDraft: latestDrafts.current.homeAddressDraft ?? null,
+            };
+            editDraftSnapshot.current = snapshot;
+            startPersonalBankAccountEdit(targetPageName, snapshot);
+        }
+        moveTo(targetPageIndex, turnOnEditMode);
+    };
 
     const handleNext = (data?: unknown) => {
         // When editing a field from the confirmation step, jump straight back to it.
         if (isEditing) {
+            isLeavingEdit.current = true;
+            finishPersonalBankAccountEdit(SUB_PAGE_NAMES.CONFIRMATION);
+            editDraftSnapshot.current = undefined;
             moveTo(confirmationIndex, false);
             return;
         }
@@ -261,6 +340,8 @@ function AddPersonalBankAccountPage() {
             return;
         }
         if (isEditing) {
+            isLeavingEdit.current = true;
+            restoreEditDraftSnapshot();
             moveTo(confirmationIndex, false);
             return;
         }
@@ -316,12 +397,14 @@ function AddPersonalBankAccountPage() {
             headerTitle={translate('bankAccount.addBankAccount')}
             handleBackButtonPress={handleBackButtonPress}
         >
-            <CurrentPage
-                isEditing={isEditing}
-                onNext={handleNext}
-                onMove={moveTo}
-                shouldSaveDraft={fullPersonalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET}
-            />
+            <FormDraftPersistenceContext.Provider value={shouldPreserveSetupProgress && isEditing}>
+                <CurrentPage
+                    isEditing={isEditing}
+                    onNext={handleNext}
+                    onMove={handleMove}
+                    shouldSaveDraft={shouldPreserveSetupProgress}
+                />
+            </FormDraftPersistenceContext.Provider>
         </InteractiveStepWrapper>
     );
 }

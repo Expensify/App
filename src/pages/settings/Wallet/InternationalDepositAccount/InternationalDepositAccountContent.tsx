@@ -8,7 +8,14 @@ import useLocalize from '@hooks/useLocalize';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSubPage from '@hooks/useSubPage';
 
-import {clearCorpayBankAccountFields, updatePersonalBankAccountCurrentPage} from '@libs/actions/BankAccounts';
+import {
+    cancelPersonalBankAccountEdit,
+    clearCorpayBankAccountFields,
+    clearPersonalBankAccount,
+    finishPersonalBankAccountEdit,
+    startPersonalBankAccountEdit,
+    updatePersonalBankAccountCurrentPage,
+} from '@libs/actions/BankAccounts';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
@@ -23,13 +30,13 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {InternationalBankAccountForm} from '@src/types/form';
-import type {BankAccountList, CorpayFields, PrivatePersonalDetails} from '@src/types/onyx';
+import type {BankAccountList, CorpayFields, PersonalBankAccount, PrivatePersonalDetails} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 
 import type CustomSubPageProps from './types';
 
@@ -52,6 +59,7 @@ type InternationalDepositAccountContentProps = {
     isWalletSetup: boolean;
     savedPage?: string;
     savedPageAction?: 'edit';
+    editDraftSnapshot?: PersonalBankAccount['editDraftSnapshot'];
     backTo?: Route;
 };
 
@@ -86,6 +94,7 @@ function InternationalDepositAccountContent({
     isWalletSetup,
     savedPage,
     savedPageAction,
+    editDraftSnapshot: savedEditDraftSnapshot,
     backTo,
 }: InternationalDepositAccountContentProps) {
     const {translate} = useLocalize();
@@ -152,20 +161,68 @@ function InternationalDepositAccountContent({
             currentPageName === CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION ||
             currentPageName === CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS);
     const isFocused = useIsFocused();
+    const latestDraftValues = useRef(draftValues);
+    const editDraftSnapshot = useRef<PersonalBankAccount['editDraftSnapshot']>(undefined);
+    const isLeavingEdit = useRef(false);
 
     useEffect(() => {
-        if (!isWalletSetup || !isFocused || isRedirecting || !currentPageName) {
+        if (!isEditing) {
+            isLeavingEdit.current = false;
+        }
+        if (!isWalletSetup || !isFocused || isRedirecting || !currentPageName || isLeavingEdit.current) {
             return;
         }
         updatePersonalBankAccountCurrentPage(currentPageName, isEditing ? 'edit' : undefined);
     }, [currentPageName, isEditing, isFocused, isRedirecting, isWalletSetup]);
 
+    useEffect(() => {
+        latestDraftValues.current = draftValues;
+    }, [draftValues]);
+
+    useEffect(() => {
+        if (!isEditing || !currentPageName) {
+            editDraftSnapshot.current = undefined;
+            return;
+        }
+        if (editDraftSnapshot.current?.pageName === currentPageName) {
+            return;
+        }
+        editDraftSnapshot.current =
+            savedEditDraftSnapshot?.pageName === currentPageName
+                ? savedEditDraftSnapshot
+                : {
+                      pageName: currentPageName,
+                      internationalBankAccountDraft: latestDraftValues.current ?? null,
+                  };
+    }, [currentPageName, isEditing, savedEditDraftSnapshot]);
+
     const goBackToConfirmStep = () => {
         Navigation.goBack(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(route.params?.backTo, CONST.CORPAY_FIELDS.PAGE_NAME.CONFIRM, undefined));
     };
 
+    const restoreEditDraftSnapshot = () => {
+        cancelPersonalBankAccountEdit(savedEditDraftSnapshot ?? editDraftSnapshot.current, CONST.CORPAY_FIELDS.PAGE_NAME.CONFIRM);
+        editDraftSnapshot.current = undefined;
+    };
+
+    const handleMove = (targetPageIndex: number, turnOnEditMode?: boolean) => {
+        const targetPageName = pages.at(targetPageIndex)?.pageName;
+        if (isWalletSetup && currentPageName === CONST.CORPAY_FIELDS.PAGE_NAME.CONFIRM && turnOnEditMode !== false && targetPageName) {
+            isLeavingEdit.current = false;
+            const snapshot = {
+                pageName: targetPageName,
+                internationalBankAccountDraft: latestDraftValues.current ?? null,
+            };
+            editDraftSnapshot.current = snapshot;
+            startPersonalBankAccountEdit(targetPageName, snapshot);
+        }
+        moveTo(targetPageIndex, turnOnEditMode);
+    };
+
     const handleBackButtonPress = () => {
         if (isEditing) {
+            isLeavingEdit.current = true;
+            restoreEditDraftSnapshot();
             goBackToConfirmStep();
             return true;
         }
@@ -174,6 +231,11 @@ function InternationalDepositAccountContent({
         if (pageIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.COUNTRY_SELECTOR) {
             clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
             clearCorpayBankAccountFields();
+            if (isWalletSetup) {
+                clearPersonalBankAccount();
+                Navigation.goBack(ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE);
+                return true;
+            }
             goBack();
             return true;
         }
@@ -186,6 +248,9 @@ function InternationalDepositAccountContent({
 
     const handleNextScreen = () => {
         if (isEditing) {
+            isLeavingEdit.current = true;
+            finishPersonalBankAccountEdit(CONST.CORPAY_FIELDS.PAGE_NAME.CONFIRM);
+            editDraftSnapshot.current = undefined;
             goBackToConfirmStep();
             return;
         }
@@ -211,7 +276,7 @@ function InternationalDepositAccountContent({
                         <CurrentPage
                             isEditing={isEditing}
                             onNext={handleNextScreen}
-                            onMove={moveTo}
+                            onMove={handleMove}
                             formValues={values}
                             fieldsMap={fieldsMap}
                         />

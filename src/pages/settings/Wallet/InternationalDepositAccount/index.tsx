@@ -34,6 +34,7 @@ const personalBankAccountIsLoadingSelector = (personalBankAccount: OnyxEntry<Per
 const personalBankAccountCorpayFieldsErrorSelector = (personalBankAccount: OnyxEntry<PersonalBankAccount>) => personalBankAccount?.corpayFieldsError;
 const personalBankAccountCurrentPageSelector = (personalBankAccount: OnyxEntry<PersonalBankAccount>) => personalBankAccount?.currentPage;
 const personalBankAccountCurrentPageActionSelector = (personalBankAccount: OnyxEntry<PersonalBankAccount>) => personalBankAccount?.currentPageAction;
+const personalBankAccountEditDraftSnapshotSelector = (personalBankAccount: OnyxEntry<PersonalBankAccount>) => personalBankAccount?.editDraftSnapshot;
 
 function InternationalDepositAccount({route}: InternationalDepositAccountProps) {
     const {translate} = useLocalize();
@@ -47,6 +48,7 @@ function InternationalDepositAccount({route}: InternationalDepositAccountProps) 
     const [corpayFieldsError] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: personalBankAccountCorpayFieldsErrorSelector});
     const [savedPage] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: personalBankAccountCurrentPageSelector});
     const [savedPageAction] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: personalBankAccountCurrentPageActionSelector});
+    const [editDraftSnapshot] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: personalBankAccountEditDraftSnapshotSelector});
     const backTo = route.params?.backTo;
 
     const isLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, corpayFieldsMetadata, bankAccountListMetadata, draftValuesMetadata, countryMetadata, personalBankAccountMetadata);
@@ -137,6 +139,7 @@ function InternationalDepositAccount({route}: InternationalDepositAccountProps) 
             isWalletSetup={personalBankAccountSource === CONST.BANK_ACCOUNT.SOURCE.WALLET}
             savedPage={savedPage}
             savedPageAction={savedPageAction}
+            editDraftSnapshot={editDraftSnapshot}
             backTo={backTo}
         />
     );

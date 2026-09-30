@@ -3,35 +3,24 @@
  * and reports whether that state is still loading.
  */
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {InternationalBankAccountForm, PersonalBankAccountForm} from '@src/types/form';
-import type {PersonalBankAccount} from '@src/types/onyx';
+import type {InternationalBankAccountForm} from '@src/types/form';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import useOnyx from './useOnyx';
+import usePersonalBankAccountSetup from './usePersonalBankAccountSetup';
 
-const personalBankAccountSourceSelector = (personalBankAccount: OnyxEntry<PersonalBankAccount>) => personalBankAccount?.source;
-const personalBankAccountShouldShowSuccessSelector = (personalBankAccount: OnyxEntry<PersonalBankAccount>) => personalBankAccount?.shouldShowSuccess;
-const personalBankAccountCurrentPageSelector = (personalBankAccount: OnyxEntry<PersonalBankAccount>) => personalBankAccount?.currentPage;
-const personalBankAccountCurrentPageActionSelector = (personalBankAccount: OnyxEntry<PersonalBankAccount>) => personalBankAccount?.currentPageAction;
-const personalDraftSetupTypeSelector = (personalDraft: OnyxEntry<PersonalBankAccountForm>) => personalDraft?.setupType;
 const internationalDraftBankCountrySelector = (internationalDraft: OnyxEntry<InternationalBankAccountForm>) => internationalDraft?.bankCountry;
 
 function useWalletPersonalBankAccountSetup() {
-    const [source, personalBankAccountMetadata] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: personalBankAccountSourceSelector});
-    const [shouldShowSuccess] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: personalBankAccountShouldShowSuccessSelector});
-    const [currentPage] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: personalBankAccountCurrentPageSelector});
-    const [currentPageAction] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: personalBankAccountCurrentPageActionSelector});
-    const [setupType, personalDraftMetadata] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {selector: personalDraftSetupTypeSelector});
+    const personalBankAccountSetup = usePersonalBankAccountSetup();
     const [bankCountry, internationalDraftMetadata] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, {selector: internationalDraftBankCountrySelector});
 
-    const isLoading = isLoadingOnyxValue(personalBankAccountMetadata, personalDraftMetadata, internationalDraftMetadata);
-    const personalBankAccount = {source, shouldShowSuccess, currentPage, currentPageAction};
-    const personalDraft = {setupType};
+    const isLoading = personalBankAccountSetup.isLoading || isLoadingOnyxValue(internationalDraftMetadata);
     const internationalDraft = bankCountry ? {bankCountry} : undefined;
 
-    return {personalBankAccount, personalDraft, internationalDraft, isLoading};
+    return {...personalBankAccountSetup, internationalDraft, isLoading};
 }
 
 export default useWalletPersonalBankAccountSetup;

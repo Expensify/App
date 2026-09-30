@@ -4,6 +4,7 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReimbursementAccountConfirmationEdit from '@hooks/useReimbursementAccountConfirmationEdit';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -148,9 +149,17 @@ function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, step
 
     const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo} = useSubPage({pages, startFrom, onFinished: submit, buildRoute});
 
+    const {moveToEditPage, submitEdit, cancelEdit} = useReimbursementAccountConfirmationEdit({
+        isEditing,
+        reimbursementAccountDraft,
+        nextPage,
+        moveTo,
+    });
+
     const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         if (isEditing) {
+            cancelEdit();
             Navigation.goBack(buildRoute(SUB_PAGE_NAMES.CONFIRMATION));
             return;
         }
@@ -177,8 +186,8 @@ function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, step
             ) : (
                 <CurrentPage
                     isEditing={isEditing}
-                    onNext={nextPage}
-                    onMove={moveTo}
+                    onNext={submitEdit}
+                    onMove={moveToEditPage}
                     currentPageName={currentPageName}
                 />
             )}

@@ -3,13 +3,17 @@ import {render, screen} from '@testing-library/react-native';
 import FormDraftPersistenceContext from '@components/Form/FormDraftPersistenceContext';
 import Text from '@components/Text';
 
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useSubPage from '@hooks/useSubPage';
+
+import Navigation from '@libs/Navigation/Navigation';
 
 import InternationalDepositAccountContent from '@pages/settings/Wallet/InternationalDepositAccount/InternationalDepositAccountContent';
 
-import {updatePersonalBankAccountCurrentPage} from '@userActions/BankAccounts';
+import {cancelPersonalBankAccountEdit, clearPersonalBankAccount, updatePersonalBankAccountCurrentPage} from '@userActions/BankAccounts';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 import type * as ReactNavigationModule from '@react-navigation/native';
 import type {ComponentProps, ReactNode} from 'react';
@@ -38,7 +42,11 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 jest.mock('@userActions/BankAccounts', () => ({
+    cancelPersonalBankAccountEdit: jest.fn(),
     clearCorpayBankAccountFields: jest.fn(),
+    clearPersonalBankAccount: jest.fn(),
+    finishPersonalBankAccountEdit: jest.fn(),
+    startPersonalBankAccountEdit: jest.fn(),
     updatePersonalBankAccountCurrentPage: jest.fn(),
 }));
 jest.mock('@userActions/FormActions', () => ({
@@ -48,6 +56,8 @@ jest.mock('@userActions/FormActions', () => ({
 let mockIsFocused = true;
 let mockIsEditing = false;
 let mockCurrentPageName: string = CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION;
+let mockPageIndex: number = CONST.CORPAY_FIELDS.INDEXES.MAPPING.BANK_INFORMATION;
+let mockBackButtonHandler: (() => boolean) | undefined;
 const DRAFT_PERSISTENCE_TEST_ID = 'draft-persistence';
 
 function MockCurrentPage() {
@@ -88,12 +98,17 @@ describe('InternationalDepositAccountContent Wallet resume page', () => {
         mockIsFocused = true;
         mockIsEditing = false;
         mockCurrentPageName = CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION;
+        mockPageIndex = CONST.CORPAY_FIELDS.INDEXES.MAPPING.BANK_INFORMATION;
+        mockBackButtonHandler = undefined;
+        jest.mocked(useAndroidBackButtonHandler).mockImplementation((callback) => {
+            mockBackButtonHandler = callback;
+        });
         mockedUseSubPage.mockImplementation(() => ({
             CurrentPage: MockCurrentPage,
             isEditing: mockIsEditing,
             nextPage: jest.fn(),
             prevPage: jest.fn(),
-            pageIndex: CONST.CORPAY_FIELDS.INDEXES.MAPPING.BANK_INFORMATION,
+            pageIndex: mockPageIndex,
             currentPageName: mockCurrentPageName,
             moveTo: jest.fn(),
             resetToPage: jest.fn(),
@@ -228,5 +243,47 @@ describe('InternationalDepositAccountContent Wallet resume page', () => {
 
         // Then the shared context does not broaden that page's behavior
         expect(screen.getByTestId(DRAFT_PERSISTENCE_TEST_ID)).toHaveTextContent('false');
+    });
+
+    it('restores the pre-edit non-USD draft when Back cancels an edit', () => {
+        // Given the flow was reopened on an edit RHP with an unconfirmed value and its pre-edit snapshot
+        mockIsEditing = true;
+        mockCurrentPageName = CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION;
+        const editDraftSnapshot = {
+            pageName: CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION,
+            internationalBankAccountDraft: {
+                bankCountry: 'DE',
+                bankCurrency: 'EUR',
+                bankName: 'Original bank',
+            },
+        };
+        render(
+            <InternationalDepositAccountContent
+                {...props}
+                savedPageAction="edit"
+                editDraftSnapshot={editDraftSnapshot}
+                draftValues={{bankCountry: 'DE', bankCurrency: 'EUR', accountNumber: '12345678', bankName: 'Unconfirmed bank'}}
+            />,
+        );
+
+        // When the user presses Back without confirming the edit
+        mockBackButtonHandler?.();
+
+        // Then the saved pre-edit values are restored before returning to confirmation
+        expect(cancelPersonalBankAccountEdit).toHaveBeenCalledWith(editDraftSnapshot, CONST.CORPAY_FIELDS.PAGE_NAME.CONFIRM);
+    });
+
+    it('returns to the bank-account purpose chooser when leaving the first Wallet page', () => {
+        // Given a Wallet personal setup is on its first non-USD country page
+        mockCurrentPageName = CONST.CORPAY_FIELDS.PAGE_NAME.COUNTRY;
+        mockPageIndex = CONST.CORPAY_FIELDS.INDEXES.MAPPING.COUNTRY_SELECTOR;
+        render(<InternationalDepositAccountContent {...props} />);
+
+        // When the user presses Back to explicitly abandon that setup
+        mockBackButtonHandler?.();
+
+        // Then its personal setup state is cleared and the purpose chooser is shown
+        expect(clearPersonalBankAccount).toHaveBeenCalledTimes(1);
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE);
     });
 });
