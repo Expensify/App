@@ -869,18 +869,6 @@ function getVerticalPaddingDiffFromStyle(textInputContainerStyles: ViewStyle): n
 }
 
 /**
- * Get the sum of the top and bottom padding from provided styles
- */
-function getVerticalPaddingFromStyle(style: StyleProp<TextStyle>): number {
-    const flatStyle = StyleSheet.flatten(style);
-    const getNumericPadding = (paddingValue: string | number | Animated.AnimatedNode | null | undefined): number => (typeof paddingValue === 'number' ? paddingValue : 0);
-
-    const paddingTop = getNumericPadding(flatStyle?.paddingTop ?? flatStyle?.paddingVertical ?? flatStyle?.padding);
-    const paddingBottom = getNumericPadding(flatStyle?.paddingBottom ?? flatStyle?.paddingVertical ?? flatStyle?.padding);
-    return paddingTop + paddingBottom;
-}
-
-/**
  * Get the vertical space the auto grow height input's ancestors take up inside the input container (borders, padding and the multiline label padding)
  */
 function getAutoGrowHeightInputVerticalInset(textInputContainerStyles: StyleProp<ViewStyle>, hasMultilineLabelPadding: boolean): number {
@@ -1492,7 +1480,6 @@ const staticStyleUtils = {
     getPaddingRight,
     getPaddingBottom,
     getVerticalPaddingDiffFromStyle,
-    getVerticalPaddingFromStyle,
     getAutoGrowHeightInputVerticalInset,
     hasSafeAreas,
     getHeight,
@@ -1605,22 +1592,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Returns auto grow height text input style
      */
-    getAutoGrowHeightInputStyle: (textInputHeight: number, maxHeight: number, verticalInset: number, shouldSizeToContent = false): ViewStyle => {
+    getAutoGrowHeightInputStyle: (textInputHeight: number, maxHeight: number, verticalInset: number): ViewStyle => {
         // textInputHeight comes from the hidden measurement, which also includes the input's own vertical padding,
         // so flip as soon as it no longer fits the fixed height below. Otherwise content can be clipped at some font scales.
         if (textInputHeight > maxHeight - verticalInset) {
             return {
                 ...styles.pr0,
                 ...styles.overflowAuto,
-            };
-        }
-
-        // On native, cap the input instead of pinning it so it sizes to its content.
-        if (shouldSizeToContent) {
-            return {
-                ...styles.pr0,
-                ...styles.overflowHidden,
-                maxHeight: maxHeight - verticalInset,
             };
         }
 

@@ -8,7 +8,7 @@ import type {ViewStyle} from 'react-native';
 import {StyleSheet} from 'react-native';
 
 const mockStyles = createThemeStyles(defaultTheme);
-const {getAutoGrowHeightInputStyle, getAutoGrowHeightInputVerticalInset, getVerticalPaddingFromStyle} = createStyleUtils(defaultTheme, mockStyles);
+const {getAutoGrowHeightInputStyle, getAutoGrowHeightInputVerticalInset} = createStyleUtils(defaultTheme, mockStyles);
 
 const maxHeight = variables.textInputAutoGrowMaxHeight;
 
@@ -37,16 +37,6 @@ describe('getAutoGrowHeightInputVerticalInset', () => {
 
     it('ignores non numeric values', () => {
         expect(getAutoGrowHeightInputVerticalInset({padding: '10%', borderWidth: 1}, false)).toBe(2);
-    });
-});
-
-describe('getVerticalPaddingFromStyle', () => {
-    it('uses the padding of the merged input style', () => {
-        // Given the base input style, and one where a caller overrides the vertical padding
-        // When the vertical padding is read from each
-        // Then it follows the override, so the auto grow height matches the hidden measurement
-        expect(getVerticalPaddingFromStyle(mockStyles.baseTextInput)).toBe(variables.inputPaddingTop + variables.inputPaddingBottom);
-        expect(getVerticalPaddingFromStyle([mockStyles.baseTextInput, {paddingTop: 10, paddingBottom: 2}])).toBe(12);
     });
 });
 
@@ -83,28 +73,6 @@ describe('getAutoGrowHeightInputStyle', () => {
         const style = getAutoGrowHeightInputStyle(maxHeight - 29 + 1, maxHeight, 29);
 
         expect(style.height).toBeUndefined();
-        expect(style.overflow).toBe(mockStyles.overflowAuto.overflow);
-    });
-
-    it('caps a content sized input instead of pinning it', () => {
-        // Given a native input that sizes itself to its content
-        const verticalInset = getAutoGrowHeightInputVerticalInset(getContainerStyle(true), true);
-
-        // When the style is built for it
-        const style = getAutoGrowHeightInputStyle(maxHeight - verticalInset, maxHeight, verticalInset, true);
-
-        // Then the input is capped, not pinned, so its height follows the number of lines
-        expect(style.height).toBeUndefined();
-        expect(style.maxHeight).toBe(maxHeight - verticalInset);
-    });
-
-    it('still scrolls a content sized input once it no longer fits', () => {
-        // Given a content sized input that has grown past the cap
-        // When the style is built for it
-        const style = getAutoGrowHeightInputStyle(maxHeight - 29 + 1, maxHeight, 29, true);
-
-        // Then it switches to scrolling, like the pinned input
-        expect(style.maxHeight).toBeUndefined();
         expect(style.overflow).toBe(mockStyles.overflowAuto.overflow);
     });
 });

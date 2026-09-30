@@ -32,7 +32,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 import type {ComponentRef} from 'react';
-import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, TextInputContentSizeChangeEvent, ViewStyle} from 'react-native';
+import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
 
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -121,7 +121,6 @@ function BaseTextInput({
     const [passwordHidden, setPasswordHidden] = useState(inputProps.secureTextEntry);
     const [textInputWidth, setTextInputWidth] = useState(0);
     const [textInputHeight, setTextInputHeight] = useState(0);
-    const [inputContentHeight, setInputContentHeight] = useState(0);
     const [height, setHeight] = useState<number>(variables.componentSizeLarge);
     const [width, setWidth] = useState<number | null>(null);
     const [prefixCharacterPadding, setPrefixCharacterPadding] = useState<number>(CONST.CHARACTER_WIDTH);
@@ -195,16 +194,6 @@ function BaseTextInput({
             input.current?.focus();
         }
     };
-
-    const onContentSizeChangeProp = inputProps.onContentSizeChange;
-    const onContentSizeChange = useCallback(
-        (event: TextInputContentSizeChangeEvent) => {
-            onContentSizeChangeProp?.(event);
-
-            setInputContentHeight(event.nativeEvent.contentSize.height);
-        },
-        [onContentSizeChangeProp],
-    );
 
     const onLayout = useCallback(
         (event: LayoutChangeEvent) => {
@@ -283,13 +272,7 @@ function BaseTextInput({
         setPasswordHidden((prevPasswordHidden) => !prevPasswordHidden);
     }, []);
 
-    const shouldUseAutoGrowHeight = autoGrowHeight && !isAutoGrowHeightMarkdown;
-
-    // Prefer the input's own content height, because the hidden measurement can wrap text differently.
-    // The multiline input has no vertical padding, so add back the padding the measurement includes.
-    const autoGrowContentHeight = shouldUseAutoGrowHeight && inputContentHeight > 0 ? inputContentHeight + StyleUtils.getVerticalPaddingFromStyle(inputStyle) : textInputHeight;
-
-    const shouldAddPaddingBottom = isMultiline || (shouldUseAutoGrowHeight && autoGrowContentHeight > variables.componentSizeLarge);
+    const shouldAddPaddingBottom = isMultiline || (autoGrowHeight && !isAutoGrowHeightMarkdown && textInputHeight > variables.componentSizeLarge);
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
 
@@ -340,9 +323,10 @@ function BaseTextInput({
                     // or if multiline is not supplied we calculate the text input height, using onLayout.
                     onLayout={onLayout}
                     style={[
-                        shouldUseAutoGrowHeight &&
+                        autoGrowHeight &&
+                            !isAutoGrowHeightMarkdown &&
                             styles.autoGrowHeightInputContainer(
-                                autoGrowContentHeight + (shouldAddPaddingBottom ? styles.textInputContainer.padding : 0),
+                                textInputHeight + (shouldAddPaddingBottom ? styles.textInputContainer.padding : 0),
                                 variables.componentSizeLarge,
                                 typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0,
                             ),
@@ -438,14 +422,9 @@ function BaseTextInput({
                                     shouldApplyHeight && {height, lineHeight: undefined},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
-                                    ...(shouldUseAutoGrowHeight
+                                    ...(autoGrowHeight && !isAutoGrowHeightMarkdown
                                         ? [
-                                              StyleUtils.getAutoGrowHeightInputStyle(
-                                                  autoGrowContentHeight,
-                                                  typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0,
-                                                  autoGrowVerticalInset,
-                                                  true,
-                                              ),
+                                              StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0, autoGrowVerticalInset),
                                               styles.verticalAlignTop,
                                           ]
                                         : []),
@@ -456,7 +435,6 @@ function BaseTextInput({
                                 ]}
                                 multiline={isMultiline}
                                 maxLength={maxLength}
-                                onContentSizeChange={shouldUseAutoGrowHeight ? onContentSizeChange : inputProps.onContentSizeChange}
                                 onFocus={onFocus}
                                 onBlur={onBlur}
                                 onChangeText={setValue}
