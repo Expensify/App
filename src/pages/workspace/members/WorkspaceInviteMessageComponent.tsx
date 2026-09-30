@@ -362,8 +362,8 @@ function WorkspaceInviteMessageComponent({
                             {shouldShowWorkArrangement && (
                                 <>
                                     <MenuItemField
-                                        name={translate('workspace.common.workArrangement')}
-                                        value={translate(selectedHasOfficeWorkArrangement ? 'workspace.common.officeBased' : 'workspace.common.noRegularWorkspace')}
+                                        name={translate('workspace.people.workArrangement')}
+                                        value={translate(selectedHasOfficeWorkArrangement ? 'workspace.people.officeBased' : 'workspace.people.noRegularWorkspace')}
                                     >
                                         {officeLocations.length > 1 && !!defaultOfficeName && (
                                             <Text
@@ -376,8 +376,8 @@ function WorkspaceInviteMessageComponent({
                                     </MenuItemField>
                                     <RadioButtons
                                         items={[
-                                            {label: translate('workspace.common.officeBased'), value: 'officeBased'},
-                                            {label: translate('workspace.common.noRegularWorkspace'), value: 'noRegularWorkspace'},
+                                            {label: translate('workspace.people.officeBased'), value: 'officeBased'},
+                                            {label: translate('workspace.people.noRegularWorkspace'), value: 'noRegularWorkspace'},
                                         ]}
                                         value={selectedHasOfficeWorkArrangement ? 'officeBased' : 'noRegularWorkspace'}
                                         onSelect={(value) => setHasOfficeWorkArrangement(value === 'officeBased')}
