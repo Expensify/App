@@ -126,6 +126,7 @@ function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry, o
 
     return (
         <ScrollView
+            style={styles.insightsDashboardScrollView}
             contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}
             addBottomSafeAreaPadding
         >
