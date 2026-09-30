@@ -2569,7 +2569,7 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredForAdminsHeader: 'Authentification à deux facteurs requise',
         twoFactorAuthIsRequiredForAdminsTitle: 'Veuillez activer l’authentification à deux facteurs',
         twoFactorAuthIsRequiredXero: 'Votre connexion comptable Xero nécessite une authentification à deux facteurs.',
-        twoFactorAuthIsRequiredCompany: 'Votre entreprise exige l’authentification à deux facteurs.',
+        twoFactorAuthIsRequiredCompany: 'Votre entreprise exige l’authentification à deux facteurs (2FA).',
         twoFactorAuthCannotDisable: 'Impossible de désactiver la 2FA',
         twoFactorAuthRequired: 'L’authentification à deux facteurs (2FA) est requise pour votre connexion Xero et ne peut pas être désactivée.',
         replaceDevice: 'Remplacer l’appareil',
@@ -2581,6 +2581,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: 'Scannez le code QR avec votre nouvel appareil, puis saisissez le code pour terminer la configuration.',
         downloadCodes: 'Télécharger les codes',
         copyCodes: 'Copier les codes',
+        enable2FA: 'Activer',
     },
     recoveryCodeForm: {
         error: {
@@ -5515,11 +5516,6 @@ ${amount} pour ${merchant} - ${date}`,
             journalEntriesProvTaxPostingAccount: 'Compte de comptabilisation de la taxe provinciale des écritures de journal',
             foreignCurrencyAmount: 'Exporter le montant en devise étrangère',
             exportToNextOpenPeriod: 'Exporter vers la prochaine période ouverte',
-            exportToNextOpenPeriodLockedSubtitle:
-                "Pour désactiver l'exportation vers la prochaine période ouverte, désactivez d'abord la division des exportations non remboursables par période.",
-            splitExportsByPostingPeriod: 'Diviser les exportations par période comptable',
-            splitExportsByPostingPeriodSubtitle:
-                "Activez l'exportation vers la prochaine période ouverte pour activer la division des exportations non remboursables par période dans NetSuite",
             nonReimbursableJournalPostingAccount: 'Compte de saisie des écritures non remboursables',
             reimbursableJournalPostingAccount: 'Compte de comptabilisation des écritures remboursables',
             journalPostingPreference: {
@@ -6446,6 +6442,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             deleteFailureMessage: "Une erreur s'est produite lors de la suppression de la catégorie, veuillez réessayer",
             categoryName: 'Nom de la catégorie',
             requiresCategory: 'Les membres doivent catégoriser toutes les dépenses',
+            autoCategorizeNewExpenses: 'Catégoriser automatiquement les nouvelles dépenses',
             showCategoryGLCodes: 'Afficher les codes de grand livre lors de la catégorisation des dépenses',
             needCategoryForExportToIntegration: (connectionName: string) => `Toutes les dépenses doivent être catégorisées afin de pouvoir être exportées vers ${connectionName}.`,
             subtitle: 'Obtenez une meilleure vue d’ensemble de l’endroit où l’argent est dépensé. Utilisez nos catégories par défaut ou ajoutez les vôtres.',
@@ -7549,6 +7546,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Pour le déverrouiller, activez la synchronisation automatique.',
             campfire: 'Campfire',
             businessCentral: 'Dynamics 365 Business Central',
+            qboConnectionExpiring: ({date}: {date: string}) => `Votre connexion QuickBooks Online expire le ${date}.`,
+            qboConnectionExpired: ({date}: {date: string}) => `Votre connexion à QuickBooks Online a expiré le ${date}.`,
         },
         export: {
             notReadyHeading: 'Pas prêt à être exporté',
@@ -9593,6 +9592,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `paramètres de facturation copiés depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `paramètres de déplacement copiés depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
         },
+        updatedAutoCategorizeNewExpenses: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'Désactivé'} la catégorisation automatique des nouvelles dépenses`,
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'Désactivé'} l’exigence de catégorisation des dépenses`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'Désactivé'} l’exigence de tag des dépenses`,
         updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `mis à jour le paramètre de frais de conversion de devise sur « ${preferenceLabel} »`,
@@ -11163,6 +11163,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `Êtes-vous sûr de vouloir supprimer votre accès copilote au compte Expensify de ${delegatorName} ? Cette action est irréversible.`,
         removeCopilotAccessConfirm: "Supprimer l'accès",
         copilotAccess: 'Accès Copilot',
+        leaveAccount: 'Quitter le compte',
+        leaveAccountConfirmationText: 'Vous reviendrez à votre propre compte. Vous ne serez pas complètement déconnecté.',
     },
     debug: {
         debug: 'Déboguer',
