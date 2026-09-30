@@ -68,6 +68,9 @@ type DynamicFormField = {
 
     required: boolean;
 
+    /** Re-fetch the form with the current answers when this field changes. Nothing reads it yet; Wise sends it as `refreshRequirementsOnChange`. */
+    refreshOnChange?: boolean;
+
     /** Allowed values for select, multiselect and radio */
     values?: DynamicFormFieldOption[];
 
@@ -94,9 +97,6 @@ type DynamicFormField = {
 
     /** Sample value, shown as a hint */
     example?: string;
-
-    /** Re-fetch the form with the current answers when this field changes */
-    refreshOnChange: boolean;
 
     /** Show only when another answer matches one of these values */
     showWhen?: {

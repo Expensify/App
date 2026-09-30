@@ -21,7 +21,6 @@ Every field is a `DynamicFormField` (`src/types/onyx/DynamicFormField.ts`). The 
 | `values`, `dependsOn` | Options for choice fields; `dependsOn` filters them by another answer. |
 | `presentation: 'tabs'` | Select and radio only. Draws the choice as a segmented tab row, for the switch whose answer decides which fields follow through `showWhen`. Answers of fields hidden at submit time are not submitted. |
 | `showWhen` | Visibility by another answer. Hidden fields are never validated. |
-| `refreshOnChange` | Re-fetch the schema when this answer changes (`useRefreshOnChange`). |
 | `keyboard`, `multiline` | Text field hints. Digit-only regexes and `number` fields open the numeric keyboard on their own. |
 | `readonly` | Plain row with the prefilled value, skipped by validation. |
 | `sensitive` | Never saved to the draft. Use for SSNs and account numbers, per FORMS.md. |
