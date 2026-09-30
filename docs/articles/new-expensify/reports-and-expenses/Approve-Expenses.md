@@ -92,9 +92,7 @@ The current approver is skipped, and the report is assigned to the member you ch
 
 The report history records the change as *changed the approver to [new approver], skipped [previous approver]*.
 
-The approver list shows workspace members who are allowed to approve the report. The current approver is not listed, and members with the **Admin** role are marked with an **Admin** badge.
-
-**Note:** Only Workspace admins can reassign an approver, and only while the report is submitted and waiting for approval. The workspace must have an approval workflow enabled.
+**Note:** Only Workspace admins can reassign an approver, and only for Outstanding reports.
 
 ---
 
@@ -108,8 +106,6 @@ The approver list shows workspace members who are allowed to approve the report.
 6. If you selected **Add approver** or **Reassign approver**, choose the approver and click **Save**.
 
 **Note:** When selecting reports across multiple workspaces, only members who belong to all selected workspaces will appear in the approver list.
-
-**Reassign approver** is only offered when every selected report is submitted, waiting for approval, and on a workspace where you are an admin and an approval workflow is enabled.
 
 ---
 
