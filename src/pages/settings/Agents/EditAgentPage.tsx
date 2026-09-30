@@ -3,7 +3,7 @@ import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -24,6 +24,7 @@ import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import Parser from '@libs/Parser';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -80,6 +81,7 @@ function EditAgentPage({route}: EditAgentPageProps) {
     };
     const isPendingAddOrDelete = agent?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || agent?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const areActionsDisabled = isPendingAddOrDelete || accountID <= 0 || !agentLogin;
+    const agentPrompt = Str.htmlDecode(agent?.prompt?.trim() ?? '');
     const handleChatPress = () => {
         chatWithAgent(accountID);
     };
@@ -149,14 +151,10 @@ function EditAgentPage({route}: EditAgentPageProps) {
                     errorRowStyles={[styles.mh5, styles.mb2]}
                     onClose={() => clearAgentPromptUpdateError(accountID)}
                 >
-                    <MenuItemWithTopDescription
-                        description={translate('editAgentPage.instructions')}
-                        title={Str.htmlDecode(agent?.prompt?.trim() ?? '')}
-                        shouldParseTitle
-                        excludedMarkdownRules={['reportMentions']}
-                        shouldTruncateTitle
+                    <MenuItemFieldHTML
+                        name={translate('editAgentPage.instructions')}
+                        value={agentPrompt ? Parser.replace(agentPrompt, {disabledRules: ['reportMentions']}) : undefined}
                         characterLimit={CONST.AGENT_PROMPT_LIMIT}
-                        shouldShowRightIcon
                         onPress={handleEditPromptPress}
                     />
                 </OfflineWithFeedback>

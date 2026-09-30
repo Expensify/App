@@ -6,8 +6,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import {useMenuItemConfig, useMenuItemInteraction} from '@components/MenuItem/MenuItemContext';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -30,6 +30,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {createTaskAndNavigate, dismissModalAndClearOutTaskInfo, getAssignee, getShareDestination, setShareDestinationValue} from '@libs/actions/Task';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import {getPersonalDetailsListByIDs} from '@libs/PersonalDetailsUtils';
 import {isAllowedToComment} from '@libs/ReportUtils';
 
@@ -210,23 +211,17 @@ function DynamicNewTaskPage() {
                 >
                     <View style={styles.flex1}>
                         <View style={styles.mb5}>
-                            <MenuItemWithTopDescription
-                                description={translate('task.title')}
-                                title={task?.title}
+                            <MenuItemFieldHTML
+                                name={translate('task.title')}
+                                value={task?.title ? Parser.replace(task.title, {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]}) : undefined}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_TITLE.path))}
-                                shouldShowRightIcon
-                                rightLabel={translate('common.required')}
-                                shouldParseTitle
-                                excludedMarkdownRules={[...CONST.TASK_TITLE_DISABLED_RULES]}
-                            />
-                            <MenuItemWithTopDescription
-                                description={translate('task.description')}
-                                title={task?.description}
+                            >
+                                {!task?.title && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
+                            </MenuItemFieldHTML>
+                            <MenuItemFieldHTML
+                                name={translate('task.description')}
+                                value={task?.description ? Parser.replace(task.description) : undefined}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_DESCRIPTION.path))}
-                                shouldShowRightIcon
-                                shouldParseTitle
-                                numberOfLinesTitle={2}
-                                titleStyle={styles.flex1}
                             />
                             {assignee?.displayName ? (
                                 <MenuItem.Root

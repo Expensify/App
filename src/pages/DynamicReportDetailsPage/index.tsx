@@ -5,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -115,6 +116,9 @@ import StringUtils from '@libs/StringUtils';
 import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, getOriginalTransactionWithSplitInfo, isDemoTransaction} from '@libs/TransactionUtils';
 import {getAccountIDFromAvatarID} from '@libs/UserAvatarUtils';
 
+import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
+import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
+
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
 import {deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete} from '@userActions/IOU/TrackExpense';
@@ -133,20 +137,15 @@ import {canActionTask, canModifyTask, reopenTask} from '@userActions/Task';
 import {deleteTask} from '@userActions/TaskDeletion';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 
 import {StackActions, useFocusEffect} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
@@ -156,31 +155,12 @@ import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
-import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
+import type {DynamicReportDetailsPageMenuItem} from './types';
 
-import withReportOrNotFound from './inbox/report/withReportOrNotFound';
-
-type DynamicReportDetailsPageMenuItem = {
-    key: DeepValueOf<typeof CONST.REPORT_DETAILS_MENU_ITEM>;
-    translationKey: TranslationPaths;
-    icon: IconAsset;
-    isAnonymousAction: boolean;
-    action: () => void;
-    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-    subtitle?: number;
-    shouldShowRightIcon?: boolean;
-    subtitleStyle?: StyleProp<ViewStyle>;
-};
+import getReportDetailsCaseID from './getReportDetailsCaseID';
+import {CASES} from './types';
 
 type DynamicReportDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>;
-
-const CASES = {
-    DEFAULT: 'default',
-    MONEY_REQUEST: 'money_request',
-    MONEY_REPORT: 'money_report',
-};
-
-type CaseID = ValueOf<typeof CASES>;
 
 function DynamicReportDetailsPage({policy, report, route, reportMetadata, reportLoadingState}: DynamicReportDetailsPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
@@ -301,17 +281,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const shouldOpenRoomMembersPage = isUserCreatedPolicyRoom || isChatThread || (isPolicyExpenseChat && isPolicyAdmin);
     const participants = getParticipantsList(report, personalDetails, shouldOpenRoomMembersPage);
 
-    let caseID: CaseID;
-    if (isMoneyRequestReport || isInvoiceReport) {
-        // 3. MoneyReportHeader
-        caseID = CASES.MONEY_REPORT;
-    } else if (isSingleTransactionView) {
-        // 2. MoneyRequestHeader
-        caseID = CASES.MONEY_REQUEST;
-    } else {
-        // 1. HeaderView
-        caseID = CASES.DEFAULT;
-    }
+    const caseID = getReportDetailsCaseID({isMoneyRequestReport, isInvoiceReport, isMoneyRequest, isTrackExpenseReport});
 
     // Get the active chat members by filtering out the pending members with delete action
     const activeChatMembers = participants.flatMap((accountID) => {
@@ -1086,17 +1056,16 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     {shouldShowReportDescription && (
                         <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
                             <MentionReportContext.Provider value={mentionReportContextValue}>
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon
-                                    interactive
-                                    title={getReportDescription(report)}
-                                    shouldRenderAsHTML
-                                    shouldTruncateTitle
-                                    characterLimit={100}
-                                    shouldCheckActionAllowedOnPress={false}
-                                    description={translate('reportDescriptionPage.roomDescription')}
-                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path))}
-                                />
+                                <MenuItem.Root onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path))}>
+                                    <MenuItem.Row>
+                                        <MenuItemField.Content name={translate('reportDescriptionPage.roomDescription')}>
+                                            {!!getReportDescription(report) && <MenuItem.FieldValueHTML characterLimit={100}>{getReportDescription(report)}</MenuItem.FieldValueHTML>}
+                                        </MenuItemField.Content>
+                                        <MenuItem.Trailing>
+                                            <MenuItem.Chevron />
+                                        </MenuItem.Trailing>
+                                    </MenuItem.Row>
+                                </MenuItem.Root>
                             </MentionReportContext.Provider>
                         </OfflineWithFeedback>
                     )}
