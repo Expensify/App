@@ -156,4 +156,4 @@ function buildChartSeries({primary, comparison, view, groupBy, getLabel, getShor
 }
 
 export {buildChartSeries, getSliceColorsByDataIndex, CHART_SERIES_KEY};
-export type {BuildChartSeriesParams, ChartSeriesWindow, SearchChartModel};
+export type {SearchChartModel};

@@ -145,4 +145,3 @@ function resolveComparisonWindows(date: InsightsFilters['date'], translate: Loca
 }
 
 export default resolveComparisonWindows;
-export type {ComparisonWindow, ComparisonWindows};

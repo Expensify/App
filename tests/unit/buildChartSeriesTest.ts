@@ -53,8 +53,8 @@ function buildRows(data: GroupedItem[], view: ChartView, getShortLabel?: (item: 
 }
 
 /** The amount the chart plots for a row's period on screen. */
-function getPlottedValue(point: ChartDataPoint) {
-    return getSeriesValue(point, CHART_SERIES_KEY.PRIMARY);
+function getPlottedValue(dataPoint: ChartDataPoint) {
+    return getSeriesValue(dataPoint, CHART_SERIES_KEY.PRIMARY);
 }
 
 /** A point as the chart reads it, plotting one period. */
@@ -260,8 +260,15 @@ describe('buildChartSeries with a compared period', () => {
             comparison: {rows: previousRows, label: 'YTD 2025', color: '#previous', start: PREVIOUS_WINDOW_START},
             view: CONST.SEARCH.VIEW.BAR,
             groupBy,
-            getLabel: (item) =>
-                item.groupedBy === CONST.SEARCH.GROUP_BY.MERCHANT ? (item.formattedMerchant ?? '') : item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? (item.formattedQuarter ?? '') : '',
+            getLabel: (item) => {
+                if (item.groupedBy === CONST.SEARCH.GROUP_BY.MERCHANT) {
+                    return item.formattedMerchant ?? '';
+                }
+                if (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER) {
+                    return item.formattedQuarter ?? '';
+                }
+                return '';
+            },
             getCurrencyDecimals,
         });
     }

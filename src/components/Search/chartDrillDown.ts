@@ -57,4 +57,3 @@ function buildViewOnSpendQuery(queryJSON: Readonly<SearchQueryJSON>): SearchQuer
 }
 
 export {buildChartDrillDownQuery, buildViewOnSpendQuery};
-export type {ChartDrillDown};

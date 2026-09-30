@@ -168,4 +168,3 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, comp
 }
 
 export default SearchChartView;
-export type {SearchChartComparison, SearchChartWindow};

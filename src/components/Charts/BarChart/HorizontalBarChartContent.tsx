@@ -1,5 +1,4 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import ChartLegend from '@components/Charts/components/ChartLegend';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import type {HitTestArgs, ResolveTargetIndexArgs} from '@components/Charts/hooks';
@@ -179,6 +178,15 @@ function HorizontalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxi
         unitPosition: yAxisUnitPosition,
     });
 
+    /** Thickness of a whole row of bars, which a row splits between its series */
+    const barThickness = useSharedValue(0);
+    const rowHeight = useSharedValue(0);
+
+    /** Canvas y position of each row's center, so a press can be traced back to the bar under the cursor */
+    const rowCenters = useSharedValue<number[]>([]);
+    const xZero = useSharedValue(0);
+    const plotLeft = useSharedValue(0);
+
     /** The series whose bar sits under `cursorY`, resolved from the row's top edge */
     const resolveSeriesKey = (rowCenterY: number, cursorY: number): string => {
         const groupThickness = barThickness.get();
@@ -210,15 +218,6 @@ function HorizontalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxi
         const verticalPadding = calculateMinDomainPadding(barAreaHeight, data.length, HORIZONTAL_BAR_PADDING);
         return {...BASE_DOMAIN_PADDING, top: verticalPadding, bottom: verticalPadding};
     })();
-
-    /** Thickness of a whole row of bars, which a row splits between its series */
-    const barThickness = useSharedValue(0);
-    const rowHeight = useSharedValue(0);
-
-    /** Canvas y position of each row's center, so a press can be traced back to the bar under the cursor */
-    const rowCenters = useSharedValue<number[]>([]);
-    const xZero = useSharedValue(0);
-    const plotLeft = useSharedValue(0);
 
     const handleChartBoundsChange = (bounds: ChartBounds) => {
         const plotHeight = bounds.bottom - bounds.top;
