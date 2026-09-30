@@ -2,9 +2,7 @@ import {NavigationContext} from '@react-navigation/core';
 import {useContext, useEffect, useRef, useState} from 'react';
 
 type UsePressLoadingOptions = {
-    /**
-     * External loading flag (e.g. driven by Onyx). Leave it undefined when there is none.
-     */
+    /** External loading flag (e.g. driven by Onyx). Leave it undefined when there is none. */
     isLoading?: boolean;
     /** Reset the pressed state when the screen regains navigation focus. Defaults to true. */
     resetOnFocus?: boolean;
@@ -32,27 +30,32 @@ type UsePressLoadingReturn = {
  */
 function usePressLoading({isLoading, resetOnFocus = true}: UsePressLoadingOptions = {}): UsePressLoadingReturn {
     const [isPressed, setIsPressed] = useState(false);
-    // Bumped on every press and focus reset, so a stale invocation cannot clear the loading state of a newer one.
-    const invocationRef = useRef(0);
-    // Set synchronously on press, so a second press landing before React commits isPressed is ignored instead of running the work twice.
-    const isRunningRef = useRef(false);
+    // The press in flight, set synchronously so a second press before React commits isPressed is ignored
+    const activePressRef = useRef<symbol | null>(null);
+    const navigationContext = useContext(NavigationContext);
 
-    const hasExternalLoading = isLoading !== undefined;
-
+    // Hands the loading state over from the pressed flag to the external isLoading once it turns true
     if (isPressed && isLoading) {
         setIsPressed(false);
     }
 
-    const navigationContext = useContext(NavigationContext);
+    const release = (press: symbol, shouldClear: boolean) => {
+        if (activePressRef.current !== press) {
+            return;
+        }
+        activePressRef.current = null;
+        if (shouldClear) {
+            setIsPressed(false);
+        }
+    };
 
     // Defer the work by one macrotask so React can commit isPressed and paint the spinner before the consumer code that may block the JS thread runs.
     const startWithLoading: StartWithLoading = async (runAfterPaint) => {
-        if (isRunningRef.current) {
+        if (activePressRef.current) {
             return;
         }
-        isRunningRef.current = true;
-        invocationRef.current += 1;
-        const invocation = invocationRef.current;
+        const press = Symbol('press');
+        activePressRef.current = press;
         setIsPressed(true);
         await new Promise((resolve) => {
             setTimeout(resolve, 0);
@@ -60,20 +63,10 @@ function usePressLoading({isLoading, resetOnFocus = true}: UsePressLoadingOption
         try {
             await runAfterPaint();
         } catch (error) {
-            if (invocation === invocationRef.current) {
-                isRunningRef.current = false;
-                setIsPressed(false);
-            }
+            release(press, true);
             throw error;
         }
-        if (invocation !== invocationRef.current) {
-            return;
-        }
-        isRunningRef.current = false;
-        // A handler that navigated away leaves the pressed state to the focus reset, so the spinner does not blink off during the transition
-        if (!hasExternalLoading && (navigationContext?.isFocused() ?? true)) {
-            setIsPressed(false);
-        }
+        release(press, isLoading === undefined && (navigationContext?.isFocused() ?? true));
     };
 
     useEffect(() => {
@@ -81,8 +74,7 @@ function usePressLoading({isLoading, resetOnFocus = true}: UsePressLoadingOption
             return;
         }
         return navigationContext.addListener('focus', () => {
-            invocationRef.current += 1;
-            isRunningRef.current = false;
+            activePressRef.current = null;
             setIsPressed(false);
         });
     }, [resetOnFocus, isPressed, navigationContext]);
