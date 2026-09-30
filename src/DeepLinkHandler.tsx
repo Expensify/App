@@ -132,8 +132,8 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                         introSelected,
                         guidedSetupAndTourStatus?.isSelfTourViewed,
                         session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                        conciergePersonalDetails,
                         reportNameValuePairsRef.current,
+                        conciergePersonalDetails,
                     );
                     trackPendingPublicRoomFromDeepLink(url, isCurrentlyAuthenticated);
                 } else {
@@ -176,8 +176,8 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 introSelected,
                 guidedSetupAndTourStatus?.isSelfTourViewed,
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                conciergePersonalDetails,
                 reportNameValuePairsRef.current,
+                conciergePersonalDetails,
             );
             trackPendingPublicRoomFromDeepLink(state.url, isCurrentlyAuthenticated);
         });

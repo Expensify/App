@@ -432,8 +432,8 @@ function openReportFromDeepLink(
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
     callerAccountID: number,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
 ) {
     const reportID = getReportIDFromLink(url);
 
