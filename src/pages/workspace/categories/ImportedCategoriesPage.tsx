@@ -10,6 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 
 import {importPolicyCategories} from '@libs/actions/Policy/Category';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -52,7 +53,7 @@ function parseCsvReceiptValue(raw: string | undefined): number | undefined {
     }
     const num = Number(trimmed);
     if (Number.isFinite(num) && num >= 0) {
-        return num;
+        return convertToBackendAmount(num);
     }
     return undefined;
 }
@@ -67,7 +68,7 @@ function parseCsvAmountValue(raw: string | undefined): number | undefined {
         return undefined;
     }
     const num = Number(trimmed);
-    return Number.isFinite(num) && num >= 0 ? num : undefined;
+    return Number.isFinite(num) && num >= 0 ? convertToBackendAmount(num) : undefined;
 }
 
 /**
