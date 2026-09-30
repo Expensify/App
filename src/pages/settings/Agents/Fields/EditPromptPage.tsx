@@ -40,12 +40,13 @@ function EditPromptPage({route}: EditPromptPageProps) {
     const styles = useThemeStyles();
     const {isKeyboardActive} = useKeyboardState();
     const isInLandscapeMode = useIsInLandscapeMode();
+    const shouldUseScrollableLayout = Platform.OS !== 'web' || isInLandscapeMode;
     const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
     const accountID = route.params.accountID;
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
     const formRef = useRef<FormRef>(null);
     const promptTopOffsetRef = useRef(0);
-    const scrollToInput = () => scrollToMultilineInput(formRef, isInLandscapeMode, promptTopOffsetRef.current);
+    const scrollToInput = () => scrollToMultilineInput(formRef, shouldUseScrollableLayout, promptTopOffsetRef.current);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM> = {};
@@ -84,6 +85,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
             testID={EditPromptPage.displayName}
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
+            shouldEnableMaxHeight={shouldUseScrollableLayout && !isInLandscapeMode}
         >
             <CollapsibleHeaderOnKeyboard>
                 <HeaderWithBackButton
@@ -98,7 +100,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
                 onSubmit={handleSubmit}
                 submitButtonText={translate('common.save')}
                 style={[styles.flex1, styles.ph5]}
-                shouldUseScrollView={isInLandscapeMode}
+                shouldUseScrollView={shouldUseScrollableLayout}
                 submitFlexEnabled={false}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
@@ -108,7 +110,11 @@ function EditPromptPage({route}: EditPromptPageProps) {
             >
                 <View style={[styles.flex1, styles.flexColumn, styles.gap5]}>
                     <View
-                        style={shouldShrinkPromptInput ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE) : [isInLandscapeMode ? styles.h42 : styles.flex1]}
+                        style={
+                            shouldShrinkPromptInput
+                                ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE)
+                                : [isInLandscapeMode ? styles.h42 : styles.flex1, shouldUseScrollableLayout && styles.minHeight42]
+                        }
                         onLayout={(event) => {
                             promptTopOffsetRef.current = event.nativeEvent.layout.y;
                         }}
