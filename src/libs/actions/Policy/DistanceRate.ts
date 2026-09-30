@@ -779,7 +779,12 @@ function setEmployeeWorkArrangement(
         failureData.push({onyxMethod: Onyx.METHOD.MERGE, key: reportActionsKey, value: failureReportActions});
     }
 
-    const parameters: SetEmployeeWorkArrangementParams = {policyID, employeeAccountIDList: updates.map((update) => update.accountID).join(','), isOffice};
+    const parameters: SetEmployeeWorkArrangementParams = {
+        policyID,
+        employeeAccountIDList: updates.map((update) => update.accountID).join(','),
+        employeeLoginList: updates.map((update) => update.email).join(','),
+        isOffice,
+    };
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {optimisticData, successData, failureData};
     API.write(WRITE_COMMANDS.SET_EMPLOYEE_WORK_ARRANGEMENT, parameters, onyxData);
 }
