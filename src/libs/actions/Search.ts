@@ -782,6 +782,7 @@ function getOnyxLoadingData(
     offset?: number,
     isSearchAPI = false,
     shouldCalculateTotals?: boolean,
+    shouldShowLoading = true,
 ): OnyxData<typeof ONYXKEYS.COLLECTION.SNAPSHOT> {
     const shouldClearTotals = isSearchAPI && shouldCalculateTotals === false && offset === 0;
 
@@ -798,7 +799,7 @@ function getOnyxLoadingData(
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
                 search: {
-                    ...(isSearchAPI && {isLoading: true}),
+                    ...(isSearchAPI && shouldShowLoading && {isLoading: true}),
                     ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.LOADING}),
                     ...(offset !== undefined ? {offset} : {}),
                     ...(shouldClearTotals ? {count: null, reportCount: null, total: null, currency: null} : {}),
@@ -1174,6 +1175,7 @@ type InFlightSearchRequest = {
     pendingShouldCalculateTotals?: boolean;
     pendingShouldSaveRecentSearch?: boolean;
     pendingUpgradeRequest?: () => Promise<string | number | undefined> | undefined;
+    didSucceed?: boolean;
 };
 
 // Tracks in-flight search requests by hash+offset to prevent duplicate API calls when both page-level
@@ -1257,6 +1259,7 @@ function search({
     shouldUpdateLastSearchParams = false,
     skipWaitForWrites = false,
     shouldSaveRecentSearch = false,
+    shouldShowLoading = true,
 }: {
     queryJSON: Readonly<SearchQueryJSON>;
     searchKey: SearchKey | undefined;
@@ -1280,6 +1283,8 @@ function search({
      * with an incomplete filter set and has to be re-fired once that data lands.
      */
     skipWaitForWrites?: boolean;
+    /** When false, the request leaves `search.isLoading` unset, so the current results stay on screen without a loading state. */
+    shouldShowLoading?: boolean;
 }): Promise<string | number | undefined> | undefined {
     if (isLoading || shouldPreventSearchAPI) {
         return;
@@ -1311,6 +1316,9 @@ function search({
                     shouldUpdateLastSearchParams,
                     skipWaitForWrites,
                     shouldSaveRecentSearch: inFlightRequest.pendingShouldSaveRecentSearch,
+                    // A re-fire that only adds the save flag returns the same results the finished request just showed,
+                    // so it must not show loading again (the footer would flash its skeleton over the totals).
+                    shouldShowLoading: !inFlightRequest.didSucceed || inFlightRequest.pendingShouldCalculateTotals !== inFlightRequest.shouldCalculateTotals,
                 });
         }
         return;
@@ -1318,7 +1326,7 @@ function search({
     const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch};
     inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
 
-    const onyxLoadingData = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals);
+    const onyxLoadingData = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals, shouldShowLoading);
     const {backendQueryJSON, limit, exactMatchFilterKeys} = getBackendQueryJSON(queryJSON);
     const query = {
         ...backendQueryJSON,
@@ -1361,6 +1369,7 @@ function search({
         makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData})
             .then((result) => {
                 const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
+                inFlightRequestState.didSucceed = result?.jsonCode === CONST.JSON_CODE.SUCCESS;
 
                 // The UI treats a successful response with no snapshot data as an empty result, so record it for diagnosis.
                 if (result?.jsonCode === CONST.JSON_CODE.SUCCESS && response?.data === undefined) {
