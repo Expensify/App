@@ -28,7 +28,7 @@ You'll receive the exported CSV file in a message from Concierge.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend** > **Expenses**.
 2. Select the checkbox next to each expense you want to export, or use the top checkbox to select all.
-3. On the selection bar, choose **Export** 
+3. On the selection bar, choose **Export**.
 4. Choose an export template from the menu that appears. 
 
 You'll receive the exported CSV file in a message from Concierge.
