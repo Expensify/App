@@ -27,7 +27,6 @@ import {
     getUserFriendlyWorkspaceType,
     isAutoPayApprovedReportsAvailable,
     isControlPolicy,
-    // eslint-disable-next-line no-restricted-imports -- billing-only: checks the workspace actually upgraded to a paid plan, not general feature access
     isPaidGroupPolicy,
     isSubmitPolicy,
 } from '@libs/PolicyUtils';
