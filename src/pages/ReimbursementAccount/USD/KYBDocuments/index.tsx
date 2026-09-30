@@ -56,7 +56,6 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const reimbursementAccountVerificationData = reimbursementAccount?.achData?.verifications?.externalApiResponses;
@@ -69,7 +68,6 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
             introSelected,
             currentUserAccountID,
             isSelfTourViewed,
-            betas,
             shouldDismissModal: true,
             reportActionID: reimbursementAccount?.achData?.ACHRequestReportActionID,
         });
