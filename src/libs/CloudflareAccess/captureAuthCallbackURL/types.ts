@@ -3,7 +3,7 @@ import type {AuthorizationCodeExchange} from '@libs/CloudflareAccess/OAuthClient
 type CloudflareSignInOutcome =
     /** Every normal boot, every native boot, and every boot without QA auth configured */
     | 'not-a-callback'
-    /** The callback's code went to the exchange, whose failure is logged */
+    /** The callback's code went to the exchange, whose failure CloudflareSession records */
     | 'code-captured'
     /** State mismatch or no authorization code. Nothing was exchanged */
     | 'invalid-callback'

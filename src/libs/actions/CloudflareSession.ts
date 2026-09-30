@@ -1,10 +1,6 @@
 /**
  * Owns the Cloudflare Access OAuth session for the QA server: Onyx-backed cache, the same-tab redirect
  * flow, and the single-flight refresh. Web-only until native claims Universal/App Links.
- *
- * A sign-out does not cancel work in flight here: a rotation or exchange that resolves after it persists.
- * The Cloudflare identity belongs to the developer, not to the Expensify account, so there is nothing to
- * protect by discarding it, and keeping it spares the next QA request a fresh authorize round trip.
  */
 import {isQAAuthConfigured} from '@libs/CloudflareAccess/Config';
 import {generatePKCEPair, generateState} from '@libs/CloudflareAccess/generatePKCE';
@@ -12,6 +8,7 @@ import {buildAuthorizeURL, exchangeCode, OAuthError, refreshTokens} from '@libs/
 import type {AuthorizationCodeExchange} from '@libs/CloudflareAccess/OAuthClient';
 import {savePendingAuthFlow} from '@libs/CloudflareAccess/PendingAuthFlowStorage';
 import Log from '@libs/Log';
+import {registerSessionCleanupCallback} from '@libs/SessionCleanup';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type CloudflareSession from '@src/types/onyx/CloudflareSession';
@@ -25,9 +22,9 @@ const ACCESS_TOKEN_EXPIRY_BUFFER_MS = 60_000;
 let sessionCache: CloudflareSession | null | undefined;
 
 /**
- * Bumped only by `clearCloudflareSession`. The async flows below cannot be cancelled, so each captures this
- * at the start and re-checks it after awaits. A mismatch makes the late result inert. Every new `await`
- * added to this module must re-check the captured generation afterwards.
+ * Bumped by sign-out and by `clearCloudflareSession`. The async flows below cannot be cancelled, so each
+ * captures this at the start and re-checks it after awaits. A mismatch makes the late result inert. Every
+ * new `await` added to this module must re-check the captured generation afterwards.
  */
 let sessionGeneration = 0;
 
@@ -45,6 +42,11 @@ if (isQAAuthConfigured()) {
             sessionCache = value ?? null;
             resolveHydration();
         },
+    });
+    // Onyx.clear wipes the key but its callback is async, so drop the cache synchronously
+    registerSessionCleanupCallback(() => {
+        sessionGeneration++;
+        sessionCache = null;
     });
 } else {
     // Nothing will ever hydrate the cache, so a waiter must not block forever
@@ -108,6 +110,9 @@ async function redirectToCloudflareSignIn(returnURL: string = window.location.hr
 
 let codeExchangePromise: Promise<void> | null = null;
 
+/** Outlives the settled exchange, so this page load still knows its callback failed once the promise above clears */
+let codeExchangeErrorMessage: string | undefined;
+
 function exchangeCodeForCloudflareSession({code, codeVerifier}: AuthorizationCodeExchange): Promise<void> {
     const generation = sessionGeneration;
     // Single-flight: a caller joining mid-exchange must not burn the single-use authorization code twice
@@ -118,6 +123,10 @@ function exchangeCodeForCloudflareSession({code, codeVerifier}: AuthorizationCod
             }
             return cacheAndPersistSession(session, 'exchanged');
         })
+        .catch((error: unknown) => {
+            codeExchangeErrorMessage = error instanceof Error ? error.message : String(error);
+            throw error;
+        })
         .finally(() => {
             codeExchangePromise = null;
         });
@@ -127,6 +136,11 @@ function exchangeCodeForCloudflareSession({code, codeVerifier}: AuthorizationCod
 /** Non-null only mid-exchange, so callers join it instead of starting a second redirect */
 function getPendingCloudflareCodeExchange(): Promise<void> | null {
     return codeExchangePromise;
+}
+
+/** Set once this page load's exchange rejected. Its code is spent, so only a fresh round trip can recover */
+function getCloudflareCodeExchangeError(): string | undefined {
+    return codeExchangeErrorMessage;
 }
 
 type CloudflareRefreshResult = 'refreshed' | 'skipped-newer-token' | 'reauth-required';
@@ -197,6 +211,7 @@ function refreshCloudflareSession(staleAccessToken: string): Promise<CloudflareR
 
 /** Deletes the session for every tab */
 function clearCloudflareSession(): Promise<void> {
+    // In-flight work must not undo the clear by persisting its late result, exactly like on sign-out
     sessionGeneration++;
     // Synchronous, so a probe pressed right after Clear cannot read the dead session
     sessionCache = null;
@@ -207,6 +222,7 @@ export {
     redirectToCloudflareSignIn,
     clearCloudflareSession,
     exchangeCodeForCloudflareSession,
+    getCloudflareCodeExchangeError,
     getCloudflareSession,
     getPendingCloudflareCodeExchange,
     isSessionNearExpiry,

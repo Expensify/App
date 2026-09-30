@@ -6,6 +6,7 @@ import type * as PKCEModule from '@libs/CloudflareAccess/generatePKCE';
 import type WebCryptoProvider from '@libs/CloudflareAccess/getWebCrypto/types';
 import type * as OAuthClientModule from '@libs/CloudflareAccess/OAuthClient';
 import type * as PendingAuthFlowStorageModule from '@libs/CloudflareAccess/PendingAuthFlowStorage';
+import type * as SessionCleanupModule from '@libs/SessionCleanup';
 
 import type * as SessionActionsModule from '@userActions/CloudflareSession';
 
@@ -65,6 +66,7 @@ let SessionActions: typeof SessionActionsModule;
 let oAuthClient: typeof OAuthClientModule;
 let pkce: typeof PKCEModule;
 let pendingAuthFlowStorage: typeof PendingAuthFlowStorageModule;
+let sessionCleanup: typeof SessionCleanupModule;
 let assignSpy: jest.Mock;
 let realLocation: Location;
 
@@ -89,6 +91,7 @@ beforeEach(() => {
     oAuthClient = require<typeof OAuthClientModule>('@libs/CloudflareAccess/OAuthClient');
     pkce = require<typeof PKCEModule>('@libs/CloudflareAccess/generatePKCE');
     pendingAuthFlowStorage = require<typeof PendingAuthFlowStorageModule>('@libs/CloudflareAccess/PendingAuthFlowStorage');
+    sessionCleanup = require<typeof SessionCleanupModule>('@libs/SessionCleanup');
     SessionActions = require<typeof SessionActionsModule>('@userActions/CloudflareSession');
 });
 
@@ -272,23 +275,24 @@ describe('refreshCloudflareSession', () => {
         expect(SessionActions.getCloudflareSession()).toBeNull();
     });
 
-    it('keeps a rotation that resolves after an Expensify sign-out', async () => {
+    it('requires reauth when the submitted token is rejected after an Expensify sign-out', async () => {
         // Given a stored session and a refresh still in flight when the user signs out of Expensify
         await seedSession(SESSION_A);
         const refreshDeferred = Promise.withResolvers<CloudflareSession>();
         jest.mocked(oAuthClient.refreshTokens).mockReturnValue(refreshDeferred.promise);
 
-        // When the sign-out clear drops the key from Onyx before the rotation resolves. No sign-out list
-        // preserves it, which KeysToPreserveTest proves
+        // When sign-out runs its cleanup and clears Onyx, as the app does, before the server rejects the token
         const refresh = SessionActions.refreshCloudflareSession(SESSION_A.accessToken);
+        sessionCleanup.runSessionCleanupCallbacks();
         await Onyx.clear();
         await waitForBatchedUpdates();
-        expect(SessionActions.getCloudflareSession()).toBeNull();
-        refreshDeferred.resolve(SESSION_B);
-        await refresh;
+        refreshDeferred.reject(new oAuthClient.OAuthError('invalid_grant'));
 
-        // Then the rotation stands: the Cloudflare identity is the developer's, not the signed-in account's
-        expect(SessionActions.getCloudflareSession()).toEqual(SESSION_B);
+        // Then the caller learns it must sign in again. The cleared session also no longer holds the submitted
+        // token, which reads like another tab's rotation, so without the sign-out bump the caller would be told
+        // to retry with a newer token that does not exist
+        await expect(refresh).resolves.toBe('reauth-required');
+        expect(SessionActions.getCloudflareSession()).toBeNull();
     });
 });
 
@@ -484,13 +488,17 @@ describe('exchangeCodeForCloudflareSession', () => {
         // Given an empty store (Onyx storage outlives jest.resetModules, so an earlier test's persisted
         // session would hydrate here) and an exchange the server rejects
         await seedSession(null);
-        jest.mocked(oAuthClient.exchangeCode).mockRejectedValue(new oAuthClient.OAuthError('invalid_grant'));
+        const exchangeError = new oAuthClient.OAuthError('invalid_grant');
+        jest.mocked(oAuthClient.exchangeCode).mockRejectedValue(exchangeError);
 
         // When the completion runs, Then the failure must reach the caller. Only a fresh authorize round
         // trip can recover, and nothing is cached or left pending, because a failed exchange produced no session
         await expect(SessionActions.exchangeCodeForCloudflareSession({code: 'bad-code', codeVerifier: PAIR_1.codeVerifier})).rejects.toMatchObject({code: 'invalid_grant'});
         expect(SessionActions.getCloudflareSession()).toBeNull();
         expect(SessionActions.getPendingCloudflareCodeExchange()).toBeNull();
+        // Then the failure outlives the cleared handle, so a reader arriving after the exchange settled still
+        // learns this page load's callback failed, rather than starting a round trip into the same failure
+        expect(SessionActions.getCloudflareCodeExchangeError()).toBe(exchangeError.message);
     });
 });
 
