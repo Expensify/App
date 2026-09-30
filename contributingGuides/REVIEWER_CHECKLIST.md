@@ -41,7 +41,7 @@
     - [ ] I verified that all the inputs inside a form are aligned with each other.
     - [ ] I added `Design` label and/or tagged `@Expensify/design` so the design team can review the changes.
 - [ ] If the PR adds or modifies the UI:
-    - [ ] I asked claude code to review the changes for accessibility issues and commented its findings.
+    - [ ] I asked an AI agent to review the changes for accessibility issues and addressed its findings.
     - [ ] I tested with a screen reader (VoiceOver on macOS) and verified all new/changed elements are reachable with a logical focus order.
     - [ ] I verified all new/changed elements have meaningful accessible names and roles.
     - [ ] I verified state changes are announced (e.g. checked/unchecked, expanded/collapsed, selected).
