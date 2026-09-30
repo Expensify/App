@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setEmployeeWorkArrangement} from '@libs/actions/Policy/DistanceRate';
@@ -15,7 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {canMemberWrite, isMemberInHomeAndOfficeWorkspace} from '@libs/PolicyUtils';
-import {getEffectiveWorkArrangement, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
+import {getEffectiveWorkArrangement, getMemberLoginByAccountID, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -56,8 +57,10 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
     const {isBetaEnabled} = usePermissions();
     const isWorkArrangementBetaEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS);
 
-    const memberLogin = personalDetails?.[accountID]?.login ?? '';
+    const memberLogin = personalDetails?.[accountID]?.login ?? getMemberLoginByAccountID(policy, accountID);
     const member = policy?.employeeList?.[memberLogin];
+    const memberPersonalDetails = usePersonalDetailByLogin(memberLogin);
+    const memberAccountID = memberPersonalDetails?.accountID ?? accountID;
     const canWriteMembers = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS);
     const canAccessWorkArrangementPage = canWriteMembers && isWorkArrangementBetaEnabled && isMemberInHomeAndOfficeWorkspace(policy, memberLogin);
 
@@ -65,14 +68,14 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
     const currentIsOffice = getEffectiveWorkArrangement(member?.hasOfficeWorkArrangement, policy?.commuterExclusions?.isOfficeWorkArrangement);
 
     const navigateBackToDetails = () => {
-        Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+        Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, memberAccountID));
     };
 
     const changeWorkArrangement = ({value}: WorkArrangementOption) => {
         if (value === currentIsOffice || !canAccessWorkArrangementPage) {
             return;
         }
-        setEmployeeWorkArrangement(policy, [accountID], value, personalDetails, translate);
+        setEmployeeWorkArrangement(policy, [memberAccountID], value, personalDetails, translate);
         navigateBackToDetails();
     };
 
