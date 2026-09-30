@@ -1,6 +1,7 @@
 import type {RootStackNavigatorAction} from '@libs/Navigation/AppNavigator/createRootStackNavigator/types';
 import addRootHistoryRouterExtension from '@libs/Navigation/AppNavigator/routerExtensions/addRootHistoryRouterExtension';
 import type {CustomHistoryEntry} from '@libs/Navigation/AppNavigator/routerExtensions/types';
+import {clearPreMountedUnderCurrentFullscreenRouteKey, setPreMountedUnderCurrentFullscreenRouteKey} from '@libs/Navigation/helpers/preMountedUnderCurrentFullscreenRouteKey';
 import type {PlatformStackNavigationState, PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import CONST from '@src/CONST';
@@ -823,6 +824,52 @@ describe('addRootHistoryRouterExtension', () => {
             const newState = enhancedRouter.getStateForAction(state, makeDismissAction(), CONFIG_OPTIONS);
 
             expect(newState?.history?.at(-1)).toBe(modalTag('m1'));
+        });
+    });
+
+    describe('wide pre-mount under the current fullscreen (PRE_MOUNT_UNDER_CURRENT_FULLSCREEN)', () => {
+        afterEach(() => {
+            clearPreMountedUnderCurrentFullscreenRouteKey();
+        });
+
+        it('keeps history still on insert and rebuilds later history without the pre-mounted route', () => {
+            // Given a stack of [TabA, RHP] whose history mirrors the browser, and a router that inserts the pre-mount under TabA
+            const tabA = makeRoute('TabA', 'tab-a-1');
+            const rhp = makeRoute(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, 'rhp-1');
+            const preMounted = makeRoute('TabB', 'tab-b-pre-mounted');
+            const factory = createMockRouterFactory((state, action) => {
+                if (action.type === CONST.NAVIGATION.ACTION_TYPE.PRE_MOUNT_UNDER_CURRENT_FULLSCREEN) {
+                    setPreMountedUnderCurrentFullscreenRouteKey(action.payload.routeKey);
+                    const routes = [preMounted, ...state.routes];
+                    return {...state, routes, routeNames: routes.map((r) => r.name), index: routes.length - 1};
+                }
+                if (action.type === 'NAVIGATE') {
+                    const routes = [...state.routes, makeRoute(action.payload.name, nextTestKey(action.payload.name))];
+                    return {...state, routes, routeNames: routes.map((r) => r.name), index: routes.length - 1};
+                }
+                return state;
+            });
+            const enhancedRouter = addRootHistoryRouterExtension(factory)(createMock<PlatformStackRouterOptions>({}));
+            const stateWithRHP = makeState([tabA, rhp], {
+                history: createMock<CustomHistoryEntry[]>([
+                    {key: 'tab-a-1', name: 'TabA'},
+                    {key: 'rhp-1', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR},
+                ]),
+            });
+
+            // When the destination is pre-mounted and the user then navigates inside the RHP
+            const afterInsert = getTestStateForAction(enhancedRouter, stateWithRHP, {
+                type: CONST.NAVIGATION.ACTION_TYPE.PRE_MOUNT_UNDER_CURRENT_FULLSCREEN,
+                payload: {routeKey: 'tab-b-pre-mounted', tabState: {index: 0, routes: []}},
+            });
+            const afterNavigate = getTestStateForAction(enhancedRouter, afterInsert, {type: 'NAVIGATE', payload: {name: 'ScreenB'}} as RootStackNavigatorAction);
+
+            // Then the insert leaves history untouched (useLinking sees historyDelta=0) and the rebuilt history still skips the pre-mounted route
+            expect(afterInsert.routes.length).toBe(3);
+            expect(afterInsert.history?.length).toBe(2);
+            expect(afterNavigate.routes.length).toBe(4);
+            expect(afterNavigate.history?.length).toBe(3);
+            expect(afterNavigate.history?.some((entry) => isCustomHistoryEntry(entry) && typeof entry !== 'string' && entry.key === 'tab-b-pre-mounted')).toBe(false);
         });
     });
 });

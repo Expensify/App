@@ -3,20 +3,20 @@ import type CONST from '@src/CONST';
 import type {ValueOf} from 'type-fest';
 
 type AfterTransition = () => void;
-type NarrowDestinationStrategy = ValueOf<typeof CONST.NARROW_DESTINATION_STRATEGY>;
+type DestinationStrategy = ValueOf<typeof CONST.DESTINATION_STRATEGY>;
 
 type UsePreMountDestinationOptions = {
     /**
-     * Controls how the destination is prepared on narrow layout.
+     * Controls how the destination is prepared.
      *
-     * - CONST.NARROW_DESTINATION_STRATEGY.PRE_INSERT: eagerly pre-mount the route behind the RHP, then dismiss over it.
-     * - CONST.NARROW_DESTINATION_STRATEGY.REVEAL: skip eager pre-mount and insert/reveal the route when reveal() is called.
+     * - CONST.DESTINATION_STRATEGY.PRE_INSERT: eagerly pre-mount the route (under the RHP on narrow, under the current
+     *   fullscreen on wide layout), then reveal over it.
+     * - CONST.DESTINATION_STRATEGY.REVEAL: skip eager pre-mount and insert/reveal the route when reveal() is called.
      *
-     * Wide layout always uses reveal-time navigation. If the hook already pre-inserted the destination,
-     * reveal() still dismisses over that owned route even if this option later changes to REVEAL. Defaults
-     * to CONST.NARROW_DESTINATION_STRATEGY.PRE_INSERT.
+     * If the hook already pre-inserted the destination, reveal() still reveals that owned route even if this option later
+     * changes to REVEAL. Defaults to CONST.DESTINATION_STRATEGY.PRE_INSERT.
      */
-    narrowDestinationStrategy?: NarrowDestinationStrategy;
+    destinationStrategy?: DestinationStrategy;
 
     /**
      * When true on unmount, the pre-inserted route is preserved (e.g. the user submitted
@@ -41,4 +41,4 @@ type UsePreMountDestinationResult = {
     cleanupPreMount: () => void;
 };
 
-export type {AfterTransition, NarrowDestinationStrategy, UsePreMountDestinationOptions, UsePreMountDestinationResult};
+export type {AfterTransition, DestinationStrategy, UsePreMountDestinationOptions, UsePreMountDestinationResult};

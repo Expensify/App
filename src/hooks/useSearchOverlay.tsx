@@ -83,7 +83,9 @@ function useSearchOverlay({
         useCallback(() => {
             const hasPending = hasPendingSearchWrite();
             const hasPreInserted = Navigation.getIsFullscreenPreInsertedUnderRHP();
-            if (!hasPending && !hasPreInserted) {
+            const isRevealingPreMounted = Navigation.getIsRevealingPreMountedFullscreen();
+            // A revealed wide pre-mount already shows real content, so covering it only adds a flash.
+            if ((!hasPending && !hasPreInserted) || isRevealingPreMounted) {
                 return;
             }
             setIsSearchReady(false);

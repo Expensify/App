@@ -11,8 +11,8 @@ Modal-to-destination flows need the destination mounted before the RHP dismisses
 
 `usePreMountDestination` centralizes this lifecycle:
 
-- Idle-priority pre-insert on narrow layout, with a fallback timer so the work is not starved
-- Reveal-before-dismiss fallback on wide layout or if narrow pre-insert has not finished
+- Idle-priority pre-mount after the RHP open transition: under the RHP on narrow layout, under the current `TAB_NAVIGATOR` on wide layout, with a fallback timer so the work is not starved
+- Reveal-before-dismiss fallback if the pre-mount has not finished or was skipped
 - Automatic cleanup for back-out and unmount paths
 
 When reviewing these flows, focus on whether the navigation lifecycle is correct for the user path:
@@ -53,20 +53,24 @@ const handleSubmit = () => {
 
 **Layout strategies:**
 
-- `PRE_INSERT` (narrow layout only): eagerly pre-mounts the destination behind the RHP after the open transition, at idle priority.
+Set with the `destinationStrategy` option (`CONST.DESTINATION_STRATEGY`):
+
+- `PRE_INSERT` (default): eagerly pre-mounts the destination after the RHP open transition, at idle priority. Narrow layout inserts it under the RHP. Wide layout mounts it as a second `TAB_NAVIGATOR` under the current one, and only when the outermost fullscreen route is the `TAB_NAVIGATOR`.
 - `REVEAL`: skips eager pre-mount; the destination is inserted and revealed together when `reveal()` runs. This fallback is used:
-    - on wide layout always
-    - on narrow layout if pre-insert hasn't finished yet
+    - when `REVEAL` is passed
+    - when the pre-mount hasn't finished yet
+    - on wide layout when another fullscreen covers the `TAB_NAVIGATOR`, so nothing was pre-mounted
 
 **Reveal methods:**
 
-- `reveal(afterTransition?)`: if the hook owns a pre-inserted route, clears the pre-insert flag and dismisses the RHP over that route. Otherwise, inserts the destination under the RHP then dismisses it.
+- `reveal(afterTransition?)`: if the hook owns a pre-inserted route, clears the pre-insert flag and dismisses the RHP over that route. If it owns a wide-layout pre-mount, it drops the current `TAB_NAVIGATOR` to show the pre-mounted one and dismisses the RHP. Otherwise, inserts the destination under the RHP then dismisses it.
 - `cleanupPreMount()`: removes the owned pre-inserted destination before a back-out path closes the RHP without revealing the destination. Safe to call unconditionally - no-ops if this instance never pre-inserted anything.
 
 **Other invariants:**
 
 - Only one component may own a pre-inserted route at a time. `reveal()` logs an alert if the global pre-insert flag is set by a different flow when it runs - a sign the previous owner didn't clean up.
-- When the destination resolves to one of the app's root tabs (Home, Inbox, Search, Settings, or Workspaces), pre-insert switches to that tab instead of pushing (`[Tab(A), RHP] -> [Tab(B), RHP]`), with the original tab saved for restore-on-cancel. For any other destination, it pushes a new route between the origin and the RHP (`[origin, RHP] -> [origin, destination, RHP]`). Determined by the destination route, not caller-configured.
+- On narrow layout, when the destination resolves to one of the app's root tabs (Home, Inbox, Search, Settings, or Workspaces), pre-insert switches to that tab instead of pushing (`[Tab(A), RHP] -> [Tab(B), RHP]`), with the original tab saved for restore-on-cancel. For any other destination, it pushes a new route between the origin and the RHP (`[origin, RHP] -> [origin, destination, RHP]`). Determined by the destination route, not caller-configured. On wide layout the destination is always pre-mounted as a whole `TAB_NAVIGATOR` under the current one.
+- `shouldPreservePreInsertedRouteOnUnmount` has no effect on a wide-layout pre-mount. It is removed on unmount unless `reveal()` ran, because only a reveal can show it.
 
 **Caller responsibilities:**
 
@@ -97,7 +101,7 @@ Use `usePreMountDestination` when **all** of these are true:
 
 - The flow dismisses an RHP/modal to reveal a **different** fullscreen destination
 - The destination route is **known at mount time**
-- The user spends enough time on the confirmation screen for pre-insert to complete before dismiss (narrow layout)
+- The user spends enough time on the confirmation screen for the pre-mount to complete before dismiss
 
 ### When NOT to use
 
