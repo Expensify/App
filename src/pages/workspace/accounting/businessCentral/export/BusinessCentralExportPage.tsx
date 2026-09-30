@@ -48,7 +48,6 @@ function BusinessCentralExportPage({policy}: WithPolicyConnectionsProps) {
     const defaultVendor = businessCentralData?.vendors?.find((vendor) => vendor.id === exportConfig?.defaultVendorID);
     const paymentMethod = businessCentralData?.paymentMethods?.find((method) => method.code === exportConfig?.paymentMethodCode);
     const isReimbursableJournalEntry = reimbursable === CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY;
-    const isNonReimbursableJournalEntry = nonReimbursable === CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY;
 
     if (!policyID) {
         return null;
@@ -102,14 +101,12 @@ function BusinessCentralExportPage({policy}: WithPolicyConnectionsProps) {
                 label: translate('workspace.businessCentral.companyCardAccount.label'),
                 value: nonReimbursableAccount ? `${nonReimbursableAccount.number} ${nonReimbursableAccount.name}` : undefined,
                 route: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_COMPANY_CARD_ACCOUNT.getRoute(policyID),
-                shouldHide: !isNonReimbursableJournalEntry,
             },
             {
                 settingName: CONST.BUSINESS_CENTRAL_CONFIG.PAYMENT_METHOD_CODE,
                 label: translate('workspace.businessCentral.paymentMethod.label'),
                 value: paymentMethod?.displayName,
                 route: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD.getRoute(policyID),
-                shouldHide: isReimbursableJournalEntry && isNonReimbursableJournalEntry,
             },
         ],
     ];
