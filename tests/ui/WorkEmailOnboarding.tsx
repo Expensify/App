@@ -609,6 +609,8 @@ describe('OnboardingWorkEmail Page', () => {
     });
 
     it('should continue a Concierge add-work-email task to validation after a direct add', async () => {
+        const taskReportID = 'add-work-email-task-report';
+        const getTopmostReportId = jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(taskReportID);
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -633,14 +635,15 @@ describe('OnboardingWorkEmail Page', () => {
         fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('common.workEmail')), workEmail);
         fireEvent.press(screen.getByText(TestHelper.translateLocal('onboarding.workEmail.addWorkEmail')));
 
-        expect(navigate).not.toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(undefined, true), {forceReplace: true});
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(undefined, true, taskReportID), {forceReplace: true});
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(undefined, true), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(undefined, true, taskReportID), {forceReplace: true});
         });
 
         HttpUtils.xhr = originalXhr;
+        getTopmostReportId.mockRestore();
 
         unmount();
         await waitForBatchedUpdatesWithAct();

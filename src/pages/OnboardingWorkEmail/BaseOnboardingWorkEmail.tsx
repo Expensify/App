@@ -82,6 +82,8 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
     });
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountSelector});
     const isJoinWorkspaceTaskRoute = route.params?.isJoinWorkspaceTask === 'true';
+    const [initialOriginReportID] = useState(() => Navigation.getTopmostReportId());
+    const originReportID = route.params?.reportID ?? initialOriginReportID;
     const onboardingIntent = useOnboardingIntent({isJoinWorkspaceTask: isJoinWorkspaceTaskRoute});
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
     const {taskReport: addWorkEmailTaskReport} = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL);
@@ -155,13 +157,13 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
 
             // A code is needed to confirm the work email just submitted (an account already exists under that domain).
             if (onboardingValues?.shouldValidate) {
-                Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute(true), {forceReplace: true});
+                Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute(true, originReportID), {forceReplace: true});
                 return;
             }
 
             // A newly added work email becomes the unvalidated primary login. Continue to the standard validation
             // screen instead of waiting for the asynchronous task-completion update.
-            Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(undefined, true), {forceReplace: true});
+            Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(undefined, true, originReportID), {forceReplace: true});
             return;
         }
 
@@ -214,6 +216,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
         isJoiningCompanyWorkspace,
         isConciergeTaskFlow,
         isJoinWorkspaceTaskRoute,
+        originReportID,
         hasSubmittedWorkEmail,
         returnToOriginReport,
         onboardingValues?.isMergeAccountStepCompleted,
@@ -234,7 +237,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
             // The work email was already added in an earlier visit, so let the user resume its validation without
             // sending AddWorkEmail for the current primary login again.
             if (isCurrentUnvalidatedWorkEmail) {
-                Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(undefined, true), {forceReplace: true});
+                Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(undefined, true, originReportID), {forceReplace: true});
                 return;
             }
 
@@ -244,7 +247,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
                 AddWorkEmail(submittedWorkEmail, addWorkEmailTaskReport);
             });
         },
-        [addWorkEmailTaskReport, isConciergeTaskFlow, isCurrentPrimaryValidated, onboardingValues, sessionEmail],
+        [addWorkEmailTaskReport, isConciergeTaskFlow, isCurrentPrimaryValidated, onboardingValues, originReportID, sessionEmail],
     );
 
     useEffect(() => {
