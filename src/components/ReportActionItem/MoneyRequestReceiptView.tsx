@@ -29,6 +29,7 @@ import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -169,6 +170,7 @@ function MoneyRequestReceiptView({
     const [parentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportAction?.childReportID)}`);
 
     const originalReportID = useOriginalReportID(report?.reportID, parentReportAction);
+    const reportsParentHierarchy = useReportsParentHierarchy();
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
     const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
     const iouReportTransactions = Object.values(iouReportTransactionsCollection);
@@ -558,7 +560,7 @@ function MoneyRequestReceiptView({
                 return;
             }
             clearError(linkedTransactionID);
-            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID, isOffline);
+            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID, isOffline, undefined, undefined, reportsParentHierarchy);
             return;
         }
         if (!isEmptyObject(transactionAndReportActionErrors)) {
@@ -566,7 +568,7 @@ function MoneyRequestReceiptView({
         }
         if (!isEmptyObject(errorsWithoutReportCreation)) {
             clearError(transaction.transactionID);
-            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID, isOffline);
+            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID, isOffline, undefined, undefined, reportsParentHierarchy);
         }
         if (!isEmptyObject(reportCreationError)) {
             if (isInNarrowPaneModal) {

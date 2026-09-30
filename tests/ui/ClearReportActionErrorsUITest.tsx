@@ -148,7 +148,7 @@ describe('ClearReportActionErrors UI', () => {
             fireEvent.press(dismissButton);
 
             // Then clearAllRelatedReportActionErrors should be called with correct arguments
-            expect(spy).toHaveBeenCalledWith(REPORT_ID, expect.objectContaining({reportActionID: REPORT_ACTION_ID}), REPORT_ID, false);
+            expect(spy).toHaveBeenCalledWith(REPORT_ID, expect.objectContaining({reportActionID: REPORT_ACTION_ID}), REPORT_ID, false, undefined, undefined, expect.anything());
             spy.mockRestore();
         });
 

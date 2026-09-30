@@ -16,6 +16,9 @@ import deleteReport from './Report/DeleteReport';
 
 type IgnoreDirection = 'parent' | 'child';
 
+/** The subset of report data needed to walk the parent hierarchy when clearing related errors */
+type ReportHierarchyInfo = Pick<OnyxTypes.Report, 'parentReportID' | 'parentReportActionID'>;
+
 let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -125,6 +128,7 @@ function clearAllRelatedReportActionErrors(
     isOffline: boolean,
     ignore?: IgnoreDirection,
     keys?: string[],
+    reports?: OnyxCollection<ReportHierarchyInfo>,
 ) {
     const errorKeys = keys ?? Object.keys(reportAction?.errors ?? {});
     if (!reportAction || errorKeys.length === 0 || !reportID) {
@@ -133,14 +137,14 @@ function clearAllRelatedReportActionErrors(
 
     clearReportActionErrors(reportAction, originalReportID, keys);
 
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const report = (reports ?? allReports)?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (report?.parentReportID && report?.parentReportActionID && ignore !== 'parent') {
         const parentReportAction = getReportAction(report.parentReportID, report.parentReportActionID);
         const parentErrorKeys = Object.keys(parentReportAction?.errors ?? {}).filter((err) => errorKeys.includes(err));
         const parentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`] ?? {};
         const parentOriginalReportID = getOriginalReportID(report.parentReportID, parentReportAction, parentReportActions, isOffline);
 
-        clearAllRelatedReportActionErrors(report.parentReportID, parentReportAction, parentOriginalReportID, isOffline, 'child', parentErrorKeys);
+        clearAllRelatedReportActionErrors(report.parentReportID, parentReportAction, parentOriginalReportID, isOffline, 'child', parentErrorKeys, reports);
     }
 
     if (reportAction.childReportID && ignore !== 'child') {
@@ -148,10 +152,10 @@ function clearAllRelatedReportActionErrors(
         for (const action of Object.values(childActions)) {
             const childErrorKeys = Object.keys(action.errors ?? {}).filter((err) => errorKeys.includes(err));
             const childOriginalReportID = getOriginalReportID(reportAction.childReportID, action, childActions, isOffline);
-            clearAllRelatedReportActionErrors(reportAction.childReportID, action, childOriginalReportID, isOffline, 'parent', childErrorKeys);
+            clearAllRelatedReportActionErrors(reportAction.childReportID, action, childOriginalReportID, isOffline, 'parent', childErrorKeys, reports);
         }
     }
 }
 
-export type {IgnoreDirection};
+export type {IgnoreDirection, ReportHierarchyInfo};
 export {clearAllRelatedReportActionErrors};
