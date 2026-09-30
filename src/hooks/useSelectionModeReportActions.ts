@@ -248,7 +248,7 @@ function useSelectionModeReportActions({
 
     // Build report-level action menu
     const selectionModeReportLevelActions = (() => {
-        const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems' | 'subMenuHeaderText'>> = [];
+        const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'rightIcon'>> = [];
         let idx = 0;
         if (hasSubmitAction && !effectiveShouldBlockSubmit) {
             actions[idx++] = {

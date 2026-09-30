@@ -50,9 +50,6 @@ type DropdownOption<TValueType> = WithSentryLabel & {
     shouldUpdateSelectedIndex?: boolean;
     subMenuItems?: PopoverMenuItem[];
     backButtonText?: string;
-
-    /** Text shown above `subMenuItems` once the sub-menu is open */
-    subMenuHeaderText?: string;
     avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
     shouldShow?: boolean;
     shouldShowLoadingSpinnerIcon?: boolean;

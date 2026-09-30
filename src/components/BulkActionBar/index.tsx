@@ -20,7 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Accessibility from '@libs/Accessibility';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 
-import {setDisableDismissOnEscape} from '@userActions/Modal';
+import {areAllModalsHidden, setDisableDismissOnEscape} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -94,7 +94,20 @@ function BulkActionBarContent<TValueType>({
     const isCoveredByModal = !!modal?.isVisible && !isFocused;
     const shouldClearSelectionOnEscape = !modal?.willAlertModalBecomeVisible && !isCoveredByModal;
 
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, onClearSelection, {isActive: shouldClearSelectionOnEscape});
+    // `willAlertModalBecomeVisible` is a single flag that every modal writes, so closing the topmost of a stack reads
+    // as though nothing is open any more. The registry of open modals is the only answer that survives stacking, and
+    // it has to be read when the key arrives rather than at subscribe time.
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ESCAPE,
+        () => {
+            if (!areAllModalsHidden()) {
+                return;
+            }
+
+            onClearSelection();
+        },
+        {isActive: shouldClearSelectionOnEscape},
+    );
 
     // Whichever Esc handler subscribed last runs first, so holding the pane back keeps it from closing out from under
     // a selection Esc was meant to clear.
