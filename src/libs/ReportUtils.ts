@@ -6172,6 +6172,7 @@ function getReportPreviewMessage(
             report.isWaitingOnBankAccount
         ) {
             translatePhraseKey = 'iou.paidWithExpensify';
+
             // A paying admin can record `bankAccountID` on a workspace payment too, so the report type is what says
             // whether this was an invoice, matching `getIOUReportActionDisplayMessage`.
             const isFromInvoice = isInvoiceReport(report) && !!originalMessage?.bankAccountID;

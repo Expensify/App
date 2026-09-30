@@ -40,12 +40,15 @@ function canAccessPolicyBankAccount(policy: OnyxEntry<PolicyPaymentAttribution>,
 function wasPaidWithPolicyBankAccount(policy: OnyxEntry<PolicyPaymentAttribution>, payerAccountID: number | undefined): boolean {
     const reimburserEmail = policy?.reimburser ?? policy?.achAccount?.reimburser;
 
+    // Without a designated payer, any admin pays from the workspace account, so it is the right guess.
     if (!reimburserEmail) {
         return true;
     }
 
     const reimburserAccountID = getKnownAccountIDByLogin(reimburserEmail);
 
+    // The viewer may not have the payer's personal details loaded. We can't rule the payer out, so keep the workspace
+    // account instead of hiding it for everyone who hasn't interacted with the payer.
     if (reimburserAccountID === undefined) {
         return true;
     }

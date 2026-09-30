@@ -9,16 +9,20 @@ import {getAccessiblePolicyBankAccount, wasPaidWithPolicyBankAccount} from './Po
 type GetBankAccountLastFourDigitsParams = {
     /** The account the payment action names, when the paying admin picked one. */
     bankAccountID: number | undefined;
+
     /** The current user's own bank accounts, used to resolve `bankAccountID` and the workspace account. */
     bankAccountList: OnyxEntry<Record<string, BankAccount>>;
+
     /** The policy the report belongs to. Only its bank account and designated payer are read. */
     policy: OnyxEntry<PolicyPaymentAttribution>;
+
     /**
      * Masked account number stored on the payment action itself. It is the only viewer-independent source, so it wins
      * over any local lookup. The payer's account is not in every viewer's `bankAccountList`, and falling back to the
      * policy account would show a different account to different people for the same payment.
      */
     accountNumber?: string;
+
     /**
      * Who made the payment. The workspace account is only a valid guess when the payment came from the designated
      * payer. For anyone else it belongs to a different bank account than the one actually used.
@@ -45,9 +49,8 @@ function getBankAccountLastFourDigits({bankAccountID, bankAccountList, policy, a
         return '';
     }
 
-    // Nothing on the action identifies the account, so the workspace account is a guess. Only make it for a payment by
-    // the designated payer. Showing a non-payer admin's payment as the workspace account is wrong for every viewer, and
-    // it is exactly what makes the payer and the payer's colleagues see two different accounts.
+    // The action doesn't say which account was used, so only fall back to the workspace account when the designated
+    // payer made the payment.
     if (!wasPaidWithPolicyBankAccount(policy, payerAccountID)) {
         return '';
     }

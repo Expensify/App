@@ -848,6 +848,7 @@ function computeReportNameBasedOnReportAction({
 
     if (isMoneyRequestAction(parentReportAction)) {
         const originalMessage = getOriginalMessage(parentReportAction);
+
         // Prefer the account stored on the action: the payer is not always the workspace payer, so the policy's
         // ACH account can belong to a different bank account than the one the report was actually paid with, and
         // attributing it to a non-payer admin's payment shows a different account to every other viewer.
