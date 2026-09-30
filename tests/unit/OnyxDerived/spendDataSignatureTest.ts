@@ -168,6 +168,27 @@ describe('spendDataSignature', () => {
         expect(result).toEqual({expenses: 1, cardExpenses: 1});
     });
 
+    // Awaiting approval and Repaid filter on reimbursable; Top merchants, Top categories and Recently added show the rest.
+    it.each([
+        ['marked non-reimbursable', {reimbursable: false}],
+        ['given a new merchant', {modifiedMerchant: 'New merchant'}],
+        ['given a new category', {category: 'New category'}],
+    ])('moves only the expense counter when a card expense is %s', (_, change) => {
+        // Given a stored reimbursable card expense that the derived value has already seen
+        const expense: Transaction = {...makeTransaction('1', CARD_ID), reimbursable: true};
+        seedBaseline({[transactionKey('1')]: expense});
+
+        // When a field that the card totals do not read is edited
+        const edited: OnyxCollection<Transaction> = {[transactionKey('1')]: {...expense, ...change}};
+        const result = spendDataSignatureConfig.compute([edited, cardList], {
+            currentValue: {expenses: 0, cardExpenses: 0},
+            sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: edited},
+        });
+
+        // Then the expense counter moves, because the other cards are stale, but the card totals do not refetch
+        expect(result).toEqual({expenses: 1, cardExpenses: 0});
+    });
+
     it('moves both counters when a card expense is deleted', () => {
         // Given a card expense the derived value has already seen
         const stored: OnyxCollection<Transaction> = {[transactionKey('1')]: makeTransaction('1', CARD_ID)};

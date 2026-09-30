@@ -15,6 +15,7 @@ const EMPTY_SIGNATURE = {expenses: 0, cardExpenses: 0};
 /** What the last compute saw: the counted fields, plus the card, which a later delete needs. */
 type SeenTransaction = {
     fingerprint: string;
+    cardFingerprint: string;
     cardID: number | undefined;
 };
 
@@ -23,8 +24,8 @@ let lastSeenTransactions: Record<string, SeenTransaction> = {};
 
 let hasBaseline = false;
 
-/** Fields the Home cards count or total. Edits land in the `modified` versions, so both are read. */
-function getFingerprint(transaction: Transaction | undefined): string {
+/** Fields the card totals read. Edits land in the `modified` versions, so both are read. */
+function getCardFingerprint(transaction: Transaction | undefined): string {
     if (!transaction) {
         return '';
     }
@@ -40,11 +41,24 @@ function getFingerprint(transaction: Transaction | undefined): string {
     ].join('|');
 }
 
+/** The card fields, plus what the other cards filter or group by: reimbursable, merchant and category. */
+function getFingerprint(transaction: Transaction | undefined, cardFingerprint: string): string {
+    if (!transaction) {
+        return '';
+    }
+    return [cardFingerprint, transaction.reimbursable, transaction.merchant, transaction.modifiedMerchant, transaction.category].join('|');
+}
+
+function getSeenTransaction(transaction: Transaction | undefined): SeenTransaction {
+    const cardFingerprint = getCardFingerprint(transaction);
+    return {fingerprint: getFingerprint(transaction, cardFingerprint), cardFingerprint, cardID: transaction?.cardID};
+}
+
 function rebuildBaseline(transactions: OnyxCollection<Transaction> | undefined) {
     lastSeenTransactions = {};
     hasBaseline = true;
     for (const [key, transaction] of Object.entries(transactions ?? {})) {
-        lastSeenTransactions[key] = {fingerprint: getFingerprint(transaction), cardID: transaction?.cardID};
+        lastSeenTransactions[key] = getSeenTransaction(transaction);
     }
 }
 
@@ -78,22 +92,23 @@ export default createOnyxDerivedValueConfig({
                 continue;
             }
 
-            const fingerprint = getFingerprint(transaction);
-            if (fingerprint === lastSeen?.fingerprint) {
+            const seen = getSeenTransaction(transaction);
+            if (seen.fingerprint === lastSeen?.fingerprint) {
                 continue;
             }
             hasChangedExpense = true;
 
             // A deleted expense is `undefined` everywhere, so its card comes from what we stored for it.
+            // A merchant, category or reimbursable edit leaves the card totals as they were.
             const cardID = transaction?.cardID ?? lastSeen?.cardID;
-            if (cardID !== undefined && !!cardList?.[String(cardID)]) {
+            if (cardID !== undefined && !!cardList?.[String(cardID)] && seen.cardFingerprint !== lastSeen?.cardFingerprint) {
                 hasChangedCardExpense = true;
             }
 
             if (!transaction) {
                 delete lastSeenTransactions[key];
             } else {
-                lastSeenTransactions[key] = {fingerprint, cardID: transaction.cardID};
+                lastSeenTransactions[key] = seen;
             }
         }
 

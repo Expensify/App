@@ -917,6 +917,20 @@ describe('useYourSpendData — refires search when a relevant report state chang
         expect(cardGroupSearchCallCount()).toBe(before);
     });
 
+    it('refires the approval search when an expense on an outstanding report changes', () => {
+        // Given Home has searched with one OUTSTANDING report
+        setupReports([makeReport()]);
+        const {rerender} = renderHook(() => useYourSpendData());
+        const before = approvalSearchCallCount();
+
+        // When an expense on it is marked non-reimbursable, which keeps the report OUTSTANDING and moves only the expense counter
+        onyxData[ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE] = {expenses: 1, cardExpenses: 0};
+        rerender(undefined);
+
+        // Then Awaiting approval fetches again instead of still counting the expense
+        expect(approvalSearchCallCount()).toBe(before + 1);
+    });
+
     it('refires the approval search when an owned report leaves the OUTSTANDING state', () => {
         setupReports([makeReport()]);
         const {rerender} = renderHook(() => useYourSpendData());

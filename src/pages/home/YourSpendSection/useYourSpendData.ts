@@ -587,7 +587,8 @@ function useYourSpendData(): UseYourSpendDataReturn {
     useTabFocusedRefresh(SCREENS.HOME, [isOffline, accountID, cardGroupQueryJSON?.hash, spendDataSignature?.cardExpenses ?? 0].join('|'), fireCardSearch);
     useTabFocusedRefresh(
         SCREENS.HOME,
-        [isOffline, accountID, approvalQueryJSON?.hash, isApprovalApplicable ? 1 : 0, paidGroupPolicyIDs.join(','), outstandingReportsSignature].join('|'),
+        // The expense counter catches edits on a report that is already outstanding, which leave the report list unchanged.
+        [isOffline, accountID, approvalQueryJSON?.hash, isApprovalApplicable ? 1 : 0, paidGroupPolicyIDs.join(','), outstandingReportsSignature, spendDataSignature?.expenses ?? 0].join('|'),
         fireApprovalSearch,
     );
     useTabFocusedRefresh(SCREENS.HOME, [isOffline, accountID, paymentQueryJSON?.hash, isPaymentApplicable ? 1 : 0, reimbursedReportsSignature].join('|'), firePaymentSearch);
