@@ -7,6 +7,8 @@ import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy'
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {differenceInCalendarDays, fromUnixTime} from 'date-fns';
+
 const ROUTE_NAME_MAPPING = {
     [CONST.POLICY.CONNECTIONS.ROUTE.QBO]: CONST.POLICY.CONNECTIONS.NAME.QBO,
     [CONST.POLICY.CONNECTIONS.ROUTE.XERO]: CONST.POLICY.CONNECTIONS.NAME.XERO,
@@ -77,6 +79,37 @@ function isIntuitEnterpriseSuiteConnection(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.connections?.quickbooksOnline?.config?.credentials?.scope?.includes(CONST.POLICY.CONNECTIONS.INTUIT_ENTERPRISE_SUITE_SCOPE);
 }
 
+/** The moment the QuickBooks Online refresh token stops working. Intuit restarts its 100-day lifetime on every refresh, so this only gets close on idle connections. */
+function getQBORefreshTokenExpiryDate(policy: OnyxEntry<Policy>): Date | undefined {
+    const refreshTokenExpiresAt = policy?.connections?.quickbooksOnline?.config?.credentials?.refreshTokenExpiresAt;
+    if (!refreshTokenExpiresAt) {
+        return undefined;
+    }
+    return fromUnixTime(refreshTokenExpiresAt);
+}
+
+/**
+ * Whether the QuickBooks Online refresh token expires within the warning window or already has, so the workspace should ask its admins to reconnect
+ * before exports start failing. A connection that already reports an authentication error is excluded since it shows the reconnect error state instead.
+ */
+function getQBORefreshTokenExpiryStatus(policy: OnyxEntry<Policy>, now: Date = new Date()): ValueOf<typeof CONST.POLICY.CONNECTIONS.QBO_REFRESH_TOKEN_EXPIRY_STATUS> | undefined {
+    const expiryDate = getQBORefreshTokenExpiryDate(policy);
+    if (!expiryDate || policy?.connections?.quickbooksOnline?.lastSync?.isAuthenticationError === true) {
+        return undefined;
+    }
+    if (expiryDate.getTime() <= now.getTime()) {
+        return CONST.POLICY.CONNECTIONS.QBO_REFRESH_TOKEN_EXPIRY_STATUS.EXPIRED;
+    }
+    if (differenceInCalendarDays(expiryDate, now) <= CONST.POLICY.CONNECTIONS.QBO_REFRESH_TOKEN_EXPIRY_WARNING_DAYS) {
+        return CONST.POLICY.CONNECTIONS.QBO_REFRESH_TOKEN_EXPIRY_STATUS.EXPIRING_SOON;
+    }
+    return undefined;
+}
+
+function isQBORefreshTokenExpiringSoon(policy: OnyxEntry<Policy>, now: Date = new Date()): boolean {
+    return !!getQBORefreshTokenExpiryStatus(policy, now);
+}
+
 function getQuickbooksOnlineIntegrationName(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string {
     return translate(isIntuitEnterpriseSuiteConnection(policy) ? 'workspace.accounting.intuitEnterpriseSuite' : 'workspace.accounting.qbo');
 }
@@ -107,10 +140,13 @@ export {
     getConnectionNameFromRouteParam,
     getExportLabelForConnection,
     getExportLabelsForConnection,
+    getQBORefreshTokenExpiryDate,
+    getQBORefreshTokenExpiryStatus,
     getQuickbooksOnlineIntegrationName,
     getRouteParamForConnection,
     getStandardExportTemplateDisplayName,
     isStandardExportTemplate,
     isStandardExportTemplateLabel,
     isIntuitEnterpriseSuiteConnection,
+    isQBORefreshTokenExpiringSoon,
 };
