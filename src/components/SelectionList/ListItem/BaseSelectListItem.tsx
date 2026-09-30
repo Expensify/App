@@ -54,10 +54,8 @@ function BaseSelectListItem<TItem extends ListItem>({
         titleStyles,
         item.titleStyles,
     ];
-    // The text column is a flex1 sibling of the selection button, so 100% is the leftover space at any container width.
     const subtitleStyle = [
         isAlternateTextMultilineSupported && styles.preWrap,
-        isAlternateTextMultilineSupported ? styles.mw100 : null,
         isMultilineSupported ? StyleUtils.getPaddingLeft(paddingLeft) : null,
     ];
 
