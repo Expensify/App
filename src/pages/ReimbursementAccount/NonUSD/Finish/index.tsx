@@ -1,6 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -16,7 +17,6 @@ import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 import Navigation from '@navigation/Navigation';
 
 import {navigateToConciergeChat} from '@userActions/Report';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -78,25 +78,23 @@ function Finish() {
                     <View style={styles.mb6}>
                         <Text style={[styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.weTake')}</Text>
                     </View>
-                    <View style={styles.mhn5}>
-                        <MenuItem.Root
-                            onPress={callFunctionIfActionIsAllowed(() => {
-                                Navigation.navigate(getTwoFactorAuthRoute());
-                            })}
-                        >
-                            <MenuItem.Row>
-                                <MenuItem.Leading>
-                                    <MenuItem.Icon src={icons.Shield} />
-                                </MenuItem.Leading>
-                                <MenuItem.Content>
-                                    <MenuItem.Title>{translate('finishStep.secure')}</MenuItem.Title>
-                                </MenuItem.Content>
-                                <MenuItem.Trailing>
-                                    <MenuItem.Chevron />
-                                </MenuItem.Trailing>
-                            </MenuItem.Row>
-                        </MenuItem.Root>
-                    </View>
+                    <MenuItemSectionRoot
+                        onPress={() => {
+                            Navigation.navigate(getTwoFactorAuthRoute());
+                        }}
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <MenuItem.Icon src={icons.Shield} />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>{translate('finishStep.secure')}</MenuItem.Title>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItemSectionRoot>
                 </Section>
             </ScrollView>
         </ScreenWrapper>
