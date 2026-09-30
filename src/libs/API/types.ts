@@ -295,6 +295,7 @@ const WRITE_COMMANDS = {
     SET_POLICY_EXPENSE_MAX_AMOUNT: 'SetPolicyExpenseMaxAmount',
     SET_POLICY_PROHIBITED_EXPENSES: 'SetPolicyProhibitedExpenses',
     SET_POLICY_COMMUTER_EXCLUSIONS: 'SetPolicyCommuterExclusions',
+    SET_EMPLOYEE_WORK_ARRANGEMENT: 'SetEmployeeWorkArrangement',
     DISABLE_POLICY_COMMUTER_EXCLUSIONS: 'DisablePolicyCommuterExclusions',
     SET_POLICY_REQUIRE_MAP_OR_GPS: 'SetPolicyRequireMapOrGPS',
     SET_POLICY_EXPENSE_MAX_AGE: 'SetPolicyExpenseMaxAge',
@@ -461,7 +462,6 @@ const WRITE_COMMANDS = {
     UPDATE_NETSUITE_TAX_POSTING_ACCOUNT: 'UpdateNetSuiteTaxPostingAccount',
     UPDATE_NETSUITE_ALLOW_FOREIGN_CURRENCY: 'UpdateNetSuiteAllowForeignCurrency',
     UPDATE_NETSUITE_EXPORT_TO_NEXT_OPEN_PERIOD: 'UpdateNetSuiteExportToNextOpenPeriod',
-    UPDATE_NETSUITE_SPLIT_EXPORTS_BY_POSTING_PERIOD: 'UpdateNetSuiteSplitExportsByPostingPeriod',
     UPDATE_NETSUITE_CUSTOM_SEGMENTS: 'UpdateNetSuiteCustomSegments',
     UPDATE_NETSUITE_CUSTOM_LISTS: 'UpdateNetSuiteCustomLists',
     UPDATE_NETSUITE_AUTO_SYNC: 'UpdateNetSuiteAutoSync',
@@ -1181,6 +1181,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS]: Parameters.SaveCorpayOnboardingCompanyDetailsParams;
     [WRITE_COMMANDS.SET_POLICY_PROHIBITED_EXPENSES]: Parameters.SetPolicyProhibitedExpensesParams;
     [WRITE_COMMANDS.SET_POLICY_COMMUTER_EXCLUSIONS]: Parameters.SetPolicyCommuterExclusionsParams;
+    [WRITE_COMMANDS.SET_EMPLOYEE_WORK_ARRANGEMENT]: Parameters.SetEmployeeWorkArrangementParams;
     [WRITE_COMMANDS.DISABLE_POLICY_COMMUTER_EXCLUSIONS]: Parameters.DisablePolicyCommuterExclusionsParams;
     [WRITE_COMMANDS.SET_POLICY_REQUIRE_MAP_OR_GPS]: Parameters.SetPolicyRequireMapOrGPSParams;
     [WRITE_COMMANDS.RETRACT_REPORT]: Parameters.RetractReportParams;
@@ -1346,7 +1347,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_NETSUITE_TAX_POSTING_ACCOUNT]: Parameters.UpdateNetSuiteGenericTypeParams<'bankAccountID', string>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_ALLOW_FOREIGN_CURRENCY]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_EXPORT_TO_NEXT_OPEN_PERIOD]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
-    [WRITE_COMMANDS.UPDATE_NETSUITE_SPLIT_EXPORTS_BY_POSTING_PERIOD]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_SEGMENTS]: Parameters.UpdateNetSuiteGenericTypeParams<'customSegments', string>; // JSON string NetSuiteCustomSegment[]
     [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_LISTS]: Parameters.UpdateNetSuiteGenericTypeParams<'customLists', string>; // JSON string NetSuiteCustomList[]
     [WRITE_COMMANDS.UPDATE_NETSUITE_AUTO_SYNC]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
@@ -1591,6 +1591,7 @@ const READ_COMMANDS = {
     OPEN_DUPLICATE_POLICY_PAGE: 'OpenDuplicatePolicyPage',
     OPEN_POLICY_INITIAL_PAGE: 'OpenPolicyInitialPage',
     OPEN_SUBSCRIPTION_PAGE: 'OpenSubscriptionPage',
+    OPEN_HOME_PAGE: 'OpenHomePage',
     OPEN_PAYMENT_HISTORY_PAGE: 'OpenPaymentHistoryPage',
     OPEN_SAVE_THE_WORLD_PAGE: 'OpenSaveTheWorldPage',
     OPEN_DRAFT_DISTANCE_EXPENSE: 'OpenDraftDistanceExpense',
@@ -1707,6 +1708,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_POLICY_INITIAL_PAGE]: Parameters.OpenPolicyInitialPageParams;
     [READ_COMMANDS.OPEN_POLICY_RECEIPT_PARTNERS_PAGE]: Parameters.OpenPolicyReceiptPartnersPageParams;
     [READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE]: null;
+    [READ_COMMANDS.OPEN_HOME_PAGE]: null;
     [READ_COMMANDS.OPEN_PAYMENT_HISTORY_PAGE]: null;
     [READ_COMMANDS.OPEN_SAVE_THE_WORLD_PAGE]: null;
     [READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE]: null;

@@ -3384,6 +3384,7 @@ ${amount} για ${merchant} - ${date}`,
         error: {
             pleaseFillTwoFactorAuth: 'Εισαγάγετε τον κωδικό ελέγχου ταυτότητας δύο παραγόντων σας',
             pleaseFillSecurityCode: 'Παρακαλούμε εισαγάγετε τον κωδικό ασφαλείας σας',
+            tooManyAttempts: 'Πάρα πολλές προσπάθειες. Δοκιμάστε ξανά αργότερα.',
             incorrectSecurityCode: 'Εσφαλμένος ή μη έγκυρος κωδικός ασφαλείας. Δοκιμάστε ξανά ή ζητήστε έναν νέο κωδικό.',
         },
         securityCodeNotReceived: 'Δεν λάβατε κωδικό ασφαλείας;',
@@ -5594,11 +5595,6 @@ ${amount} για ${merchant} - ${date}`,
             journalEntriesProvTaxPostingAccount: 'Λογαριασμός καταχώρισης επαρχιακού φόρου για λογιστικές εγγραφές',
             foreignCurrencyAmount: 'Εξαγωγή ποσού σε ξένο νόμισμα',
             exportToNextOpenPeriod: 'Εξαγωγή στην επόμενη ανοικτή περίοδο',
-            exportToNextOpenPeriodLockedSubtitle:
-                'Για να απενεργοποιήσετε την εξαγωγή στην επόμενη ανοικτή περίοδο, απενεργοποιήστε πρώτα τη διαίρεση των μη αποζημιώσιμων εξαγωγών ανά περίοδο.',
-            splitExportsByPostingPeriod: 'Διαίρεση εξαγωγών ανά περίοδο καταχώρισης',
-            splitExportsByPostingPeriodSubtitle:
-                'Ενεργοποιήστε την εξαγωγή στην επόμενη ανοικτή περίοδο για να ενεργοποιήσετε τη διαίρεση των μη αποζημιώσιμων εξαγωγών ανά περίοδο στο NetSuite',
             nonReimbursableJournalPostingAccount: 'Λογαριασμός καταχώρισης μη αποζημιώσιμων εγγραφών',
             reimbursableJournalPostingAccount: 'Λογαριασμός καταχώρισης ημερολογίου επιστρέψιμων εξόδων',
             journalPostingPreference: {
@@ -7279,6 +7275,15 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 `Αν αφαιρέσετε τον/την ${memberName} από αυτόν τον χώρο εργασίας, θα τον/την αντικαταστήσουμε ως τεχνική επαφή με τον/την ${workspaceOwner}, τον/την κάτοχο του χώρου εργασίας.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `Ο/Η ${memberName} έχει μία εκκρεμή αναφορά προς επεξεργασία που απαιτεί ενέργεια. Παρακαλούμε ζητήστε του/της να ολοκληρώσει την απαιτούμενη ενέργεια προτού τον/την αφαιρέσετε από τον χώρο εργασίας.`,
+            workArrangement: 'Διευθέτηση εργασίας',
+            officeBased: 'Με βάση γραφείου',
+            noRegularWorkspace: 'Απομακρυσμένα ή μέσω κινητού',
+            workArrangementPage: {
+                title: 'Διευθέτηση εργασίας',
+                optionOfficeBasedHelp: 'Το μέλος μετακινείται σε ένα γραφείο. Οι συνήθεις μετακινήσεις προς και από την εργασία εξαιρούνται από την αποζημίωση.',
+                optionNoRegularWorkspaceHelp: 'Το μέλος εργάζεται από το σπίτι ή ταξιδεύει μεταξύ τοποθεσιών χωρίς τακτικό γραφείο, επομένως οι κανόνες μετακίνησης δεν ισχύουν.',
+                futureOnlyNote: 'Οι αλλαγές ισχύουν μόνο για μελλοντικούς υπολογισμούς χιλιομέτρων. Οι υπάρχουσες δαπάνες χιλιομέτρων δεν επανυπολογίζονται.',
+            },
         },
         card: {
             getStartedIssuing: 'Ξεκινήστε εκδίδοντας την πρώτη σας εικονική ή φυσική κάρτα.',
@@ -7665,6 +7670,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Για να το ξεκλειδώσετε, ενεργοποιήστε τον αυτόματο συγχρονισμό.',
             campfire: 'Campfire',
             businessCentral: 'Dynamics 365 Business Central',
+            qboConnectionExpiring: ({date}: {date: string}) => `Η σύνδεσή σας με το QuickBooks Online λήγει στις ${date}.`,
+            qboConnectionExpired: ({date}: {date: string}) => `Η σύνδεσή σας με το QuickBooks Online έληξε στις ${date}.`,
         },
         hr: {
             title: 'HR',
@@ -9794,6 +9801,10 @@ ${reportName}`,
                 : `άλλαξε τη ροή έγκρισης για τον/την ${member} ώστε να σταματήσει η προώθηση αναφορών πάνω από ${previousLimit}`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `άλλαξε τη ροή έγκρισης για τον/την ${member} ώστε να προωθεί αναφορές πάνω από ${limit} (προηγουμένως ${previousLimit})`,
+        updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
+            `άλλαξε τη ρύθμιση εργασίας του/της ${displayName} σε ${newArrangement} (προηγουμένως: ${oldArrangement})`,
+        updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
+            `άλλαξε τη προεπιλεγμένη εργασιακή ρύθμιση σε ${newArrangement} (προηγουμένως ${oldArrangement})`,
     },
     roomMembersPage: {
         memberNotFound: 'Το μέλος δεν βρέθηκε.',

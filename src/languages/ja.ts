@@ -3293,6 +3293,7 @@ ${date} の ${merchant} への ${amount}`,
         timeExpiredAnnouncement: '時間切れです',
         error: {
             pleaseFillSecurityCode: 'セキュリティコードを入力してください',
+            tooManyAttempts: '試行回数が多すぎます。しばらくしてからもう一度お試しください。',
             incorrectSecurityCode: 'セキュリティコードが正しくないか無効です。もう一度お試しいただくか、新しいコードをリクエストしてください。',
             pleaseFillTwoFactorAuth: '2 要素認証コードを入力してください',
         },
@@ -5417,9 +5418,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             journalEntriesProvTaxPostingAccount: '仕訳の地方税計上勘定',
             foreignCurrencyAmount: '外貨金額をエクスポート',
             exportToNextOpenPeriod: '次の未締め期間にエクスポート',
-            exportToNextOpenPeriodLockedSubtitle: '次の未締め期間へのエクスポートを無効にするには、先に立替精算対象外エクスポートの期間ごとの分割を無効にしてください。',
-            splitExportsByPostingPeriod: '転記期間ごとにエクスポートを分割',
-            splitExportsByPostingPeriodSubtitle: 'NetSuiteで立替精算対象外エクスポートの期間ごとの分割を有効にするには、次の未締め期間へのエクスポートを有効にしてください',
             nonReimbursableJournalPostingAccount: '立替精算対象外の仕訳計上勘定',
             reimbursableJournalPostingAccount: '立替精算用仕訳計上勘定',
             journalPostingPreference: {
@@ -7014,6 +7012,15 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             peopleAdmins: 'People 管理者',
             paymentsAdmins: '支払い管理者',
             members: 'メンバー',
+            workArrangement: '勤務形態',
+            officeBased: 'オフィス勤務',
+            noRegularWorkspace: 'リモートまたはモバイル',
+            workArrangementPage: {
+                title: '勤務形態',
+                optionOfficeBasedHelp: 'メンバーはオフィスへ通勤します。通常の通勤は払い戻しの対象外です。',
+                optionNoRegularWorkspaceHelp: 'メンバーは在宅勤務、または決まったオフィスがなく拠点間を移動しているため、通勤規程は適用されません。',
+                futureOnlyNote: '変更は今後の走行距離計算にのみ適用されます。既存の走行距離経費は再計算されません。',
+            },
         },
         card: {
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',
@@ -7399,6 +7406,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'ロックを解除するには、自動同期を有効にしてください。',
             campfire: 'Campfire',
             businessCentral: 'Dynamics 365 Business Central',
+            qboConnectionExpiring: ({date}: {date: string}) => `QuickBooks Online との接続は ${date} に有効期限が切れます。`,
+            qboConnectionExpired: ({date}: {date: string}) => `QuickBooks Online との接続は ${date} に期限切れになりました。`,
         },
         export: {
             notReadyHeading: 'エクスポートの準備ができていません',
@@ -9421,6 +9430,10 @@ ${reportName}`,
                 : `${member} さんの承認ワークフローを変更し、${previousLimit} を超えるレポートを転送しないようにしました`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `${member} さんの承認ワークフローを、${limit} を超えるレポートを転送するように変更しました（以前は ${previousLimit}）。`,
+        updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
+            `${displayName}さんの勤務形態を${newArrangement}（以前は${oldArrangement}）に変更しました`,
+        updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
+            `デフォルトの勤務形態を${newArrangement}（以前は${oldArrangement}）に変更しました`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',

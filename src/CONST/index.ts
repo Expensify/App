@@ -1130,6 +1130,7 @@ const CONST = {
         CAMPFIRE: 'campfire',
         BUSINESS_CENTRAL: 'businessCentral',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
+        COMMUTER_EXCLUSIONS_ARRANGEMENTS: 'commuterExclusionsArrangements',
         MULTIPLE_APPROVERS: 'multipleApprovers',
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
@@ -1942,6 +1943,7 @@ const CONST = {
                     UPDATE_REIMBURSER: 'POLICYCHANGELOG_UPDATE_REIMBURSER',
                     UPDATE_PROHIBITED_EXPENSES: 'POLICYCHANGELOG_UPDATE_PROHIBITED_EXPENSES',
                     UPDATE_COMMUTER_EXCLUSIONS: 'POLICYCHANGELOG_UPDATE_COMMUTER_EXCLUSIONS',
+                    UPDATE_MEMBER_WORK_ARRANGEMENT: 'POLICYCHANGELOG_UPDATE_MEMBER_WORK_ARRANGEMENT',
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
                     UPDATE_REIMBURSEMENT_ENABLED: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_ENABLED',
                     UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
@@ -2721,6 +2723,7 @@ const CONST = {
         EXP_ERROR: 666,
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
+        TOO_MANY_REQUESTS: 429,
         INCORRECT_VALIDATE_CODE: 451,
         ADMIN_REQUIRED: 460,
         SERVICE_UNAVAILABLE: 503,
@@ -3497,7 +3500,6 @@ const CONST = {
         PROVINCIAL_TAX_POSTING_ACCOUNT: 'provincialTaxPostingAccount',
         ALLOW_FOREIGN_CURRENCY: 'allowForeignCurrency',
         EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
-        SPLIT_EXPORTS_BY_POSTING_PERIOD: 'splitExportsByPostingPeriod',
         IMPORT_FIELDS: ['departments', 'classes', 'locations'],
         AUTO_SYNC: 'autoSync',
         ACCOUNTING_METHOD: 'accountingMethod',
@@ -4968,6 +4970,12 @@ const CONST = {
                 BUSINESS_CENTRAL_SYNC_IMPORT_DATA: 'businessCentralSyncImportData',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
+            /** How many days before a QuickBooks Online refresh token expires the workspace starts warning admins to reconnect */
+            QBO_REFRESH_TOKEN_EXPIRY_WARNING_DAYS: 7,
+            QBO_REFRESH_TOKEN_EXPIRY_STATUS: {
+                EXPIRING_SOON: 'expiringSoon',
+                EXPIRED: 'expired',
+            },
         },
         ACCESS_VARIANTS: {
             PAID: 'paid',
@@ -8251,7 +8259,7 @@ const CONST = {
             MAX_STALE_HOLD_DURATION: 500,
         },
         TODO_BADGE_MAX_COUNT: 50,
-        TOP_SEARCH_LIMIT: 10,
+        TOP_SEARCH_LIMIT: 5,
     },
     SEARCH_SELECTOR: {
         SELECTION_MODE_SINGLE: 'single',
