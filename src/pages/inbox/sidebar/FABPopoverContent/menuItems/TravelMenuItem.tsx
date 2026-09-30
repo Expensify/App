@@ -19,7 +19,7 @@ import {createHasTravelEnabledPolicySelector} from '@src/selectors/Policy';
 import {emailSelector} from '@src/selectors/Session';
 
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useMemo} from 'react';
 
 const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.TRAVEL;
 
@@ -32,7 +32,8 @@ function TravelMenuItem() {
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const [hasTravelEnabledPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createHasTravelEnabledPolicySelector(sessionEmail)});
+    const hasTravelEnabledPolicySelector = useMemo(() => createHasTravelEnabledPolicySelector(sessionEmail), [sessionEmail]);
+    const [hasTravelEnabledPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasTravelEnabledPolicySelector});
     const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard({shouldRequireCompletedSetup: false});
     const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';

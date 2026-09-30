@@ -77,7 +77,8 @@ function QuickCreationActionsBar() {
 
     const shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy = useShouldShowEmptyReportConfirmation(defaultChatEnabledPolicyID);
 
-    const [hasTravelEnabledPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createHasTravelEnabledPolicySelector(email)});
+    const hasTravelEnabledPolicySelector = useMemo(() => createHasTravelEnabledPolicySelector(email), [email]);
+    const [hasTravelEnabledPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasTravelEnabledPolicySelector});
 
     const shouldShowBookTravel = !!hasTravelEnabledPolicy;
 
