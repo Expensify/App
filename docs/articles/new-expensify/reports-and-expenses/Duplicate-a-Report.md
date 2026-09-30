@@ -43,8 +43,8 @@ You can select multiple reports and duplicate them all in one action from the Re
 
 1. In the navigation tabs on the left, click **Spend** > **Reports**.
 2. Select two or more expense reports that you submitted.
-3. Click **Selected**.
-4. Choose **Duplicate reports**.
+4. On the selection bar, choose **More**
+5. Choose **Duplicate reports**.
 
 **On mobile:**
 
@@ -91,10 +91,6 @@ The following details are **not** copied:
 ---
 
 # FAQ
-
-## Can I duplicate multiple reports at once?
-
-Yes. On the Reports search page, select two or more reports that you submitted, click **Selected**, then choose **Duplicate reports**. A duplicate is created for each selected report.
 
 ## Are card expenses included in the duplicate?
 
