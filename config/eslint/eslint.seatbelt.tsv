@@ -1429,7 +1429,7 @@
 "../../src/pages/settings/Wallet/UpdatePersonalBankAccountPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Wallet/UpdatePersonalBankAccountPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/WalletPage/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/settings/Wallet/WalletPage/index.tsx"	"no-restricted-imports"	1
+"../../src/pages/settings/Wallet/WalletPage/index.tsx"	"no-restricted-imports"	2
 "../../src/pages/settings/Wallet/WalletPage/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/Share/ShareDetailsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/Share/ShareRootPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1491,7 +1491,7 @@
 "../../src/pages/TransactionMerge/MergeTransactionsListContent.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/Travel/DynamicDomainPermissionInfoPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/Travel/DynamicPublicDomainErrorPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/Travel/DynamicTravelUpgrade.tsx"	"no-restricted-imports"	1
+"../../src/pages/Travel/DynamicTravelUpgrade.tsx"	"no-restricted-imports"	2
 "../../src/pages/Travel/DynamicTripDetailsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/Travel/DynamicTripDetailsPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/Travel/DynamicTripSummaryPage.tsx"	"no-restricted-imports"	1
@@ -1745,6 +1745,7 @@
 "../../src/pages/workspace/members/ImportMembersPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/members/ImportMembersPage.tsx"	"no-restricted-syntax"	1
 "../../src/pages/workspace/members/ImportMembersPage.tsx"	"rulesdir/no-default-id-values"	1
+"../../src/pages/workspace/members/WorkArrangementPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/members/WorkspaceInviteMessageComponent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/members/WorkspaceInviteMessageComponent.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/members/WorkspaceInviteMessageComponent.tsx"	"react-hooks/set-state-in-effect"	1
@@ -1840,7 +1841,7 @@
 "../../src/pages/workspace/travel/WorkspaceTravelBillingSettlementAccountPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/travel/WorkspaceTravelBillingSettlementFrequencyPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/upgrade/UpgradeIntro.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/workspace/upgrade/WorkspaceUpgradePage.tsx"	"no-restricted-imports"	1
+"../../src/pages/workspace/upgrade/WorkspaceUpgradePage.tsx"	"no-restricted-imports"	2
 "../../src/pages/workspace/vendors/WorkspaceVendorsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/withPolicy.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/workspace/withPolicyAndFullscreenLoading.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
