@@ -169,4 +169,4 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, ..
 }
 
 export default ExpenseFieldDropdown;
-export type {ExpenseFieldDropdownProps, ExpenseFieldDropdownRenderProps};
+export type {ExpenseFieldDropdownRenderProps};
