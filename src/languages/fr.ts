@@ -1168,6 +1168,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Voyez où va votre argent',
             subtitle: 'Une fois que vous aurez des dépenses, vous verrez des tendances de dépenses, les principaux marchands et plus encore.',
         },
+        compare: {label: 'Comparer', previousPeriod: 'Période précédente', average: 'Moyenne'},
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2207,7 +2208,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Avatar de profil',
         customInstructions: 'Instructions personnalisées',
         copilotIntoAccount: 'Copilot dans le compte',
-        viewMemberHistory: 'Voir l’historique du membre',
+        seeChatHistory: 'Voir l’historique de discussion',
         viewAgentHistory: 'Voir l’historique de l’agent',
         publicSection: {
             title: 'Public',
@@ -3343,6 +3344,7 @@ ${amount} pour ${merchant} - ${date}`,
         timeExpiredAnnouncement: 'Le temps est écoulé',
         error: {
             pleaseFillSecurityCode: 'Veuillez saisir votre code de sécurité',
+            tooManyAttempts: 'Trop de tentatives. Veuillez réessayer plus tard.',
             incorrectSecurityCode: 'Code de sécurité incorrect ou non valide. Veuillez réessayer ou demander un nouveau code.',
             pleaseFillTwoFactorAuth: 'Veuillez saisir votre code d’authentification à deux facteurs',
         },
@@ -5516,11 +5518,6 @@ ${amount} pour ${merchant} - ${date}`,
             journalEntriesProvTaxPostingAccount: 'Compte de comptabilisation de la taxe provinciale des écritures de journal',
             foreignCurrencyAmount: 'Exporter le montant en devise étrangère',
             exportToNextOpenPeriod: 'Exporter vers la prochaine période ouverte',
-            exportToNextOpenPeriodLockedSubtitle:
-                "Pour désactiver l'exportation vers la prochaine période ouverte, désactivez d'abord la division des exportations non remboursables par période.",
-            splitExportsByPostingPeriod: 'Diviser les exportations par période comptable',
-            splitExportsByPostingPeriodSubtitle:
-                "Activez l'exportation vers la prochaine période ouverte pour activer la division des exportations non remboursables par période dans NetSuite",
             nonReimbursableJournalPostingAccount: 'Compte de saisie des écritures non remboursables',
             reimbursableJournalPostingAccount: 'Compte de comptabilisation des écritures remboursables',
             journalPostingPreference: {
@@ -7164,6 +7161,16 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             peopleAdmins: 'Administrateurs des personnes',
             paymentsAdmins: 'Administrateurs des paiements',
             members: 'Membres',
+            workArrangement: 'Modalités de travail',
+            officeBased: 'Basé au bureau',
+            noRegularWorkspace: 'À distance ou mobile',
+            workArrangementPage: {
+                title: 'Modalités de travail',
+                optionOfficeBasedHelp: 'Le membre se rend au bureau. Les trajets domicile-travail ordinaires sont exclus du remboursement.',
+                optionNoRegularWorkspaceHelp:
+                    'Le membre travaille à domicile ou se déplace entre plusieurs sites sans bureau fixe, donc les règles relatives aux trajets domicile-travail ne s’appliquent pas.',
+                futureOnlyNote: 'Les modifications s’appliquent uniquement aux calculs de kilométrage futurs. Les dépenses de kilométrage existantes ne sont pas recalculées.',
+            },
         },
         card: {
             getStartedIssuing: 'Commencez par émettre votre première carte virtuelle ou physique.',
@@ -9634,6 +9641,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 : `a modifié le flux d'approbation pour ${member} afin d'arrêter de transférer les notes de frais au-delà de ${previousLimit}`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `a modifié le circuit d’approbation pour ${member} afin de transférer les notes de frais supérieures à ${limit} (auparavant ${previousLimit})`,
+        updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
+            `a modifié l’organisation du travail de ${displayName} en ${newArrangement} (auparavant ${oldArrangement})`,
+        updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
+            `a modifié le mode de travail par défaut en ${newArrangement} (auparavant ${oldArrangement})`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',

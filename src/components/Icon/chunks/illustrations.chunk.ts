@@ -132,6 +132,7 @@ import CardReaderAlt from '@assets/images/simple-illustrations/simple-illustrati
 import Chair from '@assets/images/simple-illustrations/simple-illustration__chair.svg';
 import Chalkboard from '@assets/images/simple-illustrations/simple-illustration__chalkboard.svg';
 import Chart from '@assets/images/simple-illustrations/simple-illustration__chart.svg';
+import ChartSync from '@assets/images/simple-illustrations/simple-illustration__chartsync.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CheckboxText from '@assets/images/simple-illustrations/simple-illustration__checkboxtext.svg';
 import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
@@ -359,6 +360,7 @@ const Illustrations = {
     CreditCardsNew,
     FolderOpen,
     FolderSync,
+    ChartSync,
     HandCard,
     Hashtag,
     InvoiceBlue,
