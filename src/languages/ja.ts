@@ -3380,9 +3380,9 @@ ${date} の ${merchant} への ${amount}`,
             otherAccountingSoftware: 'ソフトウェア名',
         },
         interestedFeatures: {
-            title: 'どの機能にご興味がありますか？',
-            featuresAlreadyEnabled: '当社で最も人気のある機能はこちらです。',
-            featureYouMayBeInterestedIn: '追加機能を有効にする:',
+            title: 'ご希望の機能を選択してください',
+            featuresAlreadyEnabled: 'ワークスペースでは、すでに次の機能が有効になっています：',
+            featureYouMayBeInterestedIn: '興味のありそうな追加機能を有効にする：',
         },
         error: {
             requiredFirstName: '続行するには名を入力してください',

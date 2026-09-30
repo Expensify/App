@@ -5790,14 +5790,13 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: 12,
         },
 
-        onboardingAccountingItem: {
+        onboardingTile: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusNormal,
             // Keeps "Intuit Enterprise Suite" on one line in narrow tiles.
             paddingHorizontal: 8,
             paddingVertical: 20,
             alignItems: 'center',
-            justifyContent: 'center',
             flexGrow: 1,
             flexShrink: 1,
         },
@@ -5809,32 +5808,26 @@ const staticStyles = (theme: ThemeColors) =>
             maxWidth: '32%',
         },
 
-        onboardingAccountingItemNarrow: {
+        onboardingTileNarrow: {
             width: '45%',
             maxWidth: '48.5%',
         },
 
-        onboardingAccountingItemSelected: {
+        onboardingTileSelected: {
             backgroundColor: theme.selectedOptionBG,
         },
 
         // Positioned via the wrapper, since `SelectionButton` applies `style` to the inner pressable.
-        onboardingAccountingItemSelectionButton: {
+        onboardingTileSelectionButton: {
             position: 'absolute',
             top: 12,
             left: 12,
         },
 
-        onboardingInterestedFeaturesItem: {
-            backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusNormal,
-            padding: 16,
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexGrow: 1,
-            flexShrink: 1,
+        // Four 23.4% tiles plus gaps fill the 576px row exactly, so wrap at 22% to survive the scrollbar.
+        onboardingInterestedFeaturesItemWide: {
+            width: '22%',
+            maxWidth: '23.4%',
         },
 
         checkboxWithLabelCheckboxStyle: {
