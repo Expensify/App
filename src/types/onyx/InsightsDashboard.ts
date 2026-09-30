@@ -17,6 +17,12 @@ type InsightsGraphKey = ValueOf<typeof CONST.INSIGHTS.GRAPH>;
 type InsightsGraph = {
     /** Hash of the graph's search snapshot */
     snapshotHash?: number;
+
+    /** Hash of the snapshot holding the data for the "Previous period" compare mode */
+    previousPeriodSnapshotHash?: number;
+
+    /** Hash of the snapshot holding the data for the "Average" compare mode */
+    averageSnapshotHash?: number;
 };
 
 /** What the backend returns for one dashboard and set of filters */
@@ -31,6 +37,9 @@ type InsightsDashboard = {
     inputQuery?: string;
 
     errors?: Errors;
+
+    /** JSON code of the failed GetInsights request stored with errors */
+    responseJsonCode?: number;
 };
 
 export type {InsightsDashboardID, InsightsGraphKey, InsightsSearchKey};
