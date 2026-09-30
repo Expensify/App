@@ -1,7 +1,7 @@
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
-import {activatePhysicalExpensifyCard, issueExpensifyCard} from '@src/libs/actions/Card';
+import {activatePhysicalExpensifyCard, issueExpensifyCard, openIssueNewCardShippingAddressStep} from '@src/libs/actions/Card';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import {openPolicyExpensifyCardsPage} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -156,6 +156,19 @@ describe('actions/PolicyExpensifyCard', () => {
             // Then no address is sent, since UK/EU cards ship once the cardholder sets a PIN
             const body = TestHelper.getFetchMockCalls(WRITE_COMMANDS.CREATE_EXPENSIFY_CARD).at(-1)?.[1]?.body;
             expect(body instanceof FormData && body.has('shippingAddress')).toBe(false);
+        });
+    });
+
+    describe('openIssueNewCardShippingAddressStep', () => {
+        it('asks whether the cardholder has a phone number', async () => {
+            // Given an admin who reaches the shipping address step for a cardholder
+            // When the step opens
+            openIssueNewCardShippingAddressStep(policyID, 'zany@example.com');
+            await waitForBatchedUpdates();
+
+            // Then we check the cardholder's phone number so the admin is only asked for one when it's missing
+            const body = TestHelper.getFetchMockCalls(READ_COMMANDS.OPEN_ISSUE_NEW_CARD_SHIPPING_ADDRESS_STEP).at(-1)?.[1]?.body;
+            expect(body instanceof FormData ? Object.fromEntries(body) : {}).toEqual(expect.objectContaining({policyID, assigneeEmail: 'zany@example.com'}));
         });
     });
 
