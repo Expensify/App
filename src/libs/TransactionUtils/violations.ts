@@ -5,12 +5,7 @@
  */
 import {isPersonalCard} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
-import {
-    isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
-    isInstantSubmitEnabled,
-    isPolicyAdmin,
-    isPolicyMember as isPolicyMemberPolicyUtils,
-} from '@libs/PolicyUtils';
+import {isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy, isInstantSubmitEnabled, isPolicyAdmin, isPolicyMember as isPolicyMemberPolicyUtils} from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter, isIOUReport, isOpenExpenseReport, isProcessingReport, isReportManager, isSettled} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';

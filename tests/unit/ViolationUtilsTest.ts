@@ -4384,7 +4384,7 @@ describe('hasVisibleViolationsForUser', () => {
         };
 
         // Mock shouldShowViolation to return true for missing category
-        jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockReturnValue(true);
+        jest.spyOn(require('@src/libs/TransactionUtils/violations'), 'shouldShowViolation').mockReturnValue(true);
 
         const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
         expect(result).toBe(true);
@@ -4401,7 +4401,7 @@ describe('hasVisibleViolationsForUser', () => {
         };
 
         // Mock shouldShowViolation to return false for RECEIPT_NOT_SMART_SCANNED (hidden from submitter)
-        jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
+        jest.spyOn(require('@src/libs/TransactionUtils/violations'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
             if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
                 return false; // Hidden from submitter
             }
@@ -4423,7 +4423,7 @@ describe('hasVisibleViolationsForUser', () => {
             ],
         };
 
-        jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
+        jest.spyOn(require('@src/libs/TransactionUtils/violations'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
             if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
                 return false;
             }
@@ -4458,7 +4458,7 @@ describe('hasVisibleViolationsForUser', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${secondTransactionID}`]: [missingCategoryViolation],
         };
 
-        jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
+        jest.spyOn(require('@src/libs/TransactionUtils/violations'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
             if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
                 return false;
             }
