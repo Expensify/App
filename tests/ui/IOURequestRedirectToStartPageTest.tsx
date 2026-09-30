@@ -20,6 +20,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {getGlobalFetchMock} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@userActions/Tab');
@@ -70,6 +71,10 @@ describe('IOURequestRedirectToStartPage', () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
+
+        // Mock fetch so any request sent while the page renders (for example, a log flush) doesn't reach the real fetch
+        // polyfill, which throws "Request is not defined" under Jest
+        global.fetch = getGlobalFetchMock();
     });
 
     beforeEach(() => {
