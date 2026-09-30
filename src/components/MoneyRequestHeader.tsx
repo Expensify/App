@@ -80,7 +80,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
         }`,
         {},
     );
-    const transactionViolations = useTransactionViolations(transaction?.transactionID);
+    const transactionViolations = useTransactionViolations(transaction?.transactionID, false);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const styles = useThemeStyles();

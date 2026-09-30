@@ -53,7 +53,7 @@ function getInsightState(
     return INSIGHT_STATE.READY;
 }
 
-function useInsightData(config: SearchTypeMenuItem | undefined) {
+function useInsightData(config: SearchTypeMenuItem | undefined, isConfigResolved = true) {
     const queryJSON = config?.searchQueryJSON;
     const searchKey = config?.key;
     const {groupBy} = queryJSON ?? {};
@@ -66,7 +66,7 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
 
     const retry = () => {
         // `search.isLoading` is persisted and may be stale after a reload. Call `search()` again and let it ignore a request that is still running.
-        if (!queryJSON || isOffline) {
+        if (!queryJSON || isOffline || !isConfigResolved) {
             return;
         }
 
@@ -90,11 +90,11 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
             return;
         }
         onConfigChanged();
-    }, [queryJSON?.hash, isOffline, isFocused]);
+    }, [queryJSON?.hash, isOffline, isFocused, isConfigResolved]);
 
     const sortedData = useGroupedItems(searchResults, queryJSON);
 
-    const state = getInsightState(isOffline, searchResults, queryJSON, sortedData);
+    const state = isConfigResolved ? getInsightState(isOffline, searchResults, queryJSON, sortedData) : INSIGHT_STATE.LOADING;
 
     return {
         queryJSON,

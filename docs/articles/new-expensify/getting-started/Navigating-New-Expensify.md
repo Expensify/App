@@ -202,6 +202,39 @@ You can also use keyboard shortcuts on web to jump directly to specific items:
 
 ---
 
+## How to start an action using Search
+
+You can start common actions from **Search** instead of using the **➕ Create** button.
+
+1. Select **Search** (the magnifying glass icon).
+2. Type the name of the action you want to start, such as **Create expense**, **Create report**, **Track distance**, **Start chat**, or **Book travel**. You can also type **go** or **go to** before the name, such as **go to book travel**.
+3. Select the action to start it.
+
+Only the actions available to you appear. **Book travel** appears only when Expensify Travel is enabled on your active workspace, and it opens the same booking tool as the **Book travel** option in the **➕ Create** button.
+
+Learn how to [enable Expensify Travel on a workspace](/articles/travel/company-setup/Enable-Travel-on-a-Workspace).
+## How to jump to a domain page using Search
+
+If you are a Domain Admin, **Search** also suggests the pages of each domain you administer, so you can open them without going through **Workspaces** > **Domains**.
+
+1. Select **Search** (the magnifying glass icon).
+2. Type the name of the page you want to open — **Domain members**, **Domain admins**, **Groups**, or **SAML** — or type the domain name, such as **example.com**.
+3. Select the suggestion to open that page for that domain.
+
+Each domain suggestion shows the domain name on the right of the row, so you can tell the suggestions apart when you administer more than one domain.
+
+These suggestions only appear for domains you administer. If you are not a Domain Admin of any domain, only **Go to Domains** appears.
+
+Learn more about [what Domain Admins can manage](/articles/new-expensify/domains/Domain-Admins).
+
+<!-- SCREENSHOT:
+Suggestion: Search with a domain page suggestion visible, showing the Go to Domain members row with the domain name displayed on the right
+Location: After the "How to jump to a domain page using Search" section
+Purpose: Shows Domain Admins that the domain name identifies which domain a suggestion belongs to, which prevents opening the wrong domain when they administer several
+-->
+
+---
+
 # FAQ
 
 ## Where are navigation tabs located in Expensify?
@@ -211,6 +244,14 @@ On web, navigation tabs appear on the left. On mobile, navigation tabs appear on
 ## Can I use Search to move between sections of Expensify?
 
 Yes. Select **Search** (the magnifying glass icon), then type the name of a top-level destination: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. Select the **Go to [destination]** result to open it. You can also type **go** or **go to** before the name.
+
+## Can I book travel from Search?
+
+Yes. Select **Search** (the magnifying glass icon), type **Book travel**, then select the **Book travel** result. This opens the same booking tool as the **Book travel** option in the **➕ Create** button.
+
+## Why don’t I see Book travel in Search?
+
+**Book travel** appears only when Expensify Travel is enabled on your active workspace. If a different workspace has Expensify Travel enabled, make that workspace active and search again. If no workspace has it enabled, ask a Workspace Admin to [enable Expensify Travel on a workspace](/articles/travel/company-setup/Enable-Travel-on-a-Workspace).
 
 ## Where do I manage workspace settings?
 

@@ -6,25 +6,9 @@ import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {PluralForm, TranslationParameters, TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale} from '@src/types/onyx';
 
 import * as RNLocalize from 'react-native-localize';
-import Onyx from 'react-native-onyx';
-
-// Current user mail is needed for handling missing translations
-let userEmail = '';
-
-// TODO: Remove this Onyx.connectWithoutView after deprecating translateLocal (#64943) and completing Onyx.connect deprecation - see https://github.com/Expensify/App/issues/66329
-Onyx.connectWithoutView({
-    key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-        userEmail = val?.email ?? '';
-    },
-});
 
 // Note: these Intl instances are created lazily, per locale, rather than at the top level of the file. Two reasons:
 // Intl is polyfilled, so touching it upon import would run before the polyfill is installed and barf; and an Intl
@@ -127,9 +111,6 @@ function translate<TPath extends TranslationPaths>(locale: Locale | undefined, p
     if (Config.IS_IN_PRODUCTION || Config.IS_IN_STAGING) {
         const phraseString = Array.isArray(path) ? path.join('.') : path;
         Log.alert(`${phraseString} was not found in the ${locale} locale`);
-        if (userEmail.includes(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN)) {
-            return CONST.MISSING_TRANSLATION;
-        }
         return phraseString;
     }
     throw new Error(`${path} was not found in the ${locale} locale`);

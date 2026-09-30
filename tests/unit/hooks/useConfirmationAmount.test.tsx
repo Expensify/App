@@ -40,8 +40,6 @@ const baseParams: Params = {
     distanceRequestAmount: 250,
     distanceCurrency: 'USD',
     isPerDiemRequest: false,
-    prevCurrency: 'USD',
-    currency: 'USD',
     prevSubRates: [],
 };
 

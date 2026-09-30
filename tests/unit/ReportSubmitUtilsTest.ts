@@ -108,13 +108,13 @@ describe('canSubmitAndIsAwaitingForCurrentUser', () => {
         const transactionViolations: Record<string, TransactionViolations> = {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [{name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: 'violation'}],
         };
-        const result = canSubmitAndIsAwaitingForCurrentUser(managerReport, chatReport, basePolicy, transactions, transactionViolations, 'user@test.com', CURRENT_USER_ACCOUNT_ID);
+        const result = canSubmitAndIsAwaitingForCurrentUser(managerReport, chatReport, basePolicy, transactions, transactionViolations, 'user@test.com', CURRENT_USER_ACCOUNT_ID, undefined);
         expect(result).toBe(false);
     });
 
     it('returns false when canSubmitReport returns false', () => {
         mockedCanSubmitReport.mockReturnValue(false);
-        const result = canSubmitAndIsAwaitingForCurrentUser(iouReport, chatReport, basePolicy, transactions, {}, 'user@test.com', CURRENT_USER_ACCOUNT_ID);
+        const result = canSubmitAndIsAwaitingForCurrentUser(iouReport, chatReport, basePolicy, transactions, {}, 'user@test.com', CURRENT_USER_ACCOUNT_ID, undefined);
         expect(result).toBe(false);
     });
 
@@ -122,13 +122,22 @@ describe('canSubmitAndIsAwaitingForCurrentUser', () => {
         mockedCanSubmitReport.mockReturnValue(true);
         const otherUserChatReport = createPolicyExpenseChat(1, false);
         const iouReportOtherOwner: Report = {...createExpenseReport(2), ownerAccountID: OTHER_USER_ACCOUNT_ID};
-        const result = canSubmitAndIsAwaitingForCurrentUser(iouReportOtherOwner, otherUserChatReport, basePolicy, transactions, {}, 'user@test.com', CURRENT_USER_ACCOUNT_ID);
+        const result = canSubmitAndIsAwaitingForCurrentUser(iouReportOtherOwner, otherUserChatReport, basePolicy, transactions, {}, 'user@test.com', CURRENT_USER_ACCOUNT_ID, undefined);
         expect(result).toBe(false);
     });
 
     it('returns true when all conditions are met', () => {
         mockedCanSubmitReport.mockReturnValue(true);
-        const result = canSubmitAndIsAwaitingForCurrentUser(iouReport, chatReport, basePolicy, transactions, {}, 'user@test.com', CURRENT_USER_ACCOUNT_ID);
+        const result = canSubmitAndIsAwaitingForCurrentUser(iouReport, chatReport, basePolicy, transactions, {}, 'user@test.com', CURRENT_USER_ACCOUNT_ID, undefined);
         expect(result).toBe(true);
+    });
+
+    it('forwards the passed iouReportOwnerLogin instead of looking it up in the personal details list', () => {
+        mockedCanSubmitReport.mockReturnValue(true);
+        canSubmitAndIsAwaitingForCurrentUser(iouReport, chatReport, basePolicy, transactions, {}, 'user@test.com', CURRENT_USER_ACCOUNT_ID, 'threaded.owner@test.com');
+
+        // The owner login is the 2nd argument of canSubmitReport. Nothing seeded PERSONAL_DETAILS_LIST for
+        // iouReport's owner, so the fallback could only have produced undefined here.
+        expect(mockedCanSubmitReport).toHaveBeenCalledWith(iouReport, 'threaded.owner@test.com', basePolicy, transactions, undefined, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID);
     });
 });

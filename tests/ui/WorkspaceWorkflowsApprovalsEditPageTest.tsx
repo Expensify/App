@@ -1,8 +1,11 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import Navigation from '@libs/Navigation/Navigation';
+import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
 
 import WorkspaceWorkflowsApprovalsEditPage from '@pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsEditPage';
 
@@ -19,6 +22,7 @@ import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../utils/getOnyxValue';
 import {buildPersonalDetails, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -86,7 +90,7 @@ const mockRoute = {
 
 const Stack = createStackNavigator();
 
-const renderEditPage = () =>
+const renderEditPage = (route = mockRoute) =>
     render(
         <NavigationContainer>
             <Stack.Navigator>
@@ -95,7 +99,7 @@ const renderEditPage = () =>
                         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                             <WorkspaceWorkflowsApprovalsEditPage
                                 // @ts-expect-error - route type from navigator
-                                route={mockRoute}
+                                route={route}
                             />
                         </ComposeProviders>
                     )}
@@ -191,6 +195,54 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
         expect(emails.length).toBeGreaterThan(0);
         expect(emails).toHaveLength(uniqueEmails.length);
         expect(emails).toContain(ALICE_EMAIL);
+    });
+
+    it('makes the workflow the default one when it is saved with everyone in it', async () => {
+        // Given Bob approves Carol's workflow while the default workflow routes Alice and Bob to Alice
+        const bobEmail = 'bob@example.com';
+        const bobAccountID = 2;
+        const carolEmail = 'carol@example.com';
+        const carolAccountID = 3;
+        const bobApprover: Approver = {email: bobEmail, displayName: 'bob'};
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+                employeeList: {
+                    [bobEmail]: {email: bobEmail, submitsTo: ALICE_EMAIL},
+                    [carolEmail]: {email: carolEmail, submitsTo: bobEmail},
+                },
+            });
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [bobAccountID]: buildPersonalDetails(bobEmail, bobAccountID, 'bob'),
+                [carolAccountID]: buildPersonalDetails(carolEmail, carolAccountID, 'carol'),
+            });
+
+            // And the admin has added everyone to Bob's workflow
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, {
+                action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
+                approvers: [bobApprover],
+                originalApprovers: [bobApprover],
+                members: [ALICE_EMAIL, bobEmail, carolEmail].map((email) => ({email, displayName: email})),
+                availableMembers: [],
+                usedApproverEmails: [],
+                isDefault: false,
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+        jest.mocked(Navigation.dismissModal).mockImplementationOnce((options) => options?.afterTransition?.());
+
+        renderEditPage({...mockRoute, params: {policyID: POLICY_ID, firstApproverEmail: bobEmail}});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin saves the workflow
+        fireEvent.press(screen.getByText(translateLocal('common.save')));
+
+        // Then Bob becomes the default approver, so Bob's workflow is the only one left and it is the default one
+        await waitFor(async () => expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`))?.approver).toBe(bobEmail));
+        const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`);
+        const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails: {}, localeCompare: (a: string, b: string) => a.localeCompare(b)});
+        expect(approvalWorkflows).toHaveLength(1);
+        expect(approvalWorkflows.at(0)?.isDefault).toBe(true);
+        expect(approvalWorkflows.at(0)?.approvers.map((approver) => approver.email)).toEqual([bobEmail]);
     });
 
     describe('shared approver hint', () => {

@@ -1,7 +1,8 @@
-import {render} from '@testing-library/react-native';
+import {render, screen, within} from '@testing-library/react-native';
 
 import ConfirmContent from '@components/ConfirmContent';
 import type ImageSVGProps from '@components/ImageSVG/types';
+import ModalContext from '@components/Modal/ModalContext';
 
 import CONST from '@src/CONST';
 
@@ -36,6 +37,14 @@ jest.mock('@components/Button', () => {
 jest.mock('@components/ImageSVG', () => (props: ImageSVGProps) => {
     mockImageSVGSpy(props);
     return null;
+});
+
+jest.mock('@components/ScrollView', () => {
+    const ReactLib = jest.requireActual<typeof React>('react');
+    return {
+        __esModule: true,
+        default: ({children}: {children?: React.ReactNode}) => ReactLib.createElement('mock-scroll-view', {testID: 'prompt-scroll-view'}, children),
+    };
 });
 
 jest.mock('@hooks/useLocalize', () =>
@@ -135,6 +144,50 @@ describe('ConfirmContent', () => {
                 expect(confirmProps?.variant).toBe(expectedVariant);
             },
         );
+    });
+
+    describe('scrollable prompt (shouldEnablePromptScroll=true)', () => {
+        const prompt = '• Report 1\n• Report 2';
+
+        it('puts the prompt in its own ScrollView when the modal does not already scroll its children', () => {
+            // Given a modal that renders its children without a ScrollView, as a bottom-docked modal does in portrait
+            // When a long prompt asks to be scrollable
+            render(
+                <ModalContext.Provider value={{isContentWrappedInScrollView: false, default: false}}>
+                    <ConfirmContent
+                        title="Test"
+                        onConfirm={jest.fn()}
+                        isVisible
+                        prompt={prompt}
+                        shouldEnablePromptScroll
+                    />
+                </ModalContext.Provider>,
+            );
+
+            // Then the prompt scrolls on its own, so the title and buttons stay pinned around the long list
+            expect(within(screen.getByTestId('prompt-scroll-view')).getByText(prompt)).toBeOnTheScreen();
+        });
+
+        it('renders the prompt without its own ScrollView when the modal already scrolls its children', () => {
+            // Given a modal that already wraps its children in a ScrollView, as a bottom-docked modal does in landscape
+            // When a long prompt asks to be scrollable
+            render(
+                <ModalContext.Provider value={{isContentWrappedInScrollView: true, default: false}}>
+                    <ConfirmContent
+                        title="Test"
+                        onConfirm={jest.fn()}
+                        isVisible
+                        prompt={prompt}
+                        shouldEnablePromptScroll
+                    />
+                </ModalContext.Provider>,
+            );
+
+            // Then the prompt is not nested in a second vertical scroller: iOS would keep the drag in the inner one and Android would
+            // give it to the outer one, leaving either the buttons or the end of the list unreachable
+            expect(screen.queryByTestId('prompt-scroll-view')).toBeNull();
+            expect(screen.getByText(prompt)).toBeOnTheScreen();
+        });
     });
 
     it('uses custom image dimensions', () => {

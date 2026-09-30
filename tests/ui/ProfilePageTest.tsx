@@ -78,6 +78,14 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+// The public options rows use the composable MenuItem API, where the indicator is a child leaf rather than
+// a prop, so expose its status as text the same way the MenuItemWithTopDescription double below does
+jest.mock('@components/MenuItem/leaves/trailing/icons/MenuItemBrickRoadIndicator', () => {
+    const ReactMock = jest.requireActual<typeof React>('react');
+    const {Text} = jest.requireActual<{Text: typeof ReactNativeText}>('react-native');
+    return ({status}: {status: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>}) => ReactMock.createElement(Text, null, `${status}-brickRoadIndicator`);
+});
+
 // Replace MenuItemWithTopDescription with a simple test double that exposes props in the tree
 jest.mock('@components/MenuItemWithTopDescription', () => {
     const ReactMock = jest.requireActual<typeof React>('react');
@@ -141,7 +149,7 @@ describe('ProfilePage contact method indicator', () => {
         renderPage();
 
         // Description for contact methods is 'contacts.contactMethods' via mocked translate
-        let node = screen.getByText('error-brickRoadIndicator');
+        const node = screen.getByText('error-brickRoadIndicator');
         expect(node).toBeDefined();
 
         // Verify that RBR disappears
@@ -155,10 +163,9 @@ describe('ProfilePage contact method indicator', () => {
         });
 
         await waitFor(() => {
-            node = screen.getByTestId('contact-method-menu-item');
-
-            // ContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
-            expect(node).toHaveTextContent('none-brickRoadIndicator');
+            // The row keeps rendering, but with nothing left to flag the indicator leaf unmounts
+            expect(screen.getByTestId('contact-method-menu-item')).toBeDefined();
+            expect(screen.queryByText('error-brickRoadIndicator')).toBeNull();
         });
     });
 
@@ -181,7 +188,7 @@ describe('ProfilePage contact method indicator', () => {
 
         renderPage();
 
-        let node = screen.getByText('info-brickRoadIndicator');
+        const node = screen.getByText('info-brickRoadIndicator');
         expect(node).toBeDefined();
 
         // Verify that GBR disappears
@@ -194,10 +201,9 @@ describe('ProfilePage contact method indicator', () => {
         });
 
         await waitFor(() => {
-            node = screen.getByTestId('contact-method-menu-item');
-
-            // ContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
-            expect(node).toHaveTextContent('none-brickRoadIndicator');
+            // The row keeps rendering, but with nothing left to flag the indicator leaf unmounts
+            expect(screen.getByTestId('contact-method-menu-item')).toBeDefined();
+            expect(screen.queryByText('info-brickRoadIndicator')).toBeNull();
         });
     });
 });

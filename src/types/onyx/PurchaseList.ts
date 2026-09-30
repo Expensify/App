@@ -34,6 +34,39 @@ type Message = {
     billableAmountBeforeFreeTrialDiscount?: number;
     billablePolicies?: Record<string, BillablePolicy>;
     billingType?: string;
+
+    /** Whether sales tax was charged on this purchase */
+    salesTaxCharged?: boolean;
+
+    /** Whether the account is exempt from sales tax */
+    salesTaxExempt?: boolean;
+
+    /** Whether the account is on the 2025 team pricing (members vs active users) */
+    isTeam2025Pricing?: boolean;
+
+    /** ID of the receipt attached to this purchase, used to view the billing receipt */
+    receiptID?: number;
+
+    /** For a refund row: the ID of the purchase being refunded */
+    refundPurchaseID?: number;
+
+    /** Whether a refund row is a partial refund */
+    isPartialRefund?: boolean;
+
+    /** For a dispute row: the ID of the purchase being disputed */
+    disputePurchaseID?: number;
+
+    /** The dispute state for a dispute row */
+    disputeStatus?: string;
+
+    /** For a clear row: the ID of the failed purchase being cleared */
+    failedPurchaseID?: number;
+
+    /** Email the balance was transferred from, for a balance-transfer row */
+    takenOverFrom?: string;
+
+    /** Email the balance was transferred to, for a balance-transfer row */
+    transferTo?: string;
     cardSpendSurchargePercent?: number;
     cashBackAmount?: number;
     cashBackPercentage?: number;

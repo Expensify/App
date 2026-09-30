@@ -3,29 +3,20 @@ import useLocalize from '@hooks/useLocalize';
 
 import {adjustRemainingSplitShares} from '@libs/actions/IOU/Split';
 
-import type {TranslationPaths} from '@src/languages/types';
-import type {Transaction} from '@src/types/onyx';
 import type {SplitShares} from '@src/types/onyx/Transaction';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import {useEffect} from 'react';
 
-type SplitBillControllerProps = {
-    transaction: OnyxEntry<Transaction>;
-    isTypeSplit: boolean;
-    iouAmount: number;
-    iouCurrencyCode: string | undefined;
-    currentUserAccountID: number;
-    isFocused: boolean;
-    onFormError: (error: TranslationPaths | '') => void;
-};
+import {useConfirmationData} from './ConfirmationDataContext';
 
 /**
  * Side-effect-only component that validates split share amounts
  * and adjusts remaining split shares when the transaction changes.
+ *
+ * Mounted only by the variants whose expense type can be split.
  */
-function SplitBillController({transaction, isTypeSplit, iouAmount, iouCurrencyCode, currentUserAccountID, isFocused, onFormError}: SplitBillControllerProps) {
+function SplitBillController() {
+    const {transaction, isTypeSplit, iouAmount, iouCurrencyCode, currentUserAccountID, isFocused, setFormError: onFormError} = useConfirmationData();
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
 

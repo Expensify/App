@@ -7,19 +7,20 @@ import ReportSubmitToContent from '@pages/ReportSubmitToContent';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import calculateModalHeightInLandscapeMode from '@src/utils/calculateModalHeightInLandscapeMode';
 
 import type {ComponentRef, RefObject} from 'react';
 
 import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
+import {loginSelector} from '@selectors/PersonalDetails';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import useIsInLandscapeMode from './useIsInLandscapeMode';
 import useKeyboardState from './useKeyboardState';
 import useOnyx from './useOnyx';
+import {usePersonalDetail} from './usePersonalDetails';
 import usePopoverPosition from './usePopoverPosition';
 import usePrevious from './usePrevious';
 import useResponsiveLayout from './useResponsiveLayout';
@@ -99,7 +100,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
+    const [ownerLogin] = usePersonalDetail(report?.ownerAccountID, loginSelector);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {
         selector: willAlertModalBecomeVisibleSelector,

@@ -27,7 +27,9 @@ import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {openOldDotLink} from '@libs/actions/Link';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import {openTroubleshootSettingsPage} from '@libs/actions/User';
-import ExportOnyxState from '@libs/ExportOnyxState';
+import {getErrorMessage} from '@libs/ErrorUtils';
+import {maskOnyxState, readOnyxState, saveOnyxStateFile} from '@libs/ExportOnyxState';
+import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
@@ -40,14 +42,14 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import {differenceInDays} from 'date-fns';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import useTroubleshootSectionIllustration from './useTroubleshootSectionIllustration';
@@ -88,12 +90,21 @@ function TroubleshootPage() {
         setShouldResetSearchQuery(true);
         clearOnyxAndResetApp();
     };
-    const exportOnyxState = useCallback(() => {
-        ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
-            const dataToShare = ExportOnyxState.maskOnyxState(value, shouldMaskOnyxState);
-            ExportOnyxState.shareAsFile(JSON.stringify(dataToShare));
-        });
-    }, [shouldMaskOnyxState]);
+    const exportOnyxState = async () => {
+        try {
+            const value = await readOnyxState();
+            const dataToShare = maskOnyxState(value, shouldMaskOnyxState);
+            await saveOnyxStateFile(JSON.stringify(dataToShare));
+        } catch (error) {
+            Log.warn('[Troubleshoot] Unable to export Onyx state', {error: getErrorMessage(error)});
+            await showConfirmModal({
+                title: translate('genericErrorPage.title'),
+                prompt: translate('common.genericErrorMessage'),
+                confirmText: translate('common.ok'),
+                shouldShowCancelButton: false,
+            });
+        }
+    };
 
     const getSurveyCompletedWithinLastMonth = () => {
         const surveyThresholdInDays = 30;
@@ -234,7 +245,7 @@ function TroubleshootPage() {
                                     shouldUseSingleExecution
                                 />
                                 <View style={[styles.mt6]}>
-                                    <TestToolMenu />
+                                    <TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />
                                 </View>
                                 {isDevelopment && (
                                     <View style={[styles.mt6]}>

@@ -1,6 +1,7 @@
 import {AttachmentContext} from '@components/AttachmentContext';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -51,19 +52,17 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
      */
     function getMenuItem(item: NoteListItem) {
         return (
-            <AttachmentContext.Provider value={getAttachmentValue(item)}>
-                <MenuItemWithTopDescription
-                    key={item.title}
-                    description={item.title}
-                    title={item.note}
-                    onPress={item.action}
-                    shouldShowRightIcon={!item.disabled}
-                    numberOfLinesTitle={0}
-                    shouldRenderAsHTML
-                    brickRoadIndicator={item.brickRoadIndicator}
-                    disabled={item.disabled}
-                    shouldGreyOutWhenDisabled={false}
-                />
+            <AttachmentContext.Provider
+                key={item.accountID}
+                value={getAttachmentValue(item)}
+            >
+                <MenuItemFieldHTML
+                    name={item.title}
+                    value={item.note}
+                    onPress={item.disabled ? undefined : item.action}
+                >
+                    {!!item.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={item.brickRoadIndicator} />}
+                </MenuItemFieldHTML>
             </AttachmentContext.Provider>
         );
     }

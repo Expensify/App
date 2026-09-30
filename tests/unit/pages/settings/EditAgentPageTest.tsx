@@ -112,24 +112,10 @@ jest.mock('@components/ConfirmModal', () => {
     return MockConfirmModal;
 });
 
-jest.mock('@components/MenuItem', () => {
-    function MockMenuItem({title}: {title: string}) {
-        return title ?? null;
-    }
-    return MockMenuItem;
-});
-
 jest.mock('@components/MenuItem/presets/MenuItemAction', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {Text} = jest.requireActual('react-native');
     return ({title, onPress, isDisabled}: {title: string; onPress?: () => void; isDisabled?: boolean}) => <Text onPress={isDisabled ? undefined : onPress}>{title}</Text>;
-});
-
-jest.mock('@components/MenuItemWithTopDescription', () => {
-    function MockMenuItemWithTopDescription({title, description}: {title: string; description: string}) {
-        return `${description}::${title}`;
-    }
-    return MockMenuItemWithTopDescription;
 });
 
 jest.mock('@components/OfflineWithFeedback', () => {

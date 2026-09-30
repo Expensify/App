@@ -88,6 +88,15 @@ export type {default as UpdateCampfireExporterParams} from './UpdateCampfireExpo
 export type {default as UpdateCampfireExportDateParams} from './UpdateCampfireExportDateParams';
 export type {default as UpdateCampfireDefaultVendorParams} from './UpdateCampfireDefaultVendorParams';
 export type {default as UpdateCampfireCreditCardAccountParams} from './UpdateCampfireCreditCardAccountParams';
+export type {default as UpdateCampfireAutoSyncParams} from './UpdateCampfireAutoSyncParams';
+export type {default as UpdateCampfireAccountingMethodParams} from './UpdateCampfireAccountingMethodParams';
+export type {default as UpdateCampfireSyncReimbursedReportsParams} from './UpdateCampfireSyncReimbursedReportsParams';
+export type {default as UpdateCampfireBillPaymentAccountParams} from './UpdateCampfireBillPaymentAccountParams';
+export type {default as UpdateCampfireSyncExpensifyCardSettlementsParams} from './UpdateCampfireSyncExpensifyCardSettlementsParams';
+export type {default as UpdateCampfireSettlementsAccountParams} from './UpdateCampfireSettlementsAccountParams';
+export type {default as UpdateCampfireSyncTravelInvoicingSettlementsParams} from './UpdateCampfireSyncTravelInvoicingSettlementsParams';
+export type {default as UpdateCampfireTravelInvoicingSettlementsAccountParams} from './UpdateCampfireTravelInvoicingSettlementsAccountParams';
+export type {default as UpdateCampfireTravelInvoicingPayableAccountParams} from './UpdateCampfireTravelInvoicingPayableAccountParams';
 export type {default as SyncPolicyToBusinessCentralParams} from './SyncPolicyToBusinessCentralParams';
 export type {default as UpdateBusinessCentralCompanyParams} from './UpdateBusinessCentralCompanyParams';
 export type {default as UpdateBusinessCentralEnableNewCategoriesParams} from './UpdateBusinessCentralEnableNewCategoriesParams';
@@ -290,6 +299,7 @@ export type {default as SetWorkspaceCategoriesEnabledParams} from './SetWorkspac
 export type {default as CreateWorkspaceCategoriesParams} from './CreateWorkspaceCategoriesParams';
 export type {default as RenameWorkspaceCategoriesParams} from './RenameWorkspaceCategoriesParams';
 export type {default as SetWorkspaceRequiresCategoryParams} from './SetWorkspaceRequiresCategoryParams';
+export type {default as SetPolicyAutoCategorizeNewExpensesParams} from './SetPolicyAutoCategorizeNewExpensesParams';
 export type {default as SetPolicyShowCategoryGLCodesParams} from './SetPolicyShowCategoryGLCodesParams';
 export type {default as DeleteWorkspaceCategoriesParams} from './DeleteWorkspaceCategoriesParams';
 export type {default as UpdatePolicyCategoryPayrollCodeParams} from './UpdatePolicyCategoryPayrollCodeParams';

@@ -223,6 +223,11 @@ function hasPendingAdminshipRequestSelector(accountID: number | undefined) {
     return (domain: OnyxEntry<Domain>): boolean => !!accountID && !!domain?.domain_adminRequesters?.[accountID];
 }
 
+/** Picks just what deciding whether a user still belongs on a non-admin domain screen needs: the name proves the domain loaded, the flag says they became an admin */
+function domainAccessSelector(accountID: number | undefined) {
+    return (domain: OnyxEntry<Domain>) => ({domainName: domainNameSelector(domain), isAdmin: isAdminSelector(accountID)(domain)});
+}
+
 /**
  * Extracts the accountIDs of all pending domain adminship requesters from the domain object.
  */
@@ -337,6 +342,7 @@ export {
     vacationDelegateSelector,
     accountLockSelector,
     isAdminSelector,
+    domainAccessSelector,
     hasPendingAdminshipRequestSelector,
     pendingAdminRequesterAccountIDsSelector,
     adminshipRequesterPendingActionSelector,

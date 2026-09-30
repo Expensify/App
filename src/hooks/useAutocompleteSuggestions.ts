@@ -7,7 +7,7 @@ import {getBankAccountSearchLabel, isFilterableBankAccount} from '@libs/BankAcco
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import type {OptionList} from '@libs/OptionsListUtils';
+import type {GetOptionsConfig, OptionList} from '@libs/OptionsListUtils';
 import {getSearchOptions} from '@libs/OptionsListUtils';
 import {getAllTaxRates, getCleanedTagName, getExpensifyTeamExclusions, shouldShowPolicy} from '@libs/PolicyUtils';
 import {
@@ -57,6 +57,8 @@ type UseAutocompleteSuggestionsParams = {
     allCards: CardList | undefined;
     allFeeds: Record<string, CardFeeds | undefined> | undefined;
     options: OptionList;
+    /** Resolves a report from the same snapshot `options` was built from @see useFilteredOptions */
+    getReportByID: GetOptionsConfig['getReportByID'];
     draftComments: OnyxCollection<string>;
     isDefaultRoomsBetaEnabled: boolean;
     countryCode: OnyxEntry<number>;
@@ -108,6 +110,7 @@ function useAutocompleteSuggestions({
     allCards = CONST.EMPTY_OBJECT,
     allFeeds,
     options,
+    getReportByID,
     draftComments,
     isDefaultRoomsBetaEnabled,
     countryCode,
@@ -276,6 +279,7 @@ function useAutocompleteSuggestions({
                 excludeFromSuggestionsOnly: memberExclusions,
                 isTrackIntentUser,
                 translate,
+                getReportByID,
                 rules,
             }).options.personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
@@ -318,6 +322,7 @@ function useAutocompleteSuggestions({
                 conciergeReportID,
                 isTrackIntentUser,
                 translate,
+                getReportByID,
                 rules,
             }).options.recentReports.filter((chat) => {
                 if (!chat.text) {

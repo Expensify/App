@@ -222,7 +222,7 @@ describe('Quickbooks custom dimension import', () => {
         renderDimensionPage('department');
         expect(screen.getByLabelText('Department').props.value).toBe(true);
         expect(screen.getByText('workspace.common.tags')).toBeOnTheScreen();
-        expect(screen.getByRole('button', {name: 'workspace.common.displayedAs'})).toBeDisabled();
+        expect(screen.getByText('workspace.common.displayedAs')).toBeOnTheScreen();
 
         // When disabling its import toggle
         fireEvent(screen.getByLabelText('Department'), 'valueChange', false);

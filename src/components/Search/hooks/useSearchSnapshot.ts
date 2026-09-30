@@ -1,6 +1,6 @@
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {SearchColumnType, SearchData, SearchQueryJSON} from '@components/Search/types';
+import type {SearchColumnType, SearchData, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -15,7 +15,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 
 import {isDefaultExpensesQuery, queryHasViolationFilter} from '@libs/SearchQueryUtils';
-import {getColumnsToShow, getSections, getSortedSections, getSortedTransactionData, getValidGroupBy, isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {getColumnsToShow, getSections, getSortedSections, getSortedTransactionData, getValidGroupBy, isSearchDataLoaded, isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import {shouldShowAttendees} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -47,7 +47,7 @@ type SearchSnapshotResult = {
     data: SearchListItem[];
     /** Sorted row items BEFORE optimistic stabilization. The chart view consumes this, not `data`. */
     chartData: SearchListItem[];
-    /** Group-enriched sections before sort. Consumed for selection counts and bulk-action wiring. */
+    /** Group-enriched sections before sort, capped to `visibleRowLimit`. Consumed for selection counts and bulk-action wiring. */
     filteredData: SearchData;
     /** Length of the base (pre-sort) sections (used as `prevReportsLength` when firing the next search). */
     filteredDataLength: number;
@@ -85,12 +85,36 @@ type UseSearchSnapshotParams = {
      *  full-collection reads. */
     transactions: OptimisticTrackingParams['transactions'];
     reportActions: OptimisticTrackingParams['reportActions'];
+    /** Row cap for `data`. Live (to-do) searches page on this instead of a server cursor; their rows are all report groups. */
+    visibleRowLimit?: number;
+
+    /** Rows ticked here stay rendered past `visibleRowLimit`. */
+    selectedTransactions?: SelectedTransactions;
 };
 
 const EMPTY_DATA: SearchListItem[] = [];
 const EMPTY_COLUMNS: SearchColumnType[] = [];
 const EMPTY_HASHES: string[] = [];
 const EMPTY_GROUP_ITEMS: TransactionGroupListItemType[] = [];
+
+/** How many leading rows the cap keeps: `rowLimit` rows on screen, stretched down to the last ticked or highlighted row. */
+function getRowLimitEnd(rows: SearchListItem[], rowLimit: number, selectedTransactions: SelectedTransactions | undefined, isOffline: boolean): number {
+    const isKeySelected = (key: string | undefined) => !!key && !!selectedTransactions?.[key]?.isSelected;
+    let shownRowCount = 0;
+    let end = 0;
+    for (const [index, row] of rows.entries()) {
+        // online, a row being deleted is hidden, so it doesn't use up the cap
+        if (!isOffline && row.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        shownRowCount += 1;
+        const isRowSelected = isKeySelected(row.keyForList) || (isTransactionGroupListItemType(row) && row.transactions.some((transaction) => isKeySelected(transaction.keyForList)));
+        if (shownRowCount <= rowLimit || !!row.shouldAnimateInHighlight || isRowSelected) {
+            end = index + 1;
+        }
+    }
+    return end;
+}
 
 const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? String(queryHash) : undefined);
 
@@ -102,7 +126,15 @@ const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? Str
  * per-group sub-snapshots, and absorbs the optimistic-row resilience. Returns the sorted rows plus the
  * list-level meta and the optimistic-tracking carriers that `<Search>` consumes.
  */
-function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions}: UseSearchSnapshotParams): SearchSnapshotResult {
+function useSearchSnapshot({
+    queryJSON,
+    searchResults,
+    newSearchResultKeys,
+    transactions,
+    reportActions,
+    visibleRowLimit,
+    selectedTransactions,
+}: UseSearchSnapshotParams): SearchSnapshotResult {
     const {type, sortBy, sortOrder, hash, groupBy} = queryJSON;
 
     const {isOffline} = useNetwork();
@@ -413,10 +445,17 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
               return item.transactions.length === 0 || !subSnapshot || !subSnapshot?.search?.hasMoreResults;
           });
 
+    // slice after the sort so page 2 continues the order on screen
+    const rowLimitEnd = visibleRowLimit === undefined ? stableSortedData.length : getRowLimitEnd(stableSortedData, visibleRowLimit, selectedTransactions, isOffline);
+    const isRowLimitApplied = rowLimitEnd < stableSortedData.length;
+    const visibleData = isRowLimitApplied ? stableSortedData.slice(0, rowLimitEnd) : stableSortedData;
+    // selection runs off this, so cap it too or "select all" reaches rows that were never rendered; live rows are all report groups
+    const visibleFilteredData = isRowLimitApplied ? visibleData.filter(isTransactionGroupListItemType) : filteredData;
+
     return {
-        data: stableSortedData,
+        data: visibleData,
         chartData,
-        filteredData,
+        filteredData: visibleFilteredData,
         filteredDataLength,
         allDataLength,
         hasDeletedTransaction,

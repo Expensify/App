@@ -64,6 +64,9 @@ type DropdownOption<TValueType> = WithSentryLabel & {
 
     /** Whether to ignore compact popover menu styling for this item */
     shouldIgnoreCompactStyle?: boolean;
+
+    /** Text shown above `subMenuItems` once the sub-menu is open */
+    subMenuHeaderText?: string;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {

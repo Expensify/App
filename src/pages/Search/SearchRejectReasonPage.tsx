@@ -1,5 +1,6 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
 import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -38,6 +39,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
     const {reportID} = route.params ?? {};
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const allReportsTransactionsAndViolations = useAllReportsTransactionsAndViolations();
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
 
@@ -65,19 +67,20 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
                 return;
             }
 
-            const urlToNavigateBack = rejectMoneyRequestsOnSearch(
-                currentSearchHash,
-                selectedTransactionsForReject,
+            const urlToNavigateBack = rejectMoneyRequestsOnSearch({
+                hash: currentSearchHash,
+                selectedTransactions: selectedTransactionsForReject,
                 comment,
                 allPolicies,
                 allReports,
-                currentUserAccountID,
-                currentUserLogin ?? '',
-                isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserLogin: currentUserLogin ?? '',
+                isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 delegateAccountID,
                 getCurrencyDecimals,
+                allReportsTransactionsAndViolations,
                 rules,
-            );
+            });
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS) {
                 clearSelectedTransactions(true);
             } else {
@@ -99,6 +102,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
             isBetaEnabled,
             delegateAccountID,
             getCurrencyDecimals,
+            allReportsTransactionsAndViolations,
             rules,
             route.name,
             showDelegateNoAccessModal,

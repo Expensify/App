@@ -101,13 +101,14 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, pending = false, 
         backgroundColor: interpolateColor(offsetX.get(), [OFFSET_X.OFF, OFFSET_X.ON], [theme.icon, theme.success]),
     }));
 
-    // Enhance accessibility label to include locked state when disabled
+    // Announce the locked state whenever the switch is disabled or shows the lock icon (e.g. a pressable switch that routes to an upgrade)
+    const isLocked = !!disabled || !!showLockIcon;
     const enhancedAccessibilityLabel = useMemo(() => {
-        if (disabled) {
+        if (isLocked) {
             return `${accessibilityLabel}, ${translate('common.locked')}`;
         }
         return accessibilityLabel;
-    }, [accessibilityLabel, disabled, translate]);
+    }, [accessibilityLabel, isLocked, translate]);
 
     return (
         <PressableWithFeedback

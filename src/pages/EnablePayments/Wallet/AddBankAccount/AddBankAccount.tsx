@@ -88,13 +88,8 @@ function AddBankAccount() {
     });
 
     const exitFlow = (shouldContinue = false) => {
-        const exitReportID = personalBankAccount?.exitReportID;
         const onSuccessFallbackRoute = personalBankAccount?.onSuccessFallbackRoute ?? '';
 
-        if (exitReportID) {
-            Navigation.dismissModalWithReport({reportID: exitReportID});
-            return;
-        }
         if (shouldContinue && onSuccessFallbackRoute) {
             continueSetup(kycWallRef, onSuccessFallbackRoute);
             return;

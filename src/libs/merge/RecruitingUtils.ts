@@ -121,7 +121,7 @@ function getMergeATSFilterLabel(
 }
 
 /** True when the admin still needs to complete the Merge ATS setup (choose the candidate filters). */
-function isMergeATSCompleteSetupNeeded(policy?: OnyxEntry<Policy>): boolean {
+function isMergeATSCompleteSetupNeeded(policy: OnyxEntry<Policy>): boolean {
     const mergeATS = policy?.connections?.merge_ats;
     if (!mergeATS) {
         return false;
@@ -133,12 +133,23 @@ function isMergeATSCompleteSetupNeeded(policy?: OnyxEntry<Policy>): boolean {
 }
 
 /** Returns the approval mode configured for the Merge ATS connection, or null when it is not set. */
-function getMergeATSApprovalMode(policy?: OnyxEntry<Policy>): MergeApprovalMode | undefined {
+function getMergeATSApprovalMode(policy: OnyxEntry<Policy>): MergeApprovalMode | undefined {
     return policy?.connections?.merge_ats?.config?.approvalMode ?? undefined;
 }
 
-/** Returns the ATS field the default approver is read from (e.g. the recruiter field), or undefined when it is not set. */
-function getMergeATSApproverField(policy?: OnyxEntry<Policy>): MergeATSApproverField | undefined {
+/** Returns true when the recruiting (ATS) connection uses a read-only approval mode (basic or advanced), which blocks manual workflow editing. */
+function isAnyRecruitingReadOnlyWorkflowMode(policy: OnyxEntry<Policy>): boolean {
+    const approvalMode = getMergeATSApprovalMode(policy);
+    return approvalMode === CONST.MERGE.APPROVAL_MODE.BASIC || approvalMode === CONST.MERGE.APPROVAL_MODE.ADVANCED;
+}
+
+/** Returns true when the recruiting (ATS) connection is in advanced mode, where the first approver comes from the candidate's ATS recruiter or coordinator. */
+function isRecruitingAdvancedMode(policy: OnyxEntry<Policy>): boolean {
+    return getMergeATSApprovalMode(policy) === CONST.MERGE.APPROVAL_MODE.ADVANCED;
+}
+
+/** Returns the ATS field the default approver is read from (e.g. the recruiter field), or null when it is not set. */
+function getMergeATSApproverField(policy: OnyxEntry<Policy>): MergeATSApproverField | undefined {
     return policy?.connections?.merge_ats?.config?.approverField ?? undefined;
 }
 
@@ -158,7 +169,9 @@ export {
     getMergeATSFilterOptions,
     getMergeATSFilterValues,
     isAnyRecruitingConnected,
+    isAnyRecruitingReadOnlyWorkflowMode,
     isMergeATSCompleteSetupNeeded,
+    isRecruitingAdvancedMode,
     shouldShowRecruitingConnectionError,
 };
 

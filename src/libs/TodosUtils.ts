@@ -157,6 +157,9 @@ function reportMatchesTodoBucket(
                     bankAccountList,
                     policy,
                     reportNameValuePairs: reportNameValuePair,
+                    // A failed export only demotes Pay to a secondary action on the report page. The report is still
+                    // payable, so keep it in the pay to-do to match the server's action:pay results.
+                    isSecondaryAction: true,
                 }) &&
                 !hasOnlyNonReimbursableTransactions(report.reportID, reportTransactions) &&
                 (!allExpensesHeld || currentUserPlacedHold)

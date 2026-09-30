@@ -1,6 +1,8 @@
 import type {ChartDataPoint, LabelRotation, PieSlice} from '@components/Charts/types';
 import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, SIN_45} from '@components/Charts/VictoryTheme';
 
+import {isShareWorthDrawing} from '@libs/PercentageUtils';
+
 import variables from '@styles/variables';
 
 import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
@@ -215,13 +217,23 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
 
 /**
  * Process raw data into pie chart slices sorted by absolute value descending.
+ *
+ * Points whose share of total spend is too small to draw are left out: the inline table prints their share as
+ * `~0%`, and a slice that thin is a sliver nobody can hover or tap. The group is still listed in the table, so
+ * the visible slices cover only the significant share of the spend rather than all of it.
  */
 function processDataIntoSlices(
     data: ChartDataPoint[],
     pieGeometry: {centerX: number; centerY: number; radius: number; innerRadius: number},
     startAngle: number = VictoryTheme.pie.startAngle,
 ): PieSlice[] {
-    const total = data.reduce((sum, point) => sum + Math.abs(point.total), 0);
+    const visibleSlices = data
+        .map((point, index) => ({label: point.label, absTotal: Math.abs(point.total), originalIndex: index, percentOfTotal: point.percentOfTotal}))
+        .filter((slice) => isShareWorthDrawing(slice.percentOfTotal))
+        .sort((a, b) => b.absTotal - a.absTotal);
+
+    // Angles span only the surviving slices, matching how the canvas normalizes its values.
+    const total = visibleSlices.reduce((sum, slice) => sum + slice.absTotal, 0);
     if (total === 0) {
         return [];
     }
@@ -229,32 +241,29 @@ function processDataIntoSlices(
     // Anchor the tooltip at the midpoint of the donut ring (between inner and outer radius).
     const tooltipRadius = (pieGeometry.innerRadius + pieGeometry.radius) / 2;
 
-    return data
-        .map((point, index) => ({label: point.label, absTotal: Math.abs(point.total), originalIndex: index}))
-        .sort((a, b) => b.absTotal - a.absTotal)
-        .reduce<{slices: PieSlice[]; angle: number}>(
-            (acc, slice, index) => {
-                const fraction = slice.absTotal / total;
-                const sweepAngle = fraction * 360;
-                const angle = acc.angle + sweepAngle / 2;
-                const tooltipX = pieGeometry.centerX + tooltipRadius * Math.cos((angle * Math.PI) / 180);
-                const tooltipY = pieGeometry.centerY + tooltipRadius * Math.sin((angle * Math.PI) / 180);
-                acc.slices.push({
-                    label: slice.label,
-                    value: slice.absTotal,
-                    color: VictoryTheme.colors.getColor(index),
-                    percentage: fraction * 100,
-                    startAngle: acc.angle,
-                    endAngle: acc.angle + sweepAngle,
-                    originalIndex: slice.originalIndex,
-                    ordinalIndex: index,
-                    tooltipPosition: {x: tooltipX, y: tooltipY},
-                });
-                acc.angle += sweepAngle;
-                return acc;
-            },
-            {slices: [], angle: startAngle},
-        ).slices;
+    return visibleSlices.reduce<{slices: PieSlice[]; angle: number}>(
+        (acc, slice, index) => {
+            const fraction = slice.absTotal / total;
+            const sweepAngle = fraction * 360;
+            const angle = acc.angle + sweepAngle / 2;
+            const tooltipX = pieGeometry.centerX + tooltipRadius * Math.cos((angle * Math.PI) / 180);
+            const tooltipY = pieGeometry.centerY + tooltipRadius * Math.sin((angle * Math.PI) / 180);
+            acc.slices.push({
+                label: slice.label,
+                value: slice.absTotal,
+                color: VictoryTheme.colors.getColor(index),
+                percentage: fraction * 100,
+                startAngle: acc.angle,
+                endAngle: acc.angle + sweepAngle,
+                originalIndex: slice.originalIndex,
+                ordinalIndex: index,
+                tooltipPosition: {x: tooltipX, y: tooltipY},
+            });
+            acc.angle += sweepAngle;
+            return acc;
+        },
+        {slices: [], angle: startAngle},
+    ).slices;
 }
 
 /** Label to render on the x-axis for a data point: the compact one when provided, otherwise the full label. */

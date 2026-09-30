@@ -15,6 +15,9 @@ import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 
 import React from 'react';
 
+import ExpenseFieldRow from './ExpenseFieldRow';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
+
 type DistanceFieldProps = {
     hasRoute: boolean;
     distance: number;
@@ -23,6 +26,7 @@ type DistanceFieldProps = {
 };
 
 function DistanceField({hasRoute, distance, unit, customUnit}: DistanceFieldProps) {
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isManualDistanceRequest, isOdometerDistanceRequest, isGPSDistanceRequest} =
@@ -33,33 +37,52 @@ function DistanceField({hasRoute, distance, unit, customUnit}: DistanceFieldProp
     const displayTitle = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, translate, false, isManualDistanceRequest, commuterExclusionData);
     const {distanceToDisplayDescription, distanceToDisplayHintText} = DistanceRequestUtils.getDistanceDisplayDetailsWithCommuter(commuterExclusionData, displayUnit, translate);
 
+    // A GPS route is whatever the map traced, so there is nothing for the user to pick here.
+    const isDistanceInteractive = !isReadOnly && !isGPSDistanceRequest;
+
+    const openDistancePage = () => {
+        if (!transactionID) {
+            return;
+        }
+
+        if (isManualDistanceRequest) {
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(action, iouType, transactionID, reportID, reportActionID)));
+            return;
+        }
+
+        if (isOdometerDistanceRequest) {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(action, iouType, transactionID, reportID));
+            return;
+        }
+
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, reportActionID)));
+    };
+
+    if (shouldUseDropdownRows) {
+        return (
+            <ExpenseFieldRow
+                name={distanceToDisplayDescription}
+                value={displayTitle}
+                hintText={distanceToDisplayHintText}
+                onPress={openDistancePage}
+                isDisabled={didConfirm}
+                isInteractive={isDistanceInteractive}
+                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DISTANCE_FIELD}
+            />
+        );
+    }
+
     return (
         <MenuItemWithTopDescription
-            shouldShowRightIcon={!isReadOnly && !isGPSDistanceRequest}
+            shouldShowRightIcon={isDistanceInteractive}
             title={displayTitle}
             description={distanceToDisplayDescription}
             hintText={distanceToDisplayHintText}
             style={[styles.moneyRequestMenuItem]}
             titleStyle={styles.flex1}
-            onPress={() => {
-                if (!transactionID) {
-                    return;
-                }
-
-                if (isManualDistanceRequest) {
-                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(action, iouType, transactionID, reportID, reportActionID)));
-                    return;
-                }
-
-                if (isOdometerDistanceRequest) {
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(action, iouType, transactionID, reportID));
-                    return;
-                }
-
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, reportActionID)));
-            }}
+            onPress={openDistancePage}
             disabled={didConfirm}
-            interactive={!isReadOnly && !isGPSDistanceRequest}
+            interactive={isDistanceInteractive}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DISTANCE_FIELD}
         />
     );

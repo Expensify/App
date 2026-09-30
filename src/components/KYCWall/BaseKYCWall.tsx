@@ -207,7 +207,7 @@ function KYCWall({
                         return;
                     }
 
-                    const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, currentUserEmail, currentUserDetails.displayName);
+                    const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, currentUserEmail, currentUserDetails.displayName, translate);
                     const {policyID, workspaceChatReportID, adminsChatReportID} =
                         createWorkspaceFromIOUPayment({
                             iouReport,
@@ -222,6 +222,7 @@ function KYCWall({
                             reportActionsList: filteredReportActions,
                             doesEmployeePersonalDetailExist: doesSubmitterPersonalDetailExist ?? false,
                             getCurrencyDecimals,
+                            reportTransactions,
                             hasOwnedPaidPolicy: ownerPoliciesSelector(policies, currentUserAccountID).length > 0,
                         }) ?? {};
                     if (policyID && iouReport?.policyID) {

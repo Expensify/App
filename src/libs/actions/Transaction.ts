@@ -1131,7 +1131,8 @@ function getChangeTransactionsReportOnyxData({
 
         // Skip lookup for deleted transactions: the old IOU action is already cleaned up
         // during deletion and its transaction thread is deleted, so reusing it is harmful.
-        const oldIOUAction = isDeletedExpense ? undefined : getIOUActionForReportID(isUnreportedExpense ? selfDMReportID : transaction.reportID, transaction.transactionID);
+        // Prefer the live action over the blanked one an undelete leaves behind. Keep in sync with useChangeTransactionsReportReports.
+        const oldIOUAction = isDeletedExpense ? undefined : getIOUActionForReportID(isUnreportedExpense ? selfDMReportID : transaction.reportID, transaction.transactionID, true);
 
         if (!transaction.reportID || transaction.reportID === reportID) {
             continue;

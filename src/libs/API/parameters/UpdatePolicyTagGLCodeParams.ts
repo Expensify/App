@@ -4,6 +4,7 @@ type UpdatePolicyTagGLCodeParams = {
     tagListIndex: number;
     tagName: string;
     glCode: string;
+    parentTagsFilter?: string;
 };
 
 export default UpdatePolicyTagGLCodeParams;

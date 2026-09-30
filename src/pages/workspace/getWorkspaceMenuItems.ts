@@ -20,6 +20,7 @@ import {
     isMCPEnabled,
     isPerDiemEnabled,
     isPolicyAdmin,
+    isQBORefreshTokenExpiringSoonSelector,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
     shouldShowSyncError,
@@ -227,11 +228,17 @@ function getWorkspaceMenuItems({
         }
 
         if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED] && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.ACCOUNTING)) {
+            let accountingBrickRoadIndicator;
+            if (hasSyncError || shouldShowQBOReimbursableExportDestinationAccountError(policy)) {
+                accountingBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+            } else if (isQBORefreshTokenExpiringSoonSelector(policy)) {
+                accountingBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+            }
             items.push({
                 translationKey: 'workspace.common.accounting',
                 icon: icons.Sync,
                 getRoute: () => ROUTES.POLICY_ACCOUNTING.getRoute(policyID),
-                brickRoadIndicator: hasSyncError || shouldShowQBOReimbursableExportDestinationAccountError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: accountingBrickRoadIndicator,
                 screenName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.ACCOUNTING,
                 highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,

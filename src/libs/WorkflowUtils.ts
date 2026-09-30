@@ -4,6 +4,8 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {BankAccountList} from '@src/types/onyx';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
@@ -28,7 +30,8 @@ import type {ValueOf} from 'type-fest';
 import {Str} from 'expensify-common';
 
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
-import {getHRAdvancedModeFinalApprover, getHRFinalApprover} from './merge/HRUtils';
+import {getConnectedHRProvider, getHRAdvancedModeFinalApprover, getHRFinalApprover, isAnyHRConnected, isAnyHRReadOnlyWorkflowMode} from './merge/HRUtils';
+import {getConnectedATSProvider, isAnyRecruitingReadOnlyWorkflowMode} from './merge/RecruitingUtils';
 import {rand64} from './NumberUtils';
 import {getDefaultApprover, isExpensifyTeam, shouldFilterExpensifyTeam} from './PolicyUtils';
 
@@ -42,6 +45,35 @@ const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     originalApprovers: [],
     isInitialFlow: true,
 };
+
+/** The integration a policy's approval workflow comes from, when it comes from one instead of being built here. */
+type ApprovalWorkflowSource = {
+    /** Provider to name as the workflow's source (e.g. `'Workday'`, `'Greenhouse'`). */
+    providerName: string;
+
+    /** That connection's own settings page, where the routing is actually configured. */
+    settingsRoute: Route;
+};
+
+function getApprovalWorkflowSource(policy: OnyxEntry<Policy>, policyID: string | undefined): ApprovalWorkflowSource | undefined {
+    if (isAnyHRConnected(policy)) {
+        return {
+            providerName: getConnectedHRProvider(policy)?.displayName ?? '',
+            settingsRoute: ROUTES.WORKSPACE_HR.getRoute(policyID),
+        };
+    }
+    if (isAnyRecruitingReadOnlyWorkflowMode(policy)) {
+        return {
+            providerName: getConnectedATSProvider(policy)?.displayName ?? '',
+            settingsRoute: ROUTES.WORKSPACE_RECRUITING.getRoute(policyID),
+        };
+    }
+    return undefined;
+}
+
+function isApprovalWorkflowLockedByIntegration(policy: OnyxEntry<Policy>): boolean {
+    return isAnyHRReadOnlyWorkflowMode(policy) || isAnyRecruitingReadOnlyWorkflowMode(policy);
+}
 
 type GetApproversParams = {
     /**
@@ -747,6 +779,16 @@ function mergeWorkflowMembersWithAvailableMembers(workflowMembers: Member[], all
     const memberEmails = new Set(workflowMembers.map((m) => m.email));
     const additionalMembers = allAvailableMembers.filter((m) => !memberEmails.has(m.email));
     return [...workflowMembers, ...additionalMembers];
+}
+
+/**
+ * True when `memberEmails` includes every workspace member. A workflow with these members leaves every other
+ * workflow empty, so it is the only workflow left and has to be the default one.
+ */
+function includesEveryWorkspaceMember(memberEmails: Array<string | null | undefined>, employeeList: PolicyEmployeeList | undefined): boolean {
+    const memberEmailSet = new Set(memberEmails);
+    const workspaceMembers = Object.values(employeeList ?? {}).filter((employee) => !!employee.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    return workspaceMembers.length > 0 && workspaceMembers.every((employee) => memberEmailSet.has(employee.email));
 }
 
 type ApprovalWorkflowRulesDiff = Record<string, ApprovalWorkflowRule | null>;
@@ -1565,6 +1607,9 @@ type WorkflowGroup = {
     chain: Approver[];
     members: Member[];
     isDefault: boolean;
+
+    /** Whether rules route these members, rather than `employeeList`. */
+    hasRuleBasedChain: boolean;
     pendingAction: ApprovalWorkflow['pendingAction'];
 };
 
@@ -1684,8 +1729,31 @@ function convertApprovalWorkflowRulesToWorkflows({
             chain,
             members: pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? [member] : [],
             isDefault: isDefaultWorkflowChain,
+            hasRuleBasedChain,
             pendingAction: workflowPendingAction,
         });
+    }
+
+    // Once rules declare the default workflow, it is the only default one. A member no rule covers is routed by
+    // `employeeList` instead, so starting at the default approver only puts them in it when `employeeList` sends them
+    // down its exact chain. Rules that declare two different default chains keep a single default too, preferring the
+    // one that starts at the default approver.
+    const ruleBasedDefaultGroups = Array.from(groupedByWorkflowKey.values()).filter((group) => group.isDefault && group.hasRuleBasedChain);
+    const ruleBasedDefaultGroup = ruleBasedDefaultGroups.find((group) => group.chain.at(0)?.email === defaultApprover) ?? ruleBasedDefaultGroups.at(0);
+    if (ruleBasedDefaultGroup) {
+        const defaultChainKey = getApproverChainKey(ruleBasedDefaultGroup.chain);
+        for (const [workflowKey, group] of groupedByWorkflowKey) {
+            if (group === ruleBasedDefaultGroup || !group.isDefault) {
+                continue;
+            }
+            if (!group.hasRuleBasedChain && getApproverChainKey(group.chain) === defaultChainKey) {
+                ruleBasedDefaultGroup.members.push(...group.members);
+                ruleBasedDefaultGroup.pendingAction = group.pendingAction ?? ruleBasedDefaultGroup.pendingAction;
+                groupedByWorkflowKey.delete(workflowKey);
+                continue;
+            }
+            group.isDefault = false;
+        }
     }
 
     const workflowGroups = Array.from(groupedByWorkflowKey.values());
@@ -1729,6 +1797,7 @@ function convertApprovalWorkflowRulesToWorkflows({
 }
 
 export {
+    addMembersToRule,
     applyApprovalWorkflowRulesDiff,
     getApproverChainKey,
     buildApprovalWorkflowRules,
@@ -1740,11 +1809,14 @@ export {
     extractSubmitterEmails,
     getApprovalLimitDescription,
     getApprovalWorkflowRulesForPolicy,
+    getApprovalWorkflowSource,
     filterRulesForPolicy,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
     getWorkflowMemberEmails,
     hasRuleBasedDefaultWorkflow,
+    includesEveryWorkspaceMember,
+    isApprovalWorkflowLockedByIntegration,
     getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,
     getOverLimitForwardsToDisplayName,

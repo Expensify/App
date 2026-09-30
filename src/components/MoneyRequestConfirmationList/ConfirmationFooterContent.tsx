@@ -1,9 +1,7 @@
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import FormHelpMessage from '@components/FormHelpMessage';
 import SettlementButton from '@components/SettlementButton';
-import type {PaymentActionParams} from '@components/SettlementButton/types';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 
 import useLocalize from '@hooks/useLocalize';
@@ -17,6 +15,10 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import React from 'react';
 import {View} from 'react-native';
 
+import {useConfirmationData} from './ConfirmationDataContext';
+import useConfirmationCtaText from './hooks/useConfirmationCtaText';
+import useReceiptTraining from './hooks/useReceiptTraining';
+
 /**
  * A Sentry label aggregates every interaction that shares it, so the confirmation CTA reports one series per IOU flow
  * instead of blending submit, split, track and invoice into a single INP measurement. Flows absent from this map fall
@@ -29,66 +31,48 @@ const CONFIRMATION_SENTRY_LABEL_BY_IOU_TYPE: Partial<Record<IOUType, string>> = 
     [CONST.IOU.TYPE.INVOICE]: CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_INVOICE_BUTTON,
 };
 
-type ConfirmationFooterContentProps = {
-    /** IOU type currently being confirmed (submit / split / track / pay / invoice) */
-    iouType: IOUType;
-
-    /** Click handler invoked when the user taps the primary confirmation button */
-    confirm: (params: PaymentActionParams) => void;
-
-    /** Currency the IOU is being created in, used by the Pay settlement button */
-    iouCurrencyCode: string;
-
-    /** Policy the IOU belongs to, when applicable */
-    policyID: string | undefined;
-
-    /** Report the IOU is being created on */
-    reportID: string;
-
-    /** Whether the confirmation has already been submitted (locks the button) */
-    isConfirmed: boolean | undefined;
-
-    /** Whether a confirmation request is currently in flight */
-    isConfirming: boolean | undefined;
-
-    /** Whether a SmartScan receipt is still being processed */
-    isLoadingReceipt: boolean;
-
-    /** Dropdown options for the primary CTA (e.g. Submit / Submit & Close) */
-    splitOrRequestOptions: Array<DropdownOption<string>>;
-
-    /** Inline error message displayed above the button, if any */
-    errorMessage: string | undefined;
-
-    /** Number of expenses that will be created on confirm (drives bulk copy) */
-    expensesNumber: number;
-
-    showRemoveExpenseConfirmModal: (() => void) | undefined;
-
-    /** Whether the product-training tooltip should anchor to the button */
-    shouldShowProductTrainingTooltip: boolean;
-
-    renderProductTrainingTooltip: () => React.ReactElement;
-};
-
-function ConfirmationFooterContent({
-    iouType,
-    confirm,
-    iouCurrencyCode,
-    policyID,
-    reportID,
-    isConfirmed,
-    isConfirming,
-    isLoadingReceipt,
-    splitOrRequestOptions,
-    errorMessage,
-    expensesNumber,
-    showRemoveExpenseConfirmModal,
-    shouldShowProductTrainingTooltip,
-    renderProductTrainingTooltip,
-}: ConfirmationFooterContentProps) {
+function ConfirmationFooterContent() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const {
+        iouType,
+        confirm,
+        iouCurrencyCode,
+        policyID,
+        reportID,
+        isConfirmed,
+        isConfirming,
+        receiptOptions,
+        errorMessage,
+        expensesNumber,
+        showRemoveExpenseConfirmModal,
+        transaction,
+        policy,
+        iouAmount,
+        isTypeSplit,
+        formattedAmount,
+        isPerDiemRequest,
+        isDistanceRequestWithPendingRoute,
+    } = useConfirmationData();
+
+    const {receiptPath = '', isLoadingReceipt = false} = receiptOptions;
+
+    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useReceiptTraining({transaction});
+
+    const splitOrRequestOptions = useConfirmationCtaText({
+        expensesNumber,
+        isTypeInvoice: iouType === CONST.IOU.TYPE.INVOICE,
+        isTypeSplit,
+        isTypeRequest: iouType === CONST.IOU.TYPE.SUBMIT,
+        iouAmount,
+        iouType,
+        policy,
+        formattedAmount,
+        receiptPath,
+        isDistanceRequestWithPendingRoute,
+        isPerDiemRequest,
+    });
 
     const shouldShowSettlementButton = iouType === CONST.IOU.TYPE.PAY;
 

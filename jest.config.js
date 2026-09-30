@@ -27,10 +27,10 @@ module.exports = {
         `<rootDir>/?(*.)+(spec|test).${testFileExtension}`,
     ],
     transform: {
-        // Reassure re-transforms ~7k files under `--max-opt=1` (V8 sparkplug only), which
-        // makes Babel ~half of each measure job. OXC + esbuild is native and stays fast
-        // without TurboFan. Test files stay on babel-jest so `jest.mock` is still hoisted.
-        '^.+\\.[jt]sx?$': isPerfTestRun ? '<rootDir>/config/babel/oxcJestTransformer.js' : 'babel-jest',
+        // OXC + esbuild is native and stays fast without TurboFan, where Babel was measured as
+        // roughly half of each Reassure measure job. The transformer sends test files, mocks and
+        // node_modules to babel-jest itself, so `jest.mock` is still hoisted there.
+        '^.+\\.[jt]sx?$': '<rootDir>/config/babel/oxcJestTransformer.js',
         '^.+\\.svg?$': 'jest-transformer-svg',
     },
     transformIgnorePatterns: [

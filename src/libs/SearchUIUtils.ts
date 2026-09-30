@@ -686,6 +686,10 @@ function isPolicyEligibleForTopSpenders(policy: OnyxTypes.Policy, currentUserEma
     return isPolicyEligibleForSpendOverTime(policy, currentUserEmail) && Object.keys(policy.employeeList ?? {}).length >= 2;
 }
 
+function isPolicyEligibleForTopCategories(policy: OnyxTypes.Policy): boolean {
+    return isGroupPolicy(policy) && policy.areCategoriesEnabled === true;
+}
+
 /**
  * `hasReportAwaitingApproval` seeds the approve suggestion so a user who is the manager of a report awaiting their
  * approval sees it even when they are not part of the policy's approval workflow (e.g. an approver chosen manually on
@@ -760,7 +764,7 @@ function getSuggestedSearchesVisibility(
         const isEligibleForReimbursementsSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isPaymentEnabled && hasVBBA && hasReimburser;
         const memberCount = Object.keys(policy.employeeList ?? {}).length;
         const isEligibleForTopSpendersSuggestion = isPolicyEligibleForTopSpenders(policy, currentUserEmail);
-        const isEligibleForTopCategoriesSuggestion = isGroupPolicyEligible && policy.areCategoriesEnabled === true;
+        const isEligibleForTopCategoriesSuggestion = isPolicyEligibleForTopCategories(policy);
         const isEligibleForTopMerchantsSuggestion = isGroupPolicyEligible;
         const isEligibleForViolationsBySubmitterSuggestion =
             isControlPolicy(policy) &&
@@ -2181,7 +2185,7 @@ function getActions(
 
     const reportNVP = getReportNameValuePairsFromKey(data, report);
 
-    const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`] ?? undefined;
+    const isChatReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`]);
 
     // Submit/Approve/Pay can only be taken on transactions if the transaction is the only one on the report, otherwise `View` is the only option.
     // If this condition is not met, return early for performance reasons
@@ -2195,7 +2199,18 @@ function getActions(
             : undefined;
 
     const chatReport = getChatReport(data, report);
-    const canBePaid = canIOUBePaid(report, chatReport, policy, bankAccountList, currentUserLogin, currentUserAccountID, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
+    const canBePaid = canIOUBePaid(
+        report,
+        chatReport,
+        policy,
+        bankAccountList,
+        currentUserLogin,
+        currentUserAccountID,
+        allReportTransactions,
+        false,
+        isChatReportArchived,
+        invoiceReceiverPolicy,
+    );
     const canOnlyBePaidElsewhere = canIOUBePaid(
         report,
         chatReport,
@@ -2205,7 +2220,7 @@ function getActions(
         currentUserAccountID,
         allReportTransactions,
         true,
-        chatReportRNVP,
+        isChatReportArchived,
         invoiceReceiverPolicy,
     );
     const shouldOnlyShowElsewhere = !canBePaid && canOnlyBePaidElsewhere;
@@ -2467,9 +2482,15 @@ function createAndOpenSearchTransactionThread({
     getCurrencyDecimals,
     conciergeChat,
 }: CreateAndOpenSearchTransactionThreadParams): string | undefined {
-    const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const isUnreportedTransaction = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isDeleted = isDeletedTransaction(item);
-    const iouReportAction = getIOUActionForReportID(isFromSelfDM ? findSelfDMReportID() : item.reportID, item.transactionID);
+    const iouReportAction = getIOUActionForReportID(isUnreportedTransaction ? findSelfDMReportID() : item.reportID, item.transactionID);
+    const expenseOwnerAccountID = (iouReportAction ?? item.reportAction)?.actorAccountID;
+    if (isUnreportedTransaction && expenseOwnerAccountID !== currentUserAccountID) {
+        return;
+    }
+
+    const isFromSelfDM = isUnreportedTransaction;
     const moneyRequestReportActionID = item.reportAction?.reportActionID ?? undefined;
     const previewData = transactionPreviewData
         ? {...transactionPreviewData, hasTransactionThreadReport: true}
@@ -4633,7 +4654,7 @@ function getOverflowMenu(
  *
  * A filter can also be stored as a string, which is a legacy format, so it's treated as if there is no last query.
  */
-function getLastSearchQuery(searchFilters: OnyxEntry<OnyxTypes.SearchFilters>, searchKey: SearchKey): string | undefined {
+function getLastSearchQuery(searchFilters: OnyxEntry<OnyxTypes.SearchFilters>, searchKey: SearchKey | OnyxTypes.InsightsSearchKey): string | undefined {
     const searchFilter = searchFilters?.[searchKey];
     return typeof searchFilter === 'object' ? searchFilter.query : undefined;
 }
@@ -7350,6 +7371,7 @@ export {
     doesSearchItemMatchSort,
     isPolicyEligibleForSpendOverTime,
     isPolicyEligibleForTopSpenders,
+    isPolicyEligibleForTopCategories,
     hasFlexColumn,
     isTransactionSearchType,
     splitGroupsIntoPairs,

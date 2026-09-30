@@ -4,6 +4,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -27,7 +28,6 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {personalDetailsSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 
 import ReportActionItem from './ReportActionItem';
@@ -82,9 +82,7 @@ function AncestorReportActionItem({
 }: AncestorReportActionItemProps) {
     const styles = useThemeStyles();
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
-    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsSelector(report?.ownerAccountID),
-    });
+    const [reportOwnerPersonalDetail] = usePersonalDetail(report?.ownerAccountID);
     const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
     const hasGuidesEmails = hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), guideAccountIDs);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {selector: getStableReportSelector});

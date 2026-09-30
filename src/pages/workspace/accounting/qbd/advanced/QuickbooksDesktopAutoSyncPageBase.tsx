@@ -72,8 +72,8 @@ function QuickbooksDesktopAutoSyncPageBase({policy, navigateBackTo}: QuickbooksD
                     updateQuickbooksDesktopAutoSync(policyID, !autoSync?.enabled);
                 }}
                 pendingAction={pendingAction}
-                errors={getLatestErrorField(config ?? {}, CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC_ENABLED)}
-                onCloseError={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC_ENABLED)}
+                errors={getLatestErrorField(config ?? {}, CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC)}
+                onCloseError={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC)}
             />
             {!!autoSync?.enabled && (
                 <OfflineWithFeedback pendingAction={pendingAction}>

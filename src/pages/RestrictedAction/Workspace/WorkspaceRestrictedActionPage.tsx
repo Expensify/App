@@ -18,6 +18,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useRef} from 'react';
 
 import WorkspaceAdminRestrictedAction from './WorkspaceAdminRestrictedAction';
@@ -35,6 +36,7 @@ function WorkspaceRestrictedActionPage({
     const policy = usePolicy(policyID);
     const styles = useThemeStyles();
     const [isLoadingSubscriptionData] = useOnyx(ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA);
+    const isFocused = useIsFocused();
 
     // Watch billing NVPs so the component re-renders when fresh data arrives from the server.
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -49,36 +51,46 @@ function WorkspaceRestrictedActionPage({
         gracePeriodsRef.current = userBillingGracePeriods;
     }, [userBillingGracePeriods]);
 
-    const {isOffline} = useNetwork({
-        onReconnect: () => openSubscriptionPage(gracePeriodsRef.current),
-    });
+    const {isOffline} = useNetwork();
 
-    // Fetch fresh billing NVPs from the server on mount.
-    // The cached billing data may be stale, causing the restriction to persist
-    // even after the workspace owner has resolved their billing issue.
-    // Skip when offline since the API call won't go through and the optimistic
-    // clear would incorrectly lift the restriction.
+    // Fetch fresh billing NVPs from the server on mount, and again whenever this screen regains focus or the
+    // device reconnects. The cached billing data may be stale, causing the restriction to persist even after
+    // the workspace owner has resolved their billing issue.
+    //
+    // Skip when offline since the API call won't go through and the optimistic clear would incorrectly lift
+    // the restriction. Skip while unfocused too: this screen stays mounted underneath the Subscription page,
+    // which runs the same fetch itself, so firing ours as well would duplicate the request and flip the
+    // shared `isLoadingSubscriptionData` flag out from under the focused page.
+    //
+    // A `useNetwork({onReconnect})` callback is deliberately not used here. `isOffline` flipping back to
+    // false already re-runs this effect on reconnect, so the callback only fired the same request a second
+    // time. It also fired outside this focus guard.
     useEffect(() => {
-        if (isOffline) {
+        if (isOffline || !isFocused) {
             return;
         }
         openSubscriptionPage(gracePeriodsRef.current);
-    }, [isOffline]);
+    }, [isOffline, isFocused]);
 
     // Navigate back if the fresh server data shows the restriction no longer applies.
+    // Only do this while focused, since this screen stays mounted underneath the Subscription page.
+    // Resolving the billing issue there would otherwise pop the Subscription page out from under the user.
     useEffect(() => {
-        if (isLoadingSubscriptionData !== false) {
+        if (isLoadingSubscriptionData !== false || !isFocused) {
             return;
         }
         if (!shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed, accountID)) {
             Navigation.goBack();
         }
-    }, [policy, isLoadingSubscriptionData, userBillingGracePeriods, ownerBillingGracePeriodEnd, amountOwed, accountID]);
+    }, [policy, isLoadingSubscriptionData, userBillingGracePeriods, ownerBillingGracePeriodEnd, amountOwed, accountID, isFocused]);
 
     // Show a loading indicator while waiting for fresh billing data from the server,
     // instead of flashing the restriction UI which may no longer apply.
     // Skip the loading indicator when offline since the API call won't go through.
-    if (isLoadingSubscriptionData !== false && !isOffline) {
+    // Also skip it while unfocused: this screen stays mounted underneath the Subscription page, whose
+    // own fetch toggles the same global loading flag. Swapping the content out here would needlessly
+    // unmount and remount the restriction UI behind the user's back, discarding its state.
+    if (isLoadingSubscriptionData !== false && !isOffline && isFocused) {
         return <FullScreenLoadingIndicator style={styles.opacity1} />;
     }
 
