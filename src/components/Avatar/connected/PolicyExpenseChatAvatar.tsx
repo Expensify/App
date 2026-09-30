@@ -7,6 +7,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -57,7 +58,10 @@ type PolicyExpenseChatAvatarProps = {
 function PolicyExpenseChatAvatar({reportID, size, backdropColor, containerStyle, subscriptContainerStyle, horizontalStacking, sort, fallbackDisplayName}: PolicyExpenseChatAvatarProps) {
     const StyleUtils = useStyleUtils();
     const {formatPhoneNumber, translate} = useLocalize();
-    const personalDetails = usePersonalDetails();
+    const allPersonalDetails = usePersonalDetails();
+    const [personalDetailsFromSnapshot] = useAllPersonalDetails();
+    // On Search, the snapshot can hold a member missing from the live list. Like the legacy component, fall back to the live list while the snapshot loads.
+    const personalDetails = personalDetailsFromSnapshot ?? allPersonalDetails;
     const defaultAvatars = useDefaultAvatars();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportAvatarFieldsSelector});
     const workspaceIcon = useReportWorkspaceIcon(report);

@@ -183,6 +183,26 @@ describe('PolicyExpenseChatAvatar (connected)', () => {
         expect(mockCapturedSubscriptAvatarProps.secondaryAvatar).toEqual({id: OWNER_ACCOUNT_ID, type: CONST.ICON_TYPE_AVATAR, fallbackIcon: undefined, ...expectedIcon});
     });
 
+    it('should prefer the Search snapshot personal details over the live list', () => {
+        // Given a policy expense chat whose member is only known to the Search snapshot, as on a Search surface
+        seedChat();
+        mockPersonalDetails = {};
+        mockOnyxData[ONYXKEYS.PERSONAL_DETAILS_LIST] = {
+            [OWNER_ACCOUNT_ID]: {accountID: OWNER_ACCOUNT_ID, login: OWNER_LOGIN, displayName: OWNER_DISPLAY_NAME, avatar: OWNER_AVATAR_URL},
+        };
+
+        // When it renders
+        render(
+            <PolicyExpenseChatAvatar
+                reportID={REPORT_ID}
+                size={CONST.AVATAR_SIZE.DEFAULT}
+            />,
+        );
+
+        // Then the member is named and pictured from the snapshot, like the legacy component, instead of falling back to "Hidden"
+        expect(mockCapturedSubscriptAvatarProps.secondaryAvatar).toEqual(OWNER_ICON);
+    });
+
     it('should fall back to the unknown account as the primary avatar for a chat without a policyID', () => {
         // Given a policy expense chat that carries no policyID, so there is no workspace to show
         seedChat({policyID: undefined});
