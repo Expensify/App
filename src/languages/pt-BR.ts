@@ -7136,6 +7136,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 enterAddress: 'Inserir endereço',
                 enterAddressDescription: 'Insira um endereço de entrega para o cartão (por exemplo, o endereço residencial do portador do cartão ou o endereço de um escritório).',
                 shippingAddress: 'Endereço de entrega',
+                enterPhoneNumber: 'Insira o número de telefone',
+                phoneNumberDescription: 'O titular do cartão ainda não tem um número de telefone e precisamos de um para enviar o cartão.',
             },
             deactivateCardModal: {
                 deactivate: 'Desativar',

@@ -6883,6 +6883,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 enterAddress: '输入地址',
                 enterAddressDescription: '请输入该卡的收货地址（例如持卡人的家庭住址或办公室地址）。',
                 shippingAddress: '收货地址',
+                enterPhoneNumber: '输入电话号码',
+                phoneNumberDescription: '持卡人还没有电话号码，我们需要电话号码才能寄送卡片。',
             },
             deactivateCardModal: {
                 deactivate: '停用',

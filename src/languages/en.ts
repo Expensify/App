@@ -7377,6 +7377,8 @@ const translations = {
                 enterAddress: 'Enter address',
                 enterAddressDescription: 'Enter a shipping address for the card (e.g., the cardholder’s home address or an office address).',
                 shippingAddress: 'Shipping address',
+                enterPhoneNumber: 'Enter phone number',
+                phoneNumberDescription: "The cardholder doesn't have a phone number yet, and we need one to ship the card.",
             },
             deactivateCardModal: {
                 deactivate: 'Deactivate',

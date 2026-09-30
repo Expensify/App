@@ -7061,6 +7061,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 enterAddress: '住所を入力してください',
                 enterAddressDescription: 'カードの配送先住所を入力してください（例：カード所有者の自宅住所または勤務先住所）。',
                 shippingAddress: '配送先住所',
+                enterPhoneNumber: '電話番号を入力してください',
+                phoneNumberDescription: 'カード名義人にはまだ電話番号がなく、カードを発送するには電話番号が必要です。',
             },
             deactivateCardModal: {
                 deactivate: '無効化',

@@ -7159,6 +7159,8 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                 enterAddress: 'Wpisz adres',
                 enterAddressDescription: 'Wprowadź adres do wysyłki karty (np. adres domowy posiadacza karty lub adres biura).',
                 shippingAddress: 'Adres dostawy',
+                enterPhoneNumber: 'Wpisz numer telefonu',
+                phoneNumberDescription: 'Posiadacz karty nie ma jeszcze numeru telefonu, a potrzebujemy go, żeby wysłać kartę.',
             },
             deactivateCardModal: {
                 deactivate: 'Dezaktywuj',

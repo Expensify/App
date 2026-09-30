@@ -7208,6 +7208,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 enterAddress: 'Saisir l’adresse',
                 enterAddressDescription: 'Saisissez une adresse de livraison pour la carte (par exemple l’adresse personnelle du titulaire de la carte ou une adresse de bureau).',
                 shippingAddress: 'Adresse de livraison',
+                enterPhoneNumber: 'Saisissez le numéro de téléphone',
+                phoneNumberDescription: 'Le titulaire de la carte n’a pas encore de numéro de téléphone, et nous en avons besoin pour expédier la carte.',
             },
             deactivateCardModal: {
                 deactivate: 'Désactiver',

@@ -7188,6 +7188,8 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 enterAddress: 'Adresse eingeben',
                 enterAddressDescription: 'Geben Sie eine Versandadresse für die Karte ein (z. B. die Privatadresse der Karteninhaberin bzw. des Karteninhabers oder eine Geschäftsadresse).',
                 shippingAddress: 'Lieferadresse',
+                enterPhoneNumber: 'Telefonnummer eingeben',
+                phoneNumberDescription: 'Der*die Karteninhaber*in hat noch keine Telefonnummer, und wir benötigen eine, um die Karte zu versenden.',
             },
             deactivateCardModal: {
                 deactivate: 'Deaktivieren',

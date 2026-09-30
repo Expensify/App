@@ -7133,6 +7133,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 enterAddress: 'Voer adres in',
                 enterAddressDescription: 'Voer een verzendadres in voor de kaart (bijv. het thuisadres van de kaarthouder of een kantooradres).',
                 shippingAddress: 'Bezorgadres',
+                enterPhoneNumber: 'Voer telefoonnummer in',
+                phoneNumberDescription: 'De kaarthouder heeft nog geen telefoonnummer, en we hebben er een nodig om de kaart te versturen.',
             },
             deactivateCardModal: {
                 deactivate: 'Deactiveren',

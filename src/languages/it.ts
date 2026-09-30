@@ -7149,6 +7149,8 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                 enterAddress: "Inserisci l'indirizzo",
                 enterAddressDescription: 'Inserisci un indirizzo di spedizione per la carta (ad esempio l’indirizzo di casa del titolare della carta o un indirizzo dell’ufficio).',
                 shippingAddress: 'Indirizzo di spedizione',
+                enterPhoneNumber: 'Inserisci il numero di telefono',
+                phoneNumberDescription: 'Il titolare della carta non ha ancora un numero di telefono e ne abbiamo bisogno per spedire la carta.',
             },
             deactivateCardModal: {
                 deactivate: 'Disattiva',

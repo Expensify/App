@@ -7384,6 +7384,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 enterAddress: 'Introduce la dirección',
                 enterAddressDescription: 'Introduce una dirección de envío para la tarjeta (por ejemplo, la dirección de casa del titular de la tarjeta o una dirección de oficina).',
                 shippingAddress: 'Dirección de envío',
+                enterPhoneNumber: 'Introduce el número de teléfono',
+                phoneNumberDescription: 'La persona titular de la tarjeta aún no tiene un número de teléfono y necesitamos uno para enviar la tarjeta.',
             },
             deactivateCardModal: {
                 deactivate: 'Desactivar',
