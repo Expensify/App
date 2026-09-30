@@ -112,7 +112,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
     return (
         <>
             {(numberOfFilledWaypoints >= 2 || shouldShowReuseRoute) && (
-                <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1, styles.gap2]}>
+                <View style={[styles.flexRow, styles.justifyContentCenter, styles.pv2, styles.gap2]}>
                     {numberOfFilledWaypoints >= 2 && (
                         <PressableWithFeedback
                             onPress={() => navigateToWaypointEditPage(Object.keys(transaction?.comment?.waypoints ?? {}).length)}
@@ -120,14 +120,14 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('distance.addStop')}
                             sentryLabel="DistanceRequestFooter-AddStop"
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.p2]}
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ph4, styles.pv2]}
                         >
                             <Icon
                                 src={expensifyIcons.Plus}
                                 size={CONST.ICON_SIZE.SMALL}
                                 fill={theme.icon}
                             />
-                            <Text style={styles.textStrong}>{translate('distance.addStop')}</Text>
+                            <Text style={[styles.textLabelSupporting, styles.labelStrong]}>{translate('distance.addStop')}</Text>
                         </PressableWithFeedback>
                     )}
                     {shouldShowReuseRoute && (
@@ -136,14 +136,14 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('distance.reuseRoute')}
                             sentryLabel="DistanceRequestFooter-ReuseRoute"
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.p2]}
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ph4, styles.pv2]}
                         >
                             <Icon
                                 src={expensifyIcons.History}
                                 size={CONST.ICON_SIZE.SMALL}
                                 fill={theme.icon}
                             />
-                            <Text style={styles.textStrong}>{translate('distance.reuseRoute')}</Text>
+                            <Text style={[styles.textLabelSupporting, styles.labelStrong]}>{translate('distance.reuseRoute')}</Text>
                         </PressableWithFeedback>
                     )}
                 </View>
