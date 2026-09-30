@@ -59,7 +59,7 @@ function TabNavigator() {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {shouldShowNativeTabBar, inboxDotColor, workspacesDotColor, accountDotColor, tabRouterOverride} = useNativeTabNavigator();
+    const {shouldShowNativeTabBar, inboxDotColor, workspacesDotColor, accountDotColor, tabRouterOverride, tabScreenListeners} = useNativeTabNavigator();
 
     // Colors and the label face come from the Expensify theme and match the side bar on wide layouts: the
     // selected tab has the menu icon color and a bold label in the regular text color, the others the plain icon
@@ -84,6 +84,7 @@ function TabNavigator() {
             screenLayout={nativeBottomTabScreenLayoutWrapper}
             screenOptions={screenOptions}
             UNSTABLE_router={tabRouterOverride}
+            screenListeners={tabScreenListeners}
         >
             <Tab.Screen
                 name={SCREENS.HOME}

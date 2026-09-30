@@ -243,7 +243,7 @@ function TabNavigator() {
     const {translate} = useLocalize();
     const theme = useTheme();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {shouldShowNativeTabBar, inboxDotColor, workspacesDotColor, accountDotColor, tabRouterOverride} = useNativeTabNavigator();
+    const {shouldShowNativeTabBar, inboxDotColor, workspacesDotColor, accountDotColor, tabRouterOverride, tabScreenListeners} = useNativeTabNavigator();
     const dotColors: Record<string, string | undefined> = {
         [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: inboxDotColor,
         [NAVIGATORS.WORKSPACE_NAVIGATOR]: workspacesDotColor,
@@ -383,6 +383,7 @@ function TabNavigator() {
             screenLayout={nativeBottomTabScreenLayoutWrapper}
             screenOptions={screenOptions}
             UNSTABLE_router={tabRouterOverride}
+            screenListeners={tabScreenListeners}
         >
             <Tab.Screen
                 name={SCREENS.HOME}

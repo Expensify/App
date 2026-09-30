@@ -22,6 +22,8 @@ import type {ValueOf} from 'type-fest';
 import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
 import {useEffect} from 'react';
 
+import tabScreenListeners from './tabScreenListeners';
+
 /**
  * Root-level tab screens where the swipe-back gesture should be disabled.
  * Swiping from these screens would pop the entire TAB_NAVIGATOR, which feels wrong.
@@ -42,7 +44,8 @@ function isRealizedNavigationState(state: NavigationState | PartialState<Navigat
 /**
  * The state both native tab navigators share: whether the native bar shows, the status dot color of each tab that
  * has one, and a router override that restores the tab state after the navigator is remounted. It also keeps the
- * parent stack's swipe-back gesture, the preserved tab state and the tab-navigation spans in sync with the focused tab.
+ * parent stack's swipe-back gesture, the preserved tab state and the tab-navigation spans in sync with the focused tab,
+ * and returns the screen listeners that start those spans on a native bar tap.
  */
 function useNativeTabNavigator() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -104,7 +107,7 @@ function useNativeTabNavigator() {
         },
     });
 
-    return {shouldShowNativeTabBar, inboxDotColor, workspacesDotColor, accountDotColor, tabRouterOverride};
+    return {shouldShowNativeTabBar, inboxDotColor, workspacesDotColor, accountDotColor, tabRouterOverride, tabScreenListeners};
 }
 
 export default useNativeTabNavigator;
