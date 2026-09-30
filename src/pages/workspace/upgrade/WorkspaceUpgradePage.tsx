@@ -25,6 +25,7 @@ import {
     getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     getUserFriendlyWorkspaceType,
+    isAutoPayApprovedReportsAvailable,
     isControlPolicy,
     // eslint-disable-next-line no-restricted-imports -- billing-only: checks the workspace actually upgraded to a paid plan, not general feature access
     isPaidGroupPolicy,
@@ -238,6 +239,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 enableAutoApprovalOptions(policyID, true, policy?.shouldShowAutoApprovalOptions, policy?.autoApproval?.limit, policy?.autoApproval?.auditRate);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.id:
+                // The upgrade is reachable before payments are set up; turning auto-pay on then would silently activate it once a bank account is connected.
+                if (!isAutoPayApprovedReportsAvailable(policy)) {
+                    break;
+                }
                 enablePolicyAutoReimbursementLimit(policyID, true, policy?.shouldShowAutoReimbursementLimitOption, policy?.autoReimbursement?.limit);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
