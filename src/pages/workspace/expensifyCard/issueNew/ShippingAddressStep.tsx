@@ -13,7 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setIssueNewCardStepAndData} from '@libs/actions/Card';
+import {openIssueNewCardShippingAddressStep, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {getStreetLines} from '@libs/PersonalDetailsUtils';
 import {getCountryZipRegexDetails, getFieldRequiredErrors, isValidLegalName, isValidZipCodeForCountry} from '@libs/ValidationUtils';
 
@@ -22,7 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 import KeyboardUtils from '@src/utils/keyboard';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type ShippingAddressStepProps = {
@@ -51,6 +51,11 @@ function ShippingAddressStep({policyID, stepNames, startStepIndex}: ShippingAddr
     const isEditing = issueNewCard?.isEditing;
     const shippingAddress = issueNewCard?.data?.shippingAddress;
     const [street1, street2] = getStreetLines(shippingAddress?.addressStreet);
+    const assigneeEmail = issueNewCard?.data?.assigneeEmail;
+
+    useEffect(() => {
+        openIssueNewCardShippingAddressStep(policyID, assigneeEmail);
+    }, [policyID, assigneeEmail]);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
         if (values.shippingAddressOption !== CONST.EXPENSIFY_CARD.SHIPPING_ADDRESS_OPTION.ENTER_ADDRESS) {
@@ -82,24 +87,24 @@ function ShippingAddressStep({policyID, stepNames, startStepIndex}: ShippingAddr
     };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
+        const enteredShippingAddress =
+            values.shippingAddressOption === CONST.EXPENSIFY_CARD.SHIPPING_ADDRESS_OPTION.ENTER_ADDRESS && values.country
+                ? {
+                      legalFirstName: values.legalFirstName.trim(),
+                      legalLastName: values.legalLastName.trim(),
+                      addressStreet: [values.addressLine1.trim(), values.addressLine2.trim()].filter(Boolean).join('\n'),
+                      addressCity: values.city.trim(),
+                      addressState: values.state.trim(),
+                      addressZip: values.zipPostCode.trim().toUpperCase(),
+                      addressCountry: values.country,
+                  }
+                : null;
+        const isPhoneNumberNeeded = !!enteredShippingAddress && issueNewCard?.hasAssigneePhoneNumber !== true;
         KeyboardUtils.dismiss().then(() => {
             setIssueNewCardStepAndData({
-                step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION,
-                data: {
-                    shippingAddress:
-                        values.shippingAddressOption === CONST.EXPENSIFY_CARD.SHIPPING_ADDRESS_OPTION.ENTER_ADDRESS && values.country
-                            ? {
-                                  legalFirstName: values.legalFirstName.trim(),
-                                  legalLastName: values.legalLastName.trim(),
-                                  addressStreet: [values.addressLine1.trim(), values.addressLine2.trim()].filter(Boolean).join('\n'),
-                                  addressCity: values.city.trim(),
-                                  addressState: values.state.trim(),
-                                  addressZip: values.zipPostCode.trim().toUpperCase(),
-                                  addressCountry: values.country,
-                              }
-                            : undefined,
-                },
-                isEditing: false,
+                step: isPhoneNumberNeeded ? CONST.EXPENSIFY_CARD.STEP.PHONE_NUMBER : CONST.EXPENSIFY_CARD.STEP.CONFIRMATION,
+                data: {shippingAddress: enteredShippingAddress},
+                isEditing: isPhoneNumberNeeded && !!isEditing,
                 policyID,
             });
         });

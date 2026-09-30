@@ -320,6 +320,9 @@ type ShippingAddress = {
 
     /** Country code */
     addressCountry: Country;
+
+    /** Phone number for the shipping label, set when the cardholder has none */
+    phoneNumber?: string;
 };
 
 /** Data required to be sent to issue a new card */
@@ -349,7 +352,7 @@ type IssueNewCardData = {
     validThru?: string;
 
     /** Where the admin wants the physical card shipped, unset when the cardholder is prompted for it */
-    shippingAddress?: ShippingAddress;
+    shippingAddress?: ShippingAddress | null;
 
     /** Whether or not we are adding a spend rule to the card or not */
     spendRuleEnabled?: boolean;
@@ -404,6 +407,9 @@ type IssueNewCard = {
 
     /** Whether the request was successful */
     isSuccessful?: boolean;
+
+    /** Whether the cardholder has a phone number for the shipping label, null while we're checking */
+    hasAssigneePhoneNumber?: boolean | null;
 };
 
 /** List of Expensify cards */

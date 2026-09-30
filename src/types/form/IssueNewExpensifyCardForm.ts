@@ -21,6 +21,7 @@ const INPUT_IDS = {
     STATE: 'state',
     CITY: 'city',
     ZIP_POST_CODE: 'zipPostCode',
+    PHONE_NUMBER: 'phoneNumber',
 } as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
@@ -42,6 +43,7 @@ type IssueNewExpensifyCardForm = Form<
         [INPUT_IDS.STATE]: string;
         [INPUT_IDS.CITY]: string;
         [INPUT_IDS.ZIP_POST_CODE]: string;
+        [INPUT_IDS.PHONE_NUMBER]: string;
     }
 >;
 
