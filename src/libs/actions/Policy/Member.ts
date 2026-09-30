@@ -1292,7 +1292,7 @@ function clearWorkspaceInviteRoleDraft(policyID: string) {
 }
 
 function setWorkspaceInviteWorkArrangementDraft(policyID: string, hasOfficeWorkArrangement: boolean) {
-    return Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`, hasOfficeWorkArrangement);
+    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`, hasOfficeWorkArrangement);
 }
 
 function clearWorkspaceInviteWorkArrangementDraft(policyID: string) {

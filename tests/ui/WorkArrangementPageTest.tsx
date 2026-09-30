@@ -164,7 +164,7 @@ describe('WorkArrangementPage', () => {
 
         // When the admin selects office-based
         await act(async () => {
-            await getSelectionListProps()?.onSelectRow?.({value: true});
+            getSelectionListProps()?.onSelectRow?.({value: true});
         });
         await waitForBatchedUpdatesWithAct();
 

@@ -65,7 +65,7 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
 
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
     const [inviteWorkArrangementDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`);
-    const [firstInviteLogin, firstInviteAccountID] = Object.entries(invitedEmailsToAccountIDsDraft ?? {})[0] ?? [];
+    const [firstInviteLogin, firstInviteAccountID] = Object.entries(invitedEmailsToAccountIDsDraft ?? {}).at(0) ?? [];
     const accountID = isInviteFlow ? Number(firstInviteAccountID) : Number(route.params.accountID);
     const inviteLogin = isInviteFlow ? firstInviteLogin : undefined;
     const memberLogin = inviteLogin ?? personalDetails?.[accountID]?.login ?? getMemberLoginByAccountID(policy, accountID);
@@ -88,12 +88,12 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
         Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, memberAccountID));
     };
 
-    const changeWorkArrangement = async ({value}: WorkArrangementOption) => {
+    const changeWorkArrangement = ({value}: WorkArrangementOption) => {
         if (value === currentIsOffice || !canAccessWorkArrangementPage) {
             return;
         }
         if (isInviteFlow) {
-            await setWorkspaceInviteWorkArrangementDraft(policyID, value);
+            setWorkspaceInviteWorkArrangementDraft(policyID, value);
             navigateBackToDetails();
             return;
         }
