@@ -527,6 +527,25 @@ describe('useUpcomingTravelReservations', () => {
         expect(result.current.at(0)?.reportID).toBe('102');
     });
 
+    it('should exclude cancelled reservations', async () => {
+        const cancelledFlight = makeAirPnr('PNR_CANCELLED', daysFromNow(3), daysFromNow(3, 15));
+        const firstLeg = cancelledFlight.data.airPnr?.legs.at(0);
+        if (firstLeg) {
+            firstLeg.legStatus = CONST.LEG_STATUS.CANCELLED;
+        }
+        const tripRoom = makeTripRoomReport('103');
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}103`, tripRoom);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}103`, makeTripRoomReportNameValuePairs('103', [cancelledFlight]));
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useUpcomingTravelReservations());
+
+        await waitFor(() => {
+            expect(result.current).toEqual([]);
+        });
+    });
+
     it('should exclude reservation that departed yesterday', async () => {
         const pastFlight = makeAirPnr('PNR_JUST_PASSED', daysFromNow(-1, 22), daysFromNow(-1, 23));
         const upcomingFlight = makeAirPnr('PNR_LATER_TODAY', daysFromNow(1), daysFromNow(1, 15));

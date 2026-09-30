@@ -71,6 +71,14 @@ function setupSentry(): void {
             // `add()` instead of `put()` and fails whenever the key is already there. Onyx never calls `add()`, so a
             // real Onyx write cannot produce this, and the DOMException carries no frames to tag as third-party.
             /^ConstraintError: Key already exists in the object store/,
+            // Calls into the WKWebView message bridge an in-app browser injected into the page, which then tore the
+            // bridge down (https://github.com/Expensify/App/issues/100268, Sentry APP-8WS). We ship no
+            // `webkit.messageHandlers` call anywhere in the org, so any error naming one was thrown by injected code
+            // we cannot act on. Filtering on the message rather than the frames is what works here: WebKit withholds
+            // the URL of an injected script, so `denyUrls` and `thirdPartyErrorFilterIntegration` have nothing to
+            // match. The trailing dot keeps this to a real property access into the bridge, so an unrelated error
+            // that merely names the bridge in prose still reports.
+            /webkit\.messageHandlers\./,
         ],
         denyUrls: EXTENSION_DENY_URLS,
         beforeSendTransaction: processBeforeSendTransactions,

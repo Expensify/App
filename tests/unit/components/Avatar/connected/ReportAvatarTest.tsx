@@ -30,7 +30,18 @@ let mockCapturedGroupChatAvatarProps: Record<string, unknown> = {};
 
 let mockCapturedExpenseReportAvatarProps: Record<string, unknown> = {};
 
+let mockCapturedChatThreadAvatarProps: Record<string, unknown> = {};
+
 let mockCapturedAccountAvatarProps: Record<string, unknown> = {};
+
+jest.mock('@components/Avatar/connected/ChatThreadAvatar', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    return (props: Record<string, unknown>) => {
+        mockCapturedChatThreadAvatarProps = props;
+        return <View testID="MockedChatThreadAvatar" />;
+    };
+});
 
 jest.mock('@components/Avatar/connected/AccountAvatar', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -69,6 +80,7 @@ describe('ReportAvatar (connected)', () => {
         mockCapturedFallbackProps = {};
         mockCapturedGroupChatAvatarProps = {};
         mockCapturedExpenseReportAvatarProps = {};
+        mockCapturedChatThreadAvatarProps = {};
         mockCapturedAccountAvatarProps = {};
     });
 
@@ -83,9 +95,9 @@ describe('ReportAvatar (connected)', () => {
         ['an IOU report', {type: CONST.REPORT.TYPE.IOU}],
         ['a task report', {type: CONST.REPORT.TYPE.TASK}],
         ['an invoice report', {type: CONST.REPORT.TYPE.INVOICE}],
-        ['a chat thread', {type: CONST.REPORT.TYPE.CHAT, parentReportID: 'parent1', parentReportActionID: 'parentAction1'}],
         ['a policy expense chat', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT}],
         ['a room', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM}],
+        ['a trip room without its parent fields', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM}],
         ['a DM', {type: CONST.REPORT.TYPE.CHAT}],
     ] as const)('should render the legacy component for %s until its wrapper exists', async (_case, reportOverrides) => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, ...reportOverrides});
@@ -108,7 +120,7 @@ describe('ReportAvatar (connected)', () => {
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.SMALL}
                 backdropColor="#ff0000"
-                noRightMarginOnSubscriptContainer
+                subscriptAvatarContainerStyle={{marginRight: 0}}
                 fallbackDisplayName={FALLBACK_NAME}
             />,
         );
@@ -119,7 +131,6 @@ describe('ReportAvatar (connected)', () => {
             reportID: REPORT_ID,
             size: CONST.AVATAR_SIZE.SMALL,
             backdropColor: '#ff0000',
-            // The dispatcher translates `noRightMarginOnSubscriptContainer` into this container style
             containerStyle: {marginRight: 0},
             fallbackDisplayName: FALLBACK_NAME,
         });
@@ -143,7 +154,7 @@ describe('ReportAvatar (connected)', () => {
         expect(mockCapturedExpenseReportAvatarProps).not.toHaveProperty('sort');
     });
 
-    it('should pass no container style for an expense report without noRightMarginOnSubscriptContainer', async () => {
+    it('should pass no container style for an expense report without subscriptAvatarContainerStyle', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE});
         await waitForBatchedUpdatesWithAct();
 
@@ -151,6 +162,70 @@ describe('ReportAvatar (connected)', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(mockCapturedExpenseReportAvatarProps.containerStyle).toBeUndefined();
+    });
+
+    it('should render ChatThreadAvatar for a chat thread with the layout container styles resolved', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.CHAT, parentReportID: 'parent1', parentReportActionID: 'parentAction1'});
+        await waitForBatchedUpdatesWithAct();
+
+        const singleAvatarContainerStyle = [{marginRight: 12}];
+        const subscriptAvatarContainerStyle = [{marginRight: 0}];
+
+        render(
+            <ReportAvatar
+                reportID={REPORT_ID}
+                size={CONST.AVATAR_SIZE.SMALL}
+                singleAvatarContainerStyle={singleAvatarContainerStyle}
+                backdropColor="#ff0000"
+                subscriptAvatarContainerStyle={subscriptAvatarContainerStyle}
+                fallbackDisplayName={FALLBACK_NAME}
+            />,
+        );
+
+        expect(screen.getByTestId('MockedChatThreadAvatar')).toBeOnTheScreen();
+        expect(mockCapturedChatThreadAvatarProps).toEqual({
+            reportID: REPORT_ID,
+            size: CONST.AVATAR_SIZE.SMALL,
+            backdropColor: '#ff0000',
+            containerStyle: singleAvatarContainerStyle,
+            subscriptContainerStyle: subscriptAvatarContainerStyle,
+            fallbackDisplayName: FALLBACK_NAME,
+        });
+    });
+
+    it('should hand a chat thread the stacking props and drop its single container styles inside a horizontal stack', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.CHAT, parentReportID: 'parent1', parentReportActionID: 'parentAction1'});
+        await waitForBatchedUpdatesWithAct();
+
+        render(
+            <ReportAvatar
+                reportID={REPORT_ID}
+                singleAvatarContainerStyle={[{marginRight: 12}]}
+                horizontalStacking={{maxRows: 2}}
+                sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE}
+            />,
+        );
+
+        expect(mockCapturedChatThreadAvatarProps.containerStyle).toEqual([]);
+        expect(mockCapturedChatThreadAvatarProps.subscriptContainerStyle).toBeUndefined();
+        expect(mockCapturedChatThreadAvatarProps.horizontalStacking).toEqual({maxRows: 2});
+        expect(mockCapturedChatThreadAvatarProps.sort).toBe(CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE);
+    });
+
+    it('should render ChatThreadAvatar for a trip room, which is a thread of its trip preview', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
+            parentReportID: 'parent1',
+            parentReportActionID: 'parentAction1',
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        render(<ReportAvatar reportID={REPORT_ID} />);
+
+        expect(screen.getByTestId('MockedChatThreadAvatar')).toBeOnTheScreen();
+        expect(mockCapturedChatThreadAvatarProps.reportID).toBe(REPORT_ID);
     });
 
     it('should render GroupChatAvatar for a group chat', async () => {
@@ -199,6 +274,7 @@ describe('ReportAvatar (connected)', () => {
         await waitForBatchedUpdatesWithAct();
 
         const singleAvatarContainerStyle = [{marginRight: 12}];
+        const subscriptAvatarContainerStyle = [{marginRight: 0}];
         const horizontalStacking = {maxRows: 2, maxAvatarsPerRow: 4, overlapDivider: 4};
 
         render(
@@ -206,8 +282,8 @@ describe('ReportAvatar (connected)', () => {
                 reportID={REPORT_ID}
                 size={CONST.AVATAR_SIZE.SMALL}
                 singleAvatarContainerStyle={singleAvatarContainerStyle}
+                subscriptAvatarContainerStyle={subscriptAvatarContainerStyle}
                 backdropColor="#ff0000"
-                noRightMarginOnSubscriptContainer
                 horizontalStacking={horizontalStacking}
                 sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE}
                 fallbackDisplayName={FALLBACK_NAME}
@@ -219,8 +295,8 @@ describe('ReportAvatar (connected)', () => {
             reportID: REPORT_ID,
             size: CONST.AVATAR_SIZE.SMALL,
             singleAvatarContainerStyle,
+            subscriptAvatarContainerStyle,
             backdropColor: '#ff0000',
-            noRightMarginOnSubscriptContainer: true,
             horizontalStacking,
             sort: CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE,
             fallbackDisplayName: FALLBACK_NAME,

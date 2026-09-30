@@ -2,7 +2,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 
@@ -27,6 +27,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
+import getAllMatchingQueryParams from '@libs/getAllMatchingQueryParams';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -93,13 +94,13 @@ function DynamicIOURequestStepUpgrade({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const createReportForCurrentUser = useCreateNewReport();
 
     // Hooks for bulk move functionality
-    const {selectedTransactions} = useSearchSelectionContext();
+    const {selectedTransactions, areAllMatchingItemsSelected, excludedTransactions} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
+    const {currentSearchQueryJSON} = useSearchQueryContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
@@ -117,7 +118,8 @@ function DynamicIOURequestStepUpgrade({
         .map((transactionItem) => transactionItem.transaction)
         .filter((item): item is Transaction => !!item);
 
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const reports = useChangeTransactionsReportReports(transactions, undefined);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
@@ -145,7 +147,7 @@ function DynamicIOURequestStepUpgrade({
         if (upgradePath === CONST.UPGRADE_PATHS.REPORTS && policyID && selectedTransactionsKeys.includes(transactionID)) {
             const newPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
-            const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, betas, isTrackIntentUser, getCurrencyDecimals, rules);
+            const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, isTrackIntentUser, getCurrencyDecimals, rules);
 
             const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : {};
             const reportsForCall = {
@@ -153,8 +155,13 @@ function DynamicIOURequestStepUpgrade({
                 [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`]: {...optimisticReport, transactionCount: 0, unheldNonReimbursableTotal: 0},
             };
 
+            // Do not send all-matching query params offline because reconnecting reevaluates the query and can include newly matching expenses.
+            // Move the explicit transaction list instead
+            const allMatchingQueryParams = isOffline ? {} : getAllMatchingQueryParams(areAllMatchingItemsSelected, excludedTransactions, currentSearchQueryJSON);
+
             // Move ALL selected transactions to the new report
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled,
                 transactionIDs: selectedTransactionsKeys,
                 isASAPSubmitBetaEnabled,
                 accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -174,6 +181,7 @@ function DynamicIOURequestStepUpgrade({
                 delegateAccountID,
                 getCurrencyDecimals,
                 getCurrencySymbol,
+                ...allMatchingQueryParams,
             });
 
             clearSelectedTransactions();
@@ -256,6 +264,7 @@ function DynamicIOURequestStepUpgrade({
                 Navigation.goBack();
         }
     }, [
+        isVendorMatchingBetaEnabled,
         action,
         upgradeBackTo,
         navigateWithMicrotask,
@@ -273,7 +282,6 @@ function DynamicIOURequestStepUpgrade({
         session?.email,
         ownerPersonalDetails,
         transactions,
-        betas,
         iouType,
         isTrack,
         allPolicyTags,
@@ -286,6 +294,10 @@ function DynamicIOURequestStepUpgrade({
         getCurrencyDecimals,
         getCurrencySymbol,
         rules,
+        areAllMatchingItemsSelected,
+        currentSearchQueryJSON,
+        excludedTransactions,
+        isOffline,
     ]);
 
     const participant = transaction?.participants?.[0];
@@ -318,7 +330,7 @@ function DynamicIOURequestStepUpgrade({
         const upgradeCurrency = (isSplitExpense ? personalPolicy?.outputCurrency : undefined) ?? currentUserPersonalDetails?.localCurrencyCode ?? '';
         const policyData = Policy.createWorkspace({
             policyOwner: undefined,
-            policyName: Policy.generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate, currentUserPersonalDetails?.displayName),
+            policyName: Policy.generateDefaultWorkspaceName(email, currentUserPersonalDetails?.displayName, lastWorkspaceNumber, translate),
             policyID: undefined,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
             currency: upgradeCurrency,
@@ -336,7 +348,6 @@ function DynamicIOURequestStepUpgrade({
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: email,
             onboardingPurposeSelected,
-            betas,
             isSelfTourViewed,
             hasActiveAdminPolicies,
             delegateAccountID,
@@ -361,7 +372,6 @@ function DynamicIOURequestStepUpgrade({
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             onboardingPurposeSelected,
-            betas,
             isSelfTourViewed,
             hasActiveAdminPolicies,
             delegateAccountID,

@@ -317,6 +317,52 @@ describe('getWorkspaceMenuItems', () => {
         expect(items.find((item) => item.translationKey === 'workspace.common.hr')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.INFO);
     });
 
+    it('shows an information indicator on Accounting when the QBO refresh token is about to expire', () => {
+        const policy = createMock<Policy>({
+            ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
+            areConnectionsEnabled: true,
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {credentials: {companyID: '12345', refreshTokenExpiresAt: Math.floor(Date.now() / 1000) + 3 * 86400}},
+                    lastSync: {isSuccessful: true, isConnected: true, isAuthenticationError: false},
+                },
+            },
+        });
+
+        const items = getWorkspaceMenuItems({
+            policy,
+            policyID: policy.id,
+            currentUserLogin,
+            icons,
+            convertToDisplayString: () => '',
+        });
+
+        expect(items.find((item) => item.translationKey === 'workspace.common.accounting')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.INFO);
+    });
+
+    it('keeps the error indicator on Accounting when a sync error exists even if the QBO refresh token is about to expire', () => {
+        const policy = createMock<Policy>({
+            ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
+            areConnectionsEnabled: true,
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {credentials: {companyID: '12345', refreshTokenExpiresAt: Math.floor(Date.now() / 1000) + 3 * 86400}},
+                    lastSync: {isSuccessful: false, isConnected: false, isAuthenticationError: true, errorDate: new Date().toISOString(), errorMessage: 'Error'},
+                },
+            },
+        });
+
+        const items = getWorkspaceMenuItems({
+            policy,
+            policyID: policy.id,
+            currentUserLogin,
+            icons,
+            convertToDisplayString: () => '',
+        });
+
+        expect(items.find((item) => item.translationKey === 'workspace.common.accounting')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+    });
+
     it('shows an error indicator when the Merge HR connection has an authentication error', () => {
         const policy = createMock<Policy>({
             ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
@@ -468,9 +514,9 @@ describe('getWorkspaceMenuItems', () => {
             'workspace.common.receiptPartners',
             'workspace.common.mcp',
             'workspace.common.categories',
-            'workspace.common.vendors',
             'workspace.common.tags',
             'workspace.common.taxes',
+            'workspace.common.vendors',
             'workspace.common.workflows',
             'workspace.common.rules',
             'workspace.common.distanceRates',
@@ -493,9 +539,9 @@ describe('getWorkspaceMenuItems', () => {
             ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policy.id),
             ROUTES.WORKSPACE_MCP.getRoute(policy.id),
             ROUTES.WORKSPACE_CATEGORIES.getRoute(policy.id),
-            ROUTES.WORKSPACE_VENDORS.getRoute(policy.id),
             ROUTES.WORKSPACE_TAGS.getRoute(policy.id),
             ROUTES.WORKSPACE_TAXES.getRoute(policy.id),
+            ROUTES.WORKSPACE_VENDORS.getRoute(policy.id),
             ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id),
             ROUTES.WORKSPACE_RULES.getRoute(policy.id),
             ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policy.id),
@@ -518,9 +564,9 @@ describe('getWorkspaceMenuItems', () => {
             SCREENS.WORKSPACE.RECEIPT_PARTNERS,
             SCREENS.WORKSPACE.MCP,
             SCREENS.WORKSPACE.CATEGORIES,
-            SCREENS.WORKSPACE.VENDORS,
             SCREENS.WORKSPACE.TAGS,
             SCREENS.WORKSPACE.TAXES,
+            SCREENS.WORKSPACE.VENDORS,
             SCREENS.WORKSPACE.WORKFLOWS,
             SCREENS.WORKSPACE.RULES,
             SCREENS.WORKSPACE.DISTANCE_RATES,

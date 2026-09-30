@@ -13,9 +13,12 @@ import {
     filterRulesForPolicy,
     getApprovalLimitDescription,
     getOpenConnectedToPolicyBusinessBankAccounts,
+    getApprovalWorkflowSource,
     getOverLimitForwardsToDisplayName,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
+    includesEveryWorkspaceMember,
+    isApprovalWorkflowLockedByIntegration,
     mergeWorkflowMembersWithAvailableMembers,
     reconcileApprovalWorkflowRulesForCreate,
     reconcileApprovalWorkflowRulesForEdit,
@@ -23,6 +26,7 @@ import {
     reconcileApprovalWorkflowRulesForRemove,
     updateWorkflowDataOnApproverRemoval,
 } from '@src/libs/WorkflowUtils';
+import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
@@ -32,6 +36,8 @@ import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
+
+import type {ValueOf} from 'type-fest';
 
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
@@ -883,6 +889,35 @@ describe('WorkflowUtils', () => {
         });
     });
 
+    describe('includesEveryWorkspaceMember', () => {
+        const employeeList: PolicyEmployeeList = {
+            '1@example.com': buildPolicyEmployee(1),
+            '2@example.com': buildPolicyEmployee(2),
+            '3@example.com': buildPolicyEmployee(3, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+        };
+
+        it('is true when every member is included, leaving out members being removed from the workspace', () => {
+            // Given a workspace where member 3 is being removed
+            // When checking a workflow with every other member
+            // Then it has everyone, because member 3 won't be in any workflow once removed
+            expect(includesEveryWorkspaceMember(['1@example.com', '2@example.com'], employeeList)).toBe(true);
+        });
+
+        it('is false while a workspace member is missing', () => {
+            // Given a workspace with members 1 and 2
+            // When checking a workflow with only member 1
+            // Then it doesn't have everyone, because member 2 stays in their current workflow
+            expect(includesEveryWorkspaceMember(['1@example.com'], employeeList)).toBe(false);
+        });
+
+        it('is false when the workspace has no members', () => {
+            // Given a workspace whose member list hasn't loaded
+            // When checking any workflow
+            // Then it doesn't have everyone, so no workflow is made the default by mistake
+            expect(includesEveryWorkspaceMember(['1@example.com'], {})).toBe(false);
+        });
+    });
+
     describe('convertApprovalWorkflowToPolicyEmployees', () => {
         it('Should return an updated employee list for a simple default workflow', () => {
             const approvalWorkflow: ApprovalWorkflow = {
@@ -1421,6 +1456,35 @@ describe('WorkflowUtils', () => {
                 },
             ]);
         });
+
+        it('Should drop a workflow that has no approvers instead of passing it through', () => {
+            // A workflow with no approvers can't be converted back to policy employees, so it must never be emitted
+            const emptyDefaultWorkflow: ApprovalWorkflow = {
+                members: [],
+                approvers: [],
+                isDefault: true,
+            };
+            const approvalWorkflow: ApprovalWorkflow = {
+                members: [buildMember(1), buildMember(2)],
+                approvers: [buildApprover(2)],
+                isDefault: false,
+            };
+
+            const ownerDetails = personalDetails[1];
+            const removedApprover = personalDetails[2];
+
+            if (!removedApprover || !ownerDetails) {
+                return;
+            }
+
+            const result = updateWorkflowDataOnApproverRemoval({
+                approvalWorkflows: [emptyDefaultWorkflow, approvalWorkflow],
+                removedApprover,
+                ownerDetails,
+            });
+
+            expect(result).toEqual([{...approvalWorkflow, approvers: [buildApprover(1)]}]);
+        });
     });
 
     describe('getApprovalLimitDescription', () => {
@@ -1649,10 +1713,10 @@ describe('WorkflowUtils', () => {
     });
 
     describe('rule-based approval workflows', () => {
-        const submitTriggers = {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT};
-        const approveTriggers = {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE};
-        const forwardActions = (approver: string) => ({'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver}});
-        const approveActions = {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}};
+        const submitTriggers = {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT};
+        const approveTriggers = {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE};
+        const forwardActions = (approver: string) => ({'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver}});
+        const approveActions = {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}};
         const buildFromFilter = (emails: string[]) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: emails});
         const buildToFilter = (email: string) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: email});
         const and = (left: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison, right: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): ApprovalWorkflowFilter => ({
@@ -2106,6 +2170,76 @@ describe('WorkflowUtils', () => {
                         .sort(),
                 ).toEqual(['2@example.com', '3@example.com', '4@example.com']);
             });
+
+            it('Should keep members that employeeList routes down another chain out of the rule-based default workflow', () => {
+                // Given a default workflow whose rules route 5 to approver 1, while employeeList still names approver 2, who
+                // forwards to 3, as the default approver. No rule covers 2 or 6, so employeeList routes them to 2, then 3.
+                const rules = keyRules(buildApprovalWorkflowRules(buildWorkflow([5], [1], {isDefault: true})));
+                const employees: PolicyEmployeeList = {
+                    '5@example.com': {email: '5@example.com', submitsTo: '2@example.com'},
+                    '2@example.com': {email: '2@example.com', submitsTo: '2@example.com', forwardsTo: '3@example.com'},
+                    '6@example.com': {email: '6@example.com', submitsTo: '2@example.com'},
+                };
+                const policy = createPolicy(employees, '2@example.com');
+
+                // When the rules are turned into the workflows the Workflows page shows
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules});
+
+                // Then only the rule-based chain is the default workflow. Deleting a workflow writes its members into the
+                // default workflow's chain, so a second default would let that write the employeeList chain as another default.
+                const defaultWorkflows = approvalWorkflows.filter((workflow) => workflow.isDefault);
+                expect(defaultWorkflows).toHaveLength(1);
+                expect(defaultWorkflows.at(0)?.approvers.map((approver) => approver.email)).toEqual(['1@example.com']);
+                expect(defaultWorkflows.at(0)?.members.map((member) => member.email)).toEqual(['5@example.com']);
+
+                const employeeListWorkflow = approvalWorkflows.find((workflow) => !workflow.isDefault);
+                expect(employeeListWorkflow?.approvers.map((approver) => approver.email)).toEqual(['2@example.com', '3@example.com']);
+                expect(employeeListWorkflow?.members.map((member) => member.email)).toEqual(['2@example.com', '6@example.com']);
+            });
+
+            it('Should show members that employeeList routes down the default chain in the rule-based default workflow', () => {
+                // Given a default workflow whose rules route 5 to approver 1, and 1 and 6, whom no rule covers, submitting to
+                // that same approver through employeeList. Their reports take the same route.
+                const rules = keyRules(buildApprovalWorkflowRules(buildWorkflow([5], [1], {isDefault: true})));
+                const employees: PolicyEmployeeList = {
+                    '5@example.com': {email: '5@example.com', submitsTo: '1@example.com'},
+                    '6@example.com': {email: '6@example.com', submitsTo: '1@example.com'},
+                    '1@example.com': {email: '1@example.com', submitsTo: '1@example.com'},
+                };
+                const policy = createPolicy(employees, '1@example.com');
+
+                // When the rules are turned into the workflows the Workflows page shows
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules});
+
+                // Then 1 and 6 are listed in the default workflow rather than in a second default workflow with the same approver
+                expect(approvalWorkflows).toHaveLength(1);
+                expect(approvalWorkflows.at(0)?.isDefault).toBe(true);
+                expect(approvalWorkflows.at(0)?.members.map((member) => member.email)).toEqual(['5@example.com', '6@example.com', '1@example.com']);
+            });
+
+            it('Should keep a single default workflow when the rules declare two', () => {
+                // Given rules that declare two different default chains, the way a policy looks once a second set of default
+                // rules was written next to the first. The policy's default approver is 2.
+                const rules = keyRules([
+                    ...buildApprovalWorkflowRules(buildWorkflow([5], [1], {isDefault: true})),
+                    ...buildApprovalWorkflowRules(buildWorkflow([6], [2, 3], {isDefault: true})),
+                ]);
+                const employees: PolicyEmployeeList = {
+                    '5@example.com': {email: '5@example.com', submitsTo: '2@example.com'},
+                    '6@example.com': {email: '6@example.com', submitsTo: '2@example.com'},
+                };
+                const policy = createPolicy(employees, '2@example.com');
+
+                // When the rules are turned into the workflows the Workflows page shows
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules});
+
+                // Then the chain starting at the default approver stays the default, and the other one is shown as a workflow
+                // of its own, so deleting it sends its members to the default workflow
+                const defaultWorkflows = approvalWorkflows.filter((workflow) => workflow.isDefault);
+                expect(defaultWorkflows).toHaveLength(1);
+                expect(defaultWorkflows.at(0)?.approvers.map((approver) => approver.email)).toEqual(['2@example.com', '3@example.com']);
+                expect(approvalWorkflows.find((workflow) => !workflow.isDefault)?.members.map((member) => member.email)).toEqual(['5@example.com']);
+            });
         });
     });
 
@@ -2113,9 +2247,9 @@ describe('WorkflowUtils', () => {
         const ruleForPolicy = (scopeID: string, extra: Partial<Rule> = {}): Rule => ({
             scope: CONST.RULES.SCOPE.POLICY,
             scopeID,
-            triggers: {'0': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+            triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
             filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: 'a@example.com'},
-            actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: 'b@example.com'}},
+            actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: 'b@example.com'}},
             ...extra,
         });
 
@@ -2136,6 +2270,93 @@ describe('WorkflowUtils', () => {
         it('returns an empty collection when there is no policy or no rules', () => {
             expect(filterRulesForPolicy({rules_1: ruleForPolicy('policy1')}, undefined)).toEqual({});
             expect(filterRulesForPolicy(undefined, 'policy1')).toEqual({});
+        });
+    });
+
+    describe('approval workflows owned by a connected integration', () => {
+        const POLICY_ID = 'ats-policy';
+
+        function buildPolicyWithConnectedATS(approvalMode: ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null): Policy {
+            return createMock<Policy>({
+                id: POLICY_ID,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: {
+                        config: {
+                            integration: 'greenhouse',
+                            approvalMode,
+                            approverField: CONST.MERGE.ATS_APPROVER_FIELD.RECRUITER,
+                            finalApprover: 'recruiter@example.com',
+                            filters: null,
+                        },
+                    },
+                },
+            });
+        }
+
+        describe('isApprovalWorkflowLockedByIntegration', () => {
+            it.each([CONST.MERGE.APPROVAL_MODE.BASIC, CONST.MERGE.APPROVAL_MODE.ADVANCED])('locks the workflows when the ATS is in %s mode', (approvalMode) => {
+                expect(isApprovalWorkflowLockedByIntegration(buildPolicyWithConnectedATS(approvalMode))).toBe(true);
+            });
+
+            it('leaves the workflows editable when the ATS is in custom mode', () => {
+                expect(isApprovalWorkflowLockedByIntegration(buildPolicyWithConnectedATS(CONST.MERGE.APPROVAL_MODE.CUSTOM))).toBe(false);
+            });
+
+            it('leaves the workflows editable when the ATS has no approval mode set yet', () => {
+                expect(isApprovalWorkflowLockedByIntegration(buildPolicyWithConnectedATS(null))).toBe(false);
+            });
+
+            // Disconnecting the ATS drops the lock; the workflow it produced stays in place for the admin to edit.
+            it('leaves the workflows editable once the ATS is disconnected', () => {
+                expect(isApprovalWorkflowLockedByIntegration(createMock<Policy>({id: POLICY_ID, connections: {}}))).toBe(false);
+            });
+
+            it('locks the workflows when an ATS in basic mode is connected alongside an HR provider in custom mode', () => {
+                const policy = createMock<Policy>({
+                    id: POLICY_ID,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {integration: 'workday', approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM, groups: []}},
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: {config: {integration: 'greenhouse', approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC, filters: null}},
+                    },
+                });
+
+                expect(isApprovalWorkflowLockedByIntegration(policy)).toBe(true);
+            });
+        });
+
+        describe('getApprovalWorkflowSource', () => {
+            it.each([CONST.MERGE.APPROVAL_MODE.BASIC, CONST.MERGE.APPROVAL_MODE.ADVANCED])(
+                'names the connected ATS provider and links to the recruiting settings in %s mode',
+                (approvalMode) => {
+                    expect(getApprovalWorkflowSource(buildPolicyWithConnectedATS(approvalMode), POLICY_ID)).toEqual({
+                        providerName: 'Greenhouse',
+                        settingsRoute: ROUTES.WORKSPACE_RECRUITING.getRoute(POLICY_ID),
+                    });
+                },
+            );
+
+            it('has no source in custom mode, because the admin owns the workflow', () => {
+                expect(getApprovalWorkflowSource(buildPolicyWithConnectedATS(CONST.MERGE.APPROVAL_MODE.CUSTOM), POLICY_ID)).toBeUndefined();
+            });
+
+            it('has no source when nothing is connected', () => {
+                expect(getApprovalWorkflowSource(createMock<Policy>({id: POLICY_ID, connections: {}}), POLICY_ID)).toBeUndefined();
+            });
+
+            it('prefers a connected HR provider over the ATS', () => {
+                const policy = createMock<Policy>({
+                    id: POLICY_ID,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {integration: 'workday', approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM, groups: []}},
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: {config: {integration: 'greenhouse', approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC, filters: null}},
+                    },
+                });
+
+                expect(getApprovalWorkflowSource(policy, POLICY_ID)).toEqual({
+                    providerName: 'Workday',
+                    settingsRoute: ROUTES.WORKSPACE_HR.getRoute(POLICY_ID),
+                });
+            });
         });
     });
 });

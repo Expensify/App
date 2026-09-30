@@ -17,7 +17,7 @@ import {canIOUBePaid} from '@libs/actions/IOU/ReportWorkflow';
 import {getChatReportWithFallback, getSearchPayOnyxData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
-import {getReimbursableTotal, isIndividualInvoiceRoom, isInvoiceReport} from '@libs/ReportUtils';
+import {getReimbursableTotal, isArchivedReport, isIndividualInvoiceRoom, isInvoiceReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,7 +62,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         email,
         localCurrencyCode,
         introSelected,
-        betas,
+        isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         userBillingGracePeriodEnds,
         amountOwed,
@@ -77,9 +77,22 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         chatReportPolicyID: chatReport?.policyID,
     });
 
-    const canBePaid = canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, false, undefined, invoiceReceiverPolicy);
+    const isChatReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`]);
+    const canBePaid = canIOUBePaid(
+        iouReport,
+        chatReport,
+        policy,
+        bankAccountList,
+        currentUserLogin ?? '',
+        currentUserAccountID,
+        transactions,
+        false,
+        isChatReportArchived,
+        invoiceReceiverPolicy,
+    );
     const shouldOnlyShowElsewhere =
-        !canBePaid && canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, true, undefined, invoiceReceiverPolicy);
+        !canBePaid &&
+        canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, true, isChatReportArchived, invoiceReceiverPolicy);
 
     const {currency} = iouReport ?? {};
 
@@ -123,6 +136,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldUseB2BInvoiceReport ? existingB2BInvoiceReport?.reportID : chatReport?.reportID)}`];
 
             payInvoice({
+                isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
                 paymentMethodType: type,
                 chatReport,
@@ -137,7 +151,6 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 paymentMethod,
                 activePolicy,
                 conciergeChat,
-                betas,
                 isSelfTourViewed,
                 defaultWorkspaceName,
                 additionalOnyxData,
@@ -160,6 +173,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         }
 
         payMoneyRequest({
+            isASAPSubmitBetaEnabled,
             getCurrencyDecimals,
             paymentType: type,
             chatReport: chatReportForPayment,
@@ -171,7 +185,6 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             activePolicy,
             policy,
             chatReportPolicy,
-            betas,
             isSelfTourViewed,
             userBillingGracePeriodEnds,
             amountOwed,

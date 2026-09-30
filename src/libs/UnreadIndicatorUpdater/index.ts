@@ -8,14 +8,14 @@ import Navigation, {navigationRef} from '@navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportActions, ReportNameValuePairs, Session} from '@src/types/onyx';
+import type {Report, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Session} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
 import debounce from 'lodash/debounce';
 import Onyx from 'react-native-onyx';
 
-import updateUnread from './updateUnread';
+import updateUnread, {setUnreadUpdateCallback} from './updateUnread';
 
 let allReports: OnyxCollection<Report> = {};
 let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
@@ -65,6 +65,15 @@ Onyx.connectWithoutView({
     },
 });
 
+let reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined;
+// This subscription is used to update the unread indicators count which is not linked to UI and it does not update any UI state.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
+    callback: (value) => {
+        reportAttributesDerived = value?.reports;
+    },
+});
+
 function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, currentReportID: string | undefined, draftComment: string | undefined) {
     // Read the in-memory offline state directly since this is an imperative one-shot computation (reactivity is not needed here).
     const isOffline = getIsOffline();
@@ -91,7 +100,9 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
         const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`], isOffline);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
 
-        if (!ReportUtils.isUnread(report, oneTransactionThreadReport, isReportArchived)) {
+        const derivedIsEmptyReport = report?.reportID ? reportAttributesDerived?.[report.reportID]?.isEmpty : undefined;
+
+        if (!ReportUtils.isUnread(report, oneTransactionThreadReport, isReportArchived, derivedIsEmptyReport)) {
             return false;
         }
 
@@ -100,7 +111,8 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
             report,
             chatReport,
             currentReportId: currentReportID,
-            betas: [],
+            // This list never had the beta, it used to pass an empty betas array, so it stays off on purpose
+            isDefaultRoomsBetaEnabled: false,
             doesReportHaveViolations: false,
             isInFocusMode: false,
             excludeEmptyChats: false,
@@ -111,6 +123,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
             // TODO: Pass guideAccountIDs once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); hasExpensifyGuidesEmails falls back to allPersonalDetails
             hasGuidesEmails: ReportUtils.isDefaultRoom(report) ? ReportUtils.hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), undefined) : false,
             conciergeReportID,
+            derivedIsEmptyReport,
         });
     });
 }
@@ -128,8 +141,13 @@ const triggerUnreadUpdate = debounce(() => {
     // We want to keep notification count consistent with what can be accessed from the LHN list
     const unreadReports = memoizedGetUnreadReportsForUnreadIndicator(allReports, currentReportID, draftComment);
 
-    updateUnread(unreadReports.length);
+    updateUnread(
+        unreadReports.length,
+        unreadReports.map((report) => report?.reportID).filter((reportID): reportID is string => !!reportID),
+    );
 }, CONST.TIMING.UNREAD_UPDATE_DEBOUNCE_TIME);
+
+setUnreadUpdateCallback(triggerUnreadUpdate);
 
 // This subscription is used to update the unread indicators count which is not linked to UI and it does not update any UI state.
 Onyx.connectWithoutView({

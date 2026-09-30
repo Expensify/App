@@ -24,6 +24,7 @@ import type {SearchListItem} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps, TransactionViewExtras} from './searchViewProps';
 import type {SearchQueryJSON, SelectedTransactions} from './types';
 
+import {NO_OPEN_GROUPS} from './hooks/useOpenGroupsRegistry';
 import useSearchListViewState from './hooks/useSearchListViewState';
 import AnimatedExitRow from './primitives/AnimatedExitRow';
 import SelectionTopBar from './primitives/SelectionTopBar';
@@ -33,6 +34,7 @@ import GroupHeader from './SearchList/ListItem/GroupHeader';
 import shouldCollapseExpandedGroupAfterPendingDelete from './SearchList/ListItem/shouldCollapseExpandedGroupAfterPendingDelete';
 import TransactionGroupListItem from './SearchList/ListItem/TransactionGroupListItem';
 import {isGroupChildrenContainerItem, isGroupHeaderItem} from './SearchList/ListItem/types';
+import useOpenGroupsForShiftRange from './SearchList/ListItem/useOpenGroupsForShiftRange';
 import SearchListViewLayout from './SearchListViewLayout';
 
 type ExpenseGroupedSearchViewProps = CommonSearchViewProps & TransactionViewExtras;
@@ -113,6 +115,7 @@ function ExpenseGroupedSearchView({
     onEndReached,
     onLayout,
     onScroll,
+    onViewableItemsChanged,
     contentContainerStyle,
     containerStyle,
     ref,
@@ -172,6 +175,9 @@ function ExpenseGroupedSearchView({
             setExpandedGroups(nextExpandedGroups);
         }
     }
+
+    // Only the split layout renders children as their own rows.
+    useOpenGroupsForShiftRange(shouldSplit ? expandedGroups : NO_OPEN_GROUPS);
 
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
 
@@ -269,7 +275,9 @@ function ExpenseGroupedSearchView({
                     onFocus={onFocus}
                     isFocused={isItemFocused}
                     isFirstItem={index === firstVisibleIndex}
-                    isLastItem={false}
+                    // A collapsed group's children container is mounted but empty, so the header has to paint the table's bottom radius itself.
+                    // Split rows come in header/children pairs, which is why there is an offset. `>=` also covers a trailing container that isn't visible.
+                    isLastItem={index + 1 >= lastVisibleIndex && !ListFooterComponent}
                     lastPaymentMethod={lastPaymentMethod}
                     personalPolicyID={personalPolicyID}
                     userBillingGracePeriodEnds={userBillingGracePeriodEnds}
@@ -373,6 +381,7 @@ function ExpenseGroupedSearchView({
                 onSelectRow={handleSelectRow}
                 keyExtractor={keyExtractor}
                 onScroll={onScroll}
+                onViewableItemsChanged={onViewableItemsChanged}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
                 columns={columns}

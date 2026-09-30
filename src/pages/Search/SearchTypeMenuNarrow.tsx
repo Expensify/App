@@ -15,7 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
-import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
+import {useSearchTypeMenuSectionsForNavigation} from '@hooks/useSearchTypeMenuSections';
 import useShareSavedSearch, {MENU_CLOSE_DELAY_MS} from '@hooks/useShareSavedSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTodoCounts from '@hooks/useTodoCounts';
@@ -23,21 +23,16 @@ import useTodoCounts from '@hooks/useTodoCounts';
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 import {getValidLastQuery} from '@libs/SearchQueryUtils';
-import {
-    getItemBadgeText,
-    getLastSearchQuery,
-    getOverflowMenu,
-    savedSearchIDToSearchKey,
-    SAVED_SEARCH_FALLBACK_ICON_NAME,
-    SAVED_SEARCH_ICON_NAMES,
-    SEARCH_TYPE_MENU_ICON_NAMES,
-} from '@libs/SearchUIUtils';
-import type {SearchKey} from '@libs/SearchUIUtils';
+import {getItemBadgeText, getLastSearchQuery, getOverflowMenu, SAVED_SEARCH_FALLBACK_ICON_NAME, SAVED_SEARCH_ICON_NAMES, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {accountIDSelector} from '@src/selectors/Session';
+
+import type {ComponentRef} from 'react';
 
 // NOTE: This component has a static twin in SearchPageNarrow/StaticSearchTypeMenu.tsx
 // used for fast perceived performance. If you change the UI here, verify the
@@ -60,7 +55,7 @@ type SearchTypeMenuNarrowContentProps = {
     onActiveTabPress?: (key: SearchKey) => void;
     onTabPress?: (key: SearchKey) => void;
     onLongTabPress?: (key: SearchKey) => void;
-    containerRef?: React.RefObject<View | null>;
+    containerRef?: React.RefObject<ComponentRef<typeof View> | null>;
     children?: React.ReactNode;
 };
 
@@ -92,7 +87,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
-    const typeMenuSections = useSearchTypeMenuSections(isFocused);
+    const typeMenuSections = useSearchTypeMenuSectionsForNavigation(isFocused);
     const personalDetails = usePersonalDetails();
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
@@ -130,7 +125,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     });
 
     const [savedSearchToModifyKey, setSavedSearchToModifyKey] = useState<SearchKey | null>(null);
-    const menuAnchorRef = useRef<View>(null);
+    const menuAnchorRef = useRef<ComponentRef<typeof View>>(null);
     const {showDeleteModal} = useDeleteSavedSearch();
 
     const {copiedID, handleShare} = useShareSavedSearch();

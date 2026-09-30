@@ -6,11 +6,11 @@ import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -21,6 +21,7 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
+import {isTransactionDayGroupListItemType} from '@libs/SearchUIUtils';
 import {getVisibleTransactionViolations, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -29,6 +30,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 
+import type {ComponentRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -57,6 +59,7 @@ import type {
 
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
+import DayListItemHeader from './DayListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import MerchantListItemHeader from './MerchantListItemHeader';
 import MonthListItemHeader from './MonthListItemHeader';
@@ -66,6 +69,7 @@ import shouldCollapseExpandedGroupAfterPendingDelete from './shouldCollapseExpan
 import TagListItemHeader from './TagListItemHeader';
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
 import useGroupChildren from './useGroupChildren';
+import useGroupOpenForShiftRange from './useGroupOpenForShiftRange';
 import useLiveRowCapabilities from './useLiveRowCapabilities';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
@@ -140,6 +144,10 @@ function TransactionGroupListItemImpl({
 
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(CONST.TRANSACTION.RESULTS_PAGE_SIZE as number);
     const [isExpanded, setIsExpanded] = useState(false);
+
+    // Expense-report rows are already part of the list, so only group-by views need this.
+    useGroupOpenForShiftRange(groupItem.keyForList, isExpanded && !isExpenseReportType);
+
     const {transactions, isSelectAllChecked, isIndeterminate} = useGroupChildren({
         groupKey: groupItem.keyForList,
         groupTransactions: groupItem.transactions,
@@ -199,10 +207,9 @@ function TransactionGroupListItemImpl({
     const {isSelected: liveRowSelected} = useRowSelection(item?.keyForList);
     const isItemSelected = isSelectAllChecked || (liveRowSelected && (isExpenseReportType || transactionsWithoutPendingDelete.length === 0));
 
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
+    const animatedHighlightStyle = useRowHighlightAnimation({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: isItemSelected ? theme.activeComponentBG : theme.highlightBG,
+        isSelected: isItemSelected,
         shouldApplyOtherStyles: false,
     });
 
@@ -220,7 +227,7 @@ function TransactionGroupListItemImpl({
         isLastItem && styles.tableBottomRadius,
         isItemSelected && styles.activeComponentBG,
     ];
-    const pressableRef = useRef<View>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
 
     useEffect(() => {
         if (!newTransactionID || !isExpanded) {
@@ -294,8 +301,9 @@ function TransactionGroupListItemImpl({
         onLongPressRow?.(transaction as ListItem);
     };
 
-    const handleSelectionButtonPress = (val: ListItem) => {
-        onSelectionButtonPress?.(val, isExpenseReportType ? undefined : transactions);
+    // Group headers never send shiftKey, so only an expanded child row can start a range from here.
+    const handleSelectionButtonPress = (val: ListItem, _itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => {
+        onSelectionButtonPress?.(val, isExpenseReportType ? undefined : transactions, shiftKey);
     };
 
     const onExpandIconPress = () => {
@@ -308,7 +316,7 @@ function TransactionGroupListItemImpl({
     };
 
     const getHeader = (hovered: boolean) => {
-        const headers: Record<SearchGroupBy, React.JSX.Element> = {
+        const headers: Record<SearchGroupBy, React.ReactNode> = {
             [CONST.SEARCH.GROUP_BY.FROM]: (
                 <MemberListItemHeader
                     member={groupItem as TransactionMemberGroupListItemType}
@@ -389,6 +397,24 @@ function TransactionGroupListItemImpl({
                     isExpanded={isExpanded}
                 />
             ),
+            [CONST.SEARCH.GROUP_BY.DAY]: (() => {
+                if (!isTransactionDayGroupListItemType(groupItem)) {
+                    return null;
+                }
+                return (
+                    <DayListItemHeader
+                        day={groupItem}
+                        onCheckboxPress={handleSelectionButtonPress}
+                        isDisabled={isDisabledOrEmpty}
+                        columns={columns}
+                        canSelectMultiple={canSelectMultiple}
+                        isSelectAllChecked={isSelectAllChecked}
+                        isIndeterminate={isIndeterminate}
+                        onDownArrowClick={onExpandIconPress}
+                        isExpanded={isExpanded}
+                    />
+                );
+            })(),
             [CONST.SEARCH.GROUP_BY.MONTH]: (
                 <MonthListItemHeader
                     month={groupItem as TransactionMonthGroupListItemType}
