@@ -362,13 +362,11 @@ describe('NumericInput.BigNumberPad', () => {
 
             // When the user starts long-pressing the backspace button
             fireEvent(backspaceButton, 'longPress');
-            await waitForBatchedUpdatesWithAct();
 
             // And timers advance for several deletion ticks
             act(() => {
                 jest.advanceTimersByTime(300);
             });
-            await waitForBatchedUpdatesWithAct();
 
             // Then characters are deleted continuously, leaving '12'
             expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('12');
@@ -377,18 +375,75 @@ describe('NumericInput.BigNumberPad', () => {
             // When the user releases the backspace button
             focusSpy.mockClear();
             fireEvent(backspaceButton, 'pressOut');
-            await waitForBatchedUpdatesWithAct();
 
             // And timers advance further
             act(() => {
                 jest.advanceTimersByTime(300);
             });
-            await waitForBatchedUpdatesWithAct();
 
             // Then deletion stops and the input is refocused
             expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('12');
             expect(focusSpy).toHaveBeenCalledTimes(1);
             focusSpy.mockRestore();
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    it('deletes all characters when backspace is held down until empty', async () => {
+        jest.useFakeTimers();
+        try {
+            renderInputWithPad({value: '123'});
+
+            const backspaceButton = screen.getByTestId('button_<');
+
+            fireEvent(backspaceButton, 'longPress');
+
+            act(() => {
+                jest.advanceTimersByTime(500);
+            });
+
+            expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('');
+            expect(onInputChange).toHaveBeenLastCalledWith('');
+
+            fireEvent(backspaceButton, 'pressOut');
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    it('deletes continuously when parent controls value', async () => {
+        jest.useFakeTimers();
+        try {
+            function Controlled() {
+                const [val, setVal] = React.useState('12345');
+                return (
+                    <NumericInput
+                        value={val}
+                        onInputChange={setVal}
+                        decimals={4}
+                        maxLength={4}
+                    >
+                        <NumericInput.Container>
+                            <NumericInput.TextInput testID={INPUT_TEST_ID} />
+                        </NumericInput.Container>
+                        <NumericInput.BigNumberPad />
+                    </NumericInput>
+                );
+            }
+            renderWithProviders(<Controlled />);
+            await waitForBatchedUpdatesWithAct();
+
+            const backspaceButton = screen.getByTestId('button_<');
+            fireEvent(backspaceButton, 'longPress');
+
+            act(() => {
+                jest.advanceTimersByTime(300);
+            });
+
+            expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('12');
+
+            fireEvent(backspaceButton, 'pressOut');
         } finally {
             jest.useRealTimers();
         }

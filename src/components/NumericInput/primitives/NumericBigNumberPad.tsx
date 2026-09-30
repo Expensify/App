@@ -9,7 +9,7 @@ import isHTMLElement from '@libs/isHTMLElement';
 
 import type {MouseEvent} from 'react';
 
-import {useId} from 'react';
+import {useId, useLayoutEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 const canUseTouchScreen = canUseTouchScreenUtil();
@@ -24,35 +24,57 @@ function NumericBigNumberPad({longPressHandlerStateChanged, numberPressed, style
     const containerViewId = useId();
     const numPadViewId = useId();
 
+    const currentNumberRef = useRef(formattedNumber);
+    const currentSelectionRef = useRef(selection);
+    const isLongPressingRef = useRef(false);
+
+    useLayoutEffect(() => {
+        currentNumberRef.current = formattedNumber;
+    }, [formattedNumber]);
+
+    useLayoutEffect(() => {
+        currentSelectionRef.current = selection;
+    }, [selection]);
+
     if (!canUseTouchScreen) {
         return null;
     }
 
     const handleNumberPressed = (key: string) => {
-        focusInput();
+        if (!isLongPressingRef.current) {
+            focusInput();
+        }
         numberPressed?.(key);
 
-        const isCollapsed = selection.start === selection.end;
+        const currentSelection = currentSelectionRef.current;
+        const currentFormattedNumber = currentNumberRef.current;
+        const isCollapsed = currentSelection.start === currentSelection.end;
 
         if (key === '<') {
-            if (isCollapsed && selection.start === 0) {
+            if (isCollapsed && currentSelection.start === 0) {
                 if (isNegative) {
                     clearSign();
                 }
                 return;
             }
 
-            const deleteStart = isCollapsed ? selection.start - 1 : selection.start;
-            const newMagnitude = `${formattedNumber.slice(0, deleteStart)}${formattedNumber.slice(selection.end)}`;
+            const deleteStart = isCollapsed ? currentSelection.start - 1 : currentSelection.start;
+            const newMagnitude = `${currentFormattedNumber.slice(0, deleteStart)}${currentFormattedNumber.slice(currentSelection.end)}`;
+            currentNumberRef.current = newMagnitude;
+            currentSelectionRef.current = {start: deleteStart, end: deleteStart};
             setNumber(newMagnitude);
             return;
         }
 
-        const newMagnitude = `${formattedNumber.slice(0, selection.start)}${key}${formattedNumber.slice(selection.end)}`;
+        const newMagnitude = `${currentFormattedNumber.slice(0, currentSelection.start)}${key}${currentFormattedNumber.slice(currentSelection.end)}`;
+        const nextOffset = currentSelection.start + key.length;
+        currentNumberRef.current = newMagnitude;
+        currentSelectionRef.current = {start: nextOffset, end: nextOffset};
         setNumber(newMagnitude);
     };
 
     const handleLongPressHandlerStateChanged = (isUserLongPressingBackspace: boolean) => {
+        isLongPressingRef.current = isUserLongPressingBackspace;
         if (!isUserLongPressingBackspace) {
             focusInput();
         }
