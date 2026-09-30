@@ -113,7 +113,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
         value: searchValue,
         label: translate('common.search'),
         onChangeText: setSearchValue,
-        headerMessage: getHeaderMessageForNonUserList(categoryData.length > 0, debouncedSearchValue),
+        headerMessage: getHeaderMessageForNonUserList(translate, categoryData.length > 0, debouncedSearchValue),
         hint: offlineMessage,
         // Auto-focus is opt-in (inline-edit popover only) and skipped on touch surfaces to avoid popping the keyboard.
         disableAutoFocus: !(shouldAutoFocusSearchInput && canFocusInputOnScreenFocus()),

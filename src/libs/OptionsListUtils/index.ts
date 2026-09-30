@@ -2708,9 +2708,9 @@ function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolea
 /**
  * Helper method for non-user lists (eg. categories and tags) that returns the text to be used for the header's message and title (if any)
  */
-function getHeaderMessageForNonUserList(hasSelectableOptions: boolean, searchValue: string): string {
+function getHeaderMessageForNonUserList(translate: LocalizedTranslate, hasSelectableOptions: boolean, searchValue: string): string {
     if (searchValue && !hasSelectableOptions) {
-        return translateLocal('common.noResultsFound');
+        return translate('common.noResultsFound');
     }
     return '';
 }
