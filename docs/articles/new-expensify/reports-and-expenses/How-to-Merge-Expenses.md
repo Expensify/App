@@ -72,7 +72,7 @@ Use this method when both expenses are inside the same report.
 2. Click the report to open it. 
 3. Select the two expenses you want to merge.
 4. On web, choose **More** on the selection bar, then select **Merge**. On mobile, tap **Selected**, then tap **Merge**.
-5. If both expenses have receipts, choose which receipt to keep
+5. If both expenses have receipts, choose which receipt to keep.
 6. Choose which expense details to apply to the final expense. 
 7. Select **Merge expenses**.
 
