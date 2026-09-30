@@ -2,6 +2,7 @@ import UserAvatar from '@components/Avatar/UserAvatar';
 import type {TransactionCardGroupListItemType, TransactionMemberGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy} from '@components/Search/types';
 import Text from '@components/Text';
+import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
@@ -87,13 +88,15 @@ function InsightsDataTable({rows, view, groupBy, isLoading}: InsightsDataTablePr
                             />
                         )}
                         <View style={[styles.flex1, styles.flexColumn, styles.gap1, styles.alignSelfStretch]}>
-                            <Text numberOfLines={1}>{point.label}</Text>
-                            <Text
-                                numberOfLines={1}
+                            <TextWithTooltip
+                                text={point.label}
+                                shouldShowTooltip
+                            />
+                            <TextWithTooltip
+                                text={translate('iou.expenseCount', {count: item.count})}
                                 style={styles.mutedNormalTextLabel}
-                            >
-                                {translate('iou.expenseCount', {count: item.count})}
-                            </Text>
+                                shouldShowTooltip
+                            />
                         </View>
                         <View style={[styles.flexColumn, styles.alignItemsEnd, styles.gap1, styles.alignSelfStretch]}>
                             <Text>{convertToDisplayString(item.total ?? 0, item.currency)}</Text>
