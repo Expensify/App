@@ -16,7 +16,8 @@ import {getAccountingIntegrationDisplayName, getQuickbooksOnlineIntegrationName,
 import {isAuthenticationError} from '@libs/actions/connections';
 import {getCardsCustomExportPendingAction, areCardsCustomExportInErrorFields} from '@libs/CardFeedUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import {canUseTaxNetSuite, getCurrentConnectionName} from '@libs/PolicyUtils';
+import {canUseTaxNetSuite} from '@libs/NetSuiteUtils';
+import {getCurrentConnectionName} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
