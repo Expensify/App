@@ -79,6 +79,8 @@ beforeEach(() => {
     mockDistribution.mockReset();
     longTaskCallback = undefined;
     (globalThis as {PerformanceObserver?: unknown}).PerformanceObserver = FakePerformanceObserver;
+    // Every test session is sampled unless a test says otherwise.
+    jest.spyOn(Math, 'random').mockReturnValue(0);
     clear();
     startFrameDropMonitor();
 });
@@ -293,6 +295,26 @@ describe('frameDropMonitor', () => {
         // Then the window up to the moment the app left is queried too, and everything is reported once
         expect(mockFetchFramesDelay).toHaveBeenCalledTimes(2);
         expect(sumCounts(FRAME_DROPS.METRIC_ACTIVE_TIME)).toBe(8_000);
+    });
+
+    it('does nothing in a session that is not sampled', async () => {
+        // Given an app launch that falls outside the sample
+        stopFrameDropMonitor();
+        jest.spyOn(Math, 'random').mockReturnValue(1 - Number.EPSILON);
+        startFrameDropMonitor();
+        mockDelays([], 0.5);
+
+        // When the user navigates, presses something and the window is flushed and reported
+        recordScreen('Home');
+        recordPress(PRESS_LABEL);
+        now = 5_000;
+        await flush(5_000);
+        report();
+
+        // Then the native store is never asked and nothing is sent to Sentry
+        expect(mockFetchFramesDelay).not.toHaveBeenCalled();
+        expect(mockCount).not.toHaveBeenCalled();
+        expect(mockDistribution).not.toHaveBeenCalled();
     });
 
     it('turns itself off when native frame tracking never answers', async () => {

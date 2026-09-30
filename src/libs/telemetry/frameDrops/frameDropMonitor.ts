@@ -457,6 +457,10 @@ function startFrameDropMonitor() {
         return;
     }
     isStarted = true;
+    // Decided once per app launch. Sessions that aren't sampled never record, query or report anything.
+    if (Math.random() >= CONST.TELEMETRY.FRAME_DROPS.SESSION_SAMPLE_RATE) {
+        return;
+    }
     try {
         observeLongTasks();
     } catch {
