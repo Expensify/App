@@ -9,7 +9,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {useSearchResultsContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 
@@ -17,22 +17,27 @@ import useAllTransactions from '@hooks/useAllTransactions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
-import useSaveSplitExpenses from '@hooks/useSaveSplitExpenses';
 import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ViolationField} from '@hooks/useViolations';
 
+import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
+import {getIOURequestPolicyID} from '@libs/actions/IOU/MoneyRequest';
 import {initDraftSplitExpenseDataForEdit, removeSplitExpenseAndRedistributeAmounts, updateSplitExpenseDraftField, updateSplitExpenseField} from '@libs/actions/IOU/SplitExpenseItems';
+import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import {getDecodedLeafCategoryName, isCategoryDescriptionRequired, isCategoryMissing} from '@libs/CategoryUtils';
@@ -50,6 +55,7 @@ import {getReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
+import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getChildTransactions,
@@ -71,8 +77,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import type {SplitExpense} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {policyTypeSelector} from '@selectors/Policy';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
@@ -102,7 +110,7 @@ function SplitToggleRow({label, isOn, onToggle}: SplitToggleRowProps) {
 function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, formatPhoneNumber} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const {convertToDisplayString, getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchResults} = useSearchResultsContext();
@@ -140,7 +148,8 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${effectivePolicyID}`);
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${effectivePolicyID}`);
-    const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {login, accountID: currentUserAccountID} = currentUserPersonalDetails;
 
     const fetchData = useCallback(() => {
         if (!policyCategories) {
@@ -219,14 +228,81 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const isSplitPerDiemRequest = isPerDiemRequest(transaction);
 
     // Skip the per diem revert when the overview's Save would reject it for a rate that is out of policy.
-    const [originalTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const originalTransactionViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`];
     const hasCustomUnitOutOfPolicyViolation = !!originalTransactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
     const shouldRevertSplitOnRemove = isSplitPerDiemRequest && getChildTransactions(allTransactions, transactionID).length > 0 && !hasCustomUnitOutOfPolicyViolation;
-    const saveSplitExpenses = useSaveSplitExpenses({
-        originalTransactionID: transactionID,
-        reportID,
-        isSearchBackPath: backTo.replace(/^\//, '').startsWith(ROUTES.SEARCH_ROOT.route),
-    });
+
+    // Data needed to revert the split, read the same way as the overview's Save in DynamicSplitExpensePage.
+    const delegateAccountID = useDelegateAccountID();
+    const {currentSearchHash, currentSearchQueryJSON} = useSearchQueryContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const [personalDetails] = useAllPersonalDetails();
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT);
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getIOURequestPolicyID(transaction, currentReport)}`);
+    const splitTransactionReport = useReportOrReportDraft(draftTransactionWithSplitExpenses?.reportID);
+    const splitTransactionParentReport = useReportOrReportDraft(splitTransactionReport?.parentReportID);
+    const expenseReport = splitTransactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? splitTransactionReport : splitTransactionParentReport;
+    const [expenseReportPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`);
+    const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`);
+
+    // For selfDM expenses, the IOU action lives in the selfDM report, not in an expense report.
+    const iouReportIDForActions = expenseReport?.reportID ?? (isSelfDM(splitTransactionReport) ? splitTransactionReport?.reportID : undefined);
+    const iouActions = getIOUActionForTransactions(
+        [draftTransactionWithSplitExpenses?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID],
+        allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDForActions}`],
+    ).filter((action) => action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
+
+    const revertSplit = (remainingSplitExpenses: SplitExpense[]) => {
+        const isSearchBackPath = backTo.replace(/^\//, '').startsWith(ROUTES.SEARCH_ROOT.route);
+        const activeGroupSearchHashes = isSearchBackPath ? getActiveGroupSearchHashes(currentSearchResults?.data, currentSearchQueryJSON) : [];
+
+        updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING),
+            getCurrencyDecimals,
+            getCurrencySymbol,
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportActionsList: allReportActions,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            allSnapshots,
+            allPolicyTags,
+            transactionData: {
+                reportID: draftTransactionWithSplitExpenses?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                originalTransactionID: draftTransactionWithSplitExpenses?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
+                splitExpenses: remainingSplitExpenses,
+                splitExpensesTotal: draftTransactionWithSplitExpenses?.comment?.splitExpensesTotal ?? 0,
+            },
+            searchContext: {currentSearchHash: isSearchBackPath ? currentSearchHash : undefined, activeGroupSearchHashes, clearSelectedTransactions},
+            policyCategories: expenseReportPolicyCategories,
+            policy: expenseReportPolicy,
+            policyRecentlyUsedCategories,
+            iouReport,
+            firstIOU: iouActions.at(0),
+            extraIOUActions: iouActions.slice(1),
+            isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+            currentUserPersonalDetails,
+            transactionViolations,
+            policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+            quickAction,
+            personalDetails,
+            transactionReport: splitTransactionReport,
+            expenseReport,
+            isOffline,
+            delegateAccountID,
+            isTrackIntentUser,
+            formatPhoneNumber,
+            rules,
+        });
+    };
 
     const isSplitTimeRequest = isTimeRequest(transaction);
     const isTaxEnabled =
@@ -581,7 +657,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                     // Deleting a per diem split opens this page instead of deleting it, so a removal that leaves one
                                     // split must revert the split right away rather than leave it as an unsaved draft change.
                                     if (shouldRevertSplitOnRemove && remainingSplitExpenses?.length === 1) {
-                                        saveSplitExpenses(remainingSplitExpenses);
+                                        revertSplit(remainingSplitExpenses);
                                         return;
                                     }
                                     Navigation.goBack(backTo);
