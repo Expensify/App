@@ -242,7 +242,7 @@ function IOURequestStepAmount({
                   reportAttributesDerived,
                   reportDraft,
                   currentUserAccountID: currentUserPersonalDetails.accountID,
-                  localize: {translate, dateFnsLocale, convertToDisplayString},
+                  localize: {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
                   rules,
               });
     });

@@ -286,6 +286,7 @@ function SearchAutocompleteList({
             translate,
             getReportByID,
             rules,
+            formatPhoneNumber,
         }).options;
     }, [
         listOptions,
@@ -307,6 +308,7 @@ function SearchAutocompleteList({
         dateFnsLocale,
         convertToDisplayString,
         rules,
+        formatPhoneNumber,
     ]);
 
     // Deduped once and read everywhere the order is needed, so a repeated reportID ranks at its first position.
@@ -349,6 +351,7 @@ function SearchAutocompleteList({
             translate,
             getReportByID,
             rules,
+            formatPhoneNumber,
         }).options;
         const optionsByReportID = new Map(options.recentReports.map((option) => [option.reportID, option]));
         return orderedReportIDs.map((reportID) => optionsByReportID.get(reportID)).filter((option): option is OptionData => !!option && !option.isSelfDM);
@@ -373,6 +376,7 @@ function SearchAutocompleteList({
         translate,
         getReportByID,
         rules,
+        formatPhoneNumber,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);

@@ -80,7 +80,7 @@ function ReportSubmitToContent({
     canSubmitRef,
 }: ReportSubmitToContentProps) {
     const styles = useThemeStyles();
-    const {translate, localeCompare, dateFnsLocale} = useLocalize();
+    const {translate, localeCompare, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const isInLandscapeMode = useIsInLandscapeMode();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -222,6 +222,7 @@ function ReportSubmitToContent({
             selectedOptions: [],
             loginsToExclude: CONST.EXPENSIFY_EMAILS_OBJECT,
             rules,
+            formatPhoneNumber,
         });
 
         if (!inviteOption?.login) {
@@ -247,6 +248,7 @@ function ReportSubmitToContent({
         convertToDisplayString,
         rules,
         currentUserDetails.accountID,
+        formatPhoneNumber,
     ]);
 
     const submitToSelectionData = useMemo(() => {

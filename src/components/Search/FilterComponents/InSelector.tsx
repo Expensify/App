@@ -49,7 +49,7 @@ function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): O
 }
 
 function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: InSelectorProps) {
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const {convertToDisplayString} = useCurrencyListActions();
     const personalDetails = usePersonalDetails();
@@ -101,6 +101,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                     reportAttributesDerived,
                     isTrackIntentUser,
                     currentUserAccountID,
+                    formatPhoneNumber,
                 }),
             ),
             isSelected,
@@ -123,6 +124,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                 isTrackIntentUser,
                 currentUserAccountID,
                 rules,
+                formatPhoneNumber,
             },
         );
         return {...report, alternateText};
@@ -158,6 +160,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                   translate,
                   getReportByID,
                   rules,
+                  formatPhoneNumber,
               }).options;
 
     const chatOptions = filterAndOrderOptions(
@@ -175,7 +178,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             currentUserAccountID,
         },
-        translate,
+        {translate, formatPhoneNumber},
         rules,
     );
 
