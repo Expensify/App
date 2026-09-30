@@ -6,6 +6,17 @@ const COMPOUND_KEY_DELIMITER = '\x00';
 // Placeholder so JSON.stringify can't collapse an array containing undefined into an array containing null.
 const UNDEFINED_PLACEHOLDER = '\u0000undefined';
 
+// Keep nested and top-level keys in the same stable UTF-16 code-unit order.
+function compareEntryKeys([a]: readonly [string, unknown], [b]: readonly [string, unknown]): number {
+    if (a < b) {
+        return -1;
+    }
+    if (a > b) {
+        return 1;
+    }
+    return 0;
+}
+
 // URL-rehydrated params are always strings; PUSH_PARAMS dispatches may use numbers/booleans.
 // Top-level undefined is dropped by the caller's filter; nested undefined is preserved via UNDEFINED_PLACEHOLDER. This is asymmetric but inert because URL params are flat.
 // Assumes JSON-serializable params — non-plain objects (Date/RegExp) collapse to {} via Object.entries, acceptable since PUSH_PARAMS only carries URL-backed params.
@@ -25,17 +36,7 @@ function normalizeForKey(value: unknown): unknown {
     if (typeof value === 'object') {
         // Recursively sort so differently-ordered nested keys produce the same compound.
         const objectEntries: Array<[string, unknown]> = Object.entries(value);
-        const entries = objectEntries
-            .sort(([a], [b]) => {
-                if (a < b) {
-                    return -1;
-                }
-                if (a > b) {
-                    return 1;
-                }
-                return 0;
-            })
-            .map(([k, v]) => [k, normalizeForKey(v)]);
+        const entries = objectEntries.sort(compareEntryKeys).map(([k, v]) => [k, normalizeForKey(v)]);
         return Object.fromEntries(entries);
     }
     return value;
@@ -54,15 +55,7 @@ function compoundParamsKey(routeKey: string, params: unknown): string {
     const entries = objectEntries
         .filter(([, value]) => value !== undefined)
         .map(([k, v]) => [k, normalizeForKey(v)] as const)
-        .sort(([a], [b]) => {
-            if (a < b) {
-                return -1;
-            }
-            if (a > b) {
-                return 1;
-            }
-            return 0;
-        });
+        .sort(compareEntryKeys);
     return `${routeKey}${COMPOUND_KEY_DELIMITER}${JSON.stringify(entries)}`;
 }
 
