@@ -3706,7 +3706,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Rory is an admin but not the designated reimburser, so the Pay option comes from canAdminPayReport rather than isPayer.
             expect(isPayer(RORY_ACCOUNT_ID, RORY_EMAIL, fakeReport, {}, fakePolicy, false)).toBeFalsy();
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false)).toBeTruthy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, false)).toBeTruthy();
         });
 
         it('does not allow a non-payer admin to pay when reimbursementChoice is not configured', async () => {
@@ -3743,7 +3743,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false)).toBeFalsy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, false)).toBeFalsy();
         });
 
         it('allows admins to mark report with only non-reimbursable expenses as paid (onlyShowPayElsewhere=true)', async () => {
