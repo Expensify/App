@@ -261,7 +261,7 @@ When dismissing an RHP reveals a **different** fullscreen destination (not the s
 
 -   **`CONST.DESTINATION_STRATEGY.PRE_INSERT` (default):** on mount, waits for the RHP's open transition, then pre-mounts the destination at idle priority (`preInsertFullscreenUnderRHP`). By the time the user dismisses, the destination is already mounted, so dismissal just reveals it. Where it goes depends on the layout:
     -   **Narrow layout:** the destination route is inserted underneath the RHP.
-    -   **Wide layout:** the destination is visible next to the RHP, so it can't go under the RHP. It is mounted as a second `TAB_NAVIGATOR` directly under the current one instead, and `reveal()` drops the current one. This only happens when the outermost fullscreen route is the `TAB_NAVIGATOR`. When another fullscreen covers it, nothing is pre-mounted and `reveal()` falls back to the reveal-time path below.
+    -   **Wide layout:** the destination is visible next to the RHP, so it can't go under the RHP. Its screen is mounted hidden inside the current `TAB_NAVIGATOR` instead: directly under the current screen when it belongs to the focused tab, or on top of its tab's stack (kept rendering while that tab is covered) otherwise. `reveal()` runs the regular replace and reuses that screen, so the stack, tab history and back navigation are the same as without the pre-mount, and visited tabs keep their state. This only happens when the outermost fullscreen route is the `TAB_NAVIGATOR`, and not for a destination inside the focused Search tab or for the screen that is already shown. Otherwise nothing is pre-mounted and `reveal()` falls back to the reveal-time path below.
 -   **`CONST.DESTINATION_STRATEGY.REVEAL`, or `PRE_INSERT` where the pre-mount hasn't finished or was skipped:** `reveal()` calls `Navigation.revealRouteBeforeDismissingModal` instead. It swaps in the destination and dismisses in one step, at reveal time rather than eagerly. Correctness is the same either way. Only the pre-mount path has the mount-ahead-of-time perf win.
 
 ```tsx
@@ -281,7 +281,7 @@ const handleBackOut = () => {
 
 See `IOURequestStepConfirmation.tsx` for a reference implementation.
 
--   `reveal(afterTransition?)`: dismisses the RHP over the pre-inserted destination if the hook owns one (on wide layout, it first drops the current `TAB_NAVIGATOR` to show the pre-mounted one), otherwise falls back to `revealRouteBeforeDismissingModal` (see above).
+-   `reveal(afterTransition?)`: dismisses the RHP over the pre-inserted destination if the hook owns one (on wide layout, it first shows the pre-mounted screen through the regular replace), otherwise falls back to `revealRouteBeforeDismissingModal` (see above).
 -   `cleanupPreMount()`: removes the owned pre-insert, if any. Call it unconditionally on every back-out path (header back, hardware back) that closes the RHP without calling `reveal()` - it's a no-op when this instance never actually pre-inserted anything.
 -   `shouldPreservePreInsertedRouteOnUnmount`: pass when the component unmounts before `reveal()` runs but the pre-insert should survive (e.g. the caller dismisses separately after a submit). It has no effect on a wide-layout pre-mount, which is always removed on unmount unless `reveal()` ran, because only a reveal can show it.
 

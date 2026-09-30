@@ -11,7 +11,7 @@ Modal-to-destination flows need the destination mounted before the RHP dismisses
 
 `usePreMountDestination` centralizes this lifecycle:
 
-- Idle-priority pre-mount after the RHP open transition: under the RHP on narrow layout, under the current `TAB_NAVIGATOR` on wide layout, with a fallback timer so the work is not starved
+- Idle-priority pre-mount after the RHP open transition: under the RHP on narrow layout, hidden inside the current `TAB_NAVIGATOR` on wide layout, with a fallback timer so the work is not starved
 - Reveal-before-dismiss fallback if the pre-mount has not finished or was skipped
 - Automatic cleanup for back-out and unmount paths
 
@@ -55,15 +55,15 @@ const handleSubmit = () => {
 
 Set with the `destinationStrategy` option (`CONST.DESTINATION_STRATEGY`):
 
-- `PRE_INSERT` (default): eagerly pre-mounts the destination after the RHP open transition, at idle priority. Narrow layout inserts it under the RHP. Wide layout mounts it as a second `TAB_NAVIGATOR` under the current one, and only when the outermost fullscreen route is the `TAB_NAVIGATOR`.
+- `PRE_INSERT` (default): eagerly pre-mounts the destination after the RHP open transition, at idle priority. Narrow layout inserts it under the RHP. Wide layout mounts the destination screen hidden inside the current `TAB_NAVIGATOR`, and only when the outermost fullscreen route is the `TAB_NAVIGATOR`.
 - `REVEAL`: skips eager pre-mount; the destination is inserted and revealed together when `reveal()` runs. This fallback is used:
     - when `REVEAL` is passed
     - when the pre-mount hasn't finished yet
-    - on wide layout when another fullscreen covers the `TAB_NAVIGATOR`, so nothing was pre-mounted
+    - on wide layout when another fullscreen covers the `TAB_NAVIGATOR`, the destination is in the focused Search tab, or it is the screen already shown, so nothing was pre-mounted
 
 **Reveal methods:**
 
-- `reveal(afterTransition?)`: if the hook owns a pre-inserted route, clears the pre-insert flag and dismisses the RHP over that route. If it owns a wide-layout pre-mount, it drops the current `TAB_NAVIGATOR` to show the pre-mounted one and dismisses the RHP. Otherwise, inserts the destination under the RHP then dismisses it.
+- `reveal(afterTransition?)`: if the hook owns a pre-inserted route, clears the pre-insert flag and dismisses the RHP over that route. If it owns a wide-layout pre-mount, it shows the pre-mounted screen through the regular replace and dismisses the RHP. Otherwise, inserts the destination under the RHP then dismisses it.
 - `cleanupPreMount()`: removes the owned pre-inserted destination before a back-out path closes the RHP without revealing the destination. Safe to call unconditionally - no-ops if this instance never pre-inserted anything.
 
 **Other invariants:**
