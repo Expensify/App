@@ -2249,7 +2249,13 @@ const translations: TranslationDeepObject<typeof en> = {
             results: 'Resultados',
             releaseOptions: 'Opciones de publicación',
             testingPreferences: 'Preferencias para Tests',
-            useStagingServer: 'Usar servidor "staging"',
+            server: 'Servidor',
+            servers: {
+                production: {label: 'Producción', description: 'El entorno en vivo que ven los usuarios reales'},
+                staging: {label: 'Staging', description: 'Réplica de producción. Se usa para la validación final'},
+                qa: {label: 'QA', description: 'Entorno experimental usado para pruebas'},
+            },
+            serverPinnedDescription: 'Esta versión siempre se conecta a un solo servidor, por lo que no se puede cambiar aquí.',
             forceOffline: 'Forzar desconexión',
             simulatePoorConnection: 'Simular una conexión a internet deficiente',
             simulateFailingNetworkRequests: 'Simular fallos en solicitudes de red',
@@ -2916,6 +2922,9 @@ ${amount} para ${merchant} - ${date}`,
         memberAlreadyInWorkflowTitle: 'Miembro ya está en un flujo de trabajo',
         memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
             `${memberName} ya está en un flujo de trabajo de aprobación que envía a ${approverName}. Agregarlo aquí lo moverá a este flujo de trabajo.`,
+        moveEveryoneToThisWorkflowTitle: 'Mover a todos a este flujo de trabajo',
+        moveEveryoneToThisWorkflowPrompt:
+            'Estás a punto de mover a todo el mundo a este flujo de aprobación. Esto eliminará todos los demás flujos de aprobación y trasladará a todo el mundo a este. Esta acción no se puede deshacer.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'El aprobador no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
@@ -8221,6 +8230,8 @@ ${reportName}`,
                 autoPayApprovedReportsSubtitle: 'Configura qué informes de gastos pueden pagarse de forma automática.',
                 autoPayApprovedReportsLimitError: (currency) => `Por favor, introduce un importe menor a ${currency ?? ''}20,000`,
                 autoPayApprovedReportsLockedSubtitle: 'Ve a más funciones y habilita flujos de trabajo, luego agrega pagos para desbloquear esta función.',
+                autoPayApprovedReportsControlPlanSubtitle: (upgradeLink) =>
+                    `El pago automático solo está disponible en el plan Controlar. [Mejora el plan](${upgradeLink}) para desbloquear esta función.`,
                 autoPayReportsUnderTitle: 'Pagar automáticamente informes por debajo de',
                 autoPayReportsUnderDescription: 'Los informes de gastos totalmente conformes por debajo de este importe se pagarán automáticamente.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName) => `Añade ${featureName} para desbloquear esta función.`,

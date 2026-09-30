@@ -2382,7 +2382,13 @@ const translations: TranslationDeepObject<typeof en> = {
             results: 'Αποτελέσματα',
             releaseOptions: 'Επιλογές έκδοσης',
             testingPreferences: 'Προτιμήσεις δοκιμών',
-            useStagingServer: 'Χρήση διακομιστή staging',
+            server: 'Διακομιστής',
+            servers: {
+                production: {label: 'Παραγωγή', description: 'Το ζωντανό περιβάλλον που βλέπουν οι πραγματικοί χρήστες'},
+                staging: {label: 'Staging', description: 'Αντίγραφο της παραγωγής. Χρησιμοποιείται για τον τελικό έλεγχο'},
+                qa: {label: 'QA', description: 'Πειραματικό περιβάλλον που χρησιμοποιείται για δοκιμές'},
+            },
+            serverPinnedDescription: 'Αυτή η έκδοση επικοινωνεί πάντα με έναν διακομιστή, οπότε δεν μπορεί να αλλάξει εδώ.',
             forceOffline: 'Εξαναγκασμός εκτός σύνδεσης',
             simulatePoorConnection: 'Προσομοίωση κακής σύνδεσης στο διαδίκτυο',
             simulateFailingNetworkRequests: 'Προσομοίωση αποτυχημένων αιτημάτων δικτύου',
@@ -3060,6 +3066,9 @@ ${amount} για ${merchant} - ${date}`,
         memberAlreadyInWorkflowTitle: 'Το μέλος συμμετέχει ήδη σε ροή εργασίας',
         memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
             `Ο/Η ${memberName} βρίσκεται ήδη σε ροή έγκρισης που υποβάλλεται σε ${approverName}. Η προσθήκη τους εδώ θα τους μετακινήσει σε αυτήν τη ροή.`,
+        moveEveryoneToThisWorkflowTitle: 'Μετακινήστε όλους σε αυτήν τη ροή εργασίας',
+        moveEveryoneToThisWorkflowPrompt:
+            'Πρόκειται να μετακινήσετε όλους/όλες σε αυτήν τη ροή έγκρισης. Αυτό θα διαγράψει όλες τις άλλες ροές έγκρισης και θα μετακινήσει όλους/όλες σε αυτήν. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Δεν ήταν δυνατή η αλλαγή του εγκρίνοντα. Δοκιμάστε ξανά ή επικοινωνήστε με την υποστήριξη.',
@@ -8558,6 +8567,8 @@ ${reportName}`,
                 autoPayApprovedReportsLimitError: (currency?: string) => `Παρακαλούμε εισαγάγετε ένα ποσό μικρότερο από ${currency ?? ''}20.000`,
                 autoPayApprovedReportsLockedSubtitle:
                     'Μεταβείτε στις πρόσθετες λειτουργίες και ενεργοποιήστε τις ροές εργασιών, έπειτα προσθέστε πληρωμές για να ξεκλειδώσετε αυτή τη λειτουργία.',
+                autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) =>
+                    `Η αυτόματη πληρωμή είναι διαθέσιμη μόνο στο πλάνο Control. [Κάντε αναβάθμιση](${upgradeLink}) για να ξεκλειδώσετε αυτή τη λειτουργία.`,
                 autoPayReportsUnderTitle: 'Αυτόματη πληρωμή αναφορών κάτω από',
                 autoPayReportsUnderDescription: 'Πλήρως συμβατικές αναφορές εξόδων κάτω από αυτό το ποσό θα εξοφλούνται αυτόματα.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Προσθέστε ${featureName} για να ξεκλειδώσετε αυτήν τη δυνατότητα.`,

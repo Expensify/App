@@ -2324,7 +2324,13 @@ const translations: TranslationDeepObject<typeof en> = {
             results: 'Resultaten',
             releaseOptions: 'Opties voor vrijgeven',
             testingPreferences: 'Testvoorkeuren',
-            useStagingServer: 'Stagingserver gebruiken',
+            server: 'Server',
+            servers: {
+                production: {label: 'Productie', description: 'De live-omgeving die echte gebruikers zien'},
+                staging: {label: 'Staging', description: 'Kopie van productie. Wordt gebruikt voor de eindvalidatie'},
+                qa: {label: 'QA', description: 'Experimentele omgeving voor tests'},
+            },
+            serverPinnedDescription: 'Deze build communiceert altijd met één server, dus dit kan hier niet worden gewijzigd.',
             forceOffline: 'Offline forceren',
             simulatePoorConnection: 'Slechte internetverbinding simuleren',
             simulateFailingNetworkRequests: 'Netwerkaanvragen mislukken simuleren',
@@ -3006,6 +3012,9 @@ ${amount} voor ${merchant} - ${date}`,
         memberAlreadyInWorkflowTitle: 'Lid bevindt zich al in een workflow',
         memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
             `${memberName} bevindt zich al in een goedkeuringsworkflow die indient bij ${approverName}. Door het lid hier toe te voegen, wordt het naar deze workflow verplaatst.`,
+        moveEveryoneToThisWorkflowTitle: 'Verplaats iedereen naar deze workflow',
+        moveEveryoneToThisWorkflowPrompt:
+            'Je staat op het punt om iedereen naar deze goedkeuringsworkflow te verplaatsen. Dit verwijdert alle andere goedkeuringsworkflows en verplaatst iedereen naar deze. Deze actie kan niet ongedaan worden gemaakt.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'De fiatteur kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
@@ -8124,6 +8133,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 autoPayApprovedReportsSubtitle: 'Configureren welke onkostendeclaraties in aanmerking komen voor automatische betaling.',
                 autoPayApprovedReportsLimitError: (currency?: string) => `Voer een bedrag in dat lager is dan ${currency ?? ''}20.000`,
                 autoPayApprovedReportsLockedSubtitle: 'Ga naar Meer functies en schakel Workflows in, voeg vervolgens Betalingen toe om deze functie te ontgrendelen.',
+                autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) =>
+                    `Automatisch betalen is alleen beschikbaar met het Control-abonnement. [Upgrade](${upgradeLink}) om deze functie te ontgrendelen.`,
                 autoPayReportsUnderTitle: 'Automatisch rapporten betalen onder',
                 autoPayReportsUnderDescription: 'Volledig conforme onkostendeclaraties onder dit bedrag worden automatisch betaald.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Voeg ${featureName} toe om deze functie te ontgrendelen.`,

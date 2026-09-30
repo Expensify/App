@@ -2306,7 +2306,13 @@ const translations: TranslationDeepObject<typeof en> = {
             results: '結果',
             releaseOptions: 'リリースオプション',
             testingPreferences: 'テスト設定',
-            useStagingServer: 'ステージングサーバーを使用',
+            server: 'サーバー',
+            servers: {
+                production: {label: '本番', description: '実際のユーザーが利用している環境'},
+                staging: {label: 'ステージング', description: '本番のミラー。最終確認に使用します'},
+                qa: {label: 'QA', description: 'テストに使用する実験的な環境'},
+            },
+            serverPinnedDescription: 'このビルドは常に単一のサーバーに接続するため、ここでは変更できません。',
             forceOffline: '強制的にオフラインにする',
             simulatePoorConnection: '不安定なインターネット接続をシミュレート',
             simulateFailingNetworkRequests: 'ネットワークリクエストの失敗をシミュレート',
@@ -2975,6 +2981,9 @@ ${date} の ${merchant} への ${amount}`,
         memberAlreadyInWorkflowTitle: 'メンバーはすでにワークフローに属しています',
         memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
             `${memberName}はすでに${approverName}に提出する承認ワークフローに属しています。ここに追加すると、このワークフローに移動します。`,
+        moveEveryoneToThisWorkflowTitle: '全員をこのワークフローに移動する',
+        moveEveryoneToThisWorkflowPrompt:
+            'すべてのメンバーをこの承認ワークフローに移動しようとしています。他のすべての承認ワークフローは削除され、全員がこのワークフローに移行されます。この操作は元に戻せません。',
     },
     workflowsApproverPage: {
         genericErrorMessage: '承認者を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
@@ -8042,6 +8051,8 @@ ${reportName}`,
                 autoPayApprovedReportsSubtitle: '自動支払いの対象となる経費レポートを設定する。',
                 autoPayApprovedReportsLimitError: (currency?: string) => `${currency ?? ''}20,000未満の金額を入力してください`,
                 autoPayApprovedReportsLockedSubtitle: '「その他の機能」に移動してワークフローを有効にし、その後「支払い」を追加してこの機能を有効化してください。',
+                autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) =>
+                    `自動支払いはControlプランでのみご利用いただけます。この機能を有効にするには[アップグレード](${upgradeLink})してください。`,
                 autoPayReportsUnderTitle: '自動支払いレポートの対象:',
                 autoPayReportsUnderDescription: 'この金額以下で完全準拠の経費精算書は、自動的に支払われます。',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `この機能を利用するには、${featureName} を追加してください。`,

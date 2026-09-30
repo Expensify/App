@@ -2316,7 +2316,13 @@ const translations: TranslationDeepObject<typeof en> = {
             results: 'Resultados',
             releaseOptions: 'Opções de lançamento',
             testingPreferences: 'Preferências de teste',
-            useStagingServer: 'Usar servidor de homologação',
+            server: 'Servidor',
+            servers: {
+                production: {label: 'Produção', description: 'O ambiente ativo que os usuários reais veem'},
+                staging: {label: 'Homologação', description: 'Cópia da produção. Usada para a validação final'},
+                qa: {label: 'QA', description: 'Ambiente experimental usado para testes'},
+            },
+            serverPinnedDescription: 'Esta versão sempre se conecta a um único servidor, portanto não é possível alterá-lo aqui.',
             forceOffline: 'Forçar modo offline',
             simulatePoorConnection: 'Simular conexão de internet ruim',
             simulateFailingNetworkRequests: 'Simular falhas em requisições de rede',
@@ -2994,6 +3000,9 @@ ${amount} para ${merchant} - ${date}`,
         memberAlreadyInWorkflowTitle: 'Membro já está em um fluxo de trabalho',
         memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
             `${memberName} já está em um fluxo de aprovação que envia para ${approverName}. Adicioná-lo aqui irá movê-lo para este fluxo de trabalho.`,
+        moveEveryoneToThisWorkflowTitle: 'Mover todos para este fluxo de trabalho',
+        moveEveryoneToThisWorkflowPrompt:
+            'Você está prestes to mover todo mundo para este fluxo de aprovação. Isso vai excluir todos os outros fluxos de aprovação e mover todo mundo para este. Essa ação não pode ser desfeita.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'O aprovador não pôde ser alterado. Tente novamente ou entre em contato com o suporte.',
@@ -8130,6 +8139,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 autoPayApprovedReportsSubtitle: 'Configurar quais relatórios de despesas são elegíveis para pagamento automático.',
                 autoPayApprovedReportsLimitError: (currency?: string) => `Insira um valor menor que ${currency ?? ''}20.000`,
                 autoPayApprovedReportsLockedSubtitle: 'Vá para mais recursos e ative os fluxos de trabalho, depois adicione pagamentos para desbloquear este recurso.',
+                autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) =>
+                    `O pagamento automático está disponível apenas no plano Control. [Faça upgrade](${upgradeLink}) para desbloquear este recurso.`,
                 autoPayReportsUnderTitle: 'Relatórios com pagamento automático em',
                 autoPayReportsUnderDescription: 'Relatórios de despesas totalmente compatíveis abaixo deste valor serão pagos automaticamente.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Adicione ${featureName} para desbloquear este recurso.`,

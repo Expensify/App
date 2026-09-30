@@ -2358,7 +2358,13 @@ const translations: TranslationDeepObject<typeof en> = {
             results: 'Wyniki',
             releaseOptions: 'Opcje wydania',
             testingPreferences: 'Preferencje testowe',
-            useStagingServer: 'Użyj serwera testowego',
+            server: 'Serwer',
+            servers: {
+                production: {label: 'Produkcja', description: 'Środowisko produkcyjne, które widzą prawdziwi użytkownicy'},
+                staging: {label: 'Staging', description: 'Kopia produkcji. Używana do ostatecznej weryfikacji'},
+                qa: {label: 'QA', description: 'Eksperymentalne środowisko używane do testów'},
+            },
+            serverPinnedDescription: 'Ta wersja zawsze łączy się z jednym serwerem, więc nie można tego tutaj zmienić.',
             forceOffline: 'Wymuś tryb offline',
             simulatePoorConnection: 'Symuluj słabe połączenie internetowe',
             simulateFailingNetworkRequests: 'Symuluj nieudane żądania sieciowe',
@@ -3035,6 +3041,9 @@ ${amount} dla ${merchant} - ${date}`,
         memberAlreadyInWorkflowTitle: 'Członek jest już w procesie',
         memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
             `${memberName} jest już w procesie zatwierdzania, który przesyła do ${approverName}. Dodanie go tutaj przeniesie go do tego procesu.`,
+        moveEveryoneToThisWorkflowTitle: 'Przenieś wszystkich do tego przepływu pracy',
+        moveEveryoneToThisWorkflowPrompt:
+            'Za chwilę przeniesiesz wszystkich do tego schematu zatwierdzania. Spowoduje to usunięcie wszystkich innych schematów zatwierdzania i przeniesienie wszystkich do tego jednego. Tej czynności nie da się cofnąć.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Nie udało się zmienić osoby zatwierdzającej. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
@@ -8150,6 +8159,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 autoPayApprovedReportsSubtitle: 'Skonfiguruj, które raporty wydatków kwalifikują się do automatycznej płatności.',
                 autoPayApprovedReportsLimitError: (currency?: string) => `Wprowadź kwotę mniejszą niż ${currency ?? ''}20 000`,
                 autoPayApprovedReportsLockedSubtitle: 'Przejdź do „Więcej funkcji” i włącz Workflows, a następnie dodaj płatności, aby odblokować tę funkcję.',
+                autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) =>
+                    `Automatyczna płatność jest dostępna tylko w planie Control. [Uaktualnij](${upgradeLink}), aby odblokować tę funkcję.`,
                 autoPayReportsUnderTitle: 'Automatycznie opłacaj raporty w ramach',
                 autoPayReportsUnderDescription: 'W pełni zgodne raporty wydatków poniżej tej kwoty zostaną opłacone automatycznie.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Dodaj ${featureName}, aby odblokować tę funkcję.`,

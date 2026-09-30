@@ -2326,7 +2326,13 @@ const translations: TranslationDeepObject<typeof en> = {
             results: 'Risultati',
             releaseOptions: 'Opzioni di rilascio',
             testingPreferences: 'Preferenze di test',
-            useStagingServer: 'Usa server di staging',
+            server: 'Server',
+            servers: {
+                production: {label: 'Produzione', description: "L'ambiente live che vedono gli utenti reali"},
+                staging: {label: 'Staging', description: 'Copia della produzione. Usata per la validazione finale'},
+                qa: {label: 'QA', description: 'Ambiente sperimentale usato per i test'},
+            },
+            serverPinnedDescription: 'Questa build comunica sempre con un solo server, quindi non può essere modificato qui.',
             forceOffline: 'Forza offline',
             simulatePoorConnection: 'Simula una connessione Internet scadente',
             simulateFailingNetworkRequests: 'Simula le richieste di rete non riuscite',
@@ -3002,6 +3008,9 @@ ${amount} per ${merchant} - ${date}`,
         memberAlreadyInWorkflowTitle: 'Membro già in un flusso di lavoro',
         memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
             `${memberName} è già in un flusso di approvazione che invia a ${approverName}. Aggiungendolo qui lo sposterà in questo flusso di lavoro.`,
+        moveEveryoneToThisWorkflowTitle: 'Sposta tutti in questo flusso di lavoro',
+        moveEveryoneToThisWorkflowPrompt:
+            'Stai per spostare tutti a questo flusso di approvazione. Questo eliminerà tutti gli altri flussi di approvazione e sposterà tutti su questo. Questa azione non può essere annullata.',
     },
     workflowsApproverPage: {
         genericErrorMessage: "Non è stato possibile modificare l'approvatore. Riprova o contatta l'assistenza.",
@@ -8145,6 +8154,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 autoPayApprovedReportsSubtitle: 'Configura quali note spese sono idonee per il pagamento automatico.',
                 autoPayApprovedReportsLimitError: (currency?: string) => `Inserisci un importo inferiore a ${currency ?? ''}20.000`,
                 autoPayApprovedReportsLockedSubtitle: 'Vai su Altre funzionalità e abilita i flussi di lavoro, poi aggiungi i pagamenti per sbloccare questa funzione.',
+                autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) =>
+                    `Il pagamento automatico è disponibile solo con il piano Control. [Esegui l’upgrade](${upgradeLink}) per sbloccare questa funzione.`,
                 autoPayReportsUnderTitle: 'Paga automaticamente i report sotto',
                 autoPayReportsUnderDescription: 'Le note spese pienamente conformi inferiori a questo importo verranno rimborsate automaticamente.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Aggiungi ${featureName} per sbloccare questa funzione.`,
