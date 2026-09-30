@@ -121,7 +121,13 @@ function DynamicAddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             CurrentStep = <SelectFeedType />;
             break;
         case CONST.COMPANY_CARDS.STEP.CARD_TYPE:
-            CurrentStep = <CardTypeStep />;
+            CurrentStep = (
+                <CardTypeStep
+                    policyID={policyID}
+                    cardFeeds={cardFeeds}
+                    workspaceAccountID={workspaceAccountID}
+                />
+            );
             break;
         case CONST.COMPANY_CARDS.STEP.BANK_CONNECTION:
             CurrentStep = <BankConnection policyID={policyID} />;
