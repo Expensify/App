@@ -55,6 +55,8 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
     });
 
     const [errorText, setErrorText] = useState('');
+    // The field reports a date its calendar would never have offered, which only typing can reach
+    const [dateError, setDateError] = useState('');
 
     const handleSelectDateOption = (dateOption: DateOption) => {
         setErrorText('');
@@ -76,6 +78,10 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
     const submit = () => {
         if (dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && !isRequiredFulfilled(startDate)) {
             setErrorText(translate('common.error.fieldRequired'));
+            return;
+        }
+
+        if (dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && dateError) {
             return;
         }
 
@@ -148,6 +154,7 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
                                     }}
                                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                                     errorText={errorText}
+                                    onValidationErrorChange={setDateError}
                                 />
                             </View>
                         ) : null

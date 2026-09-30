@@ -69,6 +69,8 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route, navigation}: W
     });
 
     const [errorText, setErrorText] = useState('');
+    // The field reports a date its calendar would never have offered, which only typing can reach
+    const [dateError, setDateError] = useState('');
 
     const handleSelectDateOption = (dateOption: DateOption) => {
         setErrorText('');
@@ -85,6 +87,10 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route, navigation}: W
     const submit = () => {
         if (dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && !isRequiredFulfilled(startDate)) {
             setErrorText(translate('common.error.fieldRequired'));
+            return;
+        }
+
+        if (dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && dateError) {
             return;
         }
 
@@ -161,6 +167,7 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route, navigation}: W
                                         }}
                                         minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                                         errorText={errorText}
+                                        onValidationErrorChange={setDateError}
                                     />
                                 </View>
                             ) : null

@@ -85,6 +85,13 @@ type DateInputWithPickerProps = DatePickerBaseProps &
          * @default false
          */
         shouldHideCalendarIcon?: boolean;
+
+        /**
+         * Reports an error the field works out for itself, such as a date outside the range its calendar offers or
+         * digits that do not make a date. A field inside a form reports these to the form, so this is for the pages
+         * that own their own submit. An empty string withdraws the error.
+         */
+        onValidationErrorChange?: (error: string) => void;
     };
 
 type DatePickerProps = {

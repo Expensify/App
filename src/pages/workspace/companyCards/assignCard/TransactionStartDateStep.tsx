@@ -43,6 +43,8 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
     const [localDateOption, setLocalDateOption] = useState<string>();
     const [errorText, setErrorText] = useState('');
     const [localStartDate, setLocalStartDate] = useState<string>();
+    // The field reports a date its calendar would never have offered, which only typing can reach
+    const [dateError, setDateError] = useState('');
     const dateOptionSelected = localDateOption ?? cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
     const startDate = localStartDate ?? cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
 
@@ -67,6 +69,10 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
     const submit = () => {
         if (dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && !isRequiredFulfilled(startDate)) {
             setErrorText(translate('common.error.fieldRequired'));
+            return;
+        }
+
+        if (dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && dateError) {
             return;
         }
 
@@ -155,6 +161,7 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
                                                 }}
                                                 minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                                                 errorText={errorText}
+                                                onValidationErrorChange={setDateError}
                                             />
                                         </View>
                                     ) : null

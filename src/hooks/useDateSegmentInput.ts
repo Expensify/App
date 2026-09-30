@@ -99,6 +99,9 @@ type UseDateSegmentInputResult = {
     /** Whether the field was left holding digits that do not add up to a date, which reads as no date at all */
     hasInvalidEntry: boolean;
 
+    /** Whether the segments hold digits that do not add up to a date, so there is no date to hand over yet */
+    hasIncompleteEntry: boolean;
+
     getSegmentProps: (name: DateSegmentName) => DateSegmentProps;
 
     /** Called once focus has left the field altogether rather than moved between segments */
@@ -165,11 +168,18 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
     };
 
     /**
-     * Runs on every keystroke rather than once the date is finished. A form can be submitted before the field is left,
-     * so an entry part way through has to read as no date at all rather than the date from before the edit.
+     * Runs on every keystroke rather than once the date is finished. An entry part way through is held back, since a
+     * consumer that acts on each change would act on a date the user has not finished writing. Emptying the field is
+     * reported, because that is a change the user has finished making.
      */
     const commitSegments = (newSegments: DateSegments) => {
-        onCommit(getISODateFromSegments(newSegments) ?? '');
+        const isoDate = getISODateFromSegments(newSegments);
+
+        if (!isoDate && hasAnySegment(newSegments)) {
+            return;
+        }
+
+        onCommit(isoDate ?? '');
     };
 
     /** The count carries the request, since the user may have moved the calendar away and typed the month it was on */
@@ -282,9 +292,14 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
 
     // Every keystroke is prevented, so this only runs for text the user pasted in
     const handleChangeText = (name: DateSegmentName, text: string) => {
+        // The input reports its whole value, and the caret rests after the digits the segment already holds, so what
+        // the user pasted is whatever follows them
+        const shownValue = getSegmentDisplay(segments, name);
+        const pastedText = text.startsWith(shownValue) ? text.slice(shownValue.length) : text;
+
         // A paste over the whole date replaces it, while one into a single segment merges into what is already there
         const baseSegments = isAllSelected ? EMPTY_SEGMENTS : segments;
-        const pastedSegments = getSegmentsFromText(text, name, baseSegments);
+        const pastedSegments = getSegmentsFromText(pastedText, name, baseSegments);
 
         // Text with no digits in it leaves every segment as it was, so there is nothing to apply and nowhere to move
         if (pastedSegments === baseSegments) {
@@ -357,6 +372,7 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
             isAllSelected: false,
             isEditing: false,
             hasInvalidEntry: false,
+            hasIncompleteEntry: false,
             getSegmentProps: () => ({value: '', onKeyPress: () => {}, onChangeText: () => {}, onFocus: () => {}, onPointerDown: () => {}}),
             onFieldBlur: () => {},
             onClear: () => {},
@@ -382,6 +398,7 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
         isAllSelected,
         isEditing,
         hasInvalidEntry,
+        hasIncompleteEntry: shouldShowSegments && hasAnySegment(segments) && !getISODateFromSegments(segments),
         getSegmentProps: (name: DateSegmentName) => ({
             value: getSegmentDisplay(displayedSegments, name),
             onKeyPress: (event: TextInputKeyPressEvent) => handleKeyPress(name, event),

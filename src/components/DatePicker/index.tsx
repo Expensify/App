@@ -8,6 +8,7 @@ import useDateSegmentInput from '@hooks/useDateSegmentInput';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useRemeasureOnScroll from '@hooks/useRemeasureOnScroll';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -56,10 +57,15 @@ function DatePicker({
     rightHandSideComponent,
     onPickerVisibilityChange,
     shouldHideCalendarIcon = false,
+    onValidationErrorChange,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
     const {windowHeight, windowWidth} = useWindowDimensions();
+    // The window's own width, and not the narrow layout, which a right hand pane reports even on a wide screen. Most
+    // date fields sit in one, and there is room to type beside them there.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {setInputValidationError} = useContext(FormContext);
 
@@ -75,8 +81,9 @@ function DatePicker({
     // picker was dismissed before it resolved.
     const openIntentRef = useRef(false);
 
-    // Touch devices keep the calendar on its own, so the soft keyboard does not cover it
-    const shouldAllowTyping = !canUseTouchScreen();
+    // Touch devices keep the calendar on its own, so the soft keyboard does not cover it. A narrow window has no room
+    // to show the calendar beside the field either, so it covers what is being typed.
+    const shouldAllowTyping = !canUseTouchScreen() && !isSmallScreenWidth;
     const dateMask = translate('common.dateFormat');
 
     // A date the calendar could never have offered is one nothing downstream expects, and typing is what makes those
@@ -259,16 +266,22 @@ function DatePicker({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const dateErrorText = errorText || ownError;
 
+    // An entry part way through is never handed over, so the field still holds the date from before it. Saving that
+    // would discard an edit the user is in the middle of, and the error is not shown because they are still making it.
+    const blockingError = segmentInput.hasIncompleteEntry ? translate('common.error.dateInvalid') : ownError;
+
     useEffect(() => {
-        setInputValidationError(inputID, ownError);
+        setInputValidationError(inputID, blockingError);
+        onValidationErrorChange?.(blockingError);
 
         // A field that is gone has nothing left to report, so its error must not outlive it and block the form
         return () => setInputValidationError(inputID, '');
-    }, [inputID, ownError, setInputValidationError]);
+    }, [inputID, blockingError, setInputValidationError, onValidationErrorChange]);
 
     const handleClear = () => {
         onTouched?.();
         setInputValidationError(inputID, '');
+        onValidationErrorChange?.('');
         onInputChange?.('');
         setSelectedDate('');
         segmentInput.onClear();
