@@ -1116,6 +1116,7 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: '在支出中查看',
         emptyState: {title: '没有可显示的内容', subtitle: '请尝试调整上面的条件'},
         noExpensesState: {title: '查看你的资金流向', subtitle: '添加报销后，您就能查看消费趋势、主要商家等更多信息。'},
+        compare: {label: '比较', previousPeriod: '上一期', average: '平均'},
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -3211,7 +3212,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             other: `剩余时间：${count} 秒`,
         }),
         timeExpiredAnnouncement: '时间已到期',
-        error: {pleaseFillSecurityCode: '请输入您的安全码', incorrectSecurityCode: '安全码不正确或无效。请重试或请求新代码。', pleaseFillTwoFactorAuth: '请输入您的双重身份验证代码'},
+        error: {
+            pleaseFillSecurityCode: '请输入您的安全码',
+            tooManyAttempts: '尝试次数过多。请稍后再试。',
+            incorrectSecurityCode: '安全码不正确或无效。请重试或请求新代码。',
+            pleaseFillTwoFactorAuth: '请输入您的双重身份验证代码',
+        },
     },
     passwordForm: {
         pleaseFillOutAllFields: '请填写所有字段',
@@ -6832,6 +6838,15 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             peopleAdmins: '人员管理员',
             paymentsAdmins: '付款管理员',
             members: '成员',
+            workArrangement: '工作安排',
+            officeBased: '以办公室为基地',
+            noRegularWorkspace: '远程或移动',
+            workArrangementPage: {
+                title: '工作安排',
+                optionOfficeBasedHelp: '成员通勤前往办公室。日常通勤不予报销。',
+                optionNoRegularWorkspaceHelp: '成员在家办公或在各地点之间出差，没有固定办公地点，因此通勤规则不适用。',
+                futureOnlyNote: '更改仅适用于未来的里程计算，现有的里程报销将不会重新计算。',
+            },
         },
         card: {
             getStartedIssuing: '从发放您的第一张虚拟卡或实体卡开始使用。',
@@ -9166,6 +9181,10 @@ ${reportName}`,
                 : `已更改 ${member} 的审批流程，停止转发超过 ${previousLimit} 的报销报告`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `已将 ${member} 的审批流程更改为：转交超过 ${limit} 的报销单（之前为 ${previousLimit}）`,
+        updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
+            `已将 ${displayName} 的工作安排更改为 ${newArrangement}（之前为 ${oldArrangement}）`,
+        updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
+            `已将默认工作安排更改为 ${newArrangement}（之前为 ${oldArrangement}）`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',

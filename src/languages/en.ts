@@ -1252,6 +1252,11 @@ const translations = {
     },
     insightsPage: {
         viewOnSpend: 'View on Spend',
+        compare: {
+            label: 'Compare',
+            previousPeriod: 'Previous period',
+            average: 'Average',
+        },
         emptyState: {
             title: 'Nothing to show',
             subtitle: 'Try adjusting your criteria above',
@@ -3437,6 +3442,7 @@ const translations = {
         timeExpiredAnnouncement: 'The time has expired',
         error: {
             pleaseFillSecurityCode: 'Please enter your security code',
+            tooManyAttempts: 'Too many attempts. Please try again later.',
             incorrectSecurityCode: 'Incorrect or invalid security code. Please try again or request a new code.',
             pleaseFillTwoFactorAuth: 'Please enter your two-factor authentication code',
         },
@@ -7288,6 +7294,15 @@ const translations = {
                 other: 'Remove members',
             }),
             findMember: 'Find member',
+            workArrangement: 'Work arrangement',
+            officeBased: 'Office-based',
+            noRegularWorkspace: 'Remote or mobile',
+            workArrangementPage: {
+                title: 'Work arrangement',
+                optionOfficeBasedHelp: 'Member commutes to an office. Ordinary commutes are excluded from reimbursement.',
+                optionNoRegularWorkspaceHelp: "Member works from home or travels between locations with no regular office, so commute rules don't apply.",
+                futureOnlyNote: 'Changes apply only to future mileage calculations. Existing mileage expenses are not recalculated.',
+            },
             removeWorkspaceMemberButtonTitle: 'Remove from workspace',
             removeGroupMemberButtonTitle: 'Remove from group',
             removeRoomMemberButtonTitle: 'Remove from chat',
@@ -9509,6 +9524,10 @@ const translations = {
                 `changed fixed distance exclusion to ${formattedNewDistance} per claim (previously ${formattedOldDistance})`,
             disabled: 'disabled exclude commutes for distance rates',
         },
+        updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
+            `changed ${displayName}'s work arrangement to ${newArrangement} (previously ${oldArrangement})`,
+        updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
+            `changed the default work arrangement to ${newArrangement} (previously ${oldArrangement})`,
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `changed reimbursement method to "${newReimbursementChoice}" (previously "${oldReimbursementChoice}")`,
 

@@ -1,13 +1,17 @@
 import ScrollView from '@components/ScrollView';
 
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 import {View} from 'react-native';
 
+import InsightsCompareControl from './InsightsCompareControl';
 import InsightsDateControl from './InsightsDateControl';
 import InsightsGroupCurrencyControl from './InsightsGroupCurrencyControl';
 import InsightsWorkspaceControl from './InsightsWorkspaceControl';
@@ -25,6 +29,7 @@ type InsightsPageControlsProps = {
 function InsightsPageControls({filters, defaultFilters, onChange}: InsightsPageControlsProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
 
     const controls = (
         <>
@@ -32,6 +37,12 @@ function InsightsPageControls({filters, defaultFilters, onChange}: InsightsPageC
                 value={filters.date}
                 onChange={(date) => onChange({date})}
             />
+            {isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE) && (
+                <InsightsCompareControl
+                    value={filters.compare}
+                    onChange={(compare) => onChange({compare})}
+                />
+            )}
             <InsightsWorkspaceControl
                 value={filters.policyIDs}
                 onChange={(policyIDs) => onChange({policyIDs})}
