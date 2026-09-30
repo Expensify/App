@@ -66,25 +66,9 @@ function canUsePrivateNotes(): boolean {
     return false;
 }
 
-/**
- * The expense form's list fields — category, the tag rows, tax rate, attendees and report — open their list in a
- * container anchored to the row rather than on a page of their own.
- *
- * Hardcoded off because the fields land one at a time: a form where category opens in place while the four rows
- * under it still push a page reads as broken, so the whole set stays dark until it is complete. Flip the line to
- * try it.
- *
- * TODO: Remove this gate and its call sites once every field in the issue opens in place.
- * See: https://github.com/Expensify/App/issues/101573
- */
-function canUseAnchoredFieldDropdowns(): boolean {
-    return false;
-}
-
 export default {
     canUseLinkPreviews,
     canUseTrackFlows,
     canUsePrivateNotes,
-    canUseAnchoredFieldDropdowns,
     isBetaEnabled,
 };
