@@ -92,7 +92,7 @@ The current approver is skipped, and the report is assigned to the member you ch
 
 The report history records the change as *changed the approver to [new approver], skipped [previous approver]*.
 
-**Note:** Only Workspace admins can reassign an approver, and only for Outstanding reports.
+**Note:** Only Workspace admins can reassign an approver, and only for reports that are Outstanding and waiting for approval.
 
 ---
 
@@ -105,7 +105,7 @@ The report history records the change as *changed the approver to [new approver]
 5. Click **Change approver**.
 6. If you selected **Add approver** or **Reassign approver**, choose the approver and click **Save**.
 
-**Note:** When selecting reports across multiple workspaces, only members who belong to all selected workspaces will appear in the approver list.
+**Note:** When selecting reports across multiple workspaces, only members who belong to all selected workspaces will appear in the approver list. If a selected report is already waiting on the approver you choose, that report stays unchanged.
 
 ---
 
@@ -192,10 +192,10 @@ Expensify Card expenses show as pending until the merchant posts them. This can 
 ## Why can’t I see Bypass approvers?
 Only Workspace admins can bypass the prescribed approval workflow. If **Prevent Self-Approval** is enabled, an admin cannot bypass approvals to approve their own report. 
 
-## Why can’t I see Reassign approver?
-**Reassign approver** only appears when you are a Workspace admin, the report is submitted and waiting for approval, and the workspace has an approval workflow enabled.
+## Why can’t I see **Reassign approver**?
+**Reassign approver** only appears when you are a Workspace admin, the report is Outstanding and waiting for approval, and the workspace has an approval workflow enabled.
 
-## What’s the difference between Add approver and Reassign approver?
+## What’s the difference between **Add approver** and **Reassign approver**?
 **Add approver** inserts an extra approver into the workflow at the current point, so the original approver still reviews the report. **Reassign approver** skips the current approver and assigns the report to the member you choose instead.
 
 ## What’s the difference between rejecting a report and rejecting an expense?

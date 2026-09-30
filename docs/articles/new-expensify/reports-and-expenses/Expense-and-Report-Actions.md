@@ -213,9 +213,9 @@ Payments can only be canceled before processing begins. Manual payments cannot b
 
 Only workspace admins can bypass approvers. Some settings may prevent self-approval.
 
-## Why can’t I see “Reassign approver”?
+## Why can’t I see **Reassign approver**?
 
-Only workspace admins can reassign an approver, and only while the report is submitted and waiting for approval on a workspace that has an approval workflow enabled.
+Only workspace admins can reassign an approver, and only while the report is Outstanding and waiting for approval on a workspace that has an approval workflow enabled.
 
 ## How do I invite a member to an expense report?
 
