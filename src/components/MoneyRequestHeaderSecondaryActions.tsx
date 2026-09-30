@@ -364,6 +364,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID: accountID,
             parentReport,
+            parentReportOwnerLogin: parentOwnerLogin,
             reportTransaction: transaction,
             reportAction: parentReportAction,
             originalTransaction,

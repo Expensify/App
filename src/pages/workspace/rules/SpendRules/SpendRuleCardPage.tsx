@@ -18,6 +18,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePressLoading from '@hooks/usePressLoading';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
@@ -94,7 +95,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
     const canWriteCardSpendRules = useCanWriteCardSpendRules(policyID);
     const defaultFundID = useDefaultFundID(policyID);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
     const {cardList, ...allCards} = cardsList ?? {};
     const hasAnyCards = Object.keys(allCards).length > 0;
