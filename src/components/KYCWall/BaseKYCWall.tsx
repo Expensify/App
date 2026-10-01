@@ -13,7 +13,7 @@ import {openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuc
 import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actions/IOU/PayMoneyRequest';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
-import {doesPolicyHavePartiallySetupBankAccount, doesPolicyHaveValidationFailedBankAccount} from '@libs/BankAccountUtils';
+import {doesPolicyHavePartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -254,8 +254,9 @@ function KYCWall({
                 }
 
                 const achBankAccountID = policy?.achAccount?.bankAccountID;
-                if (policy?.id !== undefined && achBankAccountID && doesPolicyHaveValidationFailedBankAccount(bankAccountList, policy.id)) {
-                    Log.info('[KYC Wallet] Redirecting to fix bank account: policy bank account failed validation', false, {policyID: policy.id, achBankAccountID});
+                const achBankAccountState = policy?.achAccount?.bankAccountID ? bankAccountList?.[policy?.achAccount?.bankAccountID]?.accountData?.state : undefined;
+                if (achBankAccountID && achBankAccountState === CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED) {
+                    Log.info('[KYC Wallet] Redirecting to fix bank account: policy bank account failed validation', false, {policyID: policy?.id, achBankAccountID});
                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.FIX_BANK_ACCOUNT.getRoute(achBankAccountID.toString())));
                     return;
                 }
