@@ -3,7 +3,7 @@ import * as APIModule from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {isPolicyPayer} from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -2396,7 +2396,7 @@ describe('actions/Policy', () => {
             const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS);
             const params = requireRecord(requireCallArgument(apiCallArgs, 1));
             expect(params.governmentRateCountry).toBe('DE');
-            expect(Object.keys(JSON.parse(params.optimisticRateIDs as string))).toEqual(['DE_2026-01-01']);
+            expect(Object.keys(parseJSONRecord(params.optimisticRateIDs))).toEqual(['DE_2026-01-01']);
 
             apiWriteSpy.mockRestore();
         });
@@ -7959,7 +7959,7 @@ describe('actions/Policy', () => {
             expect(optimisticReport?.unheldNonReimbursableTotal).toBe(-0);
 
             // And the Total rendered for the converted report is positive rather than -$50.00
-            expect(ReportUtils.getMoneyRequestSpendBreakdown(optimisticReport).totalDisplaySpend).toBe(5000);
+            expect(getMoneyRequestSpendBreakdown(optimisticReport).totalDisplaySpend).toBe(5000);
         });
     });
 });
