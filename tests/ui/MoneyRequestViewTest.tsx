@@ -758,7 +758,7 @@ describe('MoneyRequestView edit fields', () => {
 
         // Then the row is shown with the Supplier label and the contact name because Xero does not depend on the beta
         await waitFor(() => {
-            expect(screen.getByTestId('menu-item-title-common.supplier')).toHaveTextContent('Acme Xero');
+            expect(screen.getByLabelText(fieldLabel('common.supplier'))).toHaveTextContent(/Acme Xero/);
         });
         expect(screen.queryByTestId('menu-item-common.vendor')).not.toBeOnTheScreen();
     });
