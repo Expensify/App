@@ -98,6 +98,11 @@ function buildLegacyCodingRule(ruleValue: BuiltMerchantRule, ruleID: string, cre
     };
 }
 
+/** How long a `GetRules` read may stay marked in flight before the flag is treated as stale. */
+const RULES_FETCH_TIMEOUT_MS = 30 * 1000;
+
+let staleRulesFetchTimeoutID: ReturnType<typeof setTimeout> | undefined;
+
 /**
  * Fetches every rule the user has access to. The response SETs the whole `rules_` collection.
  *
@@ -150,6 +155,15 @@ function getRules() {
     ];
 
     API.read(READ_COMMANDS.GET_RULES, {}, {optimisticData, successData, failureData});
+
+    // A read that throws, which is what a 5xx, a 429 or a socket error does, applies neither its success nor its
+    // failure data, and `API.read` reports nothing back to the caller. Without a bound the in-flight flag would
+    // outlive its request and block every later fetch for the session. Clearing a flag that is already false once
+    // the response has landed costs nothing, so the timer runs either way.
+    clearTimeout(staleRulesFetchTimeoutID);
+    staleRulesFetchTimeoutID = setTimeout(() => {
+        Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES, false);
+    }, RULES_FETCH_TIMEOUT_MS);
 }
 
 /**

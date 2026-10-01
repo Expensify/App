@@ -1,5 +1,6 @@
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -645,7 +646,13 @@ function MerchantRulePageBase({
 
     // `areRulesLoading` keeps a deep link from rendering not-found before the collection has both hydrated and
     // been fetched. Onyx hydrates it as empty well before `GetRules` answers, so hydration alone is not enough.
-    if (ruleID && !existingRule && !isClosing && !areRulesLoading) {
+    // The form has to wait too: filled in and saved during that window it would write only the fields typed into
+    // it over the rule the link points at.
+    if (ruleID && !existingRule && !isClosing && areRulesLoading) {
+        return <FullScreenLoadingIndicator testID={`${testID}Loading`} />;
+    }
+
+    if (ruleID && !existingRule && !isClosing) {
         return <NotFoundPage />;
     }
 
