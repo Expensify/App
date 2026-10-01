@@ -2519,6 +2519,7 @@ function setOptimisticDataForTransactionThreadPreview(
     item: TransactionListItemType,
     transactionPreviewData: TransactionPreviewData,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    delegateAccountID: number | undefined,
     IOUTransactionID?: string,
 ) {
     const {reportID, report, amount, currency, transactionID, created, policyID, from} = item;
@@ -2550,8 +2551,7 @@ function setOptimisticDataForTransactionThreadPreview(
             linkedExpenseReportAction: {
                 childReportID: IOUTransactionID,
             } as ReportAction,
-            // delegateAccountIDParam: will be threaded in PR 15; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
-            delegateAccountIDParam: undefined,
+            delegateAccountIDParam: delegateAccountID,
             getCurrencyDecimals,
         });
         optimisticIOUAction.pendingAction = undefined;

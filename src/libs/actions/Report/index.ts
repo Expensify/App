@@ -139,6 +139,7 @@ import {
     getChildReportNotificationPreference,
     getDefaultNotificationPreferenceForReport,
     getLastVisibleMessage,
+    getNegatedReportTotals,
     getNextApproverAccountID,
     getOptimisticDataForAncestors,
     getOriginalReportID,
@@ -6160,18 +6161,22 @@ async function completeOnboarding({
         personalTrackGoal,
     };
 
-    if (shouldWaitForRHPVariantInitialization) {
+    // Side-effect requests are never queued or retried, so offline we fall through to API.write.
+    // Checked twice because waitForWrites also resolves when the connection drops mid-wait.
+    if (shouldWaitForRHPVariantInitialization && !isOfflineNetwork()) {
         // Wait for the workspace to be created before completing the guided setup
         await waitForWrites(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP);
 
-        // Pop onboarding nested stack after waiting so the modal doesn't rewind to step 1
-        // during the wait. Must run before the API call so useLinking processes each step
-        // pop before the optimistic data unmounts the modal.
-        resetOnboardingStackToRoot();
+        if (!isOfflineNetwork()) {
+            // Pop onboarding nested stack after waiting so the modal doesn't rewind to step 1
+            // during the wait. Must run before the API call so useLinking processes each step
+            // pop before the optimistic data unmounts the modal.
+            resetOnboardingStackToRoot();
 
-        // We need to access the nvp_onboardingRHPVariant directly from the response to redirect the user to the correct page
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
+            // We need to access the nvp_onboardingRHPVariant directly from the response to redirect the user to the correct page
+            // eslint-disable-next-line rulesdir/no-api-side-effects-method
+            return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
+        }
     }
 
     // Pop onboarding nested stack just before the API write so useLinking removes browser
@@ -6265,6 +6270,11 @@ function performServerSearch(searchInput: string, policyID?: string, isUserSearc
     const searchLoadingKey = isUserSearch ? ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS : ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS;
     // We are not getting isOffline from components as useEffect change will re-trigger the search on network change
     const isOffline = isOfflineNetwork();
+
+    if (!policyID && !isUserSearch) {
+        Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, null);
+    }
+
     if (isOffline || !searchInput.trim().length) {
         Onyx.set(searchLoadingKey, false);
         return;
@@ -7653,7 +7663,7 @@ function convertIOUReportToExpenseReport(
         policyName: policy.name,
         parentReportID: optimisticPolicyExpenseChatReportID,
         type: CONST.REPORT.TYPE.EXPENSE,
-        total: -(iouReport?.total ?? 0),
+        ...getNegatedReportTotals(iouReport),
     };
 
     const nextApproverAccountID = getNextApproverAccountID(iouReport, rules, true);
@@ -8312,6 +8322,7 @@ function buildOptimisticChangePolicyData({
     // Only include transactions that match the destination currency (their amounts can be used directly)
     if (sourceCurrency && destinationCurrency && sourceCurrency !== destinationCurrency) {
         let newTotal = 0;
+        let newUnheldTotal = 0;
         let newNonReimbursableTotal = 0;
         let newUnheldNonReimbursableTotal = 0;
         let newReimbursableTotal = 0;
@@ -8324,6 +8335,12 @@ function buildOptimisticChangePolicyData({
             if (transactionCurrency === destinationCurrency) {
                 const transactionAmount = getAmount(transaction, true);
                 newTotal -= transactionAmount;
+                // `unheldTotal` is the signed sum of the transactions that are not on hold, so it has to be
+                // recomputed here too. `getNonHeldAndFullAmount` prefers it over the derived sum, so leaving the
+                // old-currency value behind would show the hold and Pay amounts in the source currency.
+                if (!isOnHold(transaction)) {
+                    newUnheldTotal -= transactionAmount;
+                }
                 if (!transaction.reimbursable) {
                     newNonReimbursableTotal -= transactionAmount;
                 } else {
@@ -8344,6 +8361,7 @@ function buildOptimisticChangePolicyData({
             value: {
                 currency: destinationCurrency,
                 total: newTotal,
+                unheldTotal: newUnheldTotal,
                 nonReimbursableTotal: newNonReimbursableTotal,
                 unheldNonReimbursableTotal: newUnheldNonReimbursableTotal,
                 reimbursableTotal: newReimbursableTotal,
@@ -8369,6 +8387,7 @@ function buildOptimisticChangePolicyData({
             value: {
                 currency: report.currency,
                 total: report.total,
+                unheldTotal: report.unheldTotal,
                 nonReimbursableTotal: report.nonReimbursableTotal,
                 unheldNonReimbursableTotal: report.unheldNonReimbursableTotal,
                 reimbursableTotal: report.reimbursableTotal,
@@ -8804,6 +8823,7 @@ function mergeReports({
         failureData: moveFailureData = [],
         transactionIDToReportActionAndThreadData = {},
         updatedReportTotals,
+        updatedReportUnheldTotals,
         updatedReportTransactionCounts,
         updatedReportNonReimbursableTotals,
         updatedReportUnheldNonReimbursableTotals,
@@ -8917,6 +8937,7 @@ function mergeReports({
             optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`] = {
                 ...destinationReport,
                 total: updatedReportTotals?.[destinationReportID] ?? destinationReport.total,
+                unheldTotal: updatedReportUnheldTotals?.[destinationReportID] ?? destinationReport.unheldTotal,
                 transactionCount: updatedReportTransactionCounts?.[destinationReportID] ?? destinationReport.transactionCount,
                 reimbursableTotal: updatedReportReimbursableTotals?.[destinationReportID] ?? destinationReport.reimbursableTotal,
                 unheldReimbursableTotal: updatedReportUnheldReimbursableTotals?.[destinationReportID] ?? destinationReport.unheldReimbursableTotal,
