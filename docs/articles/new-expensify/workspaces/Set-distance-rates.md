@@ -15,7 +15,7 @@ Distance rates determine how much members are reimbursed for distance-based trav
 
 Workspace admins can configure distance rates for a workspace.
 
-Automatic updates are available for Control workspaces with a default currency of USD, CAD, GBP, or AUD.
+Automatic updates are available for Control workspaces with a default currency of USD, CAD, GBP, AUD, NOK, SEK, or ZAR.
 
 ---
 
@@ -94,7 +94,7 @@ Expensify can automatically update distance rates in your workspace when the sta
 
 When **Auto-update government rates** is enabled, Expensify adds a new effective-dated distance rate when a supported government publishes a new rate. This means admins don't need to manually update the standard rate each time it changes.
 
-Expensify uses the workspace default currency to determine which government publishes the rate: USD for the United States, CAD for Canada, GBP for Great Britain, and AUD for Australia.
+Expensify uses the workspace default currency to determine which government publishes the rate: USD for the United States, CAD for Canada, GBP for Great Britain, AUD for Australia, NOK for Norway, SEK for Sweden, and ZAR for South Africa.
 
 To enable automatic updates:
 
@@ -134,7 +134,7 @@ Changes Expensify makes on its own, such as converting a rate between **Miles** 
 Expensify determines the publishing government from the workspace default currency, so changing the default currency changes which government rate applies. When **Auto-update government rates** is enabled and you change the default currency to another supported currency:
 
 - Expensify adds a new government rate for the new currency's country, with the lightning bolt icon.
-- Expensify sets the workspace **Unit** to the unit that country publishes in: **Miles** for the United States and Great Britain, and **Kilometers** for Canada and Australia.
+- Expensify sets the workspace **Unit** to the unit that country publishes in: **Miles** for the United States and Great Britain, and **Kilometers** for Canada, Australia, Norway, Sweden, and South Africa.
 - Government rates created before the change remain in the workspace, converted to the new **Unit** so every rate is shown in the same unit.
 - Those earlier rates keep the lightning bolt icon, because converting a rate to a different unit is not a manual edit. Rates that an admin edited stay without the icon.
 
@@ -184,7 +184,7 @@ Yes. When **Distance rates** is enabled, the workspace must always have at least
 
 ## Why isn't Auto-update government rates turned on for my workspace?
 
-**Auto-update government rates** is turned on by default only for new workspaces. Existing workspaces are opted out by default, so you'll need to turn it on manually. It's also only available for workspaces with a default currency of USD, CAD, GBP, or AUD.
+**Auto-update government rates** is turned on by default only for new workspaces. Existing workspaces are opted out by default, so you'll need to turn it on manually. It's also only available for workspaces with a default currency of USD, CAD, GBP, AUD, NOK, SEK, or ZAR.
 
 ## Why did the lightning bolt icon disappear from one of my distance rates?
 
