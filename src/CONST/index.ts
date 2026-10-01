@@ -2314,6 +2314,7 @@ const CONST = {
         BREADCRUMB_MEMORY_PERIODIC: 'Periodic memory check',
         BREADCRUMB_MEMORY_FOREGROUND: 'App foreground - memory check',
         TAGS: {
+            APP_BLOCKING: 'app_blocking',
             ACTIVE_POLICY: 'active_policy_id',
             POLICIES_COUNT: 'policies_count',
             REPORTS_COUNT: 'reports_count',
@@ -9110,8 +9111,28 @@ const CONST = {
     OFFLINE_INDICATOR_HEIGHT: 25,
 
     BILLING: {
+        TYPE_FAILED: 'failed',
         TYPE_FAILED_2018: 'failed_2018',
+        TYPE_FAILED_SMARTSCAN: 'failed_smartscan2018',
         TYPE_STRIPE_FAILED_AUTHENTICATION: 'failed_stripe_authentication',
+        TYPE_CLEAR: 'clear',
+        TYPE_REFUND: 'refund',
+        TYPE_CC_REFUND: 'ccRefund',
+        TYPE_DISPUTE: 'dispute',
+        TYPE_TRANSFER: 'transfer',
+        TYPE_TRANSFER_TO: 'transfer_to',
+        TYPE_TRANSFER_FAILED: 'transfer_failed',
+        TYPE_TRANSFER_OLD: 'transfer_old',
+    },
+    PAYMENT_HISTORY: {
+        STATE: {
+            PAID: 'paid',
+            CLEARED: 'cleared',
+            FAILED: 'failed',
+            REFUNDED: 'refunded',
+            DISPUTED: 'disputed',
+            BALANCE_TRANSFER: 'balanceTransfer',
+        },
     },
 
     ONBOARDING_HELP: {
@@ -9193,7 +9214,10 @@ const CONST = {
             /** How narrow a free-text column may be squeezed before the table scrolls instead. Around 17 characters, so a typical merchant name or full name still reads, and a column is never squeezed below its header regardless. */
             MIN_FREE_TEXT_COLUMN_WIDTH: 120,
 
-            /** How wide a free-text column may be sized for its content once the table scrolls, so one unusually long value doesn't push every column after it out of view. A table that still fits its columns caps nothing: the spare room is there to be used. */
+            /** The width a free-text column is laid out at once the table scrolls, when horizontal room is no longer scarce. */
+            SCROLLED_FREE_TEXT_COLUMN_WIDTH: 180,
+
+            /** The cap a column opts into through `dynamicSizing.maxWidth`, so one unusually long value doesn't take room the columns after it need. */
             MAX_FREE_TEXT_COLUMN_WIDTH: 180,
         },
     },
@@ -10060,6 +10084,7 @@ const CONST = {
             RETRY_PAYMENT: 'SettingsSubscription-RetryPayment',
             AUTHENTICATE_PAYMENT: 'SettingsSubscription-AuthenticatePayment',
             VIEW_PAYMENT_HISTORY: 'SettingsSubscription-ViewPaymentHistory',
+            PAYMENT_HISTORY_ROW: 'SettingsSubscription-PaymentHistoryRow',
             REQUEST_REFUND: 'SettingsSubscription-RequestRefund',
             CANCEL_SUBSCRIPTION: 'SettingsSubscription-CancelSubscription',
         },

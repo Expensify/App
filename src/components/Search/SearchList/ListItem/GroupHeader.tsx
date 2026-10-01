@@ -14,7 +14,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -189,12 +188,6 @@ function GroupHeader({
     const withOriginalKey = <T extends SearchListItem>(rowItem: T): T => ({
         ...rowItem,
         keyForList: item.groupKeyForList,
-    });
-
-    const animatedHighlightStyle = useRowHighlightAnimation({
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        isSelected: isItemSelected,
-        shouldApplyOtherStyles: false,
     });
 
     const handleSelectionButtonPress = () => {
@@ -430,7 +423,8 @@ function GroupHeader({
                 ]}
                 wrapperStyle={[
                     styles.mh5,
-                    animatedHighlightStyle,
+                    StyleUtils.getSearchRowBackgroundStyle(!!isItemSelected),
+                    styles.userSelectNone,
                     isLargeScreenWidth
                         ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItemCollapsed, isItemSelected), isLastItemCollapsed && styles.overflowHidden]
                         : [

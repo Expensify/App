@@ -7,7 +7,6 @@ import TransactionItemRow from '@components/TransactionItemRow';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 
 import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
-import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -154,13 +153,6 @@ function TransactionListItemWide<TItem extends ListItem>({
         },
     ];
 
-    const animatedHighlightStyle = useRowHighlightAnimation({
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        isSelected,
-        borderRadius: 0,
-        shouldApplyOtherStyles: false,
-    });
-
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
@@ -197,7 +189,13 @@ function TransactionListItemWide<TItem extends ListItem>({
                     }
                     onFocus?.(event);
                 }}
-                wrapperStyle={[styles.mh5, styles.flex1, animatedHighlightStyle, isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}
+                wrapperStyle={[
+                    styles.mh5,
+                    styles.flex1,
+                    StyleUtils.getSearchRowBackgroundStyle(isSelected),
+                    styles.userSelectNone,
+                    isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
+                ]}
             >
                 {({hovered}) => (
                     <TransactionItemRow
