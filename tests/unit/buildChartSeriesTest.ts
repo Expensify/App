@@ -59,7 +59,8 @@ const getCurrencyDecimals = () => 2;
 
 /** Builds the rows of a chart plotting one period, which is every case but a comparison. */
 function buildRows(data: GroupedItem[], view: ChartView, getShortLabel?: (item: GroupedItem) => string | undefined) {
-    return buildChartSeries({primary: {rows: data}, view, groupBy: CONST.SEARCH.GROUP_BY.MERCHANT, getLabel, getShortLabel, getCurrencyDecimals}).rows;
+    return buildChartSeries({rows: data, view, groupBy: CONST.SEARCH.GROUP_BY.MERCHANT, getLabel, getShortLabel, getCurrencyDecimals, translate: translateLocal, dateFnsLocale: undefined})
+        .rows;
 }
 
 /** The amount the chart plots for a row's period on screen. */
@@ -260,14 +261,14 @@ describe('getSliceColorsByDataIndex', () => {
 });
 
 describe('buildChartSeries with a compared period', () => {
-    const CURRENT_WINDOW_START = '2026-01-01';
-    const PREVIOUS_WINDOW_START = '2025-01-01';
+    const CURRENT_PERIOD = {label: 'YTD 2026', color: '#current', range: {start: '2026-01-01', end: '2026-12-31'}};
+    const PREVIOUS_PERIOD = {label: 'YTD 2025', color: '#previous', range: {start: '2025-01-01', end: '2025-12-31'}};
 
     /** Builds the model of a chart plotting one period against the one before it. */
     function buildComparison(rows: GroupedItem[], previousRows: GroupedItem[], groupBy: SearchGroupBy) {
         return buildChartSeries({
-            primary: {rows, label: 'YTD 2026', color: '#current', start: CURRENT_WINDOW_START},
-            comparison: {rows: previousRows, label: 'YTD 2025', color: '#previous', start: PREVIOUS_WINDOW_START},
+            rows,
+            comparison: {rows: previousRows, primaryPeriod: CURRENT_PERIOD, comparisonPeriod: PREVIOUS_PERIOD},
             view: CONST.SEARCH.VIEW.BAR,
             groupBy,
             getLabel: (item) => {
@@ -280,6 +281,8 @@ describe('buildChartSeries with a compared period', () => {
                 return '';
             },
             getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
         });
     }
 
@@ -384,14 +387,15 @@ describe('buildChartSeries labels for compared time buckets', () => {
     /** Builds the labels of a chart plotting the window on screen against the one before it. */
     function buildLabels(rows: GroupedItem[], groupBy: SearchGroupBy, current: {start: string; end: string}, previous: {start: string; end: string}) {
         return buildChartSeries({
-            primary: {rows, label: 'Current', ...current},
-            comparison: {rows: [], label: 'Previous', ...previous},
+            rows,
+            comparison: {rows: [], primaryPeriod: {label: 'Current', color: '#current', range: current}, comparisonPeriod: {label: 'Previous', color: '#previous', range: previous}},
             view: CONST.SEARCH.VIEW.BAR,
             groupBy,
             getLabel: CHART_GROUP_BY_CONFIG[groupBy].getLabel,
             getShortLabel: CHART_GROUP_BY_CONFIG[groupBy].getShortLabel,
             getCurrencyDecimals,
             translate: translateLocal,
+            dateFnsLocale: undefined,
         }).rows.map((row) => [row.point.label, row.point.shortLabel]);
     }
 
@@ -486,13 +490,14 @@ describe('buildChartSeries labels for compared time buckets', () => {
     it('keeps the plain labels when nothing is compared', () => {
         // Given a single month plotted on its own
         const labels = buildChartSeries({
-            primary: {rows: [monthGroup(2026, 1)]},
+            rows: [monthGroup(2026, 1)],
             view: CONST.SEARCH.VIEW.BAR,
             groupBy: CONST.SEARCH.GROUP_BY.MONTH,
             getLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.MONTH].getLabel,
             getShortLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.MONTH].getShortLabel,
             getCurrencyDecimals,
             translate: translateLocal,
+            dateFnsLocale: undefined,
         }).rows.map((row) => [row.point.label, row.point.shortLabel]);
 
         // Then it keeps its own label with the year, since there is no other period it needs to fit

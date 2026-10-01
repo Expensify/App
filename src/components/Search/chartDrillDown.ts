@@ -12,7 +12,7 @@ type ChartDrillDown = {
     groupFilter?: string;
 
     /**
-     * The dates the pressed bar covers: its bucket, or the window its series plots. It replaces the query's own date
+     * The dates the pressed bar covers: its bucket, or the period its series plots. It replaces the query's own date
      * filters rather than narrowing them, because a previous-period range and the page's range never intersect.
      */
     dateRange?: ChartBucketRange;
@@ -52,8 +52,8 @@ function buildChartDrillDownQuery(queryJSON: Readonly<SearchQueryJSON>, {groupFi
  * The dates a pressed time bucket opens: its own, cut to the period its series plots, since a week or month can start
  * before the period or end after it. A bucket of the period on screen is cut to the query's own date filters.
  */
-function getBucketDrillDownRange(queryJSON: Readonly<SearchQueryJSON>, bucketRange: ChartBucketRange, windowRange?: ChartBucketRange): ChartBucketRange {
-    if (!windowRange) {
+function getBucketDrillDownRange(queryJSON: Readonly<SearchQueryJSON>, bucketRange: ChartBucketRange, periodRange?: ChartBucketRange): ChartBucketRange {
+    if (!periodRange) {
         return adjustTimeRangeToDateFilters(
             bucketRange,
             queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE),
@@ -61,8 +61,8 @@ function getBucketDrillDownRange(queryJSON: Readonly<SearchQueryJSON>, bucketRan
     }
 
     return {
-        start: bucketRange.start > windowRange.start ? bucketRange.start : windowRange.start,
-        end: bucketRange.end < windowRange.end ? bucketRange.end : windowRange.end,
+        start: bucketRange.start > periodRange.start ? bucketRange.start : periodRange.start,
+        end: bucketRange.end < periodRange.end ? bucketRange.end : periodRange.end,
     };
 }
 

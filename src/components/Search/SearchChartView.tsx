@@ -15,7 +15,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {SearchChartModel} from './buildChartSeries';
+import type {ChartComparison, SearchChartModel} from './buildChartSeries';
 import type {ChartBucketRange} from './chartGroupByConfig';
 import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy, SearchQueryJSON} from './types';
 
@@ -23,28 +23,6 @@ import {buildChartSeries, CHART_SERIES_KEY, getCounterpartBucketRange} from './b
 import {buildChartDrillDownQuery, getBucketDrillDownRange} from './chartDrillDown';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import {useSearchQueryContext} from './SearchContext';
-
-/** How one of the compared periods is named, colored and bounded */
-type SearchChartWindow = {
-    /** Name shown in the legend and the tooltip */
-    label: string;
-
-    color: string;
-
-    /** The dates the period covers, which a drill-down into one of its ranking bars narrows to */
-    range: ChartBucketRange;
-};
-
-type SearchChartComparison = {
-    /** The compared period's grouped rows, paired to the plotted ones */
-    data: GroupedItem[];
-
-    /** The period `data` was plotted from */
-    current: SearchChartWindow;
-
-    /** The period drawn beside it */
-    previous: SearchChartWindow;
-};
 
 type SearchChartViewProps = {
     queryJSON: Readonly<SearchQueryJSON> | undefined;
@@ -64,7 +42,7 @@ type SearchChartViewProps = {
     color?: string;
 
     /** The period drawn beside `data` as a second series, left out when nothing is compared */
-    comparison?: SearchChartComparison;
+    comparison?: ChartComparison;
 
     /** Renders the details of the plotted groups below the chart */
     renderDetails?: (model: SearchChartModel) => React.ReactNode;
@@ -85,8 +63,9 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, comp
     const {getLabel, getShortLabel, getFilterQuery, getBucketRange, bucketUnit} = CHART_GROUP_BY_CONFIG[groupBy];
 
     const model = buildChartSeries({
-        primary: {rows: data, label: comparison?.current.label, color: comparison?.current.color ?? color, start: comparison?.current.range.start, end: comparison?.current.range.end},
-        comparison: comparison ? {rows: comparison.data, label: comparison.previous.label, color: comparison.previous.color, start: comparison.previous.range.start} : undefined,
+        rows: data,
+        color,
+        comparison,
         view,
         groupBy,
         getLabel,
@@ -107,7 +86,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, comp
         if (row.comparisonItem) {
             return getBucketRange?.(row.comparisonItem) ?? bucketRange;
         }
-        return comparison && bucketUnit ? getCounterpartBucketRange(bucketRange, comparison.current.range.start, comparison.previous.range.start, bucketUnit) : bucketRange;
+        return comparison && bucketUnit ? getCounterpartBucketRange(bucketRange, comparison.primaryPeriod.range.start, comparison.comparisonPeriod.range.start, bucketUnit) : bucketRange;
     };
 
     const handleItemPress = (index: number, seriesKey: string) => {
@@ -117,10 +96,10 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, comp
         }
 
         const isComparisonSeries = seriesKey === CHART_SERIES_KEY.COMPARISON;
-        const pressedWindow = isComparisonSeries ? comparison?.previous : comparison?.current;
+        const pressedPeriod = isComparisonSeries ? comparison?.comparisonPeriod : comparison?.primaryPeriod;
         const pressedItem = (isComparisonSeries ? row.comparisonItem : row.item) ?? row.item;
         // A time bucket opens the dates it covers; a ranking group opens its own rows over the period its series plots.
-        const dateRange = getBucketRange ? getBucketDrillDownRange(queryJSON, getPressedBucketRange(row, isComparisonSeries), pressedWindow?.range) : pressedWindow?.range;
+        const dateRange = getBucketRange ? getBucketDrillDownRange(queryJSON, getPressedBucketRange(row, isComparisonSeries), pressedPeriod?.range) : pressedPeriod?.range;
         const query = buildChartDrillDownQuery(queryJSON, {groupFilter: getBucketRange ? undefined : getFilterQuery(pressedItem), dateRange});
 
         if (!query) {
@@ -182,4 +161,3 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, comp
 }
 
 export default SearchChartView;
-export type {SearchChartComparison};

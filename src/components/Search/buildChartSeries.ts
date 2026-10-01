@@ -31,7 +31,7 @@ import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy} from './
 
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 
-/** Keys the chart layer reads each window's amounts under */
+/** Keys the chart layer reads each period's amounts under */
 const CHART_SERIES_KEY = {
     PRIMARY: 'primary',
     COMPARISON: 'comparison',
@@ -39,10 +39,10 @@ const CHART_SERIES_KEY = {
 
 const DAYS_IN_WEEK = 7;
 
-/** How many buckets into its window a bucket starts. A week counts from the one holding the window's first day, whichever weekday weeks start on. */
-const BUCKET_OFFSET: Record<ChartBucketUnit, (bucketStart: Date, windowStart: Date) => number> = {
+/** How many buckets into its period a bucket starts. A week counts from the one holding the period's first day, whichever weekday weeks start on. */
+const BUCKET_OFFSET: Record<ChartBucketUnit, (bucketStart: Date, periodStart: Date) => number> = {
     day: differenceInCalendarDays,
-    week: (bucketStart, windowStart) => Math.ceil(differenceInCalendarDays(bucketStart, windowStart) / DAYS_IN_WEEK),
+    week: (bucketStart, periodStart) => Math.ceil(differenceInCalendarDays(bucketStart, periodStart) / DAYS_IN_WEEK),
     month: differenceInCalendarMonths,
     quarter: differenceInCalendarQuarters,
     year: differenceInCalendarYears,
@@ -57,7 +57,7 @@ const BUCKET_ADD: Record<ChartBucketUnit, (date: Date, amount: number) => Date> 
     year: addYears,
 };
 
-/** Translation of a bucket's position in its window, the label used when the compared buckets share no calendar name */
+/** Translation of a bucket's position in its period, the label used when the compared buckets share no calendar name */
 const BUCKET_POSITION_LABEL = {
     day: 'insightsPage.compare.dayNumber',
     week: 'insightsPage.compare.weekNumber',
@@ -66,34 +66,43 @@ const BUCKET_POSITION_LABEL = {
     year: 'insightsPage.compare.yearNumber',
 } as const satisfies Record<ChartBucketUnit, string>;
 
-/** One window plotted as a series: the rows it groups, how the legend names it, and where the window starts. */
-type ChartSeriesWindow = {
-    /** The window's grouped rows, in the order the search returned them */
+/** One of the two compared periods: how the legend names it, its color, and the dates it covers */
+type ChartComparisonPeriod = {
+    /** Name shown in the legend and the tooltip */
+    label: string;
+
+    color: string;
+
+    /** The dates the period covers, which its buckets' positions are measured from */
+    range: ChartBucketRange;
+};
+
+/** Everything a second series needs to be paired with the primary one and labeled */
+type ChartComparison = {
+    /** The compared period's grouped rows, in the order the search returned them */
     rows: GroupedItem[];
 
-    /** Name shown in the legend and the tooltip, left out by a chart plotting one unnamed series */
-    label?: string;
+    /** The period the primary rows were plotted from */
+    primaryPeriod: ChartComparisonPeriod;
 
-    color?: string;
-
-    /** First day of the window, `yyyy-MM-dd`, which its buckets' positions are measured from */
-    start?: string;
-
-    /** Last day of the window, `yyyy-MM-dd` */
-    end?: string;
+    /** The period drawn beside it */
+    comparisonPeriod: ChartComparisonPeriod;
 };
 
 type BuildChartSeriesParams = {
-    /** The window on screen, drawn as the chart's primary series */
-    primary: ChartSeriesWindow;
+    /** The grouped rows of the period on screen, drawn as the chart's primary series */
+    rows: GroupedItem[];
 
-    /** The window drawn beside it, left out when nothing is compared */
-    comparison?: ChartSeriesWindow;
+    /** Color of the primary series when nothing is compared */
+    color?: string;
+
+    /** The period drawn beside the primary one, left out when nothing is compared */
+    comparison?: ChartComparison;
 
     /** The chart type the rows are plotted on, which decides how groups are colored */
     view: ChartView;
 
-    /** What the rows are grouped by, which decides how the two windows' rows pair up */
+    /** What the rows are grouped by, which decides how the two periods' rows pair up */
     groupBy: SearchGroupBy;
 
     /** Returns the full label of a group */
@@ -105,10 +114,10 @@ type BuildChartSeriesParams = {
     /** Returns how many decimals a currency is displayed with */
     getCurrencyDecimals: (currency: string) => number;
 
-    /** Names a compared time bucket, which the plain bucket label can't since it only fits the window on screen */
-    translate?: LocaleContextProps['translate'];
+    /** Names a compared time bucket, which the plain bucket label can't since it only fits the period on screen */
+    translate: LocaleContextProps['translate'];
 
-    dateFnsLocale?: LocaleContextProps['dateFnsLocale'];
+    dateFnsLocale: LocaleContextProps['dateFnsLocale'];
 };
 
 type SearchChartModel = {
@@ -136,26 +145,26 @@ function getSliceColorsByDataIndex(data: ChartDataPoint[]): Array<string | undef
 }
 
 /**
- * The key a row shares with its counterpart in the other window.
+ * The key a row shares with its counterpart in the other period.
  *
  * Ranking rows key on the group's own identity, which their filter query already carries, rather than on a label
- * that can be localized or repeated. Time buckets key on their position within their own window, because a search
- * returns only the buckets that hold expenses, so positions in the array do not line up between windows.
+ * that can be localized or repeated. Time buckets key on their position within their own period, because a search
+ * returns only the buckets that hold expenses, so positions in the array do not line up between periods.
  */
-function getPairingKey(item: GroupedItem, windowStart: string | undefined, groupBy: SearchGroupBy): string {
+function getPairingKey(item: GroupedItem, periodStart: string, groupBy: SearchGroupBy): string {
     const {bucketUnit, getBucketRange, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
     const bucketStart = bucketUnit && getBucketRange ? getBucketRange(item).start : undefined;
 
-    if (!bucketUnit || !bucketStart || !windowStart) {
+    if (!bucketUnit || !bucketStart) {
         return getFilterQuery(item);
     }
 
-    return `bucket:${BUCKET_OFFSET[bucketUnit](parseISO(bucketStart), parseISO(windowStart))}`;
+    return `bucket:${BUCKET_OFFSET[bucketUnit](parseISO(bucketStart), parseISO(periodStart))}`;
 }
 
 /**
- * The dates of the bucket paired with a bucket of the window on screen, for when the compared window returned no row for it.
- * The paired bucket sits at the same position in its own window and is as long as the bucket on screen.
+ * The dates of the bucket paired with a bucket of the period on screen, for when the compared period returned no row for it.
+ * The paired bucket sits at the same position in its own period and is as long as the bucket on screen.
  */
 function getCounterpartBucketRange(bucketRange: ChartBucketRange, primaryStart: string, comparisonStart: string, bucketUnit: ChartBucketUnit): ChartBucketRange {
     const bucketStart = parseISO(bucketRange.start);
@@ -179,45 +188,41 @@ function getCounterpartBucketRange(bucketRange: ChartBucketRange, primaryStart: 
 type CalendarNamePatterns = {full: string; short: string};
 
 /**
- * The calendar name a window's buckets can go by, like "January" or "Mon".
- * Undefined when the window is long enough for the name to repeat, or for a unit that has no such name.
+ * The calendar name a period's buckets can go by, like "January" or "Mon".
+ * Undefined when the period is long enough for the name to repeat, or for a unit that has no such name.
  */
-function getCalendarNamePatterns(bucketUnit: ChartBucketUnit, windowStart: Date, windowEnd: Date): CalendarNamePatterns | undefined {
+function getCalendarNamePatterns(bucketUnit: ChartBucketUnit, periodStart: Date, periodEnd: Date): CalendarNamePatterns | undefined {
     switch (bucketUnit) {
         case 'day':
-            if (differenceInCalendarDays(windowEnd, windowStart) < DAYS_IN_WEEK) {
+            if (differenceInCalendarDays(periodEnd, periodStart) < DAYS_IN_WEEK) {
                 return {full: 'EEE', short: 'EEE'};
             }
-            return isSameMonth(windowStart, windowEnd) ? {full: 'd', short: 'd'} : undefined;
+            return isSameMonth(periodStart, periodEnd) ? {full: 'd', short: 'd'} : undefined;
         case 'month':
-            return differenceInCalendarMonths(windowEnd, windowStart) < 12 ? {full: 'LLLL', short: 'LLL'} : undefined;
+            return differenceInCalendarMonths(periodEnd, periodStart) < 12 ? {full: 'LLLL', short: 'LLL'} : undefined;
         case 'quarter':
-            return differenceInCalendarQuarters(windowEnd, windowStart) < 4 ? {full: 'QQQ', short: 'QQQ'} : undefined;
+            return differenceInCalendarQuarters(periodEnd, periodStart) < 4 ? {full: 'QQQ', short: 'QQQ'} : undefined;
         default:
             return undefined;
     }
 }
 
 /**
- * Names a time bucket so the name fits its counterpart in the compared window too: the calendar name both share,
- * like "January" ("Jan" on the axis), or else its position, like "Week 2". Undefined when either window's dates are unknown.
+ * Names a time bucket so the name fits its counterpart in the compared period too: the calendar name both share,
+ * like "January" ("Jan" on the axis), or else its position, like "Week 2".
  */
 function getComparedBucketLabel(
     bucketStart: string,
-    primary: ChartSeriesWindow,
-    comparison: ChartSeriesWindow,
+    {primaryPeriod, comparisonPeriod}: ChartComparison,
     bucketUnit: ChartBucketUnit,
     translate: LocaleContextProps['translate'],
     dateFnsLocale: LocaleContextProps['dateFnsLocale'],
-): {label: string; shortLabel: string} | undefined {
-    if (!primary.start || !primary.end || !comparison.start) {
-        return undefined;
-    }
+): {label: string; shortLabel: string} {
     const bucketDate = parseISO(bucketStart);
-    const primaryStart = parseISO(primary.start);
+    const primaryStart = parseISO(primaryPeriod.range.start);
     const offset = BUCKET_OFFSET[bucketUnit](bucketDate, primaryStart);
-    const counterpartDate = BUCKET_ADD[bucketUnit](parseISO(comparison.start), offset);
-    const patterns = getCalendarNamePatterns(bucketUnit, primaryStart, parseISO(primary.end));
+    const counterpartDate = BUCKET_ADD[bucketUnit](parseISO(comparisonPeriod.range.start), offset);
+    const patterns = getCalendarNamePatterns(bucketUnit, primaryStart, parseISO(primaryPeriod.range.end));
 
     if (patterns && format(bucketDate, patterns.full) === format(counterpartDate, patterns.full)) {
         return {label: format(bucketDate, patterns.full, {locale: dateFnsLocale}), shortLabel: format(bucketDate, patterns.short, {locale: dateFnsLocale})};
@@ -230,24 +235,32 @@ function getComparedBucketLabel(
  * Prepares what a chart draws: the series it plots, and one row per group.
  *
  * This is the single place group totals are turned into plotted values. A row keeps the grouped items its values
- * were read from, so a press on it can be traced back to the window it belongs to.
+ * were read from, so a press on it can be traced back to the period it belongs to.
  */
-function buildChartSeries({primary, comparison, view, groupBy, getLabel, getShortLabel, getCurrencyDecimals, translate, dateFnsLocale}: BuildChartSeriesParams): SearchChartModel {
-    const series: ChartSeries[] = [{key: CHART_SERIES_KEY.PRIMARY, label: primary.label, color: primary.color}];
+function buildChartSeries({
+    rows: primaryRows,
+    color,
+    comparison,
+    view,
+    groupBy,
+    getLabel,
+    getShortLabel,
+    getCurrencyDecimals,
+    translate,
+    dateFnsLocale,
+}: BuildChartSeriesParams): SearchChartModel {
+    const series: ChartSeries[] = [{key: CHART_SERIES_KEY.PRIMARY, label: comparison?.primaryPeriod.label, color: comparison?.primaryPeriod.color ?? color}];
     if (comparison) {
-        series.push({key: CHART_SERIES_KEY.COMPARISON, label: comparison.label, color: comparison.color});
+        series.push({key: CHART_SERIES_KEY.COMPARISON, label: comparison.comparisonPeriod.label, color: comparison.comparisonPeriod.color});
     }
 
     const getAmount = (item: GroupedItem) => convertToFrontendAmountAsInteger(item.total ?? 0, getCurrencyDecimals(item.currency ?? CONST.CURRENCY.USD));
-    const comparisonByPairingKey = new Map((comparison?.rows ?? []).map((item) => [getPairingKey(item, comparison?.start, groupBy), item]));
+    const comparisonByPairingKey = new Map((comparison?.rows ?? []).map((item) => [getPairingKey(item, comparison?.comparisonPeriod.range.start ?? '', groupBy), item]));
     const {bucketUnit, getBucketRange} = CHART_GROUP_BY_CONFIG[groupBy];
 
-    const rows = primary.rows.map((item) => {
-        const comparisonItem = comparison ? comparisonByPairingKey.get(getPairingKey(item, primary.start, groupBy)) : undefined;
-        const comparedLabel =
-            comparison && bucketUnit && getBucketRange && translate
-                ? getComparedBucketLabel(getBucketRange(item).start, primary, comparison, bucketUnit, translate, dateFnsLocale)
-                : undefined;
+    const rows = primaryRows.map((item) => {
+        const comparisonItem = comparison ? comparisonByPairingKey.get(getPairingKey(item, comparison.primaryPeriod.range.start, groupBy)) : undefined;
+        const comparedLabel = comparison && bucketUnit && getBucketRange ? getComparedBucketLabel(getBucketRange(item).start, comparison, bucketUnit, translate, dateFnsLocale) : undefined;
         const point: ChartDataPoint = {
             label: comparedLabel?.label ?? StringUtils.normalize(getLabel(item)),
             shortLabel: comparedLabel ? comparedLabel.shortLabel : getShortLabel?.(item),
@@ -266,18 +279,18 @@ function buildChartSeries({primary, comparison, view, groupBy, getLabel, getShor
     return {
         series,
         rows: rows.map((row, index) => {
-            let color;
+            let rowColor;
             if (pieColors) {
-                color = pieColors.at(index);
-                // Comparing tells the windows apart by color, so the per-group palette is only for a lone series.
+                rowColor = pieColors.at(index);
+                // Comparing tells the periods apart by color, so the per-group palette is only for a lone series.
             } else if (view === CONST.SEARCH.VIEW.BAR && !comparison) {
-                color = primary.color ?? VictoryTheme.colors.getColor(index);
+                rowColor = color ?? VictoryTheme.colors.getColor(index);
             }
 
-            return {...row, color};
+            return {...row, color: rowColor};
         }),
     };
 }
 
 export {buildChartSeries, getCounterpartBucketRange, getSliceColorsByDataIndex, CHART_SERIES_KEY};
-export type {SearchChartModel};
+export type {ChartComparison, SearchChartModel};

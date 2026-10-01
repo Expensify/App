@@ -1,6 +1,6 @@
 import VictoryTheme from '@components/Charts/VictoryTheme';
+import type {ChartComparison} from '@components/Search/buildChartSeries';
 import useGroupedItems from '@components/Search/hooks/useGroupedItems';
-import type {SearchChartComparison} from '@components/Search/SearchChartView';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
@@ -26,7 +26,7 @@ type InsightsChartState = ValueOf<typeof INSIGHTS_CHART_STATE>;
 
 type InsightsChartComparison = {
     /** What the chart draws beside the period on screen, absent when nothing is compared or the previous period isn't ready */
-    comparison: SearchChartComparison | undefined;
+    comparison: ChartComparison | undefined;
 
     /** The previous period's state while it keeps the chart from being drawn: loading, failed, or offline with nothing stored */
     blockingState: InsightsChartState | undefined;
@@ -57,10 +57,11 @@ function useInsightsChartComparison(chart: InsightsChartSpec, filters: InsightsF
     }
 
     return {
+        // The page's current and previous periods are the chart's primary and comparison series.
         comparison: {
-            data,
-            current: {...windows.current, color: chart.color ?? VictoryTheme.colors.default},
-            previous: {...windows.previous, color: chart.comparisonColor ?? VictoryTheme.colors.defaultDot},
+            rows: data,
+            primaryPeriod: {...windows.current, color: chart.color ?? VictoryTheme.colors.default},
+            comparisonPeriod: {...windows.previous, color: chart.comparisonColor ?? VictoryTheme.colors.defaultDot},
         },
         blockingState: undefined,
     };
