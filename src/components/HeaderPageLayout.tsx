@@ -12,11 +12,10 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ReactNode} from 'react';
 import type {ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 
-import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
 import FixedFooter from './FixedFooter';
-import HeaderWithBackButtonAndTitle from './Header/composed/HeaderWithBackButtonAndTitle';
+import Header from './Header';
 import ScreenWrapper from './ScreenWrapper';
 import ScrollView from './ScrollView';
 
@@ -73,13 +72,7 @@ function HeaderPageLayout({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const appBGColor = StyleUtils.getBackgroundColorStyle(theme.appBG);
-    const {titleColor, iconFill} = useMemo(() => {
-        const isColorfulBackground = (backgroundColor ?? theme.appBG) !== theme.appBG && (backgroundColor ?? theme.highlightBG) !== theme.highlightBG;
-        return {
-            titleColor: isColorfulBackground ? theme.textColorfulBackground : undefined,
-            iconFill: isColorfulBackground ? theme.iconColorfulBackground : undefined,
-        };
-    }, [backgroundColor, theme.appBG, theme.highlightBG, theme.iconColorfulBackground, theme.textColorfulBackground]);
+    const isColorfulBackground = !!backgroundColor && backgroundColor !== theme.appBG && backgroundColor !== theme.highlightBG;
 
     return (
         <ScreenWrapper
@@ -93,12 +86,17 @@ function HeaderPageLayout({
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithBackButtonAndTitle
-                        title={title}
-                        onBackButtonPress={onBackButtonPress}
-                        titleColor={titleColor}
-                        iconFill={iconFill}
-                    />
+                    <Header>
+                        <Header.BackButton
+                            onPress={onBackButtonPress}
+                            iconFill={isColorfulBackground ? theme.iconColorfulBackground : undefined}
+                        />
+                        <Header.Title
+                            title={title}
+                            titleStyles={isColorfulBackground ? StyleUtils.getTextColorStyle(theme.textColorfulBackground) : {}}
+                        />
+                    </Header>
+
                     <View style={[styles.flex1, appBGColor, !isOffline && footer ? safeAreaPaddingBottomStyle : {}]}>
                         {/** Safari on ios/mac has a bug where over scrolling the page ScrollView shows green background color. This is a workaround to fix that. https://github.com/Expensify/App/issues/23422 */}
                         {isSafari() && (
