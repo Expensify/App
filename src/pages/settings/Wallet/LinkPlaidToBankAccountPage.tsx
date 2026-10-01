@@ -13,6 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -70,6 +71,18 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
         clearLinkPlaidBankAccountErrors(bankAccountID);
         clearPlaid();
     });
+
+    let announcement = '';
+    if (isPlaidDisabled) {
+        announcement = translate('bankAccount.error.tooManyAttempts');
+    } else if (isSuccess) {
+        announcement = translate('walletPage.linkPlaid.successHeading');
+    } else if (isWrongAccountError) {
+        announcement = translate('walletPage.linkPlaid.wrongAccountHeading');
+    } else if (latestErrorMessage) {
+        announcement = translate('walletPage.linkPlaid.failureHeading');
+    }
+    useAccessibilityAnnouncement(announcement, !!announcement, {shouldAnnounceOnNative: true, shouldAnnounceOnWeb: true});
 
     if (isPlaidDisabled) {
         return (
