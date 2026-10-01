@@ -17,8 +17,11 @@ import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 const migratedUserWelcomeRoute = createDynamicRoute(DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path, ROUTES.HOME);
 
 const mockNavigate = jest.fn();
+type ScreensModule = {
+    default: typeof SCREENS;
+};
 jest.mock('@libs/Navigation/Navigation', () => {
-    const screens = jest.requireActual<typeof import('@src/SCREENS')>('@src/SCREENS').default;
+    const screens = jest.requireActual<ScreensModule>('@src/SCREENS').default;
     const setupScreens = new Set<string>([
         screens.TWO_FACTOR_AUTH.DYNAMIC_ROOT,
         screens.TWO_FACTOR_AUTH.DYNAMIC_VERIFY,
@@ -485,6 +488,19 @@ describe('MigratedUserWelcomeModalGuard', () => {
             await waitForBatchedUpdates();
 
             const result = MigratedUserWelcomeModalGuard.evaluate(stateWithModalOnTop, tabSwitchAction, defaultContext);
+            expect(result.type).toBe('BLOCK');
+        });
+
+        it('should still block navigation when required 2FA is active but the payload is not an object', async () => {
+            await redirectToWelcomeModal();
+            await Onyx.merge(ONYXKEYS.ACCOUNT, required2FAAccount);
+            await waitForBatchedUpdates();
+
+            const nonObjectPayloadAction: NavigationAction = {
+                type: CONST.NAVIGATION.ACTION_TYPE.NAVIGATE,
+            };
+
+            const result = MigratedUserWelcomeModalGuard.evaluate(stateWithModalOnTop, nonObjectPayloadAction, defaultContext);
             expect(result.type).toBe('BLOCK');
         });
     });

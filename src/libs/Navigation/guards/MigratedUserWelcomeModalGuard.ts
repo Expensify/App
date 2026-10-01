@@ -96,6 +96,8 @@ Onyx.connectWithoutView({
     },
 });
 
+// The guard reads the account while evaluating navigation, outside any React render.
+// useOnyx() only works during render, so connectWithoutView() is the right subscription here.
 Onyx.connectWithoutView({
     key: ONYXKEYS.ACCOUNT,
     callback: (value) => {
@@ -103,6 +105,8 @@ Onyx.connectWithoutView({
     },
 });
 
+// The guard reads onboarding while evaluating navigation, outside any React render.
+// useOnyx() only works during render, so connectWithoutView() is the right subscription here.
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_ONBOARDING,
     callback: (value) => {
@@ -124,7 +128,7 @@ function isObjectPayload(value: unknown): value is DeepestFocusedScreenInput {
 }
 
 function getActionPayloadScreenName(action: NavigationAction): string | undefined {
-    // NAVIGATE/PUSH payloads aren't full NavigationStates; getDeepestFocusedScreen accepts that shape.
+    // NAVIGATE/PUSH payloads aren't full NavigationStates. getDeepestFocusedScreen accepts that shape.
     // Use a type guard (not `as`) so we stay within this file's no-unsafe-type-assertion seatbelt.
     if (!isObjectPayload(action.payload)) {
         return undefined;
