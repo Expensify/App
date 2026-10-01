@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import HeaderCloseButton from './HeaderWithBackButtonComposed/primitives/HeaderCloseButton';
+import HeaderCloseButton from './Header/primitives/HeaderCloseButton';
 import Icon from './Icon';
 import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
