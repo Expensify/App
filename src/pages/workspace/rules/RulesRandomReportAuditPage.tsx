@@ -1,6 +1,6 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import PercentageForm from '@components/PercentageForm';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -53,10 +53,7 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
                 shouldEnableMaxHeight
                 testID="RulesRandomReportAuditPage"
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')} />
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.RULES_RANDOM_REPORT_AUDIT_MODAL_FORM}
