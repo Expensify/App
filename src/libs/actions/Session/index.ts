@@ -892,7 +892,7 @@ function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undef
  * Will create a temporary login for the user in the passed authenticate response which is used when
  * re-authenticating after an authToken expires.
  */
-function signInWithShortLivedAuthToken(authToken: string, isSAML = false, exitTo?: string) {
+function signInWithShortLivedAuthToken(authToken: string, currentAuthToken: string | undefined, isSAML = false, exitTo?: string) {
     const {optimisticData, failureData, finallyData} = getShortLivedLoginParams(false, isSAML);
     const authMethod = isSAML ? CONST.AUTH_METHOD.SAML : CONST.AUTH_METHOD.SHORT_LIVED_AUTH_TOKEN;
     // Set the in-flight guard synchronously, before awaiting device info. optimisticData below (which also sets this key)
@@ -901,12 +901,20 @@ function signInWithShortLivedAuthToken(authToken: string, isSAML = false, exitTo
     // re-fires and loops. This key is RAM-only (resets on reload), so setting it early carries no stuck-state risk; the
     // optimisticData re-sets it and finallyData reverts it exactly as before.
     Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, true);
-    Device.getDeviceInfoWithID().then((deviceInfo) => {
-        API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true, authMethod, deviceInfo}, {optimisticData, failureData, finallyData});
-    });
     NetworkStore.setLastShortAuthToken(authToken);
+
+    const signInPromise = Device.getDeviceInfoWithID().then((deviceInfo) =>
+        // We use makeRequestWithSideEffects here because the caller needs to inspect the response to detect a SESSION_MISMATCH error
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects(
+            SIDE_EFFECT_REQUEST_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN,
+            {authToken, skipReauthentication: true, authMethod, deviceInfo, currentAuthToken},
+            {optimisticData, failureData, finallyData},
+        ),
+    );
+
     if (!exitTo) {
-        return;
+        return signInPromise;
     }
 
     const login = credentials.login;
@@ -925,6 +933,8 @@ function signInWithShortLivedAuthToken(authToken: string, isSAML = false, exitTo
             Log.warn('Unable to return to the last visited path after SAML sign in', {error});
         }
     });
+
+    return signInPromise;
 }
 
 /**

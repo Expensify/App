@@ -629,6 +629,14 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Uruchamianie Expensify',
         expired: 'Twoja sesja wygasła.',
         signIn: 'Zaloguj się ponownie.',
+        notValid: 'Nieprawidłowy link.',
+        sessionMismatch: 'Link, który kliknąłeś, nie jest ważny dla twojej bieżącej sesji.',
+        switchAccount: {
+            title: 'Przełączyć konto?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `Jesteś zalogowany jako ${currentEmail}. Ta akcja zaloguje cię zamiast tego jako ${newEmail}.`,
+            confirm: 'Przełącz konta',
+            staySignedIn: 'Nie przełączaj kont',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {

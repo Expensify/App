@@ -623,6 +623,14 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: '正在启动 Expensify',
         expired: '您的会话已过期。',
         signIn: '请重新登录。',
+        notValid: '链接无效。',
+        sessionMismatch: '您点击的链接对您当前的会话无效。',
+        switchAccount: {
+            title: '切换账户？',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `您当前以 ${currentEmail} 身份登录。此操作将改为以 ${newEmail} 身份登录。`,
+            confirm: '切换账户',
+            staySignedIn: '不要切换账户',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
