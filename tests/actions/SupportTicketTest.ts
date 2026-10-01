@@ -20,13 +20,13 @@ const mockMakeRequestWithSideEffects = jest.mocked(API.makeRequestWithSideEffect
 const mockGetReportRouteForCurrentContext = jest.mocked(getReportRouteForCurrentContext);
 const mockNavigate = jest.mocked(Navigation.navigate);
 const mockGenerateReportID = jest.mocked(generateReportID);
-const reportID = 'optimisticSupportTicketReportID';
+const newSupportTicketReportID = 'optimisticSupportTicketReportID';
 
 describe('actions/Report', () => {
     beforeEach(() => {
         mockMakeRequestWithSideEffects.mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
-        mockGetReportRouteForCurrentContext.mockReturnValue(`r/${reportID}`);
-        mockGenerateReportID.mockReturnValue(reportID);
+        mockGetReportRouteForCurrentContext.mockReturnValue(`r/${newSupportTicketReportID}`);
+        mockGenerateReportID.mockReturnValue(newSupportTicketReportID);
         mockMakeRequestWithSideEffects.mockClear();
         mockGetReportRouteForCurrentContext.mockClear();
         mockGenerateReportID.mockClear();
@@ -39,9 +39,9 @@ describe('actions/Report', () => {
 
         // Then the App opens the client-generated report ID while the request is still pending
         expect(mockGenerateReportID).toHaveBeenCalled();
-        expect(mockGetReportRouteForCurrentContext).toHaveBeenCalledWith({reportID, isPendingCreation: true});
-        expect(mockNavigate).toHaveBeenCalledWith(`r/${reportID}`);
-        expect(mockMakeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, {reportID});
+        expect(mockGetReportRouteForCurrentContext).toHaveBeenCalledWith({reportID: newSupportTicketReportID, isPendingCreation: true});
+        expect(mockNavigate).toHaveBeenCalledWith(`r/${newSupportTicketReportID}`);
+        expect(mockMakeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, {newSupportTicketReportID});
 
         await request;
 
@@ -51,16 +51,19 @@ describe('actions/Report', () => {
 
     it('sends the resolved ticket ID separately when creating a reassigned support ticket', async () => {
         // Given a resolved support ticket that needs a new assigned rep
-        const resolvedReportID = 'resolvedSupportTicketReportID';
+        const resolvedSupportTicketReportID = 'resolvedSupportTicketReportID';
 
         // When the customer creates the reassigned ticket
-        const request = openSupportTicket(resolvedReportID);
+        const request = openSupportTicket(resolvedSupportTicketReportID);
 
         // Then the request uses a new client-generated report ID and identifies the old resolved ticket separately
         expect(mockGenerateReportID).toHaveBeenCalled();
-        expect(mockGetReportRouteForCurrentContext).toHaveBeenCalledWith({reportID, isPendingCreation: true});
-        expect(mockNavigate).toHaveBeenCalledWith(`r/${reportID}`);
-        expect(mockMakeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, {reportID, resolvedReportID});
+        expect(mockGetReportRouteForCurrentContext).toHaveBeenCalledWith({reportID: newSupportTicketReportID, isPendingCreation: true});
+        expect(mockNavigate).toHaveBeenCalledWith(`r/${newSupportTicketReportID}`);
+        expect(mockMakeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, {
+            newSupportTicketReportID,
+            resolvedSupportTicketReportID,
+        });
 
         await request;
     });

@@ -4852,14 +4852,14 @@ function createNewReport(
     return {...optimisticReportData, reportPreviewReportActionID};
 }
 
-function openSupportTicket(resolvedReportID?: string) {
-    const reportID = generateReportID();
+function openSupportTicket(resolvedSupportTicketReportID?: string) {
+    const newSupportTicketReportID = generateReportID();
     const parameters: CreateSupportTicketParams = {
-        reportID,
-        ...(resolvedReportID ? {resolvedReportID} : {}),
+        newSupportTicketReportID,
+        ...(resolvedSupportTicketReportID ? {resolvedSupportTicketReportID} : {}),
     };
 
-    Navigation.navigate(getReportRouteForCurrentContext({reportID, isPendingCreation: true}));
+    Navigation.navigate(getReportRouteForCurrentContext({reportID: newSupportTicketReportID, isPendingCreation: true}));
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method -- this command creates the report under the client-generated ID used by the pending route.
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, parameters).then(() => undefined);
