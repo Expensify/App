@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -128,5 +128,29 @@ describe('HelpPage', () => {
         // Then the account manager row is rendered as normal
         expect(screen.getByText(translateLocal('initialSettingsPage.helpPage.yourAccountManager'))).toBeOnTheScreen();
         expect(screen.getByText(ACCOUNT_MANAGER_NAME)).toBeOnTheScreen();
+    });
+
+    it('shows Talk to a human only for the support ticket beta', async () => {
+        await Onyx.set(ONYXKEYS.BETA_CONFIGURATION, {explicitOnly: [CONST.BETAS.SUPPORT_TICKET]});
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText(translateLocal('initialSettingsPage.talkToAHuman'))).not.toBeOnTheScreen();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.ALL, CONST.BETAS.SUPPORT_TICKET]);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText(translateLocal('initialSettingsPage.talkToAHuman'))).toBeOnTheScreen();
+        expect(screen.getByText(translateLocal('initialSettingsPage.helpPage.talkToAHumanDescription'))).toBeOnTheScreen();
+
+        const itemLabels = screen.getAllByRole('button').map((button) => button.props.accessibilityLabel as string);
+        const conciergeIndex = itemLabels.findIndex((label) => label.startsWith(translateLocal('initialSettingsPage.helpPage.conciergeChat')));
+        const talkToAHumanIndex = itemLabels.findIndex((label) => label.startsWith(translateLocal('initialSettingsPage.talkToAHuman')));
+        const helpSiteIndex = itemLabels.findIndex((label) => label.startsWith(translateLocal('initialSettingsPage.helpPage.helpSite')));
+
+        expect(conciergeIndex).toBeLessThan(talkToAHumanIndex);
+        expect(talkToAHumanIndex).toBeLessThan(helpSiteIndex);
     });
 });

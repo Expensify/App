@@ -5,14 +5,11 @@
 import useIsAgentAccount from '@hooks/useIsAgentAccount';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 
 import Navigation from '@libs/Navigation/Navigation';
 
 import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP';
-
-import {openSupportTicket} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -102,11 +99,10 @@ type MenuSection = {
 };
 
 function useSettingsNavigationMenuData(): {accountMenuItemsData: MenuSection; generalMenuItemsData: MenuSection} {
-    const icons = useMemoizedLazyExpensifyIcons(['Bot', 'Gear', 'Profile', 'Heart', 'Info', 'QuestionMark', 'Lightbulb', 'Lock', 'Users', 'CreditCard', 'Wallet', 'Bolt', 'ChatBubbles']);
+    const icons = useMemoizedLazyExpensifyIcons(['Bot', 'Gear', 'Profile', 'Heart', 'Info', 'QuestionMark', 'Lightbulb', 'Lock', 'Users', 'CreditCard', 'Wallet', 'Bolt']);
     const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const subscriptionPlan = useSubscriptionPlan();
     const isAgentAccount = useIsAgentAccount();
-    const {isBetaEnabled} = usePermissions();
 
     const accountItems: MenuData[] = [
         {
@@ -171,17 +167,6 @@ function useSettingsNavigationMenuData(): {accountMenuItemsData: MenuSection; ge
             screenName: SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.SUBSCRIPTION,
             action: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.route),
-        });
-    }
-
-    if (isBetaEnabled(CONST.BETAS.SUPPORT_TICKET)) {
-        accountItems.push({
-            translationKey: 'initialSettingsPage.talkToAHuman',
-            icon: icons.ChatBubbles,
-            sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.SUPPORT_TICKET,
-            action: () => {
-                openSupportTicket().catch(() => undefined);
-            },
         });
     }
 

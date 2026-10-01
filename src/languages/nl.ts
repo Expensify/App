@@ -2403,6 +2403,7 @@ const translations: TranslationDeepObject<typeof en> = {
         helpPage: {
             title: 'Hulp en ondersteuning',
             description: 'We zijn er 24/7 om je te helpen.',
+            talkToAHumanDescription: 'Krijg hulp van een echt persoon',
             helpSite: 'Hulpwebsite',
             helpSiteDescription: 'Artikelen, handleidingen en meer',
             conciergeChat: 'Concierge',

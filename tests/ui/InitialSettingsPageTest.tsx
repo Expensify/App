@@ -16,8 +16,6 @@ import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 
 import InitialSettingsPage from '@pages/settings/InitialSettingsPage';
 
-import {openSupportTicket} from '@userActions/Report';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -65,10 +63,6 @@ jest.mock('@userActions/Wallet', () => ({
 
 jest.mock('@userActions/App', () => ({
     setLocale: jest.fn(),
-}));
-
-jest.mock('@userActions/Report', () => ({
-    openSupportTicket: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('@libs/Navigation/helpers/useIsSidebarRouteActive', () => jest.fn(() => false));
@@ -388,26 +382,6 @@ describe('InitialSettingsPage - agent account', () => {
             expect(screen.getByTestId('menu-item-Agents')).toBeDefined();
             expect(getMenuItemTitles().slice(0, 5)).toEqual(['Profile', 'Wallet', 'Expense rules', 'Agents', 'Preferences']);
         });
-    });
-
-    it('shows Talk to a human for the support ticket beta and creates a ticket', async () => {
-        // Given a customer without the support ticket beta
-        await setupUser('user@expensify.com');
-        renderPage();
-        await waitForBatchedUpdatesWithAct();
-
-        expect(screen.queryByTestId('menu-item-Talk to a human')).toBeNull();
-
-        // When the support ticket beta is enabled and the customer selects Talk to a human
-        await act(async () => {
-            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.ALL, CONST.BETAS.SUPPORT_TICKET]);
-        });
-        await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByTestId('menu-item-Talk to a human'));
-
-        // Then the ticket creation action is started
-        expect(screen.getByTestId('menu-item-Talk to a human')).toBeDefined();
-        expect(openSupportTicket).toHaveBeenCalledWith();
     });
 });
 

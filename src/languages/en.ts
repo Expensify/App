@@ -2521,6 +2521,7 @@ const translations = {
         helpPage: {
             title: 'Help and support',
             description: 'We are here to help you 24/7.',
+            talkToAHumanDescription: 'Get help from a real person',
             helpSite: 'Help site',
             helpSiteDescription: 'Articles, tutorials, and more',
             conciergeChat: 'Concierge',

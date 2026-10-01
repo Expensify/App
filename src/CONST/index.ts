@@ -9596,7 +9596,6 @@ const CONST = {
             COPILOT: 'Account-Copilot',
             SECURITY: 'Account-Security',
             SUBSCRIPTION: 'Account-Subscription',
-            SUPPORT_TICKET: 'Account-SupportTicket',
         },
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',
@@ -10072,6 +10071,7 @@ const CONST = {
         SETTINGS_HELP: {
             CONCIERGE_CHAT: 'SettingsHelp-ConciergeChat',
             HELP_DOCS: 'SettingsHelp-HelpDocs',
+            SUPPORT_TICKET: 'SettingsHelp-SupportTicket',
             ACCOUNT_MANAGER: 'SettingsHelp-AccountManager',
             PARTNER_MANAGER: 'SettingsHelp-PartnerManager',
             GUIDE: 'SettingsHelp-Guide',

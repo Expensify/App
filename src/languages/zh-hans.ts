@@ -2325,6 +2325,7 @@ const translations: TranslationDeepObject<typeof en> = {
         helpPage: {
             title: '帮助与支持',
             description: '我们全天候为您提供帮助。',
+            talkToAHumanDescription: '获取真人客服的帮助',
             helpSite: '帮助网站',
             helpSiteDescription: '文章、教程等',
             conciergeChat: 'Concierge',

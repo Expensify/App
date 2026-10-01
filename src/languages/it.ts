@@ -2405,6 +2405,7 @@ const translations: TranslationDeepObject<typeof en> = {
         helpPage: {
             title: 'Aiuto e supporto',
             description: 'Siamo qui per aiutarti, a qualsiasi ora.',
+            talkToAHumanDescription: 'Ricevi assistenza da una persona reale',
             helpSite: 'Sito di assistenza',
             helpSiteDescription: 'Articoli, tutorial e altro',
             conciergeChat: 'Concierge',

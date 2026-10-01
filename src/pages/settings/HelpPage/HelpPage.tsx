@@ -12,6 +12,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -20,7 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openHelpPage} from '@libs/actions/Help';
 import {openExternalLink} from '@libs/actions/Link';
-import {navigateToAndOpenReportWithAccountIDs} from '@libs/actions/Report';
+import {navigateToAndOpenReportWithAccountIDs, openSupportTicket} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 
 import colors from '@styles/theme/colors';
@@ -44,7 +45,7 @@ function isConciergePersonalDetail(details: PersonalDetails | null | undefined):
 
 function HelpPage() {
     const icons = useMemoizedLazyExpensifyIcons(['ConciergeAvatar', 'NewWindow', 'Monitor']);
-    const illustrations = useMemoizedLazyIllustrations(['Chalkboard', 'TopiaryDollarSign']);
+    const illustrations = useMemoizedLazyIllustrations(['ChatBubbles', 'Chalkboard', 'TopiaryDollarSign']);
     const themeIllustrations = useThemeIllustrations();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -62,6 +63,7 @@ function HelpPage() {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
+    const {isBetaEnabled} = usePermissions();
 
     // Remove the row's accessibility grouping so native (iOS/Android) screen readers can announce the nested
     // Book a call button as its own element; on web this prop is a no-op and the button is reached via keyboard Tab instead
@@ -194,7 +196,21 @@ function HelpPage() {
         sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.HELP_DOCS,
     };
 
-    const moreResourcesItems = hasActiveItem ? [helpSiteItem] : [conciergeItem, helpSiteItem];
+    const talkToAHumanItem = isBetaEnabled(CONST.BETAS.SUPPORT_TICKET)
+        ? {
+              key: 'initialSettingsPage.talkToAHuman',
+              title: translate('initialSettingsPage.talkToAHuman'),
+              description: translate('initialSettingsPage.helpPage.talkToAHumanDescription'),
+              icon: illustrations.ChatBubbles,
+              iconType: CONST.ICON_TYPE_AVATAR,
+              onPress: () => openSupportTicket().catch(() => undefined),
+              shouldShowRightIcon: true,
+              wrapperStyle: [styles.sectionMenuItemTopDescription],
+              sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.SUPPORT_TICKET,
+          }
+        : null;
+
+    const moreResourcesItems = [...(hasActiveItem ? [] : [conciergeItem]), ...(talkToAHumanItem ? [talkToAHumanItem] : []), helpSiteItem];
 
     useEffect(() => {
         openHelpPage();
