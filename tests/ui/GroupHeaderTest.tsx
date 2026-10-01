@@ -64,6 +64,8 @@ const baseState = {
     currentSearchTransactionsByReportID: new Map(),
     currentSearchViolations: {},
     currentSelectedTransactionReportID: undefined,
+    currentDefaultSearchQueryJSON: undefined,
+    currentDefaultSearchQueryFilterKeys: new Set(),
     selectedReports: [],
     selectedTransactionIDs: [],
     selectedTransactions: {},
@@ -84,6 +86,9 @@ const baseActions = {
     setLastSearchType: jest.fn(),
     setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
+    getSelectedTransactions: jest.fn(() => ({})),
+    getExcludedTransactions: () => ({}),
+    getAreAllMatchingItemsSelected: () => false,
     applySelection: jest.fn(),
     setSelectedReports: jest.fn(),
     removeTransaction: jest.fn(),
@@ -92,14 +97,16 @@ const baseActions = {
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
     setSortedReportIDs: jest.fn(),
+    getSearchKeyForQuery: jest.fn(),
 } satisfies SearchActionsContextValue;
+
+/** Wide enough that the sub-header's column widths never exceed it, so no horizontal scroller is involved here. */
+const WINDOW_WIDTH = 1500;
 
 function renderGroupHeader(rows: TransactionListItemType[], selection: SelectedTransactions, onCheckboxPress = jest.fn()) {
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
-            <ScreenWrapperStatusContext
-                value={{didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: false, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}}
-            >
+            <ScreenWrapperStatusContext value={{didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}}>
                 <MockSearchContextProvider
                     state={{...baseState, selectedTransactions: selection}}
                     actions={baseActions}
@@ -115,6 +122,7 @@ function renderGroupHeader(rows: TransactionListItemType[], selection: SelectedT
                         onCheckboxPress={onCheckboxPress}
                         isFirstItem
                         isLastItem={false}
+                        windowWidth={WINDOW_WIDTH}
                     />
                 </MockSearchContextProvider>
             </ScreenWrapperStatusContext>

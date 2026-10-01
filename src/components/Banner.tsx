@@ -14,7 +14,7 @@ import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import React, {memo} from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';

@@ -53,7 +53,7 @@ function HomeTaskGroup({title, rows, children, reducedTopGap = false}: HomeTaskG
                 <Text style={styles.textLabelSupporting}>{title}</Text>
             </View>
             {rows.length > 0 && (
-                <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
+                <View style={styles.getWidgetRowGroupStyle(shouldUseNarrowLayout)}>
                     {visibleRows}
                     {hiddenCount > 0 && (
                         <HomeSectionExpandToggle

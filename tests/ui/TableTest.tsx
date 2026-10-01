@@ -2427,7 +2427,7 @@ describe('Table', () => {
             isInLandscapeMode: false,
         } as ResponsiveLayoutResult;
 
-        const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: false, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
+        const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
 
         const immediateFilterConfig: FilterConfig = {
             status: {
@@ -2980,17 +2980,7 @@ describe('Table', () => {
             </Table.Row>
         );
 
-        function ControlledSelectableTable({
-            data = mockData,
-            initialSelected = [],
-            showSearch = false,
-            shouldPreserveSelectionOnSearch = false,
-        }: {
-            data?: TestItem[];
-            initialSelected?: string[];
-            showSearch?: boolean;
-            shouldPreserveSelectionOnSearch?: boolean;
-        }) {
+        function ControlledSelectableTable({data = mockData, initialSelected = [], showSearch = false}: {data?: TestItem[]; initialSelected?: string[]; showSearch?: boolean}) {
             const [selectedKeys, setSelectedKeys] = React.useState<string[]>(initialSelected);
             const props = createDefaultProps();
             return (
@@ -3002,7 +2992,6 @@ describe('Table', () => {
                         renderItem={renderSelectableRow}
                         keyExtractor={props.keyExtractor}
                         selectionEnabled
-                        shouldPreserveSelectionOnSearch={shouldPreserveSelectionOnSearch}
                         selectedKeys={selectedKeys}
                         isItemInSearch={props.isItemInSearch}
                         onRowSelectionChange={setSelectedKeys}
@@ -3082,30 +3071,24 @@ describe('Table', () => {
             expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,2,4,5$/);
         });
 
-        it('should preserve opted-in selection through a no-results search and clear', () => {
-            render(
-                <ControlledSelectableTable
-                    showSearch
-                    shouldPreserveSelectionOnSearch
-                />,
-            );
-
-            pressRow(0);
-            pressRow(2);
-            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,3$/);
-            fireEvent.changeText(screen.getByTestId('search-input'), 'no matching row');
-            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,3$/);
-
-            fireEvent.changeText(screen.getByTestId('search-input'), '');
-            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,3$/);
-        });
-
-        it('should keep clearing selection on search when preservation is not enabled', () => {
+        it('should clear the selection when the search string changes', () => {
             render(<ControlledSelectableTable showSearch />);
 
             pressRow(0);
             pressRow(2);
             fireEvent.changeText(screen.getByTestId('search-input'), 'no matching row');
+            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^$/);
+        });
+
+        it('should clear a Select All made inside a search once the search string is cleared', () => {
+            render(<ControlledSelectableTable showSearch />);
+
+            // Narrow the list to the two vegetables, then select every visible row
+            fireEvent.changeText(screen.getByTestId('search-input'), 'vegetable');
+            fireEvent.press(screen.getByLabelText('workspace.common.selectAll'));
+            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^3,5$/);
+
+            fireEvent.changeText(screen.getByTestId('search-input'), '');
             expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^$/);
         });
     });

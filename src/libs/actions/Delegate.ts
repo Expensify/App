@@ -51,6 +51,7 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.NETWORK,
     ONYXKEYS.ACTIVE_SERVER,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
+    ONYXKEYS.BETA_OVERRIDES,
     ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS,
     ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
 
@@ -378,6 +379,7 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
                         ? delegate
                         : {
                               ...delegate,
+                              role,
                               isLoading: true,
                               pendingFields: {
                                   email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -430,6 +432,7 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
                         ? delegate
                         : {
                               ...delegate,
+                              role,
                               isLoading: false,
                               pendingAction: null,
                               pendingFields: {email: null, role: null},
@@ -478,6 +481,7 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
                         ? delegate
                         : {
                               ...delegate,
+                              role,
                               isLoading: false,
                           },
                 ) ?? []
@@ -882,6 +886,7 @@ function openSecuritySettingsPage() {
 }
 
 export {
+    KEYS_TO_PRESERVE_DELEGATE_ACCESS,
     connect,
     disconnect,
     clearDelegatorErrors,

@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
@@ -28,6 +28,7 @@ import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,7 +37,6 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {getCategoryApproverRule, getDecodedCategoryName} from '@libs/CategoryUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -77,6 +77,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const {environmentURL} = useEnvironment();
@@ -96,8 +98,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {canWrite: canWriteCategories, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
-    const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
 
     const [selectedCategoryKeys, setSelectedCategoryKeys] = useState<string[]>([]);
     const canSelectMultiple = canWriteCategories && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
@@ -191,6 +192,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 return;
             }
             setWorkspaceCategoryEnabled({
+                isVendorMatchingBetaEnabled,
                 policyData,
                 categoriesToUpdate: {[categoryName]: {name: categoryName, enabled: value}},
                 isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
@@ -208,6 +210,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             });
         },
         [
+            isVendorMatchingBetaEnabled,
             policyData,
             isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
@@ -229,12 +232,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const navigateToCategory = useCallback(
         (category: PolicyCategories[string]) => {
             const path = isQuickSettingsFlow
-                ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(category.name))
-                : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(category.name));
+                ? buildDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(category.name))
+                : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(category.name));
 
             Navigation.navigate(path);
         },
-        [isQuickSettingsFlow],
+        [buildDynamicRoute, isQuickSettingsFlow],
     );
 
     const handleCategoryToggle = useCallback(
@@ -320,11 +323,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     ]);
 
     const navigateToCategoriesSettings = useCallback(() => {
-        Navigation.navigate(createDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_CATEGORIES_SETTINGS.path : DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_SETTINGS.path));
-    }, [isQuickSettingsFlow]);
+        Navigation.navigate(buildDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_CATEGORIES_SETTINGS.path : DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_SETTINGS.path));
+    }, [buildDynamicRoute, isQuickSettingsFlow]);
 
     const navigateToCreateCategoryPage = () => {
-        Navigation.navigate(createDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_CATEGORY_CREATE.path : DYNAMIC_ROUTES.WORKSPACE_CATEGORY_CREATE.path));
+        Navigation.navigate(buildDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_CATEGORY_CREATE.path : DYNAMIC_ROUTES.WORKSPACE_CATEGORY_CREATE.path));
     };
 
     const handleDeleteCategories = () => {
@@ -338,6 +341,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 currentUserPersonalDetails.accountID,
                 hasOutstandingChildTask,
                 parentReportAction,
+                isVendorMatchingBetaEnabled,
             );
         }
 
@@ -367,9 +371,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         Navigation.navigate(
             isQuickSettingsFlow
                 ? ROUTES.SETTINGS_CATEGORIES_IMPORT.getRoute(policyId, ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyId, backTo))
-                : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORT.path),
+                : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORT.path),
         );
-    }, [backTo, isOffline, isQuickSettingsFlow, policyId, showOfflineModal]);
+    }, [backTo, buildDynamicRoute, isOffline, isQuickSettingsFlow, policyId, showOfflineModal]);
 
     const secondaryActions = useMemo(() => {
         const menuItems = [];
@@ -445,9 +449,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         icons.Gear,
         icons.Table,
         translate,
-        navigateToCategoriesSettings,
         canWriteCategories,
         isRulesRevampEnabled,
+        navigateToCategoriesSettings,
         policy?.glCodes,
         policy?.showCategoryGLCodes,
         policy?.areCategoriesEnabled,
@@ -524,6 +528,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         }
                         clearTableSelection();
                         setWorkspaceCategoryEnabled({
+                            isVendorMatchingBetaEnabled,
                             policyData,
                             categoriesToUpdate: categoriesToDisable,
                             isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
@@ -561,6 +566,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     onSelected: () => {
                         clearTableSelection();
                         setWorkspaceCategoryEnabled({
+                            isVendorMatchingBetaEnabled,
                             policyData,
                             categoriesToUpdate: categoriesToEnable,
                             isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,

@@ -1,5 +1,5 @@
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
-import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
+import ListItemComposed from '@components/SelectionList/ListItemComposed';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useOnyx from '@hooks/useOnyx';
@@ -14,6 +14,7 @@ import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
+import {View} from 'react-native';
 
 import type {TaskListItemProps, TaskListItemType} from './types';
 
@@ -65,14 +66,13 @@ function TaskListItem<TItem extends ListItem>({
     const fsClass = FS.getChatFSClass(parentReport);
 
     return (
-        <BaseListItem
+        <ListItemComposed
             item={item}
             pressableStyle={pressableStyle}
-            wrapperStyle={listItemWrapperStyle}
-            containerStyle={!isLargeScreenWidth && [styles.mb2]}
+            containerStyle={!isLargeScreenWidth && styles.mb2}
             isFocused={isFocused}
             isDisabled={isDisabled}
-            showTooltip={showTooltip}
+            shouldShowTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
             onFocus={onFocus}
@@ -80,13 +80,17 @@ function TaskListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={isSelected && styles.activeComponentBG}
             pressableWrapperStyle={pressableWrapperStyle}
-            forwardedFSClass={fsClass}
         >
-            <TaskListItemRow
-                item={liveTaskItem}
-                showTooltip={showTooltip}
-            />
-        </BaseListItem>
+            <View
+                style={listItemWrapperStyle}
+                fsClass={fsClass}
+            >
+                <TaskListItemRow
+                    item={liveTaskItem}
+                    showTooltip={showTooltip}
+                />
+            </View>
+        </ListItemComposed>
     );
 }
 
