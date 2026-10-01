@@ -1,6 +1,5 @@
-import Header from '@components/Header';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import type {FilterConfig, IsItemInFilterCallback} from '@components/Table';
 import DomainMembersTable from '@components/Tables/DomainMembersTable';
 import type {DomainMemberRowData, DomainMembersTableFilterKey} from '@components/Tables/DomainMembersTable';
@@ -9,6 +8,8 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import Navigation from '@navigation/Navigation';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -75,17 +76,15 @@ function BaseDomainMembersPage({
                 shouldShowOfflineIndicatorInWideScreen
                 testID="BaseDomainMembersPage"
             >
-                <Header>
-                    {shouldUseNarrowLayout && <Header.BackButton onPress={onBackButtonPress} />}
-                    <Header.Title
-                        title={useSelectionModeHeader ? translate('common.selectMultiple') : headerTitle}
-                        titleStyles={!useSelectionModeHeader && styles.textHeadlineH2}
-                    />
-                    <Header.Right>
-                        {!shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
-                        <SidePanelButton />
-                    </Header.Right>
-                </Header>
+                <HeaderWithBackButton
+                    title={useSelectionModeHeader ? translate('common.selectMultiple') : headerTitle}
+                    onBackButtonPress={onBackButtonPress ?? Navigation.goBack}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldUseHeadlineHeader={!useSelectionModeHeader}
+                    shouldDisplayHelpButton
+                >
+                    {!shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                </HeaderWithBackButton>
                 {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 <DomainMembersTable
                     domainAccountID={domainAccountID}
