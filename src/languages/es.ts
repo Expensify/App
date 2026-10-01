@@ -9808,7 +9808,7 @@ ${reportName}`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Facturación consolidada de viajes',
             },
             is: 'Es',
-            has: {submittedViolation: 'Infracción enviada', approvedViolation: 'Infracción aprobada'},
+            has: {submittedViolation: 'Infracción enviada', approvedViolation: 'Infracción aprobada', requiredWithAnyApproval: 'Requerido con el filtro de cualquier aprobación'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Enviar',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Aprobar',

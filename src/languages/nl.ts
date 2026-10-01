@@ -9875,7 +9875,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Geconsolideerde reisfacturatie',
             },
             is: 'Is',
-            has: {submittedViolation: 'Ingediende overtreding', approvedViolation: 'Goedgekeurde schending'},
+            has: {submittedViolation: 'Ingediende overtreding', approvedViolation: 'Goedgekeurde schending', requiredWithAnyApproval: 'Vereist met het filter ‘iedere goedkeuring’'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Verzenden',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Goedkeuren',
