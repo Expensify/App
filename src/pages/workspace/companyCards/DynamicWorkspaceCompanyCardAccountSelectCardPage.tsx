@@ -7,6 +7,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
+import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -17,6 +18,7 @@ import {setCompanyCardExportAccount} from '@libs/actions/CompanyCards';
 import {getCompanyCardFeed, getDomainOrWorkspaceAccountID, isExpensifyCard as isExpensifyCardUtil} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import Navigation from '@navigation/Navigation';
@@ -71,7 +73,12 @@ function DynamicWorkspaceCompanyCardAccountSelectCardPage({route}: DynamicWorksp
     const featureName = isExpensifyCard ? CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED : CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED;
     const policyFeature = isExpensifyCard ? CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD : CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS;
 
-    const searchedListOptions = tokenizedSearch(exportMenuItem?.data ?? [], searchText, (option) => [option.text ?? option.value]);
+    // Freeze the export account selected when the page opened so it stays pinned to the top of the list.
+    const selectedExportValue = exportMenuItem?.data?.find((option) => option.isSelected)?.value;
+    const initialExportValue = useInitialSelection(selectedExportValue, {resetOnFocus: true});
+    // Pin the frozen initial account to the top of the full list before filtering, so it stays pinned while searching.
+    const orderedListOptions = moveInitialSelectionToTop(exportMenuItem?.data ?? [], initialExportValue !== undefined ? [String(initialExportValue)] : []);
+    const searchedListOptions = tokenizedSearch(orderedListOptions, searchText, (option) => [option.text ?? option.value]);
 
     const listEmptyContent = (
         <BlockingView
@@ -129,6 +136,7 @@ function DynamicWorkspaceCompanyCardAccountSelectCardPage({route}: DynamicWorksp
                 }}
                 onSelectRow={updateExportAccount}
                 initiallyFocusedOptionKey={exportMenuItem?.data?.find((mode) => mode.isSelected)?.keyForList}
+                shouldUpdateFocusedIndex
                 onBackButtonPress={() => Navigation.goBack(backPath)}
                 headerTitleAlreadyTranslated={exportMenuItem?.description}
                 listEmptyContent={listEmptyContent}

@@ -132,7 +132,7 @@ type ListItemProps<TItem extends ListItem> = {
     canSelectMultiple?: boolean;
 
     onSelectRow: (item: TItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
-    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
+    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
     onDismissError?: (item: TItem) => void;
     onFocus?: ListItemFocusEventHandler;
 
@@ -224,7 +224,7 @@ type SelectableListItemProps<TItem extends ListItem> = PropsWithChildren<{
     onSelectRow: (item: TItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
 
     /** Callback to fire when the selection button is pressed */
-    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
+    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
     onDismissError?: (item: TItem) => void;
     onFocus?: ListItemFocusEventHandler;
     isDisabled?: boolean | null;
