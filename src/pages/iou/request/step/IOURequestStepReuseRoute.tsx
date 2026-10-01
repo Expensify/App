@@ -153,7 +153,7 @@ function IOURequestStepReuseRoute({
             return;
         }
         isNavigatingRef.current = true;
-        selectReusableRoute(transactionID, item.route)
+        selectReusableRoute(transactionID, item.route, transaction?.comment?.waypoints)
             .then(() => setSelectedRoute(item.route))
             .catch(() => {
                 isNavigatingRef.current = false;

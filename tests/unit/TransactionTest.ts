@@ -2771,7 +2771,7 @@ describe('Transaction', () => {
                 waypoint1: {address: 'Y', lat: 30, lng: 40},
             };
 
-            await updateWaypoints(transactionID, newWaypoints, CONST.TRANSACTION.STATE.DRAFT);
+            await updateWaypoints(transactionID, newWaypoints, CONST.TRANSACTION.STATE.DRAFT, existingTransaction.comment?.waypoints);
             await waitForBatchedUpdates();
 
             const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);

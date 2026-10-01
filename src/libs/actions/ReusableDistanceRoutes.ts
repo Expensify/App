@@ -39,11 +39,13 @@ function fetchReusableDistanceRoutes() {
     read(READ_COMMANDS.OPEN_REUSE_ROUTE_PAGE, null, {optimisticData, successData, failureData});
 }
 
+import type {WaypointCollection} from '@src/types/onyx/Transaction';
+
 /**
  * Seeds the draft transaction from a reused route.
  */
-function selectReusableRoute(transactionID: string, route: ReusableDistanceRoute) {
-    return updateWaypoints(transactionID, route.waypoints, CONST.TRANSACTION.STATE.DRAFT).then(() =>
+function selectReusableRoute(transactionID: string, route: ReusableDistanceRoute, existingWaypoints?: WaypointCollection) {
+    return updateWaypoints(transactionID, route.waypoints, CONST.TRANSACTION.STATE.DRAFT, existingWaypoints).then(() =>
         Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
             iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             isReusedRoute: true,

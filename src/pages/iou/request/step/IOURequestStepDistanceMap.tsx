@@ -307,7 +307,7 @@ function IOURequestStepDistanceMap({
 
             Promise.all([
                 removeWaypoint(transaction, emptyWaypointIndex.toString(), shouldUseTransactionDraft(action), undefined),
-                updateWaypointsUtil(transactionID, newWaypoints, transactionState),
+                updateWaypointsUtil(transactionID, newWaypoints, transactionState, waypoints),
             ]).then(() => {
                 setOptimisticWaypoints(null);
             });
