@@ -494,14 +494,7 @@ function linkPlaidToBankAccount(bankAccountID: number, publicToken: string) {
                 value: {[bankAccountID]: {isLoading: true, errors: null}},
             },
         ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.BANK_ACCOUNT_LIST,
-                value: {[bankAccountID]: {isLoading: false}},
-            },
-        ],
-        failureData: [
+        finallyData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.BANK_ACCOUNT_LIST,
