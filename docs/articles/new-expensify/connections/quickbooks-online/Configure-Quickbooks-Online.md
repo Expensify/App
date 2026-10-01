@@ -58,7 +58,7 @@ To choose how data is exported from Expensify to QuickBooks Online:
   - Debit card
     - For both Credit card and Debit card, optionally select a **Default vendor** to apply to expenses that don't auto-match a vendor. If you leave it blank, those expenses export as **Credit Card Misc** or **Debit Card Misc**. Learn how vendors are imported, matched, and exported in [QuickBooks Online Vendor Matching](/articles/new-expensify/connections/quickbooks-online/Manage-Vendor-Matching-for-QuickBooks-Online).
   - Vendor bill
-    - If exporting as vendor bills, select the AP account and optionally select a **Default vendor**. QuickBooks Online doesn't substitute a Credit Card Misc or Debit Card Misc vendor on vendor bill exports
+    - If exporting as vendor bills, select the AP account and optionally select a **Default vendor**. QuickBooks Online doesn't substitute a **Credit Card Misc** or **Debit Card Misc** vendor on vendor bill exports.
     - Vendor bill is unavailable when locations are imported as tags. To keep it available, import locations as report fields (only available on the **Control** plan)
 - **Export Consolidated Travel Billing expenses as**: This option appears only when [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) is enabled. Travel expenses export as credit card charges. Click it, then select the **Credit card account** where travel expenses will post in QuickBooks Online.
 
