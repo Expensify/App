@@ -77,7 +77,7 @@ If someone no longer needs access to your workspace, you can remove them individ
 
 ## Remove Multiple Members
 
-1. Go to **Workspaces > Members**.
+1. Go to **Workspaces > [Workspace Name] > Members**.
 2. Select the checkboxes next to the members you want to remove.
 3. Click the **green dropdown arrow** in the top-right.
 4. Choose **Remove Member(s)**.
@@ -87,7 +87,7 @@ If someone no longer needs access to your workspace, you can remove them individ
 
 # Change a User’s Role
 
-1. Go to **Workspaces > Members**.
+1. Go to **Workspaces > [Workspace Name] > Members**.
 2. Click the member’s name.
 3. In the right-hand panel, click **Roles**.
 4. Select the new role and confirm.
@@ -117,8 +117,8 @@ After the transfer, the initiating user becomes the new **Owner**.
 
 # Invite Multiple Members via Spreadsheet
 
-1. Go to **Workspaces > Members**.
-2. Click the **three-dot menu** in the top-right.
+1. Go to **Workspaces > [Workspace Name] > Members**.
+2. Select the three dots **(⋮)** in the top-right.
 3. Select **Import via Spreadsheet**.
 4. Drag and drop your file or click **Upload File** to browse.
 5. Map each column in your file to a member field, then complete the import.
@@ -144,10 +144,12 @@ Mapping the **Submit to**, **Forward to**, **Over limit forward to**, and **Appr
 
 # Download a CSV of workspace members
 
-To download or export a list of workspace members to a CSV file:
+Workspace admins, People admins, and Editors on Submit workspaces can download a CSV of workspace members.
 
-1. Go to **Workspaces > Members**.
-2. Click the **three-dot menu** in the top-right.
+To download a list of workspace members to a CSV file:
+
+1. Go to **Workspaces > [Workspace Name] > Members**.
+2. Select the three dots **(⋮)** in the top-right.
 3. Select **Download CSV**.
 
 The CSV file will be downloaded to your computer.
@@ -165,4 +167,8 @@ Yes. Use the search tool during invite or import members using a spreadsheet (se
 ## Why am I prompted to upgrade when importing members from a spreadsheet?
 
 Your file maps an advanced field (**Submit to**, **Forward to**, **Over limit forward to**, **Approval limit**, **Custom field 1**, or **Custom field 2**) or assigns a specialized role like **Auditor** or **Card admin**. These are only available on the Control plan, so you'll need to upgrade your workspace to the Control plan before the import can finish.
+
+## Why can't I download a list of workspace members to a CSV file?
+
+Only Workspace admins, People admins, and Editors on Submit workspaces can download the list of workspace members to a CSV file. If you are a Member, Auditor, Card admin, or Payments admin, you will not be able to download the members list.
 
