@@ -40,6 +40,8 @@ To review and approve a report submitted to you for approval:
 2. Review details like the receipt, amount, and description.
 3. Click **Approve** at the top of the report. 
 
+**Note:** As an approver, you can also see a member's Draft (unsubmitted) reports in **Spend > Reports**. Draft reports don't appear in **For you** or **Needs approval** until the member submits them.
+
 ---
 
 ## How to approve a report that contains held expenses
@@ -185,6 +187,9 @@ A rejection made while offline is only sent once you reconnect. If the expense w
 
 ## What are expense reports?
 Expense reports group multiple expenses into one batch for review or payment. Draft reports collect new expenses automatically. You can check the status of an expense under **Spend > Expenses**.
+
+## Why can I see a member's Draft report that isn't waiting for my approval?
+Approvers in a member's approval workflow, Workspace Admins, and the member's copilots can view the member's reports in **Spend > Reports**, including Draft (unsubmitted) reports. A Draft report only appears in **Needs approval** after the member submits it.
 
 ## What happens after I approve a report?
 
