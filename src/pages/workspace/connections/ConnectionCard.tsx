@@ -109,7 +109,7 @@ function ConnectionCard({listing, columnCount}: ConnectionCardProps) {
                 description={status?.message}
                 badgeText={offer ? translate('workspace.accounting.claimOffer.badgeText') : undefined}
                 isBadgeSuccess
-                isBadgeCondensed
+                badgeStyle={[styles.minHeight5, styles.mt1]}
                 shouldShowBadgeBelow
                 onBadgePress={offer?.onPress}
                 numberOfLinesDescription={1}

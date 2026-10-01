@@ -1057,11 +1057,11 @@ function MenuItem({
                                                                 text={badgeText}
                                                                 icon={badgeIcon}
                                                                 badgeStyles={[
-                                                                    badgeStyle,
                                                                     styles.alignSelfStart,
                                                                     styles.ml3,
                                                                     styles.mt2,
                                                                     focused && !isBadgeSuccess && styles.badgeDefaultActive,
+                                                                    badgeStyle,
                                                                 ]}
                                                                 success={isBadgeSuccess}
                                                                 isStrong={isBadgeStrong}
