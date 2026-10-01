@@ -101,7 +101,7 @@ function getAvailableCompanyCardTypes({translate, typeSelected, styles, companyC
     if (shouldShowMockFeed) {
         cards.push({
             value: CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK,
-            text: translate('workspace.companyCards.addNewCard.cardProviders.vcfmock'),
+            text: CONST.COMPANY_CARDS.CARD_TYPE_NAMES.MOCK_COMMERCIAL,
             keyForList: CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK,
             isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK,
             leftElement: (

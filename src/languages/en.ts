@@ -6481,7 +6481,6 @@ const translations = {
                     gl1025: 'American Express Corporate Cards',
                     cdf: 'Mastercard Commercial Cards',
                     vcf: 'Visa Commercial Cards',
-                    vcfmock: 'Mock Commercial Feed',
                     stripe: 'Stripe Cards',
                 },
                 yourCardProvider: `Who's your card provider?`,
