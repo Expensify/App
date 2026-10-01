@@ -487,6 +487,14 @@ type SettingsNavigatorParamList = {
         policyID: string;
         categoryName: string;
     };
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_TAX_RULE_NEW]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_TAX_RULE_EDIT]: {
+        policyID: string;
+        categoryName: string;
+    };
     [SCREENS.WORKSPACE.UPGRADE]: {
         policyID?: string;
         featureName?: string;
@@ -764,6 +772,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: {
+        policyID: string;
+        accountID: string;
+    };
+    [SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT]: {
         policyID: string;
         accountID: string;
     };
@@ -1450,6 +1462,20 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_COMPANY_CARD_ACCOUNT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_CARD_PROGRAM_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_CARD_PROGRAM_ACCOUNT_SELECTOR]: {
+        policyID: string;
+        feed: CardFeedWithDomainID;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_CARD_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_CARD_ACCOUNT_CARD_LIST]: {
+        policyID: string;
+        feed: CardFeedWithDomainID;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_ADVANCED]: {
         policyID: string;
     };
@@ -1478,6 +1504,33 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_PREFERRED_EXPORTER]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_DATE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_REIMBURSABLE_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_NONREIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_COMPANY_CARD_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_DEFAULT_VENDOR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {
@@ -1838,8 +1891,8 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_TAX]: {
         policyID: string;
         ruleID?: undefined;
-        /** The callout flow only ever creates merchant rules, never a category tax default */
-        categoryName?: undefined;
+        /** Set when opened from a category tax default in the category details RHP, absent from the callout flow */
+        categoryName?: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_VENDOR]: {
         policyID: string;
