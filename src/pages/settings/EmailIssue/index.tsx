@@ -1,6 +1,6 @@
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -86,7 +86,7 @@ function EmailIssuePage() {
             testID="EmailIssuePage"
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton title={translate('emailIssuePage.title')} />
+            <HeaderWithBackButtonAndTitle title={translate('emailIssuePage.title')} />
             <ScrollView
                 style={styles.flex1}
                 contentContainerStyle={[styles.flexGrow1, styles.ph5]}
