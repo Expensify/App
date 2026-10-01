@@ -62,6 +62,7 @@ function CategoryField({
 }: CategoryFieldProps) {
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const {isEditingSplitBill} = useConfirmationFields();
+    const {isBetaEnabled} = usePermissions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
@@ -149,11 +150,14 @@ function CategoryField({
     // only expense it edits in place is a split, which is written to its own draft and needs no report at all.
     const canSaveFromThisForm = action !== CONST.IOU.ACTION.EDIT || isEditingSplitBill;
 
-    const canUseAnchoredFieldDropdowns = true;
+    // Behind a beta while the rest of the form's list fields are still being converted, so a form where category
+    // opens in place and the four rows under it push a page never reaches everyone.
+    const canUseAnchoredFieldDropdowns = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS);
+
     // The list answers the field in place only when it is the whole answer. Sending the user to pick a workspace
     // or through an upgrade first, or having no list loaded to show, all still take the page they took before.
     const shouldOpenInDropdown =
-        !!canUseAnchoredFieldDropdowns && !!transactionID && !!policy && !shouldNavigateToUpgradePath && !shouldSelectPolicy && hasEnabledCategories && canSaveFromThisForm;
+        canUseAnchoredFieldDropdowns && !!transactionID && !!policy && !shouldNavigateToUpgradePath && !shouldSelectPolicy && hasEnabledCategories && canSaveFromThisForm;
 
     if (shouldUseDropdownRows) {
         return (
