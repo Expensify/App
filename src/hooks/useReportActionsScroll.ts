@@ -160,7 +160,7 @@ function useReportActionsScroll({
     setTreatAsNoPaginationAnchor,
 }: UseReportActionsScrollParams): UseReportActionsScrollResult {
     const reportScrollManager = useReportScrollManager();
-    const {scrollOffsetRef} = useActionListContext();
+    const {scrollOffsetRef, scrollOffsetSV, maxScrollOffsetSV} = useActionListContext();
     const {windowHeight} = useWindowDimensions();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
@@ -226,7 +226,12 @@ function useReportActionsScroll({
             isInverted: true,
             shouldDisablePillTracking,
             onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-                scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
+                const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
+                scrollOffsetRef.current = contentOffset.y;
+                scrollOffsetSV.set(contentOffset.y);
+                // Clamped because a list shorter than its viewport reports a negative range, which would put every
+                // offset past the end.
+                maxScrollOffsetSV.set(Math.max(contentSize.height - layoutMeasurement.height, 0));
             },
             actionBadgeTargetIndex,
             shouldBeAlignedToTop,

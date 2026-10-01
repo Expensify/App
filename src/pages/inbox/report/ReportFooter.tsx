@@ -15,6 +15,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldUseCompactChatChrome from '@hooks/useShouldUseCompactChatChrome';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -65,6 +66,7 @@ function ReportFooter() {
     // must keep rendering their own inline one.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const shouldUseCompactChrome = useShouldUseCompactChatChrome();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
@@ -98,7 +100,11 @@ function ReportFooter() {
         return null;
     }
 
-    const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
+    // The min height keeps the footer from collapsing behind the offline indicator, but it also pads out the compose
+    // row past its content. On mobile web in landscape the compose box's own min height is the only floor — see
+    // useShouldUseCompactChatChrome.
+    const chatFooterMinHeight = !isOffline && !shouldUseCompactChrome ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0;
+    const chatFooterStyles = {...styles.chatFooter, minHeight: chatFooterMinHeight};
 
     // Happy path — user can compose
     if (!shouldHideComposer) {

@@ -9324,6 +9324,9 @@ const CONST = {
             SHOW_ACTOR_DETAILS: 'AvatarWithDisplayName-ShowActorDetails',
             GO_TO_DETAILS_PAGE: 'AvatarWithDisplayName-GoToDetailsPage',
         },
+        REPORT_SCREEN: {
+            FLOATING_BACK_BUTTON: 'ReportScreen-FloatingBackButton',
+        },
         HEADER_VIEW: {
             BACK_BUTTON: 'HeaderView-BackButton',
             CHRONOS_TIMER_BUTTON: 'HeaderView-ChronosTimerButton',

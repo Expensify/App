@@ -37,6 +37,9 @@ export default {
     debugTabViewHeight: 64,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
     contentHeaderNarrowHeight: getValueUsingPixelRatio(64, 100),
+    // Vertical space is scarce on mobile web in landscape, so the report header drops the slack around its
+    // title/subtitle stack (~40pt of intrinsic content) instead of padding it out to the full height.
+    contentHeaderCompactHeight: getValueUsingPixelRatio(48, 66),
     contentHeaderDesktopHeight: getValueUsingPixelRatio(80, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
     componentSizeXSmall: getValueUsingPixelRatio(20, 24),

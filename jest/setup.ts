@@ -140,6 +140,28 @@ jest.mock('react-native-share', () => ({
 
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
+    // react-native-reanimated/mock maps makeMutable to the identity function, so it hands back a raw value with no
+    // get/set. Stand in a minimal mutable so one created outside a component behaves like a hook-created shared value
+    // (ActionListContext builds its default scrollOffsetSV that way).
+    makeMutable: <Value>(initial: Value) => {
+        let current = initial;
+        return {
+            get value() {
+                return current;
+            },
+            set value(newValue: Value) {
+                current = newValue;
+            },
+            get: () => current,
+            // Only the plain form is stubbed — nothing under test writes a mutable through an updater function.
+            set: (newValue: Value) => {
+                current = newValue;
+            },
+            addListener: () => {},
+            removeListener: () => {},
+            modify: () => {},
+        };
+    },
     createAnimatedPropAdapter: jest.fn,
     // react-native-reanimated/mock leaves dispatchCommand out (see its own "ADD ME IF NEEDED" comment). forceClearInput
     // (src/libs/ComponentUtils) dispatches it from a UI-thread worklet, so any test exercising that path needs it mocked.
