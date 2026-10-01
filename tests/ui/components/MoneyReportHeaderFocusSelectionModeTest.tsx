@@ -1,6 +1,5 @@
 import {render} from '@testing-library/react-native';
 
-// eslint-disable-next-line no-restricted-imports -- mocks MoneyReportHeader's own HeaderWithBackButton dependency; MoneyReportHeader itself isn't migrated yet
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 
