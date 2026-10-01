@@ -42,6 +42,7 @@ function SidePanelButton({style}: SidePanelButtonProps) {
             <PressableWithoutFeedback
                 sentryLabel={CONST.SENTRY_LABEL.SIDE_PANEL.HELP}
                 accessibilityLabel={translate('common.help')}
+                role={CONST.ROLE.BUTTON}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
                 onPress={() => {
                     // Capture the report the user is viewing (still topmost at press time) so Concierge can act on it

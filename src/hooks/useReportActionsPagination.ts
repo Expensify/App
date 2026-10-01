@@ -13,6 +13,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useMemo, useState} from 'react';
 
 import {useCurrencyListActions} from './useCurrencyList';
+import useDelegateAccountID from './useDelegateAccountID';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
@@ -39,6 +40,7 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const {isOffline} = useNetwork();
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const delegateAccountID = useDelegateAccountID();
     const parentReportAction = useParentReportAction(report);
 
     const [treatAsNoPaginationAnchor, setTreatAsNoPaginationAnchor] = useState(false);
@@ -82,8 +84,18 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
     // and we also generate an expense action if the number of expenses in allReportActions is less than the total number of expenses
     // to display at least one expense action to match the total data.
     const reportActionsToDisplay = useMemo(
-        () => getReportActionsToDisplay(allReportActions, lastAction, report, reportPreviewAction, thread.transactionThreadReport, shouldAddCreatedAction, getCurrencyDecimals),
-        [allReportActions, lastAction, report, reportPreviewAction, shouldAddCreatedAction, thread.transactionThreadReport, getCurrencyDecimals],
+        () =>
+            getReportActionsToDisplay(
+                allReportActions,
+                lastAction,
+                report,
+                reportPreviewAction,
+                thread.transactionThreadReport,
+                shouldAddCreatedAction,
+                getCurrencyDecimals,
+                delegateAccountID,
+            ),
+        [allReportActions, lastAction, report, reportPreviewAction, shouldAddCreatedAction, thread.transactionThreadReport, getCurrencyDecimals, delegateAccountID],
     );
 
     const reportActions = useMemo(
