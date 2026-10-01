@@ -140,7 +140,13 @@ function FixBankAccountPage() {
                 {!didSend && !isInsufficientFunds && (
                     <>
                         <View style={[styles.flex1, styles.ph5]}>
-                            <Text style={[styles.textHeadlineH1, styles.mb3]}>{translate('common.actionRequired')}</Text>
+                            <Text
+                                role={CONST.ROLE.HEADING}
+                                aria-level={1}
+                                style={[styles.textHeadlineH1, styles.mb3]}
+                            >
+                                {translate('common.actionRequired')}
+                            </Text>
                             <RenderHTML html={translate('walletPage.fixBankAccount.debitBlockedBody')} />
                         </View>
                         <FixedFooter>{resendButton}</FixedFooter>
