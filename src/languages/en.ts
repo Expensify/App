@@ -5058,7 +5058,6 @@ const translations = {
             active: 'Active',
             broken: 'Broken',
             brokenConnection: 'Cannot sync due to broken connection',
-            synced: (calendarTime: string) => `Synced ${calendarTime}`,
             hrisListing: (providerName: string) => `${providerName} (HRIS)`,
             atsListing: (providerName: string) => `${providerName} (ATS)`,
             suggestIntegration: "Don't see yours? Suggest an integration, we'll look into it.",

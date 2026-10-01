@@ -40,17 +40,17 @@ type GetSyncStatusMessageParams = {
 
     translate: LocaleContextProps['translate'];
 
-    datetimeToCalendarTime: LocaleContextProps['datetimeToCalendarTime'];
+    datetimeToRelative: LocaleContextProps['datetimeToRelative'];
 };
 
-function getSyncStatusMessage({syncingMessage, successfulDate, translate, datetimeToCalendarTime}: GetSyncStatusMessageParams): string {
+function getSyncStatusMessage({syncingMessage, successfulDate, translate, datetimeToRelative}: GetSyncStatusMessageParams): string {
     if (syncingMessage) {
         return syncingMessage;
     }
     if (!successfulDate) {
         return translate('workspace.accounting.notSync');
     }
-    return translate('workspace.connections.synced', datetimeToCalendarTime(successfulDate, false, true));
+    return translate('workspace.accounting.lastSync', datetimeToRelative(successfulDate));
 }
 
 function getListingsForTab(listings: ConnectionListing[], tab: ConnectionsTab): ConnectionListing[] {

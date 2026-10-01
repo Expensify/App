@@ -35,7 +35,7 @@ const NO_REUSABLE_CONNECTIONS = {sageIntacct: false, qbd: false, certinia: false
 function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionListing[] {
     const policyID = policy?.id;
     const styles = useThemeStyles();
-    const {translate, datetimeToCalendarTime, getLocalDateFromDatetime} = useLocalize();
+    const {translate, datetimeToRelative, getLocalDateFromDatetime} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const {startIntegrationFlow} = useAccountingActions();
     const {activeIntegration, popoverAnchorRefs} = useAccountingState();
@@ -100,12 +100,14 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         if (hasQBOExportError || getSynchronizationErrorMessage(policy, name, isSyncInProgress, translate, styles)) {
             return {isBroken: true, message: translate('workspace.connections.brokenConnection')};
         }
-        if (isConnectionUnverified(policy, name)) {
-            return {isBroken: false, message: translate('workspace.accounting.notSync')};
-        }
+        // A new connection hasn't synced yet while its first sync runs, so the sync is checked first
         const syncStage = isSyncInProgress ? accountingSyncProgress?.stageInProgress : undefined;
+        if (!syncStage && isConnectionUnverified(policy, name)) {
+            return {isBroken: false, isSyncing: isSyncInProgress, message: translate('workspace.accounting.notSync')};
+        }
         return {
             isBroken: false,
+            isSyncing: isSyncInProgress,
             message: getSyncStatusMessage({
                 syncingMessage: syncStage ? translate('workspace.accounting.connections.syncStageName', syncStage, title) : undefined,
                 successfulDate: getIntegrationLastSuccessfulDate(
@@ -114,7 +116,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
                     name === accountingSyncProgress?.connectionName ? accountingSyncProgress : undefined,
                 ),
                 translate,
-                datetimeToCalendarTime,
+                datetimeToRelative,
             }),
         };
     };

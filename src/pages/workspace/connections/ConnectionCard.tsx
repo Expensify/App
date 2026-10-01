@@ -55,17 +55,24 @@ function ConnectionCard({listing, columnCount}: ConnectionCardProps) {
         </View>
     );
 
-    const statusButton = !!status && (
+    let statusComponent = (
         <Button
             size={CONST.BUTTON_SIZE.SMALL}
-            variant={status.isBroken ? CONST.BUTTON_VARIANT.DANGER : undefined}
+            variant={status?.isBroken ? CONST.BUTTON_VARIANT.DANGER : undefined}
             onPress={onConfigure}
             style={[styles.alignSelfCenter, styles.ml3]}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.CONFIGURE_BUTTON}
         >
-            <Button.Text>{translate(status.isBroken ? 'workspace.connections.fix' : 'workspace.connections.configure')}</Button.Text>
+            <Button.Text>{translate(status?.isBroken ? 'workspace.connections.fix' : 'workspace.connections.configure')}</Button.Text>
         </Button>
     );
+    if (status?.isSyncing) {
+        statusComponent = (
+            <View style={[styles.justifyContentCenter, styles.ml3]}>
+                <ActivityIndicator />
+            </View>
+        );
+    }
 
     return (
         <View
@@ -89,7 +96,7 @@ function ConnectionCard({listing, columnCount}: ConnectionCardProps) {
                 descriptionAddon={
                     status ? (
                         <Badge
-                            text={translate(status.isBroken ? 'workspace.connections.broken' : 'workspace.connections.active')}
+                            text={translate(status?.isBroken ? 'workspace.connections.broken' : 'workspace.connections.active')}
                             success={!status.isBroken}
                             error={status.isBroken}
                             isCondensed
@@ -104,7 +111,7 @@ function ConnectionCard({listing, columnCount}: ConnectionCardProps) {
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.CARD}
                 disabled={!status && (isOffline || !!isLoading)}
                 shouldShowRightComponent
-                rightComponent={status ? statusButton : connectIcon}
+                rightComponent={status ? statusComponent : connectIcon}
             />
         </View>
     );

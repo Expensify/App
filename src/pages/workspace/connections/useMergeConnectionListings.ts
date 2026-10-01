@@ -54,7 +54,7 @@ const NO_PERSONAL_DETAILS: PersonalDetailsByLogin = {};
 
 function useMergeConnectionListings(policy: OnyxEntry<Policy>, onStartSetup: (setupLink: string, category: MergeProviderCardCategory) => void): ConnectionListing[] {
     const policyID = policy?.id;
-    const {translate, getLocalDateFromDatetime, datetimeToCalendarTime, formatPhoneNumber} = useLocalize();
+    const {translate, getLocalDateFromDatetime, datetimeToRelative, formatPhoneNumber} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
     const StyleUtils = useStyleUtils();
@@ -125,7 +125,11 @@ function useMergeConnectionListings(policy: OnyxEntry<Policy>, onStartSetup: (se
         if (card.isSyncInProgress) {
             syncingMessage = card.syncStageInProgress ? translate('workspace.hr.syncStageName', card.syncStageInProgress) : translate(`workspace.${card.category}.syncing`);
         }
-        return {isBroken: false, message: getSyncStatusMessage({syncingMessage, successfulDate: card.successfulDate, translate, datetimeToCalendarTime})};
+        return {
+            isBroken: false,
+            isSyncing: card.isSyncInProgress,
+            message: getSyncStatusMessage({syncingMessage, successfulDate: card.successfulDate, translate, datetimeToRelative}),
+        };
     };
 
     const getTitle = (card: MergeProviderCardDescriptor) => {

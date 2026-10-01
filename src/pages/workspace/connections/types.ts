@@ -15,6 +15,9 @@ type ConnectionStatus = {
     isBroken: boolean;
 
     message: string;
+
+    /** Shows a spinner instead of the Configure button while the connection syncs */
+    isSyncing?: boolean;
 };
 
 /** One integration on the Connections page, either available to connect or already connected. */
