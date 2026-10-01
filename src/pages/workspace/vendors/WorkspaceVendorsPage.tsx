@@ -158,17 +158,17 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
             });
         }
 
-        const disableableVendors = selectedVendorKeys.filter((id) => policyVendors?.[id]?.enabled && id !== defaultVendorID);
-        if (disableableVendors.length > 0) {
+        const vendorsToDisable = selectedVendorKeys.filter((id) => policyVendors?.[id]?.enabled && id !== defaultVendorID);
+        if (vendorsToDisable.length > 0) {
             options.push({
                 icon: icons.Close,
-                text: translate(disableableVendors.length === 1 ? 'workspace.vendors.disableVendor' : 'workspace.vendors.disableVendors'),
+                text: translate(vendorsToDisable.length === 1 ? 'workspace.vendors.disableVendor' : 'workspace.vendors.disableVendors'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
                     clearTableSelection();
                     setPolicyVendorsEnabled({
                         policyID,
-                        vendorIDs: disableableVendors,
+                        vendorIDs: vendorsToDisable,
                         enabled: false,
                         policyVendors,
                     });

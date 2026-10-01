@@ -108,4 +108,3 @@ function clearVendorErrors(policyID: string, vendorID: string) {
 }
 
 export {setPolicyVendorsEnabled, clearVendorErrors};
-export type {SetPolicyVendorsEnabledArgs};
