@@ -728,6 +728,10 @@ function isPolicyMember(policy: OnyxEntry<Policy>, userLogin: string | undefined
     return !!policy && !!userLogin && (!!policy.employeeList?.[userLogin] || policy.owner === userLogin);
 }
 
+function isMemberInHomeAndOfficeWorkspace(policy: OnyxEntry<Policy>, memberLogin: string): boolean {
+    return !!memberLogin && policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && !!policy.employeeList?.[memberLogin];
+}
+
 function isPolicyMemberWithoutPendingDelete(currentUserLogin: string | undefined, policy: OnyxEntry<Policy>): boolean {
     if (!currentUserLogin || !policy?.id) {
         return false;
@@ -3703,6 +3707,7 @@ export {
     getUberConnectionErrorDirectlyFromPolicy,
     isPolicyOwner,
     isPolicyMember,
+    isMemberInHomeAndOfficeWorkspace,
     isPolicyPayer,
     getReimburserEmail,
     getOwnerChangePayerSuccessData,

@@ -1,7 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import RuleCategoriesDisabledEmptyState from '@components/Rule/RuleCategoriesDisabledEmptyState';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -133,7 +133,7 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
                 testID="AddCategoryToMatchPage"
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('common.category')}
                     onBackButtonPress={goBackToRule}
                 />
@@ -149,7 +149,7 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('common.category')}
                 onBackButtonPress={goBackToRule}
             />
