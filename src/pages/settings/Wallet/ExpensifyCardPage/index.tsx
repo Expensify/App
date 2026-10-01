@@ -476,34 +476,28 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                         </MenuItem.Root>
                         {shouldShowReportLostCardButton && (
                             <>
-                                <MenuItemWithTopDescription
-                                    description={translate('cardPage.physicalCardNumber')}
-                                    title={maskCard(currentPhysicalCard?.lastFourPAN)}
-                                    interactive={false}
-                                    titleStyle={styles.walletCardNumber}
+                                <MenuItemField
+                                    name={translate('cardPage.physicalCardNumber')}
+                                    value={maskCard(currentPhysicalCard?.lastFourPAN)}
                                 />
                                 {shouldShowPIN && (
-                                    <MenuItemWithTopDescription
-                                        description={translate('cardPage.physicalCardPin')}
-                                        title={maskPin(revealedPIN)}
-                                        interactive={false}
-                                        titleStyle={styles.walletCardNumber}
-                                        shouldShowRightComponent={canRevealPIN}
-                                        rightComponent={
-                                            canRevealPIN ? (
-                                                <ButtonDisabledWhenOffline
-                                                    onPress={() => {
-                                                        executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN, {
-                                                            cardID: String(currentPhysicalCard?.cardID),
-                                                        });
-                                                    }}
-                                                >
-                                                    <Button.Icon src={expensifyIcons.Eye} />
-                                                    <Button.Text>{translate('cardPage.revealPin')}</Button.Text>
-                                                </ButtonDisabledWhenOffline>
-                                            ) : undefined
-                                        }
-                                    />
+                                    <MenuItemField
+                                        name={translate('cardPage.physicalCardPin')}
+                                        value={maskPin(revealedPIN)}
+                                    >
+                                        {canRevealPIN && (
+                                            <ButtonDisabledWhenOffline
+                                                onPress={() => {
+                                                    executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN, {
+                                                        cardID: String(currentPhysicalCard?.cardID),
+                                                    });
+                                                }}
+                                            >
+                                                <Button.Icon src={expensifyIcons.Eye} />
+                                                <Button.Text>{translate('cardPage.revealPin')}</Button.Text>
+                                            </ButtonDisabledWhenOffline>
+                                        )}
+                                    </MenuItemField>
                                 )}
                             </>
                         )}
@@ -644,12 +638,10 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     <>
                                         {shouldShowReportVirtualCardFraudRows &&
                                             virtualCards.map((card) => (
-                                                <MenuItemWithTopDescription
+                                                <MenuItemNavigation
                                                     key={`virtual-fraud-${card.cardID}`}
                                                     title={translate('cardPage.reportFraud')}
-                                                    titleStyle={styles.walletCardMenuItem}
                                                     icon={expensifyIcons.Flag}
-                                                    shouldShowRightIcon
                                                     onPress={() => {
                                                         if (isAccountLocked) {
                                                             showLockedAccountModal();
@@ -665,12 +657,10 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                             ))}
                                         {shouldShowReportTravelCardFraudRows &&
                                             travelCards.map((card) => (
-                                                <MenuItemWithTopDescription
+                                                <MenuItemNavigation
                                                     key={`travel-fraud-${card.cardID}`}
                                                     title={translate('cardPage.reportTravelFraud')}
-                                                    titleStyle={styles.walletCardMenuItem}
                                                     icon={expensifyIcons.Flag}
-                                                    shouldShowRightIcon
                                                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
                                                 />
                                             ))}
