@@ -81,6 +81,7 @@ function UserInfoCellsWithArrow({
                         <Text
                             testID="UserInfoToIndicator"
                             style={[styles.mutedNormalTextLabel]}
+                            selectable={false}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             {translate('common.conjunctionTo')}
