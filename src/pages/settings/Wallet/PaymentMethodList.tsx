@@ -212,9 +212,8 @@ function PaymentMethodList({
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
     const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST);
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [allCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
-    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const cardsForPolicyLookup = shouldShowAssignedCards ? Object.values(isLoadingCardList ? {} : (cardList ?? {})).filter((card) => !!card.domainName || !!card.fundID) : [];
     const policiesForAssignedCardsSelectorFactory = createPoliciesForAssignedCardsSelector(cardsForPolicyLookup, getPolicyIDsNamedByCardFeeds(cardsForPolicyLookup, allCardFeeds));
     const [policiesForAssignedCards] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
@@ -273,7 +272,7 @@ function PaymentMethodList({
                 const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
                 const assignedCardsGrouped = isUserPersonalCard ? personalCardsGrouped : companyCardsGrouped;
                 const {policyID: policyIDForCard, isAdmin: isAdminForCardPolicy} = shouldShowConnectionStatus
-                    ? getAssignedCardFeedAccess(card, allCardFeeds, policiesForAssignedCards, allDomains, currentUserAccountID)
+                    ? getAssignedCardFeedAccess(card, allCardFeeds, policiesForAssignedCards, currentUserLogin)
                     : {policyID: undefined, isAdmin: false};
 
                 let icon;

@@ -13,7 +13,7 @@ import type {CardFeedData, CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedW
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {isAdminSelector} from '@selectors/Domain';
@@ -40,7 +40,7 @@ import {
     isPersonalCard,
 } from './CardUtils';
 import {getExpensifyCardFeedDescription} from './ExpensifyCardFeedSelectorUtils';
-import {getPolicyForAssignedCard, isPolicyAdmin} from './PolicyUtils';
+import {canMemberWrite, getPolicyForAssignedCard, isPolicyAdmin} from './PolicyUtils';
 
 /** The fields of an assigned card needed to resolve the workspace behind its feed */
 type AssignedCardForFeedAccess = Pick<Card, 'bank' | 'domainName' | 'fundID'>;
@@ -314,16 +314,17 @@ function getPolicyIDsNamedByCardFeeds(cards: AssignedCardForFeedAccess[], allCar
  * The wallet offers a link to the Company cards page, so it has to agree with what that page already shows. The
  * workspace comes from the feed's own `linkedPolicyIDs`, then its `preferredPolicy`, and only a feed naming neither
  * falls back to the fund, as in `getCardFeedsForDisplayPerPolicy`. A domain feed's `fundID` is the domain's account
- * ID rather than a workspace's, so that fallback cannot find the workspace for one on its own. Fixing a feed is a
- * domain permission as well as a workspace one, so a domain admin is offered the link too, as in
- * `getVisibleCompanyCardFeedsForSelector`.
+ * ID rather than a workspace's, so that fallback cannot find the workspace for one on its own.
+ *
+ * Whether the link is offered is the Company cards page's own write permission rather than the workspace role, so a
+ * card admin who can fix the feed is offered it, while a member or an auditor who would land on Not Found or a
+ * read-only page is told to ask an admin instead.
  */
 function getAssignedCardFeedAccess(
     card: AssignedCardForFeedAccess,
     allCardFeeds: OnyxCollection<CardFeeds>,
     policies: OnyxCollection<Policy>,
-    domains: OnyxCollection<Domain>,
-    currentUserAccountID: number | undefined,
+    currentUserLogin: string | undefined,
 ): {policyID: string | undefined; isAdmin: boolean} {
     const fundID = Number(card.fundID);
     if (!fundID) {
@@ -337,13 +338,17 @@ function getAssignedCardFeedAccess(
     // normalized here as it is wherever else a feed's workspace is looked up.
     const namedPolicies = namedPolicyIDs.map((policyID) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID.toUpperCase()}`]).filter((policy) => !!policy);
 
-    // A feed can name more than one workspace. Prefer one the cardholder administers, so the link lands somewhere
-    // they can act rather than on a workspace that would only show them the same problem again.
-    const policyForCard = namedPolicies.find((policy) => isPolicyAdmin(policy)) ?? namedPolicies.at(0) ?? getPolicyForAssignedCard(card, policies);
+    // The link goes to a workspace's Company cards page, which checks this same permission before it renders
+    // anything, so asking it here is what decides whether the link can do what it offers. A missing login falls back
+    // to the role the policy itself carries rather than hiding the link, because the personal details that hold the
+    // login load separately from the policy.
+    const canFixFeedOn = (policy: OnyxEntry<Policy>) => canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
 
-    // The workspace role is already to hand, while finding the fund's domain can mean scanning every domain, so the
-    // cheaper check goes first and the scan only happens for someone who is not an admin of the workspace.
-    return {policyID: policyForCard?.id, isAdmin: isPolicyAdmin(policyForCard) || isAdminSelector(currentUserAccountID)(getDomainByFundID(domains, fundID))};
+    // A feed can name more than one workspace. Prefer one the cardholder can fix the feed on, so the link lands
+    // somewhere they can act rather than on a workspace that would only show them the same problem again.
+    const policyForCard = namedPolicies.find(canFixFeedOn) ?? namedPolicies.at(0) ?? getPolicyForAssignedCard(card, policies);
+
+    return {policyID: policyForCard?.id, isAdmin: canFixFeedOn(policyForCard)};
 }
 
 /**
