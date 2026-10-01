@@ -1,7 +1,6 @@
 /**
  * Helpers that read, filter, and check transaction violations (RTER, broken connection, duplicates,
  * notice/warning types, and submission-blocking violations).
- * Extracted from TransactionUtils/index.ts to keep that file smaller.
  */
 import {isPersonalCard} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
