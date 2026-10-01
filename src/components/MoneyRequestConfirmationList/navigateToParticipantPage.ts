@@ -17,7 +17,7 @@ type NavigateToParticipantPageParams = {
     action: IOUAction;
     transactionID: string | undefined;
     reportID: string | undefined;
-    onOpenParticipantPicker: () => void;
+    onOpenParticipantPicker: (() => void) | undefined;
 };
 
 function navigateToParticipantPage({canEditParticipant, isManualRequest, iouType, action, transactionID, reportID, onOpenParticipantPicker}: NavigateToParticipantPageParams) {
@@ -26,7 +26,7 @@ function navigateToParticipantPage({canEditParticipant, isManualRequest, iouType
     }
 
     if (isManualRequest) {
-        onOpenParticipantPicker();
+        onOpenParticipantPicker?.();
         return;
     }
 

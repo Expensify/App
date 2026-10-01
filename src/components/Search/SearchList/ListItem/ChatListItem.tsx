@@ -1,5 +1,6 @@
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
-import ListItemComposed, {useListItemHighlight} from '@components/SelectionList/ListItemComposed';
+import ListItemComposed from '@components/SelectionList/ListItemComposed';
+import useListItemHighlight from '@components/SelectionList/ListItemComposed/hooks/useListItemHighlight';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useOnyx from '@hooks/useOnyx';

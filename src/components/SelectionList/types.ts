@@ -16,7 +16,6 @@ import type SingleSelectListItem from './ListItem/SingleSelectListItem';
 import type SingleSelectWithAvatarListItem from './ListItem/SingleSelectWithAvatarListItem';
 import type SpendCategorySelectorListItem from './ListItem/SpendCategorySelectorListItem';
 import type SplitListItem from './ListItem/SplitListItem';
-import type TravelDomainListItem from './ListItem/TravelDomainListItem';
 import type {ListItem} from './ListItem/types';
 import type UserListItem from './ListItem/UserListItem';
 import type UserSelectionListItem from './ListItem/UserSelectionListItem';
@@ -30,7 +29,6 @@ type ValidListItem =
     | typeof SingleSelectWithAvatarListItem
     | typeof SpendCategorySelectorListItem
     | typeof SplitListItem
-    | typeof TravelDomainListItem
     | typeof BareUserListItem
     | typeof UserListItem
     | typeof UserSelectionListItem;
@@ -45,6 +43,10 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     onSelectRow: (item: TItem) => void;
     canSelectMultiple?: boolean;
     footerContent?: React.ReactNode;
+
+    /** Whether to place the footer in the list so it scrolls with data instead of being fixed to the bottom */
+    shouldFooterBeInsideList?: boolean;
+
     listFooterContent?: React.JSX.Element | null | undefined;
     shouldShowLoadingPlaceholder?: boolean;
     shouldShowTooltips?: boolean;
@@ -162,9 +164,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
 
         /** Custom accessibility label for the select all checkbox, providing context about what is being selected */
         selectAllAccessibilityLabel?: string;
-
-        /** Whether to place the footer (custom footer content or the confirm button) in the list so it scrolls with data instead of being fixed to the bottom */
-        shouldFooterBeInsideList?: boolean;
     };
 
 type SelectionListStyle = {
