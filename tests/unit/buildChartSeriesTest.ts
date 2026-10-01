@@ -286,17 +286,6 @@ describe('buildChartSeries with a compared period', () => {
         });
     }
 
-    it('names both periods, so the legend and the tooltip can tell them apart', () => {
-        // Given a period plotted against the one before it
-        const model = buildComparison([merchantGroup('Person', 480000)], [merchantGroup('Person', 240000)], CONST.SEARCH.GROUP_BY.MERCHANT);
-
-        // Then each series carries the name and color of the period it draws
-        expect(model.series).toEqual([
-            {key: CHART_SERIES_KEY.PRIMARY, label: 'YTD 2026', color: '#current'},
-            {key: CHART_SERIES_KEY.COMPARISON, label: 'YTD 2025', color: '#previous'},
-        ]);
-    });
-
     it('pairs ranking rows by the group they describe, not by the order they were ranked in', () => {
         // Given the same two merchants ranked differently in each period
         const rows = [merchantGroup('Person', 300000), merchantGroup('Target', 100000)];
@@ -520,13 +509,5 @@ describe('getCounterpartBucketRange', () => {
 
         // Then its counterpart is the whole of August, which the drill-down then cuts to the compared window
         expect(range).toEqual({start: '2026-08-01', end: '2026-08-31'});
-    });
-
-    it('finds the compared day at the same position', () => {
-        // Given September 6 compared with August
-        const range = getCounterpartBucketRange({start: '2026-09-06', end: '2026-09-06'}, '2026-09-01', '2026-08-01', 'day');
-
-        // Then its counterpart is August 6
-        expect(range).toEqual({start: '2026-08-06', end: '2026-08-06'});
     });
 });

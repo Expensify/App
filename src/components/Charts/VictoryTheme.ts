@@ -48,7 +48,7 @@ function getChartColor(index: number): string {
 
 /** The palette color one shade darker than `color`, which a line's dots are drawn in. Falls back to `color` itself. */
 function getDarkerShade(color: string): string {
-    const paletteName = Object.keys(colors).find((name) => colors[name] === color);
+    const paletteName = Object.keys(colors).find((name) => /\d+$/.test(name) && colors[name] === color);
     const shade = Number(paletteName?.match(/\d+$/)?.at(0));
     if (!paletteName || Number.isNaN(shade)) {
         return color;

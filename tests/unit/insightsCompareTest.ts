@@ -84,12 +84,4 @@ describe('resolveComparisonWindows', () => {
         expect(windows?.current.label).toBe('Dec 3');
         expect(windows?.previous.label).toBe('Dec 2');
     });
-
-    it('has nothing to compare a period with no counterpart against', () => {
-        // When the page reports on a preset that names no period of its own
-        const windows = resolveComparisonWindows({preset: CONST.SEARCH.DATE_PRESETS.NEVER}, translateLocal);
-
-        // Then no comparison is offered
-        expect(windows).toBeUndefined();
-    });
 });

@@ -17,6 +17,19 @@ describe('VictoryTheme', () => {
         jest.resetModules();
     });
 
+    describe('colors.getDarkerShade', () => {
+        it('steps the default line color to the next shade, though an unnumbered alias shares its hex', () => {
+            // Given the default line color, green400, whose hex the `green` alias also has
+            const VictoryTheme = loadVictoryTheme();
+
+            // When its darker shade is resolved for the line's dots
+            const shade = VictoryTheme.colors.getDarkerShade(colors.green400);
+
+            // Then it is green500, rather than the line's own color the alias would have returned
+            expect(shade).toBe(colors.green500);
+        });
+    });
+
     describe('colors.palette', () => {
         it('contains 30 entries (5 shades × 6 hues)', () => {
             const VictoryTheme = loadVictoryTheme();
