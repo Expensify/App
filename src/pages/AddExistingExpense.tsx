@@ -2,7 +2,6 @@ import AddExistingExpenseFooter from '@components/AddExistingExpenseFooter';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
-import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpensesSkeleton';
