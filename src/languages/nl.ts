@@ -4668,25 +4668,25 @@ ${amount} voor ${merchant} - ${date}`,
         },
         nudge: {
             airfareManual:
-                'Wist je dat je rechtstreeks in Expensify vluchten kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Wist je dat je vluchten rechtstreeks in Expensify kunt boeken en beheren? Boek via <a href="https://travel.expensify.com">Expensify Travel</a> met je eigen loyaliteitsaccount van de luchtvaartmaatschappij om punten, miles en statusvoordelen te blijven verdienen, terwijl wij automatisch je uitgave aanmaken. ✈️',
             airfareCard:
-                'Wist je dat je rechtstreeks in Expensify vluchten kunt boeken en beheren? En dat bonnen automatisch voor je worden geüpload? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Wist je dat je vluchten rechtstreeks in Expensify kunt boeken en beheren? Boek via <a href="https://travel.expensify.com">Expensify Travel</a> met je eigen loyaliteitsaccount van de luchtvaartmaatschappij om punten, miles en statusvoordelen te blijven verdienen, terwijl wij automatisch je uitgave aanmaken. ✈️',
             hotelManual:
-                'Wist je dat je hotelovernachtingen direct in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Wist je dat je hotelverblijven rechtstreeks in Expensify kunt boeken en beheren? Boek via <a href="https://travel.expensify.com">Expensify Travel</a> met je eigen hotel loyaliteitsaccount om punten en statusvoordelen te blijven verdienen, terwijl wij automatisch je uitgave aanmaken.',
             hotelCard:
-                'Wist je dat je hotelverblijven direct in Expensify kunt boeken en beheren? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Wist je dat je hotelverblijven rechtstreeks in Expensify kunt boeken en beheren? Boek via <a href="https://travel.expensify.com">Expensify Travel</a> met je eigen hotel loyaliteitsaccount om punten en statusvoordelen te blijven verdienen, terwijl wij automatisch je uitgave aanmaken.',
             carManual:
-                'Wist je dat je autoverhuur rechtstreeks in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Wist je dat je autoverhuur rechtstreeks in Expensify kunt boeken en beheren? Boek via <a href="https://travel.expensify.com">Expensify Travel</a> met je eigen loyaliteitsaccount voor autoverhuur om punten en statusvoordelen te blijven verdienen, terwijl wij automatisch je uitgave aanmaken. 🚗',
             carCard:
-                'Wist je dat je autoverhuur rechtstreeks in Expensify kunt boeken en beheren? Boek de volgende keer eenvoudig via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Wist je dat je autoverhuur rechtstreeks in Expensify kunt boeken en beheren? Boek via <a href="https://travel.expensify.com">Expensify Travel</a> met je eigen loyaliteitsaccount voor autoverhuur om punten en statusvoordelen te blijven verdienen, terwijl wij automatisch je uitgave aanmaken. 🚗',
             railManual:
                 'Wist je dat je treinreizen direct in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Wist je dat je treinreizen rechtstreeks in Expensify kunt boeken en beheren? En dat bonnen automatisch voor je worden geüpload? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             hotelBlockManual:
-                'Wist je dat je groepsreizen zoals deze direct in Expensify kunt boeken en beheren? Bespaar jezelf de moeite de volgende keer en probeer onze tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reisevenementen</a> eens uit.',
+                'Wist je dat je groepsreizen zoals deze direct in Expensify kunt boeken en beheren? Boek je volgende groepsreis met onze tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reisevenementen</a>, terwijl wij automatisch je uitgaven aanmaken.',
             hotelBlockCard:
-                'Wist je dat je groepsreizen zoals deze direct in Expensify kunt boeken en beheren? Bespaar jezelf de moeite de volgende keer en probeer onze tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reisevenementen</a> eens uit.',
+                'Wist je dat je groepsreizen zoals deze direct in Expensify kunt boeken en beheren? Boek je volgende groepsreis met onze tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reisevenementen</a>, terwijl wij automatisch je uitgaven aanmaken.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Reizen is niet ingeschakeld',
