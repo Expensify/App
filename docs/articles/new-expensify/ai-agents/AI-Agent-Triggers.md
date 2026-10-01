@@ -102,19 +102,26 @@ To react to this event, include phrases like:
 - When someone changes what a report is called
 - When someone updates a report title
 
-**An expense report was marked as done.**
+**An expense report was marked as done, or a support ticket was resolved.**
 
 To react to this event, include phrases like:
 - When an expense report is marked as done
 - When an invoice is closed
+- When a support ticket is resolved
 - When someone closes a report
 
-**A previously closed or approved expense report was reopened, returning it to an open (draft/editable) state so the submitter can revise it.**
+**A previously closed or approved expense report was reopened, returning it to an open (draft/editable) state so the submitter can revise it. A resolved support ticket was reopened for further help.**
 
 To react to this event, include phrases like:
 - When a closed report is reopened
+- When a support ticket is reopened
 - When an approved report is sent back for editing
 - When a report is moved back to draft state
+
+**A satisfaction survey was added to a resolved support ticket.**
+
+To react to this event, include phrases like:
+- When a customer is asked to rate their support experience
 
 **The current approver manually assigned the expense report to themselves, taking ownership of it from whoever it was previously assigned to.**
 
@@ -257,6 +264,12 @@ To react to this event, include phrases like:
 - When an expense is deleted
 - When a transaction is permanently removed
 - When someone deletes an expense from a report
+
+**A previously deleted expense was restored.**
+
+To react to this event, include phrases like:
+- When a deleted expense is restored
+- When someone undeletes an expense
 
 **An expense was removed from all expense reports and returned to "Unreported" status.**
 
@@ -711,6 +724,12 @@ To react to this event, include phrases like:
 - When an employee's workspace role or approver is changed
 - When a member's settings are updated in the workspace
 
+**A workspace admin set the display name of a member who did not have one.**
+
+To react to this event, include phrases like:
+- When an admin names a member who signed up with a phone number
+- When a member gets a display name for the first time
+
 **A workspace admin changed whether users with matching email domains automatically join the workspace.**
 
 To react to this event, include phrases like:
@@ -899,4 +918,4 @@ To react to this event, include phrases like:
 
 ---
 
-*This reference covers all 123 events AI Agents can react to.*
+*This reference covers all 126 events AI Agents can react to.*
