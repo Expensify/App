@@ -1,6 +1,8 @@
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type * as UpdateRequired from '../../src/libs/actions/UpdateRequired/index';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Factory mocks share these functions across the isolated module registries each test loads.
@@ -10,19 +12,19 @@ jest.mock('@libs/clearWorkboxRecoveryCaches', () => ({
     default: () => mockClearWorkboxRecoveryCaches(),
 }));
 
-const mockLogAlert = jest.fn();
+const mockLogAlert = jest.fn<void, unknown[]>();
 jest.mock('@libs/Log', () => ({
     __esModule: true,
     default: {alert: (...args: unknown[]) => mockLogAlert(...args)},
 }));
 
-const mockOnyxSet = jest.fn();
+const mockOnyxSet = jest.fn<void, unknown[]>();
 jest.mock('react-native-onyx', () => ({
     __esModule: true,
     default: {set: (...args: unknown[]) => mockOnyxSet(...args)},
 }));
 
-type UpdateRequiredModule = typeof import('../../src/libs/actions/UpdateRequired/index');
+type UpdateRequiredModule = typeof UpdateRequired;
 
 function loadWebUpdateRequired(): UpdateRequiredModule {
     let updateRequired: UpdateRequiredModule | undefined;
