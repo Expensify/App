@@ -2,7 +2,7 @@ import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -68,83 +68,72 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
     return (
         <ScrollView contentContainerStyle={styles.flexGrow1}>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('businessInfoStep.letsDoubleCheck')}</Text>
-            <MenuItemWithTopDescription
-                description={translate('businessInfoStep.businessName')}
-                title={values[BUSINESS_INFO_STEP_KEYS.COMPANY_NAME]}
-                shouldShowRightIcon
+            <MenuItemField
+                name={translate('businessInfoStep.businessName')}
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.BUSINESS_NAME);
                 }}
+                value={values[BUSINESS_INFO_STEP_KEYS.COMPANY_NAME]}
             />
-            <MenuItemWithTopDescription
-                description={translate('businessInfoStep.taxIDNumber')}
-                title={values[BUSINESS_INFO_STEP_KEYS.COMPANY_TAX_ID]}
-                shouldShowRightIcon
+            <MenuItemField
+                name={translate('businessInfoStep.taxIDNumber')}
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.TAX_ID_NUMBER);
                 }}
+                value={values[BUSINESS_INFO_STEP_KEYS.COMPANY_TAX_ID]}
             />
-            <MenuItemWithTopDescription
-                description={translate('common.companyAddress')}
-                title={`${values[BUSINESS_INFO_STEP_KEYS.STREET]}, ${values[BUSINESS_INFO_STEP_KEYS.CITY]}, ${values[BUSINESS_INFO_STEP_KEYS.STATE]} ${
-                    values[BUSINESS_INFO_STEP_KEYS.ZIP_CODE]
-                }`}
-                shouldShowRightIcon
+            <MenuItemField
+                name={translate('common.companyAddress')}
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.COMPANY_ADDRESS);
                 }}
+                value={`${values[BUSINESS_INFO_STEP_KEYS.STREET]}, ${values[BUSINESS_INFO_STEP_KEYS.CITY]}, ${values[BUSINESS_INFO_STEP_KEYS.STATE]} ${values[BUSINESS_INFO_STEP_KEYS.ZIP_CODE]}`}
             />
-            <MenuItemWithTopDescription
-                description={translate('common.phoneNumber')}
-                title={values[BUSINESS_INFO_STEP_KEYS.COMPANY_PHONE]}
-                shouldShowRightIcon
+            <MenuItemField
+                name={translate('common.phoneNumber')}
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.PHONE_NUMBER);
                 }}
+                value={values[BUSINESS_INFO_STEP_KEYS.COMPANY_PHONE]}
             />
-            <MenuItemWithTopDescription
-                description={translate('businessInfoStep.companyWebsite')}
-                title={values[BUSINESS_INFO_STEP_KEYS.COMPANY_WEBSITE]}
-                shouldShowRightIcon
+            <MenuItemField
+                name={translate('businessInfoStep.companyWebsite')}
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.COMPANY_WEBSITE);
                 }}
+                value={values[BUSINESS_INFO_STEP_KEYS.COMPANY_WEBSITE]}
             />
-            <MenuItemWithTopDescription
-                description={translate('businessInfoStep.companyType')}
-                title={
-                    values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE]
-                        ? translate(`businessInfoStep.incorporationType.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE]}` as TranslationPaths)
-                        : ''
-                }
-                shouldShowRightIcon
+            <MenuItemField
+                name={translate('businessInfoStep.companyType')}
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.COMPANY_TYPE);
                 }}
+                value={
+                    values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE]
+                        ? translate(`businessInfoStep.incorporationType.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE]}` as TranslationPaths)
+                        : undefined
+                }
             />
-            <MenuItemWithTopDescription
-                description={translate('businessInfoStep.incorporationDate')}
-                title={values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_DATE]}
-                shouldShowRightIcon
+            <MenuItemField
+                name={translate('businessInfoStep.incorporationDate')}
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.INCORPORATION_DATE);
                 }}
+                value={values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_DATE]}
             />
-            <MenuItemWithTopDescription
-                description={translate('businessInfoStep.incorporationState')}
-                title={values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] ? translate(`allStates.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] as States}.stateName`) : ''}
-                shouldShowRightIcon
+            <MenuItemField
+                name={translate('businessInfoStep.incorporationState')}
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.INCORPORATION_STATE);
                 }}
+                value={values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] ? translate(`allStates.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] as States}.stateName`) : undefined}
             />
-            <MenuItemWithTopDescription
-                description={translate('companyStep.industryClassificationCode')}
-                title={values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_CODE]}
-                shouldShowRightIcon
+            <MenuItemField
+                name={translate('companyStep.industryClassificationCode')}
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.INCORPORATION_CODE);
                 }}
+                value={values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_CODE]}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}

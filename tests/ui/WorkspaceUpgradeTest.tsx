@@ -121,6 +121,59 @@ describe('WorkspaceUpgrade', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.SET_POLICY_RULES_ENABLED, 1);
     });
 
+    it('should not turn on auto-pay approved reports after upgrading when payments are not set up', async () => {
+        const policy: Policy = {
+            ...LHNTestUtils.getFakePolicy(),
+            areWorkflowsEnabled: true,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+        };
+
+        // Given a Collect workspace with reimbursements on but no business bank account
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        });
+
+        // And the upgrade page is opened for auto-pay approved reports
+        const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id, featureName: CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.alias});
+
+        // When the workspace is upgraded and the upgrade page is left
+        fireEvent.press(screen.getByTestId('upgrade-button'));
+        await waitForBatchedUpdatesWithAct();
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, 1);
+        unmount();
+        await waitForBatchedUpdates();
+
+        // Then auto-pay is not turned on, so it can't activate by itself once a bank account is connected later
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ENABLE_POLICY_AUTO_REIMBURSEMENT_LIMIT, 0);
+    });
+
+    it('should turn on auto-pay approved reports after upgrading when payments are set up', async () => {
+        const policy: Policy = {
+            ...LHNTestUtils.getFakePolicy(),
+            areWorkflowsEnabled: true,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            achAccount: {bankAccountID: 1234, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''},
+        };
+
+        // Given a Collect workspace with workflows, reimbursements, and a business bank account set up
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        });
+
+        // And the upgrade page is opened for auto-pay approved reports
+        const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id, featureName: CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.alias});
+
+        // When the workspace is upgraded and the upgrade page is left
+        fireEvent.press(screen.getByTestId('upgrade-button'));
+        await waitForBatchedUpdatesWithAct();
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, 1);
+        unmount();
+        await waitForBatchedUpdates();
+
+        // Then auto-pay is turned on
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ENABLE_POLICY_AUTO_REIMBURSEMENT_LIMIT, 1);
+    });
+
     it('should upgrade a Submit workspace to Corporate when unlocking a Control-tier rules feature', async () => {
         const policy: Policy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.SUBMIT};
 
@@ -140,6 +193,69 @@ describe('WorkspaceUpgrade', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then UpgradeSubmit should target the Corporate (Control) plan, since the rule requires Control
+        TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.UPGRADE_SUBMIT, 0, {policyID: policy.id, targetType: CONST.POLICY.TYPE.CORPORATE});
+
+        unmount();
+        await waitForBatchedUpdates();
+    });
+
+    it('should upgrade a Submit workspace to Corporate when unlocking Report fields', async () => {
+        const policy: Policy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.SUBMIT};
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        });
+
+        const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {
+            policyID: policy.id,
+            featureName: CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias,
+        });
+
+        fireEvent.press(screen.getByTestId('upgrade-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.UPGRADE_SUBMIT, 0, {policyID: policy.id, targetType: CONST.POLICY.TYPE.CORPORATE});
+
+        unmount();
+        await waitForBatchedUpdates();
+    });
+
+    it('should upgrade a Submit workspace to Corporate when unlocking GL codes', async () => {
+        const policy: Policy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.SUBMIT};
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        });
+
+        const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {
+            policyID: policy.id,
+            featureName: CONST.UPGRADE_FEATURE_INTRO_MAPPING.glCodes.alias,
+        });
+
+        fireEvent.press(screen.getByTestId('upgrade-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.UPGRADE_SUBMIT, 0, {policyID: policy.id, targetType: CONST.POLICY.TYPE.CORPORATE});
+
+        unmount();
+        await waitForBatchedUpdates();
+    });
+
+    it('should upgrade a Submit workspace to Corporate when unlocking prevent-members-from-changing-custom-names via alias lookup', async () => {
+        const policy: Policy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.SUBMIT};
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        });
+
+        const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {
+            policyID: policy.id,
+            featureName: CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias,
+        });
+
+        fireEvent.press(screen.getByTestId('upgrade-button'));
+        await waitForBatchedUpdatesWithAct();
+
         TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.UPGRADE_SUBMIT, 0, {policyID: policy.id, targetType: CONST.POLICY.TYPE.CORPORATE});
 
         unmount();
@@ -275,10 +391,12 @@ describe('WorkspaceUpgrade', () => {
     it("should show the upgrade corporate plan price is in the user's local currency", async () => {
         // Team policy which the user can upgrade to corporate
         const policy = LHNTestUtils.getFakePolicy();
+        const accountID = 1;
 
-        // Given that a policy is initialized in Onyx
+        // Given that a policy and the signed in user's session are initialized in Onyx
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID});
         });
 
         // Render the WorkspaceUpgradePage without initializing user's preferred currency
@@ -301,7 +419,7 @@ describe('WorkspaceUpgrade', () => {
 
             // Initialized the user's preferred currency to another payment card currency
             await act(async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CONST.DEFAULT_NUMBER_ID]: {localCurrencyCode: currency}});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[accountID]: {localCurrencyCode: currency}});
             });
 
             // Render the WorkspaceUpgradePage without a feature to render GenericFeaturesView

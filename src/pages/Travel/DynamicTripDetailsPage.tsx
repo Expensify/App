@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,7 +18,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
-import {getTripIDFromTransactionParentReportID} from '@libs/ReportUtils';
 import {formatCancelledDescription, getReservationDetailsFromSequence, getReservationsFromTripReport} from '@libs/TripReservationUtils';
 
 import {openTravelDotLink} from '@userActions/Link';
@@ -78,16 +78,15 @@ function DynamicTripDetailsPage({route}: DynamicTripDetailsPageProps) {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? reportID}`);
+    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID ?? reportID}`);
 
-    const tripID = getTripIDFromTransactionParentReportID(parentReport?.reportID);
+    const tripID = parentReportNameValuePairs?.tripData?.tripID;
     // If pnr is not passed and transaction is present, we want to use transaction to get the trip reservations as the provided sequenceIndex now refers to the position of trip reservation in transaction's reservation list
-    const tripReservations = getReservationsFromTripReport(!Number(pnr) && transaction ? undefined : parentReport, transaction ? [transaction] : []);
+    const tripReservations = getReservationsFromTripReport(!Number(pnr) && transaction ? undefined : parentReport, parentReportNameValuePairs, transaction ? [transaction] : []);
 
     const {reservation, prevReservation, reservationType, reservationIcon, isCancelled} = getReservationDetailsFromSequence(icons, tripReservations, Number(sequenceIndex));
     const travelerEmail = reservation?.travelerPersonalInfo?.email;
-    const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (personalDetails: OnyxEntry<PersonalDetailsList>) => pickTravelerPersonalDetails(personalDetails, travelerEmail),
-    });
+    const [travelerPersonalDetails] = useAllPersonalDetails((personalDetails: OnyxEntry<PersonalDetailsList>) => pickTravelerPersonalDetails(personalDetails, travelerEmail));
 
     return (
         <ScreenWrapper
@@ -101,20 +100,26 @@ function DynamicTripDetailsPage({route}: DynamicTripDetailsPageProps) {
                 shouldForceFullScreen
                 shouldShow={!reservation || (!CONFIG.IS_HYBRID_APP && isBlockedFromSpotnanaTravel)}
             >
-                <HeaderWithBackButton
-                    title={formatCancelledDescription(
-                        translate('iou.canceled'),
-                        reservationType ? `${translate(`travel.${reservationType}`)} ${translate('common.details').toLowerCase()}` : translate('common.details'),
-                        isCancelled,
-                    )}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack(backPath)}
-                    icon={reservationIcon}
-                    iconHeight={20}
-                    iconWidth={20}
-                    iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3]}
-                    iconFill={theme.icon}
-                />
+                <Header>
+                    <Header.BackButton
+                        onPress={() => Navigation.goBack(backPath)}
+                        iconFill={theme.icon}
+                    />
+                    <Header.Icon
+                        src={reservationIcon}
+                        width={20}
+                        height={20}
+                        style={[StyleUtils.getTripReservationIconContainer(false), styles.mr3]}
+                        iconFill={theme.icon}
+                    />
+                    <Header.Title
+                        title={formatCancelledDescription(
+                            translate('iou.canceled'),
+                            reservationType ? `${translate(`travel.${reservationType}`)} ${translate('common.details').toLowerCase()}` : translate('common.details'),
+                            isCancelled,
+                        )}
+                    />
+                </Header>
                 <ScrollView>
                     {!!reservation && reservationType === CONST.RESERVATION_TYPE.FLIGHT && (
                         <FlightTripDetails

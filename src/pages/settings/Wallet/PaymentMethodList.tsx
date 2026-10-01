@@ -28,10 +28,14 @@ import {
     doesCardConnectionNeedReauthentication,
     isCardFrozen,
     isCardInactive,
+    isCardPendingDigitalWalletApproval,
     isExpensifyCard,
+    isExpensifyCardPending,
     isExpensifyCardPendingAction,
     isExpiredCard,
+    isLastScrapePastDismissThreshold,
     isPersonalCard,
+    isPersonalCardBrokenConnection,
     isTravelCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
@@ -96,16 +100,12 @@ type PaymentMethodListProps = {
     /** List container style */
     style?: StyleProp<ViewStyle>;
 
-    /** List item style */
     listItemStyle?: StyleProp<ViewStyle>;
 
     /** Whether the add bank account button should be shown on the list */
     shouldShowAddBankAccount?: boolean;
 
-    /** Additional style for the add bank account item */
     addBankAccountItemStyle?: StyleProp<ViewStyle>;
-
-    /** Whether the assigned cards should be shown on the list */
     shouldShowAssignedCards?: boolean;
 
     /** Whether connection statuses and sync details should be shown */
@@ -132,13 +132,8 @@ type PaymentMethodListProps = {
     /** The icon to be displayed in the right side of the payment method item */
     itemIconRight?: IconAsset;
 
-    /** Type of payment method to filter by */
     filterType?: ValueOf<typeof CONST.BANK_ACCOUNT.TYPE>;
-
-    /* Currency of payment method to filter by */
     filterCurrency?: string;
-
-    /** Account states to exclude from the list */
     excludeStates?: Array<ValueOf<typeof CONST.BANK_ACCOUNT.STATE>>;
 
     /** Bank account ID of an account that we do not want to show (i.e. it's already connected) */
@@ -147,10 +142,7 @@ type PaymentMethodListProps = {
     /** Whether to show the default badge for the payment method */
     shouldHideDefaultBadge?: boolean;
 
-    /** Optional array of menu items to be displayed in the three dots menu */
     threeDotsMenuItems?: PopoverMenuItem[];
-
-    /** Callback for when the three dots menu is pressed */
     onThreeDotsMenuPress?: PaymentMethodPressHandler | CardPressHandler;
 };
 
@@ -278,6 +270,7 @@ function PaymentMethodList({
             const hasMissingPersonalDetails = areAddressAndPersonalDetailsMissing(privatePersonalDetails);
             for (const card of assignedCardsSorted) {
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                const isUserExpensifyCard = isExpensifyCard(card);
                 const isUserPersonalCard = isPersonalCard(card);
                 const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
                 const assignedCardsGrouped = isUserPersonalCard ? personalCardsGrouped : companyCardsGrouped;
@@ -304,35 +297,44 @@ function PaymentMethodList({
 
                 let brickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
                 if (!card.errors) {
-                    if (shouldShowRBR) {
+                    // An Expensify Card has no bank connection, so its feed's RBR is never something the cardholder can
+                    // fix and it is the RBR this card is not supposed to show. Fraud and the pending-action prompt below
+                    // are still theirs to act on, so those keep their indicator.
+                    if (shouldShowRBR && !isUserExpensifyCard) {
                         brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                     } else if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL) {
                         brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-                    } else if (isExpensifyCard(card) && isExpensifyCardPendingAction(card, privatePersonalDetails)) {
+                    } else if (isUserExpensifyCard && isExpensifyCardPendingAction(card, privatePersonalDetails)) {
                         brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
                     }
                 }
 
-                if (isUserPersonalCard && (!isEmptyObject(card.errors) || isCardConnectionBroken(card))) {
+                if (isUserPersonalCard && (!isEmptyObject(card.errors) || isPersonalCardBrokenConnection(card))) {
                     brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                 }
 
                 const companyCardFeedForCard = getCompanyCardFeedWithDomainIDForCard(card);
-                const isCardBroken = isCardConnectionBroken(card) && !isBrokenConnectionPastDismissThreshold(card);
+                const isCardBroken = isUserPersonalCard
+                    ? isPersonalCardBrokenConnection(card) && !isLastScrapePastDismissThreshold(card)
+                    : isCardConnectionBroken(card) && !isBrokenConnectionPastDismissThreshold(card);
                 const isCardInactiveState = isCardInactive(card);
                 const cardConnectionStatusDisplay = getCardConnectionStatusDisplay({
                     shouldShowConnectionStatus,
                     isCardBroken,
                     shouldShowRBR,
                     isCardInactive: isCardInactiveState,
+                    isCardPending: isExpensifyCardPending(card),
+                    isExpensifyCard: isUserExpensifyCard,
                     isPersonalCard: isUserPersonalCard,
                     isAdminForCardPolicy,
                     doesCardNeedReauthentication: doesCardConnectionNeedReauthentication(card),
                     policyID: policyIDForCard,
                 });
                 const shouldShowCardConnectionMessage = !!cardConnectionStatusDisplay?.messageKey;
-                const shouldShowCardErrorMessages = !shouldShowCardConnectionMessage || !!card.pendingAction;
-                const shouldShowCardLastSync = shouldShowConnectionStatus && !isExpensifyCard(card) && !isCSVCard;
+                // A row showing a connection message doesn't repeat the card's own errors, unless the card has a pending action.
+                // A pending wallet approval hides them too, because that flow shows its errors on its own confirmation screen.
+                const shouldShowCardErrorMessages = (!shouldShowCardConnectionMessage && !isCardPendingDigitalWalletApproval(card)) || !!card.pendingAction;
+                const shouldShowCardLastSync = shouldShowConnectionStatus && !isUserExpensifyCard && !isCSVCard;
                 let cardLastSyncText: string | undefined;
                 if (shouldShowCardLastSync) {
                     if (card.lastScrape) {
@@ -377,7 +379,7 @@ function PaymentMethodList({
                     };
                 }
 
-                if (!isExpensifyCard(card)) {
+                if (!isUserExpensifyCard) {
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
                     const isCSVImportCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD;
@@ -465,6 +467,12 @@ function PaymentMethodList({
                         ) {
                             assignedCardsGroupedItem.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                         }
+                        // The domain gets one row, so a pending approval on any of its cards has to surface there.
+                        // The CTA needs the pending card's own ID, which the group row doesn't carry.
+                        if (isCardPendingDigitalWalletApproval(card) && !assignedCardsGroupedItem.digitalWalletApprovalCardID) {
+                            assignedCardsGroupedItem.digitalWalletApprovalCardID = card.cardID;
+                            assignedCardsGroupedItem.digitalWalletProvider = card.nameValuePairs?.pendingDigitalWalletApproval?.walletProvider;
+                        }
                     }
                     continue;
                 }
@@ -517,6 +525,8 @@ function PaymentMethodList({
                     isInactive: isCardInactive(card),
                     isCardFrozen: isCardFrozen(card),
                     shouldShowMissingPersonalDetailsAction: !isActingAsDelegate && isActionableVirtualExpensifyCard(card) && hasMissingPersonalDetails,
+                    digitalWalletApprovalCardID: isCardPendingDigitalWalletApproval(card) ? card.cardID : undefined,
+                    digitalWalletProvider: card.nameValuePairs?.pendingDigitalWalletApproval?.walletProvider,
                 });
             }
 

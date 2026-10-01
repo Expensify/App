@@ -1,7 +1,7 @@
 ---
 title: Create and Manage Expense Tags
 description: Add tags to use for coding expenses.
-keywords: [New Expensify, expense tags, class tracking, cost center, import tags, coding expenses, tag GL code, tag approver, tag rules, tag approval]
+keywords: [New Expensify, expense tags, class tracking, cost center, import tags, coding expenses, tag GL code, multi-level tag GL code, dependent tag GL code, tag approver, tag rules, tag approval]
 internalScope: Audience is Workspace Admins. Covers enabling, creating, importing, activating, and managing expense tags, including multi-level tags, tag GL codes, and tag approvers (Tag Rules) and how Tag/Category/workspace approvers combine in the approval chain. Does not cover personal expense rules or accounting system configuration.
 ---
 
@@ -105,7 +105,7 @@ Example: If you use single-level Tags for Department, members will see one field
 
 **Note:**
 - With single-level Tags, you can edit or delete individual tags directly in the workspace.
-- With multi-level Tags, you must update and re-import your spreadsheet to make changes.
+- With multi-level Tags, you must update and re-import your spreadsheet to make changes. The exception is tag GL codes, which you can edit directly in the workspace.
 
 ---
 
@@ -157,12 +157,33 @@ When importing multi-level Tags, enable **These are independent tags** to import
 
 ## How to add or edit a tag GL code
 
-Workspaces on the Control plan can assign a GL code to each tag for exporting purposes. Tag GL codes are not visible to members.
+Workspaces on the Control plan can assign a GL code to each tag for exporting purposes. This includes single-level tags and every level of dependent or independent multi-level tags. By default, tag GL codes are not visible to members, but you can choose to show them in the tag picker.
 
 1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), select **Workspaces** > **[workspace name]**.
 2. Select **Tags**.
-3. Select a tag to open its detail panel.
-4. Select the **GL Code** field, enter or update the code, then select **Save**.
+3. If you use multi-level tags, select the tag list for the level you want to update (for example: **State**, **Region**, or **City**).
+4. Select a tag to open its detail panel.
+5. Select **GL code**, enter or update the code, then select **Save**.
+
+For dependent multi-level tags, each GL code is saved to the tag you selected under its parent tags. If the same tag name appears under different parents (for example: **Springfield** under both **Illinois** and **Missouri**), each one keeps its own GL code.
+
+---
+
+## How to show tag GL codes when selecting a tag
+
+By default, tag GL codes are hidden from members. Workspace Admins on the Control plan can turn on a setting that displays each tag's GL code in the tag picker, so members can see and search by GL code when selecting a tag on an expense.
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), select **Workspaces** > **[workspace name]**.
+2. Select **Tags**.
+3. Select **More**.
+4. Select **Settings**.
+5. Turn on **Show GL codes when selecting a tag**.
+
+Once enabled, each tag displays its GL code as a second line beneath the tag name in the tag picker, and members can search for a tag by its GL code.
+
+If a GL code isn't displayed, it isn't available for that tag in your accounting system. Add the GL code in your accounting system and sync the connection, or add it directly in Expensify if your tags aren't managed by an accounting connection.
+
+**Note:** This setting only appears when GL codes are enabled for the workspace.
 
 ---
 
@@ -228,4 +249,12 @@ Multi-level tags are available on Control workspaces only. If your Control works
 
 ## Can members see Tag GL codes?
 
-No. Tag GL codes are visible only to Workspace Admins. If members need that information, include the GL code in the tag name (for example: `1001 - Marketing`).
+By default, no. Tag GL codes are visible only to Workspace Admins. However, a Workspace Admin can turn on **Show GL codes when selecting a tag** in **Tags** > **More** > **Settings** to display each tag's GL code in the tag picker for members. If that setting is off, you can still include the GL code in the tag name (for example: `1001 - Marketing`).
+
+## Can I add GL codes to dependent multi-level tags?
+
+Yes. Dependent multi-level tags support a GL code at each level, the same as independent multi-level tags. You can include GL codes in the adjacent columns when you import your spreadsheet, or edit a tag's **GL code** directly in the workspace.
+
+## Why isn't a GL code displayed for a tag?
+
+If **Show GL codes when selecting a tag** is on but a tag has no GL code next to it, that tag doesn't have a GL code available in your accounting system. Add the GL code in your accounting system and sync the connection so it appears in Expensify.

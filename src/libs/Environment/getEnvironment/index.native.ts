@@ -32,10 +32,18 @@ function getEnvironment(): Promise<Environment> {
         }
 
         // If we haven't set the environment yet and we aren't on dev/adhoc, check to see if this is a beta build
-        betaChecker.isBetaBuild().then((isBeta) => {
-            environment = isBeta ? CONST.ENVIRONMENT.STAGING : CONST.ENVIRONMENT.PRODUCTION;
-            resolve(environment);
-        });
+        betaChecker
+            .isBetaBuild()
+            .then((isBeta) => {
+                environment = isBeta ? CONST.ENVIRONMENT.STAGING : CONST.ENVIRONMENT.PRODUCTION;
+                resolve(environment);
+            })
+            .catch(() => {
+                // Everything that waits on the environment (the API root, the network reachability URL) would hang
+                // forever if this promise never settled, so an unexpected failure has to land on a usable answer.
+                environment = CONST.ENVIRONMENT.PRODUCTION;
+                resolve(environment);
+            });
     });
 }
 

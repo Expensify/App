@@ -6,7 +6,6 @@ import React, {useEffect} from 'react';
 import Animated, {cancelAnimation, Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
 
 type LoadingBarProps = {
-    // Whether or not to show the loading bar
     shouldShow: boolean;
 };
 

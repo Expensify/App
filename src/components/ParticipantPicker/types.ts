@@ -6,13 +6,11 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {OnyxEntry} from 'react-native-onyx';
 
 type ParticipantPickerProps = {
-    /** Selected participants */
     participants?: Participant[] | typeof CONST.EMPTY_ARRAY;
 
     /** The type of IOU report */
     iouType: IOUType;
 
-    /** The IOU action */
     action: IOUAction;
 
     /** Whether this is a per diem expense request */
@@ -42,6 +40,11 @@ type ParticipantPickerProps = {
 
     /** Callback fired when the modal backdrop (the area outside the picker) is pressed. Falls back to onClose when omitted. */
     onBackdropPress?: () => void;
+
+    /** Callback fired when the referral banner inside the picker is about to navigate to its own RHP, which the picker
+     *  would otherwise cover. Kept separate from `onClose` so the owner can tell this close apart from a real dismissal
+     *  and reopen the picker when the user comes back. Falls back to `onClose` when omitted. */
+    onCloseForReferralNavigation?: () => void;
 
     /**
      * Called before committing a participant/workspace selection.

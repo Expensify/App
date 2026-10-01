@@ -1,11 +1,14 @@
 import AttachmentPicker from '@components/AttachmentPicker';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -21,12 +24,14 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useIsApproverOfOutstandingPolicyReports from '@hooks/useIsApproverOfOutstandingPolicyReports';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -47,7 +52,6 @@ import {
 } from '@libs/actions/Policy/Policy';
 import {getCardSettings} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -93,6 +97,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencySymbol} = useCurrencyListActions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
 
     const backTo = route.params.backTo;
     const routePolicyID = route.params.policyID;
@@ -139,7 +144,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (!policyID) {
             return;
         }
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_OVERVIEW_ADDRESS.path));
+        Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_OVERVIEW_ADDRESS.path));
     };
     const onPressName = () => {
         if (!policyID) {
@@ -169,19 +174,21 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (!policyID) {
             return;
         }
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_OVERVIEW_PLAN.path));
+        Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_OVERVIEW_PLAN.path));
     };
     const policyName = policy?.name ?? '';
     const policyDescription = policy?.description ?? translate('workspace.common.defaultDescription');
     const policyCurrency = policy?.outputCurrency ?? '';
     const readOnly = !canEditWorkspaceSettings(policy);
     const currencyReadOnly = readOnly || isBankAccountVerified;
+    const isCurrencyInteractive = !shouldBlockCurrencyChange && !currencyReadOnly;
     const isOwner = isPolicyOwner(policy, currentUserPersonalDetails.accountID);
     const shouldShowAddress = !readOnly || !!formattedAddress;
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const [pendingRulesDocumentFile, setPendingRulesDocumentFile] = useState<FileObject | undefined>();
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const isApproverOfOutstandingReports = useIsApproverOfOutstandingPolicyReports(policyID);
 
     const rulesDocumentSourceURL = useMemo(
         () => getRulesDocumentSourceURL(policy?.rulesDocumentURL, policyID, session?.encryptedAuthToken ?? ''),
@@ -303,7 +310,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         clearWorkspaceOwnerChangeFlow(policyID);
         requestWorkspaceOwnerChange(policy, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
         Navigation.navigate(
-            createDynamicRoute(
+            buildDynamicRoute(
                 DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, currentUserPersonalDetails.accountID, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>),
             ),
         );
@@ -312,7 +319,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const handleLeave = () => {
         const userEmail = session?.email ?? '';
         const ownerDisplayName = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
-        const prompt = getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate);
+        const prompt = getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate, isApproverOfOutstandingReports);
         const isReimburser = policy?.achAccount?.reimburser === userEmail;
 
         if (isReimburser) {
@@ -347,7 +354,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
         clearInviteDraft(route.params.policyID);
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE.path));
+        Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE.path));
     };
 
     const canLeave = !isOwner;
@@ -597,14 +604,14 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 clearPolicyErrorField(policy.id, 'clientID');
                             }}
                         >
-                            <MenuItemWithTopDescription
-                                title={policy?.clientID}
-                                description={translate('workspace.common.clientID')}
-                                shouldShowRightIcon={!readOnly}
-                                interactive={!readOnly}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                onPress={onPressClientID}
-                            />
+                            <MenuItemSectionRoot onPress={readOnly ? undefined : onPressClientID}>
+                                <MenuItemField.Row
+                                    name={translate('workspace.common.clientID')}
+                                    value={policy?.clientID}
+                                >
+                                    {!readOnly && <MenuItem.Chevron />}
+                                </MenuItemField.Row>
+                            </MenuItemSectionRoot>
                         </OfflineWithFeedback>
                     )}
                     <OfflineWithFeedback
@@ -619,36 +626,45 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         errorRowStyles={[styles.mt2]}
                     >
                         <View>
-                            <MenuItemWithTopDescription
-                                title={formattedCurrency}
-                                description={translate('workspace.editor.currencyInputLabel')}
+                            <MenuItemSectionRoot
+                                onPress={isCurrencyInteractive ? onPressCurrency : undefined}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CURRENCY}
-                                shouldShowRightIcon={shouldBlockCurrencyChange ? false : !currencyReadOnly}
-                                interactive={shouldBlockCurrencyChange ? false : !currencyReadOnly}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                onPress={onPressCurrency}
-                                hintText={
-                                    shouldBlockCurrencyChange || isBankAccountVerified
-                                        ? translate('workspace.editor.currencyInputDisabledText', policyCurrency)
-                                        : translate('workspace.editor.currencyInputHelpText')
-                                }
-                            />
+                            >
+                                <MenuItemField.Row
+                                    name={translate('workspace.editor.currencyInputLabel')}
+                                    value={formattedCurrency}
+                                >
+                                    {isCurrencyInteractive && <MenuItem.Chevron />}
+                                </MenuItemField.Row>
+                                <MenuItem.HelpText
+                                    message={
+                                        shouldBlockCurrencyChange || isBankAccountVerified
+                                            ? translate('workspace.editor.currencyInputDisabledText', policyCurrency)
+                                            : translate('workspace.editor.currencyInputHelpText')
+                                    }
+                                />
+                            </MenuItemSectionRoot>
                         </View>
                     </OfflineWithFeedback>
                     {shouldShowAddress && (
                         <OfflineWithFeedback pendingAction={policy?.pendingFields?.address}>
                             <View>
-                                <MenuItemWithTopDescription
-                                    title={formattedAddress}
-                                    description={translate('common.companyAddress')}
+                                <MenuItemSectionRoot
+                                    onPress={readOnly ? undefined : onPressAddress}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.ADDRESS}
-                                    shouldShowRightIcon={!readOnly}
-                                    interactive={!readOnly}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    onPress={onPressAddress}
-                                    copyValue={readOnly ? formattedAddress : undefined}
-                                    copyable={readOnly && !!formattedAddress}
-                                />
+                                >
+                                    <MenuItemField.Row
+                                        name={translate('common.companyAddress')}
+                                        value={formattedAddress}
+                                    >
+                                        {(!readOnly || !!formattedAddress) && (
+                                            <>
+                                                {readOnly && !!formattedAddress && <MenuItem.Copy value={formattedAddress} />}
+                                                {!readOnly && <MenuItem.Chevron />}
+                                            </>
+                                        )}
+                                    </MenuItemField.Row>
+                                </MenuItemSectionRoot>
                             </View>
                         </OfflineWithFeedback>
                     )}
@@ -656,14 +672,17 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     {!readOnly && !!policy?.type && (
                         <OfflineWithFeedback pendingAction={policy?.pendingFields?.type}>
                             <View>
-                                <MenuItemWithTopDescription
-                                    title={getUserFriendlyWorkspaceType(policy.type, translate)}
-                                    description={translate('workspace.common.planType')}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE}
-                                    shouldShowRightIcon
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                <MenuItemSectionRoot
                                     onPress={onPressPlanType}
-                                />
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE}
+                                >
+                                    <MenuItemField.Row
+                                        name={translate('workspace.common.planType')}
+                                        value={getUserFriendlyWorkspaceType(policy.type, translate)}
+                                    >
+                                        <MenuItem.Chevron />
+                                    </MenuItemField.Row>
+                                </MenuItemSectionRoot>
                             </View>
                         </OfflineWithFeedback>
                     )}

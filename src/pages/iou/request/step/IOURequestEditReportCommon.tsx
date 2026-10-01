@@ -1,4 +1,3 @@
-import ConfirmModal from '@components/ConfirmModal';
 import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
@@ -13,6 +12,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
 import usePolicy from '@hooks/usePolicy';
@@ -34,7 +34,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 
 import StepScreenWrapper from './StepScreenWrapper';
 
@@ -48,6 +48,7 @@ type Props = {
     transactionIDs?: string[];
     isManualDistanceRequest: boolean;
     isOdometerDistanceRequest: boolean;
+    isDistanceRequest: boolean;
     selectedReportID?: string;
     selectedPolicyID?: string;
     transactionPolicyID?: string;
@@ -61,6 +62,12 @@ type Props = {
     isPerDiemRequest: boolean;
     isTimeRequest?: boolean;
     isUnreportedManagedCardTransaction?: boolean;
+    /** Whether the expenses being moved belong to more than one submitter */
+    hasMultipleSubmitters?: boolean;
+    /** Whether every expense being moved sits on a managed card, which "Auto report" needs to resolve a destination */
+    areAllManagedCardTransactions?: boolean;
+    /** Lets the backend pick a destination report per expense. Required to offer the action to multiple submitters */
+    autoReport?: () => void;
 };
 
 function IOURequestEditReportCommon({
@@ -68,6 +75,7 @@ function IOURequestEditReportCommon({
     transactionIDs,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
+    isDistanceRequest,
     selectReport,
     selectedReportID,
     selectedPolicyID,
@@ -81,12 +89,16 @@ function IOURequestEditReportCommon({
     isPerDiemRequest,
     isTimeRequest = false,
     isUnreportedManagedCardTransaction = false,
+    hasMultipleSubmitters = false,
+    areAllManagedCardTransactions = false,
+    autoReport,
 }: Props) {
-    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document']);
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document', 'DocumentMagicWand']);
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const personalDetails = usePersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -110,11 +122,12 @@ function IOURequestEditReportCommon({
     // When no transactionPolicyID is provided (e.g., from IOURequestEditReport), the hook falls back to the user's default workspace.
     const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, isTimeRequest, transactionPolicyID, isUnreportedManagedCardTransaction);
 
-    const [perDiemWarningModalVisible, setPerDiemWarningModalVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
+    const {isOffline} = useNetwork();
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         isManualDistanceRequest,
         isOdometerDistanceRequest,
+        isDistanceRequest,
     });
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
@@ -147,7 +160,8 @@ function IOURequestEditReportCommon({
     const outstandingReports = useOutstandingReports(selectedReportID, selectedPolicyID, resolvedReportOwnerAccountID, isEditing);
 
     const reportOptions: TransactionGroupListItem[] = useMemo(() => {
-        if (outstandingReports.length === 0) {
+        // Outstanding reports belong to one owner, so listing them would offer their reports for everyone else's expenses.
+        if (outstandingReports.length === 0 || hasMultipleSubmitters) {
             return [];
         }
 
@@ -166,7 +180,7 @@ function IOURequestEditReportCommon({
                     return false;
                 }
 
-                if (canAddTransaction(report, undefined, true)) {
+                if (canAddTransaction(report, rules, undefined, true)) {
                     return true;
                 }
 
@@ -196,10 +210,12 @@ function IOURequestEditReportCommon({
         localeCompare,
         allPolicies,
         currentUserPersonalDetails.accountID,
+        hasMultipleSubmitters,
         isPerDiemRequest,
         isTimeRequest,
         translate,
         formatPhoneNumber,
+        rules,
     ]);
 
     const navigateBack = () => {
@@ -245,12 +261,18 @@ function IOURequestEditReportCommon({
                 if (checkIfPerDiemTransactionsCanBeMoved(policyID)) {
                     return true;
                 }
-                setPerDiemWarningModalVisible(true);
+                showConfirmModal({
+                    title: translate('iou.moveExpenses'),
+                    prompt: translate('iou.moveExpensesError'),
+                    confirmText: translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                });
                 return false;
             }
             return true;
         },
-        [transactionIDs?.length, isPerDiemRequest, checkIfPerDiemTransactionsCanBeMoved],
+        // `showConfirmModal` is recreated on every render, so it has to stay in the dep array to keep this callback correct.
+        [transactionIDs?.length, isPerDiemRequest, checkIfPerDiemTransactionsCanBeMoved, showConfirmModal, translate],
     );
 
     const handleSelectReport = (item: TransactionGroupListItem) => {
@@ -311,7 +333,8 @@ function IOURequestEditReportCommon({
 
     const policyForMovingExpensesName = policyForMovingExpenses?.name;
     const createReportOption = useMemo(() => {
-        if (!createReport || (isEditing && !isOwner && !isAdmin)) {
+        // A report per submitter would need one API call each, so "Auto report" serves them alone in a single call.
+        if (!createReport || hasMultipleSubmitters || (isEditing && !isOwner && !isAdmin)) {
             return undefined;
         }
 
@@ -328,10 +351,65 @@ function IOURequestEditReportCommon({
                 </MenuItem.Row>
             </MenuItem.Root>
         );
-    }, [icons.Document, createReport, translate, policyForMovingExpensesName, handleCreateReport, isEditing, isOwner, isAdmin]);
+    }, [createReport, hasMultipleSubmitters, isEditing, isOwner, isAdmin, handleCreateReport, icons.Document, translate, policyForMovingExpensesName]);
+
+    // The destinations are chosen server-side, so there is nothing to apply optimistically and nothing to show for a
+    // queued request. Blocking offline keeps the screen open and says why, rather than silently discarding the action.
+    const handleAutoReport = useCallback(() => {
+        if (isOffline) {
+            showConfirmModal({
+                title: translate('common.youAppearToBeOffline'),
+                prompt: translate('common.offlinePrompt'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
+            return;
+        }
+        autoReport?.();
+    }, [isOffline, showConfirmModal, translate, autoReport]);
+
+    const autoReportOption = useMemo(() => {
+        if (!autoReport || !hasMultipleSubmitters) {
+            return undefined;
+        }
+
+        // The backend resolves each destination through the expense's card, so an expense without one fails the whole
+        // request with "404 Card not found".
+        if (!areAllManagedCardTransactions) {
+            return undefined;
+        }
+
+        // These expenses are only valid on some workspaces, and the guards that decide which — per diem rates, the
+        // map/GPS rules on manual and odometer distance — need a destination the backend has not picked yet. Callers
+        // are expected to withhold the whole flow for such a selection; this keeps the row honest if one does not.
+        if (isPerDiemRequest || isManualDistanceRequest || isOdometerDistanceRequest) {
+            return undefined;
+        }
+
+        return (
+            <MenuItem
+                onPress={handleAutoReport}
+                title={translate('iou.autoReport')}
+                description={translate('iou.autoReportDescription')}
+                icon={icons.DocumentMagicWand}
+            />
+        );
+    }, [
+        icons.DocumentMagicWand,
+        areAllManagedCardTransactions,
+        autoReport,
+        handleAutoReport,
+        hasMultipleSubmitters,
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+        isPerDiemRequest,
+        translate,
+    ]);
+
+    const listHeaderContent = createReportOption ?? autoReportOption;
 
     const shouldShowNotFoundPage = useMemo(() => {
-        if (createReportOption) {
+        if (listHeaderContent) {
             return false;
         }
 
@@ -347,9 +425,7 @@ function IOURequestEditReportCommon({
         const isSubmitter = isReportOwner(selectedReport);
         // If the report is Open, then only submitters, admins can move expenses
         return isOpen && !isAdmin && !isSubmitter;
-    }, [createReportOption, outstandingReports.length, shouldShowNotFoundPageFromProps, selectedReport, isAdmin]);
-
-    const hidePerDiemWarningModal = () => setPerDiemWarningModalVisible(false);
+    }, [listHeaderContent, outstandingReports.length, shouldShowNotFoundPageFromProps, selectedReport, isAdmin]);
 
     return (
         <StepScreenWrapper
@@ -364,7 +440,7 @@ function IOURequestEditReportCommon({
                 data={reportOptions}
                 onSelectRow={handleSelectReport}
                 isRowMultilineSupported
-                shouldShowTextInput={outstandingReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
+                shouldShowTextInput={!hasMultipleSubmitters && outstandingReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
                 textInputOptions={{
                     value: searchValue,
                     label: translate('common.search'),
@@ -375,9 +451,9 @@ function IOURequestEditReportCommon({
                 }}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedItemKey={selectedReportID}
-                shouldScrollToFocusedIndexOnMount={!createReportOption}
+                shouldScrollToFocusedIndexOnMount={!listHeaderContent}
                 ListItem={InviteMemberListItem}
-                customListHeaderContent={createReportOption}
+                customListHeaderContent={listHeaderContent}
                 listFooterContent={
                     shouldShowRemoveFromReport ? (
                         <MenuItem.Root onPress={removeFromReport}>
@@ -393,16 +469,7 @@ function IOURequestEditReportCommon({
                         </MenuItem.Root>
                     ) : undefined
                 }
-                listEmptyContent={createReportOption}
-            />
-            <ConfirmModal
-                isVisible={perDiemWarningModalVisible}
-                onConfirm={hidePerDiemWarningModal}
-                onCancel={hidePerDiemWarningModal}
-                title={translate('iou.moveExpenses')}
-                prompt={translate('iou.moveExpensesError')}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
+                listEmptyContent={listHeaderContent}
             />
         </StepScreenWrapper>
     );

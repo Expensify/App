@@ -12,6 +12,7 @@ import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePreMountDestination from '@hooks/usePreMountDestination';
@@ -31,6 +32,7 @@ import {
     updateLastLocationPermissionPrompt,
 } from '@libs/actions/IOU/MoneyRequest';
 import {setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
+import signalExpenseAddedGrowl from '@libs/actions/IOU/signalExpenseAddedGrowl';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@libs/actions/IOU/types/TrackExpenseTransactionParams';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -85,10 +87,10 @@ function SubmitDetailsPage({
 }: ShareDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
-    const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`);
+    const [personalDetails] = useAllPersonalDetails();
     const report: OnyxEntry<ReportType> = useReportOrReportDraft(reportOrAccountID);
     const routeReportID = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
     const draftReportID = unknownUserDetails ? unknownUserDetails.reportID : routeReportID;
@@ -112,6 +114,7 @@ function SubmitDetailsPage({
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const reportAttributesDerived = useReportAttributes();
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
@@ -129,7 +132,6 @@ function SubmitDetailsPage({
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
 
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalPolicy = usePersonalPolicy();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -146,7 +148,8 @@ function SubmitDetailsPage({
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const fileUri = shouldUsePreValidatedFile ? (validFilesToUpload?.uri ?? '') : (currentAttachment?.content ?? '');
     const fileName = shouldUsePreValidatedFile ? getFileName(validFilesToUpload?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
     const fileType = shouldUsePreValidatedFile ? (validFilesToUpload?.type ?? CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG) : (currentAttachment?.mimeType ?? '');
@@ -228,9 +231,17 @@ function SubmitDetailsPage({
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
         return participant?.accountID
             ? getParticipantsOption(participant, personalDetails, translate)
-            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserPersonalDetails.accountID, {
-                  translate,
-                  dateFnsLocale,
+            : getReportOption({
+                  participant,
+                  privateIsArchived,
+                  policy,
+                  personalDetails,
+                  conciergeReportID,
+                  reportAttributesDerived,
+                  reportDraft,
+                  currentUserAccountID: currentUserPersonalDetails.accountID,
+                  localize: {translate, dateFnsLocale, convertToDisplayString},
+                  rules,
               });
     });
 
@@ -270,7 +281,7 @@ function SubmitDetailsPage({
     const [storedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(existingTransactionID)}`);
     const listOfParticipants = participants.filter((participant) => participant.selected);
     const participant = listOfParticipants.at(0) ?? selectedParticipants.at(0);
-    const reportToSubmit = resolveReportForMoneyRequest({transaction, transactionReport, routeReport: report, policy, reportNameValuePair});
+    const reportToSubmit = resolveReportForMoneyRequest({transaction, transactionReport, routeReport: report, reportNameValuePair, rules});
     const postSubmitNavigationReportID = (isSelfDM(report) ? report : reportToSubmit)?.reportID ?? reportOrAccountID;
     const isIouReport = isMoneyRequestReport(reportToSubmit);
     const policyTagsForRequestMoney = useMoneyRequestPolicyTags({
@@ -297,6 +308,7 @@ function SubmitDetailsPage({
         iouType,
         isCreatingTrackExpense,
         isSelfDMDestination: isSelfDM(report),
+        isOptimisticNewChatDestination: false,
         isLookingAroundUser,
         isMovingTransactionFromTrackExpense: false,
     });
@@ -408,18 +420,19 @@ function SubmitDetailsPage({
                     conciergeChat,
                     quickAction,
                     recentWaypoints,
-                    betas,
                     draftTransactionIDs,
                     isSelfTourViewed,
                     optimisticTransactionID,
                     currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                     delegateAccountID,
                     reportActionsList: undefined,
+                    rules,
                 });
             } else {
                 const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
                 requestMoney({
+                    isVendorMatchingBetaEnabled,
                     getCurrencyDecimals,
                     report: reportToSubmit,
                     participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
@@ -458,15 +471,19 @@ function SubmitDetailsPage({
                     draftTransactionIDs,
                     isSelfTourViewed,
                     conciergeChat,
-                    betas,
                     personalDetails,
                     optimisticTransactionID,
                     isTrackIntentUser,
                     delegateAccountID,
                     formatPhoneNumber,
                     optimisticChatReportID: routeReportID,
+                    rules,
                 });
             }
+
+            // requestMoney/trackExpense only signal the growl for the global-create flow and the share
+            // extension isn't flagged as such, so signal it here instead.
+            signalExpenseAddedGrowl(optimisticTransactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
         };
 
         const cleanupParams = {
@@ -669,6 +686,8 @@ function SubmitDetailsPage({
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
+                        // The Share flow never renders an editable participant row (the transaction is not from global create), so there is nothing to open.
+                        onOpenParticipantPicker={() => {}}
                         iouType={iouType}
                         onToggleBillable={setBillable}
                         onToggleReimbursable={setReimbursable}
@@ -676,26 +695,28 @@ function SubmitDetailsPage({
                         policyID={policy?.id}
                         isConfirming={isConfirming}
                         onConfirm={() => onConfirm(true)}
-                        receiptPath={currentReceiptSource}
-                        receiptFilename={currentReceiptName}
                         reportID={reportOrAccountID}
                         shouldShowSmartScanFields={false}
-                        shouldDisplayReceipt
-                        isReceiptEditable
                         action={CONST.IOU.ACTION.CREATE}
-                        onPDFLoadError={() => {
-                            if (errorTitle) {
-                                return;
-                            }
-                            setErrorTitle(translate('attachmentPicker.attachmentError'));
-                            setErrorMessage(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                        }}
-                        onPDFPassword={() => {
-                            if (errorTitle) {
-                                return;
-                            }
-                            setErrorTitle(translate('attachmentPicker.attachmentError'));
-                            setErrorMessage(translate('attachmentPicker.protectedPDFNotSupported'));
+                        receiptOptions={{
+                            receiptPath: currentReceiptSource,
+                            receiptFilename: currentReceiptName,
+                            shouldDisplayReceipt: true,
+                            isReceiptEditable: true,
+                            onPDFLoadError: () => {
+                                if (errorTitle) {
+                                    return;
+                                }
+                                setErrorTitle(translate('attachmentPicker.attachmentError'));
+                                setErrorMessage(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                            },
+                            onPDFPassword: () => {
+                                if (errorTitle) {
+                                    return;
+                                }
+                                setErrorTitle(translate('attachmentPicker.attachmentError'));
+                                setErrorMessage(translate('attachmentPicker.protectedPDFNotSupported'));
+                            },
                         }}
                     />
                 </View>
