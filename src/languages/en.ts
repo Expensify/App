@@ -5045,11 +5045,11 @@ const translations = {
         },
         connections: {
             tabs: {
-                [CONST.TAB.CONNECTIONS.POPULAR]: 'Popular',
                 [CONST.TAB.CONNECTIONS.ALL]: 'All',
                 [CONST.TAB.CONNECTIONS.ACCOUNTING]: 'Accounting',
-                [CONST.TAB.CONNECTIONS.PEOPLE]: 'People',
-                [CONST.TAB.CONNECTIONS.TRAVEL]: 'Travel & Delivery',
+                [CONST.TAB.CONNECTIONS.PEOPLE]: 'HR & People',
+                [CONST.TAB.CONNECTIONS.RECRUITING]: 'Recruiting',
+                [CONST.TAB.CONNECTIONS.RECEIPTS]: 'Receipts',
                 [CONST.TAB.CONNECTIONS.AI]: 'AI & MCP',
             },
             findConnections: 'Find connections',

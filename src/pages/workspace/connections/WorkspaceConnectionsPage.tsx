@@ -4,11 +4,12 @@
  */
 import ConnectToMergeFlow from '@components/ConnectToMergeFlow';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
@@ -77,8 +78,6 @@ type MergeSetupFlow = {
     key: number;
 };
 
-const TABS: ConnectionsTab[] = Object.values(CONST.TAB.CONNECTIONS);
-
 /** HR and recruiting providers are Control-only, so their data is only requested for Control workspaces */
 function fetchConnectionsData(policyID: string | undefined, canUseMergeConnections: boolean, isRecruitingBetaEnabled: boolean) {
     if (!policyID) {
@@ -109,7 +108,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const {startIntegrationFlow} = useAccountingActions();
     const {canWrite: canWriteAccounting} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
-    const [activeTab, setActiveTab] = useState<ConnectionsTab>(CONST.TAB.CONNECTIONS.POPULAR);
+    const [activeTab, setActiveTab] = useState<ConnectionsTab>(CONST.TAB.CONNECTIONS.ALL);
     const [mergeSetupFlow, setMergeSetupFlow] = useState<MergeSetupFlow | undefined>();
     const route = useRoute();
     const params = route.params as RouteParams | undefined;
@@ -201,7 +200,10 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const connectedHRConnectionName = CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES.find((name) => !!policy?.connections?.[name]);
     const connectedRecruitingConnectionName = isRecruitingBetaEnabled ? CONST.POLICY.CONNECTIONS.RECRUITING_CONNECTION_NAMES.find((name) => !!policy?.connections?.[name]) : undefined;
 
-    const tabs: Array<TabSelectorBaseItem<ConnectionsTab>> = TABS.map((tab) => ({
+    // Recruiting providers are behind a beta, so the tab only shows once there is something to list in it
+    const hasRecruitingListings = listings.some((listing) => listing.category === CONST.TAB.CONNECTIONS.RECRUITING);
+    const visibleTabs = Object.values(CONST.TAB.CONNECTIONS).filter((tab) => tab !== CONST.TAB.CONNECTIONS.RECRUITING || hasRecruitingListings);
+    const tabs: Array<TabSelectorBaseItem<ConnectionsTab>> = visibleTabs.map((tab) => ({
         key: tab,
         title: translate(`workspace.connections.tabs.${tab}`),
     }));
@@ -272,13 +274,16 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                     onDone={() => setMergeSetupFlow(undefined)}
                 />
             )}
-            <HeaderWithBackButton
-                title={translate('workspace.common.connections')}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldUseHeadlineHeader
-                shouldDisplayHelpButton
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <Header>
+                {shouldUseNarrowLayout && <Header.BackButton onPress={() => Navigation.goBack()} />}
+                <Header.Title
+                    title={translate('workspace.common.connections')}
+                    titleStyles={styles.textHeadlineH2}
+                />
+                <Header.Right>
+                    <SidePanelButton />
+                </Header.Right>
+            </Header>
             <ScrollView
                 contentContainerStyle={[styles.flexGrow1, styles.pb5, styles.ph5]}
                 addBottomSafeAreaPadding

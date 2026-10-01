@@ -6743,11 +6743,11 @@ const CONST = {
             AGENTS: 'agents',
         },
         CONNECTIONS: {
-            POPULAR: 'popular',
             ALL: 'all',
             ACCOUNTING: 'accounting',
             PEOPLE: 'people',
-            TRAVEL: 'travel',
+            RECRUITING: 'recruiting',
+            RECEIPTS: 'receipts',
             AI: 'ai',
         },
         WORKFLOWS_TAB_TYPE: 'workflowsTabType',

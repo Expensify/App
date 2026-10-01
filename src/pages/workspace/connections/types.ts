@@ -7,8 +7,8 @@ import type {ValueOf} from 'type-fest';
 
 type ConnectionsTab = ValueOf<typeof CONST.TAB.CONNECTIONS>;
 
-/** The tabs a listing can belong to. Popular and All are cross-cutting views built from the listings themselves. */
-type ConnectionCategory = Exclude<ConnectionsTab, typeof CONST.TAB.CONNECTIONS.POPULAR | typeof CONST.TAB.CONNECTIONS.ALL>;
+/** The tabs a listing can belong to. All shows every listing. */
+type ConnectionCategory = Exclude<ConnectionsTab, typeof CONST.TAB.CONNECTIONS.ALL>;
 
 type ConnectionStatus = {
     /** A broken connection shows a Fix button instead of Configure */

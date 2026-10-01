@@ -66,7 +66,7 @@ function useReceiptPartnerConnectionListings(policy: OnyxEntry<Policy>): Connect
     return [
         {
             key: CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER,
-            category: CONST.TAB.CONNECTIONS.TRAVEL,
+            category: CONST.TAB.CONNECTIONS.RECEIPTS,
             title: uberData.title,
             icon: uberData.icon,
             status: isConnected

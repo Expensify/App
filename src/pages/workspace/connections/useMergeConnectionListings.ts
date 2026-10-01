@@ -150,7 +150,7 @@ function useMergeConnectionListings(policy: OnyxEntry<Policy>, onStartSetup: (se
     const toListings = (categoryCards: MergeProviderCardDescriptor[]): ConnectionListing[] =>
         categoryCards.map((card) => ({
             key: card.key,
-            category: CONST.TAB.CONNECTIONS.PEOPLE,
+            category: card.category === CONST.POLICY.CONNECTIONS.CATEGORY.RECRUITING ? CONST.TAB.CONNECTIONS.RECRUITING : CONST.TAB.CONNECTIONS.PEOPLE,
             title: getTitle(card),
             icon: card.icon,
             status: card.isConnected ? getConnectedStatus(card) : undefined,

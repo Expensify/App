@@ -1,6 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import FormHelpMessage from '@components/FormHelpMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -15,6 +16,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {removePolicyConnection, syncConnection} from '@libs/actions/connections';
@@ -58,6 +60,7 @@ type MergeProviderCardProps = {
 function MergeProviderCard({card, policy, handleConnect, onDisconnect, onBackButtonPress, canWriteMoreFeatures, showReadOnlyModal}: MergeProviderCardProps) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {environmentURL} = useEnvironment();
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['Sync', 'Trashcan', 'Building', 'CheckCircle']);
@@ -163,21 +166,26 @@ function MergeProviderCard({card, policy, handleConnect, onDisconnect, onBackBut
 
     return (
         <>
-            <HeaderWithBackButton
-                title={card.displayName}
-                subtitle={!card.completeSetupRoute && card.isConnected ? connectionDescription : undefined}
-                titleStyles={[styles.textNormal, styles.lineHeightLarge]}
-                policyAvatar={{source: cardIcon, type: CONST.ICON_TYPE_AVATAR, name: card.displayName}}
-                shouldShowThreeDotsButton={card.isConnected && !card.isSyncInProgress}
-                threeDotsMenuItems={overflowMenu}
-                threeDotsAnchorAlignment={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                }}
-                onBackButtonPress={onBackButtonPress}
-            >
-                {card.isSyncInProgress && <ActivityIndicator style={styles.popoverMenuIcon} />}
-            </HeaderWithBackButton>
+            <Header>
+                <Header.BackButton onPress={onBackButtonPress} />
+                <UserAvatar
+                    containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
+                    // Many partner logos are transparent, so they need a white backdrop in both themes
+                    imageStyles={styles.backgroundWhite}
+                    size={CONST.AVATAR_SIZE.DEFAULT}
+                    source={cardIcon}
+                    accountID={CONST.DEFAULT_NUMBER_ID}
+                />
+                <Header.Title
+                    title={card.displayName}
+                    subtitle={!card.completeSetupRoute && card.isConnected ? connectionDescription : undefined}
+                    titleStyles={[styles.textNormal, styles.lineHeightLarge]}
+                />
+                <Header.Right>
+                    {card.isSyncInProgress && <ActivityIndicator style={styles.popoverMenuIcon} />}
+                    {card.isConnected && !card.isSyncInProgress && <Header.ThreeDotsMenu items={overflowMenu} />}
+                </Header.Right>
+            </Header>
             <ScrollView
                 contentContainerStyle={styles.pt3}
                 addBottomSafeAreaPadding
