@@ -93,13 +93,14 @@ export default function TableDisplaySettingsPopoverComponent({closeOverlay}: Tab
         columns,
         activeSorting,
         initialSortColumn,
+        initialSortOrder,
         tableMethods: {updateSorting},
     } = useTableContext();
     const [selectedSetting, setSelectedSetting] = useState<'sortBy' | 'sortOrder' | null>(null);
 
     const defaultSorting: ActiveSorting<string> = {
         columnKey: initialSortColumn,
-        order: CONST.SEARCH.SORT_ORDER.ASC,
+        order: initialSortOrder,
     };
     const [pendingSorting, setPendingSorting] = useState<ActiveSorting<string>>(defaultSorting);
 
@@ -168,7 +169,7 @@ export default function TableDisplaySettingsPopoverComponent({closeOverlay}: Tab
                 ]}
                 value={selectedOrder}
                 label={translate('search.display.sortOrder')}
-                defaultValue={CONST.SEARCH.SORT_ORDER.ASC}
+                defaultValue={defaultSorting.order}
                 onBackButtonPress={() => setSelectedSetting('sortBy')}
                 closeOverlay={closeSettingsOverlay}
                 onChange={(item) => {

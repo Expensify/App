@@ -11,16 +11,18 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {openPolicyRulesPage} from '@libs/actions/Policy/Rules';
+import {getRules, openPolicyRulesPage} from '@libs/actions/Policy/Rules';
 import Tab from '@libs/actions/Tab';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -95,9 +97,26 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const {showConfirmModal} = useConfirmModal();
 
     useEffect(() => {
-        // Fetch once on mount (and when policyID changes). setPolicyCodingRule already updates Onyx — refetching after saves can overwrite a newly added rule with stale data.
+        // Fetch once on mount and whenever policyID changes. setMerchantRule already updates Onyx, so refetching
+        // after a save can overwrite a newly added rule with stale data.
         openPolicyRulesPage(policyID);
+        // The mount fetch is this page's own, rather than the shared hook's once per session, because this page
+        // lists the rules themselves and a stale collection here is visible to the admin.
+        getRules();
     }, [policyID]);
+
+    // Clearing the cache empties the collection without remounting anything, so the mount fetch above never runs
+    // again and the list stays empty. The hook's flags are cleared along with the collection, so it refills it.
+    useRulesPrefetch();
+
+    // A read issued while offline is discarded rather than queued, so the mount fetch can leave this page with
+    // nothing to list. Pending writes flush before the read, so this cannot overwrite a rule saved offline.
+    useNetwork({
+        onReconnect: () => {
+            openPolicyRulesPage(policyID);
+            getRules();
+        },
+    });
 
     useEffect(() => {
         // Collect can only use the General tab; keep them there if a non-General tab is persisted.

@@ -1,27 +1,39 @@
 /** Declares the charts each Insights dashboard renders and how they map to backend graph slots and search views. */
 
-import type {SearchGroupBy, SearchView} from '@components/Search/types';
+import type {ChartView, SearchGroupBy} from '@components/Search/types';
+
+import {isPolicyEligibleForTopCategories, isPolicyEligibleForTopSpenders} from '@libs/SearchUIUtils';
+
+import colors from '@styles/theme/colors';
 
 import CONST from '@src/CONST';
-import type {InsightsDashboardID, InsightsGraphKey} from '@src/types/onyx';
+import type {TranslationPaths} from '@src/languages/types';
+import type {InsightsDashboardID, InsightsGraphKey, InsightsSearchKey, Policy} from '@src/types/onyx';
 
-import type {ValueOf} from 'type-fest';
+import type {OnyxCollection} from 'react-native-onyx';
 
 type InsightsChartSpec = {
-    /** Slot the chart finds its snapshot hash under in the stored dashboard's `graphs` */
+    /** Slot the request names the chart's snapshot under, and the response's `graphs` confirms it in */
     graphKey: InsightsGraphKey;
-    view: SearchView;
+    titleKey: TranslationPaths;
+    view: ChartView;
 
     /** What the chart aggregates by, left out by charts that follow the page's group-by filter */
     groupBy?: SearchGroupBy;
     sortBy?: string;
     sortOrder?: string;
     limit?: number;
+
+    /** Color every bar is drawn in. Only a bar chart reads it. */
+    color?: string;
+
+    /** The chart is shown when any workspace in scope passes this. A chart that declares none is always shown. */
+    isPolicyEligible?: (policy: Policy, login: string | undefined) => boolean;
 };
 
 type InsightsDashboardSpec = {
     /** Identifies the dashboard to the backend. */
-    searchKey: ValueOf<typeof CONST.INSIGHTS.SEARCH_KEY>;
+    searchKey: InsightsSearchKey;
 
     /** Chart across the top of the page, the only one the group-by filter applies to */
     headlineChart: InsightsChartSpec;
@@ -35,20 +47,26 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
         searchKey: CONST.INSIGHTS.SEARCH_KEY.SPEND,
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME,
+            titleKey: 'search.spendOverTime',
             view: CONST.SEARCH.VIEW.LINE,
         },
         supportingCharts: [
             {
                 graphKey: CONST.INSIGHTS.GRAPH.TOP_SPENDERS,
-                view: CONST.SEARCH.VIEW.PIE,
+                titleKey: 'search.tabs.topSpenders',
+                view: CONST.SEARCH.VIEW.BAR,
+                color: colors.blue400,
                 groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
+                isPolicyEligible: isPolicyEligibleForTopSpenders,
             },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.TOP_MERCHANTS,
-                view: CONST.SEARCH.VIEW.PIE,
+                titleKey: 'search.tabs.topMerchants',
+                view: CONST.SEARCH.VIEW.BAR,
+                color: colors.pink400,
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
@@ -56,15 +74,24 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.TOP_CATEGORIES,
-                view: CONST.SEARCH.VIEW.BAR,
+                titleKey: 'search.tabs.topCategories',
+                view: CONST.SEARCH.VIEW.PIE,
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
+                isPolicyEligible: isPolicyEligibleForTopCategories,
             },
         ],
     },
 };
 
+/** Returns the charts that at least one workspace in scope is eligible for. No selected workspaces means every workspace is in scope. */
+function getVisibleCharts(charts: InsightsChartSpec[], policies: OnyxCollection<Policy>, policyIDs: string[], login: string | undefined): InsightsChartSpec[] {
+    const policiesInScope = Object.values(policies ?? {}).filter((policy): policy is Policy => !!policy && (policyIDs.length === 0 || policyIDs.includes(policy.id)));
+    return charts.filter(({isPolicyEligible}) => !isPolicyEligible || policiesInScope.some((policy) => isPolicyEligible(policy, login)));
+}
+
+export {getVisibleCharts};
 export type {InsightsChartSpec};
 export default INSIGHTS_DASHBOARD_SPECS;

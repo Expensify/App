@@ -3,8 +3,9 @@ import type {SearchActionsContextValue, SearchStateContextValue} from '@componen
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import {write as apiWrite} from '@libs/API';
+import {createTransitionBarrier, write as apiWrite, writeWhenReady} from '@libs/API';
 import type {RevertSplitTransactionParams, SplitTransactionParams, SplitTransactionSplitsParam} from '@libs/API/parameters';
+import type {ApiRequestCommandParameters, WriteCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -45,7 +46,6 @@ import {
     navigateBackOnDeleteTransaction,
     updateOptimisticParentReportAction,
 } from '@libs/ReportUtils';
-import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {isTracking, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {
     getChildTransactions,
@@ -56,7 +56,6 @@ import {
 } from '@libs/TransactionUtils';
 
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
-import {mergeTransactionIdsHighlightOnSearchRoute} from '@userActions/Transaction';
 import {removeDraftSplitTransaction} from '@userActions/TransactionEdit';
 
 import CONST from '@src/CONST';
@@ -83,6 +82,7 @@ import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getAllReports} from './index';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {getMoneyRequestInformation, getReportPreviewReportAction} from './MoneyRequestBuilder';
+import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 import {getDeleteTrackExpenseInformation} from './TrackExpense';
 import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
 
@@ -1997,6 +1997,17 @@ function updateSplitTransactions({
         }
     }
 
+    // Saving from the split-expenses flow also navigates to the destination screen. A plain API.write would apply
+    // optimisticData right away and re-render that screen mid-transition, so writeSplit holds the write until the
+    // navigation ends. Callers outside that flow have no such navigation to wait on, so they write immediately.
+    const writeSplit = <TCommand extends WriteCommand>(command: TCommand, parameters: ApiRequestCommandParameters[TCommand]) => {
+        if (!isFromSplitExpensesFlow) {
+            apiWrite(command, parameters, onyxData);
+            return;
+        }
+        writeWhenReady(command, parameters, onyxData, createTransitionBarrier('navigation'));
+    };
+
     if (isReverseSplitOperation) {
         const parameters = {
             ...splits.at(0),
@@ -2004,7 +2015,7 @@ function updateSplitTransactions({
             waypoints: splits.at(0)?.waypoints ? JSON.stringify(splits.at(0)?.waypoints) : undefined,
             copiedComments: splits.at(0)?.copiedComments ? JSON.stringify(splits.at(0)?.copiedComments) : undefined,
         } as RevertSplitTransactionParams;
-        apiWrite(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, parameters, onyxData);
+        writeSplit(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, parameters);
     } else {
         // Prepare splitApiParams for the Transaction_Split API call which requires a specific format for the splits
         // The format is: splits[0][amount], splits[0][category], splits[0][tag] etc.
@@ -2020,11 +2031,7 @@ function updateSplitTransactions({
             transactionID: originalTransactionID,
         };
 
-        if (isCreationOfSplits) {
-            apiWrite(WRITE_COMMANDS.SPLIT_TRANSACTION, splitParameters, onyxData);
-        } else {
-            apiWrite(WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION, splitParameters, onyxData);
-        }
+        writeSplit(isCreationOfSplits ? WRITE_COMMANDS.SPLIT_TRANSACTION : WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION, splitParameters);
     }
     TransitionTracker.runAfterTransitions({callback: () => removeDraftSplitTransaction(originalTransactionID), waitForUpcomingTransition: true});
 }
@@ -2063,11 +2070,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const reverseSplitKeepsOriginalInExpenseReport = isReverseSplitOperation && splitExpenses.at(0)?.reportID === expenseReportID;
     const willExpenseReportBecomeEmpty =
         !!expenseReportID && areAllExpenseReportTransactionsSplitChildren && !anyRemainingSplitStaysInExpenseReport && !reverseSplitKeepsOriginalInExpenseReport;
-    const isLastTransactionInReport =
-        willExpenseReportBecomeEmpty ||
-        (isReverseSplitOperation &&
-            !reverseSplitKeepsOriginalInExpenseReport &&
-            Object.values(params.allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID).length === 1);
+    const isLastTransactionInReport = willExpenseReportBecomeEmpty || (isReverseSplitOperation && !reverseSplitKeepsOriginalInExpenseReport && expenseReportTransactions.length === 1);
     const fallbackReportID = params.expenseReport?.chatReportID ?? params.expenseReport?.parentReportID;
 
     if (isLastTransactionInReport && fallbackReportID) {
@@ -2114,34 +2117,13 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
     const targetReportID = params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
 
-    // Register newly created split transaction IDs so they briefly highlight on the Search/Spend page.
-    // The Search page reads TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE, which highlights matching rows
-    // optimistically without waiting for a server re-search. Unlike the auto-detect path in
-    // useSearchHighlightAndScroll (skipped while offline), this makes the highlight work offline too.
-    // Reverse splits create no new transactions, and existing children are already in the list, so both are skipped.
-    function registerSearchRouteHighlight() {
-        if (!isSearchPageTopmostFullScreenRoute || isReverseSplitOperation) {
-            return;
-        }
-        const currentSearchType = getCurrentSearchQueryJSON()?.type;
-        if (!currentSearchType) {
-            return;
-        }
-        const newTransactionIDsToHighlight: Record<string, boolean> = {};
-        for (const transactionID of getNewSplitTransactionIDs()) {
-            newTransactionIDsToHighlight[transactionID] = true;
-        }
-        if (isEmptyObject(newTransactionIDsToHighlight)) {
-            return;
-        }
-        mergeTransactionIdsHighlightOnSearchRoute(currentSearchType, newTransactionIDsToHighlight);
-    }
-
     if (isSearchPageTopmostFullScreenRoute || !params.transactionReport?.parentReportID) {
-        registerSearchRouteHighlight();
         // Returns to Search, not the expense report, so rail flags would sit unconsumed and highlight stale rows the
-        // next time that report is opened from the Inbox. registerSearchRouteHighlight above covers this page instead.
+        // next time that report is opened from the Inbox.
         updateSplitTransactions({...params, isFromSplitExpensesFlow: true, shouldSkipReportHighlightRail: true});
+        if (isSearchPageTopmostFullScreenRoute && !isReverseSplitOperation) {
+            signalExpenseAddedGrowl(getNewSplitTransactionIDs().at(-1), CONST.SEARCH.DATA_TYPES.EXPENSE);
+        }
 
         if (!isSelfDMSplit) {
             Navigation.navigateBackToLastSuperWideRHPScreen();
@@ -2185,11 +2167,16 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, targetReportID);
     }
 
+    // When the transaction thread is the topmost report (e.g. it was opened directly from the "Expense added" growl,
+    // without the expense report beneath it), replace it instead of removing it and pushing the expense report after the
+    // dismissal animation - otherwise the stack empties down to the chat report and it flashes into view in between.
+    const shouldReplaceTransactionThread = !!transactionThreadReportID && Navigation.getTopmostReportId() === transactionThreadReportID;
+
     popReportsSplitNavigatorToReport(targetReportID);
-    Navigation.dismissModalWithReport({reportID: targetReportID});
+    Navigation.dismissModalWithReport({reportID: targetReportID}, navigationRef, {forceReplace: shouldReplaceTransactionThread});
     requestAnimationFrame(() => {
         updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
-        if (!transactionThreadReportScreen?.key) {
+        if (shouldReplaceTransactionThread || !transactionThreadReportScreen?.key) {
             return;
         }
         Navigation.removeScreenByKey(transactionThreadReportScreen.key);
@@ -2197,3 +2184,4 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 }
 
 export {updateSplitTransactions, updateSplitTransactionsFromSplitExpensesFlow};
+export type {UpdateSplitTransactionsParams};

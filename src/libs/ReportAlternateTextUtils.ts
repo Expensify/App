@@ -49,6 +49,7 @@ import {
     getAddedConnectionMessage,
     getApprovalLimitUpdateMessage,
     getAssignedCompanyCardMessage,
+    getAutoCategorizeNewExpensesMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCardConnectionBrokenMessage,
@@ -132,6 +133,7 @@ import {
     getUpdatedDefaultTitleMessage,
     getUpdatedIndividualBudgetNotificationMessage,
     getUpdatedManualApprovalThresholdMessage,
+    getUpdatedMemberWorkArrangementMessage,
     getUpdatedOwnershipMessage,
     getUpdatedProhibitedExpensesMessage,
     getUpdatedReimbursementChoiceMessage,
@@ -795,6 +797,9 @@ function getLastMessageTextForReport({
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED)) {
         lastMessageTextFromReport = getRequireCompanyCardsEnabledMessage(translate, lastReportAction);
     }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_CATEGORIZE_NEW_EXPENSES)) {
+        lastMessageTextFromReport = getAutoCategorizeNewExpensesMessage(translate, lastReportAction);
+    }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY)) {
         lastMessageTextFromReport = getRequiresCategoryMessage(translate, lastReportAction);
     }
@@ -806,6 +811,9 @@ function getLastMessageTextForReport({
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING)) {
         lastMessageTextFromReport = getUpdatedAutoHarvestingMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT)) {
+        lastMessageTextFromReport = getUpdatedMemberWorkArrangementMessage(translate, lastReportAction);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT)) {
         lastMessageTextFromReport = getAutoReimbursementMessage(translate, lastReportAction, convertToDisplayString);
@@ -1013,7 +1021,7 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
             welcomeMessage.messageHtml = translate(
                 'reportActionsView.beginningOfChatHistoryPolicyExpenseChat',
                 getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')}),
-                getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber, translate}),
+                getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}),
             );
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         }
@@ -1097,7 +1105,7 @@ function getRoomWelcomeMessage({
     } else if (isInvoiceRoom(report)) {
         const payer =
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
-                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber, translate})
+                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')})
                 : invoiceReceiverPolicy?.name;
         const receiver = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
         welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryInvoiceRoom', payer ?? '', receiver);
@@ -1376,6 +1384,8 @@ function getReportAlternateText({
             alternateText = getWorkspaceAttendeeTrackingUpdateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED) {
             alternateText = getRequireCompanyCardsEnabledMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_CATEGORIZE_NEW_EXPENSES) {
+            alternateText = getAutoCategorizeNewExpensesMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY) {
             alternateText = getRequiresCategoryMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG) {
