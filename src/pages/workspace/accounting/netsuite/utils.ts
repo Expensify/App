@@ -1,5 +1,5 @@
 import {isAuthenticationError} from '@libs/actions/connections';
-import {canUseProvincialTaxNetSuite, canUseTaxNetSuite} from '@libs/PolicyUtils';
+import {canUseProvincialTaxNetSuite, canUseTaxNetSuite} from '@libs/NetSuiteUtils';
 
 import CONST from '@src/CONST';
 import type {NetSuiteConnectionConfig, NetSuiteSubsidiary} from '@src/types/onyx/Policy';

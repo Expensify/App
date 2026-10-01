@@ -3,9 +3,8 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
+import calculateWideRHPWidth from '@libs/Navigation/helpers/calculateWideRHPWidth';
 import type {NavigationRoute} from '@libs/Navigation/types';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -39,18 +38,13 @@ const thirdOverlayProgress = new Animated.Value(0);
 const receiptPaneRHPWidth = calculateReceiptPaneRHPWidth(Dimensions.get('window').width);
 
 // Static values of all RHP widths
-const singleRHPWidth = variables.sideBarWidth;
 const superWideRHPWidth = calculateSuperWideRHPWidth(Dimensions.get('window').width);
-const wideRHPWidth = receiptPaneRHPWidth + singleRHPWidth;
+const wideRHPWidth = calculateWideRHPWidth(Dimensions.get('window').width);
 
 // This animated value is necessary to have responsive RHP widths
 const animatedReceiptPaneRHPWidth = new Animated.Value(receiptPaneRHPWidth);
 const animatedSuperWideRHPWidth = new Animated.Value(superWideRHPWidth);
 const animatedWideRHPWidth = new Animated.Value(wideRHPWidth);
-
-// The left position values of overlays displayed in ModalStackNavigators. A detailed description of how these positions are calculated can be found in src/libs/Navigation/AppNavigator/ModalStackNavigators/index.tsx
-const modalStackOverlayWideRHPPositionLeft = new Animated.Value(superWideRHPWidth - wideRHPWidth);
-const modalStackOverlaySuperWideRHPPositionLeft = new Animated.Value(superWideRHPWidth - singleRHPWidth);
 
 const WideRHPStateContext = createContext<WideRHPStateContextType>(defaultWideRHPStateContextValue);
 const WideRHPActionsContext = createContext<WideRHPActionsContextType>(defaultWideRHPActionsContextValue);
@@ -191,7 +185,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     /**
      * Effect that manages the tertiary overlay animation and rendering state.
      */
-    const shouldRenderTertiaryOverlay = useShouldRenderOverlay(isRHPFocused && isWideRHPBelow && isSuperWideRHPBelow, thirdOverlayProgress);
+    // react-navigation's card wrapper swallows clicks on the dimmed area, so the overlay from the screen below can't catch them when a skinny RHP sits over a wide or super wide one.
+    const shouldRenderTertiaryOverlay = useShouldRenderOverlay(isRHPFocused && (isWideRHPBelow || isSuperWideRHPBelow), thirdOverlayProgress);
 
     /**
      * Removes the route from both wide and super-wide sets. Used on screen unmount.
@@ -274,11 +269,9 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             const windowWidth = Dimensions.get('window').width;
             const newReceiptPaneRHPWidth = calculateReceiptPaneRHPWidth(windowWidth);
             const newSuperWideRHPWidth = calculateSuperWideRHPWidth(windowWidth);
-            const newWideRHPWidth = newReceiptPaneRHPWidth + singleRHPWidth;
+            const newWideRHPWidth = calculateWideRHPWidth(windowWidth);
             animatedReceiptPaneRHPWidth.setValue(newReceiptPaneRHPWidth);
             animatedWideRHPWidth.setValue(newWideRHPWidth);
-            modalStackOverlayWideRHPPositionLeft.setValue(newSuperWideRHPWidth - newWideRHPWidth);
-            modalStackOverlaySuperWideRHPPositionLeft.setValue(newSuperWideRHPWidth - singleRHPWidth);
             animatedSuperWideRHPWidth.setValue(newSuperWideRHPWidth);
         };
 
@@ -341,8 +334,6 @@ export {
     animatedSuperWideRHPWidth,
     animatedWideRHPWidth,
     expandedRHPProgress,
-    modalStackOverlaySuperWideRHPPositionLeft,
-    modalStackOverlayWideRHPPositionLeft,
     secondOverlayWideRHPProgress,
     secondOverlayRHPOnWideRHPProgress,
     secondOverlayRHPOnSuperWideRHPProgress,
