@@ -1,4 +1,4 @@
-import Header from '@components/Header';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
@@ -84,14 +84,11 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
             includeSafeAreaPaddingBottom={false}
             testID={AccountFlowEntryPoint.displayName}
         >
-            <Header>
-                <Header.BackButton onPress={onBackButtonPress} />
-                <Header.Title
-                    title={translate('bankAccount.addBankAccount')}
-                    subtitle={policyName}
-                />
-            </Header>
-
+            <HeaderWithBackButtonAndTitle
+                title={translate('bankAccount.addBankAccount')}
+                subtitle={policyName}
+                onBackButtonPress={onBackButtonPress}
+            />
             <ScrollView style={styles.flex1}>
                 <Section
                     title={translate('workspace.bankAccount.streamlinePayments')}
