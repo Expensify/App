@@ -9242,6 +9242,25 @@ const CONST = {
             /** The cap a column opts into through `dynamicSizing.maxWidth`, so one unusually long value doesn't take room the columns after it need. */
             MAX_FREE_TEXT_COLUMN_WIDTH: 180,
         },
+
+        /** Storage keys for column widths, one per column set (not per screen) so tables with the same columns share widths. */
+        COLUMN_RESIZING_IDS: {
+            WORKSPACE_MEMBERS: 'workspaceMembers',
+        },
+
+        COLUMN_RESIZE: {
+            /** How narrow the user may drag a column. Low enough to hide most of a cell's content, since the user asked for it, but never so narrow that the column's own edge becomes unreachable. */
+            MIN_WIDTH: 48,
+
+            /** How wide the user may drag a column, so one drag can't push every column after it out of reach. */
+            MAX_WIDTH: 1200,
+
+            /** Width of the invisible strip centred on a column's edge that reveals the resize affordance and starts a drag. */
+            HANDLE_HIT_WIDTH: 12,
+
+            /** Width of the line drawn down the table while a column's edge is hovered or dragged. */
+            INDICATOR_WIDTH: 2,
+        },
     },
 
     SENTRY_LABEL: {

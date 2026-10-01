@@ -76,6 +76,7 @@ function renderContainer(
             rendersBodyWhenEmpty={rendersBodyWhenEmpty}
             shouldUseDynamicColumns={shouldUseDynamicColumns}
             scrollWidth={undefined}
+            columnResize={undefined}
             onLayout={onLayout}
         >
             {children}
@@ -178,6 +179,7 @@ describe('TableSemanticContainer', () => {
                 rendersBodyWhenEmpty={false}
                 shouldUseDynamicColumns={false}
                 scrollWidth={undefined}
+                columnResize={undefined}
                 onLayout={undefined}
             >
                 <TrackedFilterBar />
@@ -217,6 +219,7 @@ describe('TableSemanticContainer', () => {
                 rendersBodyWhenEmpty={false}
                 shouldUseDynamicColumns
                 scrollWidth={undefined}
+                columnResize={undefined}
                 onLayout={isWideLayout ? onLayout : undefined}
             >
                 <TrackedFilterBar />

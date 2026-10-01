@@ -24,6 +24,7 @@ import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import {rendersColumnHeader} from './buildTableListData';
+import {TABLE_ROW_DATA_SET, getColumnsWidthStyle} from './columnResize/columnWidthExpressions';
 import getGridTemplateColumns from './getGridTemplateColumns';
 import {assignCellColumnIndexes, getCellAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext, useTableRowSemanticID} from './TableContext';
@@ -91,6 +92,7 @@ export default function TableRow({
         dynamicGridTemplateColumns,
         listProps,
         shouldFooterRenderAsLastRow,
+        rowWidth,
     } = useTableContext();
     const semanticRowID = useTableRowSemanticID();
     const semanticTableHasHeader = rendersColumnHeader(tableListMetadata);
@@ -147,6 +149,8 @@ export default function TableRow({
 
     const tableRowPressableStyles = [
         styles.mh5,
+        // The list sizes this row from a measurement, so set its box from the header's expression or the background won't follow a drag.
+        !!rowWidth && getColumnsWidthStyle(rowWidth),
         isGroupHeader ? styles.hoveredComponentBG : styles.highlightBG,
         styles.userSelectNone,
         !isFirstRow && styles.borderTop,
@@ -273,6 +277,7 @@ export default function TableRow({
                 hoverStyle={tableRowPressableHoverStyle}
                 pressDimmingValue={!interactive ? undefined : 1}
                 role={interactive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
+                dataSet={TABLE_ROW_DATA_SET}
                 {...getRowAccessibilityProps(isTableSemanticsEnabled, rowIndex, false, semanticTableHasHeader)}
                 onMouseDown={(e) => {
                     const target = e?.target;

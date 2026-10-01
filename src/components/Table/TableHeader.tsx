@@ -6,7 +6,6 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -22,6 +21,8 @@ import {StyleSheet, View} from 'react-native';
 import type {TableColumn, TableData} from './types';
 
 import {rendersColumnHeaderInListHeader} from './buildTableListData';
+import ColumnResizeHandle from './columnResize/ColumnResizeHandle';
+import {TABLE_ROW_DATA_SET, getColumnsWidthStyle} from './columnResize/columnWidthExpressions';
 import getGridTemplateColumns from './getGridTemplateColumns';
 import {getColumnHeaderAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext} from './TableContext';
@@ -69,7 +70,6 @@ type TableHeaderProps = ViewProps & {
 function TableHeader<DataType extends TableData, ColumnKey extends string = string>({style, isStickyListHeader = false, isAccessibilityHidden = false, ...props}: TableHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -84,7 +84,8 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         isMobileSelectionEnabled,
         shouldEnableSelectionInNarrowPaneModal,
         dynamicGridTemplateColumns,
-        scrollWidth,
+        rowWidth,
+        columnResize,
         tableListMetadata,
     } = useTableContext<DataType, ColumnKey>();
     // Tables inside a narrow pane modal (RHP) opt into keying the header checkbox off the real screen size, since
@@ -129,6 +130,8 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
             style={[
                 styles.pv2,
                 styles.mh5,
+                // Same expression as the row box, so headings can't drift from their cells. An exact width, not a floor: each box's parent differs.
+                !!rowWidth && getColumnsWidthStyle(rowWidth),
                 styles.highlightBG,
                 styles.borderBottom,
                 styles.tableTopRadius,
@@ -141,8 +144,14 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 // Use Grid on web when available (will override flex if supported)
                 styles.dGrid,
                 !shouldUseNarrowTableLayout && {gridTemplateColumns: gridTemplateColumns.join(' ')},
+                // `space-between` is only for the flex fallback. Grid would spread a narrowed column's leftover room between tracks and shift the
+                // headings off their cells, so pack to the start like the rows do.
+                !!dynamicGridTemplateColumns && !shouldUseNarrowTableLayout && styles.justifyContentStart,
+                // Lifts the edges' lines, which hang below the header, above the rows that paint after it.
+                !!columnResize && styles.zIndex1,
                 style,
             ]}
+            dataSet={TABLE_ROW_DATA_SET}
             {...getRowAccessibilityProps(isTableSemanticsEnabled, 0, true)}
             {...props}
             {...inertProps}
@@ -208,11 +217,9 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         </View>
     );
 
-    // Sits in the list header rather than FlashList's sticky-row overlay, so the scroller carries it sideways with the
-    // columns. Needs an explicit width because the list header stretches to the scrolled content, which would leave the
-    // background and bottom border short of the columns. That background is what the rows scroll under once it's stuck.
-    if (rendersColumnHeaderInListHeader(tableListMetadata) && !!scrollWidth) {
-        return <View style={[styles.appBG, StyleUtils.getWidthStyle(scrollWidth)]}>{header}</View>;
+    // In the list header (not FlashList's sticky overlay) so it scrolls sideways with the columns. Only a backdrop; the inner header row carries the width.
+    if (rendersColumnHeaderInListHeader(tableListMetadata)) {
+        return <View style={styles.appBG}>{header}</View>;
     }
 
     if (!isStickyListHeader) {
@@ -248,6 +255,7 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
 
     const {
         activeSorting,
+        columnResize,
         tableMethods: {updateSorting, toggleColumnSorting},
     } = useTableContext<DataType, ColumnKey>();
 
@@ -344,6 +352,14 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
             {...getColumnHeaderAccessibilityProps(true, !!column.sortable, isSortingByColumn, activeSorting.order, columnIndex)}
         >
             {sortButton}
+
+            {/* Overhangs the cell's right edge; omitted from the sticky header's hidden twin to avoid duplicate handles. */}
+            {!isAccessibilityHidden && (
+                <ColumnResizeHandle
+                    columnResize={columnResize}
+                    columnKey={column.key}
+                />
+            )}
         </View>
     );
 }

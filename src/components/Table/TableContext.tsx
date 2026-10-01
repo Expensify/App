@@ -9,6 +9,7 @@ import type {NativeScrollEvent, NativeSyntheticEvent, View} from 'react-native';
 import React, {createContext, useContext} from 'react';
 
 import type {TableListMetadata} from './buildTableListData';
+import type {ColumnResizeController} from './columnResize/useColumnResize/types';
 import type {FilterConfig} from './middlewares/filtering';
 import type {ActiveSorting, SortOrder} from './middlewares/sorting';
 import type {TableHeaderProps} from './TableHeader';
@@ -73,8 +74,17 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
      */
     dynamicGridTemplateColumns: string[] | undefined;
 
-    /** The width the rows need when the columns don't fit, which makes the list scroll horizontally too. `undefined` means they fit. */
-    scrollWidth: number | undefined;
+    /** Row width when the columns overflow (scrolls horizontally); `undefined` when they fit. A CSS expression while resizable, so drags need no re-render. */
+    scrollWidth: number | string | undefined;
+
+    /**
+     * Width of the row's own box (background, separators, corners) while resizable, else `undefined`.
+     * The list sizes rows from a measurement, so without this the background wouldn't follow a drag.
+     */
+    rowWidth: string | undefined;
+
+    /** Lets the header render column edge handles. `undefined` when resizing is off (including native and narrow layouts). */
+    columnResize: ColumnResizeController | undefined;
 
     /** Measured width of the area the table lays out into. Content-sized columns only. `0` until the first layout. */
     tableWidth: number;
@@ -139,6 +149,8 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     columns: [],
     dynamicGridTemplateColumns: undefined,
     scrollWidth: undefined,
+    rowWidth: undefined,
+    columnResize: undefined,
     tableWidth: 0,
     activeFilters: {},
     activeSorting: {

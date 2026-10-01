@@ -31,10 +31,11 @@ type ColumnHeaderPlacementParams = {
     isColumnHeaderHiddenInNarrowLayout: boolean;
 
     /**
-     * Whether the columns are wider than the table and so have to scroll. FlashList's sticky-row overlay can't follow
-     * them, so the column header moves into the list header instead (see `TableBody`).
+     * Whether the columns sit in a horizontal scroller, either because they overflow the table or because they are
+     * resizable and a drag may overflow it at any moment. FlashList's sticky-row overlay can't follow them sideways, so
+     * the column header moves into the list header instead (see `TableBody`).
      */
-    areColumnsScrollable: boolean;
+    hasHorizontalScrollContainer: boolean;
 };
 
 type TableListMetadataParams<DataType extends TableData> = Omit<ColumnHeaderPlacementParams, 'hasPageHeader'> & {
@@ -47,7 +48,7 @@ function getColumnHeaderPlacement({
     hasPageHeader,
     hasRows,
     isColumnHeaderHiddenInNarrowLayout,
-    areColumnsScrollable,
+    hasHorizontalScrollContainer,
 }: ColumnHeaderPlacementParams): ColumnHeaderPlacement {
     if (!hasColumnHeaderElement) {
         return CONST.TABLES.COLUMN_HEADER_PLACEMENT.NONE;
@@ -63,7 +64,7 @@ function getColumnHeaderPlacement({
         return CONST.TABLES.COLUMN_HEADER_PLACEMENT.OUTSIDE_LIST;
     }
 
-    return areColumnsScrollable ? CONST.TABLES.COLUMN_HEADER_PLACEMENT.LIST_HEADER : CONST.TABLES.COLUMN_HEADER_PLACEMENT.STICKY_ROW;
+    return hasHorizontalScrollContainer ? CONST.TABLES.COLUMN_HEADER_PLACEMENT.LIST_HEADER : CONST.TABLES.COLUMN_HEADER_PLACEMENT.STICKY_ROW;
 }
 
 /** Whether the table has a column header at all, wherever it ends up. Drives `aria-rowindex`/`aria-rowcount`. */

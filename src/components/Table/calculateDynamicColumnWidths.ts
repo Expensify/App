@@ -119,6 +119,23 @@ function distributeAvailableWidth(desiredWidths: number[], maxWidths: number[], 
 }
 
 /**
+ * Splits the width into equal whole-px columns summing exactly to it, remainder going to the first column.
+ * Resizable columns need these numbers as a drag starting point, whereas static equal columns are just styled `1fr`.
+ */
+function distributeEqualWidths(columnCount: number, availableWidth: number): number[] {
+    if (columnCount <= 0) {
+        return [];
+    }
+
+    const equalWidth = Math.floor(availableWidth / columnCount);
+    const widths = Array.from({length: columnCount}, () => equalWidth);
+
+    widths[0] += availableWidth - equalWidth * columnCount;
+
+    return widths;
+}
+
+/**
  * Resolves the widths of a table's dynamically sized columns from what their content needs and how much room the table
  * has, implementing the three behaviors from https://github.com/Expensify/App/issues/96510:
  *
@@ -212,4 +229,5 @@ function calculateDynamicColumnWidths(constraints: DynamicColumnConstraints[], a
 }
 
 export default calculateDynamicColumnWidths;
+export {distributeEqualWidths};
 export type {DynamicColumnConstraints};

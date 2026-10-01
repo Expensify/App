@@ -7,7 +7,9 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import getPlatform from '@libs/getPlatform';
@@ -15,6 +17,8 @@ import {canMeasureText} from '@libs/measureTextWidth';
 import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {tableColumnWidthsSelector} from '@src/selectors/TableColumnWidths';
 
 import type {FlashListRef} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
@@ -29,6 +33,7 @@ import type {TableHeaderProps} from './TableHeader';
 import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from './types';
 
 import {getDataVisibleIndices, getListIndex, getTableListMetadata, rendersColumnHeader} from './buildTableListData';
+import useColumnResize from './columnResize/useColumnResize';
 import useFiltering from './middlewares/filtering';
 import useHighlighting from './middlewares/highlight';
 import useSearching from './middlewares/searching';
@@ -277,6 +282,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     shouldAlwaysEnableSelection,
     shouldPreserveSelectionOnSearchAndFilter,
     shouldFooterRenderAsLastRow,
+    columnResizingID,
     onRowSelectionChange,
     onSearchStringChange,
     onSortingChange,
@@ -303,6 +309,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         turnOffMobileSelectionMode();
     };
     const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
+    const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
 
@@ -378,15 +385,39 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     // static tracks and never measure the table.
     const isDynamicSizingEnabled = shouldUseDynamicColumns && !shouldUseNarrowTableLayout && canMeasureText();
 
+    // Resizing rides on dynamic sizing: a dragged width is honored by the same resolver that sizes a column from its
+    // content, so a table that isn't being sized has nothing to apply one to.
+    const isColumnResizingEnabled = isDynamicSizingEnabled && !!columnResizingID;
+    // Narrowed to this table's own entry, because every table subscribes to the same key: without the selector a drag
+    // in one table would rewrite the root object and re-render every other table in the app, resizable or not.
+    const columnWidthsSelector = useMemo(() => tableColumnWidthsSelector(columnResizingID), [columnResizingID]);
+    const [columnWidthOverrides] = useOnyx(ONYXKEYS.TABLE_COLUMN_WIDTHS, {selector: columnWidthsSelector});
+
     // Columns are sized from the full data set rather than the processed one, so the widths stay put while the user
     // searches or filters instead of reflowing on every keystroke.
-    const {gridTemplateColumns: dynamicGridTemplateColumns, scrollWidth: dynamicScrollWidth} = useDynamicColumnWidths<DataType, ColumnKey>({
+    const {
+        gridTemplateColumns: dynamicGridTemplateColumns,
+        scrollWidth: dynamicScrollWidth,
+        rowWidth: dynamicRowWidth,
+        resizableColumns,
+        resolvedColumnWidths,
+    } = useDynamicColumnWidths<DataType, ColumnKey>({
         columns,
         data,
         tableWidth,
         isEnabled: isDynamicSizingEnabled,
         // In the wide layout the checkbox column is rendered whenever selection is enabled.
         hasSelectionColumn: !!selectionEnabled,
+        isColumnResizingEnabled,
+        columnWidthOverrides,
+    });
+
+    const columnResize = useColumnResize({
+        columnResizingID: isColumnResizingEnabled ? columnResizingID : undefined,
+        columns: resizableColumns,
+        resolvedColumnWidths,
+        columnWidthOverrides,
+        columnGap: styles.gap3.gap,
     });
 
     const tableMethods: TableMethods<ColumnKey, FilterKey> = {
@@ -430,7 +461,9 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const hasColumnHeaderElement = !!tableHeaderElement;
     const hasRows = processedData.length > 0;
     const isColumnHeaderHiddenInNarrowLayout = shouldUseNarrowTableLayout && !title;
-    const areColumnsScrollable = !!dynamicScrollWidth;
+    // Resizable tables keep the scroller even while their columns fit: a drag can overflow the table without a React render,
+    // and switching the column header's placement mid-drag would remount the handle under the pointer.
+    const hasHorizontalScrollContainer = isColumnResizingEnabled || !!dynamicScrollWidth;
 
     const tableListMetadata = useMemo(
         () =>
@@ -440,9 +473,9 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 hasColumnHeaderElement,
                 hasRows,
                 isColumnHeaderHiddenInNarrowLayout,
-                areColumnsScrollable,
+                hasHorizontalScrollContainer,
             }),
-        [listHeaderElement, listProps.ListHeaderComponent, hasColumnHeaderElement, hasRows, isColumnHeaderHiddenInNarrowLayout, areColumnsScrollable],
+        [listHeaderElement, listProps.ListHeaderComponent, hasColumnHeaderElement, hasRows, isColumnHeaderHiddenInNarrowLayout, hasHorizontalScrollContainer],
     );
     /**
      * Exposes table control methods through the ref.
@@ -510,6 +543,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         columns,
         dynamicGridTemplateColumns,
         scrollWidth: dynamicScrollWidth,
+        rowWidth: dynamicRowWidth,
+        columnResize,
         tableWidth,
         filterConfig: filters,
         activeFilters: currentFilters,
@@ -555,6 +590,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 // Only tables without a page header scroll here. With one, an ancestor scroller would drag the
                 // in-list filter bar sideways, so their list scrolls horizontally itself (see `TableBody`).
                 scrollWidth={hasPageHeader ? undefined : dynamicScrollWidth}
+                columnResize={columnResize}
                 onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
             >
                 {renderedChildren}
