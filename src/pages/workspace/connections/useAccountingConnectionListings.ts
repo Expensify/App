@@ -155,6 +155,11 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
             title: integrationData.title,
             icon: integrationData.icon,
             status: isConnected ? getConnectedStatus(name, integrationData.title) : undefined,
+            // The Xero partner offer is for workspaces choosing their first accounting integration
+            offer:
+                name === CONST.POLICY.CONNECTIONS.NAME.XERO && !connectedIntegration
+                    ? {onPress: canWrite ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CLAIM_OFFER.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO)) : undefined}
+                    : undefined,
             onConnect: () => connect(name, isIntuitEnterpriseSuite),
             onConfigure: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID)),
             registerConnectButton: (button) => {

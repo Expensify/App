@@ -37,6 +37,9 @@ type ConnectionListing = {
 
     onConnect: () => void;
 
+    /** Shows an "Offer available!" badge for a partner promotion. The badge only opens the offer when `onPress` is set. */
+    offer?: {onPress?: () => void};
+
     /** Shows a spinner instead of "+" while the data the connection flow needs is still loading */
     isLoading?: boolean;
 

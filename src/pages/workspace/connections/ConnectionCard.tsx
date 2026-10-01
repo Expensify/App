@@ -38,7 +38,7 @@ function ConnectionCard({listing, columnCount}: ConnectionCardProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'Plus']);
-    const {title, icon, status, onConnect, onConfigure, registerConnectButton, isLoading} = listing;
+    const {title, icon, status, offer, onConnect, onConfigure, registerConnectButton, isLoading} = listing;
 
     const connectIcon = (
         <View style={[styles.justifyContentCenter, styles.ml3, styles.mr2]}>
@@ -107,6 +107,11 @@ function ConnectionCard({listing, columnCount}: ConnectionCardProps) {
                     ) : undefined
                 }
                 description={status?.message}
+                badgeText={offer ? translate('workspace.accounting.claimOffer.badgeText') : undefined}
+                isBadgeSuccess
+                isBadgeCondensed
+                shouldShowBadgeBelow
+                onBadgePress={offer?.onPress}
                 numberOfLinesDescription={1}
                 wrapperStyle={[styles.pv4, styles.ph4]}
                 onPress={status ? onConfigure : onConnect}
