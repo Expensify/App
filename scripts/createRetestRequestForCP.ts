@@ -462,7 +462,7 @@ async function run(): Promise<void> {
     if (!webhookURL) {
         throw new Error('SLACK_RETEST_WEBHOOK is required');
     }
-    const slackToken = process.env.SLACK_RETEST_BOT_TOKEN;
+    const slackToken = process.env.SLACK_RETEST_USER_TOKEN;
     const deployerWebhookURL = process.env.SLACK_WEBHOOK;
 
     const commitMessages = await getDeployedCommitMessages(deploySHA, deployTag);
@@ -546,7 +546,7 @@ async function run(): Promise<void> {
         }
 
         if (!slackToken || !deployerWebhookURL) {
-            console.warn(`Cannot add the retest request link for PR #${hit.prNumber}: ${!slackToken ? 'SLACK_RETEST_BOT_TOKEN' : 'SLACK_WEBHOOK'} is not configured.`);
+            console.warn(`Cannot add the retest request link for PR #${hit.prNumber}: ${!slackToken ? 'SLACK_RETEST_USER_TOKEN' : 'SLACK_WEBHOOK'} is not configured.`);
             continue;
         }
         try {

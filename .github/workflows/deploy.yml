@@ -988,7 +988,7 @@ jobs:
         run: npx bun scripts/createRetestRequestForCP.ts --deploy-sha=${{ needs.prep.outputs.DEPLOY_SHA }} --deploy-tag=${{ needs.prep.outputs.TAG }}
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
-          SLACK_RETEST_BOT_TOKEN: ${{ secrets.SLACK_RETEST_BOT_TOKEN }}
+          SLACK_RETEST_USER_TOKEN: ${{ secrets.SLACK_RETEST_USER_TOKEN }}
           SLACK_RETEST_WEBHOOK: ${{ steps.loadWebhook.outputs.SLACK_RETEST_WEBHOOK }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
