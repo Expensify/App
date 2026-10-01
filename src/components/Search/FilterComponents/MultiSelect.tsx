@@ -135,7 +135,6 @@ function MultiSelect<T extends string>({
         icons: item.icons,
         leftElement: item.leftElement,
         isDisabledCheckbox: item.isDisabled,
-        isInteractive: !item.isDisabled,
         tooltipText: item.tooltipText,
     }));
 
