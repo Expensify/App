@@ -6036,13 +6036,20 @@ function getReportFieldTextKey(key: ReportFieldKey): ReportFieldTextKey {
     return `${CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX}${reportFieldName}`;
 }
 
+type SearchFilterViewKey = keyof typeof FILTER_VIEW_MAP;
+
+type MappedFilterKey = SearchFilterViewKey | Extract<SearchAdvancedFiltersKey, `${SearchFilterViewKey}${typeof CONST.SEARCH.NOT_MODIFIER}`>;
+
 type SearchFilter = {
-    key: keyof typeof FILTER_VIEW_MAP;
+    key: SearchFilterViewKey;
+    /**
+     * Original form field, including a Not suffix. `key` is the filter family so has and hasNot
+     * share a popover; formKey keeps the two chips distinct in lists.
+     */
+    formKey: MappedFilterKey;
     label: string;
     value: string | string[];
 };
-
-type MappedFilterKey = SearchFilter['key'] | Extract<SearchAdvancedFiltersKey, `${SearchFilter['key']}${typeof CONST.SEARCH.NOT_MODIFIER}`>;
 
 function isMappedFilterKey(key: string): key is MappedFilterKey {
     return hasKey(FILTER_VIEW_MAP, removeNegation(key));
@@ -6110,7 +6117,7 @@ function mapFiltersFormToLabelValueList(
             if (displayValue && label) {
                 addedGroups.add(syntax);
                 const isDefault = defaultSearchQueryFilterKeys.has(syntax);
-                (isDefault ? defaultFilters : nonDefaultFilters).push({key: syntax, label: translate(label), value: displayValue, ...mapper?.(syntax, isDefault)});
+                (isDefault ? defaultFilters : nonDefaultFilters).push({key: syntax, formKey: syntax, label: translate(label), value: displayValue, ...mapper?.(syntax, isDefault)});
             }
             continue;
         }
@@ -6126,7 +6133,13 @@ function mapFiltersFormToLabelValueList(
                 addedGroups.add(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
                 const isDefault = defaultSearchQueryFilterKeys.has(getReportFieldTextKey(key));
                 const extra = mapper?.(CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD, isDefault);
-                (isDefault ? defaultFilters : nonDefaultFilters).push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD, label: translate('workspace.common.reportField'), value, ...extra});
+                (isDefault ? defaultFilters : nonDefaultFilters).push({
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD,
+                    formKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD,
+                    label: translate('workspace.common.reportField'),
+                    value,
+                    ...extra,
+                });
             }
             continue;
         }
@@ -6143,7 +6156,7 @@ function mapFiltersFormToLabelValueList(
 
         if (label && value && !(Array.isArray(value) && value.length === 0)) {
             const isDefault = defaultSearchQueryFilterKeys.has(baseKey);
-            (isDefault ? defaultFilters : nonDefaultFilters).push({key: baseKey, label, value, ...mapper?.(key, isDefault)});
+            (isDefault ? defaultFilters : nonDefaultFilters).push({key: baseKey, formKey: key, label, value, ...mapper?.(key, isDefault)});
         }
     }
 

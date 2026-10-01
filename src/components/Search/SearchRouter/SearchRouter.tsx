@@ -70,7 +70,7 @@ import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import getSearchRouterPopoverLayout from './getSearchRouterPopoverLayout';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
 import {clearPendingRouterState, peekPendingRouterState} from './SearchRouterContext';
-import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery, shouldPrefillSearchRouterQuery} from './SearchRouterUtils';
+import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery} from './SearchRouterUtils';
 import updateAutocompleteSubstitutionsForSelection from './updateAutocompleteSubstitutionsForSelection';
 import useAskConcierge from './useAskConcierge';
 import useNavigationSuggestions from './useNavigationSuggestions';
@@ -117,7 +117,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const {query: pendingInitialQuery, isFromSearchPageSearchButton} = peekPendingRouterState();
-    const {currentSearchQueryJSON, currentSearchHash, currentSearchKey, currentDefaultSearchQueryJSON} = useSearchQueryContext();
+    const {currentSearchQueryJSON, currentSearchHash, currentSearchKey} = useSearchQueryContext();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
@@ -128,21 +128,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const reportAttributes = useReportAttributes();
 
     // Seed the input on open. When the SearchRouter is opened from the search button on the search page
-    // and the current query should be prefilled, we build a user-readable query string from the current
-    // search (showing names instead of IDs) along with the substitutions map needed to map those names
+    // and `shouldShowSearchQuery` is true, we build a user-readable query string from the current search
+    // query (showing names instead of IDs) along with the substitutions map needed to map those names
     // back to IDs when submitting. Otherwise we fall back to the explicit pending query (e.g. from
     // ExpenseReportSearchHandler). Computed once via a lazy initializer so the query string and its
     // substitutions stay consistent.
     const [[initialQuery, initialSubstitutions]] = useState<[string, SubstitutionMap]>(() => {
-        if (
-            !currentSearchQueryJSON ||
-            !shouldPrefillSearchRouterQuery({
-                currentSearchQueryJSON,
-                currentDefaultSearchQueryJSON,
-                isFromSearchPageSearchButton,
-                shouldShowSearchQuery: searchContext?.shouldShowSearchQuery,
-            })
-        ) {
+        if (!currentSearchQueryJSON || !isFromSearchPageSearchButton || !searchContext?.shouldShowSearchQuery) {
             return [pendingInitialQuery, {}];
         }
 

@@ -1151,7 +1151,7 @@ function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, def
     });
 }
 
-function hasFiltersChangedFromDefault(currentQueryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>, defaultQueryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
+function hasFiltersChangedFromDefault(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON) {
     return getQueryHashWithoutFilters(currentQueryJSON, NON_FILTER_CHIP_KEYS) !== getQueryHashWithoutFilters(defaultQueryJSON, NON_FILTER_CHIP_KEYS);
 }
 

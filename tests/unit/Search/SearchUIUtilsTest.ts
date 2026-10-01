@@ -14552,6 +14552,22 @@ describe('SearchUIUtils', () => {
             expect(result.at(0)?.isDefault).toBe(true);
             expect(result.at(1)?.isDefault).toBe(false);
         });
+
+        it('gives has and hasNot chips distinct formKeys', () => {
+            // Given a form with both polarities of the Has filter
+            const form = {
+                [FILTER_KEYS.HAS]: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION],
+                [FILTER_KEYS.HAS_NOT]: [CONST.SEARCH.HAS_VALUES.RECEIPT],
+            };
+
+            // When the form is mapped to filter chips
+            const result = SearchUIUtils.mapFiltersFormToLabelValueList(form, new Set(), new Set(), translateLocal, undefined, localeCompare, convertToDisplayStringWithoutCurrency);
+
+            // Then both chips share the Has family key but stay distinguishable for list identity
+            const hasChips = result.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS);
+            expect(hasChips).toHaveLength(2);
+            expect(hasChips.map((filter) => filter.formKey).sort()).toEqual([FILTER_KEYS.HAS, FILTER_KEYS.HAS_NOT]);
+        });
     });
 });
 

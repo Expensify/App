@@ -1,8 +1,6 @@
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import {getQueryWithSubstitutions} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery, shouldPrefillSearchRouterQuery} from '@components/Search/SearchRouter/SearchRouterUtils';
-
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery} from '@components/Search/SearchRouter/SearchRouterUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -270,73 +268,6 @@ describe('SearchRouterUtils', () => {
 
             expect(seededQuery).toBe('type:expense workspace:Acme');
             expect(submittedQuery).toBe(`type:expense workspace:${POLICY_ID}`);
-        });
-    });
-
-    describe('shouldPrefillSearchRouterQuery', () => {
-        const defaultQueryJSON = buildSearchQueryJSON('type:expense');
-        const anyApprovalQueryJSON = buildSearchQueryJSON(
-            `type:expense ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH} has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`,
-        );
-
-        if (!defaultQueryJSON || !anyApprovalQueryJSON) {
-            throw new Error('Failed to parse search queries for shouldPrefillSearchRouterQuery tests');
-        }
-
-        test('does not prefill when the router was not opened from the search page', () => {
-            // Given a customized search opened from somewhere other than the search page button
-            // When deciding whether to seed the router input
-            const result = shouldPrefillSearchRouterQuery({
-                currentSearchQueryJSON: anyApprovalQueryJSON,
-                currentDefaultSearchQueryJSON: defaultQueryJSON,
-                isFromSearchPageSearchButton: false,
-                shouldShowSearchQuery: false,
-            });
-
-            // Then the input stays empty so a new query can be started
-            expect(result).toBe(false);
-        });
-
-        test('does not prefill the canned expenses search', () => {
-            // Given the default expenses query on the search page
-            // When deciding whether to seed the router input
-            const result = shouldPrefillSearchRouterQuery({
-                currentSearchQueryJSON: defaultQueryJSON,
-                currentDefaultSearchQueryJSON: defaultQueryJSON,
-                isFromSearchPageSearchButton: true,
-                shouldShowSearchQuery: false,
-            });
-
-            // Then the input stays empty so a new query can be started
-            expect(result).toBe(false);
-        });
-
-        test('prefills after any-approval changes the query from the default', () => {
-            // Given any-approval (and the required has:approved-violation) applied from the filter bar
-            // When opening the search router from the search page
-            const result = shouldPrefillSearchRouterQuery({
-                currentSearchQueryJSON: anyApprovalQueryJSON,
-                currentDefaultSearchQueryJSON: defaultQueryJSON,
-                isFromSearchPageSearchButton: true,
-                shouldShowSearchQuery: false,
-            });
-
-            // Then the current query is seeded so it can be edited as text
-            expect(result).toBe(true);
-        });
-
-        test('prefills a typed query even when it matches the default', () => {
-            // Given a search that originated from typed input and happens to match the canned query
-            // When opening the search router from the search page
-            const result = shouldPrefillSearchRouterQuery({
-                currentSearchQueryJSON: defaultQueryJSON,
-                currentDefaultSearchQueryJSON: defaultQueryJSON,
-                isFromSearchPageSearchButton: true,
-                shouldShowSearchQuery: true,
-            });
-
-            // Then the typed query is restored in the input
-            expect(result).toBe(true);
         });
     });
 });
