@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/no-multiple-api-calls -- Each test invokes one action; the rule's ancestor scan combines otherwise independent tests. */
 import {editPerDiemRateAmount, editPerDiemRateCurrency, editPerDiemRateDestination, editPerDiemRateSubrate} from '@libs/actions/Policy/PerDiem';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
