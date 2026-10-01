@@ -11315,7 +11315,18 @@ ${reportName}`,
                 invalid: 'Este código no es válido',
             },
         },
-        paymentHistory: {title: 'Ver historial de pagos', subtitle: 'Tu historial completo de pagos mensuales cargados a esta cuenta.'},
+        paymentHistory: {
+            title: 'Ver historial de pagos',
+            subtitle: 'Tu historial completo de pagos mensuales cargados a esta cuenta.',
+            payments: 'Pagos',
+            inclTax: 'incl. impuestos',
+            empty: 'Aún no hay pagos.',
+            activeUsers: ({count}: {count: number}) => ({
+                one: '1 usuario activo',
+                other: `${count} usuarios activos`,
+            }),
+            state: {paid: 'Pagado', cleared: 'Borrado', failed: 'Error', refunded: 'Reembolsado', disputed: 'En disputa', balanceTransfer: 'Transferencia de saldo'},
+        },
         subscriptionSettings: {
             title: 'Configuración de suscripción',
             summary: (subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease) =>
