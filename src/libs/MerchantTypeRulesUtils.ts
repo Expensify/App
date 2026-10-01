@@ -185,15 +185,21 @@ function getMerchantRulesTableData({
                 const pendingAction = rule.pendingAction;
 
                 // A rule the editor can't represent would lose whatever the form can't show if it were saved back,
-                // so the row summarizes it but doesn't open it. See `getMerchantRuleFormValues`.
+                // so the row summarizes it but doesn't open it. See `getMerchantRuleFormValues`. It stays selectable
+                // either way, because deleting it is the only thing an admin can still do with it.
                 const isEditable = isEditableMerchantRule(rule);
+                const openEditor = () => {
+                    if (!isEditable) {
+                        return;
+                    }
+                    onNavigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID));
+                };
 
                 return {
                     keyForList: ruleID,
                     ruleID,
                     section: CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANTS,
                     isRename: hasOnlyMerchantRename,
-                    isSelectionDisabled: !isEditable,
                     typeLabel,
                     conditionText: translate('workspace.rules.expenseDefaultsTable.merchantIs', merchantName),
                     ruleDescription,
@@ -201,8 +207,8 @@ function getMerchantRulesTableData({
                     pendingAction,
                     errors: rule.errors,
                     onCloseError: () => clearMerchantRuleErrors(ruleID, rule),
-                    disabled: !isEditable || rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    action: () => onNavigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID)),
+                    disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    action: openEditor,
                 };
             })
     );

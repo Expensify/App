@@ -11,6 +11,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -102,6 +103,15 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         // This page lists the rules themselves, so a stale collection here is visible to the admin.
         getRules();
     }, [policyID]);
+
+    // A read issued while offline is discarded rather than queued, so the mount fetch can leave this page with
+    // nothing to list. Pending writes flush before the read, so this cannot overwrite a rule saved offline.
+    useNetwork({
+        onReconnect: () => {
+            openPolicyRulesPage(policyID);
+            getRules();
+        },
+    });
 
     useEffect(() => {
         // Collect can only use the General tab; keep them there if a non-General tab is persisted.

@@ -16,6 +16,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {buildMerchantRule, isExpenseDefaultTaxValue} from '@libs/ExpenseDefaultRuleUtils';
 import type {BuiltMerchantRule, MerchantRuleFormValues} from '@libs/ExpenseDefaultRuleUtils';
 import Log from '@libs/Log';
+import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 
 import CONST from '@src/CONST';
@@ -105,6 +106,13 @@ function buildLegacyCodingRule(ruleValue: BuiltMerchantRule, ruleID: string, cre
  * not-found. The fetched flag is only set once the collection has actually arrived.
  */
 function getRules() {
+    // A read is discarded rather than queued when there is no connectivity, and a discarded request applies
+    // neither its success nor its failure data. Sending one offline would leave the in-flight flag set for the
+    // rest of the session, which blocks every later fetch.
+    if (getIsOffline()) {
+        return;
+    }
+
     type RulesFetchKey = typeof ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_RULES;
 
     const optimisticData: Array<OnyxUpdate<RulesFetchKey>> = [
@@ -133,13 +141,27 @@ function getRules() {
             value: false,
         },
         {
+            // A failed attempt still counts as one. Left false, the prefetch hook sees a fetch as needed again the
+            // moment the in-flight flag clears, so a server error retries for as long as the screen stays mounted.
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED,
-            value: false,
+            value: true,
         },
     ];
 
     API.read(READ_COMMANDS.GET_RULES, {}, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears the fetch flags so the next screen that needs the collection fetches it again.
+ *
+ * A read that never settles, such as one sent as the connection drops, applies neither its success nor its
+ * failure data, which leaves the in-flight flag set and blocks every later fetch. Connectivity returning is the
+ * point at which that stale state is known to be wrong.
+ */
+function resetRulesFetchState() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES, false);
+    Onyx.set(ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED, false);
 }
 
 /**
@@ -620,6 +642,7 @@ export {
     openPolicyRulesPage,
     getAgentRuleSuggestions,
     getRules,
+    resetRulesFetchState,
     setMerchantRule,
     importMerchantRulesSpreadsheet,
     deleteMerchantRule,

@@ -1,4 +1,4 @@
-import {getRules} from '@libs/actions/Policy/Rules';
+import {getRules, resetRulesFetchState} from '@libs/actions/Policy/Rules';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -24,7 +24,8 @@ import useOnyx from './useOnyx';
  * this a deep linked screen reads "no such rule" for a rule that exists.
  */
 function useRulesPrefetch(enabled = true): {areRulesLoading: boolean} {
-    const {isOffline} = useNetwork();
+    // Reconnecting is the only signal that a fetch which never settled is not still on its way.
+    const {isOffline} = useNetwork({onReconnect: resetRulesFetchState});
     const [hasBeenFetched, hasBeenFetchedResult] = useOnyx(ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED);
     const [isLoadingRules] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES);
     const isFlagLoading = isLoadingOnyxValue(hasBeenFetchedResult);
