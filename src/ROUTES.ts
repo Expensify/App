@@ -173,6 +173,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.SEARCH.ROOT,
+            SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT,
         ],
         // Entry points that already know the user is adding a personal deposit account (e.g. a queued reimbursement).
         getRoute: (shouldSkipPurposeSelection?: boolean, shouldSetUpUSBankAccount?: boolean) =>
