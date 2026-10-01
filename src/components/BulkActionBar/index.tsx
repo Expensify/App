@@ -114,17 +114,15 @@ function BulkActionBarContent<TValueType>({
         {isActive: shouldClearSelectionOnEscape},
     );
 
-    // Whichever Esc handler subscribed last runs first, so holding the pane back keeps it from closing out from under
-    // a selection Esc was meant to clear.
+    // The bar is only up while rows are selected, and that selection owns Escape, so Escape must not dismiss the
+    // screen underneath it. The flag is held for as long as the bar is mounted rather than tracked against whatever
+    // is open over it, because each write to it resubscribes the app's own Escape handler to the top of the stack,
+    // over the handler of anything laid above the page in the meantime.
     useEffect(() => {
-        if (!shouldClearSelectionOnEscape) {
-            return;
-        }
-
         setDisableDismissOnEscape(true);
 
         return () => setDisableDismissOnEscape(false);
-    }, [shouldClearSelectionOnEscape]);
+    }, []);
 
     useEffect(() => {
         if (!moreAnchorRef.current || !isMoreMenuVisible) {
