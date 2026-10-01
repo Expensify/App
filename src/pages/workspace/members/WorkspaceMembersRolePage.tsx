@@ -49,6 +49,7 @@ function WorkspaceMembersRolePage({policy, route}: WorkspaceMembersRolePageProps
     // selected and the member has to make a deliberate choice.
     const sharedRole = memberRoles.every((role) => role === memberRoles.at(0)) ? memberRoles.at(0) : undefined;
     const [draftRole, setDraftRole] = useState<ValueOf<typeof CONST.POLICY.ROLE>>();
+    const [hasError, setHasError] = useState(false);
     const selectedRole = draftRole ?? sharedRole;
 
     // The Authorized Payer (reimburser) must stay a valid payer, so restrict the whole selection to the roles that can pay once it includes them.
@@ -74,18 +75,22 @@ function WorkspaceMembersRolePage({policy, route}: WorkspaceMembersRolePageProps
 
     const saveAndGoBack = () => {
         if (!selectedRole) {
-            return;
-        }
-
-        if (selectedRole !== CONST.POLICY.ROLE.ADMIN && memberLogins.some((login) => isRuleBotEnforcingRules(memberEmailsToAccountIDs[login], policy))) {
-            showRuleBotGuardModal('changeRole', policyID);
+            setHasError(true);
             return;
         }
 
         const loginsToUpdate = memberLogins.filter((login) => policy?.employeeList?.[login]?.role !== selectedRole);
         const accountIDsToUpdate = loginsToUpdate.map((login) => memberEmailsToAccountIDs[login]).filter((accountID) => accountID !== undefined);
 
-        updateWorkspaceMembersRole(policy, loginsToUpdate, accountIDsToUpdate, selectedRole);
+        if (loginsToUpdate.length > 0) {
+            if (selectedRole !== CONST.POLICY.ROLE.ADMIN && loginsToUpdate.some((login) => isRuleBotEnforcingRules(memberEmailsToAccountIDs[login], policy))) {
+                showRuleBotGuardModal('changeRole', policyID);
+                return;
+            }
+
+            updateWorkspaceMembersRole(policy, loginsToUpdate, accountIDsToUpdate, selectedRole);
+        }
+
         clearMembersSelectedForRoleChange();
         Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
     };
@@ -104,15 +109,18 @@ function WorkspaceMembersRolePage({policy, route}: WorkspaceMembersRolePageProps
                 <WorkspaceMemberRoleList
                     role={selectedRole}
                     policy={policy}
-                    onSelectRole={({value}: ListItemType) => setDraftRole(value)}
+                    onSelectRole={({value}: ListItemType) => {
+                        setDraftRole(value);
+                        setHasError(false);
+                    }}
                     allowedRoles={allowedRoles}
                     navigateBackTo={ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)}
                     confirmButtonOptions={{
                         showButton: true,
                         text: translate('common.save'),
                         onConfirm: saveAndGoBack,
-                        isDisabled: !selectedRole || selectedRole === sharedRole,
                     }}
+                    errorMessage={hasError ? translate('common.error.pleaseSelectOne') : ''}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

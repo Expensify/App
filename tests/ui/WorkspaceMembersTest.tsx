@@ -276,6 +276,44 @@ describe('WorkspaceMembers', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
+        it('should ask for a role rather than disabling Save when the selection has no role in common', async () => {
+            // Given a mixed selection, which leaves the screen with nothing picked
+            await selectForRoleChange([adminEmail, userEmail]);
+
+            const {unmount} = renderRolePage(policy.id);
+            await waitForBatchedUpdatesWithAct();
+
+            // When Save is pressed without picking a role
+            const saveButton = await screen.findByText(TestHelper.translateLocal('common.save'));
+            fireEvent.press(saveButton, {
+                nativeEvent: {},
+                type: 'press',
+                target: saveButton,
+                currentTarget: saveButton,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the screen asks for one instead of leaving the button dead
+            await waitFor(() => {
+                expect(screen.getByText(TestHelper.translateLocal('common.error.pleaseSelectOne'))).toBeOnTheScreen();
+            });
+
+            // When a role is then picked, the message clears
+            const auditorRow = screen.getByText(roleName(CONST.POLICY.ROLE.AUDITOR));
+            fireEvent.press(auditorRow, {
+                nativeEvent: {},
+                type: 'press',
+                target: auditorRow,
+                currentTarget: auditorRow,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(TestHelper.translateLocal('common.error.pleaseSelectOne'))).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
         it('should only offer the roles that can pay when the selection holds the Authorized Payer', async () => {
             // Given a selection holding the Authorized Payer, who must stay a valid payer
             await act(async () => {

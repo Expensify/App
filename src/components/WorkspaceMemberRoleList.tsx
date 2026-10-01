@@ -17,6 +17,7 @@ import {View} from 'react-native';
 
 import type {ConfirmButtonOptions, ListItem} from './SelectionList/types';
 
+import FormHelpMessage from './FormHelpMessage';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import SelectionList from './SelectionList';
 import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
@@ -40,6 +41,9 @@ type WorkspaceMemberRoleListProps = {
 
     /** When provided, the list confirms the pick with a button instead of applying it as soon as a row is pressed */
     confirmButtonOptions?: ConfirmButtonOptions<ListItemType>;
+
+    /** Shown above the confirm button, for a confirmation pressed without a role picked */
+    errorMessage?: string;
 };
 
 function WorkspaceMemberRoleList({
@@ -50,6 +54,7 @@ function WorkspaceMemberRoleList({
     onSelectRole = () => {},
     allowedRoles = undefined,
     confirmButtonOptions = undefined,
+    errorMessage = '',
 }: WorkspaceMemberRoleListProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -119,7 +124,16 @@ function WorkspaceMemberRoleList({
                         shouldSingleExecuteRowSelect
                         initiallyFocusedItemKey={availableRoleItems.find((item) => item.isSelected)?.keyForList}
                         addBottomSafeAreaPadding
-                    />
+                    >
+                        {!!errorMessage && (
+                            <View style={[styles.ph3, styles.mb3]}>
+                                <FormHelpMessage
+                                    isError
+                                    message={errorMessage}
+                                />
+                            </View>
+                        )}
+                    </SelectionList>
                 </View>
             )}
         </>
