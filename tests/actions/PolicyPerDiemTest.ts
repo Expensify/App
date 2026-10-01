@@ -49,17 +49,22 @@ describe('actions/Policy/PerDiem', () => {
 
         // Then only that destination is sent and optimistically updated.
         expect(writeSpy).toHaveBeenCalledTimes(1);
-        const [command, parameters, onyxData] = writeSpy.mock.calls[0];
-        expect(command).toBe(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT);
+        const call = writeSpy.mock.calls.at(0);
+        const parameters = call?.at(1);
+        const onyxData = call?.at(2);
+        expect(call?.at(0)).toBe(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT);
         expect(parameters).toEqual({
             policyID: 'policy',
             customUnitID,
             customUnitRate: expect.any(String),
         });
         expect(parameters).not.toHaveProperty('customUnit');
-        expect(JSON.parse(String(parameters.customUnitRate))).toEqual({...currentRate, name: 'Updated Destination'});
+        if (!parameters || !('customUnitRate' in parameters)) {
+            throw new Error('Expected targeted custom unit parameters');
+        }
+        expect(JSON.parse(parameters.customUnitRate)).toEqual({...currentRate, name: 'Updated Destination'});
         expect(parameters.customUnitRate).not.toContain(unchangedRateID);
-        expect(onyxData?.optimisticData?.[0].value).toMatchObject({
+        expect(onyxData?.optimisticData?.at(0)?.value).toMatchObject({
             customUnits: {
                 [customUnitID]: {
                     rates: {
@@ -80,10 +85,14 @@ describe('actions/Policy/PerDiem', () => {
         editPerDiemRateSubrate('policy', rateID, 'breakfast', customUnit, 'Morning meal');
 
         // Then only its parent destination is sent.
-        const [command, parameters] = writeSpy.mock.calls[0];
-        expect(command).toBe(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT);
+        const call = writeSpy.mock.calls.at(0);
+        const parameters = call?.at(1);
+        expect(call?.at(0)).toBe(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT);
         expect(parameters).not.toHaveProperty('customUnit');
-        expect(JSON.parse(String(parameters.customUnitRate))).toEqual({
+        if (!parameters || !('customUnitRate' in parameters)) {
+            throw new Error('Expected targeted custom unit parameters');
+        }
+        expect(JSON.parse(parameters.customUnitRate)).toEqual({
             ...currentRate,
             subRates: [
                 {id: 'breakfast', name: 'Morning meal', rate: 1700},
@@ -100,10 +109,14 @@ describe('actions/Policy/PerDiem', () => {
         editPerDiemRateAmount('policy', rateID, 'breakfast', customUnit, 1701);
 
         // Then only its parent destination is sent.
-        const [command, parameters] = writeSpy.mock.calls[0];
-        expect(command).toBe(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT);
+        const call = writeSpy.mock.calls.at(0);
+        const parameters = call?.at(1);
+        expect(call?.at(0)).toBe(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT);
         expect(parameters).not.toHaveProperty('customUnit');
-        expect(JSON.parse(String(parameters.customUnitRate))).toEqual({
+        if (!parameters || !('customUnitRate' in parameters)) {
+            throw new Error('Expected targeted custom unit parameters');
+        }
+        expect(JSON.parse(parameters.customUnitRate)).toEqual({
             ...currentRate,
             subRates: [
                 {id: 'breakfast', name: 'Breakfast', rate: 1701},
@@ -120,9 +133,13 @@ describe('actions/Policy/PerDiem', () => {
         editPerDiemRateCurrency('policy', rateID, customUnit, 'EUR');
 
         // Then only that destination is sent.
-        const [command, parameters] = writeSpy.mock.calls[0];
-        expect(command).toBe(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT);
+        const call = writeSpy.mock.calls.at(0);
+        const parameters = call?.at(1);
+        expect(call?.at(0)).toBe(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT);
         expect(parameters).not.toHaveProperty('customUnit');
-        expect(JSON.parse(String(parameters.customUnitRate))).toEqual({...currentRate, currency: 'EUR'});
+        if (!parameters || !('customUnitRate' in parameters)) {
+            throw new Error('Expected targeted custom unit parameters');
+        }
+        expect(JSON.parse(parameters.customUnitRate)).toEqual({...currentRate, currency: 'EUR'});
     });
 });
