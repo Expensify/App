@@ -50,7 +50,14 @@ function ConnectionStatusMessage({
     const shouldShowActionButton = !!actionText && !!onActionPress;
     const isDangerStatus = statusTone === 'danger';
     const isSuccessStatus = statusTone === 'success';
-    const messageTag = isDangerStatus ? 'rbr' : 'muted-text-label';
+    let messageTag;
+    if (isDangerStatus) {
+        messageTag = 'rbr';
+    } else if (isSuccessStatus) {
+        messageTag = 'gbr';
+    } else {
+        messageTag = 'muted-text-label';
+    }
     const messageHTML = `<${messageTag}>${message ?? ''}</${messageTag}>`;
     const messageContent = (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
@@ -63,14 +70,10 @@ function ConnectionStatusMessage({
                 </View>
             )}
             <View style={[styles.flex1, styles.flexRow]}>
-                {isSuccessStatus ? (
-                    <Text style={[styles.textLabelError, styles.badgeSuccessText]}>{message}</Text>
-                ) : (
-                    <RenderHTML
-                        html={messageHTML}
-                        onLinkPress={onLinkPress}
-                    />
-                )}
+                <RenderHTML
+                    html={messageHTML}
+                    onLinkPress={onLinkPress}
+                />
             </View>
         </View>
     );
