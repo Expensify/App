@@ -36,10 +36,87 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {PolicyVendors} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
+
+type VendorBulkActionsProps = {
+    policyID: string;
+    selectedVendorKeys: string[];
+    policyVendors?: OnyxEntry<PolicyVendors>;
+    defaultVendorID?: string;
+    onClearSelection: () => void;
+};
+
+function VendorBulkActions({policyID, selectedVendorKeys, policyVendors, defaultVendorID, onClearSelection}: VendorBulkActionsProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close']);
+
+    const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
+    const disabledVendors = selectedVendorKeys.filter((id) => !policyVendors?.[id]?.enabled);
+    if (disabledVendors.length > 0) {
+        options.push({
+            icon: icons.Checkmark,
+            text: translate(disabledVendors.length === 1 ? 'workspace.vendors.enableVendor' : 'workspace.vendors.enableVendors'),
+            value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
+            onSelected: () => {
+                onClearSelection();
+                setPolicyVendorsEnabled({
+                    policyID,
+                    vendorIDs: disabledVendors,
+                    enabled: true,
+                    policyVendors,
+                });
+            },
+        });
+    }
+
+    const vendorsToDisable = selectedVendorKeys.filter((id) => policyVendors?.[id]?.enabled && id !== defaultVendorID);
+    if (vendorsToDisable.length > 0) {
+        options.push({
+            icon: icons.Close,
+            text: translate(vendorsToDisable.length === 1 ? 'workspace.vendors.disableVendor' : 'workspace.vendors.disableVendors'),
+            value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
+            onSelected: () => {
+                onClearSelection();
+                setPolicyVendorsEnabled({
+                    policyID,
+                    vendorIDs: vendorsToDisable,
+                    enabled: false,
+                    policyVendors,
+                });
+            },
+        });
+    }
+
+    if (options.length === 0) {
+        return null;
+    }
+
+    return (
+        <ButtonWithDropdownMenu
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            onPress={() => null}
+            shouldAlwaysShowDropdownMenu
+            size={CONST.BUTTON_SIZE.MEDIUM}
+            customText={translate('workspace.common.selected', {count: selectedVendorKeys.length})}
+            options={options}
+            isSplitButton={false}
+            style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
+            isDisabled={!selectedVendorKeys.length}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INITIAL.VENDORS}
+            testID="WorkspaceVendorsPage-header-dropdown-menu-button"
+        />
+    );
+}
+
+VendorBulkActions.displayName = 'VendorBulkActions';
 
 type WorkspaceVendorsPageProps = WithPolicyConnectionsProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.VENDORS>;
 
@@ -53,7 +130,6 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {canWrite: canWriteVendors, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.VENDORS);
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close']);
 
     const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policyID}`);
     const [selectedVendorKeys, setSelectedVendorKeys] = useFilteredSelection(policyVendors, (vendor) => !!vendor);
@@ -127,71 +203,7 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
         </View>
     ) : undefined;
 
-    const getHeaderButtons = () => {
-        if (!canWriteVendors || selectedVendorKeys.length === 0) {
-            return null;
-        }
-
-        const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
-        const disabledVendors = selectedVendorKeys.filter((id) => !policyVendors?.[id]?.enabled);
-        if (disabledVendors.length > 0) {
-            options.push({
-                icon: icons.Checkmark,
-                text: translate(disabledVendors.length === 1 ? 'workspace.vendors.enableVendor' : 'workspace.vendors.enableVendors'),
-                value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
-                onSelected: () => {
-                    clearTableSelection();
-                    setPolicyVendorsEnabled({
-                        policyID,
-                        vendorIDs: disabledVendors,
-                        enabled: true,
-                        policyVendors,
-                    });
-                },
-            });
-        }
-
-        const vendorsToDisable = selectedVendorKeys.filter((id) => policyVendors?.[id]?.enabled && id !== defaultVendorID);
-        if (vendorsToDisable.length > 0) {
-            options.push({
-                icon: icons.Close,
-                text: translate(vendorsToDisable.length === 1 ? 'workspace.vendors.disableVendor' : 'workspace.vendors.disableVendors'),
-                value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
-                onSelected: () => {
-                    clearTableSelection();
-                    setPolicyVendorsEnabled({
-                        policyID,
-                        vendorIDs: vendorsToDisable,
-                        enabled: false,
-                        policyVendors,
-                    });
-                },
-            });
-        }
-
-        if (options.length === 0) {
-            return null;
-        }
-
-        return (
-            <ButtonWithDropdownMenu
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                onPress={() => null}
-                shouldAlwaysShowDropdownMenu
-                size={CONST.BUTTON_SIZE.MEDIUM}
-                customText={translate('workspace.common.selected', {count: selectedVendorKeys.length})}
-                options={options}
-                isSplitButton={false}
-                style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
-                isDisabled={!selectedVendorKeys.length}
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INITIAL.VENDORS}
-                testID="WorkspaceVendorsPage-header-dropdown-menu-button"
-            />
-        );
-    };
-
-    const headerButtons = getHeaderButtons();
-
+    const canShowBulkActions = canWriteVendors && selectedVendorKeys.length > 0;
     const isLoading = !isOffline && policyVendors === undefined;
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
@@ -224,9 +236,27 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                         Navigation.goBack();
                     }}
                 >
-                    {!shouldDisplayButtonsInSeparateLine && headerButtons}
+                    {!shouldDisplayButtonsInSeparateLine && canShowBulkActions && (
+                        <VendorBulkActions
+                            policyID={policyID}
+                            selectedVendorKeys={selectedVendorKeys}
+                            policyVendors={policyVendors}
+                            defaultVendorID={defaultVendorID}
+                            onClearSelection={clearTableSelection}
+                        />
+                    )}
                 </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+                {shouldDisplayButtonsInSeparateLine && canShowBulkActions && (
+                    <View style={[styles.pl5, styles.pr5]}>
+                        <VendorBulkActions
+                            policyID={policyID}
+                            selectedVendorKeys={selectedVendorKeys}
+                            policyVendors={policyVendors}
+                            defaultVendorID={defaultVendorID}
+                            onClearSelection={clearTableSelection}
+                        />
+                    </View>
+                )}
 
                 {isLoading && (
                     <ActivityIndicator
