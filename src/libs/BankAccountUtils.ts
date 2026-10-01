@@ -198,17 +198,6 @@ function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<Onyx
     return isBankAccountPartiallySetup(matchingBankAccount?.accountData?.state);
 }
 
-function doesPolicyHaveValidationFailedBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, policyID: string) {
-    if (!bankAccountList) {
-        return false;
-    }
-
-    const bankAccounts = Object.values(bankAccountList);
-    const matchingBankAccount = bankAccounts.find((bankAccount) => bankAccount.accountData?.policyIDs?.includes(policyID));
-
-    return matchingBankAccount?.accountData?.state === CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED;
-}
-
 function hasPartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): boolean {
     return Object.values(bankAccountList ?? {}).some((bankAccount) => isBankAccountPartiallySetup(bankAccount?.accountData?.state));
 }
@@ -381,7 +370,6 @@ export {
     isUserAddressVerificationRequired,
     isUserDOBVerificationRequired,
     doesPolicyHavePartiallySetupBankAccount,
-    doesPolicyHaveValidationFailedBankAccount,
     isPersonalBankAccountMissingInfo,
     getCompletedStepsForBankAccount,
     showUnlockAlreadyRequestedModal,
