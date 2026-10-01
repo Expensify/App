@@ -459,11 +459,11 @@ describe('BankAccountUtils', () => {
         });
 
         it('returns true when any of the account policies is on the waitlist', () => {
-            expect(canLinkPlaid({accountData: {additionalData: {policyID: 'A'}, policyIDs: ['B']}}, ['B'])).toBe(true);
+            expect(canLinkPlaid({accountData: {additionalData: {policyID: 'A'}, policyIDs: ['B']}}, new Set(['B']))).toBe(true);
         });
 
         it('returns false when no policies match a waitlist entry and settlement flag is unset', () => {
-            expect(canLinkPlaid({accountData: {additionalData: {policyID: 'A'}, policyIDs: ['B']}}, ['C'])).toBe(false);
+            expect(canLinkPlaid({accountData: {additionalData: {policyID: 'A'}, policyIDs: ['B']}}, new Set(['C']))).toBe(false);
         });
     });
 
