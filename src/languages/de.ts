@@ -7621,16 +7621,17 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                     distanceTooLarge: 'Die Entfernung ist zu groß.',
                 },
                 workArrangement: {
-                    title: 'Standard-Arbeitsmodell',
+                    title: 'Standardarbeitsmodell',
                     officeBasedTitle: 'Bürobasiert',
-                    officeBasedHelp: 'Mitglied fährt regelmäßig ins Büro. Gewöhnliche Pendelfahrten sind von der Erstattung ausgeschlossen.',
-                    noRegularWorkplaceTitle: 'Kein fester Arbeitsplatz',
-                    noRegularWorkplaceHelp: 'Mitglied arbeitet remote oder hat keinen festen Arbeitsplatz, daher gelten die Regeln für den Arbeitsweg von zu Hause zur Arbeit nicht.',
+                    officeBasedHelp: 'Mitglied pendelt zu einem Büro. Gewöhnliche Arbeitswege sind von der Erstattung ausgeschlossen.',
+                    noRegularWorkplaceTitle: 'Keine regelmäßige Arbeitsstätte',
+                    noRegularWorkplaceHelp:
+                        'Das Mitglied arbeitet remote oder hat keinen festen Arbeitsplatz, daher gelten die Regeln für den Arbeitsweg zwischen Wohnung und Arbeitsstätte nicht.',
                     startingPrompt: {
                         title: 'Legen Sie eine typische Arbeitsregelung fest',
-                        prompt: 'Wählen Sie die Vereinbarung, die für die meisten aktuellen Mitglieder gilt. Sie können Mitglieder später einzeln oder gesammelt aktualisieren.',
-                        officeBasedHelp: 'Die meisten Mitglieder pendeln in ein Büro. Gewöhnliche Arbeitswege sind ausgeschlossen.',
-                        noRegularWorkplaceHelp: 'Die meisten Mitglieder arbeiten remote, daher gelten Ausschlüsse für Fahrten zwischen Wohn- und Arbeitsort in der Regel nicht.',
+                        prompt: 'Wählen Sie die Vereinbarung, die für die meisten aktuellen Mitglieder gilt. Sie können Mitglieder später einzeln oder in großen Mengen aktualisieren.',
+                        officeBasedHelp: 'Die meisten Mitglieder pendeln ins Büro. Gewöhnliche Arbeitswege sind ausgeschlossen.',
+                        noRegularWorkplaceHelp: 'Die meisten Mitglieder arbeiten remote, daher gelten Ausschlüsse für Fahrten zwischen Wohnung und Arbeitsstätte in der Regel nicht.',
                         confirm: 'Anwenden',
                     },
                 },
@@ -9498,10 +9499,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ aus verbotenen Ausgaben entfernt`,
         workArrangement: {
             officeBased: 'bürobasiert',
-            noRegularWorkplace: 'kein regelmäßiger Arbeitsplatz',
-            set: ({arrangement}: {arrangement: string}) => `Standard-Jobmodell auf ${arrangement} festlegen`,
+            noRegularWorkplace: 'kein fester Arbeitsplatz',
+            set: ({arrangement}: {arrangement: string}) => `Standard-Arbeitsmodell auf ${arrangement} festlegen`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
-                `hat die standardmäßige Arbeitsregelung in ${arrangement} geändert (zuvor ${previousArrangement})`,
+                `hat die Standardarbeitsregelung in ${arrangement} geändert (zuvor ${previousArrangement})`,
         },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `Ausschluss von Arbeitswegen in eine feste Entfernung pro Abrechnung geändert (zuvor ${previousMethod})`,

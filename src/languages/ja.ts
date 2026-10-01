@@ -7487,14 +7487,14 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 workArrangement: {
                     title: 'デフォルトの勤務形態',
                     officeBasedTitle: 'オフィス勤務',
-                    officeBasedHelp: 'メンバーはオフィスへ通勤しています。通常の通勤は精算の対象外です。',
+                    officeBasedHelp: 'メンバーはオフィスに通勤します。通常の通勤は精算の対象外です。',
                     noRegularWorkplaceTitle: '通常の勤務先なし',
-                    noRegularWorkplaceHelp: 'メンバーはリモート勤務、または固定の勤務先がないため、自宅から勤務先までの通勤に関するルールは適用されません。',
+                    noRegularWorkplaceHelp: 'メンバーはリモート勤務、または固定の勤務先がないため、自宅から勤務先への通勤に関するルールは適用されません。',
                     startingPrompt: {
-                        title: '標準的な勤務形態を設定',
-                        prompt: '現在のメンバーのほとんどに当てはまる区分を選択してください。メンバーは後から個別または一括で更新できます。',
+                        title: '一般的な勤務形態を設定する',
+                        prompt: '現在のメンバーの大半に当てはまる区分を選択してください。メンバーは後から個別または一括で更新できます。',
                         officeBasedHelp: 'ほとんどのメンバーはオフィスに通勤しています。通常の通勤は対象外です。',
-                        noRegularWorkplaceHelp: 'ほとんどのメンバーはリモートワークをしているため、自宅から職場までの区間の除外は通常は適用されません。',
+                        noRegularWorkplaceHelp: 'ほとんどのメンバーはリモートで働いているため、自宅から職場への通勤は通常、除外の対象にはなりません。',
                         confirm: '適用',
                     },
                 },
@@ -9315,10 +9315,10 @@ ${reportName}`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費から「${prohibitedExpense}」を削除しました`,
         workArrangement: {
             officeBased: 'オフィス勤務',
-            noRegularWorkplace: '通常の勤務先なし',
+            noRegularWorkplace: '通常の職場なし',
             set: ({arrangement}: {arrangement: string}) => `デフォルトの勤務形態を${arrangement}に設定します`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
-                `既定の勤務形態を${arrangement}（以前は${previousArrangement}）に変更しました`,
+                `標準の勤務形態を${arrangement}（以前は${previousArrangement}）に変更しました`,
         },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `通勤分の除外方法を、申請ごとの固定距離に変更しました（以前は${previousMethod}）。`,

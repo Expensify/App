@@ -7591,7 +7591,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                     startingPrompt: {
                         title: 'Ustaw typowy tryb pracy',
                         prompt: 'Wybierz układ, który dotyczy większości obecnych członków. Później możesz zaktualizować członków pojedynczo lub hurtowo.',
-                        officeBasedHelp: 'Większość członków dojeżdża do biura. Zwykłe dojazdy są wykluczone.',
+                        officeBasedHelp: 'Większość członków dojeżdża do biura. Zwykłe dojazdy są wyłączone.',
                         noRegularWorkplaceHelp: 'Większość członków pracuje zdalnie, więc wyłączenia dotyczące dojazdów z domu do pracy zazwyczaj nie mają zastosowania.',
                         confirm: 'Zastosuj',
                     },
@@ -9434,7 +9434,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             noRegularWorkplace: 'brak stałego miejsca pracy',
             set: ({arrangement}: {arrangement: string}) => `ustaw domyślny tryb pracy na ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
-                `zmieniono domyślny tryb pracy na ${arrangement} (wcześniej ${previousArrangement})`,
+                `zmienił domyślny tryb pracy na ${arrangement} (wcześniej ${previousArrangement})`,
         },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `zmienił(-a) wykluczanie dojazdów na stałą odległość na zgłoszenie (wcześniej ${previousMethod})`,
