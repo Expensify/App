@@ -25,10 +25,6 @@ type HomeAddressRequiredContentProps = {
 
 const hasHomeAddressSelector = (privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>) => !!getCurrentAddress(privatePersonalDetails)?.street?.trim();
 
-// A commute is only measured from a member's home when the workspace excludes commutes by home and office and
-// the member is office-based, which their own arrangement decides before the workspace default does. A
-// workspace that has not loaded yet counts as still measuring, so a slow read never hides a prompt the member
-// does need to act on.
 const createIsCommuteStillMeasuredSelector = (currentUserEmail: string | undefined) => (policy: OnyxEntry<Policy>) =>
     !policy ||
     (policy.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE &&
