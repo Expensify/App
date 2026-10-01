@@ -440,7 +440,7 @@ describe('ExpenseDefaultRuleUtils', () => {
             const asReturned = buildRuleWithOverrides({actions: toIndexMap([setCategoryAction, setComment, setMerchant])});
 
             // When both are summarized
-            // Then the reindexing does not reshuffle the summary, so the row text does not jump when a save comes back
+            // Then the differing action keys do not reshuffle the summary, so the row text does not jump when a save comes back
             expect(getExpenseDefaultRuleSummaryFields(asReturned)).toEqual(getExpenseDefaultRuleSummaryFields(asWritten));
             expect(getExpenseDefaultRuleSummaryFields(asReturned)).toEqual([
                 {field: FIELD.MERCHANT, value: 'Starbucks'},
