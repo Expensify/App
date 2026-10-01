@@ -267,30 +267,34 @@ describe('getWorkspaceMenuItems', () => {
         expect(items.find((item) => item.translationKey === 'workspace.common.workflows')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
     });
 
-    it('shows an error indicator when rules have errors', () => {
-        const policy = createMock<Policy>({
-            ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
-            areRulesEnabled: true,
-            rules: {
-                codingRules: {
-                    rule: {
-                        ruleID: 'rule',
-                        filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Acme'},
-                        errors: {error: 'Whoops'},
-                    },
-                },
-            },
-        });
+    it('shows an error indicator when a merchant rule failed to save', () => {
+        const policy = createMock<Policy>({...buildPolicy(CONST.POLICY.ROLE.ADMIN), areRulesEnabled: true});
 
         const items = getWorkspaceMenuItems({
             policy,
             policyID: policy.id,
             currentUserLogin,
             icons,
+            hasMerchantRuleErrors: true,
             convertToDisplayString: () => '',
         });
 
         expect(items.find((item) => item.translationKey === 'workspace.common.rules')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+    });
+
+    it('shows no error indicator when no merchant rule failed', () => {
+        const policy = createMock<Policy>({...buildPolicy(CONST.POLICY.ROLE.ADMIN), areRulesEnabled: true});
+
+        const items = getWorkspaceMenuItems({
+            policy,
+            policyID: policy.id,
+            currentUserLogin,
+            icons,
+            hasMerchantRuleErrors: false,
+            convertToDisplayString: () => '',
+        });
+
+        expect(items.find((item) => item.translationKey === 'workspace.common.rules')?.brickRoadIndicator).toBeUndefined();
     });
 
     it('shows an information indicator when Merge HR setup is incomplete', () => {
@@ -315,6 +319,52 @@ describe('getWorkspaceMenuItems', () => {
         });
 
         expect(items.find((item) => item.translationKey === 'workspace.common.hr')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.INFO);
+    });
+
+    it('shows an information indicator on Accounting when the QBO refresh token is about to expire', () => {
+        const policy = createMock<Policy>({
+            ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
+            areConnectionsEnabled: true,
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {credentials: {companyID: '12345', refreshTokenExpiresAt: Math.floor(Date.now() / 1000) + 3 * 86400}},
+                    lastSync: {isSuccessful: true, isConnected: true, isAuthenticationError: false},
+                },
+            },
+        });
+
+        const items = getWorkspaceMenuItems({
+            policy,
+            policyID: policy.id,
+            currentUserLogin,
+            icons,
+            convertToDisplayString: () => '',
+        });
+
+        expect(items.find((item) => item.translationKey === 'workspace.common.accounting')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.INFO);
+    });
+
+    it('keeps the error indicator on Accounting when a sync error exists even if the QBO refresh token is about to expire', () => {
+        const policy = createMock<Policy>({
+            ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
+            areConnectionsEnabled: true,
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {credentials: {companyID: '12345', refreshTokenExpiresAt: Math.floor(Date.now() / 1000) + 3 * 86400}},
+                    lastSync: {isSuccessful: false, isConnected: false, isAuthenticationError: true, errorDate: new Date().toISOString(), errorMessage: 'Error'},
+                },
+            },
+        });
+
+        const items = getWorkspaceMenuItems({
+            policy,
+            policyID: policy.id,
+            currentUserLogin,
+            icons,
+            convertToDisplayString: () => '',
+        });
+
+        expect(items.find((item) => item.translationKey === 'workspace.common.accounting')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
     });
 
     it('shows an error indicator when the Merge HR connection has an authentication error', () => {
@@ -468,9 +518,9 @@ describe('getWorkspaceMenuItems', () => {
             'workspace.common.receiptPartners',
             'workspace.common.mcp',
             'workspace.common.categories',
-            'workspace.common.vendors',
             'workspace.common.tags',
             'workspace.common.taxes',
+            'workspace.common.vendors',
             'workspace.common.workflows',
             'workspace.common.rules',
             'workspace.common.distanceRates',
@@ -493,9 +543,9 @@ describe('getWorkspaceMenuItems', () => {
             ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policy.id),
             ROUTES.WORKSPACE_MCP.getRoute(policy.id),
             ROUTES.WORKSPACE_CATEGORIES.getRoute(policy.id),
-            ROUTES.WORKSPACE_VENDORS.getRoute(policy.id),
             ROUTES.WORKSPACE_TAGS.getRoute(policy.id),
             ROUTES.WORKSPACE_TAXES.getRoute(policy.id),
+            ROUTES.WORKSPACE_VENDORS.getRoute(policy.id),
             ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id),
             ROUTES.WORKSPACE_RULES.getRoute(policy.id),
             ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policy.id),
@@ -518,9 +568,9 @@ describe('getWorkspaceMenuItems', () => {
             SCREENS.WORKSPACE.RECEIPT_PARTNERS,
             SCREENS.WORKSPACE.MCP,
             SCREENS.WORKSPACE.CATEGORIES,
-            SCREENS.WORKSPACE.VENDORS,
             SCREENS.WORKSPACE.TAGS,
             SCREENS.WORKSPACE.TAXES,
+            SCREENS.WORKSPACE.VENDORS,
             SCREENS.WORKSPACE.WORKFLOWS,
             SCREENS.WORKSPACE.RULES,
             SCREENS.WORKSPACE.DISTANCE_RATES,

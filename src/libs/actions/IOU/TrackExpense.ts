@@ -5,10 +5,11 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import * as API from '@libs/API';
+import type {WriteReadyBarrier} from '@libs/API';
 import type {AddTrackedExpenseToPolicyParams, CreateWorkspaceParams, DeleteMoneyRequestParams, RequestMoneyParams, ShareTrackedExpenseParams, TrackExpenseParams} from '@libs/API/parameters';
+import type {ApiRequestCommandParameters, WriteCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
-import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import getWorkspaceCreatedAnalyticsEvent from '@libs/getWorkspaceCreatedAnalyticsEvent';
@@ -61,7 +62,6 @@ import {
     updateReportPreview,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {addOptimization} from '@libs/telemetry/submitFollowUpAction';
 import {
     buildOptimisticTransaction,
     getAmount,
@@ -85,7 +85,8 @@ import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxD
 import {buildPolicyData} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import type {GuidedSetupData} from '@userActions/Report';
-import {buildInviteToRoomOnyxData, notifyNewAction} from '@userActions/Report';
+import {buildInviteToRoomOnyxData} from '@userActions/Report';
+import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
 import {stringifyWaypointsForAPI} from '@userActions/Transaction';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 
@@ -131,9 +132,10 @@ import {
     getReportPreviewReportAction,
     getTransactionWithPreservedLocalReceiptSource,
 } from './MoneyRequestBuilder';
-import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
+import resolveWriteBarrier, {IMMEDIATE} from './resolveWriteBarrier';
 import {getSearchOnyxUpdate} from './SearchUpdate';
+import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 
 type TrackExpenseInformation = {
     createdWorkspaceParams?: CreateWorkspaceParams;
@@ -201,7 +203,6 @@ type GetTrackExpenseInformationParams = {
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean;
     defaultWorkspaceName?: string;
     optimisticChatReportID?: string;
@@ -222,6 +223,7 @@ type DeleteTrackExpenseParams = {
     transactionID: string | undefined;
     reportAction: OnyxTypes.ReportAction;
     iouReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
     chatIOUReport: OnyxEntry<OnyxTypes.Report>;
     transactions: OnyxCollection<OnyxTypes.Transaction>;
     violations: OnyxCollection<OnyxTypes.TransactionViolations>;
@@ -890,7 +892,6 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         activePolicy,
         conciergeChat,
         quickAction,
-        betas,
         isSelfTourViewed,
         defaultWorkspaceName,
         optimisticChatReportID,
@@ -1050,7 +1051,6 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             // This workspace is created by AddTrackedExpenseToPolicy, which does not apply CreatePolicy's
             // paid-workspace check, so the #admins room keeps starting out pinned here.
             hasOwnedPaidPolicy: undefined,
-            betas,
             isSelfTourViewed,
             delegateAccountID,
         });
@@ -1078,7 +1078,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             iouReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
         }
         const isScanRequest = isScanRequestTransactionUtils(existingTransaction);
-        shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, betas, rules);
+        shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, isASAPSubmitBetaEnabled, rules);
         if (!iouReport || shouldCreateNewMoneyRequestReport) {
             const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticExpenseReportID, created, amount, currency, merchant);
 
@@ -1089,7 +1089,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
                 total: amount,
                 currency,
                 nonReimbursableTotal: amount,
-                betas,
+                isASAPSubmitBetaEnabled,
                 optimisticIOUReportID: optimisticExpenseReportID,
                 reportTransactions,
                 getCurrencyDecimals,
@@ -1193,7 +1193,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         if (reportPreviewAction) {
             reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, false, comment, optimisticTransaction);
         } else {
-            reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimals, comment, optimisticTransaction, undefined, undefined, delegateAccountID);
+            reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimals, delegateAccountID, comment, optimisticTransaction);
             // Generated ReportPreview action is a parent report action of the iou report.
             // We are setting the iou report's parentReportActionID to display subtitle correctly in IOU page when offline.
             iouReport.parentReportActionID = reportPreviewAction.reportActionID;
@@ -1441,25 +1441,6 @@ type ConvertTrackedWorkspaceParams = {
     reimbursable?: boolean;
 };
 
-type AddTrackedExpenseToPolicyParam = {
-    amount: number;
-    currency: string;
-    comment: string;
-    created: string;
-    merchant: string;
-    transactionID: string;
-    reimbursable: boolean;
-    actionableWhisperReportActionID: string | undefined;
-    moneyRequestReportID: string;
-    reportPreviewReportActionID: string;
-    modifiedExpenseReportActionID: string;
-    moneyRequestCreatedReportActionID: string | undefined;
-    moneyRequestPreviewReportActionID: string;
-    distance: number | undefined;
-    attendees: string | undefined;
-    shouldDeferAutoSubmit?: boolean;
-} & ConvertTrackedWorkspaceParams;
-
 type ConvertTrackedExpenseToRequestParams = {
     payerParams: {
         accountID: number;
@@ -1497,11 +1478,13 @@ type ConvertTrackedExpenseToRequestParams = {
     workspaceParams?: ConvertTrackedWorkspaceParams;
     currentUserAccountID: number;
     shouldDeferAutoSubmit?: boolean;
-};
 
-function addTrackedExpenseToPolicy(parameters: AddTrackedExpenseToPolicyParam, onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys>) {
-    API.write(WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY, parameters, onyxData);
-}
+    /** What the write waits on before applying its optimistic data. Fires immediately when omitted. */
+    writeBarrier?: WriteReadyBarrier;
+
+    /** Runs once the write's optimistic data is in Onyx. */
+    onWriteStarted?: () => void;
+};
 
 /**
  * Returns `true` when `customUnit.quantity` (in `distanceUnit`) diverges from
@@ -1526,8 +1509,12 @@ function hasManualDistanceOverride(transaction: OnyxEntry<OnyxTypes.Transaction>
 }
 
 function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrackedExpenseToRequestParams) {
-    const {payerParams, transactionParams, chatParams, iouParams, onyxData, workspaceParams, currentUserAccountID, shouldDeferAutoSubmit} = convertTrackedExpenseParams;
+    const {payerParams, transactionParams, chatParams, iouParams, onyxData, workspaceParams, currentUserAccountID, shouldDeferAutoSubmit, writeBarrier, onWriteStarted} =
+        convertTrackedExpenseParams;
     const {accountID: payerAccountID, email: payerEmail} = payerParams;
+    const dispatchWrite = <TCommand extends WriteCommand>(command: TCommand, params: ApiRequestCommandParameters[TCommand], writeOnyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys>) => {
+        API.writeWhenReady(command, params, writeOnyxData, writeBarrier ?? IMMEDIATE, {onWriteStarted});
+    };
     const {
         transactionID,
         actionableWhisperReportActionID,
@@ -1640,7 +1627,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
             ...workspaceParamsForAPI,
         };
 
-        addTrackedExpenseToPolicy(params, {optimisticData, successData, failureData});
+        dispatchWrite(WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY, params, {optimisticData, successData, failureData});
         return;
     }
 
@@ -1668,13 +1655,13 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         customUnitRateID,
         waypoints: hasManualDistanceOverrideForRequest ? undefined : waypoints,
     };
-    API.write(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, {optimisticData, successData, failureData});
+    dispatchWrite(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, {optimisticData, successData, failureData});
 }
 
 /**
  * Submit expense to another user
  */
-function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouReport?: OnyxTypes.Report} {
+function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouReport?: OnyxTypes.Report; transactionID?: string} {
     const {
         report,
         existingIOUReport,
@@ -1703,14 +1690,15 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         existingTransaction: explicitExistingTransaction,
         isSelfTourViewed,
         conciergeChat,
-        betas,
         personalDetails,
         shouldDeferAutoSubmit,
         delegateAccountID,
         isTrackIntentUser,
         formatPhoneNumber,
         getCurrencyDecimals,
+        writeBarrier,
         rules,
+        isVendorMatchingBetaEnabled,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -1795,6 +1783,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         createdReportActionIDForThread,
         onyxData,
     } = getMoneyRequestInformation({
+        isVendorMatchingBetaEnabled,
         parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
         existingIOUReport,
         participantParams,
@@ -1807,6 +1796,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         moneyRequestReportID,
         existingTransactionID,
         optimisticTransactionID: requestMoneyInformation.optimisticTransactionID,
+        currentReportActionID: requestMoneyInformation.currentReportActionID,
+        existingTransactionThreadReportID: requestMoneyInformation.existingTransactionThreadReportID,
+        isTransactionAlreadyOnReport: requestMoneyInformation.isTransactionAlreadyOnReport,
         existingTransaction,
         retryParams,
         testDriveCommentReportActionID,
@@ -1822,7 +1814,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         transactionViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
-        betas,
         personalDetails,
         delegateAccountID,
         isTrackIntentUser,
@@ -1836,12 +1827,23 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         playSound(SOUNDS.DONE);
     }
 
-    // API.write is deferred until the Search screen's actual content (not skeleton) lays out, so Onyx
-    // optimistic updates don't block the JS thread during the skeleton→content transition. The Search
-    // component flushes the registered write from its content onLayout callback. Wrapped in a closure
-    // so `deferOrExecuteWrite` can register it against a SEARCH/DISMISS_MODAL channel when the UI
-    // reserved one; otherwise it runs synchronously below.
+    // Wrapped in a closure because the branches below build the write from different params, and the
+    // caller decides when it goes out: `resolveWriteBarrier` picks the readiness signal (a transition
+    // barrier from the dismissing view, or Search's content layout) so the optimistic Onyx updates do
+    // not block the JS thread while something is still animating.
     let deferredAPIWrite: (() => void) | undefined;
+
+    // Tells the report list about the new action. Runs once the write's optimistic data exists, otherwise
+    // the list has nothing to scroll to. The delay gives the destination report time to mount its subscriber.
+    const notifyRequestAction =
+        activeReportID && !isMoneyRequestReport
+            ? () =>
+                  Navigation.setNavigationActionToMicrotaskQueue(() =>
+                      setTimeout(() => {
+                          notifyNewAction(activeReportID, reportPreviewAction, payeeAccountID === currentUserAccountIDParam);
+                      }, CONST.TIMING.NOTIFY_NEW_ACTION_DELAY),
+                  )
+            : undefined;
 
     switch (action) {
         case CONST.IOU.ACTION.SUBMIT: {
@@ -1911,6 +1913,14 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                     workspaceParams,
                     currentUserAccountID: currentUserAccountIDParam,
                     shouldDeferAutoSubmit,
+                    // Resolved inside the closure so the Search signal is sampled when the write is
+                    // actually issued, the same moment as the sibling branch below.
+                    writeBarrier: resolveWriteBarrier({
+                        writeBarrier,
+                        isRetry: requestMoneyInformation.isRetry,
+                        optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                    }),
+                    onWriteStarted: notifyRequestAction,
                 });
             };
             break;
@@ -1973,7 +1983,13 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
             };
 
             deferredAPIWrite = () => {
-                API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
+                API.writeWhenReady(
+                    WRITE_COMMANDS.REQUEST_MONEY,
+                    parameters,
+                    onyxData,
+                    resolveWriteBarrier({writeBarrier, isRetry: requestMoneyInformation.isRetry, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`}),
+                    {onWriteStarted: notifyRequestAction},
+                );
             };
         }
     }
@@ -1982,28 +1998,13 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         addPendingNewTransactionIDs(activeReportID, transaction.transactionID);
     }
 
-    if (deferredAPIWrite) {
-        deferOrExecuteWrite(deferredAPIWrite, {
-            shouldDeferForSearch: false,
-            isRetry: requestMoneyInformation.isRetry,
-            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
-        });
+    deferredAPIWrite?.();
+
+    if (!requestMoneyInformation.isRetry && isFromGlobalCreate) {
+        signalExpenseAddedGrowl(transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
     }
 
-    if (!requestMoneyInformation.isRetry) {
-        highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-    }
-
-    if (activeReportID && !isMoneyRequestReport) {
-        Navigation.setNavigationActionToMicrotaskQueue(() =>
-            setTimeout(() => {
-                notifyNewAction(activeReportID, reportPreviewAction, payeeAccountID === currentUserAccountIDParam);
-            }, CONST.TIMING.NOTIFY_NEW_ACTION_DELAY),
-        );
-    }
-
-    return {iouReport};
+    return {iouReport, transactionID: transaction.transactionID};
 }
 
 /**
@@ -2020,7 +2021,6 @@ function convertBulkTrackedExpensesToIOU({
     policyRecentlyUsedCurrencies,
     quickAction,
     personalDetails,
-    betas,
     policyTagList,
     selfDMReportActions,
     delegateAccountID,
@@ -2028,7 +2028,9 @@ function convertBulkTrackedExpensesToIOU({
     formatPhoneNumber,
     getCurrencyDecimals,
     rules,
+    isVendorMatchingBetaEnabled,
 }: {
+    isVendorMatchingBetaEnabled: boolean | undefined;
     transactions: OnyxTypes.Transaction[];
     iouReport: OnyxEntry<OnyxTypes.Report>;
     chatReport: OnyxEntry<OnyxTypes.Report>;
@@ -2039,7 +2041,6 @@ function convertBulkTrackedExpensesToIOU({
     policyRecentlyUsedCurrencies: string[];
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     selfDMReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     delegateAccountID: number | undefined;
@@ -2148,6 +2149,7 @@ function convertBulkTrackedExpensesToIOU({
             transactionThreadReportID: moneyRequestTransactionThreadReportID,
             onyxData,
         } = getMoneyRequestInformation({
+            isVendorMatchingBetaEnabled,
             parentChatReport: chatReport,
             participantParams,
             transactionParams,
@@ -2161,7 +2163,6 @@ function convertBulkTrackedExpensesToIOU({
             quickAction,
             policyRecentlyUsedCurrencies,
             personalDetails,
-            betas,
             policyParams: {
                 policyTagList,
             },
@@ -2347,6 +2348,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         accountantParams,
         currentUser,
         reportActionsList,
+        personalDetailsByLogins,
     } = trackedExpenseParams;
     const {accountID: currentUserAccountID} = currentUser;
 
@@ -2404,7 +2406,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 
     const policyEmployeeList = policyParams?.policy?.employeeList;
     if (policyParams.policy && !policyEmployeeList?.[accountantEmail]) {
-        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policyEmployeeList, false, false));
+        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policyEmployeeList, personalDetailsByLogins, false, false));
         const {
             optimisticData: addAccountantToWorkspaceOptimisticData,
             successData: addAccountantToWorkspaceSuccessData,
@@ -2494,7 +2496,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         conciergeChat,
         quickAction,
         recentWaypoints = [],
-        betas,
         isSelfTourViewed,
         defaultWorkspaceName,
         previousOdometerDraft,
@@ -2503,7 +2504,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
         isDraftChatReport,
         currentUserLocalCurrency,
         getCurrencyDecimals,
+        writeBarrier,
         rules,
+        personalDetailsByLogins,
     } = params;
     const {accountID: currentUserAccountIDParam, email: currentUserEmailParam = ''} = currentUser;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
@@ -2667,7 +2670,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         activePolicy,
         conciergeChat,
         quickAction,
-        betas,
         isSelfTourViewed,
         defaultWorkspaceName,
         optimisticChatReportID,
@@ -2720,6 +2722,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
+
+    const notifyTrackedAction = () => notifyNewAction(activeReportID, undefined, payeeAccountID === currentUserAccountIDParam);
+    let isNotificationDeferredToWrite = false;
 
     switch (action) {
         case CONST.IOU.ACTION.CATEGORIZE: {
@@ -2825,6 +2830,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 accountantParams,
                 currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
                 reportActionsList,
+                personalDetailsByLogins,
             };
             shareTrackedExpense(trackedExpenseParams);
             break;
@@ -2946,24 +2952,26 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
             }
 
-            const apiWrite = () => {
-                API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
-            };
-
-            deferOrExecuteWrite(apiWrite, {
-                shouldDeferForSearch: false,
-                isRetry: params.isRetry,
-                optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
-                onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
-            });
+            API.writeWhenReady(
+                WRITE_COMMANDS.TRACK_EXPENSE,
+                parameters,
+                onyxData,
+                resolveWriteBarrier({writeBarrier, isRetry: params.isRetry, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`}),
+                {onWriteStarted: notifyTrackedAction},
+            );
+            isNotificationDeferredToWrite = true;
         }
     }
 
-    if (!params.isRetry) {
-        highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction?.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+    if (!params.isRetry && isFromGlobalCreate) {
+        signalExpenseAddedGrowl(transaction?.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
     }
 
-    notifyNewAction(activeReportID, undefined, payeeAccountID === currentUserAccountIDParam);
+    if (!isNotificationDeferredToWrite) {
+        notifyTrackedAction();
+    }
+
+    return {iouReport, transactionID: transaction?.transactionID};
 }
 
 /**
@@ -3022,6 +3030,7 @@ function deleteTrackExpense({
     transactionID,
     reportAction,
     iouReport,
+    iouReportTransactions,
     chatIOUReport,
     transactions,
     violations,
@@ -3063,6 +3072,7 @@ function deleteTrackExpense({
             transactionThreadReportActions,
             violations,
             iouReport,
+            iouReportTransactions,
             chatReport: chatIOUReport,
             isChatIOUReportArchived,
             isSingleTransactionView,

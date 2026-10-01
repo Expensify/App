@@ -1,11 +1,13 @@
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
+import compareOptionalValues from '@components/Table/compareOptionalValues';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {getPolicyApproverLogins, isControlPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import {getFirstApproverLabel} from '@libs/WorkflowUtils';
 
 import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
@@ -21,7 +23,7 @@ import React from 'react';
 
 import WorkspaceMembersTableRow from './WorkspaceMembersTableRow';
 
-type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions' | 'customField1' | 'customField2';
+type WorkspaceMembersTableColumnKey = 'member' | 'approver' | 'role' | 'actions' | 'customField1' | 'customField2';
 
 type WorkspaceMemberRowData = TableData & {
     accountID: number;
@@ -29,6 +31,9 @@ type WorkspaceMemberRowData = TableData & {
     role?: string;
     employeeUserID?: string;
     employeePayrollID?: string;
+    approverAccountID?: number;
+    approverDisplayName?: string;
+    approverLogin?: string;
     name: string;
     email: string;
     shouldShowEmployeeUserID: boolean;
@@ -49,12 +54,14 @@ type WorkspaceMembersTableProps = {
     selectedKeys: string[];
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
+    shouldShowApproverColumn: boolean;
+    shouldUseOrdinalApproverLabel: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
 };
 
-/** Width the member cell's avatar and the space after it take before the name and email start. */
-const MEMBER_CELL_AVATAR_WIDTH = variables.avatarSizeSmall + 12;
+/** Width the approver cell's avatar and the gap the row lays it out with, which the name starts after. */
+const APPROVER_CELL_AVATAR_WIDTH = variables.avatarSizeXxxSmall + variables.spacing2;
 
 const WORKSPACE_MEMBER_FILTER_VALUES = {
     ADMINS: 'admins',
@@ -74,11 +81,13 @@ export default function WorkspaceMembersTable({
     selectedKeys,
     shouldShowCustomField1Column,
     shouldShowCustomField2Column,
+    shouldShowApproverColumn,
+    shouldUseOrdinalApproverLabel,
     members,
     onRowSelectionChange,
     headerComponent,
 }: WorkspaceMembersTableProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, toLocaleOrdinalWithWords} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
@@ -94,10 +103,24 @@ export default function WorkspaceMembersTable({
                     {text: item.name, fontSize: fontScale.text},
                     {text: item.email, fontSize: fontScale.label},
                 ],
-                extraWidth: MEMBER_CELL_AVATAR_WIDTH,
+                extraWidth: variables.tableMemberCellAvatarWidth,
             },
         },
 
+        ...(shouldShowApproverColumn
+            ? [
+                  {
+                      sortable: true,
+                      key: 'approver' as const,
+                      // One header for the whole table, so it follows the deepest workflow in the workspace.
+                      label: getFirstApproverLabel(shouldUseOrdinalApproverLabel, translate, toLocaleOrdinalWithWords),
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.approverDisplayName ? [{text: item.approverDisplayName}] : []),
+                          extraWidth: APPROVER_CELL_AVATAR_WIDTH,
+                      },
+                  },
+              ]
+            : []),
         ...(shouldShowCustomField1Column
             ? [
                   {
@@ -149,75 +172,20 @@ export default function WorkspaceMembersTable({
         }
 
         if (activeSorting.columnKey === 'role') {
-            if (!item1.role && !item2.role) {
-                return memberNameComparison;
-            }
+            const compareRoleNames = (role1: string, role2: string) => localeCompare(translate('workspace.common.roleName', role1), translate('workspace.common.roleName', role2));
+            return compareOptionalValues(item1.role, item2.role, compareRoleNames, orderMultiplier, memberNameComparison);
+        }
 
-            if (!item1.role) {
-                return 1;
-            }
-
-            if (!item2.role) {
-                return -1;
-            }
-
-            const roleComparison = localeCompare(translate('workspace.common.roleName', item1.role), translate('workspace.common.roleName', item2.role));
-
-            if (roleComparison !== 0) {
-                return roleComparison * orderMultiplier;
-            }
-
-            return memberNameComparison;
+        if (activeSorting.columnKey === 'approver') {
+            return compareOptionalValues(item1.approverDisplayName, item2.approverDisplayName, localeCompare, orderMultiplier, memberNameComparison);
         }
 
         if (activeSorting.columnKey === 'customField1') {
-            const item1CustomField1Value = item1.employeeUserID;
-            const item2CustomField1Value = item2.employeeUserID;
-
-            if (!item1CustomField1Value && !item2CustomField1Value) {
-                return memberNameComparison;
-            }
-
-            if (!item1CustomField1Value) {
-                return 1;
-            }
-
-            if (!item2CustomField1Value) {
-                return -1;
-            }
-
-            const employeeIdComparison = localeCompare(item1CustomField1Value, item2CustomField1Value);
-
-            if (employeeIdComparison !== 0) {
-                return employeeIdComparison * orderMultiplier;
-            }
-
-            return memberNameComparison;
+            return compareOptionalValues(item1.employeeUserID, item2.employeeUserID, localeCompare, orderMultiplier, memberNameComparison);
         }
 
         if (activeSorting.columnKey === 'customField2') {
-            const item1CustomField2Value = item1.employeePayrollID;
-            const item2CustomField2Value = item2.employeePayrollID;
-
-            if (!item1CustomField2Value && !item2CustomField2Value) {
-                return memberNameComparison;
-            }
-
-            if (!item1CustomField2Value) {
-                return 1;
-            }
-
-            if (!item2CustomField2Value) {
-                return -1;
-            }
-
-            const payrollIdComparison = localeCompare(item1CustomField2Value, item2CustomField2Value);
-
-            if (payrollIdComparison !== 0) {
-                return payrollIdComparison * orderMultiplier;
-            }
-
-            return memberNameComparison;
+            return compareOptionalValues(item1.employeePayrollID, item2.employeePayrollID, localeCompare, orderMultiplier, memberNameComparison);
         }
 
         return 1;
@@ -336,6 +304,7 @@ export default function WorkspaceMembersTable({
                 shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
                 shouldShowCustomField1Column={shouldShowCustomField1Column}
                 shouldShowCustomField2Column={shouldShowCustomField2Column}
+                shouldShowApproverColumn={shouldShowApproverColumn}
             />
         );
     };

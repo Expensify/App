@@ -11,7 +11,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteSyncTaxConfiguration} from '@libs/actions/connections/NetSuiteCommands';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {areSettingsInErrorFields, canUseTaxNetSuite, getCustomersOrJobsLabelNetSuite, getNetSuiteImportCustomFieldLabel, settingsPendingAction} from '@libs/PolicyUtils';
+import {canUseTaxNetSuite, getCustomersOrJobsLabelNetSuite, getNetSuiteImportCustomFieldLabel} from '@libs/NetSuiteUtils';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
 import {getImportCustomFieldsSettings} from '@pages/workspace/accounting/netsuite/utils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';

@@ -231,4 +231,52 @@ describe('ContextMenuActions copy message', () => {
 
         expect(mockSetString).toHaveBeenCalledWith(actionText);
     });
+
+    it('copies the localized message for a member work arrangement update action', () => {
+        mockCanSetHtml.mockReturnValue(false);
+        mockGetClipboardText.mockReturnValue('updated work arrangement');
+
+        if (!copyMessageAction?.onPress) {
+            throw new Error('Copy message context menu action was not found');
+        }
+
+        copyMessageAction.onPress(
+            false,
+            createReportActionPayload(
+                createMock<CopyMessagePayload['reportAction']>({
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT,
+                    message: [{text: 'updated work arrangement', html: 'updated work arrangement'}],
+                    originalMessage: {name: 'Member One', newValue: true, oldValue: false},
+                }),
+            ),
+        );
+
+        expect(mockGetClipboardText).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement');
+        expect(mockSetString).toHaveBeenCalledWith('updated work arrangement');
+    });
+
+    it('copies the localized member work arrangement message as html when supported', () => {
+        // Given the clipboard supports HTML, when the member arrangement message is copied, then the shared rich clipboard path is used.
+        mockCanSetHtml.mockReturnValue(true);
+        mockGetClipboardText.mockReturnValue('updated work arrangement');
+
+        if (!copyMessageAction?.onPress) {
+            throw new Error('Copy message context menu action was not found');
+        }
+
+        copyMessageAction.onPress(
+            false,
+            createReportActionPayload(
+                createMock<CopyMessagePayload['reportAction']>({
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT,
+                    message: [{text: 'updated work arrangement', html: 'updated work arrangement'}],
+                    originalMessage: {name: 'Member One', newValue: true, oldValue: false},
+                }),
+            ),
+        );
+
+        expect(mockGetClipboardText).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement');
+        expect(mockSetHtml).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', 'updated work arrangement');
+        expect(mockSetString).not.toHaveBeenCalled();
+    });
 });

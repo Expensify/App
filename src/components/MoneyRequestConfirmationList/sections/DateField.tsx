@@ -1,5 +1,6 @@
 import DatePicker from '@components/DatePicker';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -30,6 +31,8 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import AutomaticFieldHint from './AutomaticFieldHint';
+import ExpenseFieldRow from './ExpenseFieldRow';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {dateStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -48,6 +51,7 @@ type DateFieldProps = {
 function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {isEditingSplitBill, canEnterScanFieldsManually} = useConfirmationFields();
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
@@ -127,7 +131,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
 
     if (!isReadOnly) {
         return (
-            <View style={[styles.mh4, styles.mb2]}>
+            <View style={styles.mh4}>
                 <DatePicker
                     inputID={INPUT_IDS.MONEY_REQUEST_CREATED}
                     value={shouldShowEmptyDate ? '' : iouCreated}
@@ -151,26 +155,50 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
         );
     }
 
-    return (
-        <MenuItemWithTopDescription
-            shouldShowRightIcon={!isReadOnly}
-            title={iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
-            description={translate('common.date')}
-            style={[styles.moneyRequestMenuItem]}
-            titleStyle={styles.flex1}
-            onPress={() => {
-                if (!transactionID) {
-                    return;
-                }
+    const openDatePage = () => {
+        if (!transactionID) {
+            return;
+        }
 
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, reportActionID)));
-            }}
-            disabled={didConfirm}
-            interactive={!isReadOnly}
-            brickRoadIndicator={shouldDisplayFieldError && createdMissing ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-            errorText={dateErrorText}
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, reportActionID)));
+    };
+
+    const readOnlyDate = iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+
+    // On the bordered form the editable date is a text input, so a locked one has to read as a disabled input too
+    // rather than as a push row, or the same screen answers "this field can't be changed" two different ways.
+    if (shouldUseDropdownRows) {
+        return (
+            <ExpenseFieldRow
+                name={translate('common.date')}
+                value={readOnlyDate}
+                errorText={dateErrorText}
+                onPress={openDatePage}
+                isDisabled={didConfirm}
+                isInteractive={false}
+                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DATE_FIELD}
+            />
+        );
+    }
+
+    return (
+        <MenuItem.Root
+            isDisabled={didConfirm}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DATE_FIELD}
-        />
+        >
+            <MenuItemField.Row
+                name={translate('common.date')}
+                value={readOnlyDate}
+            >
+                {shouldDisplayFieldError && createdMissing && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+            </MenuItemField.Row>
+            {!!dateErrorText && (
+                <MenuItem.HelpText
+                    isError
+                    message={dateErrorText}
+                />
+            )}
+        </MenuItem.Root>
     );
 }
 
