@@ -56,6 +56,7 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getGroupTableScrollLayout: jest.fn(() => ({dataColumns: [], minTableWidth: 0, shouldScrollHorizontally: false})),
     getViolationsForTransaction: jest.fn(() => ''),
     isTransactionDayGroupListItemType: jest.fn((item: Record<string, unknown>) => item.groupedBy === 'day'),
+    isTransactionViolationApproverGroupListItemType: jest.fn((item: Record<string, unknown>) => item.groupedBy === 'violation-approver'),
 }));
 
 jest.mock('@react-navigation/native', () => ({
