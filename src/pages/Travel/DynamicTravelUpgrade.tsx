@@ -11,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-// eslint-disable-next-line no-restricted-imports -- billing-only: Travel requires a paid Collect/Control plan, not just any group policy
 import {getActivePolicies, isPaidGroupPolicy} from '@libs/PolicyUtils';
 
 import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
