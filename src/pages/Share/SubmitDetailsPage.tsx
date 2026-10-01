@@ -187,9 +187,18 @@ function SubmitDetailsPage({
     // `currency` from the policy on every run, discarding what they just typed. Feeding their values back in keeps the
     // rest of the seeding (reportID, participants) running.
     const enteredDate = transaction?.isCreatedSet ? transaction.created : undefined;
-    const enteredCurrency = transaction?.isAmountSet ? transaction.currency : undefined;
+    // The currency can't be read off a flag the way the date is read off `isCreatedSet`: clearing the amount field puts
+    // `isAmountSet` back to false while the currency the user picked stays on the draft, so a live read would stop
+    // feeding the currency back and the next re-seed would silently swap it for the policy's output currency. Latch it
+    // the first time they set an amount or pick a currency (the picker writes both) so it stays theirs from then on,
+    // while an amount they never touched still lets a late-resolving policy seed its own currency.
+    const enteredCurrencyRef = useRef<string | undefined>(undefined);
 
     useEffect(() => {
+        if (transaction?.isAmountSet && transaction.currency) {
+            enteredCurrencyRef.current = transaction.currency;
+        }
+
         initMoneyRequest({
             reportID: reportOrAccountID,
             policy,
@@ -199,14 +208,26 @@ function SubmitDetailsPage({
             report,
             parentReport,
             currentDate: enteredDate ?? currentDate,
-            overrideCurrency: enteredCurrency,
+            overrideCurrency: enteredCurrencyRef.current,
             hasOnlyPersonalPolicies,
             draftTransactionIDs,
         });
         // Populate transaction.participants so IOURequestStepReport can highlight the destination (mirrors other expense flows).
         setMoneyRequestParticipantsFromReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report, currentUserPersonalDetails.accountID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails.accountID, hasOnlyPersonalPolicies, enteredDate, enteredCurrency]);
+    }, [
+        reportOrAccountID,
+        policy,
+        personalPolicy,
+        report,
+        parentReport,
+        currentDate,
+        currentUserPersonalDetails.accountID,
+        hasOnlyPersonalPolicies,
+        enteredDate,
+        transaction?.isAmountSet,
+        transaction?.currency,
+    ]);
 
     // Use the branch-aware values computed above: for a share that needs conversion (e.g. HEIC), these resolve to the
     // converted JPEG from VALIDATED_FILE_OBJECT; otherwise they fall back to the raw attachment. Re-deriving from

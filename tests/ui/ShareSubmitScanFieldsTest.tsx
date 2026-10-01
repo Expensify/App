@@ -5,6 +5,8 @@ import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import {clearMoneyRequestAmount, setMoneyRequestAmount} from '@libs/actions/IOU/MoneyRequest';
+
 import SubmitDetailsPage from '@pages/Share/SubmitDetailsPage';
 
 import CONST from '@src/CONST';
@@ -192,5 +194,46 @@ describe('SubmitDetailsPage — manually entered Scan fields', () => {
         expect(draft?.reportID).toBe(SHARED_REPORT_ID);
         expect(draft?.currency).toBe('EUR');
         expect(draft?.merchant).toBe('Starbucks');
+    });
+
+    // Clearing the amount sets `isAmountSet` back to false while the picked currency stays on the draft, so the
+    // re-seeding effect used to stop feeding the currency back and swapped it for the policy's output currency —
+    // the currency changed under the user just because they deleted the amount they had typed.
+    it('keeps the currency the user picked when they clear the amount again', async () => {
+        // Given a user on the shared receipt who picked a currency other than their workspace's and typed an amount
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+                id: POLICY_ID,
+                name: 'Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+                outputCurrency: 'USD',
+                role: CONST.POLICY.ROLE.ADMIN,
+            });
+        });
+        await renderShareConfirmationAndShowMore();
+        // This is the write both the currency picker and the amount input make.
+        await act(async () => {
+            setMoneyRequestAmount(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, 1000, 'EUR');
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When they delete what they typed, so the amount goes back to being SmartScan's to fill in
+        await act(async () => {
+            clearMoneyRequestAmount(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the amount field is empty again but their currency survived instead of reverting to the policy's USD
+        expect(screen.getByLabelText(translateLocal('iou.amount'))).toHaveDisplayValue('');
+        const clearedDraft = await getDraft();
+        expect(clearedDraft?.isAmountSet).toBe(false);
+        expect(clearedDraft?.currency).toBe('EUR');
+
+        // And a later Onyx update re-running the seeding effect still can't take it back
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {name: 'Workspace renamed'});
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect((await getDraft())?.currency).toBe('EUR');
     });
 });
