@@ -161,15 +161,15 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                   rules,
               }).options;
 
-    const chatOptions = filterAndOrderOptions(
-        defaultOptions,
-        cleanSearchTerm,
+    const chatOptions = filterAndOrderOptions({
+        options: defaultOptions,
+        searchInputValue: cleanSearchTerm,
         countryCode,
         loginList,
         currentUserEmail,
         currentUserAccountID,
         personalDetails,
-        {
+        config: {
             dateFnsLocale,
             convertToDisplayString,
             selectedOptions,
@@ -179,7 +179,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
         translate,
         rules,
         activePolicyID,
-    );
+    });
 
     const sections: SelectionListSections = [];
 

@@ -3083,23 +3083,37 @@ function combineOrderingOfReportsAndPersonalDetails<T extends SearchOptionData>(
     };
 }
 
+type FilterAndOrderOptionsParams<T extends SearchOptionData> = {
+    options: Options<T>;
+    searchInputValue: string;
+    countryCode: number;
+    loginList: OnyxEntry<Login>;
+    currentUserEmail: string;
+    currentUserAccountID: number;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    config: FilterAndOrderConfig;
+    translate: LocalizedTranslate;
+    rules: OnyxCollection<Rule>;
+    activePolicyID: OnyxEntry<string>;
+};
+
 /**
  * Filters and orders the options based on the search input value.
  * Note that personal details that are part of the recent reports will always be shown as part of the recent reports (ie. DMs).
  */
-function filterAndOrderOptions<T extends SearchOptionData>(
-    options: Options<T>,
-    searchInputValue: string,
-    countryCode: number,
-    loginList: OnyxEntry<Login>,
-    currentUserEmail: string,
-    currentUserAccountID: number,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    config: FilterAndOrderConfig,
-    translate: LocalizedTranslate,
-    rules: OnyxCollection<Rule>,
-    activePolicyID: OnyxEntry<string>,
-): Options<T> {
+function filterAndOrderOptions<T extends SearchOptionData>({
+    options,
+    searchInputValue,
+    countryCode,
+    loginList,
+    currentUserEmail,
+    currentUserAccountID,
+    personalDetails,
+    config,
+    translate,
+    rules,
+    activePolicyID,
+}: FilterAndOrderOptionsParams<T>): Options<T> {
     let filterResult = options;
     if (searchInputValue.trim().length > 0) {
         filterResult = filterOptions(options, searchInputValue, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, config, translate, rules);
