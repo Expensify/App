@@ -179,7 +179,7 @@ describe('WorkArrangementPage', () => {
         // Then only the invite arrangement draft changes and the editor returns to confirmation
         expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`)).toBe(true);
         expect(setEmployeeWorkArrangement).not.toHaveBeenCalled();
-        expect(Navigation.goBack).toHaveBeenCalledWith(`workspaces/${policyID}/members/invite/invite-message`);
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(policyID));
     });
 
     it('uses the resolved account ID for the first arrangement change after an offline invite syncs', async () => {

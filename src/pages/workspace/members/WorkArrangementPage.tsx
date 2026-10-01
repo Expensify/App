@@ -82,7 +82,7 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
 
     const navigateBackToDetails = () => {
         if (isInviteFlow) {
-            Navigation.goBack(`workspaces/${policyID}/members/invite/invite-message`);
+            Navigation.goBack(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(policyID));
             return;
         }
         Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, memberAccountID));

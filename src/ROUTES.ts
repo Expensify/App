@@ -3649,6 +3649,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/members/:accountID/work-arrangement',
         getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/work-arrangement` as const,
     },
+    WORKSPACE_INVITE_MESSAGE: {
+        route: 'workspaces/:policyID/members/invite/invite-message',
+        getRoute: (policyID: string) => `workspaces/${policyID}/members/invite/invite-message` as const,
+    },
     WORKSPACE_INVITE_WORK_ARRANGEMENT: {
         route: 'workspaces/:policyID/members/invite/invite-message/work-arrangement',
         getRoute: (policyID: string) => `workspaces/${policyID}/members/invite/invite-message/work-arrangement` as const,
