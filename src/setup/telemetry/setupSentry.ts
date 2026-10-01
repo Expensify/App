@@ -10,6 +10,7 @@ import {
     tracingIntegration,
 } from '@libs/telemetry/integrations';
 import {processBeforeSendLogs, processBeforeSendTransactions} from '@libs/telemetry/middlewares';
+import getAppVersion from '@libs/VersionUtils';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -34,6 +35,7 @@ const EXTENSION_DENY_URLS = [/^chrome-extension:\/\//i, /^moz-extension:\/\//i, 
 const THIRD_PARTY_NOISE_INTEGRATIONS = [thirdPartyErrorFilterIntegration, classCallCheckNoiseFilterIntegration];
 
 function setupSentry(): void {
+    const {semanticVersion, buildNumber} = getAppVersion(pkg.version);
     const integrations = [
         navigationIntegration,
         tracingIntegration,
@@ -56,7 +58,8 @@ function setupSentry(): void {
         enableUserInteractionTracing: true,
         integrations,
         environment: CONFIG.ENVIRONMENT,
-        release: `${pkg.name}@${pkg.version}`,
+        release: `${pkg.name}@${semanticVersion}`,
+        dist: buildNumber,
         ignoreErrors: [
             // UPDATE_REQUIRED is not a real error and makes our errors in Spotnana spike and get rate limited when we bump the app min version, so ignore it
             CONST.ERROR.UPDATE_REQUIRED,
@@ -68,6 +71,14 @@ function setupSentry(): void {
             // `add()` instead of `put()` and fails whenever the key is already there. Onyx never calls `add()`, so a
             // real Onyx write cannot produce this, and the DOMException carries no frames to tag as third-party.
             /^ConstraintError: Key already exists in the object store/,
+            // Calls into the WKWebView message bridge an in-app browser injected into the page, which then tore the
+            // bridge down (https://github.com/Expensify/App/issues/100268, Sentry APP-8WS). We ship no
+            // `webkit.messageHandlers` call anywhere in the org, so any error naming one was thrown by injected code
+            // we cannot act on. Filtering on the message rather than the frames is what works here: WebKit withholds
+            // the URL of an injected script, so `denyUrls` and `thirdPartyErrorFilterIntegration` have nothing to
+            // match. The trailing dot keeps this to a real property access into the bridge, so an unrelated error
+            // that merely names the bridge in prose still reports.
+            /webkit\.messageHandlers\./,
         ],
         denyUrls: EXTENSION_DENY_URLS,
         beforeSendTransaction: processBeforeSendTransactions,

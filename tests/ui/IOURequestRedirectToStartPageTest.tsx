@@ -21,7 +21,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
-import * as TestHelper from '../utils/TestHelper';
+import {getGlobalFetchMock} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@userActions/Tab');
@@ -115,13 +115,12 @@ async function markNavigationReady() {
 }
 
 describe('IOURequestRedirectToStartPage', () => {
-    // the distance redirect reads GetDefaultP2PMileageRate, so stub the network instead of hitting real fetch
-    TestHelper.setupGlobalFetchMock();
-
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
         });
+
+        global.fetch = getGlobalFetchMock();
     });
 
     beforeEach(() => {

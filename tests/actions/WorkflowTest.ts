@@ -1,3 +1,4 @@
+import {WRITE_COMMANDS} from '@libs/API/types';
 import {INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
@@ -14,7 +15,14 @@ import {
     updateApprovalWorkflow,
     updateApprovalWorkflowRules,
 } from '@src/libs/actions/Workflow';
-import {calculateApprovers, convertApprovalWorkflowRulesToWorkflows, extractSubmitterEmails, getApprovalWorkflowRulesForPolicy} from '@src/libs/WorkflowUtils';
+import {
+    buildApprovalWorkflowRules,
+    calculateApprovers,
+    convertApprovalWorkflowRulesToWorkflows,
+    convertPolicyEmployeesToApprovalWorkflows,
+    extractSubmitterEmails,
+    getApprovalWorkflowRulesForPolicy,
+} from '@src/libs/WorkflowUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Policy as PolicyType, Report} from '@src/types/onyx';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
@@ -29,7 +37,7 @@ import type {MockFetch} from '../utils/TestHelper';
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
-import {createGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
+import {createGlobalFetchMock, getFetchMockCalls, getOnyxData} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/WorkflowUtils', () => {
@@ -54,6 +62,7 @@ OnyxUpdateManager();
 const employee1Email = 'test1@gmail.com';
 const employee2Email = 'test2@gmail.com';
 const employee3Email = 'test3@gmail.com';
+const employee4Email = 'test4@gmail.com';
 const ownerEmail = 'owner@gmail.com';
 
 /**
@@ -80,7 +89,7 @@ async function getActivePolicyRules(policyID: string): Promise<Rule[]> {
 
 /** Build the index-keyed object shape the rules API uses for lists */
 function indexMap<T>(...values: T[]): Record<string, T> {
-    return Object.fromEntries(values.map((value, index) => [String(index), value]));
+    return Object.fromEntries(values.map((value, index) => [String(index + 1), value]));
 }
 
 /**
@@ -503,9 +512,109 @@ describe('actions/Workflow', () => {
 
             expect(completeTaskMock).not.toHaveBeenCalled();
         });
+
+        it('makes a workflow with everyone in it the default workflow', async () => {
+            mockFetch.pause();
+
+            // Given a default workflow that routes everyone through the owner and then employee3
+            const everyone = [ownerEmail, employee1Email, employee2Email, employee3Email];
+            const policy = createMock<Policy>({
+                id: '123456789',
+                name: 'Test Workspace',
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                approver: ownerEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: Object.fromEntries(
+                    everyone.map((email) => [email, {email, role: email === ownerEmail ? 'admin' : 'user', submitsTo: ownerEmail, forwardsTo: email === ownerEmail ? employee3Email : ''}]),
+                ),
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When a workflow approved by employee1 is created with everyone in it, as the default workflow
+            createApprovalWorkflow({
+                approvalWorkflow: {
+                    members: everyone.map((email) => ({email, displayName: email})),
+                    approvers: [{email: employee1Email, displayName: employee1Email, isCircularReference: false}],
+                    isDefault: true,
+                },
+                policy,
+                addExpenseApprovalsTaskReport: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then employee1 becomes the policy's default approver, both optimistically and in the request
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.approver).toBe(employee1Email);
+            const requestBody = getFetchMockCalls(WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL).at(0)?.[1]?.body;
+            expect(requestBody instanceof FormData ? requestBody.get('defaultApprover') : undefined).toBe(employee1Email);
+
+            // Then the new workflow is the only one left, so the old default workflow with its second approver is gone
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy: updatedPolicy, personalDetails: {}, localeCompare: (a: string, b: string) => a.localeCompare(b)});
+            expect(approvalWorkflows).toHaveLength(1);
+            expect(approvalWorkflows.at(0)?.isDefault).toBe(true);
+            expect(approvalWorkflows.at(0)?.approvers.map((approver) => approver.email)).toEqual([employee1Email]);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
     });
 
     describe('removeApprovalWorkflow', () => {
+        it('should optimistically point the removed workflow members at the default approver instead of leaving submitsTo empty', async () => {
+            mockFetch.pause();
+
+            // Given a policy whose default approver is not the owner, so the test also proves the value comes from
+            // `getDefaultApprover` rather than falling back to the owner
+            const policy = createMock<Policy>({
+                id: '123456789',
+                name: 'Test Workspace',
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                approver: employee2Email,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, forwardsTo: '', role: 'admin', submitsTo: employee2Email},
+                    [employee1Email]: {email: employee1Email, forwardsTo: '', role: 'user', submitsTo: employee2Email},
+                    [employee2Email]: {email: employee2Email, forwardsTo: '', role: 'user', submitsTo: employee2Email},
+                    [employee3Email]: {email: employee3Email, forwardsTo: '', role: 'user', submitsTo: employee1Email},
+                },
+            });
+
+            // The non-default workflow being removed: employee3 submits to employee1
+            const approvalWorkflow = {
+                members: [{email: employee3Email, displayName: employee3Email}],
+                approvers: [{email: employee1Email, displayName: employee1Email, isCircularReference: false}],
+                availableMembers: [],
+                usedApproverEmails: [employee2Email],
+                isDefault: false,
+                action: 'remove',
+                originalApprovers: [],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When removing that workflow while the request is still in flight
+            removeApprovalWorkflow(approvalWorkflow, policy);
+            await waitForBatchedUpdates();
+
+            // Then the member reads as submitting to the default approver rather than to nobody. Storing the empty
+            // string the request carries would blank this member's approver until the response lands, and for as long
+            // as the user stays offline.
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.employeeList?.[employee3Email]?.submitsTo).toBe(employee2Email);
+            expect(updatedPolicy?.employeeList?.[employee3Email]?.pendingFields?.submitsTo).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
         it('should keep ADVANCED approval mode when default approver has forwardsTo chain', async () => {
             mockFetch.pause();
 
@@ -948,10 +1057,10 @@ describe('actions/Workflow', () => {
             expect(submitRule?.scope).toBe(CONST.RULES.SCOPE.POLICY);
             expect(submitRule?.scopeID).toBe(policyID);
             expect(submitRule?.filters).toEqual({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [employee1Email]});
-            expect(submitRule?.actions[0]).toEqual({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: ownerEmail});
+            expect(submitRule?.actions[1]).toEqual({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: ownerEmail});
 
             const approveRule = rules.find((rule) => Object.values(rule.triggers).includes(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE));
-            expect(approveRule?.actions[0]).toEqual({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT});
+            expect(approveRule?.actions[1]).toEqual({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT});
 
             await mockFetch.resume();
             await waitForBatchedUpdates();
@@ -1207,6 +1316,69 @@ describe('actions/Workflow', () => {
             await mockFetch.resume();
             await waitForBatchedUpdates();
         });
+
+        it('makes a workflow with everyone in it the default workflow, replacing a default workflow with two approvers', async () => {
+            mockFetch.pause();
+
+            const policyID = '123456789';
+            const everyone = [ownerEmail, employee1Email, employee2Email, employee3Email];
+            const everyoneAsMembers = everyone.map((email) => ({email, displayName: email}));
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                owner: ownerEmail,
+                approver: ownerEmail,
+                employeeList: Object.fromEntries(everyone.map((email) => [email, {email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail}])),
+                rules: {},
+            };
+
+            // Given a rule-backed default workflow that routes everyone through the owner and then employee3
+            const defaultWorkflowRules = buildApprovalWorkflowRules({
+                members: everyoneAsMembers,
+                approvers: [ownerEmail, employee3Email].map((email) => ({email, displayName: email, isCircularReference: false})),
+                isDefault: true,
+            });
+            for (const [index, rule] of defaultWorkflowRules.entries()) {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}default${index}`, {...rule, scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID});
+            }
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When a workflow approved by employee1 is created with everyone in it, as the default workflow
+            createApprovalWorkflowRules({
+                approvalWorkflow: {
+                    members: everyoneAsMembers,
+                    approvers: [{email: employee1Email, displayName: employee1Email, isCircularReference: false}],
+                    isDefault: true,
+                },
+                policy,
+                addExpenseApprovalsTaskReport: undefined,
+                rules: await getRulesCollection(),
+            });
+            await waitForBatchedUpdates();
+
+            // Then employee1 becomes the policy's default approver
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.approver).toBe(employee1Email);
+
+            // Then the new workflow is the only one left, so the old default workflow with its second approver is gone
+            const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({
+                policy: updatedPolicy,
+                personalDetails: {},
+                localeCompare: (a: string, b: string) => a.localeCompare(b),
+                rules: getApprovalWorkflowRulesForPolicy(await getRulesCollection(), policyID),
+            });
+            expect(approvalWorkflows).toHaveLength(1);
+            expect(approvalWorkflows.at(0)?.isDefault).toBe(true);
+            expect(approvalWorkflows.at(0)?.approvers.map((approver) => approver.email)).toEqual([employee1Email]);
+            const memberEmails = approvalWorkflows.at(0)?.members.map((member) => member.email);
+            expect(memberEmails).toHaveLength(everyone.length);
+            expect(memberEmails).toEqual(expect.arrayContaining(everyone));
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
     });
 
     describe('updateApprovalWorkflowRules', () => {
@@ -1433,6 +1605,88 @@ describe('actions/Workflow', () => {
             await mockFetch.resume();
             await waitForBatchedUpdates();
         });
+
+        it('E2E: taking a member out of a workflow lists them in the default workflow rules', async () => {
+            mockFetch.pause();
+
+            // Given a default workflow edited to approve through the owner and then employee3, and a custom workflow for
+            // employee1 and employee2 approved by employee4. employeeList still routes everyone to the owner alone,
+            // because saving workflows through rules doesn't touch it.
+            const policyID = '123456789';
+            const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+            const basePolicy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                owner: ownerEmail,
+                approver: ownerEmail,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, forwardsTo: '', role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                    [employee1Email]: {email: employee1Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                    [employee2Email]: {email: employee2Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                    [employee3Email]: {email: employee3Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                    [employee4Email]: {email: employee4Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                },
+                rules: {},
+            };
+            await Onyx.set(policyKey, basePolicy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            const buildMember = (email: string) => ({email, displayName: email});
+            const buildApprover = (email: string) => ({email, displayName: email, isCircularReference: false});
+
+            const defaultMembers = [ownerEmail, employee1Email, employee2Email, employee3Email, employee4Email].map(buildMember);
+            updateApprovalWorkflowRules({
+                approvalWorkflow: {members: defaultMembers, approvers: [buildApprover(ownerEmail), buildApprover(employee3Email)], isDefault: true},
+                initialApprovalWorkflow: {members: defaultMembers, approvers: [buildApprover(ownerEmail)], isDefault: true},
+                policy: await getOnyxValue(policyKey),
+                rules: await getRulesCollection(),
+            });
+            await waitForBatchedUpdates();
+
+            const customWorkflow = {members: [buildMember(employee1Email), buildMember(employee2Email)], approvers: [buildApprover(employee4Email)], isDefault: false};
+            createApprovalWorkflowRules({
+                approvalWorkflow: customWorkflow,
+                policy: await getOnyxValue(policyKey),
+                addExpenseApprovalsTaskReport: undefined,
+                rules: await getRulesCollection(),
+            });
+            await waitForBatchedUpdates();
+
+            // When employee2 is taken out of the custom workflow the way the edit page does, handing over the default
+            // workflow the converter resolves
+            const policyAfterCreate = await getOnyxValue(policyKey);
+            const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({
+                policy: policyAfterCreate,
+                personalDetails: {},
+                localeCompare: (a: string, b: string) => a.localeCompare(b),
+                rules: getApprovalWorkflowRulesForPolicy(await getRulesCollection(), policyID),
+            });
+            updateApprovalWorkflowRules({
+                approvalWorkflow: {...customWorkflow, members: [buildMember(employee1Email)]},
+                initialApprovalWorkflow: customWorkflow,
+                policy: policyAfterCreate,
+                rules: await getRulesCollection(),
+                defaultApprovalWorkflow: approvalWorkflows.find((workflow) => workflow.isDefault),
+            });
+            await waitForBatchedUpdates();
+
+            // Then every rule of the default workflow lists employee2, so their reports go to the owner and then
+            // employee3 instead of following employeeList to the owner alone
+            const rules = await getActivePolicyRules(policyID);
+            const defaultRules = rules.filter((rule) => rule.isDefaultApprovalWorkflow);
+            const customRules = rules.filter((rule) => !rule.isDefaultApprovalWorkflow);
+            expect(defaultRules).toHaveLength(3);
+            for (const rule of defaultRules) {
+                expect(extractSubmitterEmails(rule)).toContain(employee2Email);
+            }
+            for (const rule of customRules) {
+                expect(extractSubmitterEmails(rule)).toEqual([employee1Email]);
+            }
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
     });
 
     describe('removeApprovalWorkflowRules', () => {
@@ -1517,6 +1771,118 @@ describe('actions/Workflow', () => {
             await waitForBatchedUpdates();
         });
 
+        it('E2E: deleting a workflow keeps a single default workflow when employeeList still routes members to an older default approver', async () => {
+            mockFetch.pause();
+
+            // Given a default workflow whose rules route employee3 to the owner, while employeeList still names employee1,
+            // who forwards to employee2, as the default approver. No rule covers employee1 or employee2, so employeeList
+            // routes them down that older chain. employee4 is in a custom workflow approved by employee3.
+            const policyID = '123456789';
+            const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                owner: ownerEmail,
+                approver: employee1Email,
+                employeeList: {
+                    [employee3Email]: {email: employee3Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: employee1Email},
+                    [employee1Email]: {email: employee1Email, forwardsTo: employee2Email, role: CONST.POLICY.ROLE.USER, submitsTo: employee1Email},
+                    [employee2Email]: {email: employee2Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: employee1Email},
+                    [employee4Email]: {email: employee4Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ''},
+                },
+                rules: {},
+            };
+            await Onyx.set(policyKey, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await createForwardApproveRules(policyID, [employee3Email], ownerEmail, 'default', true);
+            await createForwardApproveRules(policyID, [employee4Email], employee3Email, 'custom');
+            await waitForBatchedUpdates();
+
+            // When the custom workflow is deleted the way the edit page does, handing over the default workflow the
+            // converter resolves
+            const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({
+                policy,
+                personalDetails: {},
+                localeCompare: (a: string, b: string) => a.localeCompare(b),
+                rules: getApprovalWorkflowRulesForPolicy(await getRulesCollection(), policyID),
+            });
+            const customWorkflow = approvalWorkflows.find((workflow) => workflow.approvers.at(0)?.email === employee3Email);
+            expect(customWorkflow).toBeDefined();
+            if (customWorkflow) {
+                removeApprovalWorkflowRules(
+                    customWorkflow,
+                    policy,
+                    await getRulesCollection(),
+                    approvalWorkflows.find((workflow) => workflow.isDefault),
+                );
+            }
+            await waitForBatchedUpdates();
+
+            // Then employee4 joins the default workflow's own rules. Writing the older employeeList chain as default rules
+            // would leave the policy with a second default workflow.
+            const rules = await getActivePolicyRules(policyID);
+            expect(rules).toHaveLength(2);
+            for (const rule of rules) {
+                expect(rule.isDefaultApprovalWorkflow).toBe(true);
+                expect(extractSubmitterEmails(rule)).toEqual([employee3Email, employee4Email]);
+            }
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('folds the removed members into the default workflow rules when handed a default workflow that routes differently', async () => {
+            mockFetch.pause();
+
+            // Given a rule-backed default workflow approved by the owner, and a default workflow approved by employee1 handed
+            // over for it, the way a default workflow resolved from stale data would be
+            const policyID = '123456789';
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                owner: ownerEmail,
+                approver: ownerEmail,
+                employeeList: {
+                    [employee2Email]: {email: employee2Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ''},
+                    [employee3Email]: {email: employee3Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                },
+                rules: {},
+            };
+            await createForwardApproveRules(policyID, [employee3Email], ownerEmail, 'default', true);
+            await createForwardApproveRules(policyID, [employee2Email], employee3Email, 'custom');
+
+            const defaultApprovalWorkflow = {
+                members: [],
+                approvers: [{email: employee1Email, displayName: employee1Email, isCircularReference: false}],
+                isDefault: true,
+            };
+            const approvalWorkflow = {
+                members: [{email: employee2Email, displayName: employee2Email}],
+                approvers: [{email: employee3Email, displayName: employee3Email, isCircularReference: false}],
+                isDefault: false,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When the custom workflow is deleted
+            removeApprovalWorkflowRules(approvalWorkflow, policy, await getRulesCollection(), defaultApprovalWorkflow);
+            await waitForBatchedUpdates();
+
+            // Then employee2 joins the rules that already declare the default workflow, because new rules declaring
+            // themselves default would stand up a second default workflow next to them
+            const rules = await getActivePolicyRules(policyID);
+            expect(rules).toHaveLength(2);
+            for (const rule of rules) {
+                expect(rule.isDefaultApprovalWorkflow).toBe(true);
+                expect(extractSubmitterEmails(rule)).toEqual([employee3Email, employee2Email]);
+            }
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
         it('removes the rules that belong only to the workflow members', async () => {
             mockFetch.pause();
 
@@ -1596,6 +1962,58 @@ describe('actions/Workflow', () => {
 
             const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
             expect(updatedPolicy?.employeeList?.[employee1Email]?.submitsTo).not.toBe(employee2Email);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('lists the members of a workflow no rule covers in the rule-backed default workflow when it is deleted', async () => {
+            mockFetch.pause();
+
+            // Given a rule-backed default workflow approved by the owner, and employee1 in a workflow only employeeList
+            // describes. The backend rejects employeeList routing changes once a policy's approvals are rule-based.
+            const policyID = '123456789';
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                owner: ownerEmail,
+                approver: ownerEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [employee1Email]: {email: employee1Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: employee2Email},
+                    [employee2Email]: {email: employee2Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                    [employee3Email]: {email: employee3Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                },
+                rules: {},
+            };
+            await createForwardApproveRules(policyID, [employee3Email], ownerEmail, 'default', true);
+
+            const defaultApprovalWorkflow = {
+                members: [{email: employee3Email, displayName: employee3Email}],
+                approvers: [{email: ownerEmail, displayName: ownerEmail, isCircularReference: false}],
+                isDefault: true,
+            };
+            const approvalWorkflow = {
+                members: [{email: employee1Email, displayName: employee1Email}],
+                approvers: [{email: employee2Email, displayName: employee2Email, isCircularReference: false}],
+                isDefault: false,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When that workflow is deleted
+            const didRemoveRules = removeApprovalWorkflowRules(approvalWorkflow, policy, await getRulesCollection(), defaultApprovalWorkflow);
+            await waitForBatchedUpdates();
+
+            // Then employee1 joins the default workflow's rules instead of the caller falling back to employeeList
+            expect(didRemoveRules).toBe(true);
+            const rules = await getActivePolicyRules(policyID);
+            expect(rules).toHaveLength(2);
+            for (const rule of rules) {
+                expect(extractSubmitterEmails(rule)).toEqual([employee3Email, employee1Email]);
+            }
 
             await mockFetch.resume();
             await waitForBatchedUpdates();

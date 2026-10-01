@@ -16,6 +16,7 @@ type ApiRequestType = ValueOf<typeof CONST.API_REQUEST_TYPE>;
 
 const WRITE_COMMANDS = {
     IMPORT_CSV_TRANSACTIONS: 'ImportCSVTransactions',
+    UPLOAD_OFX: 'UploadOFX',
     CLEAN_POLICY_TAGS: 'ClearPolicyTags',
     IMPORT_MULTI_LEVEL_TAGS: 'ImportMultiLevelTags',
     SET_WORKSPACE_AUTO_HARVESTING: 'SetWorkspaceAutoHarvesting',
@@ -190,6 +191,7 @@ const WRITE_COMMANDS = {
     CREATE_POLICY_TAG: 'CreatePolicyTag',
     RENAME_POLICY_TAG: 'RenamePolicyTag',
     SET_WORKSPACE_REQUIRES_CATEGORY: 'SetWorkspaceRequiresCategory',
+    SET_POLICY_AUTO_CATEGORIZE_NEW_EXPENSES: 'SetPolicyAutoCategorizeNewExpenses',
     SET_POLICY_SHOW_CATEGORY_GL_CODES: 'SetPolicyShowCategoryGLCodes',
     UPDATE_POLICY_CATEGORY_PAYROLL_CODE: 'UpdatePolicyCategoryPayrollCode',
     UPDATE_POLICY_CATEGORY_GL_CODE: 'UpdatePolicyCategoryGLCode',
@@ -213,6 +215,7 @@ const WRITE_COMMANDS = {
     COMPLETE_GUIDED_SETUP: 'CompleteGuidedSetup',
     SET_NAME_VALUE_PAIR: 'SetNameValuePair',
     SET_NAME_VALUE_PAIRS: 'SetNameValuePairs',
+    SET_PERSONAL_EXPENSE_RULES: 'SetPersonalExpenseRules',
     SET_REPORT_DETAILS_COLUMNS: 'SetReportDetailsColumns',
     SET_REPORT_FIELD: 'Report_SetFields',
     DELETE_REPORT_FIELD: 'RemoveReportField',
@@ -266,6 +269,7 @@ const WRITE_COMMANDS = {
     ENABLE_POLICY_CATEGORIES: 'EnablePolicyCategories',
     ENABLE_POLICY_CONNECTIONS: 'EnablePolicyConnections',
     ENABLE_POLICY_HR: 'EnablePolicyHR',
+    ENABLE_POLICY_RECRUITING: 'EnablePolicyRecruiting',
     ENABLE_POLICY_MCP: 'EnablePolicyMCP',
     TOGGLE_RECEIPT_PARTNERS: 'TogglePolicyReceiptPartners',
     INVITE_WORKSPACE_EMPLOYEES_TO_UBER: 'InviteWorkspaceEmployeesToUber',
@@ -291,6 +295,7 @@ const WRITE_COMMANDS = {
     SET_POLICY_EXPENSE_MAX_AMOUNT: 'SetPolicyExpenseMaxAmount',
     SET_POLICY_PROHIBITED_EXPENSES: 'SetPolicyProhibitedExpenses',
     SET_POLICY_COMMUTER_EXCLUSIONS: 'SetPolicyCommuterExclusions',
+    SET_EMPLOYEE_WORK_ARRANGEMENT: 'SetEmployeeWorkArrangement',
     DISABLE_POLICY_COMMUTER_EXCLUSIONS: 'DisablePolicyCommuterExclusions',
     SET_POLICY_REQUIRE_MAP_OR_GPS: 'SetPolicyRequireMapOrGPS',
     SET_POLICY_EXPENSE_MAX_AGE: 'SetPolicyExpenseMaxAge',
@@ -351,6 +356,7 @@ const WRITE_COMMANDS = {
     UPDATE_QUICKBOOKS_ONLINE_TRAVEL_BILLING_PAYABLE_ACCOUNT: 'UpdateQuickbooksOnlineTravelBillingPayableAccount',
     UPDATE_QUICKBOOKS_DESKTOP_EXPORT_DATE: 'UpdateQuickbooksDesktopExportDate',
     UPDATE_MANY_POLICY_CONNECTION_CONFIGS: 'UpdateManyPolicyConnectionConfigurations',
+    UPDATE_POLICY_CONNECTION_CONFIGURATION: 'UpdatePolicyConnectionConfiguration',
     UPDATE_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'UpdateQuickbooksDesktopNonReimbursableExpensesExportDestination',
     UPDATE_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPENSES_ACCOUNT: 'UpdateQuickbooksDesktopNonReimbursableExpensesAccount',
     UPDATE_QUICKBOOKS_DESKTOP_AUTO_CREATE_VENDOR: 'UpdateQuickbooksDesktopAutoCreateVendor',
@@ -359,6 +365,7 @@ const WRITE_COMMANDS = {
     UPDATE_QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD: 'UpdateQuickbooksDesktopAccountingMethod',
     UPDATE_QUICKBOOKS_DESKTOP_EXPORT: 'UpdateQuickbooksDesktopExport',
     UPDATE_QUICKBOOKS_DESKTOP_REIMBURSABLE_EXPENSES_ACCOUNT: 'UpdateQuickbooksDesktopReimbursableExpensesAccount',
+    UPDATE_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT: 'UpdateQuickbooksDesktopFxExpenseAccount',
     UPDATE_QUICKBOOKS_DESKTOP_MARK_CHECKS_TO_BE_PRINTED: 'UpdateQuickbooksDesktopMarkChecksToBePrinted',
     UPDATE_QUICKBOOKS_DESKTOP_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'UpdateQuickbooksDesktopReimbursableExpensesExportDestination',
     UPDATE_QUICKBOOKS_DESKTOP_ENABLE_NEW_CATEGORIES: 'UpdateQuickbooksDesktopEnableNewCategories',
@@ -416,7 +423,6 @@ const WRITE_COMMANDS = {
     UPDATE_MERGE_GROUPS: 'UpdateMergeGroups',
     SYNC_POLICY_TO_MERGE: 'SyncPolicyToMerge',
     UPDATE_MERGE_ATS_FILTERS: 'UpdateMergeATSFilters',
-    UPDATE_MERGE_ATS_APPROVER_FIELD: 'UpdateMergeATSApproverField',
     UPDATE_ZENEFITS_APPROVAL_MODE: 'UpdateZenefitsApprovalMode',
     UPDATE_ZENEFITS_FINAL_APPROVER: 'UpdateZenefitsFinalApprover',
     DOWNGRADE_TO_TEAM: 'Policy_DowngradeToTeam',
@@ -496,6 +502,7 @@ const WRITE_COMMANDS = {
     UPDATE_FINANCIAL_FORCE_SYNC_REIMBURSED_REPORTS: 'UpdateFinancialForceSyncReimbursedReports',
     UPDATE_FINANCIAL_FORCE_TAX_NON_BILLABLE: 'UpdateFinancialForceTaxNonBillable',
     UPDATE_FINANCIAL_FORCE_EXPORT_FOREIGN_CURRENCY: 'UpdateFinancialForceExportForeignCurrency',
+    UPDATE_FINANCIAL_FORCE_FX_EXPENSE_ACCOUNT: 'UpdateFinancialForceFxExpenseAccount',
     COPY_EXISTING_POLICY_CONNECTION: 'CopyExistingPolicyConnection',
     UPDATE_SAGE_INTACCT_AUTO_SYNC: 'UpdateSageIntacctAutoSync',
     UPDATE_SAGE_INTACCT_ACCOUNTING_METHOD: 'UpdateSageIntacctAccountingMethod',
@@ -503,6 +510,7 @@ const WRITE_COMMANDS = {
     UPDATE_SAGE_INTACCT_APPROVAL_MODE: 'UpdateSageIntacctApprovalMode',
     UPDATE_SAGE_INTACCT_SYNC_REIMBURSED_REPORTS: 'UpdateSageIntacctSyncReimbursedReports',
     UPDATE_SAGE_INTACCT_SYNC_REIMBURSEMENT_ACCOUNT_ID: 'UpdateSageIntacctSyncReimbursementAccountID',
+    UPDATE_SAGE_INTACCT_FX_EXPENSE_ACCOUNT: 'UpdateSageIntacctFxExpenseAccount',
     CONNECT_POLICY_TO_NETSUITE: 'ConnectPolicyToNetSuite',
     CLEAR_OUTSTANDING_BALANCE: 'ClearOutstandingBalance',
     CANCEL_BILLING_SUBSCRIPTION: 'CancelBillingSubscriptionNewDot',
@@ -571,8 +579,34 @@ const WRITE_COMMANDS = {
     UPDATE_BUSINESS_CENTRAL_FIELD_MAPPING: 'UpdateBusinessCentralFieldMapping',
     UPDATE_BUSINESS_CENTRAL_SYNC_TAX_RATES: 'UpdateBusinessCentralSyncTaxRates',
     UPDATE_BUSINESS_CENTRAL_SYNC_ITEMS: 'UpdateBusinessCentralSyncItems',
+    UPDATE_BUSINESS_CENTRAL_EXPORTER: 'UpdateBusinessCentralExporter',
+    UPDATE_BUSINESS_CENTRAL_EXPORT_DATE: 'UpdateBusinessCentralExportDate',
+    UPDATE_BUSINESS_CENTRAL_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'UpdateBusinessCentralReimbursableExpensesExportDestination',
+    UPDATE_BUSINESS_CENTRAL_NONREIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'UpdateBusinessCentralNonreimbursableExpensesExportDestination',
+    UPDATE_BUSINESS_CENTRAL_REIMBURSABLE_ACCOUNT: 'UpdateBusinessCentralReimbursableAccount',
+    UPDATE_BUSINESS_CENTRAL_NONREIMBURSABLE_ACCOUNT: 'UpdateBusinessCentralNonreimbursableAccount',
+    UPDATE_BUSINESS_CENTRAL_DEFAULT_VENDOR: 'UpdateBusinessCentralDefaultVendor',
+    UPDATE_BUSINESS_CENTRAL_PAYMENT_METHOD: 'UpdateBusinessCentralPaymentMethod',
     CONNECT_POLICY_TO_CAMPFIRE: 'ConnectPolicyToCampfire',
     UPDATE_CAMPFIRE_SUBSIDIARY: 'UpdateCampfireSubsidiary',
+    UPDATE_CAMPFIRE_FIELD_MAPPING: 'UpdateCampfireFieldMapping',
+    UPDATE_CAMPFIRE_ENABLE_NEW_CATEGORIES: 'UpdateCampfireEnableNewCategories',
+    UPDATE_CAMPFIRE_SYNC_TAX_RATES: 'UpdateCampfireSyncTaxRates',
+    UPDATE_CAMPFIRE_EXPORTER: 'UpdateCampfireExporter',
+    UPDATE_CAMPFIRE_EXPORT_DATE: 'UpdateCampfireExportDate',
+    UPDATE_CAMPFIRE_DEFAULT_VENDOR: 'UpdateCampfireDefaultVendor',
+    UPDATE_CAMPFIRE_CREDIT_CARD_ACCOUNT: 'UpdateCampfireCreditCardAccount',
+    UPDATE_CAMPFIRE_EXPORT_TO_MULTIPLE_ACCOUNTS: 'UpdateCampfireExportToMultipleAccounts',
+    UPDATE_CAMPFIRE_CARD_PROGRAM_ACCOUNT: 'UpdateCampfireCardProgramAccount',
+    UPDATE_CAMPFIRE_AUTO_SYNC: 'UpdateCampfireAutoSync',
+    UPDATE_CAMPFIRE_ACCOUNTING_METHOD: 'UpdateCampfireAccountingMethod',
+    UPDATE_CAMPFIRE_SYNC_REIMBURSED_REPORTS: 'UpdateCampfireSyncReimbursedReports',
+    UPDATE_CAMPFIRE_BILL_PAYMENT_ACCOUNT: 'UpdateCampfireBillPaymentAccount',
+    UPDATE_CAMPFIRE_SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'UpdateCampfireSyncExpensifyCardSettlements',
+    UPDATE_CAMPFIRE_SETTLEMENTS_ACCOUNT: 'UpdateCampfireSettlementsAccount',
+    UPDATE_CAMPFIRE_SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'UpdateCampfireSyncTravelInvoicingSettlements',
+    UPDATE_CAMPFIRE_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT: 'UpdateCampfireTravelInvoicingSettlementsAccount',
+    UPDATE_CAMPFIRE_TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'UpdateCampfireTravelInvoicingPayableAccount',
 
     SET_PROMO_CODE: 'User_SetPromoCode',
     REQUEST_TAX_EXEMPTION: 'RequestTaxExemption',
@@ -671,6 +705,7 @@ const WRITE_COMMANDS = {
     ENABLE_GLOBAL_REIMBURSEMENTS_FOR_USD_BANK_ACCOUNT: 'EnableGlobalReimbursementsForUSDBankAccount',
     REOPEN_REPORT: 'ReopenReport',
     TRAVEL_SIGNUP_REQUEST: 'RequestTravelAccess',
+    SET_VACATION_DELEGATE: 'SetVacationDelegate',
     DELETE_VACATION_DELEGATE: 'DeleteVacationDelegate',
     IMPORT_PLAID_ACCOUNTS: 'ImportPlaidAccounts',
     ADD_PERSONAL_PLAID_CARD: 'AddPersonalPlaidCard',
@@ -722,6 +757,7 @@ type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
 
 type WriteCommandParameters = {
     [WRITE_COMMANDS.IMPORT_CSV_TRANSACTIONS]: Parameters.ImportCSVTransactionsParams;
+    [WRITE_COMMANDS.UPLOAD_OFX]: Parameters.UploadOFXParams;
     [WRITE_COMMANDS.CLEAN_POLICY_TAGS]: Parameters.CleanPolicyTagsParams;
     [WRITE_COMMANDS.IMPORT_MULTI_LEVEL_TAGS]: Parameters.ImportMultiLevelTagsParams;
     [WRITE_COMMANDS.DISMISS_REFERRAL_BANNER]: Parameters.DismissReferralBannerParams;
@@ -887,6 +923,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.EXPORT_RECEIPTS_TO_ZIP]: Parameters.ExportReceiptsToZipParams;
     [WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY]: Parameters.RenameWorkspaceCategoriesParams;
     [WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY]: Parameters.SetWorkspaceRequiresCategoryParams;
+    [WRITE_COMMANDS.SET_POLICY_AUTO_CATEGORIZE_NEW_EXPENSES]: Parameters.SetPolicyAutoCategorizeNewExpensesParams;
     [WRITE_COMMANDS.SET_POLICY_SHOW_CATEGORY_GL_CODES]: Parameters.SetPolicyShowCategoryGLCodesParams;
     [WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES]: Parameters.DeleteWorkspaceCategoriesParams;
     [WRITE_COMMANDS.UPDATE_POLICY_CATEGORY_PAYROLL_CODE]: Parameters.UpdatePolicyCategoryPayrollCodeParams;
@@ -914,6 +951,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.COMPLETE_GUIDED_SETUP]: Parameters.CompleteGuidedSetupParams;
     [WRITE_COMMANDS.SET_NAME_VALUE_PAIR]: Parameters.SetNameValuePairParams;
     [WRITE_COMMANDS.SET_NAME_VALUE_PAIRS]: Parameters.SetNameValuePairsParams;
+    [WRITE_COMMANDS.SET_PERSONAL_EXPENSE_RULES]: Parameters.SetPersonalExpenseRulesParams;
     [WRITE_COMMANDS.SET_REPORT_DETAILS_COLUMNS]: Parameters.SetReportDetailsColumnsParams;
     [WRITE_COMMANDS.SET_REPORT_FIELD]: Parameters.SetReportFieldParams;
     [WRITE_COMMANDS.SET_REPORT_NAME]: Parameters.SetReportNameParams;
@@ -982,6 +1020,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES]: Parameters.EnablePolicyCategoriesParams;
     [WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS]: Parameters.EnablePolicyConnectionsParams;
     [WRITE_COMMANDS.ENABLE_POLICY_HR]: Parameters.EnablePolicyHRParams;
+    [WRITE_COMMANDS.ENABLE_POLICY_RECRUITING]: Parameters.EnablePolicyRecruitingParams;
     [WRITE_COMMANDS.ENABLE_POLICY_MCP]: Parameters.EnablePolicyMCPParams;
     [WRITE_COMMANDS.TOGGLE_RECEIPT_PARTNERS]: Parameters.TogglePolicyReceiptPartnersParams;
     [WRITE_COMMANDS.INVITE_WORKSPACE_EMPLOYEES_TO_UBER]: Parameters.InviteWorkspaceEmployeesToUberParams;
@@ -1088,6 +1127,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_AUTO_SYNC]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_REIMBURSABLE_EXPENSES_ACCOUNT]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: Parameters.UpdateQuickbooksDesktopExpensesExportDestinationTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_ENABLE_NEW_CATEGORIES]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_SYNC_CLASSES]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
@@ -1096,6 +1136,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_TRAVEL_BILLING_PAYABLE_ACCOUNT]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_EXPORT]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS]: Parameters.UpdateManyPolicyConnectionConfigurationsParams;
+    [WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIGURATION]: Parameters.UpdatePolicyConnectionConfigurationParams;
     [WRITE_COMMANDS.REMOVE_POLICY_CONNECTION]: Parameters.RemovePolicyConnectionParams;
     [WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE]: Parameters.UpdatePolicyDistanceRateParams;
     [WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE_VALUE]: Parameters.UpdatePolicyDistanceRateValueParams;
@@ -1137,7 +1178,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_MERGE_GROUPS]: Parameters.UpdateMergeGroupsParams;
     [WRITE_COMMANDS.SYNC_POLICY_TO_MERGE]: Parameters.SyncPolicyToMergeParams;
     [WRITE_COMMANDS.UPDATE_MERGE_ATS_FILTERS]: Parameters.UpdateMergeATSFiltersParams;
-    [WRITE_COMMANDS.UPDATE_MERGE_ATS_APPROVER_FIELD]: Parameters.UpdateMergeATSApproverFieldParams;
     [WRITE_COMMANDS.UPDATE_ZENEFITS_APPROVAL_MODE]: Parameters.UpdateZenefitsApprovalModeParams;
     [WRITE_COMMANDS.UPDATE_ZENEFITS_FINAL_APPROVER]: Parameters.UpdateZenefitsFinalApproverParams;
     [WRITE_COMMANDS.REQUEST_TAX_EXEMPTION]: null;
@@ -1151,10 +1191,12 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS]: Parameters.SaveCorpayOnboardingCompanyDetailsParams;
     [WRITE_COMMANDS.SET_POLICY_PROHIBITED_EXPENSES]: Parameters.SetPolicyProhibitedExpensesParams;
     [WRITE_COMMANDS.SET_POLICY_COMMUTER_EXCLUSIONS]: Parameters.SetPolicyCommuterExclusionsParams;
+    [WRITE_COMMANDS.SET_EMPLOYEE_WORK_ARRANGEMENT]: Parameters.SetEmployeeWorkArrangementParams;
     [WRITE_COMMANDS.DISABLE_POLICY_COMMUTER_EXCLUSIONS]: Parameters.DisablePolicyCommuterExclusionsParams;
     [WRITE_COMMANDS.SET_POLICY_REQUIRE_MAP_OR_GPS]: Parameters.SetPolicyRequireMapOrGPSParams;
     [WRITE_COMMANDS.RETRACT_REPORT]: Parameters.RetractReportParams;
     [WRITE_COMMANDS.FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING]: Parameters.FinishCorpayBankAccountOnboardingParams;
+    [WRITE_COMMANDS.SET_VACATION_DELEGATE]: Parameters.SetVacationDelegateParams;
     [WRITE_COMMANDS.DELETE_VACATION_DELEGATE]: Parameters.DeleteVacationDelegateParams | null;
     [WRITE_COMMANDS.ENABLE_GLOBAL_REIMBURSEMENTS_FOR_USD_BANK_ACCOUNT]: Parameters.EnableGlobalReimbursementsForUSDBankAccountParams;
     [WRITE_COMMANDS.REOPEN_REPORT]: Parameters.ReopenReportParams;
@@ -1183,6 +1225,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_APPROVAL_MODE]: Parameters.UpdateSageIntacctGenericTypeParams<'value', string>;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateSageIntacctGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_REIMBURSEMENT_ACCOUNT_ID]: Parameters.UpdateSageIntacctGenericTypeParams<'vendorID', string>;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_FX_EXPENSE_ACCOUNT]: Parameters.UpdateSageIntacctGenericTypeParams<'settingValue', string>;
 
     // Certinia (FinancialForce) parameters
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_COMPANY]: Parameters.UpdateFinancialForceGenericTypeParams<'companyID', string>;
@@ -1202,6 +1245,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_TAX_NON_BILLABLE]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_FOREIGN_CURRENCY]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
+    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_FX_EXPENSE_ACCOUNT]: Parameters.UpdateFinancialForceGenericTypeParams<'settingValue', string>;
 
     [WRITE_COMMANDS.CONNECT_POLICY_TO_RILLET]: Parameters.ConnectPolicyToRilletParams;
     [WRITE_COMMANDS.SELECT_INTUIT_ENTERPRISE_SUITE_ENTITY]: Parameters.SelectIntuitEnterpriseSuiteEntityParams;
@@ -1250,9 +1294,35 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_FIELD_MAPPING]: Parameters.UpdateBusinessCentralFieldMappingParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_SYNC_TAX_RATES]: Parameters.UpdateBusinessCentralSyncTaxRatesParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_SYNC_ITEMS]: Parameters.UpdateBusinessCentralSyncItemsParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_EXPORTER]: Parameters.UpdateBusinessCentralExporterParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_EXPORT_DATE]: Parameters.UpdateBusinessCentralExportDateParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: Parameters.UpdateBusinessCentralReimbursableExpensesExportDestinationParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_NONREIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: Parameters.UpdateBusinessCentralNonreimbursableExpensesExportDestinationParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_REIMBURSABLE_ACCOUNT]: Parameters.UpdateBusinessCentralReimbursableAccountParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_NONREIMBURSABLE_ACCOUNT]: Parameters.UpdateBusinessCentralNonreimbursableAccountParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_DEFAULT_VENDOR]: Parameters.UpdateBusinessCentralDefaultVendorParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_PAYMENT_METHOD]: Parameters.UpdateBusinessCentralPaymentMethodParams;
 
     [WRITE_COMMANDS.CONNECT_POLICY_TO_CAMPFIRE]: Parameters.ConnectPolicyToCampfireParams;
     [WRITE_COMMANDS.UPDATE_CAMPFIRE_SUBSIDIARY]: Parameters.UpdateCampfireSubsidiaryParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_FIELD_MAPPING]: Parameters.UpdateCampfireFieldMappingParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_ENABLE_NEW_CATEGORIES]: Parameters.UpdateCampfireEnableNewCategoriesParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_SYNC_TAX_RATES]: Parameters.UpdateCampfireSyncTaxRatesParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_EXPORTER]: Parameters.UpdateCampfireExporterParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_EXPORT_DATE]: Parameters.UpdateCampfireExportDateParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_DEFAULT_VENDOR]: Parameters.UpdateCampfireDefaultVendorParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_CREDIT_CARD_ACCOUNT]: Parameters.UpdateCampfireCreditCardAccountParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_EXPORT_TO_MULTIPLE_ACCOUNTS]: Parameters.UpdateCampfireExportToMultipleAccountsParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_CARD_PROGRAM_ACCOUNT]: Parameters.UpdateCampfireCardProgramAccountParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_AUTO_SYNC]: Parameters.UpdateCampfireAutoSyncParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_ACCOUNTING_METHOD]: Parameters.UpdateCampfireAccountingMethodParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateCampfireSyncReimbursedReportsParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_BILL_PAYMENT_ACCOUNT]: Parameters.UpdateCampfireBillPaymentAccountParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_SYNC_EXPENSIFY_CARD_SETTLEMENTS]: Parameters.UpdateCampfireSyncExpensifyCardSettlementsParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_SETTLEMENTS_ACCOUNT]: Parameters.UpdateCampfireSettlementsAccountParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_SYNC_TRAVEL_INVOICING_SETTLEMENTS]: Parameters.UpdateCampfireSyncTravelInvoicingSettlementsParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT]: Parameters.UpdateCampfireTravelInvoicingSettlementsAccountParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_TRAVEL_INVOICING_PAYABLE_ACCOUNT]: Parameters.UpdateCampfireTravelInvoicingPayableAccountParams;
 
     [WRITE_COMMANDS.UPGRADE_TO_CORPORATE]: Parameters.UpgradeToCorporateParams;
     [WRITE_COMMANDS.DOWNGRADE_TO_TEAM]: Parameters.DowngradeToTeamParams;
@@ -1342,7 +1412,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CONFIGURE_EXPENSIFY_CARDS_FOR_POLICY]: Parameters.ConfigureExpensifyCardsForPolicyParams;
     [WRITE_COMMANDS.SET_EXPENSIFY_CARD_RULE]: Parameters.SetExpensifyCardRuleParams;
     [WRITE_COMMANDS.CREATE_EXPENSIFY_CARD]: Omit<Parameters.CreateExpensifyCardParams, 'validFrom' | 'validThru'>;
-    [WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD]: Omit<Parameters.CreateExpensifyCardParams, 'feedCountry'>;
+    [WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD]: Parameters.CreateExpensifyCardParams;
     [WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING]: Parameters.QueueExpensifyCardForBillingParams;
     [WRITE_COMMANDS.ADD_DELEGATE]: Parameters.AddDelegateParams;
     [WRITE_COMMANDS.UPDATE_DELEGATE_ROLE]: Parameters.UpdateDelegateRoleParams;
@@ -1486,6 +1556,7 @@ const READ_COMMANDS = {
     OPEN_SEARCH_CARD_FILTERS_PAGE: 'OpenSearchCardFiltersPage',
     OPEN_SEARCH_CATEGORY_FILTERS_PAGE: 'OpenSearchCategoryFiltersPage',
     SEARCH: 'Search',
+    GET_INSIGHTS: 'GetInsights',
     GET_TRANSACTIONS_CONVERTED_AMOUNT: 'GetTransactionsConvertedAmount',
     GET_OLDER_ACTIONS: 'GetOlderActions',
     GET_NEWER_ACTIONS: 'GetNewerActions',
@@ -1540,6 +1611,8 @@ const READ_COMMANDS = {
     OPEN_DUPLICATE_POLICY_PAGE: 'OpenDuplicatePolicyPage',
     OPEN_POLICY_INITIAL_PAGE: 'OpenPolicyInitialPage',
     OPEN_SUBSCRIPTION_PAGE: 'OpenSubscriptionPage',
+    OPEN_HOME_PAGE: 'OpenHomePage',
+    OPEN_PAYMENT_HISTORY_PAGE: 'OpenPaymentHistoryPage',
     OPEN_SAVE_THE_WORLD_PAGE: 'OpenSaveTheWorldPage',
     OPEN_DRAFT_DISTANCE_EXPENSE: 'OpenDraftDistanceExpense',
     START_ISSUE_NEW_CARD_FLOW: 'StartIssueNewCardFlow',
@@ -1617,6 +1690,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE]: null;
     [READ_COMMANDS.OPEN_SEARCH_PAGE]: Parameters.OpenSearchPageParams;
     [READ_COMMANDS.SEARCH]: Parameters.SearchParams;
+    [READ_COMMANDS.GET_INSIGHTS]: Parameters.GetInsightsParams;
     [READ_COMMANDS.GET_TRANSACTIONS_CONVERTED_AMOUNT]: Parameters.GetTransactionsConvertedAmountParams;
     [READ_COMMANDS.BEGIN_SIGNIN]: Parameters.BeginSignInParams;
     [READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN]: Parameters.SignInWithShortLivedAuthTokenParams;
@@ -1654,6 +1728,8 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_POLICY_INITIAL_PAGE]: Parameters.OpenPolicyInitialPageParams;
     [READ_COMMANDS.OPEN_POLICY_RECEIPT_PARTNERS_PAGE]: Parameters.OpenPolicyReceiptPartnersPageParams;
     [READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE]: null;
+    [READ_COMMANDS.OPEN_HOME_PAGE]: null;
+    [READ_COMMANDS.OPEN_PAYMENT_HISTORY_PAGE]: null;
     [READ_COMMANDS.OPEN_SAVE_THE_WORLD_PAGE]: null;
     [READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE]: null;
     [READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE]: null;
@@ -1701,6 +1777,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     MERGE_INTO_ACCOUNT_AND_LOGIN: 'MergeIntoAccountAndLogIn',
     ADD_WORK_EMAIL: 'AddWorkEmail',
     SEARCH: 'Search',
+    GET_INSIGHTS: 'GetInsights',
     GET_SCIM_TOKEN: 'GetSCIMToken',
 
     LOG_OUT: 'LogOut',
@@ -1726,6 +1803,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     LINK_CARD_FEED_TO_POLICY: 'LinkCardFeedToPolicy',
     REVEAL_CARD_PIN: 'RevealCardPIN',
     CHANGE_CARD_PIN: 'ChangeCardPIN',
+    OPEN_SEARCH_TAG_FILTERS_PAGE: 'OpenSearchTagFiltersPage',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
@@ -1774,6 +1852,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.LINK_CARD_FEED_TO_POLICY]: Parameters.LinkCardToPolicyParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_CARD_PIN]: Parameters.RevealCardPINParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.CHANGE_CARD_PIN]: Parameters.ChangeCardPINParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE]: Parameters.OpenSearchTagFiltersPageParams;
 };
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;

@@ -1,5 +1,6 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import FieldRequirementSettingRow from '@components/RequireFieldsRules/FieldRequirementSettingRow';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -11,6 +12,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -67,6 +69,8 @@ type RequireFieldsRulePageBaseProps = {
 function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName, isCategoryLocked: isCategoryLockedProp, testID}: RequireFieldsRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const policyData = usePolicyData(policyID);
     const {policy} = policyData;
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
@@ -358,11 +362,11 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         }
 
         if (didChangeCategory && originalCategoryName) {
-            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(originalCategoryName));
+            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(originalCategoryName), isVendorMatchingBetaEnabled);
             // Old category is fully removed; clearedFields belonged to that rule, not the new category.
-            saveRequireFieldsRule(policyData, formToSave, touchedFields);
+            saveRequireFieldsRule(policyData, formToSave, isVendorMatchingBetaEnabled, touchedFields);
         } else {
-            saveRequireFieldsRule(policyData, formToSave, touchedFields, clearedFields);
+            saveRequireFieldsRule(policyData, formToSave, isVendorMatchingBetaEnabled, touchedFields, clearedFields);
         }
 
         clearDraftRequireFieldsRule();
@@ -400,10 +404,10 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
     // The rule is the set of field requirements on the category, so it only exists once one of them is on, and the
     // category's own pending state is the rule's: while a delete is in flight, deleting again would repeat the writes.
     const isRuleBeingDeleted = !!category && getRequireFieldsPendingActionForCategory(category) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const {deleteHeaderProps} = useRuleDeleteHeaderProps({
+    const {deleteIconButtonProps} = useRuleDeleteHeaderProps({
         canDelete: canWriteRules && isEditing && !!category && categoryHasAnyRequireFieldsRule(category) && !isRuleBeingDeleted,
         onDelete: () => {
-            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(categoryName ?? ''));
+            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(categoryName ?? ''), isVendorMatchingBetaEnabled);
             return true;
         },
         sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_DELETE,
@@ -445,10 +449,9 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.rules.requireFieldsRule.title')}
-                    {...deleteHeaderProps}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.requireFieldsRule.title')}>
+                    {!!deleteIconButtonProps && <Header.IconButton {...deleteIconButtonProps} />}
+                </HeaderWithBackButtonAndTitle>
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.ph5, styles.pv3, styles.gap6]}>
                         <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.requireFieldsRule.subtitle')}</Text>
