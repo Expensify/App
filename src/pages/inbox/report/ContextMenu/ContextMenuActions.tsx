@@ -1015,7 +1015,11 @@ const ContextMenuActions: ContextMenuAction[] = [
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: 'Checkmark',
         shouldShow: ({type, reportAction}) =>
-            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isReportActionAttachment(reportAction) && !isMessageDeleted(reportAction) && !isTripPreview(reportAction),
+            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
+            !isReportActionAttachment(reportAction) &&
+            !isMessageDeleted(reportAction) &&
+            !isTripPreview(reportAction) &&
+            !isCreatedSupportTicketReportAction(reportAction),
 
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fall back to

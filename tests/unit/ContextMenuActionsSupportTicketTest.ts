@@ -21,8 +21,9 @@ const quickEmojiAction = ContextMenuActions.at(0);
 const replyInThreadAction = ContextMenuActions.find((action) => 'sentryLabel' in action && action.sentryLabel === CONST.SENTRY_LABEL.CONTEXT_MENU.REPLY_IN_THREAD);
 const joinThreadAction = ContextMenuActions.find((action) => 'sentryLabel' in action && action.sentryLabel === CONST.SENTRY_LABEL.CONTEXT_MENU.JOIN_THREAD);
 const leaveThreadAction = ContextMenuActions.find((action) => 'sentryLabel' in action && action.sentryLabel === CONST.SENTRY_LABEL.CONTEXT_MENU.LEAVE_THREAD);
+const copyMessageAction = ContextMenuActions.find((action) => 'sentryLabel' in action && action.sentryLabel === CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_MESSAGE);
 
-if (!quickEmojiAction || !replyInThreadAction || !joinThreadAction || !leaveThreadAction) {
+if (!quickEmojiAction || !replyInThreadAction || !joinThreadAction || !leaveThreadAction || !copyMessageAction) {
     throw new Error('Support ticket context menu actions were not found');
 }
 
@@ -43,6 +44,22 @@ const getSupportTicketArgs = (): ShouldShowArgs =>
         },
         isThreadReportParentAction: false,
         isArchivedRoom: false,
+    });
+
+const getSupportTicketParentActionArgs = (): ShouldShowArgs =>
+    createMock<ShouldShowArgs>({
+        type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
+        reportID: 'conciergeReportID',
+        report: {
+            reportID: 'conciergeReportID',
+            type: CONST.REPORT.TYPE.CHAT,
+        },
+        reportAction: {
+            reportActionID: 'supportTicketPreviewID',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            childType: CONST.REPORT.TYPE.SUPPORT_TICKET,
+            message: [{type: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, html: '', text: ''}],
+        },
     });
 
 describe('ContextMenuActions support tickets', () => {
@@ -88,5 +105,27 @@ describe('ContextMenuActions support tickets', () => {
 
         // Then leaving a thread is unavailable
         expect(shouldShowLeaveThread).toBe(false);
+    });
+
+    it('hides Copy message for support ticket parent actions', () => {
+        // Given the support ticket preview action in the Concierge report
+        const args = getSupportTicketParentActionArgs();
+
+        // When the context menu is built
+        const shouldShowCopyMessage = copyMessageAction.shouldShow(args);
+
+        // Then its message cannot be copied
+        expect(shouldShowCopyMessage).toBe(false);
+    });
+
+    it('keeps Copy message for normal report actions', () => {
+        // Given a regular report action
+        const args = getSupportTicketArgs();
+
+        // When the context menu is built
+        const shouldShowCopyMessage = copyMessageAction.shouldShow(args);
+
+        // Then its message can still be copied
+        expect(shouldShowCopyMessage).toBe(true);
     });
 });
