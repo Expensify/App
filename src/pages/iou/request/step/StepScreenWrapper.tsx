@@ -1,5 +1,6 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Header from '@components/Header';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {ScreenWrapperChildrenProps} from '@components/ScreenWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -15,6 +16,10 @@ import type {ReactNode} from 'react';
 
 import React from 'react';
 import {View} from 'react-native';
+
+type StepScreenWrapperMenuItem = Pick<PopoverMenuItem, 'text' | 'onSelected' | 'sentryLabel' | 'shouldCallAfterModalHide'> & {
+    icon: IconAsset;
+};
 
 type StepScreenWrapperProps = {
     /** The title to show in the header (should be translated already) */
@@ -42,7 +47,7 @@ type StepScreenWrapperProps = {
     shouldEnableKeyboardAvoidingView?: boolean;
 
     /** Menu items to display in the header three-dots / action button */
-    threeDotsMenuItems?: PopoverMenuItem[];
+    threeDotsMenuItems?: StepScreenWrapperMenuItem[];
 
     /** When true and there is a single menu item, renders it as a direct icon button instead of a three-dots menu */
     shouldMinimizeMenuButton?: boolean;
@@ -68,6 +73,8 @@ function StepScreenWrapper({
         return <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>{children as ReactNode}</FullPageNotFoundView>;
     }
 
+    const singleThreeDotsMenuItem = threeDotsMenuItems?.length === 1 && shouldMinimizeMenuButton ? threeDotsMenuItems.at(0) : undefined;
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
@@ -80,25 +87,21 @@ function StepScreenWrapper({
             {({insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd}) => (
                 <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
                     <View style={[styles.flex1]}>
-                        <Header>
-                            <Header.BackButton onPress={onBackButtonPress} />
-                            <Header.Title title={headerTitle} />
-                            {!!threeDotsMenuItems?.length && (
-                                <Header.Right>
-                                    {threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton ? (
-                                        <Header.IconButton
-                                            tooltipText={threeDotsMenuItems.at(0)?.text ?? ''}
-                                            onPress={threeDotsMenuItems.at(0)?.onSelected}
-                                            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- callers of this minimize path always pass a real icon component, never a string/avatar source
-                                            iconSrc={threeDotsMenuItems.at(0)?.icon as IconAsset}
-                                            sentryLabel={threeDotsMenuItems.at(0)?.sentryLabel}
-                                        />
-                                    ) : (
-                                        <Header.ThreeDotsMenu items={threeDotsMenuItems} />
-                                    )}
-                                </Header.Right>
+                        <HeaderWithBackButtonAndTitle
+                            title={headerTitle}
+                            onBackButtonPress={onBackButtonPress}
+                        >
+                            {singleThreeDotsMenuItem ? (
+                                <Header.IconButton
+                                    tooltipText={singleThreeDotsMenuItem.text ?? ''}
+                                    onPress={singleThreeDotsMenuItem.onSelected}
+                                    iconSrc={singleThreeDotsMenuItem.icon}
+                                    sentryLabel={singleThreeDotsMenuItem.sentryLabel}
+                                />
+                            ) : (
+                                !!threeDotsMenuItems?.length && <Header.ThreeDotsMenu items={threeDotsMenuItems} />
                             )}
-                        </Header>
+                        </HeaderWithBackButtonAndTitle>{' '}
                         {
                             // If props.children is a function, call it to provide the insets to the children
                             callOrReturn(children, {insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd})
