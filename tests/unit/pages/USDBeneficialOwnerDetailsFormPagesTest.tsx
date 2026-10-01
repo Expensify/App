@@ -12,7 +12,7 @@ import BeneficialOwnerDetailsFormPages from '@pages/ReimbursementAccount/USD/Ben
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import type {ReactElement} from 'react';
+import React from 'react';
 
 jest.mock('@components/FullscreenLoadingIndicator', () => jest.fn(() => null));
 jest.mock('@components/InteractiveStepWrapper', () => jest.fn(() => null));
@@ -70,7 +70,10 @@ describe('USD BeneficialOwnerDetailsFormPages', () => {
         if (!wrapperProps) {
             throw new Error('Expected the beneficial-owner form wrapper to render');
         }
-        const currentPage = wrapperProps.children as ReactElement<{onNext: typeof mockSubmitEdit; onMove: typeof mockMoveToEditPage}>;
+        if (!React.isValidElement<{onNext: typeof mockSubmitEdit; onMove: typeof mockMoveToEditPage}>(wrapperProps.children)) {
+            throw new Error('Expected the beneficial-owner current page to render');
+        }
+        const currentPage = wrapperProps.children;
 
         // When the edit page is rendered and Back is pressed without confirming
         act(() => wrapperProps.handleBackButtonPress());

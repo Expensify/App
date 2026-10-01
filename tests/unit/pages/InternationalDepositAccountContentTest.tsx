@@ -326,7 +326,7 @@ describe('InternationalDepositAccountContent Wallet resume page', () => {
                     onNext,
                     onMove,
                     formValues: {bankCountry: 'DE', bankCurrency: 'EUR', accountNumber: '12345678'},
-                    fieldsMap: {[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_ACCOUNT_DETAILS]: {accountNumber: {}}},
+                    fieldsMap: {[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS]: {accountNumber: {}}},
                 })}
             />,
         );

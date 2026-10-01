@@ -1,7 +1,7 @@
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
@@ -104,10 +104,10 @@ function InternationalDepositAccount({route}: InternationalDepositAccountProps) 
                 shouldShowOfflineIndicatorInWideScreen
                 testID="InternationalDepositAccountLoading"
             >
-                <HeaderWithBackButton
-                    title={translate('bankAccount.addBankAccount')}
-                    onBackButtonPress={handleLoadingBackButtonPress}
-                />
+                <Header>
+                    <Header.BackButton onPress={handleLoadingBackButtonPress} />
+                    <Header.Title title={translate('bankAccount.addBankAccount')} />
+                </Header>
                 <FullPageOfflineBlockingView>
                     {hasResumeFieldsError ? (
                         <FullPageErrorView

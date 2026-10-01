@@ -166,13 +166,12 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
     // picked earlier in the flow
     const getSubPageForNavigation = useCallback(
         (page: PageEntry | undefined, fallbackSubPage: string | undefined) => {
-            const bankInfoSubStep = reimbursementAccount?.achData?.subStep;
             if (page?.pageName === PAGE_NAMES.BANK_ACCOUNT && bankInfoSubStep) {
                 return bankInfoSubStep;
             }
             return fallbackSubPage;
         },
-        [reimbursementAccount?.achData?.subStep],
+        [bankInfoSubStep],
     );
 
     const onSubmit = useCallback(() => {
@@ -214,6 +213,7 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
         const prevPage = pages.at(prevIndex);
         Navigation.goBack(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: prevPage?.pageName, subPage: getSubPageForNavigation(prevPage, prevPage?.lastSubPage), backTo}));
     }, [
+        backTo,
         currentEntry?.pageName,
         currentPageIndex,
         policyID,

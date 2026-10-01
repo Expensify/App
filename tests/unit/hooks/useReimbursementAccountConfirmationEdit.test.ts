@@ -5,6 +5,7 @@ import useReimbursementAccountConfirmationEdit from '@hooks/useReimbursementAcco
 import {cancelReimbursementAccountEdit, finishReimbursementAccountEdit, startReimbursementAccountEdit} from '@userActions/ReimbursementAccount';
 
 import type {ReimbursementAccountForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 import createMock from '../../utils/createMock';
 
@@ -51,7 +52,7 @@ describe('useReimbursementAccountConfirmationEdit', () => {
         const {result} = renderHook(() =>
             useReimbursementAccountConfirmationEdit({
                 isEditing: true,
-                reimbursementAccountDraft: createMock<ReimbursementAccountForm>({signer_nationality: 'GB'}),
+                reimbursementAccountDraft: createMock<ReimbursementAccountForm>({[INPUT_IDS.SIGNER_INFO_STEP.SIGNER_COUNTRY]: 'GB'}),
                 nextPage: jest.fn(),
                 moveTo,
             }),
@@ -72,7 +73,7 @@ describe('useReimbursementAccountConfirmationEdit', () => {
         const {result} = renderHook(() =>
             useReimbursementAccountConfirmationEdit({
                 isEditing: false,
-                reimbursementAccountDraft: createMock<ReimbursementAccountForm>({signer_nationality: 'GB'}),
+                reimbursementAccountDraft: createMock<ReimbursementAccountForm>({[INPUT_IDS.SIGNER_INFO_STEP.SIGNER_COUNTRY]: 'GB'}),
                 nextPage: jest.fn(),
                 moveTo,
             }),

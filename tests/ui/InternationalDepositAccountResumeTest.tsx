@@ -3,7 +3,7 @@ import {act, render} from '@testing-library/react-native';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 
 import useOnyx from '@hooks/useOnyx';
 
@@ -26,7 +26,13 @@ import createMock from '../utils/createMock';
 jest.mock('@components/BlockingViews/FullPageErrorView', () => jest.fn(() => null));
 jest.mock('@components/BlockingViews/FullPageOfflineBlockingView', () => jest.fn(({children}: {children: ReactNode}) => children));
 jest.mock('@components/FullscreenLoadingIndicator', () => jest.fn(() => null));
-jest.mock('@components/HeaderWithBackButton', () => jest.fn(() => null));
+jest.mock('@components/Header', () => {
+    const mockHeader = jest.fn(({children}: {children: ReactNode}) => children);
+    return Object.assign(mockHeader, {
+        BackButton: jest.fn(() => null),
+        Title: jest.fn(() => null),
+    });
+});
 jest.mock(
     '@components/ScreenWrapper',
     () =>
@@ -56,7 +62,8 @@ describe('InternationalDepositAccount resume fields', () => {
     const mockedFullPageErrorView = jest.mocked(FullPageErrorView);
     const mockedFullPageOfflineBlockingView = jest.mocked(FullPageOfflineBlockingView);
     const mockedFullScreenLoadingIndicator = jest.mocked(FullScreenLoadingIndicator);
-    const mockedHeaderWithBackButton = jest.mocked(HeaderWithBackButton);
+    const mockedHeader = jest.mocked(Header);
+    const mockedHeaderBackButton = jest.mocked(Header.BackButton);
     const mockedUseOnyx = jest.mocked(useOnyx);
     const mockedInternationalDepositAccountContent = jest.mocked(InternationalDepositAccountContent);
     const mockedClearCorpayBankAccountFields = jest.mocked(clearCorpayBankAccountFields);
@@ -105,7 +112,7 @@ describe('InternationalDepositAccount resume fields', () => {
         expect(mockedFetchCorpayFields).toHaveBeenCalledWith('DE', 'EUR', false, false, {preserveExistingDraft: true});
 
         // Then a navigable, offline-aware loading state is shown without mounting the form
-        expect(mockedHeaderWithBackButton).toHaveBeenCalled();
+        expect(mockedHeader).toHaveBeenCalled();
         expect(mockedFullPageOfflineBlockingView).toHaveBeenCalled();
         expect(mockedFullScreenLoadingIndicator).toHaveBeenCalled();
         expect(mockedInternationalDepositAccountContent).not.toHaveBeenCalled();
@@ -126,7 +133,7 @@ describe('InternationalDepositAccount resume fields', () => {
         render(<InternationalDepositAccount {...componentProps} />);
 
         // Then the user can go back or retry, and mismatched fields never reach the form
-        expect(mockedHeaderWithBackButton).toHaveBeenCalled();
+        expect(mockedHeader).toHaveBeenCalled();
         expect(mockedFullPageOfflineBlockingView).toHaveBeenCalled();
         expect(mockedFullPageErrorView).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -151,7 +158,7 @@ describe('InternationalDepositAccount resume fields', () => {
         render(<InternationalDepositAccount {...componentProps} />);
 
         // When the user presses Back instead of retrying
-        act(() => mockedHeaderWithBackButton.mock.lastCall?.[0].onBackButtonPress?.());
+        act(() => mockedHeaderBackButton.mock.lastCall?.[0].onPress?.());
 
         // Then reopening can start fresh rather than returning to the same permanent error
         expect(mockedClearDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);

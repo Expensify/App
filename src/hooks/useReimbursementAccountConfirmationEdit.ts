@@ -1,10 +1,10 @@
-import type {SubPageProps} from '@hooks/useSubPage/types';
-
 import {cancelReimbursementAccountEdit, finishReimbursementAccountEdit, startReimbursementAccountEdit} from '@userActions/ReimbursementAccount';
 
 import type {ReimbursementAccountForm} from '@src/types/form';
 
 import type {OnyxEntry} from 'react-native-onyx';
+
+import type {SubPageProps} from './useSubPage/types';
 
 type UseReimbursementAccountConfirmationEditParams = {
     isEditing: boolean;
