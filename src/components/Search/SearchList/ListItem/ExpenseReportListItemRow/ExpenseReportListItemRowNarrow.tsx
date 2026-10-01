@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
+import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 
 import CONST from '@src/CONST';
 
@@ -26,7 +27,7 @@ function ExpenseReportListItemRowNarrow({item, onCheckboxPress = () => {}, canSe
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3, styles.cursorPointer]}>
             {!!canSelectMultiple && (
                 <Checkbox
-                    onPress={onCheckboxPress}
+                    onPress={(event) => onCheckboxPress(getShiftKeyFromEvent(event))}
                     isChecked={isSelectAllChecked}
                     isIndeterminate={isIndeterminate}
                     containerStyle={styles.m0}

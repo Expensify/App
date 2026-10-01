@@ -19,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
+import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 
 import variables from '@styles/variables';
 
@@ -310,7 +311,7 @@ function ExpenseReportListItemRowWide({
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                 {!!canSelectMultiple && (
                     <Checkbox
-                        onPress={onCheckboxPress}
+                        onPress={(event) => onCheckboxPress(getShiftKeyFromEvent(event))}
                         isChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
                         containerStyle={styles.m0}
