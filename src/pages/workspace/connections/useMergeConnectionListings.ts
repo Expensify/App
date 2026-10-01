@@ -1,6 +1,7 @@
 /**
  * Builds the People listings (HR and, behind the Merge ATS beta, recruiting providers) for the Connections page.
  */
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -9,17 +10,14 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 
+import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
 
 import {getHRCards} from '@pages/workspace/hr/utils';
 import type {MergeProviderCardCategory, MergeProviderCardDescriptor} from '@pages/workspace/merge/types';
 import {getRecruitingCards} from '@pages/workspace/recruiting/utils';
-
-import variables from '@styles/variables';
 
 import {enablePolicyHR, enablePolicyRecruiting} from '@userActions/Policy/Policy';
 
@@ -57,8 +55,6 @@ function useMergeConnectionListings(policy: OnyxEntry<Policy>, onStartSetup: (se
     const {translate, getLocalDateFromDatetime, datetimeToRelative, formatPhoneNumber} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
-    const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const {canWrite, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'TriNetSquare', 'Download']);
@@ -96,22 +92,33 @@ function useMergeConnectionListings(policy: OnyxEntry<Policy>, onStartSetup: (se
             return;
         }
 
+        const {setupLink} = card;
+        const startSetup = () => {
+            if (!policy?.[config.featureName]) {
+                config.enableFeature(policyID, true, false);
+            }
+            onStartSetup(setupLink, card.category);
+        };
+
         // At most one provider of a category can be connected to a workspace at a time
-        if (categoryCards.some((categoryCard) => categoryCard.isConnected)) {
-            showConfirmModal({
-                title: translate(`workspace.${card.category}.alreadyConnectedTitle`),
-                prompt: translate(`workspace.${card.category}.alreadyConnectedPrompt`),
-                confirmText: translate('common.buttonConfirm'),
-                shouldShowCancelButton: false,
-                innerContainerStyle: shouldUseNarrowLayout ? undefined : StyleUtils.getWidthStyle(variables.wideConfirmModalWidth),
-            });
+        const connectedCard = categoryCards.find((categoryCard) => categoryCard.isConnected);
+        if (!connectedCard) {
+            startSetup();
             return;
         }
-
-        if (!policy?.[config.featureName]) {
-            config.enableFeature(policyID, true, false);
-        }
-        onStartSetup(card.setupLink, card.category);
+        showConfirmModal({
+            title: translate('workspace.connections.replaceConnectionTitle'),
+            prompt: translate('workspace.connections.replaceConnectionPrompt', connectedCard.displayName),
+            confirmText: translate('common.replace'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+            removePolicyConnection(policy, connectedCard.connectionName);
+            startSetup();
+        });
     };
 
     const getConnectedStatus = (card: MergeProviderCardDescriptor): ConnectionStatus => {

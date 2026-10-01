@@ -5058,6 +5058,8 @@ const translations = {
             active: 'Active',
             broken: 'Broken',
             brokenConnection: 'Cannot sync due to broken connection',
+            replaceConnectionTitle: 'Replace connection?',
+            replaceConnectionPrompt: (connectionName: string) => `This will remove your current ${connectionName} connection.`,
             hrisListing: (providerName: string) => `${providerName} (HRIS)`,
             atsListing: (providerName: string) => `${providerName} (ATS)`,
             suggestIntegration: "Don't see yours? Suggest an integration, we'll look into it.",
@@ -7572,8 +7574,6 @@ const translations = {
             disconnect: 'Disconnect',
             reinstall: 'Reinstall connector',
             disconnectTitle: (connectionName = 'integration') => `Disconnect ${connectionName}`,
-            alreadyConnectedTitle: 'You already got an active accounting integration',
-            replaceIntegration: 'Replace integration',
 
             syncError: (connectionName: string) => `Can't connect to ${connectionName}`,
             accounts: 'Chart of accounts',
@@ -7591,7 +7591,6 @@ const translations = {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'NetSuite employee default',
             },
             disconnectPrompt: (connectionName = 'this integration') => `Are you sure you want to disconnect ${connectionName}?`,
-            connectPrompt: (connectionName: string) => `Are you sure you want to connect ${connectionName}? This will remove any existing accounting connections.`,
             reconnect: 'Reconnect',
             enterCredentials: 'Enter your credentials',
             updateCredentials: 'Update credentials',
@@ -7843,8 +7842,6 @@ const translations = {
         },
         hr: {
             title: 'HR',
-            alreadyConnectedTitle: 'Cannot connect to multiple HR platforms',
-            alreadyConnectedPrompt: 'You must disconnect your current HR platform before connecting another.',
             connectionDescription: (providerName: string) => `Connect ${providerName} to keep employee approvals in sync with your workspace.`,
             providerApprovalMode: (providerName: string) => `${providerName} approval mode`,
             providerFinalApprover: (providerName: string) => `${providerName} final approver`,
@@ -7899,8 +7896,6 @@ const translations = {
         },
         recruiting: {
             title: 'Recruiting',
-            alreadyConnectedTitle: 'Cannot connect to multiple ATS platforms',
-            alreadyConnectedPrompt: 'You must disconnect your current ATS before connecting another.',
             syncing: 'Syncing candidates',
             syncResults: {
                 importedCount: () => ({

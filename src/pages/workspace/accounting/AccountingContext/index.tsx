@@ -7,6 +7,7 @@ import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConn
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 
+import {getAccountingIntegrationDisplayName} from '@libs/AccountingUtils';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
@@ -119,7 +120,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 return;
             }
 
-            if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias)) {
+            if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias, ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))) {
                 return;
             }
 
@@ -169,10 +170,6 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
 
             // Mirrors `shouldShowConfirmationModal` below, which keeps `renderActiveIntegration()` from mounting the
             // setup flow until the user has decided what to do with the connection that has to be disconnected first.
-            const connectionName = newActiveIntegration.isIntuitEnterpriseSuite
-                ? translate('workspace.accounting.intuitEnterpriseSuite')
-                : (CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[newActiveIntegration.name] ?? newActiveIntegration.name);
-
             isDisconnectConfirmationPendingRef.current = true;
 
             showConfirmModal({
@@ -180,9 +177,9 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 // `WorkspaceConnectionsPage` re-fires whenever `startIntegrationFlow` is re-created). A stable id keeps the
                 // repeat call updating this prompt in place instead of stacking a second copy behind it.
                 id: ACCOUNTING_CONNECTION_CONFIRMATION_MODAL_ID,
-                title: translate('workspace.accounting.alreadyConnectedTitle'),
-                prompt: translate('workspace.accounting.connectPrompt', connectionName),
-                confirmText: translate('workspace.accounting.replaceIntegration'),
+                title: translate('workspace.connections.replaceConnectionTitle'),
+                prompt: translate('workspace.connections.replaceConnectionPrompt', getAccountingIntegrationDisplayName(policy, integrationToDisconnect, translate)),
+                confirmText: translate('common.replace'),
                 cancelText: translate('common.cancel'),
                 buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             }).then((result) => {

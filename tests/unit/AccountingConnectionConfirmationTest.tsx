@@ -13,6 +13,7 @@ import Onyx from 'react-native-onyx';
 import type * as MockUseConfirmModalUtil from '../utils/mockUseConfirmModal';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 import {getShowConfirmModalOption, MockModalActions, mockShowConfirmModal, resetMockConfirmModal, resolveShowConfirmModal} from '../utils/mockUseConfirmModal';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -96,10 +97,10 @@ const TestHarness = React.forwardRef<StartFlowHandle>((_props, ref) => {
     return null;
 });
 
-function renderProvider() {
+function renderProvider(providerPolicy: Policy = policy) {
     const ref = React.createRef<StartFlowHandle>();
     render(
-        <AccountingContextProvider policy={policy}>
+        <AccountingContextProvider policy={providerPolicy}>
             <TestHarness ref={ref} />
         </AccountingContextProvider>,
     );
@@ -153,9 +154,9 @@ describe('AccountingContextProvider connect-confirmation prompt', () => {
 
         // Then the user is asked first, and the setup flow stays unmounted so it cannot start behind the prompt
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-        expect(getShowConfirmModalOption('title')).toBe('workspace.accounting.alreadyConnectedTitle');
-        expect(getShowConfirmModalOption('prompt')).toBe(`workspace.accounting.connectPrompt:${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksOnline}`);
-        expect(getShowConfirmModalOption('confirmText')).toBe('workspace.accounting.replaceIntegration');
+        expect(getShowConfirmModalOption('title')).toBe('workspace.connections.replaceConnectionTitle');
+        expect(getShowConfirmModalOption('prompt')).toBe(`workspace.connections.replaceConnectionPrompt:${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero}`);
+        expect(getShowConfirmModalOption('confirmText')).toBe('common.replace');
         expect(getShowConfirmModalOption('cancelText')).toBe('common.cancel');
         expect(getShowConfirmModalOption('buttonVariant')).toBe(CONST.BUTTON_VARIANT.DANGER);
         expect(screen.queryByTestId(SETUP_FLOW_TEST_ID)).not.toBeOnTheScreen();
@@ -188,23 +189,25 @@ describe('AccountingContextProvider connect-confirmation prompt', () => {
         expect(screen.getByTestId(SETUP_FLOW_TEST_ID)).toBeOnTheScreen();
     });
 
-    it('should use the Intuit Enterprise Suite display name when the integration is one', async () => {
-        // Given a workspace with an integration connected
-        const ref = renderProvider();
+    it('should name the connected Intuit Enterprise Suite when that is the connection being replaced', async () => {
+        // Given a workspace whose QuickBooks Online connection is the Intuit Enterprise Suite variant
+        const ref = renderProvider({
+            ...policy,
+            connections: createMock<Policy['connections']>({quickbooksOnline: {config: {credentials: {scope: CONST.POLICY.CONNECTIONS.INTUIT_ENTERPRISE_SUITE_SCOPE}}}}),
+        });
 
-        // When the flow being started is the Intuit Enterprise Suite variant, which shares QBO's connection name
+        // When a different integration is started, which means replacing that connection
         await act(async () => {
             ref.current?.startIntegrationFlow({
-                name: CONST.POLICY.CONNECTIONS.NAME.QBO,
-                isIntuitEnterpriseSuite: true,
+                name: CONST.POLICY.CONNECTIONS.NAME.XERO,
                 shouldDisconnectIntegrationBeforeConnecting: true,
-                integrationToDisconnect: CONST.POLICY.CONNECTIONS.NAME.XERO,
+                integrationToDisconnect: CONST.POLICY.CONNECTIONS.NAME.QBO,
             });
             await waitForBatchedUpdates();
         });
 
-        // Then the prompt names the suite rather than QuickBooks Online, so the user recognises what they bought
-        expect(getShowConfirmModalOption('prompt')).toBe('workspace.accounting.connectPrompt:workspace.accounting.intuitEnterpriseSuite');
+        // Then the prompt names the suite rather than QuickBooks Online, so the user recognises what they would lose
+        expect(getShowConfirmModalOption('prompt')).toBe('workspace.connections.replaceConnectionPrompt:workspace.accounting.intuitEnterpriseSuite');
     });
 
     it('should disconnect the old connection and release the setup flow on confirm', async () => {
