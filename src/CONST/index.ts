@@ -9544,6 +9544,11 @@ const CONST = {
             VIEW_ASSIGNEE: 'Task-ViewAssignee',
             HEADER_ACTION_BUTTON: 'Task-HeaderActionButton',
         },
+        SUPPORT_TICKET: {
+            PREVIEW_CARD: 'SupportTicket-PreviewCard',
+            PREVIEW_CHECKBOX: 'SupportTicket-PreviewCheckbox',
+            VIEW_CHECKBOX: 'SupportTicket-ViewCheckbox',
+        },
         ACCOUNT: {
             PROFILE: 'Account-Profile',
             WALLET: 'Account-Wallet',

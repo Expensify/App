@@ -9649,8 +9649,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
     },
     supportTicket: {
         title: ({date, customer, supportRep}) => `Support-Ticket, ${date}: ${customer} und ${supportRep}`,
-        description:
-            'Dies ist eine Unterhaltung mit einem menschlichen Support-Mitarbeiter. Antworten können länger dauern als bei Concierge. Bitte fasse zusammen, wobei du Hilfe benötigst.',
+        description: ({supportRep}) =>
+            `Hallo, ich bin ${supportRep} und begleite dich, bis das vollständig gelöst ist. Wenn du uns bereits Details mitgeteilt hast, prüfe ich sie vor meiner Antwort, damit du dich nicht wiederholen musst. Wenn dies ein neues Problem ist, lass mich wissen, wobei du Hilfe brauchst.`,
         checkboxTooltip: 'Dein Support-Mitarbeiter markiert dies als erledigt.',
         genericCreateSupportTicketFailureMessage: 'Dieses Support-Ticket konnte nicht erstellt werden. Bitte schließe diesen Fehler und versuche es erneut.',
         fallbackTitle: 'Support-Ticket',

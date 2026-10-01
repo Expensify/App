@@ -9581,7 +9581,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
     },
     supportTicket: {
         title: ({date, customer, supportRep}) => `Zgłoszenie do pomocy technicznej, ${date}: ${customer} i ${supportRep}`,
-        description: 'To rozmowa z pracownikiem pomocy technicznej. Odpowiedzi mogą trwać dłużej niż w Concierge, więc podsumuj, jakiej pomocy potrzebujesz.',
+        description: ({supportRep}) =>
+            `Cześć, jestem ${supportRep} i będę z Tobą pracować, aż sprawa zostanie w pełni rozwiązana. Jeśli już przekazano nam szczegóły, przejrzę je przed odpowiedzią, aby nie trzeba było ich powtarzać. Jeśli to nowy problem, daj mi znać, w czym potrzebujesz pomocy.`,
         checkboxTooltip: 'Pracownik pomocy technicznej zaznaczy to po rozwiązaniu sprawy.',
         genericCreateSupportTicketFailureMessage: 'Nie udało się utworzyć tego zgłoszenia. Zamknij ten błąd i spróbuj ponownie.',
         fallbackTitle: 'Zgłoszenie do pomocy technicznej',

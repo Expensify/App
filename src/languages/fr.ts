@@ -9675,7 +9675,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     },
     supportTicket: {
         title: ({date, customer, supportRep}) => `Ticket d’assistance, ${date} : ${customer} et ${supportRep}`,
-        description: 'Cette conversation est avec un représentant de l’assistance. Les réponses peuvent prendre plus de temps que Concierge, alors résumez ce dont vous avez besoin.',
+        description: ({supportRep}) =>
+            `Bonjour, je suis ${supportRep} et je travaillerai avec vous jusqu’à ce que tout soit entièrement résolu. Si vous nous avez déjà transmis des détails, je les examinerai avant de répondre afin que vous n’ayez pas à vous répéter. S’il s’agit d’un nouveau problème, dites-moi ce pour quoi vous avez besoin d’aide.`,
         checkboxTooltip: 'Votre représentant de l’assistance cochera cette case lorsque le ticket sera résolu.',
         genericCreateSupportTicketFailureMessage: 'Nous n’avons pas pu créer ce ticket d’assistance. Fermez cette erreur et réessayez.',
         fallbackTitle: 'Ticket d’assistance',

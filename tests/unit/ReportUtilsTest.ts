@@ -60,6 +60,7 @@ import {
     canAddTransaction,
     canBeAutoReimbursed,
     canCreateRequest,
+    canCreateTaskInReport,
     canDeleteMoneyRequestReport,
     canDeleteReportAction,
     canDeleteTransaction,
@@ -26269,9 +26270,11 @@ describe('support tickets', () => {
     };
 
     it('identifies support tickets and their resolved state', () => {
+        // Given an open support ticket
         expect(isSupportTicket(openSupportTicket)).toBe(true);
         expect(isResolvedSupportTicket(openSupportTicket)).toBe(false);
 
+        // When the support ticket is resolved
         expect(
             isResolvedSupportTicket({
                 ...openSupportTicket,
@@ -26282,6 +26285,7 @@ describe('support tickets', () => {
     });
 
     it('uses the parent preview when the ticket is not loaded', () => {
+        // Given a support ticket that has not loaded yet
         expect(
             isResolvedSupportTicket(null, {
                 ...createRandomReportAction(1),
@@ -26290,6 +26294,13 @@ describe('support tickets', () => {
                 childStatusNum: CONST.REPORT.STATUS_NUM.CLOSED,
             }),
         ).toBe(true);
+    });
+
+    it('does not allow task creation in support tickets', () => {
+        // Given an open support ticket
+        // When task availability is checked
+        // Then task creation is unavailable
+        expect(canCreateTaskInReport(openSupportTicket)).toBe(false);
     });
 });
 

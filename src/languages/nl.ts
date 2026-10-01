@@ -9571,7 +9571,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     },
     supportTicket: {
         title: ({date, customer, supportRep}) => `Supportticket, ${date}: ${customer} en ${supportRep}`,
-        description: 'Dit is een gesprek met een menselijke supportmedewerker. Antwoorden kunnen langer duren dan bij Concierge, dus vat samen waarmee je hulp nodig hebt.',
+        description: ({supportRep}) =>
+            `Hoi, ik ben ${supportRep} en ik werk met je samen totdat dit volledig is opgelost. Als je al details met ons hebt gedeeld, bekijk ik die voordat ik reageer zodat je jezelf niet hoeft te herhalen. Als dit een nieuw probleem is, laat me dan weten waarmee je hulp nodig hebt.`,
         checkboxTooltip: 'Je supportmedewerker vinkt dit aan wanneer het is opgelost.',
         genericCreateSupportTicketFailureMessage: 'We konden dit supportticket niet maken. Sluit deze foutmelding en probeer het opnieuw.',
         fallbackTitle: 'Supportticket',

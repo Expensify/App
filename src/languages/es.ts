@@ -9476,7 +9476,8 @@ ${reportName}`,
     },
     supportTicket: {
         title: ({date, customer, supportRep}) => `Ticket de soporte, ${date}: ${customer} y ${supportRep}`,
-        description: 'Esta es una conversación con un representante de soporte humano. Las respuestas pueden tardar más que Concierge, así que resume lo que necesitas.',
+        description: ({supportRep}) =>
+            `Hola, soy ${supportRep} y trabajaré contigo hasta que esto se resuelva por completo. Si ya compartiste detalles con nosotros, los revisaré antes de responder para que no tengas que repetirlos. Si se trata de un problema nuevo, cuéntame con qué necesitas ayuda.`,
         checkboxTooltip: 'Tu representante de soporte marcará esto cuando se resuelva.',
         genericCreateSupportTicketFailureMessage: 'No pudimos crear este ticket de soporte. Descarta este error e inténtalo de nuevo.',
         fallbackTitle: 'Ticket de soporte',

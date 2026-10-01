@@ -9210,7 +9210,8 @@ ${reportName}`,
     },
     supportTicket: {
         title: ({date, customer, supportRep}) => `支持工单，${date}: ${customer} 和 ${supportRep}`,
-        description: '这是与人工支持代表的对话。回复可能比 Concierge 更慢，请概括您需要的帮助。',
+        description: ({supportRep}) =>
+            `您好，我是${supportRep}，我会与您一起处理此问题，直到完全解决。如果您已经向我们提供了详细信息，我会在回复前先查看，因此您无需重复说明。如果这是一个新问题，请告诉我您需要什么帮助。`,
         checkboxTooltip: '问题解决后，您的支持代表会勾选此项。',
         genericCreateSupportTicketFailureMessage: '无法创建此支持工单。请关闭此错误后重试。',
         fallbackTitle: '支持工单',

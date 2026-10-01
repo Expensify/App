@@ -200,6 +200,7 @@ import {
     getWorkspaceNameUpdatedMessage,
     isExpenseReport,
     isSelfDM,
+    isSupportTicket,
     shouldDisableThread,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
     shouldShowMarkAsDone,
@@ -299,6 +300,7 @@ type ShouldShow = (args: {
     menuTarget: RefObject<ContextMenuAnchor> | undefined;
     isChronosReport: boolean;
     reportID?: string;
+    report: OnyxEntry<ReportType>;
     isPinnedChat: boolean;
     isUnreadChat: boolean;
     isThreadReportParentAction: boolean;
@@ -447,9 +449,16 @@ type ContextMenuAction = (ContextMenuActionWithContent | ContextMenuActionWithIc
 const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
-        shouldShow: ({type, reportAction}) => {
+        shouldShow: ({type, reportAction, report}) => {
             const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
-            return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !!reportAction && 'message' in reportAction && !isMessageDeleted(reportAction) && !isDynamicWorkflowRoutedAction;
+            return (
+                type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
+                !!reportAction &&
+                'message' in reportAction &&
+                !isMessageDeleted(reportAction) &&
+                !isDynamicWorkflowRoutedAction &&
+                !isSupportTicket(report)
+            );
         },
         renderContent: (closePopover, {reportID, reportActions, reportAction, currentUserAccountID, close: closeManually, openContextMenu, setIsEmojiPickerActive, isOffline}) => {
             const isMini = !closePopover;
@@ -506,11 +515,11 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.replyInThread',
         icon: 'ChatBubbleReply',
-        shouldShow: ({type, reportAction, reportID, isThreadReportParentAction, isArchivedRoom}) => {
+        shouldShow: ({type, reportAction, report, reportID, isThreadReportParentAction, isArchivedRoom}) => {
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || !reportID) {
                 return false;
             }
-            return !isCreatedSupportTicketReportAction(reportAction) && !shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
+            return !isSupportTicket(report) && !isCreatedSupportTicketReportAction(reportAction) && !shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
         },
         onPress: (closePopover, {reportAction, childReport, originalReport, currentUserAccountID, introSelected, isSelfTourViewed, personalDetails, conciergeChat}) => {
             const participantsPersonalDetails = getParticipantsPersonalDetails([currentUserAccountID, Number(reportAction.actorAccountID)], personalDetails);

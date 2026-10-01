@@ -243,7 +243,7 @@ function getLocalizedSupportTicketReportName(
     });
 
     if (!report.created || !customer || !supportRep) {
-        return report.reportName || translate('supportTicket.fallbackTitle');
+        return report.reportName ?? translate('supportTicket.fallbackTitle');
     }
 
     return translate('supportTicket.title', {date: format(new Date(report.created), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale}), customer, supportRep});

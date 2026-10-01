@@ -2476,6 +2476,10 @@ function isExpensifyOnlyParticipantInReport(report: OnyxEntry<Report>): boolean 
  *
  */
 function canCreateTaskInReport(report: OnyxEntry<Report>): boolean {
+    if (isSupportTicket(report)) {
+        return false;
+    }
+
     const otherParticipants = Object.keys(report?.participants ?? {})
         .map(Number)
         .filter((accountID) => accountID !== deprecatedCurrentUserAccountID);
@@ -3986,6 +3990,18 @@ function getIconsForTaskReport(
 }
 
 /**
+ * Helper function to get the icon for a support ticket. Only to be used in getIcons().
+ */
+function getIconsForSupportTicketReport(
+    report: OnyxInputOrEntry<Report>,
+    personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    translate: LocalizedTranslate,
+): Icon[] {
+    return [getParticipantIcon(report?.managerID, personalDetails, formatPhoneNumber, translate, true)];
+}
+
+/**
  * Helper function to get the icons for a domain room. Only to be used in getIcons().
  */
 function getIconsForDomainRoom(report: OnyxInputOrEntry<Report>): Icon[] {
@@ -4211,6 +4227,9 @@ function getIcons(
     }
     if (isTaskReport(report)) {
         return getIconsForTaskReport(report, personalDetails, policy, formatPhoneNumber, translate);
+    }
+    if (isSupportTicket(report)) {
+        return getIconsForSupportTicketReport(report, personalDetails, formatPhoneNumber, translate);
     }
     if (isDomainRoom(report)) {
         return getIconsForDomainRoom(report);
@@ -7302,34 +7321,6 @@ function buildOptimisticTaskCommentReportAction(
     if (actorAccountID) {
         reportAction.reportAction.actorAccountID = actorAccountID;
     }
-
-    return reportAction;
-}
-
-function buildOptimisticSupportTicketCommentReportAction(
-    supportTicketReportID: string,
-    parentReportID: string,
-    currentUserEmail: string,
-    currentUserAccountID: number,
-): OptimisticReportAction {
-    const reportAction = buildOptimisticAddCommentReportAction({
-        text: 'support ticket',
-        reportID: supportTicketReportID,
-        currentUserEmail,
-        currentUserAccountID,
-        delegateAccountIDParam: undefined,
-    });
-
-    reportAction.reportAction.originalMessage = {
-        html: getReportActionHtml(reportAction.reportAction),
-        whisperedTo: [],
-    };
-    reportAction.reportAction.childReportID = supportTicketReportID;
-    reportAction.reportAction.parentReportID = parentReportID;
-    reportAction.reportAction.childType = CONST.REPORT.TYPE.SUPPORT_TICKET;
-    reportAction.reportAction.childReportName = 'Support ticket';
-    reportAction.reportAction.childStatusNum = CONST.REPORT.STATUS_NUM.OPEN;
-    reportAction.reportAction.childStateNum = CONST.REPORT.STATE_NUM.OPEN;
 
     return reportAction;
 }
@@ -14574,7 +14565,6 @@ export {
     buildOptimisticSubmittedReportAction,
     buildOptimisticTaskCommentReportAction,
     buildOptimisticTaskReport,
-    buildOptimisticSupportTicketCommentReportAction,
     buildOptimisticTaskReportAction,
     buildOptimisticUnHoldReportAction,
     buildOptimisticAnnounceChat,

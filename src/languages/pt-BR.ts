@@ -9569,7 +9569,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     },
     supportTicket: {
         title: ({date, customer, supportRep}) => `Chamado de suporte, ${date}: ${customer} e ${supportRep}`,
-        description: 'Esta é uma conversa com um representante humano de suporte. As respostas podem demorar mais do que no Concierge, então resuma a ajuda de que você precisa.',
+        description: ({supportRep}) =>
+            `Olá, eu sou ${supportRep} e vou trabalhar com você até que isso seja totalmente resolvido. Se você já compartilhou detalhes conosco, vou analisá-los antes de responder para que não precise se repetir. Se este for um problema novo, diga-me com o que você precisa de ajuda.`,
         checkboxTooltip: 'Seu representante de suporte marcará isto quando for resolvido.',
         genericCreateSupportTicketFailureMessage: 'Não foi possível criar este chamado de suporte. Feche este erro e tente novamente.',
         fallbackTitle: 'Chamado de suporte',

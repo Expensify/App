@@ -9464,7 +9464,8 @@ ${reportName}`,
     },
     supportTicket: {
         title: ({date, customer, supportRep}) => `サポートチケット、${date}: ${customer} と ${supportRep}`,
-        description: 'これは人間のサポート担当者との会話です。返信にはConciergeより時間がかかる場合があるため、必要な支援をまとめてください。',
+        description: ({supportRep}) =>
+            `こんにちは、${supportRep}です。完全に解決するまで対応します。すでに詳細をお知らせいただいている場合は、同じ内容を繰り返していただく必要がないよう、返信前に確認します。新しい問題の場合は、必要なサポートをお知らせください。`,
         checkboxTooltip: '解決時にサポート担当者がこれをチェックします。',
         genericCreateSupportTicketFailureMessage: 'このサポートチケットを作成できませんでした。このエラーを閉じて、もう一度お試しください。',
         fallbackTitle: 'サポートチケット',

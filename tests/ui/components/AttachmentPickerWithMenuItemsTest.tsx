@@ -102,12 +102,12 @@ const MOCK_PERSONAL_DETAILS: PersonalDetails = {
     displayName: 'Test User',
 };
 
-function renderComponent() {
+function renderComponent(report: Report = MOCK_REPORT) {
     const actionButtonRef = React.createRef<ComponentRef<typeof View>>();
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <AttachmentPickerWithMenuItems
-                report={MOCK_REPORT}
+                report={report}
                 currentUserPersonalDetails={MOCK_PERSONAL_DETAILS}
                 reportID={MOCK_REPORT_ID}
                 onAttachmentPicked={jest.fn()}
@@ -210,5 +210,18 @@ describe('AttachmentPickerWithMenuItems - empty report confirmation', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
+    });
+
+    it('only offers an attachment for a support ticket', async () => {
+        // Given an open support ticket
+        const supportTicket = {...MOCK_REPORT, type: CONST.REPORT.TYPE.SUPPORT_TICKET};
+
+        // When the customer opens the composer action menu
+        renderComponent(supportTicket);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the menu contains only the attachment action, not task assignment
+        expect(screen.getByText(translateLocal('reportActionCompose.addAttachment'))).toBeOnTheScreen();
+        expect(screen.queryByText(translateLocal('newTaskPage.assignTask'))).not.toBeOnTheScreen();
     });
 });

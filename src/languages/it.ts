@@ -9603,8 +9603,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
     },
     supportTicket: {
         title: ({date, customer, supportRep}) => `Ticket di assistenza, ${date}: ${customer} e ${supportRep}`,
-        description:
-            'Questa è una conversazione con un rappresentante dell’assistenza. Le risposte potrebbero richiedere più tempo rispetto a Concierge, quindi riassumi ciò di cui hai bisogno.',
+        description: ({supportRep}) =>
+            `Ciao, sono ${supportRep} e lavorerò con te finché questo non sarà completamente risolto. Se hai già condiviso dei dettagli con noi, li esaminerò prima di rispondere così non dovrai ripeterti. Se si tratta di un nuovo problema, fammi sapere di cosa hai bisogno.`,
         checkboxTooltip: 'Il tuo rappresentante dell’assistenza lo selezionerà quando sarà risolto.',
         genericCreateSupportTicketFailureMessage: 'Non siamo riusciti a creare questo ticket di assistenza. Chiudi questo errore e riprova.',
         fallbackTitle: 'Ticket di assistenza',
