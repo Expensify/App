@@ -2810,7 +2810,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             isBetaEnabled(CONST.BETAS.REPORT_MERGE) &&
             selectedMergeReports.length === selectedReports.length &&
             queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
-            canMergeReports(selectedMergeReports, currentUserPersonalDetails.accountID, rules)
+            canMergeReports(selectedMergeReports, currentUserPersonalDetails.accountID, rules, allReportNameValuePairs)
         ) {
             options.push({
                 icon: expensifyIcons.ArrowCollapse,

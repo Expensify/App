@@ -20503,16 +20503,12 @@ describe('ReportUtils', () => {
                 value: 'Acme',
             });
 
-            await Onyx.merge(
-                `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`,
-                Object.fromEntries([
-                    ['expensify_invoice_field', invoiceField],
-                    ['invoice_field', invoiceField],
-                ]),
-            );
-            await waitForBatchedUpdates();
+            const reportNameValuePairs = Object.fromEntries([
+                ['expensify_invoice_field', invoiceField],
+                ['invoice_field', invoiceField],
+            ]);
 
-            const {fieldValues, fieldsByName} = getReportFieldMaps(report, {});
+            const {fieldValues, fieldsByName} = getReportFieldMaps(report, {}, reportNameValuePairs);
 
             expect(fieldValues).toEqual({client: 'Acme'});
             expect(fieldsByName).toEqual({client: invoiceField});
@@ -20532,10 +20528,9 @@ describe('ReportUtils', () => {
                 value: 'Acme',
             });
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, Object.fromEntries([['invoice_field', invoiceField]]));
-            await waitForBatchedUpdates();
+            const reportNameValuePairs = Object.fromEntries([['invoice_field', invoiceField]]);
 
-            expect(getReportFieldMaps(report, {})).toEqual({fieldValues: {}, fieldsByName: {}});
+            expect(getReportFieldMaps(report, {}, reportNameValuePairs)).toEqual({fieldValues: {}, fieldsByName: {}});
         });
     });
 
@@ -23105,6 +23100,43 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             expect(hasVisibleReportFieldViolations(paidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined)).toBe(false);
+        });
+
+        it('should return false when an unpaid invoice report required field has value in reportNameValuePairs', async () => {
+            const fieldWithNoValue: PolicyReportField = {
+                ...baseField,
+                target: CONST.REPORT.TYPE.INVOICE,
+                value: null,
+                defaultValue: '',
+            };
+
+            const policyWithEmptyInvoiceField = {
+                ...basePolicy,
+                areReportFieldsEnabled: false,
+                areInvoiceFieldsEnabled: true,
+                fieldList: {[`expensify_${fieldWithNoValue.fieldID}`]: fieldWithNoValue},
+            };
+
+            const unpaidInvoiceReport: Report = {
+                reportID: 'invoice-report-field-violations-unpaid-filled',
+                type: CONST.REPORT.TYPE.INVOICE,
+                policyID,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            const reportNameValuePairs: ReportNameValuePairs = {
+                [`expensify_${fieldWithNoValue.fieldID}`]: {
+                    ...fieldWithNoValue,
+                    value: 'Sample Value',
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyInvoiceField);
+            await waitForBatchedUpdates();
+
+            expect(hasVisibleReportFieldViolations(unpaidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined, reportNameValuePairs)).toBe(false);
         });
     });
 
@@ -25885,6 +25917,17 @@ describe('ReportUtils', () => {
         it('returns true for three or more valid Open reports', () => {
             const reports = [makeOpenReport(), makeOpenReport(), makeOpenReport()];
             expect(canMergeReports(reports, USER_ID, undefined)).toBe(true);
+        });
+
+        it('returns false when one of the reports is archived', () => {
+            const r1 = makeOpenReport();
+            const r2 = makeOpenReport();
+            const reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${r1.reportID}`]: {
+                    private_isArchived: DateUtils.getDBTime(),
+                },
+            };
+            expect(canMergeReports([r1, r2], USER_ID, undefined, reportNameValuePairs)).toBe(false);
         });
     });
 });

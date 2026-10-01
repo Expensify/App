@@ -48,6 +48,7 @@ function SearchMergeReports() {
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
 
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
@@ -151,7 +152,7 @@ function SearchMergeReports() {
         !!destinationReportID &&
         !!destinationReport &&
         sourceReportIDs.length > 0 &&
-        canMergeReports(reportItems, currentUserPersonalDetails.accountID, rules);
+        canMergeReports(reportItems, currentUserPersonalDetails.accountID, rules, reportNameValuePairs);
 
     const mergeSelectedReports = () => {
         if (!destinationReportID || !destinationReport || !isValidForMerge) {
