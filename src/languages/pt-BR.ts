@@ -10812,6 +10812,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     },
     systemMessage: {
         mergedWithCashTransaction: 'correspondeu um recibo a esta transação',
+        mergedExpenseDeleted: 'mesclou despesas e moveu uma para Excluídas',
     },
     subscription: {
         authenticatePaymentCard: 'Autenticar cartão de pagamento',
