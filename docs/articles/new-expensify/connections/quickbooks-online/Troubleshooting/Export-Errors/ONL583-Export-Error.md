@@ -1,11 +1,11 @@
 ---
-title: How to Fix the ONL583 Export Error in QuickBooks Online
+title: ONL583 Export Error in QuickBooks Online
 description: Learn how to fix the ONL583 export error when a vendor, supplier, customer, or employee name in QuickBooks Online prevents Expensify from creating a vendor for the report submitter.
 keywords: ONL583, QuickBooks Online duplicate name, vendor already exists, supplier name conflict, customer or employee name conflict, submitter email mismatch, Expensify QuickBooks Online export error, Workspace Admin
 internalScope: Audience is Workspace Admins using the QuickBooks Online integration. Covers fixing the ONL583 export error caused by a name conflict when automatically creating a vendor for the report submitter. Does not cover other export error codes.
 ---
 
-# How to Fix the ONL583 Export Error in QuickBooks Online
+# ONL583 Export Error in QuickBooks Online
 
 The ONL583 error identifies the submitter's email and the conflicting record name. For example:
 
