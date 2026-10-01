@@ -3621,7 +3621,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         growlNotificationWrapper: {
-            zIndex: 2,
+            zIndex: variables.growlNotificationZIndex,
         },
 
         growlNotificationContainer: {
@@ -7184,6 +7184,11 @@ const dynamicStyles = (theme: ThemeColors) =>
             width,
         }),
 
+        getSplashScreenHiderPosition: (left: number, right: number): ViewStyle => ({
+            left: -left,
+            right: -right,
+        }),
+
         getSelectionListPopoverHeight: ({
             itemCount,
             itemHeight = variables.optionRowHeightCompact,
@@ -7546,6 +7551,15 @@ const plainStyles = (theme: ThemeColors) =>
             alignSelf: 'center',
             gap: variables.insightsCardGap,
         } satisfies ViewStyle,
+
+        insightsDashboardScrollView: {
+            ...scrollbarGutterStable,
+        },
+
+        insightsPageControlsContainer: {
+            ...scrollbarGutterStable,
+            overflow: 'hidden',
+        },
 
         insightsChartGrid: {
             flexDirection: 'row',
