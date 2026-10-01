@@ -97,7 +97,7 @@ function FormWrapper({
     enterKeyEventListenerPriority = 1,
     isSubmitDisabled = false,
     shouldRenderFooterAboveSubmit = false,
-    isLoading = false,
+    isLoading,
     isAlertVisible = false,
     serverErrorFields,
     serverErrorMessage,

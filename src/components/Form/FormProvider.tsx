@@ -141,7 +141,7 @@ function FormProvider({
     shouldTrimValues = true,
     allowHTML = false,
     shouldPreserveCustomValidationErrors = false,
-    isLoading: isOnyxLoading = false,
+    isLoading: isOnyxLoading,
     shouldRenderFooterAboveSubmit = false,
     shouldUseStrictHtmlTagValidation = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
@@ -297,9 +297,10 @@ function FormProvider({
         [touchedInputs],
     );
 
-    const isExternalLoading = !!formState?.isLoading || isOnyxLoading;
+    const hasExternalLoadingFlag = formState?.isLoading !== undefined || isOnyxLoading !== undefined;
+    const isExternalLoading = hasExternalLoadingFlag ? !!formState?.isLoading || !!isOnyxLoading : undefined;
     const {isLoading: isPressLoading, startWithLoading} = usePressLoading({isLoading: isExternalLoading});
-    const isLoading = shouldShowLoadingImmediatelyOnPress ? isPressLoading : isExternalLoading;
+    const isLoading = shouldShowLoadingImmediatelyOnPress ? isPressLoading : !!isExternalLoading;
 
     const submit = useDebounceNonReactive(
         useCallback(() => {
@@ -335,12 +336,12 @@ function FormProvider({
 
             const runSubmit = () => {
                 if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT) {
-                    KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
-                } else if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
-                    KeyboardUtils.dismissKeyboardAndExecute(() => onSubmit(trimmedStringValues));
-                } else {
-                    onSubmit(trimmedStringValues);
+                    return KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
                 }
+                if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
+                    return KeyboardUtils.dismissKeyboardAndExecute(() => onSubmit(trimmedStringValues));
+                }
+                return onSubmit(trimmedStringValues);
             };
 
             if (!shouldShowLoadingImmediatelyOnPress) {
@@ -601,7 +602,7 @@ function FormProvider({
                 isAlertVisible={isGeneralAlertVisible}
                 serverErrorFields={formState?.errorFields}
                 serverErrorMessage={errorMessage}
-                isLoading={!!formState?.isLoading || isLoading}
+                isLoading={isLoading}
                 enabledWhenOffline={enabledWhenOffline}
                 shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
                 shouldPreventDefaultFocusOnPressSubmit={shouldPreventDefaultFocusOnPressSubmit}
