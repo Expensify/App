@@ -770,6 +770,10 @@ const staticStyles = (theme: ThemeColors) =>
             marginHorizontal: -variables.floatingTabBarSelectedOverhang,
         },
 
+        androidNativeTabBarSpacer: {
+            height: variables.androidNativeTabBarHeight,
+        },
+
         // The gap between the floating bar and the bottom edge of the screen.
         floatingTabBarBottomInset: {
             paddingBottom: variables.floatingTabBarBottomInset,

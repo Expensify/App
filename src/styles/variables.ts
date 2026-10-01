@@ -31,6 +31,7 @@ const avatarSizes = {
 
 const floatingTabBarHeight = 60;
 const floatingTabBarBottomInset = 8;
+const androidNativeTabBarHeight = 80;
 
 export default {
     bottomTabHeight: 72,
@@ -121,8 +122,10 @@ export default {
     nativeTabIconLabelGap: 6,
     /** Pixel density the native tab bar icons are rasterized at. */
     nativeTabIconScale: 3,
-    /** Material's 80 dp BottomNavigationView row plus the 16 dp Material keeps between a FAB and the bar, without the gesture inset under it. */
-    androidNativeTabBarFloatingButtonsBottom: 96,
+    /** Material's BottomNavigationView row, without the gesture inset under it. */
+    androidNativeTabBarHeight,
+    /** Material's bar row plus the 16 dp Material keeps between a FAB and the bar. */
+    androidNativeTabBarFloatingButtonsBottom: androidNativeTabBarHeight + 16,
     /** UITabBar with the home indicator inset under it, plus a 12 pt gap to the floating buttons. */
     iosNativeTabBarFloatingButtonsBottom: 84,
     iconHeader: 48,
