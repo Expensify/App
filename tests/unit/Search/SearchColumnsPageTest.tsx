@@ -11,7 +11,7 @@ import React from 'react';
 
 // Capture what the picker hands the list instead of asserting on rendered rows: `currentColumns` IS the
 // seed under test, and the real list adds drag handles and Onyx-backed labels that are irrelevant here.
-const capturedProps: {currentColumns?: SearchCustomColumnIds[]; allColumns?: SearchCustomColumnIds[]} = {};
+const capturedProps: {currentColumns?: SearchCustomColumnIds[]; allColumns?: SearchCustomColumnIds[]; isLoadingIndicatorShown?: boolean} = {};
 jest.mock('@components/ColumnsSettingsList', () => ({
     __esModule: true,
     default: (props: {currentColumns: SearchCustomColumnIds[]; allColumns: SearchCustomColumnIds[]}) => {
@@ -36,10 +36,24 @@ jest.mock('@hooks/usePolicyForMovingExpenses', () => ({
     default: () => ({policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined}),
 }));
 
+jest.mock('@components/FullscreenLoadingIndicator', () => ({
+    __esModule: true,
+    default: () => {
+        capturedProps.isLoadingIndicatorShown = true;
+        return null;
+    },
+}));
+
+let mockIsOffline = false;
+jest.mock('@hooks/useNetwork', () => ({
+    __esModule: true,
+    default: () => ({isOffline: mockIsOffline}),
+}));
+
 const onyxData: Record<string, unknown> = {};
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
-    default: (key: string) => [onyxData[key]],
+    default: (key: string, options?: {selector?: (value: unknown) => unknown}) => [options?.selector ? options.selector(onyxData[key]) : onyxData[key]],
 }));
 
 let mockResultsContext: {currentSearchResults: SearchResults | undefined; shouldUseLiveData: boolean} = {
@@ -114,6 +128,8 @@ describe('SearchColumnsPage seeding (Part A)', () => {
     beforeEach(() => {
         capturedProps.currentColumns = undefined;
         capturedProps.allColumns = undefined;
+        capturedProps.isLoadingIndicatorShown = undefined;
+        mockIsOffline = false;
         for (const key of Object.keys(onyxData)) {
             delete onyxData[key];
         }
@@ -173,6 +189,32 @@ describe('SearchColumnsPage seeding (Part A)', () => {
         render(<SearchColumnsPage />);
 
         // Then nothing is seeded, leaving ColumnsSettingsList on its own group-defaults fallback
+        expect(capturedProps.currentColumns).toEqual([]);
+    });
+
+    test('waits for the snapshot while a sort is in flight instead of seeding the static defaults', () => {
+        // Given a sort that swapped in a new snapshot the server has not filled yet, while the table still shows
+        // the previous rows
+        mockResultsContext = {currentSearchResults: undefined, shouldUseLiveData: false};
+
+        // When the picker renders
+        render(<SearchColumnsPage />);
+
+        // Then it shows a loading indicator and does not mount the list, which reads its seed only once on mount
+        expect(capturedProps.isLoadingIndicatorShown).toBe(true);
+        expect(capturedProps.currentColumns).toBeUndefined();
+    });
+
+    test('does not wait for the snapshot while offline', () => {
+        // Given the same unfilled snapshot, but offline, where the server will not respond until reconnecting
+        mockIsOffline = true;
+        mockResultsContext = {currentSearchResults: undefined, shouldUseLiveData: false};
+
+        // When the picker renders
+        render(<SearchColumnsPage />);
+
+        // Then the list mounts on its static-defaults fallback rather than spinning indefinitely
+        expect(capturedProps.isLoadingIndicatorShown).toBeUndefined();
         expect(capturedProps.currentColumns).toEqual([]);
     });
 });
