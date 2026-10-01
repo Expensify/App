@@ -4632,12 +4632,13 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         },
         nudge: {
             airfareManual:
-                'Expensify でフライトの予約や管理ができることをご存じでしたか？次回からは経費を手動で作成する手間を省き、<a href="https://travel.expensify.com">Expensify Travel</a> から簡単に予約しましょう ✈️',
+                'Expensify から直接フライトを予約しても、お持ちのマイレージプログラムでマイルを獲得できることをご存じでしたか？次回からは経費を手動で作成する手間を省き、<a href="https://travel.expensify.com">Expensify Travel</a> から簡単に予約しましょう ✈️',
             airfareCard:
-                'Expensify でフライトの予約や管理ができることをご存じでしたか？しかも領収書は自動でアップロードされます。次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> で予約してください ✈️',
+                'Expensify でそのまま航空券を予約しても、お持ちのマイレージプログラムでマイルを貯められることをご存じでしたか？領収書も自動的にアップロードされます。次回からはぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください ✈️',
             hotelManual:
-                'Expensify でホテルの予約や管理ができることをご存じですか？次回からは経費を手入力する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🏨',
-            hotelCard: 'Expensify でホテルの予約や管理ができることをご存じでしたか？次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> 経由で予約してください 🏨',
+                'Expensify でホテルを直接予約できて、しかもホテルのロイヤリティプログラムもそのまま使えることをご存じでしたか？次回からは経費を手入力する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🏨',
+            hotelCard:
+                'Expensify 内でホテルを直接予約できて、ホテルのロイヤルティプログラムもそのまま使えることをご存じでしたか？次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> からご予約ください。',
             carManual:
                 'Expensify でレンタカーの予約や管理ができることをご存じですか？次回からは経費を手動で作成する手間を省き、<a href="https://travel.expensify.com">Expensify Travel</a> から予約するだけで済みます。',
             carCard: 'Expensify でレンタカーの予約や管理ができることをご存じですか？次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> からご予約ください。',

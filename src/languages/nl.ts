@@ -4668,13 +4668,13 @@ ${amount} voor ${merchant} - ${date}`,
         },
         nudge: {
             airfareManual:
-                'Wist je dat je rechtstreeks in Expensify vluchten kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Wist je dat je in Expensify rechtstreeks vluchten kunt boeken en nog steeds miles spaart met je frequent flyer-programma’s? Vermijd de volgende keer het gedoe van je uitgave handmatig aanmaken en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             airfareCard:
-                'Wist je dat je rechtstreeks in Expensify vluchten kunt boeken en beheren? En dat bonnen automatisch voor je worden geüpload? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Wist je dat je rechtstreeks in Expensify vluchten kunt boeken en nog steeds miles spaart met je frequent flyer-programma’s? Bonnetjes worden ook automatisch voor je geüpload. Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             hotelManual:
-                'Wist je dat je hotelovernachtingen direct in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Wist je dat je hotelovernachtingen direct in Expensify kunt boeken en toch je hotelspaarprogramma’s kunt blijven gebruiken? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelCard:
-                'Wist je dat je hotelverblijven direct in Expensify kunt boeken en beheren? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Wist je dat je rechtstreeks in Expensify hotelovernachtingen kunt boeken en nog steeds je hotelspaarprogramma’s kunt gebruiken? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             carManual:
                 'Wist je dat je autoverhuur rechtstreeks in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             carCard:

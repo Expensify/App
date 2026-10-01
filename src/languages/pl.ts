@@ -4697,13 +4697,13 @@ ${amount} dla ${merchant} - ${date}`,
         },
         nudge: {
             airfareManual:
-                'Czy wiesz, że możesz rezerwować i zarządzać lotami bezpośrednio w Expensify? Następnym razem uniknij kłopotu ręcznego tworzenia wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Wiesz, że możesz rezerwować loty bezpośrednio w Expensify i nadal zbierać mile w swoich programach lojalnościowych dla częstych podróżnych? Następnym razem uniknij kłopotu ręcznego tworzenia wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             airfareCard:
-                'Wiesz, że możesz rezerwować i zarządzać lotami bezpośrednio w Expensify? I że paragony są automatycznie przesyłane za ciebie? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Wiedziałeś, że możesz rezerwować loty bezpośrednio w Expensify i nadal zbierać mile w swoich programach lojalnościowych? Paragony są też automatycznie dodawane za ciebie. Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             hotelManual:
-                'Czy wiesz, że możesz rezerwować i zarządzać pobytami w hotelach bezpośrednio w Expensify? Następnym razem uniknij kłopotu ręcznego tworzenia wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Wiesz, że możesz rezerwować pobyty w hotelach bezpośrednio w Expensify i nadal korzystać z programów lojalnościowych hoteli? Następnym razem uniknij kłopotu ręcznego tworzenia wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelCard:
-                'Wiesz, że możesz rezerwować i zarządzać pobytami w hotelach bezpośrednio w Expensify? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Wiesz, że możesz rezerwować pobyty w hotelach bezpośrednio w Expensify i nadal korzystać ze swoich programów lojalnościowych? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             carManual:
                 'Wiesz, że możesz rezerwować i zarządzać wynajmem samochodów bezpośrednio w Expensify? Następnym razem uniknij kłopotu ręcznego tworzenia wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             carCard:
