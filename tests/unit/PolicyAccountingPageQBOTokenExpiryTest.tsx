@@ -90,8 +90,8 @@ jest.mock('@components/HeaderWithBackButton', () => {
     const {default: MockText} = jest.requireActual<{default: typeof TextComponent}>('@components/Text');
     return {
         __esModule: true,
-        default: ({threeDotsMenuItems}: {threeDotsMenuItems?: PopoverMenuItem[]}) =>
-            threeDotsMenuItems?.map((menuItem) => <MockText key={menuItem.text}>{`${OVERFLOW_MENU_ITEM_PREFIX}${menuItem.text}`}</MockText>),
+        default: ({threeDotsMenuItems, shouldShowThreeDotsButton}: {threeDotsMenuItems?: PopoverMenuItem[]; shouldShowThreeDotsButton?: boolean}) =>
+            shouldShowThreeDotsButton ? threeDotsMenuItems?.map((menuItem) => <MockText key={menuItem.text}>{`${OVERFLOW_MENU_ITEM_PREFIX}${menuItem.text}`}</MockText>) : null,
     };
 });
 

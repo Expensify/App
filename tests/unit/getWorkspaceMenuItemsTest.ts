@@ -314,7 +314,7 @@ describe('getWorkspaceMenuItems', () => {
         expect(items.find((item) => item.translationKey === 'workspace.common.connections')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.INFO);
     });
 
-    it('shows an information indicator on Accounting when the QBO refresh token is about to expire', () => {
+    it('shows an information indicator on Connections when the QBO refresh token is about to expire', () => {
         const policy = createMock<Policy>({
             ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
             areConnectionsEnabled: true,
@@ -334,10 +334,10 @@ describe('getWorkspaceMenuItems', () => {
             convertToDisplayString: () => '',
         });
 
-        expect(items.find((item) => item.translationKey === 'workspace.common.accounting')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.INFO);
+        expect(items.find((item) => item.translationKey === 'workspace.common.connections')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.INFO);
     });
 
-    it('keeps the error indicator on Accounting when a sync error exists even if the QBO refresh token is about to expire', () => {
+    it('keeps the error indicator on Connections when a sync error exists even if the QBO refresh token is about to expire', () => {
         const policy = createMock<Policy>({
             ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
             areConnectionsEnabled: true,
@@ -357,7 +357,7 @@ describe('getWorkspaceMenuItems', () => {
             convertToDisplayString: () => '',
         });
 
-        expect(items.find((item) => item.translationKey === 'workspace.common.accounting')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        expect(items.find((item) => item.translationKey === 'workspace.common.connections')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
     });
 
     it('shows an error indicator when the Merge HR connection has an authentication error', () => {
