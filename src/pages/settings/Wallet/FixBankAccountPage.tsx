@@ -3,7 +3,7 @@ import Button from '@components/Button';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -106,7 +106,7 @@ function FixBankAccountPage() {
             testID="FixBankAccountPage"
         >
             <FullPageNotFoundView shouldShow={!isValidationFailed && !didSend}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('walletPage.fixBankAccount.title')}
                     onBackButtonPress={didSend ? onDismiss : onBack}
                 />
