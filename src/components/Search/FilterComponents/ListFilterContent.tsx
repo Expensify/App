@@ -66,6 +66,7 @@ type MultiSelectFilterKeys =
 type MultiSelectListFilterContentProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[MultiSelectFilterKeys] | undefined> & {
     baseFilterKey: MultiSelectFilterKeys;
     type: SearchDataTypes | undefined;
+    isNegated: boolean;
 };
 
 /** Matches `styles.mv3` applied to the hint below. */
@@ -73,6 +74,7 @@ const HINT_VERTICAL_MARGIN = 12;
 
 type HasMultiSelectListFilterContentProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[MultiSelectFilterKeys] | undefined> & {
     type: SearchDataTypes | undefined;
+    isNegated: boolean;
 };
 
 function SingleSelectListFilterContent({baseFilterKey, value, selectionListStyle, footer, onChange}: SingleSelectListFilterContentProps) {
@@ -106,13 +108,16 @@ function SingleSelectListFilterContent({baseFilterKey, value, selectionListStyle
  * Availability is computed in render (not a POLICY selector that closes over categories) so a late
  * POLICY_CATEGORIES load still recomputes submitted-violation for migrated Control workspaces.
  */
-function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: HasMultiSelectListFilterContentProps) {
+function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, isNegated, selectionListStyle, footer, onChange}: HasMultiSelectListFilterContentProps) {
     const {translate} = useLocalize();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [isAnyApprovalRequired] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: formHasAnyApprovalFilter});
     const selectedValues = value as string[];
-    const lockedHasValues = isAnyApprovalRequired ? [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION] : [];
+    // The anyApproval filter requires a positive has:approved-violation. The lock belongs on the Has
+    // polarity only; forcing it while "is not" is selected would read as -has:approved-violation.
+    const shouldLockApprovedViolation = !!isAnyApprovalRequired && !isNegated;
+    const lockedHasValues = shouldLockApprovedViolation ? [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION] : [];
     const effectiveSelectedValues = [...new Set([...selectedValues, ...lockedHasValues])];
     // Include already-selected values even when the matching workspace feature is off, otherwise
     // toggling another option would call onChange without them and clear the saved/query selection.
@@ -121,7 +126,7 @@ function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_T
         policyCategories,
         selectedValues: effectiveSelectedValues,
     }).map((item) =>
-        item.value === CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION && isAnyApprovalRequired
+        item.value === CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION && shouldLockApprovedViolation
             ? {
                   ...item,
                   isDisabled: true,
@@ -140,7 +145,7 @@ function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_T
             footer={footer}
             onChange={(selectedItems) => {
                 const nextValues = selectedItems.map((item) => item.value);
-                if (isAnyApprovalRequired && !nextValues.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION)) {
+                if (shouldLockApprovedViolation && !nextValues.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION)) {
                     nextValues.push(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
                 }
                 onChange(nextValues);
@@ -149,7 +154,15 @@ function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_T
     );
 }
 
-function MultiSelectListFilterContent({baseFilterKey, value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: MultiSelectListFilterContentProps) {
+function MultiSelectListFilterContent({
+    baseFilterKey,
+    value = [],
+    type = CONST.SEARCH.DATA_TYPES.EXPENSE,
+    isNegated,
+    selectionListStyle,
+    footer,
+    onChange,
+}: MultiSelectListFilterContentProps) {
     const {translate} = useLocalize();
 
     if (baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
@@ -157,6 +170,7 @@ function MultiSelectListFilterContent({baseFilterKey, value = [], type = CONST.S
             <HasMultiSelectListFilterContent
                 value={value}
                 type={type}
+                isNegated={isNegated}
                 selectionListStyle={selectionListStyle}
                 footer={footer}
                 onChange={onChange}
@@ -296,6 +310,7 @@ function ListFilterContent({
                     baseFilterKey={baseFilterKey}
                     value={typeof value === 'object' ? value : undefined}
                     type={type}
+                    isNegated={isNegated}
                     selectionListStyle={selectionListStyle}
                     footer={footer}
                     onChange={onChange}

@@ -177,7 +177,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
             onLandscapePress: () => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.getRoute(removeNegation(filterKey), true)),
             onClosePress: (() => {
                 const isRequiredApprovedViolationHas =
-                    removeNegation(filterKey) === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS &&
+                    filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS &&
                     formHasAnyApprovalFilter(searchAdvancedFiltersForm) &&
                     (searchAdvancedFiltersForm.has ?? []).every((hasValue) => hasValue === CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
 
@@ -214,7 +214,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                         return;
                     }
 
-                    if (removeNegation(filterKey) === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS && formHasAnyApprovalFilter(searchAdvancedFiltersForm)) {
+                    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS && formHasAnyApprovalFilter(searchAdvancedFiltersForm)) {
                         updateFilterQueryParams({[CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS]: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]});
                         return;
                     }

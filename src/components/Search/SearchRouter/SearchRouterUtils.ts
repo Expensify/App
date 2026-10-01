@@ -1,6 +1,7 @@
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
+import type {SearchQueryJSON} from '@components/Search/types';
 
-import {getPolicyNameWithFallback, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {getPolicyNameWithFallback, hasFiltersChangedFromDefault, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
@@ -90,4 +91,33 @@ function getContextualSearchQuery(item: SearchQueryItem, policies: OnyxCollectio
     return baseQuery + additionalQuery;
 }
 
-export {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery};
+type ShouldPrefillSearchRouterQueryParams = {
+    currentSearchQueryJSON: Readonly<SearchQueryJSON> | undefined;
+    currentDefaultSearchQueryJSON: SearchQueryJSON | undefined;
+    isFromSearchPageSearchButton: boolean | undefined;
+    shouldShowSearchQuery: boolean | undefined;
+};
+
+/**
+ * The router input stays empty for a canned search so the user can start a new query. After filters change
+ * (for example selecting any-approval, which also applies has:approved-violation) the current query is
+ * seeded so it can be edited as text.
+ */
+function shouldPrefillSearchRouterQuery({
+    currentSearchQueryJSON,
+    currentDefaultSearchQueryJSON,
+    isFromSearchPageSearchButton,
+    shouldShowSearchQuery,
+}: ShouldPrefillSearchRouterQueryParams): boolean {
+    if (!currentSearchQueryJSON || !isFromSearchPageSearchButton) {
+        return false;
+    }
+
+    if (shouldShowSearchQuery) {
+        return true;
+    }
+
+    return !!currentDefaultSearchQueryJSON && hasFiltersChangedFromDefault(currentSearchQueryJSON, currentDefaultSearchQueryJSON);
+}
+
+export {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery, shouldPrefillSearchRouterQuery};

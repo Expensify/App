@@ -717,20 +717,48 @@ function queryHasAnyApprovalFilter(queryJSON: SearchQueryJSON | undefined): bool
     return !!queryJSON?.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL);
 }
 
-function queryHasPositiveApprovedViolation(queryJSON: SearchQueryJSON | undefined): boolean {
-    return !!queryJSON?.flatFilters.some(
-        (group) =>
-            group.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS &&
-            group.filters.some((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && filter.value.toString() === CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION),
-    );
-}
-
 function ensureHasApprovedViolation(hasValues: HasFilterValue[] | undefined): HasFilterValue[] {
     if (hasValues?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION)) {
         return hasValues;
     }
 
     return [...(hasValues ?? []), CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION];
+}
+
+function isApprovedViolationFilter(filter: QueryFilter, operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>) {
+    return filter.operator === operator && filter.value.toString() === CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION;
+}
+
+/**
+ * The anyApproval filter requires has:approved-violation. Strip a contradictory
+ * `-has:approved-violation` and add the required positive filter when missing.
+ */
+function applyRequiredApprovedViolationToQuery(queryJSON: SearchQueryJSON): SearchQueryJSON {
+    let hasPositiveApprovedViolation = false;
+    const flatFilters = queryJSON.flatFilters.flatMap((group) => {
+        if (group.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
+            return [group];
+        }
+
+        const filters = group.filters.filter((filter) => !isApprovedViolationFilter(filter, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO));
+        if (filters.some((filter) => isApprovedViolationFilter(filter, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO))) {
+            hasPositiveApprovedViolation = true;
+        }
+        if (filters.length === 0) {
+            return [];
+        }
+
+        return [{...group, filters}];
+    });
+
+    if (!hasPositiveApprovedViolation) {
+        flatFilters.push({
+            key: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+            filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}],
+        });
+    }
+
+    return {...queryJSON, flatFilters};
 }
 
 /**
@@ -1123,7 +1151,7 @@ function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, def
     });
 }
 
-function hasFiltersChangedFromDefault(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON) {
+function hasFiltersChangedFromDefault(currentQueryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>, defaultQueryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
     return getQueryHashWithoutFilters(currentQueryJSON, NON_FILTER_CHIP_KEYS) !== getQueryHashWithoutFilters(defaultQueryJSON, NON_FILTER_CHIP_KEYS);
 }
 
@@ -1220,7 +1248,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         supportedFilterValues[filter] = undefined;
     }
 
-    // Auth rejects anyApproval unless has:approved-violation (or violationApprover) is also present.
+    // The anyApproval filter requires has:approved-violation (or violationApprover).
     if (formHasAnyApprovalFilter(supportedFilterValues)) {
         supportedFilterValues.has = ensureHasApprovedViolation(supportedFilterValues.has);
         if (supportedFilterValues.hasNot?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION)) {
@@ -2563,13 +2591,12 @@ function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = f
         standardizedQuery.type = CONST.SEARCH.DATA_TYPES.CHAT;
     }
 
-    const queryString = buildSearchQueryString(standardizedQuery);
     const queryType = standardizedQuery.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
-    if (queryType === CONST.SEARCH.DATA_TYPES.EXPENSE && queryHasAnyApprovalFilter(standardizedQuery) && !queryHasPositiveApprovedViolation(standardizedQuery)) {
-        return `${queryString} has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`.trim();
+    if (queryType === CONST.SEARCH.DATA_TYPES.EXPENSE && queryHasAnyApprovalFilter(standardizedQuery)) {
+        return buildSearchQueryString(applyRequiredApprovedViolationToQuery(standardizedQuery));
     }
 
-    return queryString;
+    return buildSearchQueryString(standardizedQuery);
 }
 
 function isSearchRootParams(params: unknown): params is SearchRootParams {

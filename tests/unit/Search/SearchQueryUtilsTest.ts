@@ -548,7 +548,7 @@ describe('SearchQueryUtils', () => {
             // When the query is standardized
             const result = getQueryWithUpdatedValues(userQuery);
 
-            // Then has:approved-violation is added because Auth requires it with anyApproval
+            // Then has:approved-violation is added because the anyApproval filter requires it
             expect(result).toBe(`${defaultQuery} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH} has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
         });
 
@@ -561,6 +561,30 @@ describe('SearchQueryUtils', () => {
 
             // Then the existing has filter is left as a single value
             expect(result).toBe(`${defaultQuery} has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`);
+        });
+
+        test('replaces -has:approved-violation with a positive has when anyApproval is present', () => {
+            // Given a typed search that negates has:approved-violation while anyApproval is set
+            const userQuery = `type:expense -has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`;
+
+            // When the query is standardized
+            const result = getQueryWithUpdatedValues(userQuery);
+
+            // Then the negated value is dropped so the query is not self-contradictory
+            expect(result).toBe(`${defaultQuery} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH} has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
+        });
+
+        test('keeps other negated has values when replacing -has:approved-violation', () => {
+            // Given a typed search that negates approved-violation alongside another Has value
+            const userQuery = `type:expense -has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION},${CONST.SEARCH.HAS_VALUES.RECEIPT} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`;
+
+            // When the query is standardized
+            const result = getQueryWithUpdatedValues(userQuery);
+
+            // Then only approved-violation is moved to a positive has
+            expect(result).toBe(
+                `${defaultQuery} -has:${CONST.SEARCH.HAS_VALUES.RECEIPT} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH} has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`,
+            );
         });
     });
 
@@ -2305,6 +2329,42 @@ describe('SearchQueryUtils', () => {
             );
         });
 
+        test('moves hasNot approved-violation onto has when anyApproval is present', () => {
+            // Given an expense search that negates approved-violation while anyApproval is set
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                hasNot: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION, CONST.SEARCH.HAS_VALUES.RECEIPT],
+                [FILTER_KEYS.ANY_APPROVAL_ON]: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+            };
+
+            // When the form is converted to a query
+            const queryString = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then approved-violation is required positively and the other hasNot value is kept
+            expect(queryString).toBe(
+                `type:expense -has:${CONST.SEARCH.HAS_VALUES.RECEIPT} has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`,
+            );
+        });
+
+        test('clearing a negated has filter while anyApproval is set leaves a single has:approved-violation', () => {
+            // Given anyApproval with the required Has filter after the negated Has chip was cleared
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                has: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION],
+                hasNot: undefined,
+                [FILTER_KEYS.ANY_APPROVAL_ON]: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+            };
+
+            // When the form is converted to a query
+            const queryString = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then approved-violation is not duplicated
+            expect(queryString).toBe(
+                `type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`,
+            );
+            expect(queryString.match(/has:approved-violation/g)).toHaveLength(1);
+        });
+
         test('anyApproval date filters are dropped on an expense-report search', () => {
             // Given an expense-report search with an anyApproval date filter
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
@@ -2315,7 +2375,7 @@ describe('SearchQueryUtils', () => {
             // When the form is converted to a query
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            // Then anyApproval is stripped because Auth only supports it for type:expense
+            // Then anyApproval is stripped because it is only supported for type:expense
             expect(result).toBe(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}`);
         });
     });
