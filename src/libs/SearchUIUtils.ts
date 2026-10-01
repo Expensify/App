@@ -686,6 +686,10 @@ function isPolicyEligibleForTopSpenders(policy: OnyxTypes.Policy, currentUserEma
     return isPolicyEligibleForSpendOverTime(policy, currentUserEmail) && Object.keys(policy.employeeList ?? {}).length >= 2;
 }
 
+function isPolicyEligibleForTopCategories(policy: OnyxTypes.Policy): boolean {
+    return isGroupPolicy(policy) && policy.areCategoriesEnabled === true;
+}
+
 /**
  * `hasReportAwaitingApproval` seeds the approve suggestion so a user who is the manager of a report awaiting their
  * approval sees it even when they are not part of the policy's approval workflow (e.g. an approver chosen manually on
@@ -760,7 +764,7 @@ function getSuggestedSearchesVisibility(
         const isEligibleForReimbursementsSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isPaymentEnabled && hasVBBA && hasReimburser;
         const memberCount = Object.keys(policy.employeeList ?? {}).length;
         const isEligibleForTopSpendersSuggestion = isPolicyEligibleForTopSpenders(policy, currentUserEmail);
-        const isEligibleForTopCategoriesSuggestion = isGroupPolicyEligible && policy.areCategoriesEnabled === true;
+        const isEligibleForTopCategoriesSuggestion = isPolicyEligibleForTopCategories(policy);
         const isEligibleForTopMerchantsSuggestion = isGroupPolicyEligible;
         const isEligibleForViolationsBySubmitterSuggestion =
             isControlPolicy(policy) &&
@@ -853,9 +857,6 @@ function getTransactionItemCommonFormattedProperties(
     };
 }
 
-/**
- * @private
- */
 function isReportEntry(key: string): key is ReportKey {
     return key.startsWith(ONYXKEYS.COLLECTION.REPORT);
 }
@@ -878,9 +879,6 @@ function isReportActionEntry(key: string): key is ReportActionKey {
     return key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 }
 
-/**
- * @private
- */
 function isTransactionEntry(key: string): key is TransactionKey {
     return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
 }
@@ -2181,7 +2179,7 @@ function getActions(
 
     const reportNVP = getReportNameValuePairsFromKey(data, report);
 
-    const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`] ?? undefined;
+    const isChatReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`]);
 
     // Submit/Approve/Pay can only be taken on transactions if the transaction is the only one on the report, otherwise `View` is the only option.
     // If this condition is not met, return early for performance reasons
@@ -2195,7 +2193,18 @@ function getActions(
             : undefined;
 
     const chatReport = getChatReport(data, report);
-    const canBePaid = canIOUBePaid(report, chatReport, policy, bankAccountList, currentUserLogin, currentUserAccountID, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
+    const canBePaid = canIOUBePaid(
+        report,
+        chatReport,
+        policy,
+        bankAccountList,
+        currentUserLogin,
+        currentUserAccountID,
+        allReportTransactions,
+        false,
+        isChatReportArchived,
+        invoiceReceiverPolicy,
+    );
     const canOnlyBePaidElsewhere = canIOUBePaid(
         report,
         chatReport,
@@ -2205,7 +2214,7 @@ function getActions(
         currentUserAccountID,
         allReportTransactions,
         true,
-        chatReportRNVP,
+        isChatReportArchived,
         invoiceReceiverPolicy,
     );
     const shouldOnlyShowElsewhere = !canBePaid && canOnlyBePaidElsewhere;
@@ -2430,9 +2439,6 @@ type CreateAndOpenSearchTransactionThreadParams = {
     currentUserLogin: string;
     currentUserAccountID: number;
 
-    /** Beta features list */
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
 
     /** The personal details of the participants */
@@ -2440,6 +2446,8 @@ type CreateAndOpenSearchTransactionThreadParams = {
 
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
+
+    delegateAccountID: number | undefined;
 
     /** Existing transaction thread report ID (childReportID), if any */
     IOUTransactionID?: string;
@@ -2461,24 +2469,30 @@ function createAndOpenSearchTransactionThread({
     backTo,
     currentUserLogin,
     currentUserAccountID,
-    betas,
     personalDetails,
     isSelfTourViewed,
     hasCompletedGuidedSetupFlow,
+    delegateAccountID,
     IOUTransactionID,
     transactionPreviewData,
     shouldNavigate = true,
     getCurrencyDecimals,
     conciergeChat,
 }: CreateAndOpenSearchTransactionThreadParams): string | undefined {
-    const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const isUnreportedTransaction = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isDeleted = isDeletedTransaction(item);
-    const iouReportAction = getIOUActionForReportID(isFromSelfDM ? findSelfDMReportID() : item.reportID, item.transactionID);
+    const iouReportAction = getIOUActionForReportID(isUnreportedTransaction ? findSelfDMReportID() : item.reportID, item.transactionID);
+    const expenseOwnerAccountID = (iouReportAction ?? item.reportAction)?.actorAccountID;
+    if (isUnreportedTransaction && expenseOwnerAccountID !== currentUserAccountID) {
+        return;
+    }
+
+    const isFromSelfDM = isUnreportedTransaction;
     const moneyRequestReportActionID = item.reportAction?.reportActionID ?? undefined;
     const previewData = transactionPreviewData
         ? {...transactionPreviewData, hasTransactionThreadReport: true}
         : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
-    setOptimisticDataForTransactionThreadPreview(item, previewData, getCurrencyDecimals, IOUTransactionID);
+    setOptimisticDataForTransactionThreadPreview(item, previewData, getCurrencyDecimals, delegateAccountID, IOUTransactionID);
 
     const hasActualTransactionThread = iouReportAction?.childReportID && iouReportAction?.childReportID !== CONST.FAKE_REPORT_ID;
     let transactionThreadReport;
@@ -2502,7 +2516,6 @@ function createAndOpenSearchTransactionThread({
             conciergeChat,
             currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,
-            betas,
             iouReport: getReportOrDraftReport(item.reportID) ?? item.report,
             iouReportAction: reportActionToPass,
             transaction,
@@ -4638,7 +4651,7 @@ function getOverflowMenu(
  *
  * A filter can also be stored as a string, which is a legacy format, so it's treated as if there is no last query.
  */
-function getLastSearchQuery(searchFilters: OnyxEntry<OnyxTypes.SearchFilters>, searchKey: SearchKey): string | undefined {
+function getLastSearchQuery(searchFilters: OnyxEntry<OnyxTypes.SearchFilters>, searchKey: SearchKey | OnyxTypes.InsightsSearchKey): string | undefined {
     const searchFilter = searchFilters?.[searchKey];
     return typeof searchFilter === 'object' ? searchFilter.query : undefined;
 }
@@ -4967,7 +4980,7 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
     const hasResolved = searchResults?.data != null || searchResults?.errors != null || isTerminal;
     const hasResponseSortMetadata = searchResults?.search?.sortBy !== undefined && searchResults.search.sortOrder !== undefined;
     const hasMatchingRequestedHash = searchResults?.search?.hash === queryJSON?.hash;
-    // finallyData stores the requested hash when the request settles, so it remains authoritative even when cached data or old sort metadata remain.
+    // Search's finallyData and GetInsights' successData store the requested hash on response, so it remains authoritative even when cached data or old sort metadata remain.
     const canUseRequestedHash = isTerminal || !hasResponseSortMetadata;
     const hasMatchingHash = (canUseRequestedHash && hasMatchingRequestedHash) || searchResults?.search?.hash === responseAdjustedQueryHash;
 
@@ -7254,6 +7267,8 @@ export {
     isTransactionQuarterGroupListItemType,
     isGroupedItemArray,
     isGroupEntry,
+    isReportEntry,
+    isTransactionEntry,
     isSearchResultsEmpty,
     isTransactionListItemType,
     isReportActionListItemType,
@@ -7340,6 +7355,7 @@ export {
     doesSearchItemMatchSort,
     isPolicyEligibleForSpendOverTime,
     isPolicyEligibleForTopSpenders,
+    isPolicyEligibleForTopCategories,
     hasFlexColumn,
     isTransactionSearchType,
     splitGroupsIntoPairs,

@@ -35,6 +35,7 @@ import {
     getAddedConnectionMessage,
     getApprovalLimitUpdateMessage,
     getAssignedCompanyCardMessage,
+    getAutoCategorizeNewExpensesMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCardConnectionBrokenMessage,
@@ -114,6 +115,7 @@ import {
     getUpdatedDefaultTitleMessage,
     getUpdatedIndividualBudgetNotificationMessage,
     getUpdatedManualApprovalThresholdMessage,
+    getUpdatedMemberWorkArrangementMessage,
     getUpdatedOwnershipMessage,
     getUpdatedProhibitedExpensesMessage,
     getUpdatedReimbursementChoiceMessage,
@@ -228,7 +230,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {
     BankAccountList,
-    Beta,
     Card,
     Download as DownloadOnyx,
     IntroSelected,
@@ -296,7 +297,6 @@ type ShouldShow = (args: {
     reportAction: OnyxEntry<ReportAction>;
     childReportActions: OnyxCollection<ReportAction>;
     isArchivedRoom: boolean;
-    betas: OnyxEntry<Beta[]>;
     menuTarget: RefObject<ContextMenuAnchor> | undefined;
     isChronosReport: boolean;
     reportID?: string;
@@ -363,7 +363,6 @@ type ContextMenuActionPayload = {
     introSelected: OnyxEntry<IntroSelected>;
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
-    betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     isDelegateAccessRestricted?: boolean;
     showDelegateNoAccessModal?: () => void;
@@ -514,7 +513,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
             return !shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
         },
-        onPress: (closePopover, {reportAction, childReport, originalReport, currentUserAccountID, introSelected, betas, isSelfTourViewed, personalDetails, conciergeChat}) => {
+        onPress: (closePopover, {reportAction, childReport, originalReport, currentUserAccountID, introSelected, isSelfTourViewed, personalDetails, conciergeChat}) => {
             const participantsPersonalDetails = getParticipantsPersonalDetails([currentUserAccountID, Number(reportAction.actorAccountID)], personalDetails);
             if (closePopover) {
                 hideContextMenu(false, () => {
@@ -525,7 +524,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                             originalReport,
                             currentUserAccountID,
                             introSelected,
-                            betas,
                             participantsPersonalDetails,
                             isSelfTourViewed,
                             conciergeChat,
@@ -534,7 +532,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 });
                 return;
             }
-            navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, betas, participantsPersonalDetails, isSelfTourViewed, conciergeChat);
+            navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, participantsPersonalDetails, isSelfTourViewed, conciergeChat);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.REPLY_IN_THREAD,
@@ -570,7 +568,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         onPress: (
             closePopover,
-            {reportAction, childReport, originalReport, translate, currentUserPersonalDetails, introSelected, betas, isSelfTourViewed, delegateAccountID, personalDetails, conciergeChat},
+            {reportAction, childReport, originalReport, translate, currentUserPersonalDetails, introSelected, isSelfTourViewed, delegateAccountID, personalDetails, conciergeChat},
         ) => {
             if (!originalReport?.reportID) {
                 return;
@@ -588,7 +586,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                             translate,
                             currentUserAccountID: currentUserPersonalDetails.accountID,
                             introSelected,
-                            betas,
                             conciergeChat,
                             isSelfTourViewed,
                             delegateAccountID,
@@ -607,7 +604,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                 translate,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 introSelected,
-                betas,
                 conciergeChat,
                 isSelfTourViewed,
                 delegateAccountID,
@@ -652,7 +648,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                 reportAction,
                 moneyRequestAction,
                 introSelected,
-                betas,
                 childReportActions,
                 currentUserAccountID,
                 conciergeChat,
@@ -663,7 +658,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (isMoneyRequestAction(reportAction) || isMoneyRequestAction(moneyRequestAction)) {
                 const editExpense = () => {
                     const childReportID = reportAction?.childReportID;
-                    openReport({reportID: childReportID, introSelected, betas, personalDetails, hasReportActions: !!childReportActions, currentUserAccountID, conciergeChat});
+                    openReport({reportID: childReportID, introSelected, personalDetails, hasReportActions: !!childReportActions, currentUserAccountID, conciergeChat});
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 };
                 if (closePopover) {
@@ -844,7 +839,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         onPress: (
             closePopover,
-            {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails, childReportActions, conciergeChat},
+            {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, personalDetails, childReportActions, conciergeChat},
         ) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             if (closePopover) {
@@ -858,7 +853,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                         introSelected,
                         isSelfTourViewed,
                         hasCompletedGuidedSetupFlow,
-                        betas,
                         conciergeChat,
                         prevNotificationPreference: childReportNotificationPreference,
                         personalDetails,
@@ -877,7 +871,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                 introSelected,
                 isSelfTourViewed,
                 hasCompletedGuidedSetupFlow,
-                betas,
                 conciergeChat,
                 prevNotificationPreference: childReportNotificationPreference,
                 personalDetails,
@@ -912,7 +905,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         onPress: (
             closePopover,
-            {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails, childReportActions, conciergeChat},
+            {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, personalDetails, childReportActions, conciergeChat},
         ) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             if (closePopover) {
@@ -926,7 +919,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                         introSelected,
                         isSelfTourViewed,
                         hasCompletedGuidedSetupFlow,
-                        betas,
                         conciergeChat,
                         prevNotificationPreference: childReportNotificationPreference,
                         personalDetails,
@@ -945,7 +937,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                 introSelected,
                 isSelfTourViewed,
                 hasCompletedGuidedSetupFlow,
-                betas,
                 conciergeChat,
                 prevNotificationPreference: childReportNotificationPreference,
                 personalDetails,
@@ -1184,6 +1175,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getAutoPayApprovedReportsEnabledMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED) {
                     Clipboard.setString(getRequireCompanyCardsEnabledMessage(translate, reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_CATEGORIZE_NEW_EXPENSES) {
+                    Clipboard.setString(getAutoCategorizeNewExpensesMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY) {
                     Clipboard.setString(getRequiresCategoryMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG) {
@@ -1436,6 +1429,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getUpdatedDefaultTitleMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING)) {
                     setClipboardMessage(getUpdatedAutoHarvestingMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT)) {
+                    setClipboardMessage(getUpdatedMemberWorkArrangementMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INDIVIDUAL_BUDGET_NOTIFICATION)) {
                     setClipboardMessage(getUpdatedIndividualBudgetNotificationMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SHARED_BUDGET_NOTIFICATION)) {

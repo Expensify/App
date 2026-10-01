@@ -1,8 +1,11 @@
+import ExpenseFormLayoutContext, {dropdownRowsExpenseFormLayout} from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 import ConfirmationFieldList from '@components/MoneyRequestConfirmationListFooter/ConfirmationFieldList';
 import DistanceDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/detailsFields/DistanceDetailsFields';
 import DistanceMapSection from '@components/MoneyRequestConfirmationListFooter/sections/DistanceMapSection';
 import ReceiptSection from '@components/MoneyRequestConfirmationListFooter/sections/ReceiptSection';
 import type {DistanceFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
+
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -20,34 +23,40 @@ function DistanceMapFooter({
     toggleHandlers = {},
     receiptOptions,
 }: DistanceFooterProps) {
+    const styles = useThemeStyles();
+
     return (
-        <View>
-            <DistanceMapSection />
+        <ExpenseFormLayoutContext.Provider value={dropdownRowsExpenseFormLayout}>
+            <View>
+                {visibilityFlags.hasParticipantSection && <View style={[styles.dividerLine, styles.mv2]} />}
 
-            <ReceiptSection
-                policy={policy}
-                {...receiptOptions}
-            />
+                <DistanceMapSection />
 
-            <ConfirmationFieldList
-                policy={policy}
-                policyTags={policyTags}
-                selectedParticipants={selectedParticipants}
-                amountDisplay={amountDisplay}
-                requiredFlags={requiredFlags}
-                visibilityFlags={visibilityFlags}
-                errorState={errorState}
-                toggleHandlers={toggleHandlers}
-            >
-                <DistanceDetailsFields
+                <ReceiptSection
                     policy={policy}
-                    amountDisplay={amountDisplay}
-                    distanceData={distanceData}
-                    isDescriptionRequired={requiredFlags.isDescriptionRequired}
-                    errorState={errorState}
+                    {...receiptOptions}
                 />
-            </ConfirmationFieldList>
-        </View>
+
+                <ConfirmationFieldList
+                    policy={policy}
+                    policyTags={policyTags}
+                    selectedParticipants={selectedParticipants}
+                    amountDisplay={amountDisplay}
+                    requiredFlags={requiredFlags}
+                    visibilityFlags={visibilityFlags}
+                    errorState={errorState}
+                    toggleHandlers={toggleHandlers}
+                >
+                    <DistanceDetailsFields
+                        policy={policy}
+                        amountDisplay={amountDisplay}
+                        distanceData={distanceData}
+                        isDescriptionRequired={requiredFlags.isDescriptionRequired}
+                        errorState={errorState}
+                    />
+                </ConfirmationFieldList>
+            </View>
+        </ExpenseFormLayoutContext.Provider>
     );
 }
 
