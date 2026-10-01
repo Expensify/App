@@ -218,6 +218,7 @@ import {
     shouldDisableRename,
     shouldDisableThread,
     shouldDisplayReportFields,
+    shouldDisplayThreadReplies,
     shouldEnableNegative,
     shouldExcludeAncestorReportAction,
     shouldCreateNewMoneyRequestReport,
@@ -6901,6 +6902,29 @@ describe('ReportUtils', () => {
 
             expect(canEditReportPolicy(expenseReport, reportPolicy)).toBe(false);
             expect(canEditMoneyRequest(moneyRequestAction, transaction, undefined, false, expenseReport, reportPolicy)).toBe(false);
+        });
+    });
+
+    describe('shouldDisplayThreadReplies', () => {
+        it.each([
+            [CONST.REPORT.TYPE.SUPPORT_TICKET, false],
+            [CONST.REPORT.TYPE.CHAT, true],
+            [CONST.REPORT.TYPE.TASK, true],
+        ] as const)('child report type %s shows the replies footer: %s', (childType, expected) => {
+            // Given a parent action whose child report has comments
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(89018),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                childType,
+                childVisibleActionCount: 5,
+                childCommenterCount: 2,
+            };
+
+            // When the parent action is displayed in its original conversation
+            const shouldShowReplies = shouldDisplayThreadReplies(reportAction, false);
+
+            // Then support-ticket previews omit the footer, while other threads keep it
+            expect(shouldShowReplies).toBe(expected);
         });
     });
 
