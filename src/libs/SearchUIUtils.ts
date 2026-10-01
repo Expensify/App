@@ -3681,7 +3681,6 @@ function getQuarterSections(
 }
 
 /**
- * @private
  * Organizes data into List Sections grouped by violation approver for display.
  *
  * Do not use directly, use only via `getSections()` facade.
