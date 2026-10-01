@@ -147,7 +147,7 @@ function SelectionScreen<T = string>({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
 
-    // Keep the pinned selection visible while searching; only applies to searchable selectors.
+    // Keep the pinned selection visible while searching. This Only applies to searchable selectors.
     const isSearchableList = !!textInputOptions;
 
     return (
