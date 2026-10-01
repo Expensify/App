@@ -73,7 +73,7 @@ function SupportTicketView({report, action}: SupportTicketViewProps) {
                             </View>
                         </Tooltip>
                         <View style={[styles.ml3, styles.flex1]}>
-                            <Text style={styles.textStrong}>{supportTicketName}</Text>
+                            <Text style={styles.taskTitleMenuItem}>{supportTicketName}</Text>
                             <Text style={[styles.taskTitleDescription, styles.mt3]}>{translate('task.description')}</Text>
                             <Text>{translate('supportTicket.description', {supportRep: supportRepName})}</Text>
                         </View>
