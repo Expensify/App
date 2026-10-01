@@ -6955,6 +6955,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             removeMemberPrompt: (memberName) => `¿Estás seguro de que deseas eliminar a ${memberName}?`,
             removeMemberTitle: 'Eliminar miembro',
             transferOwner: 'Transferir la propiedad',
+            changeRole: 'Cambiar rol',
             makeMember: () => ({
                 one: 'Convertir en miembro',
                 other: 'Convertir en miembros',

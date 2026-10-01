@@ -1277,6 +1277,14 @@ function setWorkspaceInviteMembersDraft(policyID: string, invitedEmailsToAccount
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, invitedEmailsToAccountIDs);
 }
 
+function setMembersSelectedForRoleChange(memberLogins: string[]) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE, memberLogins);
+}
+
+function clearMembersSelectedForRoleChange() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE, []);
+}
+
 function setWorkspaceInviteRoleDraft(policyID: string, role: ValueOf<typeof CONST.POLICY.ROLE>) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`, role);
 }
@@ -1480,6 +1488,8 @@ export {
     buildRoomMembersOnyxData,
     openPolicyMemberProfilePage,
     setWorkspaceInviteRoleDraft,
+    setMembersSelectedForRoleChange,
+    clearMembersSelectedForRoleChange,
     clearWorkspaceInviteRoleDraft,
     setWorkspaceInviteApproverDraft,
     clearWorkspaceInviteApproverDraft,

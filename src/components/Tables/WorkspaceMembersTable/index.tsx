@@ -1,3 +1,4 @@
+import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
 import compareOptionalValues from '@components/Table/compareOptionalValues';
@@ -52,6 +53,9 @@ type WorkspaceMembersTableProps = {
     shouldShowCustomField2Column: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
+
+    /** The actions the selected members support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<WorkspaceMemberBulkActionType>>;
 };
 
 const WORKSPACE_MEMBER_FILTER_VALUES = {
@@ -75,6 +79,7 @@ export default function WorkspaceMembersTable({
     members,
     onRowSelectionChange,
     headerComponent,
+    bulkActionOptions,
 }: WorkspaceMembersTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -302,6 +307,7 @@ export default function WorkspaceMembersTable({
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
+            {!!bulkActionOptions && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }

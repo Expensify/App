@@ -3,7 +3,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {canMemberAssignRole} from '@libs/PolicyUtils';
+import {getSelectableRoles} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
@@ -15,8 +15,9 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {ListItem} from './SelectionList/types';
+import type {ConfirmButtonOptions, ListItem} from './SelectionList/types';
 
+import FormHelpMessage from './FormHelpMessage';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import SelectionList from './SelectionList';
 import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
@@ -37,9 +38,24 @@ type WorkspaceMemberRoleListProps = {
 
     /** When provided, restricts the selectable roles to this set (e.g. an Authorized Payer may only be an Admin or Payments Admin) */
     allowedRoles?: Array<ValueOf<typeof CONST.POLICY.ROLE>>;
+
+    /** When provided, the list confirms the pick with a button instead of applying it as soon as a row is pressed */
+    confirmButtonOptions?: ConfirmButtonOptions<ListItemType>;
+
+    /** Shown above the confirm button, for a confirmation pressed without a role picked */
+    errorMessage?: string;
 };
 
-function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLoading = false, onSelectRole = () => {}, allowedRoles = undefined}: WorkspaceMemberRoleListProps) {
+function WorkspaceMemberRoleList({
+    role,
+    policy,
+    navigateBackTo = undefined,
+    isLoading = false,
+    onSelectRole = () => {},
+    allowedRoles = undefined,
+    confirmButtonOptions = undefined,
+    errorMessage = '',
+}: WorkspaceMemberRoleListProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
@@ -89,9 +105,8 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
         },
     ];
 
-    const availableRoleItems: ListItemType[] = workspaceRoles.filter(
-        (item) => canMemberAssignRole(policy, currentUserLogin, item.value) && (!allowedRoles || allowedRoles.includes(item.value)),
-    );
+    const selectableRoles = getSelectableRoles(policy, currentUserLogin, allowedRoles);
+    const availableRoleItems: ListItemType[] = workspaceRoles.filter((item) => selectableRoles.includes(item.value));
 
     return (
         <>
@@ -105,10 +120,20 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
                         data={availableRoleItems}
                         ListItem={SingleSelectListItem}
                         onSelectRow={onSelectRole}
+                        confirmButtonOptions={confirmButtonOptions}
                         shouldSingleExecuteRowSelect
                         initiallyFocusedItemKey={availableRoleItems.find((item) => item.isSelected)?.keyForList}
                         addBottomSafeAreaPadding
-                    />
+                    >
+                        {!!errorMessage && (
+                            <View style={[styles.ph3, styles.mb3]}>
+                                <FormHelpMessage
+                                    isError
+                                    message={errorMessage}
+                                />
+                            </View>
+                        )}
+                    </SelectionList>
                 </View>
             )}
         </>

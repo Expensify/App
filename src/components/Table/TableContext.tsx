@@ -55,6 +55,15 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Whether or not selection is enabled for the table */
     selectionEnabled?: boolean;
 
+    /** The keys of the rows the selection currently covers. */
+    selectedKeys: string[];
+
+    /**
+     * Whether the floating bulk action bar is showing for the current selection. The list reads it too, because it has
+     * to reserve the space the bar floats over or its last rows sit behind the bar once scrolled to the bottom.
+     */
+    isBulkActionBarVisible: boolean;
+
     /** Whether the selection UX should key off the real screen size instead of shouldUseNarrowLayout (for tables inside a narrow pane modal / RHP) */
     shouldEnableSelectionInNarrowPaneModal?: boolean;
 
@@ -163,6 +172,8 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     },
     isEmptyResult: false,
     isDefaultViewEmpty: false,
+    selectedKeys: [],
+    isBulkActionBarVisible: false,
     shouldUseNarrowTableLayout: false,
     isMobileSelectionEnabled: false,
 };

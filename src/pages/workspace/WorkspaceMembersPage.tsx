@@ -41,7 +41,7 @@ import {
     downloadMembersCSV,
     openWorkspaceMembersPage,
     removeMembers,
-    updateWorkspaceMembersRole,
+    setMembersSelectedForRoleChange,
 } from '@libs/actions/Policy/Member';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
@@ -56,12 +56,12 @@ import {isPersonalDetailsReady} from '@libs/OptionsListUtils';
 import {getPersonalDetailsByID, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     canEditWorkspaceSettings as canEditWorkspaceSettingsUtil,
-    canMemberAssignRole,
     canMemberManageMemberWithRole,
     canMemberWrite,
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
     getReimburserEmail,
+    getSelectableRoles,
     isControlPolicy,
     isDeletedPolicyEmployee,
     isExpensifyTeam,
@@ -69,6 +69,7 @@ import {
     isPaidGroupPolicy,
     isPolicyApprover,
     isSubmitPolicy,
+    PAYER_ROLES,
     shouldFilterExpensifyTeam,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant, isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
@@ -112,7 +113,7 @@ function invertObject(object: Record<string, string>): Record<string, string> {
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'common.members');
     const tableRef = useRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>(null);
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'User', 'UserEye']);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Sync', 'Table']);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const policyMemberEmailsToAccountIDs = useMemo(
         () => getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true),
@@ -330,7 +331,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     );
 
     const policyOwner = policy?.owner;
-    const canAssignElevatedRoles = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES);
     const invitedPrimaryToSecondaryLogins = useMemo(() => invertObject(policy?.primaryLoginsInvited ?? {}), [policy?.primaryLoginsInvited]);
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
 
@@ -517,22 +517,18 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         onNavigationCallBack: () => Navigation.goBack(),
     });
 
-    const hasSelectedRuleBot = selectedEmployees.some((email) => isRuleBotEnforcingRules(policyMemberEmailsToAccountIDs[email], policy));
+    // The role change happens on its own screen, which reports the change back by emptying the shared selection.
+    // Backing out of that screen leaves the selection in place, so only a drop to zero clears the rows here.
+    const [membersSelectedForRoleChange] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE);
+    const membersSelectedForRoleChangeCount = membersSelectedForRoleChange?.length ?? 0;
+    const [lastMembersSelectedForRoleChangeCount, setLastMembersSelectedForRoleChangeCount] = useState(membersSelectedForRoleChangeCount);
+    if (lastMembersSelectedForRoleChangeCount !== membersSelectedForRoleChangeCount) {
+        setLastMembersSelectedForRoleChangeCount(membersSelectedForRoleChangeCount);
 
-    const changeUserRole = (role: ValueOf<typeof CONST.POLICY.ROLE>) => {
-        if (role !== CONST.POLICY.ROLE.ADMIN && hasSelectedRuleBot) {
-            showRuleBotGuardModal('changeRole', policyID);
-            return;
+        if (lastMembersSelectedForRoleChangeCount > 0 && membersSelectedForRoleChangeCount === 0) {
+            setSelectedEmployees([]);
         }
-        const loginsToUpdate = selectedEmployees.filter((login) => {
-            return policy?.employeeList?.[login]?.role !== role;
-        });
-
-        const accountIDsToUpdate = loginsToUpdate.map((login) => policyMemberEmailsToAccountIDs[login]).filter((id) => id !== undefined);
-
-        setSelectedEmployees([]);
-        updateWorkspaceMembersRole(policy, loginsToUpdate, accountIDsToUpdate, role);
-    };
+    }
 
     const getBulkActionsButtonOptions = () => {
         const selectedEmployeesRoles = selectedEmployees.map((email) => {
@@ -540,6 +536,24 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
         const canManageSelectedEmployees = selectedEmployeesRoles.every((role) => canMemberManageMemberWithRole(policy, currentUserLogin ?? '', role));
         const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [];
+
+        // The Authorized Payer (reimburser) must stay a valid payer, so a selection holding them may only be moved to a role that can pay.
+        const reimburserEmail = getReimburserEmail(policy);
+        const hasAtLeastOnePayer = !!reimburserEmail && selectedEmployees.includes(reimburserEmail);
+        const selectableRoles = getSelectableRoles(policy, currentUserLogin ?? '', hasAtLeastOnePayer ? [...PAYER_ROLES] : undefined);
+
+        if (isPaidGroupPolicy(policy) && canManageSelectedEmployees && selectableRoles.length > 0) {
+            options.push({
+                text: translate('workspace.people.changeRole'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.CHANGE_ROLE,
+                icon: icons.MakeAdmin,
+                shouldSkipFocusRestore: true,
+                onSelected: () => {
+                    setMembersSelectedForRoleChange(selectedEmployees);
+                    Navigation.navigate(ROUTES.WORKSPACE_MEMBERS_ROLE.getRoute(policyID));
+                },
+            });
+        }
 
         if (canManageSelectedEmployees) {
             options.push({
@@ -549,94 +563,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 shouldSkipFocusRestore: true,
                 onSelected: askForConfirmationToRemove,
             });
-        }
-
-        if (!isPaidGroupPolicy(policy)) {
-            return options;
-        }
-
-        const memberOption = {
-            text: translate('workspace.people.makeMember', {count: selectedEmployees.length}),
-            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
-            icon: icons.User,
-            shouldSkipFocusRestore: hasSelectedRuleBot,
-            onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
-        };
-        const adminOption = {
-            text: translate('workspace.people.makeAdmin', {count: selectedEmployees.length}),
-            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
-            icon: icons.MakeAdmin,
-            onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
-        };
-
-        const auditorOption = {
-            text: translate('workspace.people.makeAuditor', {count: selectedEmployees.length}),
-            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_AUDITOR,
-            icon: icons.UserEye,
-            shouldSkipFocusRestore: hasSelectedRuleBot,
-            onSelected: () => changeUserRole(CONST.POLICY.ROLE.AUDITOR),
-        };
-        const cardAdminOption = {
-            text: translate('workspace.people.makeCardAdmin', {count: selectedEmployees.length}),
-            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_CARD_ADMIN,
-            icon: icons.MakeAdmin,
-            shouldSkipFocusRestore: hasSelectedRuleBot,
-            onSelected: () => changeUserRole(CONST.POLICY.ROLE.CARD_ADMIN),
-        };
-        const peopleAdminOption = {
-            text: translate('workspace.people.makePeopleAdmin', {count: selectedEmployees.length}),
-            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_PEOPLE_ADMIN,
-            icon: icons.MakeAdmin,
-            shouldSkipFocusRestore: hasSelectedRuleBot,
-            onSelected: () => changeUserRole(CONST.POLICY.ROLE.PEOPLE_ADMIN),
-        };
-        const paymentsAdminOption = {
-            text: translate('workspace.people.makePaymentsAdmin', {count: selectedEmployees.length}),
-            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_PAYMENTS_ADMIN,
-            icon: icons.MakeAdmin,
-            shouldSkipFocusRestore: hasSelectedRuleBot,
-            onSelected: () => changeUserRole(CONST.POLICY.ROLE.PAYMENTS_ADMIN),
-        };
-
-        const hasAtLeastOneNonAuditorRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.AUDITOR);
-        const hasAtLeastOneNonCardAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.CARD_ADMIN);
-        const hasAtLeastOneNonPeopleAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.PEOPLE_ADMIN);
-        const hasAtLeastOneNonPaymentsAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.PAYMENTS_ADMIN);
-        const hasAtLeastOneNonMemberRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.USER);
-        const hasAtLeastOneNonAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.ADMIN);
-        const reimburserEmail = getReimburserEmail(policy);
-        const hasAtLeastOnePayer = !!reimburserEmail && selectedEmployees.includes(reimburserEmail);
-
-        if (hasAtLeastOneNonMemberRole && !hasAtLeastOnePayer && canManageSelectedEmployees && canMemberAssignRole(policy, currentUserLogin ?? '', CONST.POLICY.ROLE.USER)) {
-            options.push(memberOption);
-        }
-
-        // Admin is a valid payer role, so the payer may be promoted to Admin (Admin and Payments Admin are the two roles that can pay).
-        if (hasAtLeastOneNonAdminRole && canAssignElevatedRoles) {
-            options.push(adminOption);
-        }
-
-        if (
-            hasAtLeastOneNonAuditorRole &&
-            isControlPolicy(policy) &&
-            !hasAtLeastOnePayer &&
-            canManageSelectedEmployees &&
-            canMemberAssignRole(policy, currentUserLogin ?? '', CONST.POLICY.ROLE.AUDITOR)
-        ) {
-            options.push(auditorOption);
-        }
-
-        if (hasAtLeastOneNonCardAdminRole && isControlPolicy(policy) && !hasAtLeastOnePayer && canAssignElevatedRoles) {
-            options.push(cardAdminOption);
-        }
-
-        if (hasAtLeastOneNonPeopleAdminRole && isControlPolicy(policy) && !hasAtLeastOnePayer && canAssignElevatedRoles) {
-            options.push(peopleAdminOption);
-        }
-
-        // Payments Admin is a valid payer role, so the payer may be changed to Payments Admin (Admin and Payments Admin are the two roles that can pay).
-        if (hasAtLeastOneNonPaymentsAdminRole && isControlPolicy(policy) && canAssignElevatedRoles) {
-            options.push(paymentsAdminOption);
         }
 
         return options;
@@ -743,7 +669,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             return null;
         }
         const bulkActionOptions = getBulkActionsButtonOptions();
-        return (shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0) ? (
+
+        // The wide layout offers these actions in the floating bar over the table instead, so its header keeps the
+        // page's own buttons no matter what is selected.
+        return shouldUseNarrowLayout && canSelectMultiple ? (
             <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 shouldAlwaysShowDropdownMenu
@@ -854,6 +783,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         shouldShowCustomField2Column={shouldShowCustomField2Column}
                         onRowSelectionChange={setSelectedEmployees}
                         headerComponent={tableHeaderComponent}
+                        bulkActionOptions={canWriteMembers ? getBulkActionsButtonOptions() : undefined}
                     />
                 </>
             )}
