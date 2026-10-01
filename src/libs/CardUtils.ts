@@ -43,6 +43,7 @@ import type {
 import type {CardFeedErrors} from '@src/types/onyx/DerivedValues';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {Connections} from '@src/types/onyx/Policy';
+import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -58,6 +59,7 @@ import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {CARD_FEED_COLORS, GENERIC_CARD_COLORS} from './CardArtworkColors';
 import DateUtils from './DateUtils';
 import {areAddressAndPersonalDetailsMissing, arePersonalDetailsMissing, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {hasInProgressVBBA} from './ReimbursementAccountUtils';
 import StringUtils from './StringUtils';
 
 /**
@@ -592,6 +594,37 @@ function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAcco
             bankAccount?.bankCurrency === outputCurrency &&
             supportedCountries.includes(bankAccount?.bankCountry),
     );
+}
+
+type ExpensifyCardEnrollmentRouteParams = {
+    /** Policy to do the enrollment on */
+    policyID: string;
+
+    /** Selected policy's outputCurrency */
+    currencyCode: string | undefined;
+
+    /** Return value from useCanEnrollNewExpensifyCardProgram */
+    isUkEuCurrencySupported: boolean;
+
+    /** ONYXKEYS.BANK_ACCOUNT_LIST */
+    bankAccountsList: OnyxEntry<BankAccountList>;
+
+    /** ONYXKEYS.CARD_SUPPORTED_COUNTRIES */
+    supportedCountriesByCurrency: OnyxEntry<Record<string, string[]>>;
+
+    /** ONYXKEYS.REIMBURSEMENT_ACCOUNT ACH data, to know if the user should be shown the bank account setup flow */
+    achData: ACHDataReimbursementAccount | undefined;
+};
+
+/** Returns the next enrollment route based on whether the workspace can use an existing bank account or must add one. */
+function getExpensifyCardEnrollmentRoute({policyID, currencyCode, isUkEuCurrencySupported, bankAccountsList, supportedCountriesByCurrency, achData}: ExpensifyCardEnrollmentRouteParams) {
+    const eligibleBankAccounts = isUkEuCurrencySupported
+        ? getEligibleBankAccountsForUkEuCard(bankAccountsList, supportedCountriesByCurrency, currencyCode)
+        : getEligibleBankAccountsForCard(bankAccountsList);
+    if (!eligibleBankAccounts.length || hasInProgressVBBA(achData, currencyCode !== CONST.CURRENCY.USD, policyID)) {
+        return ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)});
+    }
+    return ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policyID);
 }
 
 /**
@@ -2275,6 +2308,7 @@ export {
     getTranslationKeyForCardStatus,
     maskPin,
     getEligibleBankAccountsForCard,
+    getExpensifyCardEnrollmentRoute,
     sortCardsByCardholderName,
     isCurrencySupportedForECards,
     getCardFeedIcon,

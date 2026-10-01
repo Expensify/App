@@ -1,6 +1,7 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import FieldRequirementSettingRow from '@components/RequireFieldsRules/FieldRequirementSettingRow';
@@ -405,7 +406,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
     // The rule is the set of field requirements on the category, so it only exists once one of them is on, and the
     // category's own pending state is the rule's: while a delete is in flight, deleting again would repeat the writes.
     const isRuleBeingDeleted = !!category && getRequireFieldsPendingActionForCategory(category) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const {deleteHeaderProps} = useRuleDeleteHeaderProps({
+    const {deleteIconButtonProps} = useRuleDeleteHeaderProps({
         canDelete: canWriteRules && isEditing && !!category && categoryHasAnyRequireFieldsRule(category) && !isRuleBeingDeleted,
         onDelete: () => {
             deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(categoryName ?? ''), isVendorMatchingBetaEnabled);
@@ -452,10 +453,9 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.rules.requireFieldsRule.title')}
-                    {...deleteHeaderProps}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.requireFieldsRule.title')}>
+                    {!!deleteIconButtonProps && <Header.IconButton {...deleteIconButtonProps} />}
+                </HeaderWithBackButtonAndTitle>
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.ph5, styles.pv3, styles.gap6]}>
                         <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.requireFieldsRule.subtitle')}</Text>

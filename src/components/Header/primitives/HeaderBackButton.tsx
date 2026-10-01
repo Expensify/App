@@ -1,3 +1,5 @@
+import {useHeaderContext} from '@components/Header/context/HeaderContext';
+
 import useInitialFocusRef from '@hooks/useInitialFocusRef';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -17,15 +19,13 @@ type HeaderBackButtonProps = {
 
     /** Optional fill color for the icon. */
     iconFill?: string;
-
-    /** Whether to skip focus of the back button after the RHP transition (screen reader). */
-    shouldSkipFocusAfterTransition?: boolean;
 };
 
-function HeaderBackButton({onPress = () => Navigation.goBack(), iconFill, shouldSkipFocusAfterTransition = false}: HeaderBackButtonProps) {
+function HeaderBackButton({onPress = () => Navigation.goBack(), iconFill}: HeaderBackButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
+    const {shouldSkipFocusAfterTransition} = useHeaderContext();
     const setBackButtonRef = useInitialFocusRef({shouldSkip: shouldSkipFocusAfterTransition});
 
     return (
@@ -40,7 +40,7 @@ function HeaderBackButton({onPress = () => Navigation.goBack(), iconFill, should
             }}
             iconSrc={icons.BackArrow}
             iconFill={iconFill}
-            // Header makes the space for this button with the padding, so we need to add negative margin to fill the space
+            // Header makes the space for this button with the padding, so we need to add negative margin to fill the space - instead of reducing the padding from pl5 to pl2
             style={styles.mln3}
             id={CONST.BACK_BUTTON_NATIVE_ID}
             sentryLabel={CONST.SENTRY_LABEL.HEADER.BACK_BUTTON}
