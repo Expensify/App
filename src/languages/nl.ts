@@ -7489,7 +7489,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
         export: {
             notReadyHeading: 'Niet klaar om te exporteren',
             notReadyDescription:
-                'Concept- of in behandeling zijnde onkostendeclaraties kunnen niet worden geëxporteerd naar het boekhoudsysteem. Keur deze onkosten goed of betaal ze voordat je ze exporteert.',
+                'Concept- of in behandeling zijnde onkostendeclaraties kunnen niet worden geëxporteerd naar het boekhoudsysteem.\n\nKeur deze onkosten goed of betaal ze voordat je ze exporteert.',
         },
         invoices: {
             sendInvoice: 'Factuur verzenden',

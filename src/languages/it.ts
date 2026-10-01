@@ -7504,7 +7504,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
         },
         export: {
             notReadyHeading: 'Non pronto per l’esportazione',
-            notReadyDescription: 'I report spesa in bozza o in sospeso non possono essere esportati nel sistema contabile. Approva o rimborsa queste spese prima di esportarle.',
+            notReadyDescription: 'I report spesa in bozza o in sospeso non possono essere esportati nel sistema contabile.\n\nApprova o rimborsa queste spese prima di esportarle.',
         },
         invoices: {
             sendInvoice: 'Invia fattura',

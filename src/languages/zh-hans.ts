@@ -7233,7 +7233,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         },
         export: {
             notReadyHeading: '尚未准备好导出',
-            notReadyDescription: '草稿或待处理的报销报告无法导出到会计系统。请在导出前先批准或支付这些报销。',
+            notReadyDescription: '草稿或待处理的报销报告无法导出到会计系统。\n\n请在导出前先批准或支付这些报销。',
         },
         invoices: {
             sendInvoice: '发送发票',

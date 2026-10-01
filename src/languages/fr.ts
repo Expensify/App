@@ -7566,7 +7566,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
         export: {
             notReadyHeading: 'Pas prêt à être exporté',
             notReadyDescription:
-                'Les notes de frais à l’état de brouillon ou en attente ne peuvent pas être exportées vers le système comptable. Veuillez approuver ou payer ces dépenses avant de les exporter.',
+                'Les notes de frais à l’état de brouillon ou en attente ne peuvent pas être exportées vers le système comptable.\n\nVeuillez approuver ou payer ces dépenses avant de les exporter.',
         },
         invoices: {
             sendInvoice: 'Envoyer la facture',
