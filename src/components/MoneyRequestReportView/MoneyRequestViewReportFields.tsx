@@ -164,9 +164,10 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
                     ...field,
                     fieldValue,
                     isFieldDisabled: !isEditable,
-                    // The same rule the report field editor page used for its Delete option, limited to fields that are
-                    // no longer on the workspace.
-                    isFieldDeletable: field.deletable && field.fieldID !== CONST.REPORT_FIELD_TITLE_FIELD_ID && !isFieldOnPolicy && isEditable,
+                    // Only fields that are no longer on the workspace can be deleted. Their `deletable` flag is not
+                    // checked: once the workspace drops a field, whether it was required no longer applies, and the
+                    // report's copy of a date field can still be flagged as not deletable.
+                    isFieldDeletable: field.fieldID !== CONST.REPORT_FIELD_TITLE_FIELD_ID && !isFieldOnPolicy && isEditable,
                     fieldKey,
                     violation,
                     violationTranslation,

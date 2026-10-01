@@ -123,8 +123,7 @@ const buildListField = (): OnyxTypes.PolicyReportField => ({
     disabledOptions: [false, false],
 });
 
-// A field the admin deleted from the workspace. The report keeps its own copy, with `deletable` set, so the value it
-// already held is not lost.
+// A field the admin deleted from the workspace. The report keeps its own copy, so the value it already held is not lost.
 const buildDeletedField = (): OnyxTypes.PolicyReportField => ({
     ...buildTextField(1),
     name: 'DeletedField',
@@ -557,6 +556,19 @@ describe('MoneyRequestViewReportFields', () => {
 
         // And the field that is still on the workspace has no delete button, since removing it would only bring it back
         expect(screen.queryByLabelText('workspace.reportFields.delete, Field1')).not.toBeOnTheScreen();
+    });
+
+    it('shows a delete button on a deleted date field even when its copy on the report is not deletable', async () => {
+        // Given a report holding a date field the admin has since deleted from the workspace, whose copy on the report
+        // is flagged as not deletable
+        await renderReportFields(1, [], false, [
+            {...buildDeletedField(), name: 'DeletedDateField', fieldID: 'deletedDateField', type: CONST.REPORT_FIELD_TYPES.DATE, value: '2026-10-01', deletable: false},
+        ]);
+
+        // When the fields are rendered
+        // Then it still carries a delete button, because the field is gone from the workspace and there is no other
+        // way to clear its stale value off the report
+        expect(screen.getByLabelText('workspace.reportFields.delete, DeletedDateField')).toBeOnTheScreen();
     });
 
     it('deletes the field from the report once the delete is confirmed', async () => {
