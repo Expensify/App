@@ -7,6 +7,7 @@ function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boo
     if (!transaction) {
         return false;
     }
+    // 0 is a valid modifiedAmount so we check all other falsy values
     return transaction.modifiedAmount !== undefined && transaction.modifiedAmount !== null && transaction.modifiedAmount !== '';
 }
 
