@@ -1,8 +1,10 @@
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import {getMemberAccountIDsForWorkspace, getSubmitToAccountID} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyEmployeeList, Report, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
@@ -12,6 +14,10 @@ import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyEmployeeList from '../utils/collections/policyEmployeeList';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+
+function createPersonalDetailsByLogins(policyEmployeeList: PolicyEmployeeList): PersonalDetailsByLogin {
+    return Object.fromEntries(Object.keys(policyEmployeeList).map((login, index) => [login, {accountID: index, login}]));
+}
 
 describe('PolicyUtils', () => {
     afterEach(() => {
@@ -25,7 +31,9 @@ describe('PolicyUtils', () => {
                 () => createRandomPolicyEmployeeList(),
             );
 
-            await measureFunction(() => getMemberAccountIDsForWorkspace(policyEmployeeList, undefined));
+            const personalDetailsByLogins = createPersonalDetailsByLogins(policyEmployeeList);
+
+            await measureFunction(() => getMemberAccountIDsForWorkspace(policyEmployeeList, personalDetailsByLogins));
         });
 
         test('500 policy members with errors and personal details', async () => {
@@ -37,7 +45,9 @@ describe('PolicyUtils', () => {
                 }),
             );
 
-            await measureFunction(() => getMemberAccountIDsForWorkspace(policyEmployeeList, undefined));
+            const personalDetailsByLogins = createPersonalDetailsByLogins(policyEmployeeList);
+
+            await measureFunction(() => getMemberAccountIDsForWorkspace(policyEmployeeList, personalDetailsByLogins));
         });
     });
 
