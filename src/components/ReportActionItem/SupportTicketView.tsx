@@ -76,7 +76,7 @@ function SupportTicketView({report, action}: SupportTicketViewProps) {
                     <View style={[styles.flexRow, styles.alignItemsStart]}>
                         <Tooltip
                             text={translate('supportTicket.checkboxTooltip')}
-                            maxWidth={variables.w130}
+                            maxWidth={variables.w184}
                         >
                             <View>
                                 <Checkbox

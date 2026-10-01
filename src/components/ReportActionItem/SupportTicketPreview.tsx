@@ -87,7 +87,7 @@ function SupportTicketPreview({action, isHovered, style}: SupportTicketPreviewPr
                 >
                     <Tooltip
                         text={translate('supportTicket.checkboxTooltip')}
-                        maxWidth={variables.w130}
+                        maxWidth={variables.w184}
                     >
                         <View>
                             <Checkbox
