@@ -47,7 +47,7 @@ type SearchChartComparison = {
 };
 
 type SearchChartViewProps = {
-    queryJSON: Readonly<SearchQueryJSON>;
+    queryJSON: Readonly<SearchQueryJSON> | undefined;
 
     /** The view type (bar, etc.) */
     view: ChartView;
@@ -98,7 +98,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, comp
 
     const handleItemPress = (index: number, seriesKey: string) => {
         const row = rows.at(index);
-        if (!row) {
+        if (!row || !queryJSON) {
             return;
         }
 

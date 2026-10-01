@@ -1,60 +1,63 @@
-import type {GroupedItem} from '@components/Search/types';
+import type {GroupedItem, SearchQueryJSON} from '@components/Search/types';
 
-import type {InsightsDashboard} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import type {InsightsChartSpec} from './dashboardSpecs';
+import {isSearchDataLoaded} from './SearchUIUtils';
 
 const INSIGHTS_CHART_STATE = {
     LOADING: 'loading',
     READY: 'ready',
     EMPTY: 'empty',
     ERROR: 'error',
+    OFFLINE: 'offline',
 } as const;
 
 type InsightsChartState = ValueOf<typeof INSIGHTS_CHART_STATE>;
 
 type ResolveInsightsChartDataParams = {
-    /** The chart to resolve, as its dashboard declares it */
-    chart: InsightsChartSpec;
-
-    /** The dashboard's stored record, which says what was asked for and what came back */
-    dashboard: OnyxEntry<InsightsDashboard>;
-
-    /** The snapshot the record names for this chart */
+    /** The snapshot stored under the chart's own query, which GetInsights or Search can fill */
     snapshot: OnyxEntry<SearchResults>;
+
+    /** The chart's own query, which says whether the snapshot answers it */
+    queryJSON?: Readonly<SearchQueryJSON>;
 
     /** The snapshot's rows, grouped and sorted the way the chart plots them */
     sortedData: GroupedItem[] | undefined;
 
     /** The previous period's rows, grouped the same way, absent when nothing is compared */
     previousPeriodData?: GroupedItem[];
+
+    /** Whether the device is offline, so a chart with nothing stored can't expect data to arrive */
+    isOffline?: boolean;
 };
 
 type InsightsChartData = {
     /** Rows for the period on screen, empty in every state but `ready` */
     data: GroupedItem[];
 
-    /** Rows for the period before it, absent unless the record named a snapshot for it */
+    /** Rows for the period before it, absent unless that period's snapshot holds data */
     previousPeriodData?: GroupedItem[];
 
     state: InsightsChartState;
 };
 
-/** Resolves one chart's rows and state from the snapshots the dashboard record named for it. */
-function resolveInsightsChartData({chart, dashboard, snapshot, sortedData, previousPeriodData}: ResolveInsightsChartDataParams): InsightsChartData {
-    if (Object.keys(snapshot?.errors ?? {}).length > 0) {
+/** Resolves one chart's rows and state from its snapshot, whether GetInsights or Search loaded it. */
+function resolveInsightsChartData({snapshot, queryJSON, sortedData, previousPeriodData, isOffline = false}: ResolveInsightsChartDataParams): InsightsChartData {
+    const isLoaded = isSearchDataLoaded(snapshot, queryJSON);
+    const hasErrors = Object.keys(snapshot?.errors ?? {}).length > 0;
+
+    if (isOffline && (!isLoaded || hasErrors)) {
+        return {data: [], state: INSIGHTS_CHART_STATE.OFFLINE};
+    }
+
+    if (hasErrors) {
         return {data: [], state: INSIGHTS_CHART_STATE.ERROR};
     }
 
-    if (!dashboard?.graphs?.[chart.graphKey]?.snapshotHash) {
-        return {data: [], state: dashboard?.inputQuery ? INSIGHTS_CHART_STATE.EMPTY : INSIGHTS_CHART_STATE.LOADING};
-    }
-
-    if (!snapshot?.data) {
+    if (!isLoaded) {
         return {data: [], state: INSIGHTS_CHART_STATE.LOADING};
     }
 
@@ -66,4 +69,3 @@ function resolveInsightsChartData({chart, dashboard, snapshot, sortedData, previ
 }
 
 export {INSIGHTS_CHART_STATE, resolveInsightsChartData};
-export type {InsightsChartData};
